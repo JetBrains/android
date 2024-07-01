@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.action.AddKeyAction;
 import com.android.tools.idea.editors.strings.action.AddLocaleAction;
@@ -61,17 +62,20 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
 import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class StringResourceViewPanel implements Disposable {
   private final AndroidFacet myFacet;
 
   private StringResourceTable myTable;
-  private @Nullable Component myToolbar;
+  private @Nullable ActionToolbar myToolbar;
+  private @Nullable Component myToolbarComponent;
   private @Nullable Component myScrollPane;
   private final @NotNull JComponent myXmlLabel;
   @VisibleForTesting final JTextComponent myXmlTextField;
@@ -124,9 +128,29 @@ public class StringResourceViewPanel implements Disposable {
     myLoadingPanel.setName("translationsEditor");
     myLoadingPanel.add(myPanel);
     myLoadingPanel.startLoading();
+    myLoadingPanel.setFocusCycleRoot(true);
+    myLoadingPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy() {
+      // Make the 2 tables feel like a single control by only transferring focus to 1 of them:
+      public Component getComponentBefore(@NotNull Container container, @NotNull Component component) {
+        Component before = super.getComponentBefore(container, component);
+        return myTable.skipTransferTo(before, component) ? super.getComponentBefore(container, before) : before;
+      }
+
+      public Component getComponentAfter(@NotNull Container container, @NotNull Component component) {
+        Component after = super.getComponentAfter(container, component);
+        return myTable.skipTransferTo(after, component) ? super.getComponentAfter(container, after) : after;
+      }
+    });
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ResourceLoadingTask(this).queue();
+    }
+  }
+
+  public void stopLoading() {
+    myLoadingPanel.stopLoading();
+    if (myToolbar != null) {
+      ActionToolbarUtil.makeToolbarNavigable(myToolbar);
     }
   }
 
@@ -229,8 +253,9 @@ public class StringResourceViewPanel implements Disposable {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
     toolbar.setTargetComponent(myLoadingPanel);
 
-    myToolbar = toolbar.getComponent();
-    myToolbar.setName("toolbar");
+    myToolbar = toolbar;
+    myToolbarComponent = toolbar.getComponent();
+    myToolbarComponent.setName("toolbar");
   }
 
   private void initKeyTextField() {
@@ -272,7 +297,7 @@ public class StringResourceViewPanel implements Disposable {
     layout.linkSize(SwingConstants.VERTICAL, myTranslationLabel, myTranslationTextField);
 
     Group horizontalGroup = layout.createParallelGroup()
-      .addComponent(myToolbar)
+      .addComponent(myToolbarComponent)
       .addComponent(myScrollPane)
       .addGroup(layout.createSequentialGroup()
                   .addComponent(myXmlLabel)
@@ -288,7 +313,7 @@ public class StringResourceViewPanel implements Disposable {
                   .addComponent(myTranslationTextField));
 
     Group verticalGroup = layout.createSequentialGroup()
-      .addComponent(myToolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addComponent(myToolbarComponent, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
       .addComponent(myScrollPane)
       .addGroup(layout.createParallelGroup()
                   .addComponent(myXmlLabel)
@@ -334,6 +359,12 @@ public class StringResourceViewPanel implements Disposable {
   @NotNull
   JComponent getPreferredFocusedComponent() {
     return myTable.getScrollableTable();
+  }
+
+  @Nullable
+  @TestOnly
+  public ActionToolbar getToolbar() {
+    return myToolbar;
   }
 
   private final class CellSelectionListener implements FrozenColumnTableListener {

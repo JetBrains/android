@@ -18,9 +18,21 @@ package com.android.tools.idea.editors.strings;
 import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+import static org.mockito.Mockito.when;
 
-import com.android.ide.common.resources.Locale;
+import com.android.tools.idea.editors.strings.action.AddKeyAction;
+import com.android.tools.idea.editors.strings.action.AddLocaleAction;
+import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
+import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager;
+import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.idea.actions.BrowserHelpAction;
+import com.android.tools.idea.editors.strings.action.FilterKeysAction;
+import com.android.tools.idea.editors.strings.action.FilterLocalesAction;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -29,10 +41,14 @@ import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowF
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StringResourceWriter;
+import com.intellij.ide.impl.HeadlessDataManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,10 +58,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
+import javax.swing.SwingUtilities;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link StringResourceViewPanel}.
@@ -211,5 +229,145 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> done.set(true));
     waitForCondition(2, TimeUnit.SECONDS, done::get);
     dispatchAllInvocationEvents();
+  }
+
+  public void testKeyboardNavigation() throws Exception {
+    // Setup data provider for the Translation Editor actions on the toolbar:
+    StringResourceEditor editor = Mockito.mock(StringResourceEditor.class);
+    when(editor.getPanel()).thenReturn(myPanel);
+    HeadlessDataManager dataManager = (HeadlessDataManager)HeadlessDataManager.getInstance();
+    dataManager.setTestDataProvider(new DataProvider() {
+      @Override
+      public @Nullable Object getData(@NotNull @NonNls String dataId) {
+        if (CommonDataKeys.PROJECT.is(dataId)) {
+          return getProject();
+        }
+        if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+          return editor;
+        }
+        return null;
+      }
+    }, getTestRootDisposable());
+
+    // Set the first table to opaque to avoid graphics interaction during scrolling:
+    myTable.getFrozenTable().setOpaque(false);
+
+    // Set a selection to enable more actions:
+    myTable.getFrozenTable().changeSelection(2, 3, false, false);
+
+    // Update all actions:
+    notNull(myPanel.getToolbar()).updateActionsAsync().get();
+
+    // StopLoading will also make the toolbar navigable:
+    myPanel.stopLoading();
+
+    myPanel.getLoadingPanel().setSize(1200, 2000);
+    FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
+
+    FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(getTestRootDisposable());
+    focusManager.setFocusOwner(myTable.getFrozenTable());
+
+    // Tab jumps out of both tables:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("xmlTextField");
+
+    // Back Tab jumps back to the frozen table:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("frozenTable");
+
+    // Back Tab jumps back to the last toolbar button:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(getFocusedActionButton()).isInstanceOf(BrowserHelpAction.class);
+
+    // Tab jumps back to the frozen table:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("frozenTable");
+
+    // Move focus to the scrollable table:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
+
+    // Tab jumps out of both tables:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("xmlTextField");
+
+    // Back Tab jumps back to the scrollable table (since it was the last focused table):
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
+
+    // Back Tab jumps back to the last toolbar button:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(getFocusedActionButton()).isInstanceOf(BrowserHelpAction.class);
+
+    // Tab jumps back to the scrollable table:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
+
+    // Tab jumps out of both tables:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("xmlTextField");
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("keyTextField");
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner().getParent()).getName()).isEqualTo("defaultValueTextField");
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner().getParent()).getName()).isEqualTo("translationTextField");
+
+    // Jumps to toolbar actions:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(AddKeyAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(RemoveKeysAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(AddLocaleAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(FilterKeysAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(FilterLocalesAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(ReloadStringResourcesAction.class);
+
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(getFocusedActionButton()).isInstanceOf(BrowserHelpAction.class);
+
+    // Tab jumps back to the scrollable table:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
+    assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
+  }
+
+  @Nullable
+  private AnAction getFocusedActionButton() {
+    KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    Component[] toolbarButtons = notNull(myPanel.getToolbar()).getComponent().getComponents();
+    for (int i=0; i<toolbarButtons.length; i++) {
+      if (SwingUtilities.isDescendingFrom(focusManager.getFocusOwner(), toolbarButtons[i])) {
+        return myPanel.getToolbar().getActions().get(i);
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  private <T> T notNull(@Nullable T e) {
+    if (e == null) {
+      throw new RuntimeException("Expected to be non null");
+    }
+    return e;
   }
 }

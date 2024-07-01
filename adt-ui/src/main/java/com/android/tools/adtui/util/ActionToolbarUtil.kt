@@ -22,7 +22,9 @@ import com.intellij.util.ui.accessibility.ScreenReader
 import java.awt.Component
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
+import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JPanel
 
 /** Use the extension methods below instead of this object. */
 object ActionToolbarUtil {
@@ -66,6 +68,10 @@ fun ActionToolbar.makeNavigable() {
 private fun Component.makeActionNavigable() {
   if (this is ActionButton || this is JCheckBox) {
     isFocusable = true
+  }
+  else if (this is JPanel && components.firstOrNull() is JButton) {
+    // A ComboBoxAction creates a ComboBoxButton wrapped in a JPanel:
+    components.firstOrNull()?.isFocusable = true
   }
 }
 

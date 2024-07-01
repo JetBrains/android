@@ -27,6 +27,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -57,6 +59,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
   private SubTable<M> myFrozenTable;
   private SubTable<M> myScrollableTable;
+  private SubTable<M> myLastFocusedSubTable;
   private JScrollPane myScrollPane;
   private int rowHeight;
   private int mySelectedRow;
@@ -73,6 +76,7 @@ public class FrozenColumnTable<M extends TableModel> {
     initFrozenTable();
     initScrollableTable();
     initScrollPane();
+    myLastFocusedSubTable = myFrozenTable;
 
     registerActionOverrides();
     new SubTableHoverListener(myFrozenTable, myScrollableTable).install();
@@ -135,6 +139,11 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myFrozenTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myFrozenTable.addFocusListener(new FocusAdapter() {
+      public void focusGained(@NotNull FocusEvent event) {
+        myLastFocusedSubTable = myFrozenTable;
+      }
+    });
   }
 
   private void initScrollableTable() {
@@ -166,6 +175,22 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myScrollableTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myScrollableTable.addFocusListener(new FocusAdapter() {
+      public void focusGained(@NotNull FocusEvent event) {
+        myLastFocusedSubTable = myScrollableTable;
+      }
+    });
+  }
+
+  public boolean skipTransferTo(@NotNull Component toComponent, @NotNull Component fromComponent) {
+    if (fromComponent instanceof SubTable<?>) {
+      // If coming from a SubTable, then skip the next SubTable:
+      return toComponent instanceof SubTable<?>;
+    }
+    else {
+      // If coming from a different control, then skip this SubTable if this is not the last focused SubTable:
+      return toComponent instanceof SubTable<?> && myLastFocusedSubTable != toComponent;
+    }
   }
 
   private static final class HeaderPopupTriggerListener<M extends TableModel> extends MouseAdapter {
