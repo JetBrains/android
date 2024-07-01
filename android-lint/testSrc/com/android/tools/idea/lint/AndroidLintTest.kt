@@ -1479,6 +1479,30 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     )
   }
 
+  fun testApiCheckKotlinExtension() {
+    // Special lint warning which offers quickfix replacement to change code rather than
+    // annotation addition
+    createManifest()
+
+    // NOTE: This test may fail once we upgrade to API 35 (because there is a new
+    // API which then takes over). To fix this, edit
+    // android-lint/testData/lint/apiCheckKotlinExtension.kt
+    // and change
+    // `<warning descr="This Kotlin extension function will be hidden by
+    // `java.util.SequencedCollection` starting in API 35">`
+    // to
+    // `<error descr="Call requires API level 35 (current min is 1): java.util.List#removeFirst
+    // (Prior to API level 35, this call would resolve to a Kotlin stdlib extension function. You
+    // can use remove(index) instead.)">`
+    // (and the corresponding </warning> markers to </error>)
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Replace with removeAt(list.lastIndex)",
+      "/src/p1/p2/SequencedCollections.kt",
+      "kt",
+    )
+  }
+
   fun testExtensionSuppress() {
     createManifest()
     doTestWithFix(
