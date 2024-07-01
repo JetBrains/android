@@ -57,6 +57,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/base/backup:studio.android.sdktools.backup[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )

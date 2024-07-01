@@ -46,6 +46,8 @@
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.common.testfixtures" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.backup" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />

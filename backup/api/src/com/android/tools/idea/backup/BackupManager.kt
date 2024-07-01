@@ -17,6 +17,8 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
+import com.android.backup.BackupProgressListener
+import com.android.backup.BackupResult
 import com.android.tools.idea.run.RunConfigSection
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
@@ -25,21 +27,45 @@ import java.nio.file.Path
 interface BackupManager {
 
   /**
-   * Backup an app to a local file
+   * Backup an app to a local file and show a progress bar
    *
    * @param serialNumber Serial number of a connected device
    * @param applicationId Application ID (package name) of the app
    * @param backupFile A path to write the backup data to
+   * @param notify If true, will post a notification on completion
    */
-  @UiThread fun backup(serialNumber: String, applicationId: String, backupFile: Path)
+  @UiThread
+  fun backupModal(
+    serialNumber: String,
+    applicationId: String,
+    backupFile: Path,
+    notify: Boolean = true,
+  ): BackupResult
 
   /**
-   * Backup an app to a local file
+   * Restore an app from a local file and show a progress dialog
    *
    * @param serialNumber Serial number of a connected device
    * @param backupFile A path to write the backup data to
+   * @param notify If true, will post a notification on completion
    */
-  @UiThread fun restore(serialNumber: String, backupFile: Path)
+  @UiThread
+  fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean = true): BackupResult
+
+  /**
+   * Restore an app from a local file
+   *
+   * @param serialNumber Serial number of a connected device
+   * @param backupFile A path to write the backup data to
+   * @param listener A [BackupProgressListener] that gets called after every step
+   * @param notify If true, will post a notification on completion
+   */
+  suspend fun restore(
+    serialNumber: String,
+    backupFile: Path,
+    listener: BackupProgressListener? = null,
+    notify: Boolean = true,
+  ): BackupResult
 
   /** Display a file chooser dialog for saving a backup file */
   suspend fun chooseBackupFile(nameHint: String): Path?

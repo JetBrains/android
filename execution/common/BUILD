@@ -26,7 +26,9 @@ iml_module(
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/base/backup:studio.android.sdktools.backup[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/backup:intellij.android.backup.api[module]",
     ],
 )
 

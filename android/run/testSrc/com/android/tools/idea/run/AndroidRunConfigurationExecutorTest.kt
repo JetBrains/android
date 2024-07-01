@@ -23,6 +23,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.idevicemanager.IDeviceManagerFactory
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
@@ -31,6 +32,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionException
@@ -52,6 +54,7 @@ import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -77,13 +80,17 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertThrows
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
+import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -108,11 +115,22 @@ class AndroidRunConfigurationExecutorTest {
   val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(cleaner).around(closeables).around(usageTrackerRule).around(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(cleaner)
+    .around(closeables)
+    .around(usageTrackerRule)
+    .around(projectRule)
+    .around(fakeAdb)
+    .around(FlagRule(StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG, true))
 
+  private val mockBackupManager = mock<BackupManager>()
   private val iDeviceManagerFactoryFactory: () -> IDeviceManagerFactory = {
     val adbSession = fakeAdb.createAdbSession(closeables)
     AdbLibIDeviceManagerFactory(adbSession)
+  }
+
+  @Before
+  fun setUp() {
+    projectRule.project.replaceService(BackupManager::class.java, mockBackupManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -137,6 +155,8 @@ class AndroidRunConfigurationExecutorTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.CLEAR_APP_STORAGE = true
     configuration.CLEAR_LOGCAT = true
+    configuration.RESTORE_ENABLED = true
+    configuration.RESTORE_FILE = "foo.backup"
     configuration.executeMakeBeforeRunStepInTest(device)
 
 
@@ -170,6 +190,9 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
+    runBlocking {
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), null, false)
+    }
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not started")
@@ -204,6 +227,8 @@ class AndroidRunConfigurationExecutorTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
     configuration.setLaunchActivity(ACTIVITY_NAME)
+    configuration.RESTORE_ENABLED = true
+    configuration.RESTORE_FILE = "foo.backup"
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
@@ -224,6 +249,9 @@ class AndroidRunConfigurationExecutorTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "waitForProcessTermination")
     assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
+    runBlocking {
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), null, false)
+    }
 
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
     deviceState.stopClient(1234)

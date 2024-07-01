@@ -117,7 +117,9 @@ internal class RestoreFileAction : AnAction() {
   }
 
   private suspend fun Valid.restore(project: Project) {
-    withContext(uiThread) { BackupManager.getInstance(project).restore(serialNumber, backupFile) }
+    withContext(uiThread) {
+      BackupManager.getInstance(project).restoreModal(serialNumber, backupFile)
+    }
   }
 }
 
