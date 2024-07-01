@@ -18,7 +18,7 @@ else
 fi
 
 echo Building!
-mkdir -p out/studio/classes/module
-cp $JPS_WORKSPACE/Test.class out/studio/classes/module/Test.class
+mkdir -p out/studio/classes/test/module.to.test
+mv $JPS_WORKSPACE/com out/studio/classes/test/module.to.test
 mkdir -p out/studio/artifacts/module-tests
-echo tools/idea/out/studio/classes/module > out/studio/artifacts/module-tests/module.to.test.classpath.txt
+echo tools/idea/out/studio/classes/test/module.to.test > out/studio/artifacts/module-tests/module.to.test.classpath.txt
