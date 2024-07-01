@@ -137,8 +137,12 @@ private constructor(
       }
     }
 
-  /** The user should call this to indicate that the parent was deactivated. */
-  fun deactivate() =
+  /**
+   * The user should call this to indicate that the parent was deactivated. If
+   * [deactivateImmediately] is false, part of the deactivation might run later, allowing for a
+   * quicker re-activation.
+   */
+  private fun deactivate(deactivateImmediately: Boolean = false) =
     activationLock.withLock {
       if (!isActive.get()) return
 
@@ -148,13 +152,23 @@ private constructor(
 
       onDeactivate()
 
-      if (PreviewEssentialsModeManager.isEssentialsModeEnabled) {
-        // When in essentials mode, deactivate immediately to free resources.
+      if (deactivateImmediately || PreviewEssentialsModeManager.isEssentialsModeEnabled) {
+        // When in essentials mode or if deactivateImmediately, deactivate immediately to free
+        // resources.
         onDelayedDeactivate()
       } else {
         scheduleDelayed(scopeDisposable, this::delayedDeactivate)
       }
     }
+
+  /**
+   * Call this method to indicate that the parent is being deactivated. The full deactivation might
+   * be delayed allowing for a quick re-activation.
+   */
+  fun deactivate() = deactivate(false)
+
+  /** Call this to indicate that the parent is being deactivated immediately without delay. */
+  internal fun deactivateImmediately() = deactivate(true)
 
   /** Allows to execute code that only makes sense in the active mode. */
   fun <T> executeIfActive(block: CoroutineScope.() -> T): T? = activationScope?.block()
