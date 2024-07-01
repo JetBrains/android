@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.IntUnaryOperator;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -64,9 +65,6 @@ public class FrozenColumnTable<M extends TableModel> {
   @Nullable
   private FrozenColumnTableRowSorter<M> myRowSorter;
 
-  private static final String NEXT_COLUMN_ACTION = "selectNextColumn";
-  private static final String PREVIOUS_COLUMN_ACTION = "selectPreviousColumn";
-
   FrozenColumnTable(@NotNull M model, int frozenColumnCount) {
     myModel = model;
     myFrozenColumnCount = frozenColumnCount;
@@ -76,12 +74,23 @@ public class FrozenColumnTable<M extends TableModel> {
     initScrollableTable();
     initScrollPane();
 
-    myFrozenTable.getActionMap().put(NEXT_COLUMN_ACTION, new SelectNextColumnAction(myFrozenTable, myScrollableTable));
-    myScrollableTable.getActionMap().put(PREVIOUS_COLUMN_ACTION, new SelectPreviousColumnAction(myFrozenTable, myScrollableTable));
+    registerActionOverrides();
     new SubTableHoverListener(myFrozenTable, myScrollableTable).install();
 
     mySelectedRow = -1;
     mySelectedColumn = -1;
+  }
+
+  private void registerActionOverrides() {
+    registerActionOverrides(new ActionTable(myFrozenTable, myFrozenTable, myScrollableTable));
+    registerActionOverrides(new ActionTable(myFrozenTable, myScrollableTable, myScrollableTable));
+  }
+
+  private void registerActionOverrides(@NotNull ActionTable table) {
+    ActionMap map = table.getCurrentTable().getActionMap();
+    for (ActionType type : ActionType.getEntries()) {
+      map.put(type.getActionName(), new TableAction(type, table));
+    }
   }
 
   private void initFrozenTable() {
