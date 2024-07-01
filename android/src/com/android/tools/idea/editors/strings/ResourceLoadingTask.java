@@ -75,11 +75,11 @@ final class ResourceLoadingTask extends Task.Backgroundable {
     assert myStringResourceTableModel != null;
     myPanel.getTable().setModel(myStringResourceTableModel);
 
-    myPanel.getLoadingPanel().stopLoading();
+    myPanel.stopLoading();
   }
 
   @Override
   public void onCancel() {
-    myPanel.getLoadingPanel().stopLoading();
+    myPanel.stopLoading();
   }
 }
