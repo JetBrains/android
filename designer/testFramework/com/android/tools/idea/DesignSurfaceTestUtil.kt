@@ -106,7 +106,6 @@ object DesignSurfaceTestUtil {
     whenever(surface.addModelWithoutRender(any()))
       .thenReturn(CompletableFuture.completedFuture(null))
     whenever(surface.addAndRenderModel(any())).thenReturn(CompletableFuture.completedFuture(null))
-    whenever(surface.configuration).thenReturn(model.configuration)
     whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
     // TODO: NlDesignSurface should not be referenced from here.
