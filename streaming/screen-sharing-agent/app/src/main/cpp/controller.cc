@@ -254,7 +254,7 @@ void Controller::Run() {
 }
 
 void Controller::ProcessMessage(const ControlMessage& message) {
-  if (message.type() != MotionEventMessage::TYPE) { // Exclude
+  if (message.type() != MotionEventMessage::TYPE) { // Exclude motion events from logging.
     Log::I("Controller::ProcessMessage %d", message.type());
   }
   switch (message.type()) {
