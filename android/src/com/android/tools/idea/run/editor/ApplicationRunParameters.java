@@ -5,11 +5,13 @@ package com.android.tools.idea.run.editor;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.backup.BackupManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.android.tools.idea.run.RunConfigSection;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.LaunchOption;
@@ -41,6 +43,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.SmartList;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -73,7 +76,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
   private JBCheckBox myClearAppStorageCheckbox;
+  private JPanel myRestorePanelWrapper;
 
+  private final @Nullable RunConfigSection myRestoreRunConfigSection;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
@@ -134,6 +139,13 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
     myAlwaysInstallWithPmCheckbox.setVisible(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
+
+    if (StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG.get()) {
+      myRestoreRunConfigSection = BackupManager.getInstance(project).getRestoreRunConfigSection(project);
+      myRestorePanelWrapper.add(myRestoreRunConfigSection.getComponent(this), BorderLayout.CENTER);
+    } else {
+      myRestoreRunConfigSection = null;
+    }
   }
 
   private void createUIComponents() {
@@ -235,6 +247,10 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myLaunchOptionCombo.setSelectedItem(launchOption);
     myAmOptionsLabeledComponent.getComponent().setText(configuration.ACTIVITY_EXTRA_FLAGS);
     myDynamicFeaturesParameters.setDisabledDynamicFeatures(configuration.getDisabledDynamicFeatures());
+
+    if (myRestoreRunConfigSection != null) {
+      myRestoreRunConfigSection.resetFrom(configuration);
+    }
   }
 
   @Override
@@ -265,6 +281,12 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     configuration.MODE = launchOption.getId();
     configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
     configuration.setDisabledDynamicFeatures(myDynamicFeaturesParameters.getDisabledDynamicFeatures());
+
+    if (myRestoreRunConfigSection != null) {
+      myRestoreRunConfigSection.applyTo(configuration);
+    } else {
+      configuration.RESTORE_ENABLED = false;
+    }
   }
 
   @NotNull

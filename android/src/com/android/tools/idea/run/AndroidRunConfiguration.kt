@@ -20,11 +20,13 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -117,11 +119,27 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   @JvmField
   var MODE = LAUNCH_DEFAULT_ACTIVITY
 
+  // Restore App options
+  @JvmField
+  var RESTORE_ENABLED = false
+
+  @JvmField
+  var RESTORE_FILE = ""
+
   init {
     for (option in LAUNCH_OPTIONS) {
       myLaunchOptionStates[option.id] = option.createState()
     }
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true)
+  }
+
+  override fun validate(executor: Executor?, quickFixCallback: Runnable?): MutableList<ValidationError> {
+    val errors = super.validate(executor, quickFixCallback)
+    if (StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG.get()) {
+      val section = BackupManager.getInstance(project).getRestoreRunConfigSection(project)
+      errors.addAll(section.validate(this@AndroidRunConfiguration))
+    }
+    return errors
   }
 
   override fun getApplicableDeployTargetProviders(): List<DeployTargetProvider> {

@@ -16,16 +16,33 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.backup.BackupBundle.message
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileTypes.FileType
 import icons.StudioIcons
 
 /** A [FileType] for an Android backup file */
 internal object BackupFileType : FileType {
+  private const val EXT = "backup"
+
+  val FILE_CHOOSER_DESCRIPTOR: FileChooserDescriptor =
+    FileChooserDescriptor(true, false, true, true, false, false)
+      .withTitle(message("backup.choose.restore.file.dialog.title"))
+      .withFileFilter { it.name.endsWith(".$EXT") }
+
+  val FILE_SAVER_DESCRIPTOR: FileSaverDescriptor =
+    FileSaverDescriptor(
+      message("backup.choose.backup.file.dialog.title"),
+      "",
+      BackupFileType.defaultExtension,
+    )
+
   override fun getName() = "Android Backup File"
 
   override fun getDescription() = "Android backup file"
 
-  override fun getDefaultExtension() = "backup"
+  override fun getDefaultExtension() = EXT
 
   // TODO(b/348406593): Replace with dedicated icon
   override fun getIcon() = StudioIcons.Shell.Menu.DATABASE_INSPECTOR

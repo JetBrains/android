@@ -26,15 +26,15 @@ import com.android.backup.RestoreHandler
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
+import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
+import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
 import com.intellij.notification.Notifications
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -49,7 +49,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
-private const val BACKUP_EXT = "backup"
 private const val NOTIFICATION_GROUP = "Backup"
 
 /** Implementation of [BackupManager] */
@@ -95,13 +94,12 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   }
 
   override suspend fun chooseBackupFile(nameHint: String): Path? {
-    val dialog =
+    val path =
       FileChooserFactory.getInstance()
-        .createSaveFileDialog(
-          FileSaverDescriptor(message("backup.choose.backup.file.dialog.title"), "", BACKUP_EXT),
-          project,
-        )
-    val path = dialog.save(getBackupPath(), nameHint)?.file?.toPath()
+        .createSaveFileDialog(FILE_SAVER_DESCRIPTOR, project)
+        .save(getBackupPath(), nameHint)
+        ?.file
+        ?.toPath()
     if (path != null) {
       setBackupPath(path)
     }
@@ -109,12 +107,8 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   }
 
   override fun chooseRestoreFile(): Path? {
-    val descriptor =
-      FileChooserDescriptor(true, false, true, true, false, false)
-        .withTitle(message("backup.choose.restore.file.dialog.title"))
-        .withFileFilter { it.name.endsWith(".$BACKUP_EXT") }
     return FileChooserFactory.getInstance()
-      .createFileChooser(descriptor, project, null)
+      .createFileChooser(FILE_CHOOSER_DESCRIPTOR, project, null)
       .choose(project)
       .firstOrNull()
       ?.toNioPath()
@@ -129,6 +123,8 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
       return null
     }
   }
+
+  override fun getRestoreRunConfigSection(project: Project) = RestoreRunConfigSection(project)
 
   private fun BackupResult.notify(operation: String) {
     when (this) {

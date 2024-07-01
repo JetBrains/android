@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/backup:intellij.android.backup.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
@@ -56,5 +57,6 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
