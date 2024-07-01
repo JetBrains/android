@@ -412,6 +412,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   override fun onDeactivate() = lifecycleManager.deactivate()
 
+  /**
+   * Same as [onDeactivate] but forces an immediate deactivation without any delay. Only for
+   * testing.
+   */
+  @TestOnly internal fun onDeactivateImmediately() = lifecycleManager.deactivateImmediately()
+
   override fun restorePrevious() = previewModeManager.restorePrevious()
 
   override fun setMode(mode: PreviewMode) {
