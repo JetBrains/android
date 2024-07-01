@@ -289,8 +289,7 @@ public class ViewGroupHandler extends ViewHandler {
   @Nullable
   public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
-                                                      @NotNull NlComponent parent,
-                                                      @NotNull AccessoryPanelVisibility callback) {
+                                                      @NotNull NlComponent parent) {
     return null;
   }
 
@@ -319,9 +318,4 @@ public class ViewGroupHandler extends ViewHandler {
    */
   public void addReferences(@NotNull NlComponent component, @NotNull List<String> ids, @Nullable String before) {
   }
-
-  public interface AccessoryPanelVisibility {
-    void show(@NotNull AccessoryPanel.Type type, boolean show);
-  }
-
 }
