@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.projectsystem.LINKED_ANDROID_MODULE_GROUP
-import com.android.tools.idea.projectsystem.LinkedAndroidModuleGroup
+import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
+import com.android.tools.idea.projectsystem.LinkedAndroidGradleModuleGroup
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -43,7 +43,7 @@ object ModuleUtil {
    * Do not use this method outside of project system code.
    *
    * This method is used to link all modules that come from the same Gradle project.
-   * It uses user data under the [LINKED_ANDROID_MODULE_GROUP] key to store an instance of [LinkedAndroidModuleGroup] on each module.
+   * It uses user data under the [LINKED_ANDROID_GRADLE_MODULE_GROUP] key to store an instance of [LinkedAndroidGradleModuleGroup] on each module.
    *
    * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
    * @return if android module group was successfully linked
@@ -52,7 +52,7 @@ object ModuleUtil {
   fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): Boolean {
     val holderModule = dataToModuleMap(data) ?: return false
     // Clear the links, this prevents old links from being used
-    holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
+    holderModule.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
 
     val possibleSourceSetNames = if (ExternalSystemApiUtil.find(this, KotlinTargetData.KEY)?.data?.externalName == "android") {
       val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.findParent(this, ProjectKeys.PROJECT)?.let {
@@ -80,12 +80,12 @@ object ModuleUtil {
       return false
     }
 
-    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule, ideArtifactNameToModule[IdeArtifactName.UNIT_TEST],
-                                                      ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST],
-                                                      ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES],
-                                                      ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST])
+    val androidModuleGroup = LinkedAndroidGradleModuleGroup(holderModule, mainModule, ideArtifactNameToModule[IdeArtifactName.UNIT_TEST],
+                                                            ideArtifactNameToModule[IdeArtifactName.ANDROID_TEST],
+                                                            ideArtifactNameToModule[IdeArtifactName.TEST_FIXTURES],
+                                                            ideArtifactNameToModule[IdeArtifactName.SCREENSHOT_TEST])
     androidModuleGroup.getModules().forEach { module ->
-      module.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
+      module.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
     }
     return true
   }
@@ -96,8 +96,8 @@ object ModuleUtil {
 
   @JvmStatic
   fun Module.unlinkAndroidModuleGroup() {
-    val androidModuleGroup = getUserData(LINKED_ANDROID_MODULE_GROUP) ?: return
-    androidModuleGroup.getModules().filter { !it.isDisposed }.forEach { it.putUserData(LINKED_ANDROID_MODULE_GROUP, null) }
+    val androidModuleGroup = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) ?: return
+    androidModuleGroup.getModules().filter { !it.isDisposed }.forEach { it.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null) }
   }
 
   @JvmStatic

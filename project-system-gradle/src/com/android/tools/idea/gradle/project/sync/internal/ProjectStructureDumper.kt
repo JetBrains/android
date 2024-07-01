@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.projectsystem.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.projectsystem.LinkedAndroidModuleGroup
+import com.android.tools.idea.projectsystem.LinkedAndroidGradleModuleGroup
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
@@ -120,7 +120,7 @@ fun ProjectDumper.dump(module: Module) {
     groups?.forEach { group ->
       prop("- ModuleGroupPath") { group }
     }
-    module.getUserData(LINKED_ANDROID_MODULE_GROUP)?.let { dump(it) }
+    module.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.let { dump(it) }
     val externalPropertyManager = ExternalSystemModulePropertyManager.getInstance(module)
     prop("ExternalModuleGroup") { externalPropertyManager.getExternalModuleGroup() }
     prop("ExternalModuleType") { externalPropertyManager.getExternalModuleType() }
@@ -497,15 +497,15 @@ private fun ProjectDumper.dump(testModuleProperties: TestModuleProperties?) {
   }
 }
 
-private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGroup) {
+private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGradleModuleGroup) {
   head("LINKED_ANDROID_MODULE_GROUP") { null }
   nest {
-    prop("holder") { linkedAndroidModuleGroup.holder.name }
-    prop("main") { linkedAndroidModuleGroup.main.name }
-    prop("unitTest") { linkedAndroidModuleGroup.unitTest?.name }
-    prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
-    prop("testFixtures") { linkedAndroidModuleGroup.testFixtures?.name }
-    prop("screenshotTest") { linkedAndroidModuleGroup.screenshotTest?.name }
+    prop("holder") { linkedAndroidGradleModuleGroup.holder.name }
+    prop("main") { linkedAndroidGradleModuleGroup.main.name }
+    prop("unitTest") { linkedAndroidGradleModuleGroup.unitTest?.name }
+    prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.name }
+    prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.name }
+    prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.name }
   }
 }
 
