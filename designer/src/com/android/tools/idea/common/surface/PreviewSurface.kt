@@ -39,7 +39,9 @@ import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
@@ -50,9 +52,14 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
+import javax.swing.JComponent
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.Timer
 import kotlin.concurrent.withLock
+
+private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
+private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
 
 /**
  * TODO Once [DesignSurface] is converted to kt, rename [PreviewSurface] back to [DesignSurface].
@@ -63,6 +70,55 @@ abstract class PreviewSurface<T : SceneManager>(
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
 ) : EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener {
+
+  private val mouseClickDisplayPanel = MouseClickDisplayPanel(parentDisposable = this)
+
+  private val progressPanel =
+    SurfaceProgressPanel(parentDisposable = this, ::useSmallProgressIcon).apply {
+      name = "Layout Editor Progress Panel"
+    }
+
+  private val progressIndicators: MutableSet<ProgressIndicator> = HashSet()
+
+  val layeredPane: JComponent =
+    JLayeredPane().apply {
+      setFocusable(true)
+      add(progressPanel, LAYER_PROGRESS)
+      add(mouseClickDisplayPanel, LAYER_MOUSE_CLICK)
+    }
+
+  /**
+   * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
+   * surface.
+   */
+  fun enableMouseClickDisplay() {
+    mouseClickDisplayPanel.isEnabled = true
+  }
+
+  /** Disables the mouse click display. */
+  fun disableMouseClickDisplay() {
+    mouseClickDisplayPanel.isEnabled = false
+  }
+
+  fun registerIndicator(indicator: ProgressIndicator) {
+    if (project.isDisposed || Disposer.isDisposed(this)) {
+      return
+    }
+    synchronized(progressIndicators) {
+      if (progressIndicators.add(indicator)) {
+        progressPanel.showProgressIcon()
+      }
+    }
+  }
+
+  fun unregisterIndicator(indicator: ProgressIndicator) {
+    synchronized(progressIndicators) {
+      progressIndicators.remove(indicator)
+      if (progressIndicators.isEmpty()) {
+        progressPanel.hideProgressIcon()
+      }
+    }
+  }
 
   init {
     isOpaque = true
