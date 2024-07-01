@@ -21,7 +21,10 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
+import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.LintIssueProvider
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -343,6 +346,12 @@ abstract class PreviewSurface<T : SceneManager>(
   val layoutType: DesignerEditorFileType
     get() = model?.type ?: DefaultDesignerFileType
 
+  /**
+   * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
+   */
+  val isEditable: Boolean
+    get() = layoutType.isEditable()
+
   override fun getConfigurations(): ImmutableCollection<Configuration> {
     return models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
   }
@@ -402,5 +411,16 @@ abstract class PreviewSurface<T : SceneManager>(
     }
 
     return callback
+  }
+
+  private var lintIssueProvider: LintIssueProvider? = null
+  val issueModel: IssueModel = IssueModel(this, project)
+
+  fun setLintAnnotationsModel(model: LintAnnotationsModel) {
+    lintIssueProvider?.let { it.lintAnnotationsModel = model }
+
+    if (lintIssueProvider == null) {
+      lintIssueProvider = LintIssueProvider(model).also { issueModel.addIssueProvider(it) }
+    }
   }
 }
