@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
@@ -40,6 +41,8 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -258,6 +261,35 @@ class SelectedTabStateTest {
       selectedTabState.tabComponents.tabContentPanelContainer,
       emulatorView,
     )
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLayoutInspectorIsInDataContext() {
+    val container = JPanel()
+    val content = JPanel()
+    container.add(content)
+
+    val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
+    val selectedTabState =
+      SelectedTabState(
+        displayViewRule.project,
+        DeviceId.ofPhysicalDevice("tab"),
+        tabsComponents,
+        layoutInspector,
+      )
+
+    val inspector1 =
+      DataManager.getDataProvider(selectedTabState.layoutInspectorRenderer)
+        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+    assertThat(inspector1).isNotNull()
+
+    Disposer.dispose(selectedTabState)
+
+    val inspector2 =
+      DataManager.getDataProvider(selectedTabState.layoutInspectorRenderer)
+        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as? LayoutInspector
+    assertThat(inspector2).isNull()
   }
 
   private fun testConfiguration(uiConfig: UiConfig) {
