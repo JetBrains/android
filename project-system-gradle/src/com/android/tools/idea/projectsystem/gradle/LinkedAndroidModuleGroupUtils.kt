@@ -52,3 +52,5 @@ fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
 
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest
+fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
+fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
