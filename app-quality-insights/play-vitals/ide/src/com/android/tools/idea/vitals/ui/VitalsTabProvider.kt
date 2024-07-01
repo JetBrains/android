@@ -57,9 +57,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
         // Combine with active user flow to get the logged out -> logged in + not authorized update
         val loginService = service<GoogleLoginService>()
         val flow =
-          if (loginService.useOldVersion) configManager.configuration
-          else
-            configManager.configuration.combine(loginService.activeUserFlow) { config, _ -> config }
+          configManager.configuration.combine(loginService.activeUserFlow) { config, _ -> config }
         flow.collect { appInsightsModel ->
           when (appInsightsModel) {
             AppInsightsModel.Unauthenticated -> {
