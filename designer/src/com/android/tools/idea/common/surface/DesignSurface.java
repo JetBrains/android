@@ -814,18 +814,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     notifyComponentActivate(component);
   }
 
-  public void notifyComponentActivate(@NotNull NlComponent component) {
-    activatePreferredEditor(component);
-  }
-
-  protected void activatePreferredEditor(@NotNull NlComponent component) {
-    for (DesignSurfaceListener listener : getListeners()) {
-      if (listener.activatePreferredEditor(this, component)) {
-        break;
-      }
-    }
-  }
-
+  public void notifyComponentActivate(@NotNull NlComponent component) {}
   /**
    * The editor has been activated
    */

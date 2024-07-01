@@ -80,7 +80,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private final NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
   VirtualFile myMotionSceneFile;
-  ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
 
@@ -127,8 +126,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   public MotionAccessoryPanel(@NotNull NlDesignSurface surface,
-                              @NotNull NlComponent parent,
-                              @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
+                              @NotNull NlComponent parent) {
     if (DEBUG) {
       Debug.log("MotionAccessoryPanel created: " + this + "  parent: " + parent);
     }
@@ -136,7 +134,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myProject = surface.getProject();
     myMotionLayoutNlComponent = parent;
     myMotionLayoutTag = new NlComponentTag(parent, null);
-    mVisibility = visibility;
     MotionLayoutComponentHelper.clearCache();
     myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();

@@ -231,8 +231,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, border)
   }
 
-  override fun activatePreferredEditor(surface: DesignSurface<*>, component: NlComponent) = false
-
   // ---- Implements ModelListener ----
   override fun modelDerivedDataChanged(model: NlModel) {
     ApplicationManager.getApplication().invokeLater {
