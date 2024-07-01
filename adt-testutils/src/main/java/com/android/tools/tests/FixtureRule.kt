@@ -15,10 +15,18 @@
  */
 package com.android.tools.tests
 
+import com.intellij.ide.SaveAndSyncHandler
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.toNioPathOrNull
+import com.intellij.openapi.vfs.refreshAndFindVirtualDirectory
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -26,6 +34,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
+import java.io.File
 
 /**
  * Rule that sets up a basic fixture for adding/opening files, etc. but without anything
@@ -39,10 +48,24 @@ interface FixtureRule : TestRule {
   val disposable: Disposable
 
   companion object {
-    /** Create a [FixtureRule]. */
-    fun create(): FixtureRule {
+    /** Create a [FixtureRule] with an in-memory fake file system. */
+    fun create() = inMemory()
+
+    /** Create a [FixtureRule] with an in-memory fake file system. */
+    fun inMemory(): FixtureRule {
       val projectRule = ProjectRule()
-      val fixtureRule = FixtureRuleImpl(projectRule::project)
+      val fixtureRule = FixtureRuleWithLightTempDir(projectRule::project)
+      return createChain(projectRule, fixtureRule)
+    }
+
+    /** Create a [FixtureRule] using a temp directory on disk. */
+    fun onDisk(): FixtureRule {
+      val projectRule = ProjectRule()
+      val fixtureRule = FixtureRuleWithTempDir(projectRule::project)
+      return createChain(projectRule, fixtureRule)
+    }
+
+    private fun createChain(projectRule: ProjectRule, fixtureRule: FixtureRuleBase): FixtureRule {
       val chain = RuleChain.outerRule(projectRule).around(fixtureRule)
       return object : FixtureRule, TestRule by chain {
         override val projectIfOpened: ProjectEx?
@@ -64,17 +87,8 @@ interface FixtureRule : TestRule {
   }
 }
 
-private class FixtureRuleImpl(
-  /**
-   * This must be a supplier because the project might not be ready when this object is constructed.
-   */
-  private val projectSupplier: () -> Project
-) : ExternalResource() {
-  val fixture by lazy {
-    val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(projectSupplier().name)
-    factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
-  }
+private sealed class FixtureRuleBase : ExternalResource() {
+  abstract val fixture: CodeInsightTestFixture
 
   override fun before() {
     fixture.setUp()
@@ -82,5 +96,49 @@ private class FixtureRuleImpl(
 
   override fun after() {
     fixture.tearDown()
+  }
+}
+
+/** Fixture that uses a fake file system in memory. */
+private open class FixtureRuleWithLightTempDir(
+  /**
+   * This must be a supplier because the project might not be ready when this object is constructed.
+   */
+  private val projectSupplier: () -> Project
+) : FixtureRuleBase() {
+  override val fixture by lazy {
+    val factory = IdeaTestFixtureFactory.getFixtureFactory()
+    val projectBuilder = factory.createLightFixtureBuilder(projectSupplier().name)
+    factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
+  }
+}
+
+/** Fixture that uses a temp directory in the real file system. */
+private class FixtureRuleWithTempDir(
+  /**
+   * This must be a supplier because the project might not be ready when this object is constructed.
+   */
+  private val projectSupplier: () -> Project
+) : FixtureRuleBase() {
+  override val fixture by lazy {
+    val factory = IdeaTestFixtureFactory.getFixtureFactory()
+    val projectBuilder = factory.createLightFixtureBuilder(projectSupplier().name)
+    factory.createCodeInsightFixture(projectBuilder.fixture, factory.createTempDirTestFixture())
+  }
+
+  override fun before() {
+    super.before()
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      addContentRootToTempDir(fixture.project.modules.single())
+    }
+  }
+
+  private fun addContentRootToTempDir(module: Module) {
+    val model = ModuleRootManager.getInstance(module).modifiableModel
+    val nioPath = checkNotNull(fixture.tempDirFixture.tempDirPath.toNioPathOrNull()) { "TempDir path is invalid!" }
+    val dir = checkNotNull(nioPath.refreshAndFindVirtualDirectory()) { "Directory $nioPath does not exist!" }
+    model.addContentEntry(dir)
+    ApplicationManager.getApplication().runWriteAction(model::commit)
+    SaveAndSyncHandler.getInstance().scheduleProjectSave(fixture.project)
   }
 }
