@@ -202,7 +202,7 @@ class CommonPreviewRepresentationTest {
         !previewRepresentation.isInvalidatedForTest()
       }
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
     }
 
   @Test
@@ -253,7 +253,7 @@ class CommonPreviewRepresentationTest {
     }
 
     assertEquals("compilationSucceeded (compiledFiles=1)", testTracker.logOutput())
-    previewRepresentation.onDeactivate()
+    previewRepresentation.onDeactivateImmediately()
   }
 
   @Test
@@ -269,7 +269,7 @@ class CommonPreviewRepresentationTest {
       assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
       assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
 
-      preview.onDeactivate()
+      preview.onDeactivateImmediately()
     }
   }
 
@@ -282,7 +282,7 @@ class CommonPreviewRepresentationTest {
       previewRepresentation.compileAndWaitForRefresh()
 
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
 
       val blockingRefresh = blockRefreshManager()
 
@@ -306,7 +306,7 @@ class CommonPreviewRepresentationTest {
 
       assertFalse(previewRepresentation.isInvalidatedForTest())
       var blockingRefresh = blockRefreshManager()
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
       // Quality refresh on deactivation to decrease qualities
       delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
         refreshManager.getTotalRequestsInQueueForTest() == 1
@@ -343,7 +343,7 @@ class CommonPreviewRepresentationTest {
       assertEquals(ZoomConstants.MIN_SCALE, surface.zoomController.minScale, 0.001)
       assertEquals(ZoomConstants.MAX_SCALE, surface.zoomController.maxScale, 0.001)
 
-      preview.onDeactivate()
+      preview.onDeactivateImmediately()
     }
   }
 
