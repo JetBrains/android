@@ -28,11 +28,16 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.intellij.ide.ui.laf.darcula.DarculaLaf;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.lang.reflect.Field;
 import java.util.Map;
+import javax.swing.JComponent;
+import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ActionsToolbarTest extends LayoutTestCase {
@@ -60,6 +65,26 @@ public class ActionsToolbarTest extends LayoutTestCase {
     toolbar.updateActions();
     PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     assertThat(cache.size()).isAtMost(initialSize);
+  }
+
+  public void testNorthAndNorthEastToolbarBackgroundsMatchParentBackground() throws Exception {
+    // Regression test for b/346941702
+    ActionsToolbar toolbar = createToolbar();
+    ActionToolbar northToolbar = toolbar.getNorthToolbar();
+    ActionToolbar northEastToolbar = toolbar.getNorthToolbar();
+    assertNotNull(northToolbar);
+    assertNotNull(northEastToolbar);
+    JComponent parentComponent = toolbar.getToolbarComponent();
+    JComponent northToolbarComponent = northToolbar.getComponent();
+    JComponent northEastToolbarComponent = northEastToolbar.getComponent();
+
+    assertEquals(parentComponent.getBackground().getRGB(), northToolbarComponent.getBackground().getRGB());
+    assertEquals(parentComponent.getBackground().getRGB(), northEastToolbarComponent.getBackground().getRGB());
+
+    EdtTestUtil.runInEdtAndWait(() -> UIManager.setLookAndFeel(new DarculaLaf()));
+
+    assertEquals(parentComponent.getBackground().getRGB(), northToolbarComponent.getBackground().getRGB());
+    assertEquals(parentComponent.getBackground().getRGB(), northEastToolbarComponent.getBackground().getRGB());
   }
 
   private ActionsToolbar createToolbar() {

@@ -54,8 +54,14 @@ import org.jetbrains.annotations.TestOnly
 class ActionsToolbar(private val parent: Disposable, private val surface: DesignSurface<*>) :
   DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener, ModelListener {
   val toolbarComponent: JComponent
-  private var northToolbar: ActionToolbar? = null
-  private var northEastToolbar: ActionToolbar? = null
+
+  @get:TestOnly
+  var northToolbar: ActionToolbar? = null
+    private set
+
+  @get:TestOnly
+  var northEastToolbar: ActionToolbar? = null
+    private set
 
   @get:TestOnly
   var centerToolbar: ActionToolbarImpl? = null
