@@ -450,12 +450,12 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
 }
 
 /**
- * This class, along with the key [LINKED_ANDROID_MODULE_GROUP] is used to track and group modules
+ * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
  * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
  * to all Android modules.  This class should not be accessed directly from outside the Gradle project system (but
  * is unfortunately more widely accessible for historical reasons).
  */
-data class LinkedAndroidModuleGroup(
+data class LinkedAndroidGradleModuleGroup(
   val holder: Module,
   val main: Module,
   val unitTest: Module?,
@@ -470,25 +470,25 @@ data class LinkedAndroidModuleGroup(
 }
 
 /**
- * Key used to store [LinkedAndroidModuleGroup] on all modules that are part of the same Gradle project.  This key should
+ * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project.  This key should
  * not be accessed from outside the Gradle project system (but is unfortunately more widely-accessible for historical reasons.)
  */
-val LINKED_ANDROID_MODULE_GROUP = Key.create<LinkedAndroidModuleGroup>("linked.android.module.group")
+val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
 
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
 
 fun Module.isHolderModule() : Boolean = getHolderModule() == this
 
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_MODULE_GROUP)?.main ?: this
+fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_MODULE_GROUP)?.screenshotTest
+fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
 
 fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
 
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_MODULE_GROUP)?.androidTest
+fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 

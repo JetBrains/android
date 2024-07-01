@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.projectsystem.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
@@ -24,16 +24,16 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-fun Module.getAllLinkedModules() : List<Module> = getUserData(LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
+fun Module.getAllLinkedModules() : List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.getModules() ?: listOf(this)
 fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_MODULE_GROUP)?.testFixtures
+fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
  * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures)
  * or the holder module used as the parent of these source set modules.
  */
-fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_MODULE_GROUP) != null
+fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) != null
 
 /** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
 fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
@@ -51,4 +51,4 @@ fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
 }
 
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
-fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_MODULE_GROUP)?.unitTest
+fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest
