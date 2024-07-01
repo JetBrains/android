@@ -452,7 +452,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   @Nullable
   private static Module getModule(@Nullable DesignSurface<?> designSurface) {
     Configuration configuration =
-      designSurface != null && designSurface.getLayoutType().isEditable() ? designSurface.getConfiguration() : null;
+      designSurface != null && designSurface.getLayoutType().isEditable()
+      ? designSurface.getConfigurations().stream().findFirst().orElse(null)
+      : null;
     ConfigurationManager manager = configuration != null ? ConfigurationManager.getFromConfiguration(configuration) : null;
     return manager != null ? manager.getModule() : null;
   }

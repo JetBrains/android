@@ -19,11 +19,9 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.Iterables;
 import java.awt.LayoutManager;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A layout editor design surface.
@@ -34,15 +32,6 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
 
   public EditorDesignSurface(LayoutManager layout) {
     super(layout);
-  }
-
-  /**
-   * @deprecated use {@link #getConfigurations()} instead. Using this method means that you won't support multi-model configurations
-   */
-  @Deprecated
-  @Nullable
-  public Configuration getConfiguration() {
-    return Iterables.getFirst(getConfigurations(), null);
   }
 
   /**

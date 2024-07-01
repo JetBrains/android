@@ -38,6 +38,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -61,13 +62,18 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return myParentFixture;
   }
 
+  @Nullable
+  private Configuration getConfiguration() {
+    return mySurface.getConfigurations().stream().findFirst().orElse(null);
+  }
+
   /**
    * Requires the orientation name to be the given name (typically Portrait or Landscape)
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireOrientation(@NotNull String name) {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
-      Configuration configuration = mySurface.getConfiguration();
+      Configuration configuration = getConfiguration();
       if (configuration != null) {
         State deviceState = configuration.getDeviceState();
         if (deviceState != null) {
@@ -88,7 +94,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireApiLevel(@NotNull String apiLevel) {
     Wait.seconds(1).expecting("API level to be updated").until(() -> {
-      Configuration configuration = mySurface.getConfiguration();
+      Configuration configuration = getConfiguration();
       return configuration != null && apiLevel.equals(TargetMenuAction.getRenderingTargetLabel(configuration.getTarget(), true));
     });
     return this;
@@ -132,7 +138,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireDensity(@NotNull String density) {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
-      Configuration configuration = mySurface.getConfiguration();
+      Configuration configuration = getConfiguration();
       if (configuration != null) {
         Device device = configuration.getDevice();
         return device != null && density.equals(device.getDefaultState().getHardware().getScreen().getPixelDensity().getResourceValue());
@@ -172,7 +178,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireDevice(@NotNull String id) {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
-      Configuration configuration = mySurface.getConfiguration();
+      Configuration configuration = getConfiguration();
       if (configuration != null) {
         Device device = configuration.getDevice();
         return device != null && id.equals(device.getId());
