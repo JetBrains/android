@@ -2274,7 +2274,7 @@ MODULE                        : project.ads-sdk-implementation
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -2292,7 +2292,7 @@ MODULE                        : project.ads-sdk-implementation
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2310,7 +2310,7 @@ MODULE                        : project.ads-sdk-implementation
                     backendThreads                : 1
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : ads-sdk-implementation_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5475,7 +5475,7 @@ MODULE                        : project.feature
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -5493,7 +5493,7 @@ MODULE                        : project.feature
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5511,7 +5511,7 @@ MODULE                        : project.feature
                     backendThreads                : 1
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : feature_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
