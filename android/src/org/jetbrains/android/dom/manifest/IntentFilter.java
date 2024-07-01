@@ -29,6 +29,8 @@ public interface IntentFilter extends ManifestElement {
   @SubTagList("data")
   List<Data> getDataElements();
 
+  List<UriRelativeFilterGroup> getUriRelativeFilterGroups();
+
   Action addAction();
 
   Category addCategory();

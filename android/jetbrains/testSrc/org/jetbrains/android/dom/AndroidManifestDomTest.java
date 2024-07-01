@@ -657,6 +657,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testIntentUriRelativeFilterGroupHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
   /* b/144507473
   public void testIntentCategoryDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
@@ -723,6 +727,20 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
    * Test that "data" tag is completed as a subtag of "intent-filter"
    */
   public void testDataTagCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that <uri-relative-filter-group> tag is completed as a subtag of <intent-filter>.
+   */
+  public void testUriRelativeFilterGroupCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that <data> tag is completed as a subtag of <uri-relative-filter-group>.
+   */
+  public void testUriRelativeFilterGroupDataCompletion() throws Throwable {
     doTestCompletion();
   }
 
