@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
@@ -73,6 +74,7 @@ import kotlinx.coroutines.launch
 private val CONSOLE_LOCK = Any()
 private const val CONSOLE_VIEW = "ConsoleView"
 private const val EMPTY_STATE_PANEL = "EmptyStatePanel"
+private val LINE_0_REGEX = Regex("\\((.*):0\\)")
 
 data class StackTraceConsoleState(
   val connection: Connection? = null,
@@ -215,7 +217,7 @@ class StackTraceConsole(
         )
         val startOffset = consoleView.contentSize
         for (frame in stack.stacktrace.frames) {
-          val frameLine = "    ${frame.rawSymbol}\n"
+          val frameLine = "    ${frame.withReplacedRawSymbolIfNecessary()}\n"
           consoleView.print(frameLine, frame.blame.getConsoleViewContentType())
         }
         val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
@@ -299,6 +301,19 @@ class StackTraceConsole(
   }
 
   override fun dispose() = Unit
+
+  /** Replace the :0 from the [Frame.rawSymbol] for [Frame]s that point to line 0 */
+  private fun Frame.withReplacedRawSymbolIfNecessary() =
+    when (line) {
+      0L ->
+        LINE_0_REGEX.replace(rawSymbol) {
+          when (it.groupValues.last().isEmpty()) {
+            true -> ""
+            false -> "(${it.groupValues.last()})"
+          }
+        }
+      else -> rawSymbol
+    }
 }
 
 class ListenerForTracking(
