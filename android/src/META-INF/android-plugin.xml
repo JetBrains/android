@@ -614,7 +614,6 @@
     <notificationGroup id="Feature Survey" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Essentials Mode" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Import Android Test Results" displayType="BALLOON" />
-    <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
