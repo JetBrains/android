@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
 import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
@@ -52,6 +51,7 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -474,5 +475,20 @@ public final class BuildModelContext {
     @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
     if (rootPath == null) return null;
     return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
+  }
+
+  // TODO AS Koala 2024.1.2 Canary 7 Merge
+  /*
+  This function was copied from
+  com.android.tools.idea.Projects, which lives in android-common.
+  Depending from gradle-dsl to android-common might not be desirable becasue this dependency will
+  bring in a lot of transitive dependencies (e.g. K1 and K2)
+   */
+  @NotNull
+  private static File getBaseDirPath(@NotNull Project project) {
+    if (project.isDefault()) {
+      return new File("");
+    }
+    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
   }
 }
