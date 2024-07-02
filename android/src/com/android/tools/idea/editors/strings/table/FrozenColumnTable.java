@@ -54,8 +54,8 @@ public class FrozenColumnTable<M extends TableModel> {
   private final int myFrozenColumnCount;
   private final Collection<FrozenColumnTableListener> myListeners;
 
-  private SubTable myFrozenTable;
-  private SubTable myScrollableTable;
+  private SubTable<M> myFrozenTable;
+  private SubTable<M> myScrollableTable;
   private JScrollPane myScrollPane;
   private int rowHeight;
   private int mySelectedRow;
@@ -89,7 +89,7 @@ public class FrozenColumnTable<M extends TableModel> {
     myFrozenTable.setName("frozenTable");
 
     IntUnaryOperator converter = IntUnaryOperator.identity();
-    myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
+    myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
       if (myFrozenTable.getSelectionModel().getMinSelectionIndex() == -1) {
@@ -125,7 +125,7 @@ public class FrozenColumnTable<M extends TableModel> {
       }
     });
 
-    myFrozenTable.addMouseListener(new CellPopupTriggerListener(converter));
+    myFrozenTable.addMouseListener(new CellPopupTriggerListener<>(converter));
   }
 
   private void initScrollableTable() {
@@ -133,7 +133,7 @@ public class FrozenColumnTable<M extends TableModel> {
     myScrollableTable.setName("scrollableTable");
 
     IntUnaryOperator converter = viewColumnIndex -> myFrozenTable.getColumnCount() + viewColumnIndex;
-    myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
+    myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
       if (myScrollableTable.getSelectionModel().getMinSelectionIndex() == -1) {
