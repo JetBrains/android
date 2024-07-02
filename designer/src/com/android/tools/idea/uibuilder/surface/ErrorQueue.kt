@@ -44,8 +44,18 @@ import kotlinx.collections.immutable.toImmutableList
 
 /** [MergingUpdateQueue] to update */
 class ErrorQueue(private val parentDisposable: Disposable, private val project: Project) {
-  private val errorQueueLock = Any()
-  private lateinit var queue: MergingUpdateQueue
+  private val queue: MergingUpdateQueue by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      MergingUpdateQueue(
+        "android.error.computation",
+        200,
+        true,
+        null,
+        parentDisposable,
+        null,
+        Alarm.ThreadToUse.POOLED_THREAD,
+      )
+    }
 
   fun updateErrorDisplay(
     scannerControl: LayoutScannerControl?,
@@ -62,7 +72,7 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
       "Do not hold read lock when calling updateErrorDisplay!"
     }
 
-    getOrCreateQueue().cancelAllUpdates()
+    queue.cancelAllUpdates()
     val errorUpdate =
       ErrorUpdate(
         scannerControl,
@@ -73,23 +83,7 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
         sceneManagers,
         project,
       )
-    getOrCreateQueue().queue(errorUpdate)
-  }
-
-  private fun getOrCreateQueue(): MergingUpdateQueue {
-    synchronized(errorQueueLock) {
-      queue =
-        MergingUpdateQueue(
-          "android.error.computation",
-          200,
-          true,
-          null,
-          parentDisposable,
-          null,
-          Alarm.ThreadToUse.POOLED_THREAD,
-        )
-      return queue
-    }
+    queue.queue(errorUpdate)
   }
 
   private class ErrorUpdate(
