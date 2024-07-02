@@ -135,7 +135,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    * Otherwise, it will be the ScreenViewPanel container.
    */
   @NotNull private final JComponent myContentContainerPane;
-  @NotNull private final DesignSurfaceViewport myViewport;
+  @NotNull protected final DesignSurfaceViewport myViewport;
   @NotNull private final JLayeredPane myLayeredPane;
   @NotNull protected final SceneViewPanel mySceneViewPanel;
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
