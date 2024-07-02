@@ -220,31 +220,18 @@ internal class DeviceConfigTest {
 
   @Test
   fun testReferenceDevicesIdInjection() {
-    assertEquals(
-      "_device_class_phone",
-      parseDeviceSpec("spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420")!!
-        .deviceId,
-    )
+    assertEquals("_device_class_phone", parseDeviceSpec("spec:width=411dp,height=891dp")!!.deviceId)
     assertEquals(
       "_device_class_foldable",
-      parseDeviceSpec(
-          "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420"
-        )!!
-        .deviceId,
+      parseDeviceSpec("spec:width=673dp,height=841dp")!!.deviceId,
     )
     assertEquals(
       "_device_class_tablet",
-      parseDeviceSpec(
-          "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240"
-        )!!
-        .deviceId,
+      parseDeviceSpec("spec:width=1280dp,height=800dp,dpi=240")!!.deviceId,
     )
     assertEquals(
       "_device_class_desktop",
-      parseDeviceSpec(
-          "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160"
-        )!!
-        .deviceId,
+      parseDeviceSpec("spec:width=1920dp,height=1080dp,dpi=160")!!.deviceId,
     )
   }
 }
