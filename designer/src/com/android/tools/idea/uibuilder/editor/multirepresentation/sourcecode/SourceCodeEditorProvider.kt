@@ -23,8 +23,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.lightEdit.LightEdit
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -40,7 +40,6 @@ import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ThrowableComputable
@@ -49,6 +48,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.XmlSerializer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jdom.Attribute
 import org.jdom.Element
 import org.jetbrains.annotations.TestOnly
@@ -105,59 +107,23 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     )
   }
 
-  override fun createEditorAsync(
-    project: Project,
-    file: VirtualFile,
-  ): AsyncFileEditorProvider.Builder {
-    if (log.isDebugEnabled) {
-      log.debug("createEditorAsync file=${file.path}")
-    }
-
-    // createEditorAsync is called in a background thread. Slow operations
-    // need to happen here and the builder will be called in the UI thread.
-    val psiFile = runReadAction { PsiManager.getInstance(project).findFile(file)!! }
-    @Suppress("UnstableApiUsage")
-    val textEditorBuilder = runBlockingCancellable {
-      PsiAwareTextEditorProvider().createEditorBuilder(project, file, document = null)
-    }
-
-    return object : AsyncFileEditorProvider.Builder() {
-      override fun build(): FileEditor =
-        buildSourceCodeEditorWithMultiRepresentationPreview(
-          project,
-          psiFile,
-          textEditorBuilder.build() as TextEditor,
-        )
-    }
-  }
-
-  @Suppress("UnstableApiUsage")
-  override suspend fun createEditorBuilder(
-    project: Project,
-    file: VirtualFile,
-    document: Document?,
-  ): AsyncFileEditorProvider.Builder {
-    if (log.isDebugEnabled) {
-      log.debug("createEditorBuilder file=${file.path}")
-    }
-
-    // createEditorBuilder is called in a background thread. Slow operations
-    // need to happen here and the builder will be called in the UI thread.
+  override suspend fun createFileEditor(project: Project,
+                                        file: VirtualFile,
+                                        document: Document?,
+                                        editorCoroutineScope: CoroutineScope): FileEditor {
+    val textEditor = PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
     val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
-    val textEditorBuilder =
-      PsiAwareTextEditorProvider().createEditorBuilder(project, file, document = document)
 
-    return object : AsyncFileEditorProvider.Builder() {
-      override fun build(): FileEditor =
-        buildSourceCodeEditorWithMultiRepresentationPreview(
-          project,
-          psiFile,
-          textEditorBuilder.build() as TextEditor,
-        )
+    return withContext(Dispatchers.EDT) {
+      buildSourceCodeEditorWithMultiRepresentationPreview(
+        project,
+        psiFile,
+        textEditor,
+      )
     }
   }
 
-  // This method is being replaced by the platform to use createEditorAsync.
+  // This method is being replaced by the platform to use createFileEditor.
   // For now, the platform requires keeping this implementation but it will not be called if the
   // createEditorAsync method is available.
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
