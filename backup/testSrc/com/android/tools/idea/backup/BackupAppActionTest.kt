@@ -51,7 +51,7 @@ internal class BackupAppActionTest {
   val rule =
     RuleChain(
       projectRule,
-      FlagRule(StudioFlags.BACKUP_SHOW_BACKUP_ACTION_IN_MAIN_TOOLBAR, true),
+      FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
     )
 
@@ -69,7 +69,7 @@ internal class BackupAppActionTest {
 
   @Test
   fun update_flagDisabled() {
-    StudioFlags.BACKUP_SHOW_BACKUP_ACTION_IN_MAIN_TOOLBAR.override(false)
+    StudioFlags.BACKUP_ENABLED.override(false)
     val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
     val event = testEvent(project)
 

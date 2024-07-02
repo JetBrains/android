@@ -481,4 +481,4 @@ class AndroidRunConfigurationExecutor(
 private val AndroidRunConfiguration.deployOptions
   get() = DeployOptions(disabledDynamicFeatures, PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM)
 
-fun AndroidRunConfiguration.isRestoreEnabled() = StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG.get() && RESTORE_ENABLED
+fun AndroidRunConfiguration.isRestoreEnabled() = StudioFlags.BACKUP_ENABLED.get() && RESTORE_ENABLED

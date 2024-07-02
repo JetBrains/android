@@ -140,7 +140,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
     myAlwaysInstallWithPmCheckbox.setVisible(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
 
-    if (StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG.get()) {
+    if (StudioFlags.BACKUP_ENABLED.get()) {
       myRestoreRunConfigSection = BackupManager.getInstance(project).getRestoreRunConfigSection(project);
       myRestorePanelWrapper.add(myRestoreRunConfigSection.getComponent(this), BorderLayout.CENTER);
     } else {

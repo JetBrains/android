@@ -2122,35 +2122,12 @@ public final class StudioFlags {
 
   // region Backup
   private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
-  public static final Flag<Boolean> BACKUP_SHOW_ACTIONS_IN_DEVICE_EXPLORER =
+  public static final Flag<Boolean> BACKUP_ENABLED =
     new BooleanFlag(
       BACKUP,
-      "show.in.device.explorer",
-      "Show backup & restore actions in Device Explorer",
-      "Show backup & restore actions in Device Explorer",
-      false);
-
-  public static final Flag<Boolean> BACKUP_SHOW_RESTORE_ACTION_IN_PROJECT_VIEW =
-    new BooleanFlag(
-      BACKUP,
-      "show.in.project.view",
-      "Show restore action in project view",
-      "Show restore action in project view",
-      false);
-
-  public static final Flag<Boolean> BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG =
-    new BooleanFlag(
-      BACKUP,
-      "show.in.run.config",
-      "Show restore section in run config",
-      "Show restore section in run config",
-      false);
-  public static final Flag<Boolean> BACKUP_SHOW_BACKUP_ACTION_IN_MAIN_TOOLBAR =
-    new BooleanFlag(
-      BACKUP,
-      "show.in.maintoolbar",
-      "Show backup action in main toolbar",
-      "Show backup action in main toolbar",
+      "enable",
+      "Enable Backup/Restore feature",
+      "Enable Backup/Restore feature",
       false);
   // endregion Backup
 
