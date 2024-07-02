@@ -33,6 +33,9 @@ private const val heightPx = 26
 /** Offset to parent's width. */
 private const val widthOffsetPx = 30
 
+/** Maximum width allowed for the header */
+private const val maxHeaderWidth = 5000
+
 /** Size required for this component in layout. */
 private val requiredSize = JBDimension(100, heightPx)
 
@@ -48,7 +51,12 @@ class SceneViewHeader(
     add(createComposeHeader(organizationGroup), BorderLayout.CENTER)
 
     fun updateSize() {
-      size = Dimension(parentContainer.width - scale(widthOffsetPx), scale(heightPx))
+      // b/348183767: When resizing the header, we dynamically adjust the compose component's size.
+      // However, due to a known Skiko issue (https://github.com/JetBrains/skiko/issues/950),
+      // excessively large values can cause silent failures. To mitigate this, we limit the header's
+      // maximum width.
+      val maxParent = minOf(maxHeaderWidth, parentContainer.width)
+      size = Dimension(maxParent - scale(widthOffsetPx), scale(heightPx))
     }
     updateSize()
 
