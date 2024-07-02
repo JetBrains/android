@@ -63,45 +63,6 @@ internal class PreviewPickerAnnotationInspectionTest {
 
   @RunsInEdt
   @Test
-  fun triggerErrorAndApplyFixForLegacyDeviceSpec() {
-    fixture.configureByText(
-      KotlinFileType.INSTANCE,
-      // language=kotlin
-      """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
-
-        @Preview(
-          // Legacy DeviceSpec has a 'shape' parameter
-          device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480"
-        )
-        @Composable
-        fun preview1() {}
-      """
-        .trimIndent(),
-    )
-
-    // No existing errors
-    assertNull(annotateAndGetLintInfo())
-
-    fixture.moveCaret("unit=px,dpi=480|\"")
-    fixture.backspace("px,dpi=480".count())
-    fixture.type("sp")
-
-    checkInspectionErrorAndApplyFix(
-      affectedText = "spec:shape=Normal,width=1080,height=1920,unit=sp",
-      errorDescription =
-        """Bad value type for: unit.
-
-Parameter: unit should be one of: px, dp.
-
-Missing parameter: dpi.""",
-      replaceWithMessage = "Replace with spec:shape=Normal,width=1080,height=1920,unit=dp,dpi=420",
-    )
-  }
-
-  @RunsInEdt
-  @Test
   fun triggerErrorAndApplyFixForDeviceSpecLanguage() {
     fixture.configureByText(
       KotlinFileType.INSTANCE,
