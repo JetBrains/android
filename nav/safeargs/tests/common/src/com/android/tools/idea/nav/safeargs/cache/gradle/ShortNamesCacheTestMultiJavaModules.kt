@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
@@ -44,6 +45,7 @@ class ShortNamesCacheTestMultiJavaModules {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.SIMPLE_JAVA_PROJECT)
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
 
   /**
@@ -56,6 +58,7 @@ class ShortNamesCacheTestMultiJavaModules {
   @Test
   fun multiModuleTest() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val cache = PsiShortNamesCache.getInstance(fixture.project)
 
     // Check light arg classes
