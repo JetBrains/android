@@ -24,6 +24,8 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="android.sdktools.backup" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="intellij.android.backup.api" />
   </component>
 </module>

@@ -10,6 +10,7 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.backup" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

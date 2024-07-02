@@ -38,6 +38,7 @@ import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.restoreAppFromFile
 import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
@@ -110,6 +111,10 @@ class AndroidRunConfigurationExecutor(
       }
       if (configuration.CLEAR_APP_STORAGE) {
         clearAppStorage(project, it, applicationId, RunStats.from(env))
+      }
+      if (configuration.isRestoreEnabled()) {
+        indicator.text = "Restoring app data"
+        restoreAppFromFile(project, it, configuration.RESTORE_FILE, RunStats.from(env))
       }
       LaunchUtils.initiateDismissKeyguard(it)
     }
@@ -213,6 +218,10 @@ class AndroidRunConfigurationExecutor(
     }
     if (configuration.CLEAR_APP_STORAGE) {
       clearAppStorage(project, device, applicationId, RunStats.from(env))
+    }
+    if (configuration.isRestoreEnabled()) {
+      indicator.text = "Restoring app data"
+      restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
@@ -471,3 +480,5 @@ class AndroidRunConfigurationExecutor(
 
 private val AndroidRunConfiguration.deployOptions
   get() = DeployOptions(disabledDynamicFeatures, PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM)
+
+fun AndroidRunConfiguration.isRestoreEnabled() = StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG.get() && RESTORE_ENABLED
