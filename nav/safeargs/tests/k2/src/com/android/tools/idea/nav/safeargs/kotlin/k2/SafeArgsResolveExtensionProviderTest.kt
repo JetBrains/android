@@ -23,6 +23,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
 import org.jetbrains.kotlin.analysis.project.structure.KtModule
 import org.jetbrains.kotlin.analysis.project.structure.KtSdkModule
@@ -31,6 +32,7 @@ import org.jetbrains.kotlin.idea.base.projectStructure.getMainKtSourceModule
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(KaExperimentalApi::class)
 @RunsInEdt
 class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTest() {
 
