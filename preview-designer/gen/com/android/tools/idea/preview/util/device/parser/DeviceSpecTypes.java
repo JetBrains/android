@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-// ATTENTION: This file has been automatically generated from something.bnf. Do not edit it manually.
+// ATTENTION: This file has been automatically generated from
+// preview-designer/src/com/android/tools/idea/preview/util/device/parser/device.bnf.
+// Do not edit it manually.
 package com.android.tools.idea.preview.util.device.parser;
 
 import com.intellij.psi.tree.IElementType;
