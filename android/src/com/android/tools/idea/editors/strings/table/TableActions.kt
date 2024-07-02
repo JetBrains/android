@@ -43,6 +43,8 @@ enum class ActionType(val actionName: String) {
   PREVIOUS_COLUMN_ACTION("selectPreviousColumn"),
   NEXT_COLUMN_EXTEND_SELECTION_ACTION("selectNextColumnExtendSelection"),
   PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION("selectPreviousColumnExtendSelection"),
+  NEXT_COLUMN_CELL_ACTION("selectNextColumnCell"),
+  PREVIOUS_COLUMN_CELL_ACTION("selectPreviousColumnCell")
 }
 
 /**
@@ -60,6 +62,8 @@ class TableAction(private val type: ActionType, private val table: ActionTable):
       ActionType.PREVIOUS_COLUMN_ACTION -> goto(column - 1, table.currentTable, extend = false)
       ActionType.NEXT_COLUMN_EXTEND_SELECTION_ACTION -> goto(column + 1, table.currentTable, extend = true)
       ActionType.PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION -> goto(column - 1, table.currentTable, extend = true)
+      ActionType.NEXT_COLUMN_CELL_ACTION -> table.rightTable.transferFocus()
+      ActionType.PREVIOUS_COLUMN_CELL_ACTION -> table.leftTable.transferFocusBackward()
     }
   }
 
