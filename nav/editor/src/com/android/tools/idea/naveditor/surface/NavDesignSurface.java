@@ -612,9 +612,9 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     @SwingCoordinate Dimension swingViewportSize = getExtentSize();
 
     @SwingCoordinate int swingStartCenterXInViewport =
-      Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getScrollPosition().x;
+      Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getPannable().getScrollPosition().x;
     @SwingCoordinate int swingStartCenterYInViewport =
-      Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
+      Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getPannable().getScrollPosition().y;
 
     @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
     @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);

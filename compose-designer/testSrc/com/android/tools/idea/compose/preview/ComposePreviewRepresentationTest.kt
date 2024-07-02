@@ -22,6 +22,7 @@ import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
 import com.android.tools.idea.common.model.NlModel
@@ -538,6 +539,7 @@ class ComposePreviewRepresentationTest {
       val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
       whenever(surfaceMock.analyticsManager).thenReturn(mock<NlAnalyticsManager>())
       whenever(surfaceMock.sceneManagers).thenReturn(ImmutableList.of())
+      whenever(surfaceMock.pannable).thenReturn(TestPannable())
       val composeView = TestComposePreviewView(surfaceMock)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
