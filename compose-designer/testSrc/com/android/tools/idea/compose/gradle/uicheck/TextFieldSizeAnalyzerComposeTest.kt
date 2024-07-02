@@ -46,7 +46,7 @@ class TextFieldSizeAnalyzerComposeTest {
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview",
             configuration =
               PreviewConfiguration.cleanAndGet(
-                device = "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" // Tablet
+                device = "spec:width=1280dp,height=800dp,dpi=240" // Tablet
               ),
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
@@ -78,7 +78,7 @@ class TextFieldSizeAnalyzerComposeTest {
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview",
             configuration =
               PreviewConfiguration.cleanAndGet(
-                device = "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" // Tablet
+                device = "spec:width=1280dp,height=800dp,dpi=240" // Tablet
               ),
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
