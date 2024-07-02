@@ -28,6 +28,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtParameterSymbol
@@ -43,6 +44,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@OptIn(KaExperimentalApi::class)
 @RunWith(Parameterized::class)
 @RunsInEdt
 class ArgsClassResolveExtensionTest(
