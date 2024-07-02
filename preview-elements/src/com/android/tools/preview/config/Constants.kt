@@ -82,7 +82,7 @@ object Preview {
     val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
     val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
     val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
-    val DEFAULT_DPI: Int = ReferencePhoneConfig.dpi
+    const val DEFAULT_DPI: Int = 420
     val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
     const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
     val DEFAULT_ORIENTATION = Orientation.portrait
