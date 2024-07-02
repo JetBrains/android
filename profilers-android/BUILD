@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/profilers:test_data",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
