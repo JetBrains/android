@@ -34,7 +34,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
-import icons.StudioIcons
 import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
@@ -46,7 +45,7 @@ import kotlinx.coroutines.withContext
 class VitalsTabProvider : AppInsightsTabProvider {
   override val displayName = VITALS_KEY.displayName
 
-  override val icon = StudioIcons.Avd.DEVICE_PLAY_STORE
+  override val icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
