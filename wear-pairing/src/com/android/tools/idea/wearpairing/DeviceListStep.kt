@@ -66,7 +66,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 
 internal const val WEAR_DOCS_LINK =
-  "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
+  "https://developer.android.com/training/wearables/get-started/connect-phone"
 
 class DeviceListStep(
   model: WearDevicePairingModel,
