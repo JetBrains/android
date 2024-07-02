@@ -42,6 +42,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
@@ -171,8 +172,10 @@ class EmbeddedCompilerClientImpl private constructor(
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
+          @OptIn(KaExperimentalApi::class)
           val result = backendCodeGenForK2(inputFile, inputFile.module)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+          @OptIn(KaExperimentalApi::class)
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
             it.writeTo(outputDirectory)
           }
