@@ -47,7 +47,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -117,6 +121,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
              AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
     }
 
+    @OptIn(KtAllowAnalysisOnEdt::class)
     internal fun anyTopLevelKtRule(psiElement: PsiElement): String? {
       // Find class body
       val topLevelClass = if (psiElement is KtClass) {
@@ -133,22 +138,27 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Analyzes the class to check each property to see if there is at least a BaselineProfileRule applied.
-      return analyze(topLevelClass) {
-        ktProperties
-          .filter { prop ->
-            // Check that this property has a rule annotation applied and that the parent class node is the
-            // same of the method (to ensure both method and rule are in the same class).
-            prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
-            PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
-          }.firstNotNullOfOrNull { prop ->
-            // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
-            // gets extended.
-            PsiTreeUtil
-              .findChildOfType(prop, KtCallExpression::class.java)
-              ?.getKtType()
-              ?.asStringForDebugging()
-              ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+      return allowAnalysisOnEdt {
+        @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        allowAnalysisFromWriteAction {
+          analyze(topLevelClass) {
+            ktProperties
+              .filter { prop ->
+                // Check that this property has a rule annotation applied and that the parent class node is the
+                // same of the method (to ensure both method and rule are in the same class).
+                prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
+                PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
+              }.firstNotNullOfOrNull { prop ->
+                // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
+                // gets extended.
+                PsiTreeUtil
+                  .findChildOfType(prop, KtCallExpression::class.java)
+                  ?.getKtType()
+                  ?.asStringForDebugging()
+                  ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+              }
           }
+        }
       }
     }
 
