@@ -33,6 +33,14 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitParam(o);
   }
 
+  public void visitCutoutParam(@NotNull DeviceSpecCutoutParam o) {
+    visitParam(o);
+  }
+
+  public void visitCutoutT(@NotNull DeviceSpecCutoutT o) {
+    visitPsiElement(o);
+  }
+
   public void visitDpiParam(@NotNull DeviceSpecDpiParam o) {
     visitParam(o);
   }
@@ -51,6 +59,14 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
 
   public void visitNameParam(@NotNull DeviceSpecNameParam o) {
     visitParam(o);
+  }
+
+  public void visitNavigationParam(@NotNull DeviceSpecNavigationParam o) {
+    visitParam(o);
+  }
+
+  public void visitNavigationT(@NotNull DeviceSpecNavigationT o) {
+    visitPsiElement(o);
   }
 
   public void visitOrientationParam(@NotNull DeviceSpecOrientationParam o) {
