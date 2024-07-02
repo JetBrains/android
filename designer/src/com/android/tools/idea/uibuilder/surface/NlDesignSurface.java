@@ -222,7 +222,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @UiThread
   public void onLayoutUpdated(SurfaceLayoutOption layoutOption) {
-    if (mySceneViewPanel != null) {
+    if (mySceneViewPanel != null && myViewport != null) {
       setSceneViewAlignment(layoutOption.getSceneViewAlignment());
       setScrollPosition(0, 0);
       revalidateScrollArea();
