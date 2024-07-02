@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.wearpairing.PairingConnectionsState
 import com.android.tools.idea.wearpairing.PairingDeviceState
 import com.android.tools.idea.wearpairing.WearPairingManager
@@ -127,6 +128,116 @@ class WearableDeviceActionsTest {
         ),
       )
     unpairAction.update(event)
+    assertTrue(event.presentation.isVisible)
+    assertTrue(event.presentation.isEnabled)
+  }
+
+  // Regression test for b/331357060
+  @Test
+  fun testPairActionUnavailableForNonVirtualWatches() = runBlocking {
+    val pairAction = PairWearableDeviceAction()
+    val deviceTemplate =
+      FakeDeviceTemplate(
+        DeviceProperties.buildForTest {
+          model = "wearDevice"
+          icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+          wearPairingId = "wearPairing1"
+          isVirtual = false
+          deviceType = DeviceType.WEAR
+        }
+      )
+    val event =
+      TestActionEvent.createTestEvent(
+        pairAction,
+        SimpleDataContext.getSimpleContext(
+          DEVICE_ROW_DATA_KEY,
+          DeviceRowData.create(
+            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
+            emptyList(),
+          ),
+        ),
+      )
+    WearPairingManager.getInstance()
+      .loadSettings(
+        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
+        listOf(),
+      )
+
+    pairAction.update(event)
+    // Pair action should not be available for non-emulator wear devices
+    assertFalse(event.presentation.isVisible)
+    assertFalse(event.presentation.isEnabled)
+  }
+
+  @Test
+  fun testPairActionAvailableForPhysicalPhone() = runBlocking {
+    val pairAction = PairWearableDeviceAction()
+    val deviceTemplate =
+      FakeDeviceTemplate(
+        DeviceProperties.buildForTest {
+          model = "phoneDevice"
+          icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+          wearPairingId = "phonePairing1"
+          isVirtual = false
+          deviceType = DeviceType.HANDHELD
+        }
+      )
+    val event =
+      TestActionEvent.createTestEvent(
+        pairAction,
+        SimpleDataContext.getSimpleContext(
+          DEVICE_ROW_DATA_KEY,
+          DeviceRowData.create(
+            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
+            emptyList(),
+          ),
+        ),
+      )
+    WearPairingManager.getInstance()
+      .loadSettings(
+        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
+        listOf(),
+      )
+
+    pairAction.update(event)
+    // Pair action should be available for physical phone devices
+    assertTrue(event.presentation.isVisible)
+    assertTrue(event.presentation.isEnabled)
+  }
+
+  @Test
+  fun testPairActionAvailableForRemotePhone() = runBlocking {
+    val pairAction = PairWearableDeviceAction()
+    val deviceTemplate =
+      FakeDeviceTemplate(
+        DeviceProperties.buildForTest {
+          model = "phoneDevice"
+          icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+          wearPairingId = "phonePairing1"
+          isVirtual = false
+          isRemote = true
+          deviceType = DeviceType.HANDHELD
+        }
+      )
+    val event =
+      TestActionEvent.createTestEvent(
+        pairAction,
+        SimpleDataContext.getSimpleContext(
+          DEVICE_ROW_DATA_KEY,
+          DeviceRowData.create(
+            FakeDeviceHandle(this, deviceTemplate, deviceTemplate.properties),
+            emptyList(),
+          ),
+        ),
+      )
+    WearPairingManager.getInstance()
+      .loadSettings(
+        listOf(PairingDeviceState("wearPairing1"), PairingDeviceState("phonePairing1")),
+        listOf(),
+      )
+
+    pairAction.update(event)
+    // Pair action should be available for remote phone devices
     assertTrue(event.presentation.isVisible)
     assertTrue(event.presentation.isEnabled)
   }

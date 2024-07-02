@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.devicemanagerv2.DeviceManagerUsageTracker.logDeviceManagerEvent
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
@@ -35,7 +36,9 @@ class PairWearableDeviceAction : DumbAwareAction("Pair Wearable") {
 
   override fun update(e: AnActionEvent) {
     val deviceRowData = e.deviceRowData()
-    if (deviceRowData?.wearPairingId == null) {
+    if (deviceRowData?.wearPairingId == null || deviceRowData.isNonEmulatorWearDevice()) {
+      // disabled if the device doesn't have a pairing ID or the device is a Wear device and is not
+      // an emulator as we only support pairing to a Wear Emulator.
       e.presentation.isEnabledAndVisible = false
     } else {
       // Visible if the device supports pairing
@@ -60,6 +63,8 @@ class PairWearableDeviceAction : DumbAwareAction("Pair Wearable") {
     WearDevicePairingWizard().show(CommonDataKeys.PROJECT.getData(e.dataContext), wearPairingId(e))
   }
 }
+
+private fun DeviceRowData.isNonEmulatorWearDevice() = !isVirtual && type == DeviceType.WEAR
 
 class ViewPairedDevicesAction : DumbAwareAction("View Paired Device(s)") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
