@@ -114,11 +114,13 @@ class StudioDefaultJDKTest {
     // GradleJdkPathEditComboBox will be visible only when gradleJDK is selected to GRADLE_LOCAL_JAVA_HOME.
     Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isTrue()
 
-    //Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
-    gradleJDK.selectItem(Pattern.compile("jbr-17"))
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    // Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
+    // When any JDK other than "GRADLE_LOCAL_JAVA_HOME" is selected,
+    // the combo box (GradleJdkPathEditComboBox) should not be visible.
+    gradleJDK.selectItem("JAVA_HOME")
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
-    // If any other JDK other "GRADLE_LOCAL_JAVA_HOME" is selected,
-    // the combo box (GradleJdkPathEditComboBox) should not be visible
     Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isFalse()
 
     settings.clickButton("Cancel")
