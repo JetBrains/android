@@ -505,7 +505,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public Point getScrollPosition() {
-    return myDesignSurfaceFixture.target().getScrollPosition();
+    return myDesignSurfaceFixture.target().getPannable().getScrollPosition();
   }
 
   @NotNull

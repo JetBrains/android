@@ -197,7 +197,8 @@ class VisualizationInteractionHandler(
   ): Cursor? = null
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
-    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) PanInteraction(surface)
+    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode)
+      PanInteraction(surface.pannable)
     else null
   }
 

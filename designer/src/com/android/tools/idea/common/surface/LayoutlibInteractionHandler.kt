@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
@@ -26,8 +25,10 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
 /** [InteractionHandler] used during interactive mode in the layout/compose previews. */
-class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface) :
-  InteractionHandler {
+class LayoutlibInteractionHandler(
+  private val surface: InteractableScenesSurface,
+  private val pannable: Pannable,
+) : InteractionHandler {
   override fun createInteractionOnPressed(
     mouseX: Int,
     mouseY: Int,
@@ -68,7 +69,7 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {
-      PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
+      PanInteraction(pannable)
     } else {
       val view = surface.focusedSceneView ?: return null
       return LayoutlibInteraction(view)

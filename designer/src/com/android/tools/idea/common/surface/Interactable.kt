@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.idea.common.surface.GuiInputHandler.CURSOR_RECEIVER
 import com.intellij.ide.DataManager
@@ -32,7 +31,7 @@ interface Interactable {
 
 open class SurfaceInteractable(private val surface: DesignSurface<*>) : Interactable {
   override val pannable: Pannable
-    get() = surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface
+    get() = surface.pannable
 
   override val interactionPane: JComponent
     get() = surface.interactionPane

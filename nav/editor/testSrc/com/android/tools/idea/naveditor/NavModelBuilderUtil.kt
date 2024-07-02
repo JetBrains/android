@@ -34,6 +34,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneManager
@@ -84,7 +85,7 @@ object NavModelBuilderUtil {
 
       whenever(surface.currentNavigation).then { model.treeReader.components[0] }
       whenever(surface.extentSize).thenReturn(extentSize)
-      whenever(surface.scrollPosition).thenAnswer { Point(0, 0) }
+      whenever(surface.pannable).thenAnswer { TestPannable() }
       whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
 
       val sceneView = mock(SceneView::class.java)

@@ -77,7 +77,6 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
-import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -247,7 +246,7 @@ internal class ComposePreviewViewImpl(
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
-) : ComposePreviewView, Pannable, DataProvider {
+) : ComposePreviewView, DataProvider {
 
   private val workbench =
     WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
@@ -260,7 +259,7 @@ internal class ComposePreviewViewImpl(
     mainDesignSurfaceBuilder
       .setDelegateDataProvider { key ->
         when {
-          PANNABLE_KEY.`is`(key) -> this@ComposePreviewViewImpl
+          PANNABLE_KEY.`is`(key) -> pannable
           // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
           GuiInputHandler.CURSOR_RECEIVER.`is`(key) -> workbench
           PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(key) -> {
@@ -275,6 +274,8 @@ internal class ComposePreviewViewImpl(
         // zoom-to-fit is triggered.
         zoomController.setScale(0.25)
       }
+
+  private val pannable: Pannable = mainSurface.pannable
 
   private fun getDataInBackground(dataId: String): Any? {
     if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
@@ -291,15 +292,6 @@ internal class ComposePreviewViewImpl(
     return null
   }
 
-  override val isPannable: Boolean
-    get() = mainSurface.isPannable
-
-  override var isPanning: Boolean
-    get() = mainSurface.isPanning
-    set(value) {
-      mainSurface.isPanning = value
-    }
-
   override val component: JComponent = workbench
 
   private val notificationPanel =
@@ -308,12 +300,6 @@ internal class ComposePreviewViewImpl(
         "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
       )
     )
-
-  override var scrollPosition: Point
-    get() = mainSurface.scrollPosition
-    set(value) {
-      mainSurface.setScrollPosition(value.x, value.y)
-    }
 
   /**
    * Vertical splitter where the top component is the [mainSurface] and the bottom component, when

@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
@@ -25,7 +26,6 @@ import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.assertInstanceOf
-import java.awt.Point
 import java.awt.event.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -44,12 +44,6 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
   override val zoomController: ZoomController
     get() = createZoomControllerFake { zoomCounter++ }
 
-  override var isPanning = false
-  override val isPannable = true
-  override var scrollPosition = Point(0, 0)
-
-  override fun getData(dataId: String) = null
-
   override fun getSceneViewAtOrPrimary(x: Int, y: Int) = sceneView
 
   override val scene: Scene? = null
@@ -62,7 +56,7 @@ class LayoutlibInteractionHandlerTest {
 
   @Test
   fun testStartPanningWhenPressingSpace() {
-    val handler = LayoutlibInteractionHandler(TestInteractableSurface())
+    val handler = LayoutlibInteractionHandler(TestInteractableSurface(), TestPannable())
     val spaceKeyEvent =
       KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, DesignSurfaceShortcut.PAN.keyCode.toChar())
         .build()
@@ -72,7 +66,7 @@ class LayoutlibInteractionHandlerTest {
 
   @Test
   fun testNoInteractionWhenPressingNonSpaceKeyAndNoSceneView() {
-    val handler = LayoutlibInteractionHandler(TestInteractableSurface())
+    val handler = LayoutlibInteractionHandler(TestInteractableSurface(), TestPannable())
     val aKeyEvent = KeyEventBuilder(KeyEvent.VK_A, 'a').build()
     assertNull(handler.keyPressedWithoutInteraction(aKeyEvent))
   }
@@ -81,7 +75,10 @@ class LayoutlibInteractionHandlerTest {
   fun testLayoutlibInteractionWhenPressingNonSpaceKeyAndSceneViewExists() {
     val sceneManager = Mockito.mock(SceneManager::class.java)
     val handler =
-      LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)))
+      LayoutlibInteractionHandler(
+        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
+        TestPannable(),
+      )
     val aKeyEvent = KeyEventBuilder(KeyEvent.VK_A, 'a').build()
     val interaction = handler.keyPressedWithoutInteraction(aKeyEvent)
     assertInstanceOf<LayoutlibInteraction>(interaction)
@@ -92,7 +89,10 @@ class LayoutlibInteractionHandlerTest {
   fun testLayoutlibInteractionWhenMousePressed() {
     val sceneManager = Mockito.mock(SceneManager::class.java)
     val handler =
-      LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)))
+      LayoutlibInteractionHandler(
+        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
+        TestPannable(),
+      )
     val interaction = handler.createInteractionOnPressed(10, 10, 0)
     assertInstanceOf<LayoutlibInteraction>(interaction)
     Disposer.dispose(sceneManager)
@@ -101,7 +101,7 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testHoverIsPassedThrough() {
     val surface = TestInteractableSurface()
-    val handler = LayoutlibInteractionHandler(surface)
+    val handler = LayoutlibInteractionHandler(surface, TestPannable())
     assertEquals(0, surface.hoverCounter)
     handler.stayHovering(10, 10)
     assertEquals(1, surface.hoverCounter)
@@ -110,7 +110,7 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testZoomIsPassedThrough() {
     val surface = TestInteractableSurface()
-    val handler = LayoutlibInteractionHandler(surface)
+    val handler = LayoutlibInteractionHandler(surface, TestPannable())
     assertEquals(0, surface.zoomCounter)
     handler.zoom(ZoomType.ACTUAL, 10, 10)
     assertEquals(1, surface.zoomCounter)
