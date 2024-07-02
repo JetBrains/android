@@ -24,7 +24,7 @@ debugger_test(
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
     ignore_suites = IGNORED_SUITES,
     module = "kotlin.jvm-debugger.test",
-    shard_count = 2,
+    shard_count = 50,
     suite = "com.android.tools.test.ModuleTestSuite",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
