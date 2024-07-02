@@ -79,7 +79,8 @@ public final class FrozenColumnTableTest {
     Object[][] data = new Object[][] {
       new Object[]{"east", "app/src/main/res", false, "east", "est", "øst"},
       new Object[]{"west", "app/src/main/res", false, "west", "ouest", "vest"},
-      new Object[]{"north", "app/src/main/res", false, "north", "nord", "nord"}
+      new Object[]{"north", "app/src/main/res", false, "north", "nord", "nord"},
+      new Object[]{"south", "app/src/main/res", false, "south", "sud", "syd"}
     };
     Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value", "French (fr)", "Danish (da)"};
     DefaultTableModel model = new DefaultTableModel(data, columns);
@@ -124,10 +125,11 @@ public final class FrozenColumnTableTest {
     frozenTable.changeSelection(1, 3, false, false);
     ui.keyboard.press(KeyEvent.VK_SHIFT);
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN);
     ui.keyboard.release(KeyEvent.VK_SHIFT);
     ListSelectionModel frozenRowModel = frozenTable.getSelectionModel();
-    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2});
-    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(2);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2, 3});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(3);
     assertThat(frozenTable.getSelectedColumn()).isEqualTo(3);
 
     // Move right extending the selection jumps to scrollable table:
@@ -136,8 +138,8 @@ public final class FrozenColumnTableTest {
     ui.keyboard.release(KeyEvent.VK_SHIFT);
     assertThat(focusManager.getFocusOwner()).isSameAs(scrollableTable);
     ListSelectionModel scrollableRowModel = scrollableTable.getSelectionModel();
-    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2});
-    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(2);
+    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2, 3});
+    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(3);
     assertThat(scrollableTable.getSelectedColumn()).isEqualTo(0);
 
     // Move left extending the selection jumps to frozen table:
@@ -145,8 +147,8 @@ public final class FrozenColumnTableTest {
     ui.keyboard.pressAndRelease(KeyEvent.VK_LEFT);
     ui.keyboard.release(KeyEvent.VK_SHIFT);
     assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
-    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2});
-    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(2);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2, 3});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(3);
     assertThat(frozenTable.getSelectedColumn()).isEqualTo(3);
 
     // Move to end extending the selection jumps to scrollable table:
@@ -154,8 +156,8 @@ public final class FrozenColumnTableTest {
     ui.keyboard.pressAndRelease(KeyEvent.VK_END);
     ui.keyboard.release(KeyEvent.VK_SHIFT);
     assertThat(focusManager.getFocusOwner()).isSameAs(scrollableTable);
-    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2});
-    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(2);
+    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2, 3});
+    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(3);
     assertThat(scrollableTable.getSelectedColumn()).isEqualTo(1);
 
     // Move to home jumps to frozen table:
@@ -163,8 +165,58 @@ public final class FrozenColumnTableTest {
     ui.keyboard.pressAndRelease(KeyEvent.VK_HOME);
     ui.keyboard.release(KeyEvent.VK_SHIFT);
     assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
-    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2});
-    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(2);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{1, 2, 3});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(3);
+    assertThat(frozenTable.getSelectedColumn()).isEqualTo(0);
+
+    // Select a new range of rows with the lead on the top:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP);
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{0, 1, 2});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(0);
+    assertThat(frozenTable.getSelectedColumn()).isEqualTo(3);
+
+    // Move right extending the selection jumps to scrollable table:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(scrollableTable);
+    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{0, 1, 2});
+    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(0);
+    assertThat(scrollableTable.getSelectedColumn()).isEqualTo(0);
+
+    // Move left extending the selection jumps to frozen table:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_LEFT);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{0, 1, 2});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(0);
+    assertThat(frozenTable.getSelectedColumn()).isEqualTo(3);
+
+    // Move to end extending the selection jumps to scrollable table:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_END);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(scrollableTable);
+    assertThat(scrollableRowModel.getSelectedIndices()).isEqualTo(new int[]{0, 1, 2});
+    assertThat(scrollableRowModel.getLeadSelectionIndex()).isEqualTo(0);
+    assertThat(scrollableTable.getSelectedColumn()).isEqualTo(1);
+
+    // Move to home jumps to frozen table:
+    ui.keyboard.press(KeyEvent.VK_SHIFT);
+    ui.keyboard.pressAndRelease(KeyEvent.VK_HOME);
+    ui.keyboard.release(KeyEvent.VK_SHIFT);
+    assertThat(focusManager.getFocusOwner()).isSameAs(frozenTable);
+    assertThat(frozenRowModel.getSelectedIndices()).isEqualTo(new int[]{0, 1, 2});
+    assertThat(frozenRowModel.getLeadSelectionIndex()).isEqualTo(0);
     assertThat(frozenTable.getSelectedColumn()).isEqualTo(0);
   }
 

@@ -42,6 +42,7 @@ import javax.swing.ActionMap;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -105,14 +106,7 @@ public class FrozenColumnTable<M extends TableModel> {
     myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
-      if (myFrozenTable.getSelectionModel().getMinSelectionIndex() == -1) {
-        myScrollableTable.clearSelection();
-      }
-      else {
-        myScrollableTable.setRowSelectionInterval(
-          myFrozenTable.getSelectionModel().getMinSelectionIndex(),
-          myFrozenTable.getSelectionModel().getMaxSelectionIndex());
-      }
+      mirrorRowSelection(myFrozenTable, myScrollableTable);
       fireSelectedCellChanged(false);
     });
 
@@ -154,14 +148,7 @@ public class FrozenColumnTable<M extends TableModel> {
     myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
-      if (myScrollableTable.getSelectionModel().getMinSelectionIndex() == -1) {
-        myFrozenTable.clearSelection();
-      }
-      else {
-        myFrozenTable.setRowSelectionInterval(
-          myScrollableTable.getSelectionModel().getMinSelectionIndex(),
-          myScrollableTable.getSelectionModel().getMaxSelectionIndex());
-      }
+      mirrorRowSelection(myScrollableTable, myFrozenTable);
       fireSelectedCellChanged(false);
     });
 
@@ -180,6 +167,23 @@ public class FrozenColumnTable<M extends TableModel> {
         myLastFocusedSubTable = myScrollableTable;
       }
     });
+  }
+
+  private void mirrorRowSelection(@NotNull JTable fromTable, JTable toTable) {
+    ListSelectionModel fsm =  fromTable.getSelectionModel();
+    int first = fsm.getMinSelectionIndex();
+    int last = fsm.getMaxSelectionIndex();
+    if (first == -1) {
+      toTable.clearSelection();
+    }
+    else {
+      if (fsm.getLeadSelectionIndex() == first) {
+        int temp = first;
+        first = last;
+        last = temp;
+      }
+      toTable.setRowSelectionInterval(first, last);
+    }
   }
 
   public boolean skipTransferTo(@NotNull Component toComponent, @NotNull Component fromComponent) {
