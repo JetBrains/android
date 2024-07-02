@@ -63,6 +63,7 @@ namespace {
 #define ONE_PLUS "OnePlus"
 #define OPPO "OPPO"
 #define SAMSUNG "samsung"
+#define VIVO "vivo"
 #define XIAOMI "Xiaomi"
 
 #define SYSPROPS_TRANSACTION 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
@@ -418,10 +419,18 @@ ShellCommand CreateSetGestureNavigationCommand(bool gesture_navigation) {
     // - Oppo Reno2 (PCKM00) with Android 11 / API 30
 
     // On these devices changing the value of the secure setting: "hide_navigationbar_enable" between 0 and 3 would
-    // cause the device to change the overlays and update the display properly. For the OnPlus devices: if the user is
+    // cause the device to change the overlays and update the display properly. For the OnePlus devices: if the user is
     // on the device settings for gesture navigation, the settings page would also update correctly.
     // The overlays settings did not seem to matter.
     command = StringPrintf("settings put secure hide_navigationbar_enable %d", gesture_navigation ? 3 : 0);
+  }
+  else if (Agent::device_manufacturer() == VIVO) {
+    // These devices are sensitive to the secure setting: navigation_gesture_on. Tested on:
+    // - Vivo X 90 with Android 14 / API 34
+
+    // On thia devices changing the value of the secure setting: "navigation_gesture_on" between 0 and 2 would
+    // cause the device to change the overlays and update the display properly.
+    command = StringPrintf("settings put secure navigation_gesture_on %d;\n", gesture_navigation ? 2 : 0);
   }
   else {
     command = CreateDefaultSetGestureNavigationCommand(gesture_navigation);
@@ -465,6 +474,9 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
   }
   else if (Agent::device_manufacturer() == ONE_PLUS || Agent::device_manufacturer() == OPPO) {
     command += "echo " OEM_GESTURES_DIVIDER "; settings get secure hide_navigationbar_enable";
+  }
+  else if (Agent::device_manufacturer() == VIVO) {
+    command += "echo " OEM_GESTURES_DIVIDER "; settings get secure navigation_gesture_on; ";
   }
   else if (Agent::device_manufacturer() == GOOGLE || Agent::device_manufacturer() == MOTOROLA) {
     command += "echo " GESTURES_DIVIDER "; cmd overlay list android | grep " GESTURES_OVERLAY "$";
