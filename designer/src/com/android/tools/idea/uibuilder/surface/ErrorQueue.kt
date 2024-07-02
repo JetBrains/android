@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -43,7 +44,13 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
 /** [MergingUpdateQueue] to update */
-class ErrorQueue(private val parentDisposable: Disposable, private val project: Project) {
+class ErrorQueue(private val parentDisposable: Disposable, private val project: Project) :
+  Disposable {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
   private val queue: MergingUpdateQueue by
     lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       MergingUpdateQueue(
@@ -56,6 +63,18 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
         Alarm.ThreadToUse.POOLED_THREAD,
       )
     }
+  private var renderIssueProviders: ImmutableList<IssueProvider> = persistentListOf()
+
+  fun deactivate(issueModel: IssueModel) {
+    renderIssueProviders.forEach { renderIssueProvider ->
+      issueModel.removeIssueProvider(renderIssueProvider)
+    }
+    renderIssueProviders = persistentListOf()
+  }
+
+  override fun dispose() {
+    renderIssueProviders = persistentListOf()
+  }
 
   fun updateErrorDisplay(
     scannerControl: LayoutScannerControl?,
@@ -86,7 +105,7 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
     queue.queue(errorUpdate)
   }
 
-  private class ErrorUpdate(
+  private inner class ErrorUpdate(
     private val scannerControl: LayoutScannerControl?,
     private val visualLintIssueProvider: VisualLintIssueProvider,
     private val surface: EditorDesignSurface,
@@ -95,8 +114,6 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
     private val sceneManagers: () -> List<LayoutlibSceneManager>,
     private val project: Project,
   ) : Update("errors") {
-
-    private var renderIssueProviders: ImmutableList<IssueProvider> = persistentListOf()
 
     override fun run() {
       // Whenever error queue is active, make sure to resume any paused scanner control.
@@ -137,8 +154,8 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
               }
               .toImmutableList()
         }
-        this.renderIssueProviders.forEach { issueModel.removeIssueProvider(it) }
-        this.renderIssueProviders = newRenderIssueProviders
+        renderIssueProviders.forEach { issueModel.removeIssueProvider(it) }
+        renderIssueProviders = newRenderIssueProviders
         newRenderIssueProviders.forEach { issueModel.addIssueProvider(it) }
       }
 

@@ -125,7 +125,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
   private final RenderListener myRenderListener = this::modelRendered;
-  @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private final AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
   /**
@@ -391,7 +390,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public void dispose() {
     myAccessoryPanel.setSurface(null);
-    myRenderIssueProviders = ImmutableList.of();
     super.dispose();
   }
 
@@ -427,8 +425,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void deactivate() {
-    myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
-    myRenderIssueProviders = ImmutableList.of();
+    myErrorQueue.deactivate(getIssueModel());
     myVisualLintIssueProvider.clear();
     super.deactivate();
   }
