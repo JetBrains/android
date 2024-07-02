@@ -89,10 +89,22 @@ class DeviceSpecParserTest :
               PsiElement(=)('=')
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(portrait)('portrait')
+            PsiElement(,)(',')
+            DeviceSpecCutoutParamImpl(CUTOUT_PARAM)
+              PsiElement(cutout)('cutout')
+              PsiElement(=)('=')
+              DeviceSpecCutoutTImpl(CUTOUT_T)
+                PsiElement(corner)('corner')
+            PsiElement(,)(',')
+            DeviceSpecNavigationParamImpl(NAVIGATION_PARAM)
+              PsiElement(navigation)('navigation')
+              PsiElement(=)('=')
+              DeviceSpecNavigationTImpl(NAVIGATION_T)
+                PsiElement(buttons)('buttons')
       """
         .trimIndent(),
       toParseTreeText(
-        "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait"
+        "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait,cutout=corner,navigation=buttons"
       ),
     )
   }

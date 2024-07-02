@@ -54,9 +54,10 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
-    create_token_set_(CHIN_SIZE_PARAM, DPI_PARAM, HEIGHT_PARAM, ID_PARAM,
-      IS_ROUND_PARAM, NAME_PARAM, ORIENTATION_PARAM, PARAM,
-      PARENT_PARAM, SHAPE_PARAM, UNIT_PARAM, WIDTH_PARAM),
+    create_token_set_(CHIN_SIZE_PARAM, CUTOUT_PARAM, DPI_PARAM, HEIGHT_PARAM,
+      ID_PARAM, IS_ROUND_PARAM, NAME_PARAM, NAVIGATION_PARAM,
+      ORIENTATION_PARAM, PARAM, PARENT_PARAM, SHAPE_PARAM,
+      UNIT_PARAM, WIDTH_PARAM),
   };
 
   /* ********************************************************** */
@@ -82,6 +83,35 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     r = consumeTokens(b, 0, CHIN_SIZE_KEYWORD, EQUALS);
     r = r && size_t(b, l + 1);
     exit_section_(b, m, CHIN_SIZE_PARAM, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // CUTOUT_KEYWORD EQUALS cutout_t
+  public static boolean cutout_param(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "cutout_param")) return false;
+    if (!nextTokenIs(b, CUTOUT_KEYWORD)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, CUTOUT_KEYWORD, EQUALS);
+    r = r && cutout_t(b, l + 1);
+    exit_section_(b, m, CUTOUT_PARAM, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // CUTOUT_NONE_KEYWORD | CUTOUT_CORNER_KEYWORD | CUTOUT_DOUBLE_KEYWORD
+  //    | CUTOUT_HOLE_KEYWORD | CUTOUT_TALL_KEYWORD
+  public static boolean cutout_t(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "cutout_t")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, CUTOUT_T, "<cutout t>");
+    r = consumeToken(b, CUTOUT_NONE_KEYWORD);
+    if (!r) r = consumeToken(b, CUTOUT_CORNER_KEYWORD);
+    if (!r) r = consumeToken(b, CUTOUT_DOUBLE_KEYWORD);
+    if (!r) r = consumeToken(b, CUTOUT_HOLE_KEYWORD);
+    if (!r) r = consumeToken(b, CUTOUT_TALL_KEYWORD);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -148,6 +178,32 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // NAVIGATION_KEYWORD EQUALS navigation_t
+  public static boolean navigation_param(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "navigation_param")) return false;
+    if (!nextTokenIs(b, NAVIGATION_KEYWORD)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, NAVIGATION_KEYWORD, EQUALS);
+    r = r && navigation_t(b, l + 1);
+    exit_section_(b, m, NAVIGATION_PARAM, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // NAV_BUTTONS_KEYWORD | NAV_GESTURE_KEYWORD
+  public static boolean navigation_t(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "navigation_t")) return false;
+    if (!nextTokenIs(b, "<navigation t>", NAV_BUTTONS_KEYWORD, NAV_GESTURE_KEYWORD)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, NAVIGATION_T, "<navigation t>");
+    r = consumeToken(b, NAV_BUTTONS_KEYWORD);
+    if (!r) r = consumeToken(b, NAV_GESTURE_KEYWORD);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // ORIENTATION_KEYWORD EQUALS orientation_t
   public static boolean orientation_param(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "orientation_param")) return false;
@@ -184,6 +240,8 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   //    | orientation_param
   //    | is_round_param
   //    | chin_size_param
+  //    | cutout_param
+  //    | navigation_param
   //    | dpi_param
   public static boolean param(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "param")) return false;
@@ -199,6 +257,8 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     if (!r) r = orientation_param(b, l + 1);
     if (!r) r = is_round_param(b, l + 1);
     if (!r) r = chin_size_param(b, l + 1);
+    if (!r) r = cutout_param(b, l + 1);
+    if (!r) r = navigation_param(b, l + 1);
     if (!r) r = dpi_param(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
