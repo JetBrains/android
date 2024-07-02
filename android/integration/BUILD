@@ -66,6 +66,92 @@ iml_studio_test(
     test_class = "com.android.tools.idea.ShowUsagesTest",
 )
 
+editor_performance_test_data = [
+    ":editor_performance_test_deps",
+    ":architectureSamples",
+    ":architectureSamplesScenarioScripts",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:platform-tools",
+    "//tools/base/build-system:gradle-distrib-8.6",
+]
+
+maven_repository(
+    name = "editor_performance_test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.6.1",
+        "@maven//:androidx.arch.core.core-testing_2.1.0",
+        "@maven//:androidx.compose.animation.animation-core_1.3.3",
+        "@maven//:androidx.compose.compiler.compiler_1.4.3",
+        "@maven//:androidx.compose.compose-bom_2023.01.00",
+        "@maven//:androidx.compose.foundation.foundation-layout_1.3.1",
+        "@maven//:androidx.compose.foundation.foundation_1.3.1",
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.3.3",
+        "@maven//:androidx.compose.runtime.runtime_1.3.3",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.3.3",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.3",
+        "@maven//:androidx.compose.ui.ui-text_1.3.3",
+        "@maven//:androidx.compose.ui.ui-tooling_1.3.3",
+        "@maven//:androidx.compose.ui.ui-util_1.3.3",
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.6.0-alpha03",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.6.0-alpha03",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-testing_2.6.0-alpha03",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.6.0-alpha03",
+        "@maven//:androidx.navigation.navigation-compose_2.5.3",
+        "@maven//:androidx.navigation.navigation-testing_2.5.3",
+        "@maven//:androidx.room.room-compiler_2.5.0-rc01",
+        "@maven//:androidx.room.room-ktx_2.5.0-rc01",
+        "@maven//:androidx.room.room-testing_2.5.0-rc01",
+        "@maven//:androidx.test.core-ktx_1.5.0",
+        "@maven//:androidx.test.espresso.espresso-contrib_3.5.0",
+        "@maven//:androidx.test.espresso.espresso-intents_3.5.0",
+        "@maven//:androidx.test.espresso.idling.idling-concurrent_3.5.0",
+        "@maven//:androidx.test.ext.junit-ktx_1.1.4",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_7.4.0",
+        "@maven//:com.android.tools.build.gradle_7.4.0",
+        "@maven//:com.google.accompanist.accompanist-appcompat-theme_0.28.0",
+        "@maven//:com.google.accompanist.accompanist-swiperefresh_0.28.0",
+        "@maven//:com.google.dagger.hilt.android.com.google.dagger.hilt.android.gradle.plugin_2.44.2",
+        "@maven//:com.google.dagger.hilt-android-testing_2.44.2",
+        "@maven//:com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin_1.8.10-1.0.9",
+        "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-java_3.17.2",
+        "@maven//:com.google.truth.truth_1.1.2",
+        "@maven//:com.jakewharton.timber.timber_5.0.1",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.jvm.org.jetbrains.kotlin.jvm.gradle.plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kapt.org.jetbrains.kotlin.kapt.gradle.plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-annotation-processing-gradle_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.6.4",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
+    ],
+)
+
+iml_studio_test(
+    name = "EditorPerformanceTest",
+    timeout = "long",
+    data = editor_performance_test_data,
+    module = ":intellij.android.core.integration",
+    tags = ["perfgate"],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.EditorPerformanceTest",
+)
+
 iml_studio_test(
     name = "LanguageHighlightingTest",
     timeout = "long",
@@ -767,4 +853,9 @@ filegroup(
 filegroup(
     name = "architectureSamples",
     srcs = glob(["testData/architecture-samples/**"]),
+)
+
+filegroup(
+    name = "architectureSamplesScenarioScripts",
+    srcs = glob(["testData/architecture-samples-scenarios/**"]),
 )

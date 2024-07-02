@@ -411,7 +411,7 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
-   * Method that calls performanceTesting `openFile` command. Command opens the file with a specified path.
+   * Opens file in the editor.
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenFileCommand
    * @param filePath path to the file to be opened
    * @param isWarmup should the metric entries describing this call be marked as warmup
@@ -421,12 +421,12 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
-   * Method that calls performanceTesting `goTo` command. Command moves the caret to a specified position.
+   * Moves the caret of the Editor to a specified position.
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.GoToCommand
    * @param line where the caret will be moved (0-indexed)
    * @param column on the line where the caret will be moved (0-indexed)
    */
-  public void goTo(int line, int column) {
+  private void goTo(int line, int column) {
     executeCommand(String.format("%%goto %d %d", line + 1, column + 1), null);
   }
 
@@ -557,6 +557,68 @@ public class AndroidStudio implements AutoCloseable {
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
+  }
+
+  /**
+   * Triggers basic completion in the editor at the current caret position and checks that the specified completion variants were showed.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.CompletionCommand and
+   * com.jetbrains.performancePlugin.commands.AssertCompletionCommand
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @param variants expected completion variants
+   */
+  public void completeCode(boolean isWarmup, String... variants) {
+    StringBuilder builder = new StringBuilder().append("%doComplete");
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
+
+    builder = new StringBuilder().append("%assertCompletionCommand CONTAINS");
+    for (String variant : variants) {
+      builder.append(" ").append(variant);
+    }
+    executeCommand(builder.toString(), null);
+    executeCommand("%pressKey ESCAPE", null);
+  }
+
+  /**
+   * Triggers find usages action with the popup and asserts that the usage from the specific file and line is presented.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.FindUsagesCommand
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @param path to the file of the symbol to be asserted
+   * @param line of the symbol in the file (0-indexed)
+   */
+  public void findUsages(boolean isWarmup, @NotNull final String path, int line) {
+    StringBuilder builder = new StringBuilder().append("%findUsages");
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
+
+    executeCommand(String.format("%%assertFindUsagesEntryCommand -filePath %s|-line %d", path, line + 1), null);
+  }
+
+
+  /**
+   * Closes all editor tabs.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.CloseAllTabsCommand
+   */
+  public void closeAllEditorTabs() {
+    executeCommand("%closeAllTabs", null);
+  }
+
+  /**
+   * Executes an editor action with the specified actionId.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.ExecuteEditorActionCommand
+   * @param actionId id of the action to be executed
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   */
+  public void executeEditorAction(@NotNull final String actionId, boolean isWarmup) {
+    StringBuilder builder = new StringBuilder().append("%executeEditorAction ").append(actionId);
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
   }
 
   private void executeCommand(@NotNull final String command, @Nullable final String projectName) {
