@@ -77,6 +77,15 @@
     <option name="available" path="ActionManager" hit="Available devices" />
     <option name="devices" path="ActionManager" hit="Available devices" />
     <option name="back" path="ActionManager" hit="Back" />
+    <option name="app" path="ActionManager" hit="Backup App State" />
+    <option name="backup" path="ActionManager" hit="Backup App State" />
+    <option name="state" path="ActionManager" hit="Backup App State" />
+    <option name="a" path="ActionManager" hit="Backup app state to a file" />
+    <option name="app" path="ActionManager" hit="Backup app state to a file" />
+    <option name="backup" path="ActionManager" hit="Backup app state to a file" />
+    <option name="file" path="ActionManager" hit="Backup app state to a file" />
+    <option name="state" path="ActionManager" hit="Backup app state to a file" />
+    <option name="to" path="ActionManager" hit="Backup app state to a file" />
     <option name="apk" path="ActionManager" hit="Build APK(s)" />
     <option name="build" path="ActionManager" hit="Build APK(s)" />
     <option name="s" path="ActionManager" hit="Build APK(s)" />

@@ -32,11 +32,20 @@
 
   <actions>
     <action
-        id="id" class="com.android.tools.idea.backup.RestoreFileAction"
+        id="action.android.restore" class="com.android.tools.idea.backup.RestoreFileAction"
         text="Restore Application"
         description="Restore Application from file"
         icon="AllIcons.Actions.Download">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+    </action>
+
+    <action
+        id="action.android.backup" class="com.android.tools.idea.backup.BackupAppAction"
+        text="Backup App State"
+        description="Backup app state to a file"
+        icon="AllIcons.Actions.Upload">
+      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="AndroidConnectDebuggerAction"/>
+      <add-to-group group-id="RunMenu" anchor="after" relative-to-action="AndroidConnectDebuggerAction"/>
     </action>
   </actions>
 
