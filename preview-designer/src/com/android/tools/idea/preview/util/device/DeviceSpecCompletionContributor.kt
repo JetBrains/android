@@ -25,10 +25,12 @@ import com.android.tools.idea.preview.util.device.parser.DeviceSpecPsiFile
 import com.android.tools.idea.preview.util.device.parser.DeviceSpecTypes
 import com.android.tools.idea.preview.util.device.parser.impl.DeviceSpecSpecImpl
 import com.android.tools.idea.preview.util.getSdkDevices
+import com.android.tools.preview.config.Cutout
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.Preview.DeviceSpec
 import com.android.tools.preview.config.ReferenceDesktopConfig
@@ -86,6 +88,26 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
           PlatformPatterns.psiElement(DeviceSpecTypes.ORIENTATION_KEYWORD),
         ),
       OrientationValueProvider,
+    )
+    extend(
+      CompletionType.BASIC,
+      // Completion for `cutout=<none|corner|double|punch_hole|tall>`
+      PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
+        .afterLeafSkipping(
+          PlatformPatterns.psiElement(DeviceSpecTypes.EQUALS),
+          PlatformPatterns.psiElement(DeviceSpecTypes.CUTOUT_KEYWORD),
+        ),
+      CutoutValueProvider,
+    )
+    extend(
+      CompletionType.BASIC,
+      // Completion for `navigation=<buttons|gesture>`
+      PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
+        .afterLeafSkipping(
+          PlatformPatterns.psiElement(DeviceSpecTypes.EQUALS),
+          PlatformPatterns.psiElement(DeviceSpecTypes.NAVIGATION_KEYWORD),
+        ),
+      NavigationValueProvider,
     )
     extend(
       CompletionType.BASIC,
@@ -148,6 +170,8 @@ private val customSpecParamsToDefaultValues: Map<String, String> by
       DeviceSpec.PARAMETER_IS_ROUND to DeviceSpec.DEFAULT_IS_ROUND.toString(),
       DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
       DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
+      DeviceSpec.PARAMETER_CUTOUT to DeviceSpec.DEFAULT_CUTOUT.name,
+      DeviceSpec.PARAMETER_NAVIGATION to DeviceSpec.DEFAULT_NAVIGATION.name,
     )
   }
 
@@ -160,6 +184,7 @@ private val parentBasedSpecParamsToDefaultValues: Map<String, String> by
     mapOf(
       DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID,
       DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
+      DeviceSpec.PARAMETER_NAVIGATION to DeviceSpec.DEFAULT_NAVIGATION.name,
     )
   }
 
@@ -174,6 +199,8 @@ private val allSpecParamsToDefaultValues: Map<String, String> by
       DeviceSpec.PARAMETER_CHIN_SIZE to DeviceSpec.DEFAULT_CHIN_SIZE_ZERO.toString(),
       DeviceSpec.PARAMETER_ORIENTATION to DeviceSpec.DEFAULT_ORIENTATION.name,
       DeviceSpec.PARAMETER_PARENT to DEFAULT_DEVICE_ID,
+      DeviceSpec.PARAMETER_CUTOUT to DeviceSpec.DEFAULT_CUTOUT.name,
+      DeviceSpec.PARAMETER_NAVIGATION to DeviceSpec.DEFAULT_NAVIGATION.name,
     )
   }
 
@@ -351,6 +378,36 @@ private object OrientationValueProvider : CompletionProvider<CompletionParameter
     result: CompletionResultSet,
   ) {
     Orientation.values().forEach { result.addLookupElement(lookupString = it.name) }
+  }
+}
+
+/**
+ * Provides the possible cutout values for the Cutout parameter.
+ *
+ * I.e: provides "none,corner,double,punch_hole,tall" for `cutout=$caret`
+ */
+private object CutoutValueProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(
+    parameters: CompletionParameters,
+    context: ProcessingContext,
+    result: CompletionResultSet,
+  ) {
+    Cutout.entries.forEach { result.addLookupElement(lookupString = it.name) }
+  }
+}
+
+/**
+ * Provides the possible navigation values for the Navigation parameter.
+ *
+ * I.e: provides "buttons,gesture" for `navigation=$caret`
+ */
+private object NavigationValueProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(
+    parameters: CompletionParameters,
+    context: ProcessingContext,
+    result: CompletionResultSet,
+  ) {
+    Navigation.entries.forEach { result.addLookupElement(lookupString = it.name) }
   }
 }
 
