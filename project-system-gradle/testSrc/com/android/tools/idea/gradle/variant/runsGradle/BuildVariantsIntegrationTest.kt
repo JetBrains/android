@@ -306,19 +306,43 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "fl1AbDebug")
       expect.thatModuleVariantIs(project, ":feature1", "fl1AbDebug")
-      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl1AbDimFl1Debug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl1AbDebug")
       switchVariant(project, ":app", "fl2AbRelease")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "fl2AbRelease")
       expect.thatModuleVariantIs(project, ":feature1", "fl2AbRelease")
-      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbDimFl1Release")
-      switchVariant(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbRelease")
+      switchVariant(project, ":dependsOnFeature1", "fl2XyDebug")
       expect.consistentConfigurationOf(project)
-      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDebug")
       expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
       expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
     }
   }
+
+  @Test
+  fun testSwitchVariantsWithFeatureModulesAndDefaults() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DYNAMIC_APP_WITH_VARIANTS_AND_DEFAULTS)
+    preparedProject.open { project ->
+      expect.consistentConfigurationOf(project)
+      // default flavors are set as "fl2" and "xy" in :app
+      expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDebug")
+      switchVariant(project, ":app", "fl2AbRelease")
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "fl2AbRelease")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2AbRelease")
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbRelease")
+      // Switching the feature should also affect app
+      switchVariant(project, ":dependsOnFeature1", "fl2XyDebug")
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
+      expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
+    }
+  }
+
 
   @Test
   fun testSwitchVariantsWithDependentModules_fromLib() {
