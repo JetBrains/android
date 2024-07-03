@@ -27,10 +27,12 @@ internal enum class DeviceSpecRule(
         LanguageParameterRule.orientation,
         LanguageParameterRule.chinSize,
         LanguageParameterRule.dpi,
+        LanguageParameterRule.cutout,
+        LanguageParameterRule.navigation,
       ),
   ),
   LanguageWithParentId(
     requiredParameters = listOf(LanguageParameterRule.parent),
-    optionalParameters = listOf(LanguageParameterRule.orientation),
+    optionalParameters = listOf(LanguageParameterRule.orientation, LanguageParameterRule.navigation),
   ),
 }
