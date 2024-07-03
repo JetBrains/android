@@ -33,55 +33,35 @@ class SdkIndexLintTest : SdkIndexTestBase() {
       expectedIssues = listOf(
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.google.android.gms:play-services-ads-lite version 19.4.0 has been reported as problematic by its author and will block publishing of your app to Play Console.",
-          "**Note:** As of June 30th 2023, this version is sunset. For more information, please visit https://developers.google.com/admob/android/deprecation.",
+          "**[Prevents app release in Google Play Console]** com.google.android.gms:play-services-ads-lite version 19.4.0 has been reported as problematic by its author and will block publishing of your app to Play Console",
         ),
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has Permissions policy issues that will block publishing of your app to Play Console.",
-          "The library author recommends using versions:",
-          "  - From 4.10.0 to 4.10.8",
-          "  - 4.10.11 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
+          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has Permissions policy issues that will block publishing of your app to Play Console",
         ),
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console.",
-          "**Note:** Critical issue has been identified which causes intensive battery consumption.",
+          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console",
         ),
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console.",
-          "The library author recommends using versions:", "  - From 4.10.0 to 4.10.8", "  - 4.10.11 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
+          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console",
         ),
         // Warning
         listOf(
-          "androidx.annotation:annotation version 1.0.0 has been reported as outdated by its author.",
-          "The library author recommends using versions:",
-          "  - 1.0.1 or higher",
+          "androidx.annotation:annotation version 1.0.0 has been reported as outdated by its author",
         ),
         // Warning
         listOf(
-          "com.google.ads.interactivemedia.v3:interactivemedia version 3.18.2 has been reported as outdated by its author.",
-          "The library author recommends using versions:",
-          "  - From 3.19.0 to 3.29.0",
-          "  - From 3.30.2 to 3.31.0",
-          "  - 3.33.0 or higher",
+          "com.google.ads.interactivemedia.v3:interactivemedia version 3.18.2 has been reported as outdated by its author",
         ),
         // Warning
         listOf(
-          "io.objectbox:objectbox-android version 2.5.1 has been reported as outdated by its author.",
-          "The library author recommends using versions:",
-          "  - 2.6.0 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
+          "io.objectbox:objectbox-android version 2.5.1 has been reported as outdated by its author",
         ),
         // Warning
         listOf(
-          "com.paypal.android.sdk:data-collector version 3.20.0 has Permissions policy issues that will block publishing of your app to Play Console in the future.",
-          "The library author recommends using versions:",
-          "  - 3.20.1 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
+          "com.paypal.android.sdk:data-collector version 3.20.0 has Permissions policy issues that will block publishing of your app to Play Console in the future",
         ),
       )
     )
