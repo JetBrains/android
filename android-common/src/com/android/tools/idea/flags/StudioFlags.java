@@ -2029,6 +2029,14 @@ public final class StudioFlags {
                     "Enables the \"Analyze Thread Safety\" button in the Project tool window",
                     false);
 
+
+  public static final Flag<Boolean> AI_RENAME_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.rename.action",
+                    "Use ML model to rename variable names",
+                    "Enables AI renaming functionalities",
+                    false);
+
+
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
