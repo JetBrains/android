@@ -39,8 +39,6 @@
                              key="database.inspector"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings"/>
-
-    <notificationGroup id="Database Inspector" displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
