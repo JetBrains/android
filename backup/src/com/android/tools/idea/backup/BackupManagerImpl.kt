@@ -23,18 +23,22 @@ import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
 import com.android.backup.RestoreHandler
+import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -77,7 +81,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
         val result = handler.backup()
         val operation = message("backup")
         if (notify) {
-          result.notify(operation)
+          result.notify(operation, backupFile)
         }
         if (result is Error) {
           logger.warn(message("notification.error", operation), result.throwable)
@@ -159,23 +163,29 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
 
   override fun getRestoreRunConfigSection(project: Project) = RestoreRunConfigSection(project)
 
-  private fun BackupResult.notify(operation: String) {
+  private fun BackupResult.notify(operation: String, backupFile: Path? = null) {
     when (this) {
-      is Success -> notifySuccess(message("notification.success", operation))
+      is Success -> notifySuccess(message("notification.success", operation), backupFile)
       is Error -> notifyError(message("notification.error", operation), throwable)
     }
   }
 
-  private fun notifySuccess(message: String) {
+  private fun notifySuccess(message: String, backupFile: Path?) {
     val notification = Notification(NOTIFICATION_GROUP, message, INFORMATION)
+    if (backupFile != null) {
+      notification.addAction(RevealBackupFileAction(backupFile))
+    }
     Notifications.Bus.notify(notification, project)
   }
 
-  private fun notifyError(message: String, throwable: Throwable) {
+  private fun notifyError(title: String, throwable: Throwable) {
     if (throwable is CancellationException) {
       return
     }
-    val notification = Notification(NOTIFICATION_GROUP, message, WARNING)
+    val content = throwable.message ?: message("notification.unknown.error")
+    val notification =
+      Notification(NOTIFICATION_GROUP, title, content, WARNING)
+        .addAction(ShowExceptionAction(title, content, throwable))
     Notifications.Bus.notify(notification, project)
   }
 
@@ -191,6 +201,22 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
 
   private fun setBackupPath(path: Path) {
     PropertiesComponent.getInstance(project).setValue(BACKUP_PATH_KEY, path.pathString)
+  }
+
+  private class RevealBackupFileAction(private val backupPath: Path) : RevealFileAction() {
+    override fun actionPerformed(e: AnActionEvent) {
+      openFile(backupPath)
+    }
+  }
+
+  private class ShowExceptionAction(
+    private val title: String,
+    private val message: String,
+    private val throwable: Throwable,
+  ) : DumbAwareAction(message("notification.error.button")) {
+    override fun actionPerformed(e: AnActionEvent) {
+      ErrorDetailDialog(title, message, throwable.stackTraceToString()).show()
+    }
   }
 }
 
