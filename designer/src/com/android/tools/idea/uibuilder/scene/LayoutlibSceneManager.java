@@ -53,7 +53,6 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.modes.essentials.EssentialsMode;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -109,11 +108,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -845,21 +842,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
             notifyListenersModelLayoutComplete(animate);
           }
         });
-    }
-  }
-
-  /**
-   * Request a layout pass
-   *
-   * @param animate if true, the resulting layout should be animated
-   */
-  @Override
-  public void layout(boolean animate) {
-    try {
-      requestLayoutAsync(animate).get(2, TimeUnit.SECONDS);
-    }
-    catch (InterruptedException | ExecutionException | TimeoutException e) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
     }
   }
 
