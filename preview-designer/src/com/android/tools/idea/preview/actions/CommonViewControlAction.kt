@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
 class CommonViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
   ViewControlAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }) {
@@ -33,7 +34,7 @@ class CommonViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
         )
         .apply {
           isPopup = false
-          templatePresentation.isMultiChoice = false
+          templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
         }
     )
   }

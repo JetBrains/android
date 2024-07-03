@@ -29,6 +29,7 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
 class ComposeViewControlAction(
   layoutOptions: List<SurfaceLayoutOption>,
@@ -49,7 +50,7 @@ class ComposeViewControlAction(
     add(
       SwitchSurfaceLayoutManagerAction(layoutOptions, isSurfaceLayoutActionEnabled).apply {
         isPopup = false
-        templatePresentation.isMultiChoice = false
+        templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
       }
     )
     if (StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.get()) {
