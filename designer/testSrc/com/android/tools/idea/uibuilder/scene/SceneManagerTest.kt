@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.DefaultHitProvider
+import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
@@ -48,7 +49,7 @@ import org.mockito.Mockito.verify
 class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
-  sceneComponentProvider: SceneComponentHierarchyProvider? = null,
+  sceneComponentProvider: SceneComponentHierarchyProvider = DefaultSceneManagerHierarchyProvider(),
 ) : SceneManager(model, surface, sceneComponentProvider) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
