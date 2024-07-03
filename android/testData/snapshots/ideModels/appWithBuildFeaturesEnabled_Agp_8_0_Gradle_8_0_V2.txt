@@ -109,6 +109,24 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
+    - library                     : com.android.databinding:viewbinding:8.0.2@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/aidl [-]
+        artifact                      : <M2>/com/android/databinding/viewbinding/8.0.2/viewbinding-8.0.2.aar
+        artifactAddress               : com.android.databinding:viewbinding:8.0.2@aar
+        assetsFolder                  : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/jars/classes.jar
+        component                     : com.android.databinding:viewbinding:8.0.2
+        externalAnnotations           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/annotations.zip [-]
+        folder                        : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2
+        jniFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/jni [-]
+        manifest                      : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/rs [-]
+        resFolder                     : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/res [-]
+        resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewbinding-8.0.2/R.txt
     - library                     : com.android.support.constraint:constraint-layout:1.0.2@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/aidl [-]
         artifact                      : <M2>/com/android/support/constraint/constraint-layout/1.0.2/constraint-layout-1.0.2.aar
@@ -848,7 +866,7 @@ MODULE                        : project.app
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
     ViewBindingOptions
-        Enabled                       : false
+        Enabled                       : true
     DependenciesInfo
         IncludeInApk                  : true
         IncludeInBundle               : true
@@ -1068,6 +1086,7 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/data_binding_base_class_source_out/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -1184,6 +1203,8 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1305,6 +1326,8 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1337,6 +1360,7 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/data_binding_base_class_source_out/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -1469,6 +1493,8 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1494,6 +1520,7 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
                     runtimeClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1532,6 +1559,7 @@ MODULE                        : project.app
                     - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
                     - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
                     - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
+                    - provided                    : com.android.databinding:viewbinding:8.0.2@aar
                     - provided                    : com.android.support.constraint:constraint-layout-solver:1.0.2
                     - provided                    : com.android.support.constraint:constraint-layout:1.0.2@aar
                     - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
@@ -1692,6 +1720,8 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1709,6 +1739,7 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1820,6 +1851,8 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
+                        androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1837,6 +1870,7 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
+                            androidLibrary                : com.android.databinding:viewbinding:8.0.2@aar
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest

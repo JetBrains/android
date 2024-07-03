@@ -43,6 +43,10 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
       linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     }
+    Path dataBindingSupportFile = TestUtils.getWorkspaceRoot().resolve("tools/data-binding/data_binding_runtime.zip");
+    if (Files.exists(dataBindingSupportFile)) {
+      unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
+    }
     // Avoid depending on the execution order and initializing icons with dummies.
     IconLoader.activate();
     try {
