@@ -996,6 +996,7 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : basicDebug
         applicationId                 : com.example.dependentmodules.app
         testApplicationId             : com.example.dependentmodules.app.test
@@ -2092,6 +2093,7 @@ MODULE                        : project.lib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dependentmodules.lib.test
         buildType                     : debug

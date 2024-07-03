@@ -1903,6 +1903,7 @@ MODULE                        : project.ads-sdk-implementation
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.ads_sdk_implementation.test
         buildType                     : debug
@@ -2405,6 +2406,7 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -3590,6 +3592,7 @@ MODULE                        : project.app-with-dynamic-feature
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -4794,6 +4797,7 @@ MODULE                        : project.feature
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.feature.test
         buildType                     : debug

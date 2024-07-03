@@ -1081,6 +1081,7 @@ MODULE                        : My_First_App.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
@@ -1778,6 +1779,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
         buildType                     : debug

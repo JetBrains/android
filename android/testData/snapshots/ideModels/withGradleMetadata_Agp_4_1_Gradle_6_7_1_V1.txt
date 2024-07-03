@@ -273,6 +273,7 @@ MODULE                        : withGradleMetadata.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : come.example.with.gradle.metadata
         testApplicationId             : come.example.with.gradle.metadata.test

@@ -21,4 +21,5 @@ package com.android.ide.gradle.model
 interface LegacyAndroidGradlePluginPropertiesModelParameters {
   var componentToApplicationIdMap: Boolean
   var namespace: Boolean
+  var dataBinding: Boolean
 }
