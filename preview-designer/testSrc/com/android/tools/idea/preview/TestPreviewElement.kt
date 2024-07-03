@@ -34,6 +34,7 @@ internal class TestBasePreviewElement<T>(
   displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
   override val instanceId: String = methodFqn,
   override val configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
+  override val previewElementDefinition: T? = null,
 ) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
   override val hasAnimations = false
   override val displaySettings =
@@ -45,14 +46,13 @@ internal class TestBasePreviewElement<T>(
       backgroundColor,
       displayPositioning,
     )
-  override val previewElementDefinition = null
   override val previewBody = null
 
   override fun createDerivedInstance(
     displaySettings: PreviewDisplaySettings,
     config: PreviewConfiguration,
   ) =
-    TestBasePreviewElement<T>(
+    TestBasePreviewElement(
       displayName = displaySettings.name,
       methodFqn = methodFqn,
       groupName = displaySettings.group,
@@ -62,6 +62,7 @@ internal class TestBasePreviewElement<T>(
       displayPositioning = displaySettings.displayPositioning,
       instanceId = instanceId,
       configuration = config,
+      previewElementDefinition = previewElementDefinition,
     )
 }
 
