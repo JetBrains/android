@@ -55,6 +55,16 @@ enum class AndroidCoreTestProject(
   DEPENDENT_NATIVE_MODULES(TestProjectPaths.DEPENDENT_NATIVE_MODULES),
   DYNAMIC_APP(TestProjectPaths.DYNAMIC_APP),
   DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS),
+  DYNAMIC_APP_WITH_VARIANTS_AND_DEFAULTS(
+    TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS,
+    patch = {
+      // Set two flavors as default
+      it.resolve("app/build.gradle").apply {
+        replaceInContent("fl2 { dimension \"dim1\" }", "fl2 { dimension \"dim1\"; isDefault = true }")
+        replaceInContent("xy { dimension \"dim2\" }", "xy { dimension \"dim2\"; isDefault = true }")
+      }
+    }
+  ),
   HELLO_JNI(TestProjectPaths.HELLO_JNI),
   INSTANT_APP(TestProjectPaths.INSTANT_APP),
   INSTANT_APP_WITH_DYNAMIC_FEATURES(TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES),
