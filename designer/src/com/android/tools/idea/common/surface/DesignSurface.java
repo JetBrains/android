@@ -353,16 +353,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myViewport;
   }
 
-  @Slow // Some implementations might be slow
-  @NotNull
-  protected abstract T createSceneManager(@NotNull NlModel model);
-
-  @NotNull
-  public DesignerEditorFileType getLayoutType() {
-    NlModel model = getModel();
-    return model == null ? DefaultDesignerFileType.INSTANCE : model.getType();
-  }
-
   @NotNull
   public ActionManager getActionManager() {
     return myActionManager;
@@ -375,21 +365,11 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * @return the primary (first) {@link NlModel} if exist. null otherwise.
-   * @see #getModels()
-   * @deprecated The surface can contain multiple models. Use {@link #getModels()} instead.
-   */
-  @Deprecated
-  @Nullable
-  public NlModel getModel() {
-    return Iterables.getFirst(getModels(), null);
-  }
-
-  /**
    * @return the list of added {@link NlModel}s.
    * @see #getModel()
    */
   @NotNull
+  @Override
   public ImmutableList<NlModel> getModels() {
     myModelToSceneManagersLock.readLock().lock();
     try {
@@ -405,6 +385,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
+  @Override
   public ImmutableList<T> getSceneManagers() {
     myModelToSceneManagersLock.readLock().lock();
     try {
@@ -586,7 +567,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    * @see #addAndRenderModel(NlModel)
    * @see #removeModel(NlModel)
    */
-  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
+  @Override
+  public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
     NlModel oldModel = getModel();
     if (model == oldModel) {
       return CompletableFuture.completedFuture(null);
@@ -979,8 +961,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myGuiInputHandler.cancelInteraction();
   }
 
-
-
   @Override
   @Deprecated
   @Nullable
@@ -1276,14 +1256,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
     return null;
-  }
-
-  @NotNull
-  @Override
-  public ImmutableCollection<Configuration> getConfigurations() {
-    return getModels().stream()
-      .map(NlModel::getConfiguration)
-      .collect(ImmutableList.toImmutableList());
   }
 
   @NotNull

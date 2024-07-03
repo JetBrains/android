@@ -316,7 +316,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
-  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
+  public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
     CompletableFuture<Void> future = super.setModel(model);
     NavUsageTracker.Companion.getInstance(model)
       .createEvent(OPEN_FILE)

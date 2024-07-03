@@ -488,45 +488,12 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within protected scope"
-        errorLine1="  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager"
-        errorLine2="                             ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="196"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
         errorLine1="    for (manager in surface.sceneManagers) {"
         errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="588"
+            line="604"
             column="29"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="    for (manager in surface.sceneManagers) {"
-        errorLine2="                            ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="588"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="    surface.sceneManagers"
-        errorLine2="            ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="208"
-            column="13"/>
     </issue>
 
     <issue

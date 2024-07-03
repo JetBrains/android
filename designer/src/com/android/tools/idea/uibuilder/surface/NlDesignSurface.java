@@ -383,7 +383,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
-  public CompletableFuture<Void> setModel(@Nullable NlModel model) {
+  public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
     myAccessoryPanel.setModel(model);
     return super.setModel(model);
   }
