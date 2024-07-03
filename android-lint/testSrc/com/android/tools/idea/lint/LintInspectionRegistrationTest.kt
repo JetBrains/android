@@ -255,9 +255,9 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
 package com.android.tools.idea.lint${if (androidSpecific) ".inspections" else ".common"}
 ${if (androidSpecific)
           """
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import $detectorClass
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 """
         else
           """
@@ -267,10 +267,10 @@ import $detectorClass
 class $LINT_INSPECTION_PREFIX${id}Inspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.$messageKey"),
-    $detectorName.$issueName
+    $detectorName.$issueName,
   )
 """
-            .trim()
+            .trim() + "\n"
         if (root != null) {
           val packageDir = File(root, suffix)
           assertTrue(packageDir.toString(), packageDir.exists())
