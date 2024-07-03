@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
@@ -31,7 +31,7 @@ private const val PREVIEW_NOTIFICATION_GROUP_ID = "Glance Preview Notification"
 /** [PreviewViewModel] for the Glance previews. */
 internal class GlancePreviewViewModel(
   previewView: PreviewView,
-  projectBuildStatusManager: ProjectBuildStatusManager,
+  renderingBuildStatusManager: RenderingBuildStatusManager,
   previewRefreshManager: PreviewRefreshManager,
   project: Project,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
@@ -39,7 +39,7 @@ internal class GlancePreviewViewModel(
 ) :
   CommonPreviewViewModel(
     previewView,
-    projectBuildStatusManager,
+    renderingBuildStatusManager,
     previewRefreshManager,
     project,
     psiFilePointer,

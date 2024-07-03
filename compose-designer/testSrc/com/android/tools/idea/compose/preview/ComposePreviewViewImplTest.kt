@@ -33,8 +33,8 @@ import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvide
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -130,10 +130,10 @@ class ComposePreviewViewImplTest {
   private val nopDataProvider = DataProvider { null }
 
   private val statusManager =
-    object : ProjectBuildStatusManager {
+    object : RenderingBuildStatusManager {
       override val isBuilding: Boolean = false
-      override val statusFlow: MutableStateFlow<ProjectStatus> =
-        MutableStateFlow(ProjectStatus.Ready)
+      override val statusFlow: MutableStateFlow<RenderingBuildStatus> =
+        MutableStateFlow(RenderingBuildStatus.Ready)
     }
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var previewView: ComposePreviewView
@@ -326,7 +326,7 @@ class ComposePreviewViewImplTest {
     ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false
-      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
       previewView.updateVisibilityAndNotifications()
       fakeUi.root.validate()
     }

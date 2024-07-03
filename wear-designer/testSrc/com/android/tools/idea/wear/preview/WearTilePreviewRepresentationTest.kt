@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -79,7 +79,7 @@ class WearTilePreviewRepresentationTest {
   fun setup() {
     logger.setLevel(LogLevel.ALL)
     Logger.getInstance(WearTilePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
-    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     logger.info("setup")
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     logger.info("setup complete")

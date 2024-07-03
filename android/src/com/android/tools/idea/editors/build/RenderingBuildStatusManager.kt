@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.idea.util.projectStructure.module
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * This represents the build status of the project without taking into account any file
+ * This represents the build status of the project artifacts used to render previews without taking into account any file
  * modifications.
  */
 private enum class ProjectBuildStatus {
@@ -65,15 +65,15 @@ private enum class ProjectBuildStatus {
   Built
 }
 
-/** The project status */
-sealed class ProjectStatus {
+/** The status of the project artifacts used to render previews*/
+sealed class RenderingBuildStatus {
   /** The project is indexing or not synced yet */
-  object NotReady : ProjectStatus()
+  object NotReady : RenderingBuildStatus()
 
-  object Building : ProjectStatus()
+  object Building : RenderingBuildStatus()
 
   /** The project needs to be built */
-  object NeedsBuild : ProjectStatus()
+  object NeedsBuild : RenderingBuildStatus()
 
   /**
    * The project is compiled but one or more files are out of date.
@@ -87,51 +87,51 @@ sealed class ProjectStatus {
    */
   sealed class OutOfDate
   private constructor(val areResourcesOutOfDate: Boolean) :
-    ProjectStatus() {
+    RenderingBuildStatus() {
     object Code : OutOfDate(false)
     object Resources : OutOfDate(true)
   }
 
   /** The project is compiled and up to date */
-  object Ready : ProjectStatus()
+  object Ready : RenderingBuildStatus()
 }
 
-private val LOG = Logger.getInstance(ProjectStatus::class.java)
+private val LOG = Logger.getInstance(RenderingBuildStatus::class.java)
 
 /** Interface representing the current build status of the project. */
-interface ProjectBuildStatusManager {
+interface RenderingBuildStatusManager {
   /** True when the project is currently building. */
   val isBuilding: Boolean
 
-  /** The current build [ProjectStatus]. */
-  val statusFlow: StateFlow<ProjectStatus>
+  /** The current build [RenderingBuildStatus]. */
+  val statusFlow: StateFlow<RenderingBuildStatus>
 
-  val status: ProjectStatus
+  val status: RenderingBuildStatus
     get() = statusFlow.value
 
   companion object {
     /**
-     * Creates a new [ProjectBuildStatusManager].
+     * Creates a new [RenderingBuildStatusManager].
      *
      * @param parentDisposable [Disposable] to track for disposing this manager.
      * @param psiFile the file in the editor to track changes and the build status. If the project
      *   has not been built since it was open, this file is used to find if there are any existing
      *   .class files that indicate that has been built before.
-     * @param dispatcher default [CoroutineDispatcher] to process the events of the [ProjectBuildStatusManager].
+     * @param dispatcher default [CoroutineDispatcher] to process the events of the [RenderingBuildStatusManager].
      * @param scope [CoroutineScope] to run the execution of the initialization of this
      *   ProjectBuildStatusManager.
-     * @param onReady called once the [ProjectBuildStatus] transitions from [ProjectStatus.NotReady]
+     * @param onReady called once the [ProjectBuildStatus] transitions from [RenderingBuildStatus.NotReady]
      *   to any other state or immediately if the the status is different from
-     *   [ProjectStatus.NotReady]. This wil happen after the project is synced and has been indexed.
+     *   [RenderingBuildStatus.NotReady]. This wil happen after the project is synced and has been indexed.
      */
     fun create(
       parentDisposable: Disposable,
       psiFile: PsiFile,
       dispatcher: CoroutineDispatcher = workerThread,
       scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, dispatcher),
-      onReady: (ProjectStatus) -> Unit = {},
-    ): ProjectBuildStatusManager =
-      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
+      onReady: (RenderingBuildStatus) -> Unit = {},
+    ): RenderingBuildStatusManager =
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
   }
 }
 
@@ -143,13 +143,13 @@ interface ProjectBuildStatusManagerForTests {
   @TestOnly fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
-private class ProjectBuildStatusManagerImpl(
+private class RenderingBuildStatusManagerImpl(
   parentDisposable: Disposable,
   psiFile: PsiFile,
   scope: CoroutineScope,
-  private val onReady: (ProjectStatus) -> Unit,
+  private val onReady: (RenderingBuildStatus) -> Unit,
   private val dispatcher: CoroutineDispatcher,
-) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
+) : RenderingBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
@@ -161,7 +161,7 @@ private class ProjectBuildStatusManagerImpl(
 
   private val projectBuildStatusFlow = MutableStateFlow(ProjectBuildStatus.NotReady)
   private val areResourcesOutOfDateFlow = MutableStateFlow(false)
-  override val statusFlow = MutableStateFlow<ProjectStatus>(ProjectStatus.NotReady)
+  override val statusFlow = MutableStateFlow<RenderingBuildStatus>(RenderingBuildStatus.NotReady)
 
   @Suppress("DEPRECATION")
   override val isBuilding: Boolean
@@ -246,17 +246,17 @@ private class ProjectBuildStatusManagerImpl(
       ) { outOfDateFiles, currentProjectBuildStatus, areResourcesOutOfDate, isFastPreviewCompiling ->
         val isCodeOutOfDate = outOfDateFiles.isNotEmpty()
         when {
-          currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
-          currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling -> ProjectStatus.Building
-          currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
-          areResourcesOutOfDate -> ProjectStatus.OutOfDate.Resources
-          isCodeOutOfDate -> ProjectStatus.OutOfDate.Code
-          else -> ProjectStatus.Ready
+          currentProjectBuildStatus == ProjectBuildStatus.NotReady -> RenderingBuildStatus.NotReady
+          currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling -> RenderingBuildStatus.Building
+          currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> RenderingBuildStatus.NeedsBuild
+          areResourcesOutOfDate -> RenderingBuildStatus.OutOfDate.Resources
+          isCodeOutOfDate -> RenderingBuildStatus.OutOfDate.Code
+          else -> RenderingBuildStatus.Ready
         }
       }
         .distinctUntilChanged()
         .collect {
-          LOG.debug("New status $it ${this@ProjectBuildStatusManagerImpl} ")
+          LOG.debug("New status $it ${this@RenderingBuildStatusManagerImpl} ")
           statusFlow.value = it
         }
     }

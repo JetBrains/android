@@ -35,8 +35,8 @@ import com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviews
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -202,7 +202,7 @@ fun interface ComposePreviewViewProvider {
   fun invoke(
     project: Project,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
-    projectBuildStatusManager: ProjectBuildStatusManager,
+    renderingBuildStatusManager: RenderingBuildStatusManager,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlSurfaceBuilder,
     parentDisposable: Disposable,
@@ -234,7 +234,7 @@ fun interface ComposePreviewViewProvider {
  * @param project the current open project
  * @param psiFilePointer an [SmartPsiElementPointer] pointing to the file being rendered within this
  *   panel. Used to handle which notifications should be displayed.
- * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
+ * @param renderingBuildStatusManager [RenderingBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
@@ -243,7 +243,7 @@ fun interface ComposePreviewViewProvider {
 internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  private val projectBuildStatusManager: ProjectBuildStatusManager,
+  private val renderingBuildStatusManager: RenderingBuildStatusManager,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
@@ -371,10 +371,10 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
-    val projectStatus = projectBuildStatusManager.statusFlow.value
+    val projectStatus = renderingBuildStatusManager.statusFlow.value
     log.debug("ProjectStatus: $projectStatus")
     when (projectStatus) {
-      ProjectStatus.NeedsBuild -> {
+      RenderingBuildStatus.NeedsBuild -> {
         if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
           log.debug("Preview not supported in read-only files")
           showModalErrorMessage(message("panel.read.only.file"))
@@ -383,8 +383,8 @@ internal class ComposePreviewViewImpl(
           showNeedsToBuildErrorPanel()
         }
       }
-      ProjectStatus.Building -> workbench.showLoading(message("panel.building"))
-      ProjectStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
+      RenderingBuildStatus.Building -> workbench.showLoading(message("panel.building"))
+      RenderingBuildStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
       else -> {
         if (DumbService.getInstance(project).isDumb)
           workbench.showLoading(message("panel.indexing"))
@@ -461,7 +461,8 @@ internal class ComposePreviewViewImpl(
   override fun updateVisibilityAndNotifications() =
     UIUtil.invokeLaterIfNeeded {
       if (
-        workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild
+        workbench.isMessageVisible &&
+          renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild
       ) {
         if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
           showModalErrorMessage(message("panel.read.only.file"))

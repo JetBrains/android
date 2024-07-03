@@ -26,14 +26,12 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers
-import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Executor
 import kotlin.time.Duration.Companion.seconds
 
-class ProjectBuildStatusManagerResourcesTest {
+class RenderingBuildStatusManagerResourcesTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModel()
   val project: Project
@@ -42,7 +40,7 @@ class ProjectBuildStatusManagerResourcesTest {
   @Test
   fun testResourcesMakeTheProjectOutOfDate() = runBlocking {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
-    val statusManager = ProjectBuildStatusManager.create(
+    val statusManager = RenderingBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
@@ -53,7 +51,7 @@ class ProjectBuildStatusManagerResourcesTest {
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
       5.seconds
-    ) { it == ProjectStatus.Ready }
+    ) { it == RenderingBuildStatus.Ready }
 
     ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
       projectRule.fixture.openFileInEditor(psiFile.virtualFile)
@@ -64,7 +62,7 @@ class ProjectBuildStatusManagerResourcesTest {
     statusManager.statusFlow.awaitStatus(
       "OutOfDate expected after a resource change",
       5.seconds
-    ) { it is ProjectStatus.OutOfDate }
+    ) { it is RenderingBuildStatus.OutOfDate }
 
     // A build should restore the ready state
     (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
@@ -72,6 +70,6 @@ class ProjectBuildStatusManagerResourcesTest {
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
       5.seconds
-    ) { it == ProjectStatus.Ready }
+    ) { it == RenderingBuildStatus.Ready }
   }
 }

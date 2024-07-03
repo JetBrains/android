@@ -23,7 +23,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
@@ -456,7 +456,7 @@ class CommonPreviewRepresentationTest {
     // wait for smart mode and status to be needs build
     waitForSmartMode(fixture.project)
     delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild
+      getProjectBuildStatusForTest() == RenderingBuildStatus.NeedsBuild
     }
 
     // Activate and wait for build listener setup to finish
