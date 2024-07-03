@@ -23,7 +23,10 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.model.VariantAbi
 import com.android.tools.idea.gradle.project.sync.idea.getVariantAndAbi
 import com.android.tools.idea.gradle.util.ModuleTypeComparator
+import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
+import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
@@ -109,13 +112,21 @@ private fun buildVariantTableModelRows(project: Project) =
   project
     .getAndroidFacets()
     .sortedWith(compareBy(ModuleTypeComparator.INSTANCE) { it.module })
-    .mapNotNull { androidFacet ->
-      val defaultVariantName = GradleAndroidModel.get(androidFacet)?.androidProject?.defaultVariantName
+    .filter { it.module.androidProjectType() != Type.TYPE_DYNAMIC_FEATURE}
+    .flatMap { androidFacet ->
+      val model = GradleAndroidModel.get(androidFacet)
+      val defaultVariantName = model?.androidProject?.defaultVariantName
       val variantAndAbi = androidFacet.getVariantAndAbi()
-      val buildVariantItems =
-        GradleAndroidModel.get(androidFacet)?.filteredVariantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
+      val buildVariantItems = model?.filteredVariantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
       val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
-      if (buildVariantItems.isNotEmpty()) BuildVariantTableRow(androidFacet.module, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems) else null
+      if (buildVariantItems.isNotEmpty())
+        listOf(BuildVariantTableRow(androidFacet.module, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)) +
+        (model?.project?.getProjectSystem()?.getModuleSystem(androidFacet.module)?.getDynamicFeatureModules()?.map {
+          // Using app's values for everything except the module
+          BuildVariantTableRow(it, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
+        } ?: emptyList())
+
+      else emptyList()
     }
 
 private fun getAbiItems(facet: AndroidFacet, foVariant: String): List<AbiItem> {
