@@ -106,6 +106,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -212,7 +213,13 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @VisibleForTesting
   val navigationHandler =
-    DefaultNavigationHandler { _, _, _, _, _ -> null }
+    DefaultNavigationHandler { sceneView, _, _, _, _ ->
+        val model = sceneView.sceneManager.model
+        val previewElement = model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)
+
+        previewElement?.previewElementDefinition?.element?.navigationElement
+          as? NavigatablePsiElement
+      }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
   @VisibleForTesting
