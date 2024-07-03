@@ -21,5 +21,6 @@ data class LegacyAndroidGradlePluginPropertiesImpl(
   override val componentToApplicationIdMap: Map<String, String>,
   override val namespace: String?,
   override val androidTestNamespace: String?,
+  override val dataBindingEnabled: Boolean?,
   override val problems: List<Exception>,
 ) : LegacyAndroidGradlePluginProperties

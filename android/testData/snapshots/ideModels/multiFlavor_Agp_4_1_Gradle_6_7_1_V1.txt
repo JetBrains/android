@@ -1295,6 +1295,7 @@ MODULE                        : MultiFlavor.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test

@@ -1239,6 +1239,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun createIdeAndroidGradlePluginProjectFlagsImpl(
     booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>,
     gradlePropertiesModel: GradlePropertiesModel,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ): IdeAndroidGradlePluginProjectFlagsImpl {
     return IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
@@ -1250,7 +1251,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       /** Treated as enabled for AGP < 8.4. if we need to know the actual answer we could add it to LegacyAndroidGradlePluginPropertiesModelBuilder */
       androidResourcesEnabled = true,
       unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
-      useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault
+      useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
+      dataBindingEnabled = legacyAndroidGradlePluginProperties?.dataBindingEnabled ?: false,
     )
   }
 
@@ -1343,7 +1345,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // AndroidProject#isBaseSplit is always non null.
     val isBaseSplit = copyNewProperty({ project.isBaseSplit }, false)
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl =
-      createIdeAndroidGradlePluginProjectFlagsImpl(projectFlags?.booleanFlagMap ?: emptyMap(), gradlePropertiesModel)
+      createIdeAndroidGradlePluginProjectFlagsImpl(projectFlags?.booleanFlagMap ?: emptyMap(), gradlePropertiesModel, legacyAndroidGradlePluginProperties)
     return ModelResult.create {
       IdeAndroidProjectImpl(
         agpVersion = project.modelVersion,
