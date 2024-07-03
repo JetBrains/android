@@ -67,6 +67,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.OverlayLayout;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,18 +115,15 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   private final DesignerAnalyticsManager myAnalyticsManager;
 
   @NotNull
-  private final Function<DesignSurface<T>, DesignSurfaceActionHandler> myActionHandlerProvider;
-
-  @NotNull
   private final AWTEventListener myOnHoverListener;
 
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
-    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
+    @NotNull Function1<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function1<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function1<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function1<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, SurfaceInteractable::new, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
@@ -134,22 +132,21 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
-    @NotNull Function<DesignSurface<T>, Interactable> interactableProvider,
-    @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
-    @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
-    @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
+    @NotNull Function1<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function1<DesignSurface<T>, Interactable> interactableProvider,
+    @NotNull Function1<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
+    @NotNull Function1<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function1<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    super(project, selectionModel, zoomControlsPolicy, new BorderLayout());
+    super(project, parentDisposable, actionManagerProvider, interactableProvider, interactionProviderCreator,
+          positionableLayoutManagerProvider, actionHandlerProvider,  selectionModel, zoomControlsPolicy);
 
     Disposer.register(parentDisposable, this);
 
     boolean hasZoomControls = getZoomControlsPolicy() != ZoomControlsPolicy.HIDDEN;
 
     myAnalyticsManager = new DesignerAnalyticsManager(this);
-
-    myActionHandlerProvider = actionHandlerProvider;
 
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a temporarily NlMode.
@@ -170,7 +167,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       this::getActionManager,
       this,
       this::shouldRenderErrorsPanel,
-      positionableLayoutManagerProvider.apply(this));
+      getPositionableLayoutManagerProvider().invoke(this));
     mySceneViewPanel.setBackground(getBackground());
 
     if (hasZoomControls) {
@@ -215,11 +212,11 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
     add(getLayeredPane());
 
-    Interactable interactable = interactableProvider.apply(this);
-    myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.apply(this));
+    Interactable interactable = interactableProvider.invoke(this);
+    myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.invoke(this));
     myGuiInputHandler.startListening();
     //noinspection AbstractMethodCallInConstructor
-    myActionManager = actionManagerProvider.apply(this);
+    myActionManager = actionManagerProvider.invoke(this);
     myActionManager.registerActionsShortcuts(getLayeredPane());
 
     if (hasZoomControls) {
@@ -255,12 +252,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull
   public ActionManager getActionManager() {
     return myActionManager;
-  }
-
-  // Allow a test to override myActionHandlerProvider when the surface is a mockito mock
-  @NotNull
-  public Function<DesignSurface<T>, DesignSurfaceActionHandler> getActionHandlerProvider() {
-    return myActionHandlerProvider;
   }
 
   /**
@@ -502,7 +493,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
              PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
              PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return getActionHandlerProvider().apply(this);
+      return getActionHandlerProvider().invoke(this);
     }
     else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
       SceneView view = getFocusedSceneView();

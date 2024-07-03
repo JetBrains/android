@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
-import java.util.function.Function
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import org.mockito.ArgumentMatchers
@@ -116,8 +115,7 @@ object DesignSurfaceTestUtil {
     // TODO: Do we need a special version of ModelBuilder for Nele?
     if (surface is NlDesignSurface) {
       whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
-      whenever(surface.getActionHandlerProvider())
-        .thenReturn(Function { defaultActionHandlerProvider(it) })
+      whenever(surface.actionHandlerProvider).thenReturn { defaultActionHandlerProvider(it) }
     }
 
     val sceneManager = sceneManagerFactory(surface, model)

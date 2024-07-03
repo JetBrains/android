@@ -96,6 +96,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JScrollPane;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,12 +154,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutOption defaultLayoutOption,
-                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
-                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
-                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
+                          @NotNull Function1<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
+                          @NotNull Function1<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
+                          @NotNull Function1<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
                           @SurfaceScale double minScale,
                           @SurfaceScale double maxScale,
-                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider,
+                          @NotNull Function1<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
