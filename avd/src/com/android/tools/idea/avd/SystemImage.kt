@@ -25,6 +25,7 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -51,6 +52,22 @@ internal constructor(
   internal val tags: ImmutableList<IdDisplay>,
   private val size: Storage,
 ) {
+  internal fun softwareItem(): GpuMode {
+    if (androidVersion.featureLevel < 23) {
+      return GpuMode.OFF
+    }
+
+    if (!abis.first().supportsMultipleCpuCores()) {
+      return GpuMode.OFF
+    }
+
+    if (!SystemImageTags.hasGoogleApi(tags)) {
+      return GpuMode.OFF
+    }
+
+    return GpuMode.SWIFT
+  }
+
   internal fun matches(device: Device): Boolean {
     // TODO(b/326294450) - Try doing this in device and system image declarations
     if (!Device.isTablet(device)) {
