@@ -16,10 +16,7 @@
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
@@ -116,22 +113,6 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
 
   private fun readFromFacetState(facet: AndroidFacet): List<VirtualFile> {
     val sourceProviderManager = SourceProviderManager.getInstance(facet)
-    return when {
-      module.isAndroidTestModule() -> sourceProviderManager.run {
-        val sources = currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { it.resDirectories } ?: listOf()
-        val generated = generatedDeviceTestSources[CommonTestType.ANDROID_TEST]?.resDirectories ?: listOf()
-        (sources + generated).toList()
-      }
-
-      module.isScreenshotTestModule() -> sourceProviderManager.run {
-        val sources = currentHostTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
-        val generated = generatedHostTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
-        (sources + generated).toList()
-      }
-
-      else -> sourceProviderManager.run {
-        (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList()
-      }
-    }
+    return ResourceFolderManagerToken.computeFoldersFromSourceProviders(sourceProviderManager, module)
   }
 }

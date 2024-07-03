@@ -221,6 +221,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.ui.resourcemanager.importer">
     <createDefaultResDirectoryToken implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.android.facet">
+    <resourceFolderManagerToken implementation="org.jetbrains.android.facet.ResourceFolderManagerGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
