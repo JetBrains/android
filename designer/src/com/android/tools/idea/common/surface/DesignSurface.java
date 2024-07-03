@@ -61,7 +61,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -254,20 +253,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myActionManager;
   }
 
-  /**
-   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
-   * be moved to the bottom of the list and a refresh will be triggered.
-   * The scene views are updated before starting to render and the callback
-   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
-   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
-   * <br/><br/>
-   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
-   * the models in the order they are added.
-   *
-   * @param model the added {@link NlModel}
-   * @see #addModel(NlModel)
-   */
   @NotNull
+  @Override
   public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
     T modelSceneManager = addModel(model);
     // Mark the scene view panel as invalid to force the scene views to be updated
@@ -288,25 +275,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }, EdtExecutorService.getInstance());
   }
 
-  /**
-   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
-   * If it is added before then it just returns the associated {@link SceneManager} which created before.
-   * In this function, the scene views are not updated and {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
-   * callback is triggered immediately.
-   * In the opposite, {@link #addAndRenderModel(NlModel)} updates the scene views and triggers
-   * {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} when render is completed.
-   * <p>
-   * <br/><br/>
-   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
-   * the models in the order they are added.
-   * <p>
-   * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
-   *
-   * @param model the added {@link NlModel}
-   * @see #addModel(NlModel)
-   * @see #addAndRenderModel(NlModel)
-   */
   @NotNull
+  @Override
   public final CompletableFuture<T> addModelWithoutRender(@NotNull NlModel modelToAdd) {
     return CompletableFuture
       .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
@@ -321,12 +291,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }, EdtExecutorService.getInstance());
   }
 
-  /**
-   * Sets the current {@link NlModel} to DesignSurface.
-   *
-   * @see #addAndRenderModel(NlModel)
-   * @see #removeModel(NlModel)
-   */
   @Override
   public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
     NlModel oldModel = getModel();
@@ -385,9 +349,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     getModels().forEach(this::removeModelImpl);
   }
 
-  /**
-   * Re-layouts the ScreenViews contained in this design surface immediately.
-   */
   @UiThread
   @Override
   public void validateScrollArea() {
@@ -408,16 +369,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myContentContainerPane.revalidate();
     // Also schedule a repaint.
     mySceneViewPanel.repaint();
-  }
-
-  public JComponent getPreferredFocusedComponent() {
-    return getInteractionPane();
-  }
-
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-  @NotNull
-  public JComponent getInteractionPane() {
-    return mySceneViewPanel;
   }
 
   @NotNull

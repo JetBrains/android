@@ -154,6 +154,12 @@ abstract class PreviewSurface<T : SceneManager>(
   val viewSize: Dimension
     get() = viewport.viewSize
 
+  val interactionPane: JComponent
+    get() = sceneViewPanel
+
+  val preferredFocusedComponent: JComponent
+    get() = interactionPane
+
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
    * surface.
@@ -178,6 +184,7 @@ abstract class PreviewSurface<T : SceneManager>(
    */
   @UiThread abstract fun revalidateScrollArea()
 
+  /** Re-layouts the ScreenViews contained in this design surface immediately. */
   @UiThread abstract fun validateScrollArea()
 
   /** Converts a given point that is in view coordinates to viewport coordinates. */
@@ -844,7 +851,45 @@ abstract class PreviewSurface<T : SceneManager>(
     return CompletableFuture.completedFuture<Any?>(null)
   }
 
+  /**
+   * Sets the current [NlModel] to [DesignSurface].
+   *
+   * @see [addAndRenderModel]
+   * @see [removeModel]
+   */
   abstract fun setModel(model: NlModel?): CompletableFuture<Void>
+
+  /**
+   * Add an [NlModel] to [DesignSurface] and refreshes the rendering of the model. If the model was
+   * already part of the surface, it will be moved to the bottom of the list and a refresh will be
+   * triggered. The scene views are updated before starting to render and the callback
+   * [DesignSurfaceListener.modelChanged] is triggered after rendering. The method returns a
+   * [CompletableFuture] that will complete when the render of the new model has finished. Note that
+   * the order of the addition might be important for the rendering order.
+   * [PositionableContentLayoutManager] will receive the models in the order they are added.
+   *
+   * @param model the added [NlModel]
+   * @see [addModel]
+   */
+  abstract fun addAndRenderModel(model: NlModel): CompletableFuture<Void>
+
+  /**
+   * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
+   * then it just returns the associated [SceneManager] which created before. In this function, the
+   * scene views are not updated and [DesignSurfaceListener.modelChanged] callback is triggered
+   * immediately. In the opposite, [addAndRenderModel] updates the scene views and triggers
+   * [DesignSurfaceListener.modelChanged] when render is completed.
+   *
+   * Note that the order of the addition might be important for the rendering order.
+   * [PositionableContentLayoutManager] will receive the models in the order they are added.
+   *
+   * @param model the added [NlModel]
+   * @see [addModel]
+   * @see [addAndRenderModel]
+   *
+   * TODO(b/147225165): Remove [addAndRenderModel] function and rename this function as [addModel]
+   */
+  abstract fun addModelWithoutRender(model: NlModel): CompletableFuture<T>
 
   // TODO Make private
   protected val renderFutures = mutableListOf<CompletableFuture<Void>>()
