@@ -483,3 +483,16 @@ enum class Orientation {
   portrait,
   landscape
 }
+
+enum class Cutout {
+  none,
+  corner,
+  double,
+  punch_hole,
+  tall
+}
+
+enum class Navigation {
+  buttons,
+  gesture
+}

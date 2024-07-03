@@ -84,6 +84,27 @@ internal class DeviceSpecCompletionContributorTest {
   }
 
   @Test
+  fun providedNavigationValues() {
+    fixture.completeDeviceSpec("spec:navigation=$caret")
+
+    assertEquals(2, fixture.lookupElementStrings!!.size)
+    assertEquals("buttons", fixture.lookupElementStrings!![0])
+    assertEquals("gesture", fixture.lookupElementStrings!![1])
+  }
+
+  @Test
+  fun providedCutoutValues() {
+    fixture.completeDeviceSpec("spec:cutout=$caret")
+
+    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals("corner", fixture.lookupElementStrings!![0])
+    assertEquals("double", fixture.lookupElementStrings!![1])
+    assertEquals("none", fixture.lookupElementStrings!![2])
+    assertEquals("punch_hole", fixture.lookupElementStrings!![3])
+    assertEquals("tall", fixture.lookupElementStrings!![4])
+  }
+
+  @Test
   fun nothingProvided() {
     // Currently, not supported in name
     fixture.completeDeviceSpec("name:Nexus 7$caret")
@@ -181,35 +202,42 @@ internal class DeviceSpecCompletionContributorTest {
   @Test
   fun parameterCompletion() {
     fixture.completeDeviceSpec("spec:$caret")
-    assertEquals(7, fixture.lookupElementStrings!!.size)
+    assertEquals(9, fixture.lookupElementStrings!!.size)
     assertEquals("chinSize", fixture.lookupElementStrings!![0])
-    assertEquals("dpi", fixture.lookupElementStrings!![1])
-    assertEquals("height", fixture.lookupElementStrings!![2])
-    assertEquals("isRound", fixture.lookupElementStrings!![3])
-    assertEquals("orientation", fixture.lookupElementStrings!![4])
-    assertEquals("parent", fixture.lookupElementStrings!![5])
-    assertEquals("width", fixture.lookupElementStrings!![6])
+    assertEquals("cutout", fixture.lookupElementStrings!![1])
+    assertEquals("dpi", fixture.lookupElementStrings!![2])
+    assertEquals("height", fixture.lookupElementStrings!![3])
+    assertEquals("isRound", fixture.lookupElementStrings!![4])
+    assertEquals("navigation", fixture.lookupElementStrings!![5])
+    assertEquals("orientation", fixture.lookupElementStrings!![6])
+    assertEquals("parent", fixture.lookupElementStrings!![7])
+    assertEquals("width", fixture.lookupElementStrings!![8])
 
     fixture.completeDeviceSpec("spec:orientation=portrait,$caret")
-    assertEquals(6, fixture.lookupElementStrings!!.size)
+    assertEquals(8, fixture.lookupElementStrings!!.size)
     assertEquals("chinSize", fixture.lookupElementStrings!![0])
-    assertEquals("dpi", fixture.lookupElementStrings!![1])
-    assertEquals("height", fixture.lookupElementStrings!![2])
-    assertEquals("isRound", fixture.lookupElementStrings!![3])
-    assertEquals("parent", fixture.lookupElementStrings!![4])
-    assertEquals("width", fixture.lookupElementStrings!![5])
+    assertEquals("cutout", fixture.lookupElementStrings!![1])
+    assertEquals("dpi", fixture.lookupElementStrings!![2])
+    assertEquals("height", fixture.lookupElementStrings!![3])
+    assertEquals("isRound", fixture.lookupElementStrings!![4])
+    assertEquals("navigation", fixture.lookupElementStrings!![5])
+    assertEquals("parent", fixture.lookupElementStrings!![6])
+    assertEquals("width", fixture.lookupElementStrings!![7])
 
     fixture.completeDeviceSpec("spec:parent=pixel_5,$caret")
-    assertEquals(1, fixture.lookupElementStrings!!.size)
-    assertEquals("orientation", fixture.lookupElementStrings!![0])
+    assertEquals(2, fixture.lookupElementStrings!!.size)
+    assertEquals("navigation", fixture.lookupElementStrings!![0])
+    assertEquals("orientation", fixture.lookupElementStrings!![1])
 
     fixture.completeDeviceSpec("spec:width=1080px,$caret")
-    assertEquals(5, fixture.lookupElementStrings!!.size)
+    assertEquals(7, fixture.lookupElementStrings!!.size)
     assertEquals("chinSize", fixture.lookupElementStrings!![0])
-    assertEquals("dpi", fixture.lookupElementStrings!![1])
-    assertEquals("height", fixture.lookupElementStrings!![2])
-    assertEquals("isRound", fixture.lookupElementStrings!![3])
-    assertEquals("orientation", fixture.lookupElementStrings!![4])
+    assertEquals("cutout", fixture.lookupElementStrings!![1])
+    assertEquals("dpi", fixture.lookupElementStrings!![2])
+    assertEquals("height", fixture.lookupElementStrings!![3])
+    assertEquals("isRound", fixture.lookupElementStrings!![4])
+    assertEquals("navigation", fixture.lookupElementStrings!![5])
+    assertEquals("orientation", fixture.lookupElementStrings!![6])
 
     fixture.completeDeviceSpec("spec:width=1080px,heigh$caret")
     fixture.checkResult("spec:width=1080px,height=891px")
@@ -223,15 +251,21 @@ internal class DeviceSpecCompletionContributorTest {
     fixture.completeDeviceSpec("spec:width=1080dp,chinSiz$caret")
     fixture.checkResult("spec:width=1080dp,chinSize=0dp")
 
+    fixture.completeDeviceSpec("spec:width=1080dp,cuto$caret")
+    fixture.checkResult("spec:width=1080dp,cutout=none")
+
     fixture.completeDeviceSpec("spec:parent=pixel_5,orient$caret")
     fixture.checkResult("spec:parent=pixel_5,orientation=portrait")
+
+    fixture.completeDeviceSpec("spec:parent=pixel_5,navi$caret")
+    fixture.checkResult("spec:parent=pixel_5,navigation=gesture")
 
     fixture.completeDeviceSpec("spec:orientation=portrait,par$caret")
     fixture.checkResult("spec:orientation=portrait,parent=pixel_5")
 
     // Nothing else to complete when using `parent`
-    fixture.completeDeviceSpec("spec:orientation=portrait,parent=pixel_5,$caret")
-    fixture.checkResult("spec:orientation=portrait,parent=pixel_5,")
+    fixture.completeDeviceSpec("spec:orientation=portrait,navigation=gesture,parent=pixel_5,$caret")
+    fixture.checkResult("spec:orientation=portrait,navigation=gesture,parent=pixel_5,")
     assertEquals(0, fixture.lookupElementStrings!!.size)
 
     // No parameters starting with 'spe'
