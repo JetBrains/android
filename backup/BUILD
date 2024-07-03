@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/backup:intellij.android.backup.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
