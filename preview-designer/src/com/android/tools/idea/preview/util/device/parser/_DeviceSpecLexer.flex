@@ -51,7 +51,6 @@ STRING_T=([:letter:]|[:digit:]){1}([^:,=\"\\]|\\.)*
   "portrait"         { return PORTRAIT_KEYWORD; }
   "square"           { return SQUARE_KEYWORD; }
 
-  "unit"             { return UNIT_KEYWORD; }
   "orientation"      { return ORIENTATION_KEYWORD; }
   "isRound"          { return IS_ROUND_KEYWORD; }
   "dpi"              { return DPI_KEYWORD; }

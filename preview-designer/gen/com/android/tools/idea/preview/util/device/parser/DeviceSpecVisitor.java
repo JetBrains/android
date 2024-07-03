@@ -85,10 +85,6 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitParam(o);
   }
 
-  public void visitShapeParam(@NotNull DeviceSpecShapeParam o) {
-    visitParam(o);
-  }
-
   public void visitSizeT(@NotNull DeviceSpecSizeT o) {
     visitPsiElement(o);
   }
@@ -99,10 +95,6 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
 
   public void visitUnit(@NotNull DeviceSpecUnit o) {
     visitPsiElement(o);
-  }
-
-  public void visitUnitParam(@NotNull DeviceSpecUnitParam o) {
-    visitParam(o);
   }
 
   public void visitWidthParam(@NotNull DeviceSpecWidthParam o) {

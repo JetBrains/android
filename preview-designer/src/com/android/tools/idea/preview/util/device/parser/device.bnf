@@ -47,8 +47,6 @@
     EQUALS = '='
     COLON = ':'
 
-    UNIT_KEYWORD = 'unit'
-
     SPEC_KEYWORD = 'spec'
     ID_KEYWORD = 'id'
     NAME_KEYWORD = 'name'
@@ -98,8 +96,6 @@ name_param ::= NAME_KEYWORD EQUALS STRING_T
 id_param ::= ID_KEYWORD EQUALS STRING_T
 width_param::= WIDTH_KEYWORD EQUALS size_t
 height_param ::= HEIGHT_KEYWORD EQUALS size_t
-shape_param ::= "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin") // Deprecated, just here to be compatible with the old parser
-unit_param ::= UNIT_KEYWORD EQUALS unit // Deprecated, just here to be compatible with the old parser
 parent_param::= PARENT_KEYWORD EQUALS STRING_T
 orientation_param ::= ORIENTATION_KEYWORD EQUALS orientation_t
 is_round_param ::= IS_ROUND_KEYWORD EQUALS boolean_t
@@ -114,8 +110,6 @@ param ::= parent_param
    | name_param
    | width_param
    | height_param
-   | shape_param // Deprecated, just here to be compatible with the old parser
-   | unit_param // Deprecated, just here to be compatible with the old parser
    | orientation_param
    | is_round_param
    | chin_size_param
