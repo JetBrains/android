@@ -91,9 +91,10 @@ internal object LegacyParameterRule {
  * Parameter rules for the language based DeviceSpec.
  *
  * For example:
- * `spec:parent=<device_id>,width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp`
+ * * `spec:parent=<device_id>,orientation=landscape`
+ * * `spec:width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp`
  *
- * @see com.android.tools.idea.compose.preview.util.device.DeviceSpecLanguage
+ * @see com.android.tools.idea.preview.util.device.DeviceSpecLanguage
  */
 internal object LanguageParameterRule {
 
