@@ -45,7 +45,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
@@ -279,7 +278,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param renderingQueueFactory      a factory to create a {@link RenderingQueue}.
    * @param sceneComponentProvider     a {@link SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
-   * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
    * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
@@ -288,10 +286,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @Nullable SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
                                   @NotNull Supplier<SessionClock> sessionClockFactory) {
-    super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
+    super(model, designSurface, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     mySessionClockFactory = sessionClockFactory;
@@ -335,19 +332,17 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, SceneUpdateListener, LayoutScannerConfiguration, Supplier)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, LayoutScannerConfiguration, Supplier)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
    *                               {@link SceneComponent}s.
-   * @param sceneUpdateListener    a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @Nullable SceneUpdateListener sceneUpdateListener,
                                @NotNull Supplier<SessionClock> sessionClockFactory) {
     this(
       model,
@@ -355,7 +350,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       sceneComponentProvider,
-      sceneUpdateListener,
       new LayoutScannerEnabled(),
       sessionClockFactory);
     myLayoutScannerConfig.setLayoutScannerEnabled(false);
@@ -363,32 +357,18 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    * @param config configuration for layout validation when rendering.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config) {
-    this(model, designSurface, config, null);
-  }
-
-  /**
-   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   *
-   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
-   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
-   * @param config configuration for layout validation when rendering.
-   * @param listener {@link SceneUpdateListener } allows performing additional operations affected by the scene root component when updating the scene.
-   */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config, @Nullable SceneUpdateListener listener) {
     this(
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
-      listener,
       config,
       RealTimeSessionClock::new);
   }

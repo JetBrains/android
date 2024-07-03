@@ -21,7 +21,6 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption.Companion.DEFAUL
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
-import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.common.surface.Interactable
@@ -47,13 +46,9 @@ import org.jetbrains.annotations.VisibleForTesting
 @SurfaceScale private const val DEFAULT_MAX_SCALE = 10.0
 private val DEFAULT_NL_SUPPORTED_ACTIONS = ImmutableSet.copyOf(NlSupportedActions.values())
 
-/** Default [LayoutlibSceneManager] provider with update listener [SceneUpdateListener] */
-fun defaultSceneManagerProvider(
-  surface: NlDesignSurface,
-  model: NlModel,
-  listener: SceneUpdateListener?,
-): LayoutlibSceneManager {
-  val sceneManager = LayoutlibSceneManager(model, surface, LayoutScannerEnabled(), listener)
+/** Default [LayoutlibSceneManager] provider */
+fun defaultSceneManagerProvider(surface: NlDesignSurface, model: NlModel): LayoutlibSceneManager {
+  val sceneManager = LayoutlibSceneManager(model, surface, LayoutScannerEnabled())
   val settings = getProjectSettings(model.project)
   sceneManager.setShowDecorations(settings.showDecorations)
   sceneManager.setUseImagePool(settings.useLiveRendering)
@@ -78,7 +73,7 @@ class NlSurfaceBuilder(
   companion object {
     fun builder(project: Project, parentDisposable: Disposable): NlSurfaceBuilder {
       return builder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel ->
-        defaultSceneManagerProvider(surface, model, null)
+        defaultSceneManagerProvider(surface, model)
       }
     }
 
@@ -95,7 +90,7 @@ class NlSurfaceBuilder(
     fun build(project: Project, parentDisposable: Disposable): NlDesignSurface {
       return NlSurfaceBuilder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel
           ->
-          defaultSceneManagerProvider(surface, model, null)
+          defaultSceneManagerProvider(surface, model)
         }
         .build()
     }

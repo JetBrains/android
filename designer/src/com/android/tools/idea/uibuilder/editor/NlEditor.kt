@@ -65,7 +65,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
       WorkBench(myProject, WORKBENCH_NAME, this, this),
       {
         NlSurfaceBuilder.builder(myProject, this) { surface, model ->
-            defaultSceneManagerProvider(surface, model, null).apply {
+            defaultSceneManagerProvider(surface, model).apply {
               visualLintMode = VisualLintMode.RUN_IN_BACKGROUND
             }
           }

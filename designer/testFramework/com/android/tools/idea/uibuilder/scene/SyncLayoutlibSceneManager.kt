@@ -56,7 +56,6 @@ open class SyncLayoutlibSceneManager(
       }
     },
     LayoutlibSceneManagerHierarchyProvider(),
-    null,
     DISABLED,
     ::RealTimeSessionClock,
   ) {

@@ -211,7 +211,6 @@ class LayoutlibSceneManagerTest : SceneTest() {
         }
       },
       LayoutlibSceneManagerHierarchyProvider(),
-      null,
       DISABLED,
       { RealTimeSessionClock() },
     )
