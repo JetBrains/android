@@ -46,14 +46,20 @@ import com.google.common.base.Predicate
 import com.google.common.collect.Collections2
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
@@ -519,12 +525,12 @@ abstract class PreviewSurface<T : SceneManager>(
    * @return the primary (first) [NlModel] if exist. null otherwise.
    * @see [models]
    */
-  @Deprecated("The surface can contain multiple models. Use {@link #getModels()} instead.")
+  @Deprecated("b/352512443 The surface can contain multiple models. Use models instead.")
   val model: NlModel?
     get() = models.firstOrNull()
 
   @Deprecated(
-    "Use getSceneManager(NlModel) or getSceneManagers() instead. Using this method will cause the code not to correctly support multiple previews."
+    "b/352512443 Use getSceneManager(NlModel) or sceneManagers instead. Using this method will cause the code not to correctly support multiple previews."
   )
   open val sceneManager: T?
     get() = model?.let { getSceneManager(it) }
@@ -666,7 +672,7 @@ abstract class PreviewSurface<T : SceneManager>(
         .collect(ImmutableList.toImmutableList())
     }
 
-  @Deprecated("Owner can have multiple scenes")
+  @Deprecated("b/352512443 Owner can have multiple scenes")
   override val scene: Scene?
     get() = sceneManager?.scene
 
@@ -683,6 +689,16 @@ abstract class PreviewSurface<T : SceneManager>(
       }
     }
     return null
+  }
+
+  @Deprecated("b/352512443")
+  override fun getSceneViewAtOrPrimary(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+  ): SceneView? {
+    // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView
+    // when there is no hovered SceneView.
+    return getSceneViewAt(x, y) ?: sceneManager?.sceneView
   }
 
   /**
@@ -852,11 +868,36 @@ abstract class PreviewSurface<T : SceneManager>(
   private var lintIssueProvider: LintIssueProvider? = null
   val issueModel: IssueModel = IssueModel(this, project)
 
+  fun deactivateIssueModel() {
+    issueModel.deactivate()
+  }
+
   fun setLintAnnotationsModel(model: LintAnnotationsModel) {
     lintIssueProvider?.let { it.lintAnnotationsModel = model }
 
     if (lintIssueProvider == null) {
       lintIssueProvider = LintIssueProvider(model).also { issueModel.addIssueProvider(it) }
     }
+  }
+
+  /**
+   * The data which should be obtained from the background thread. TODO Make private
+   *
+   * @see [PlatformCoreDataKeys.BGT_DATA_PROVIDER]
+   */
+  protected fun getSlowData(dataId: String): Any? {
+    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+      return focusedSceneView?.selectionModel?.primary?.tagDeprecated
+    } else if (LangDataKeys.PSI_ELEMENT_ARRAY.`is`(dataId)) {
+      val selection = focusedSceneView?.selectionModel?.selection
+      if (selection != null) {
+        val list: MutableList<XmlTag> = Lists.newArrayListWithCapacity(selection.size)
+        for (component in selection) {
+          list.add(component.tagDeprecated)
+        }
+        return list.toArray<XmlTag>(XmlTag.EMPTY)
+      }
+    }
+    return null
   }
 }
