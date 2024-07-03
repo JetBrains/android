@@ -347,7 +347,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @NotNull SceneUpdateListener sceneUpdateListener,
+                               @Nullable SceneUpdateListener sceneUpdateListener,
                                @NotNull Supplier<SessionClock> sessionClockFactory) {
     this(
       model,
