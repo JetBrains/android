@@ -138,7 +138,7 @@ class PsAnalyzerDaemonKtTest {
               .build()
           )
           .build()
-        this.initialize(overriddenData =  ByteArrayInputStream(proto.toByteArray()), null)
+        this.initialize(ByteArrayInputStream(proto.toByteArray()))
       }
     }
   }
