@@ -58,14 +58,6 @@ namespace {
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
 
-#define GOOGLE "Google"
-#define MOTOROLA "motorola"
-#define ONE_PLUS "OnePlus"
-#define OPPO "OPPO"
-#define SAMSUNG "samsung"
-#define VIVO "vivo"
-#define XIAOMI "Xiaomi"
-
 #define SYSPROPS_TRANSACTION 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
 struct CommandContext {

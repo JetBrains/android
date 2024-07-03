@@ -30,6 +30,15 @@ namespace screensharing {
 extern const char ATTRIBUTION_TAG[];  // The tag used in system logs.
 constexpr int32_t PRIMARY_DISPLAY_ID = 0;
 
+// Device manufacturers.
+constexpr char GOOGLE[] = "Google";
+constexpr char MOTOROLA[] = "motorola";
+constexpr char ONE_PLUS[] = "OnePlus";
+constexpr char OPPO[] = "OPPO";
+constexpr char SAMSUNG[] = "samsung";
+constexpr char VIVO[] = "vivo";
+constexpr char XIAOMI[] = "Xiaomi";
+
 // The main class of the screen sharing agent.
 class Agent {
 public:

@@ -667,7 +667,7 @@ void Controller::SendDeviceStateNotification() {
     previous_device_state_ = device_state;
     // Many OEMs don't produce QPR releases, so their phones may be affected by b/303684492
     // that was fixed in Android 14 QPR1.
-    if (Agent::feature_level() == 34 && Agent::device_manufacturer() != "Google") {
+    if (Agent::feature_level() == 34 && Agent::device_manufacturer() != GOOGLE) {
       StartDisplayPolling();  // Workaround for b/303684492.
     }
   }
