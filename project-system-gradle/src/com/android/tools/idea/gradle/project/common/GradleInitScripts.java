@@ -136,7 +136,8 @@ public class GradleInitScripts {
       file.deleteOnExit();
       writeToFile(file, content);
       getLogger().info(String.format("init script file %s contents %s", fileName, escapeAsStringLiteral(content)));
-    } catch (Exception ex) {
+    }
+    catch (Exception ex) {
       getLogger().error("Failed to create init script: " + fileName, ex);
       throw ex;
     }
@@ -144,12 +145,12 @@ public class GradleInitScripts {
   }
 
   private static void warnOnExcludedJarInclusion(List<String> paths) {
-      var foundExcludedJars = paths.stream()
-        .filter(EXCLUDED_JARS::contains)
-        .collect(Collectors.joining());
-      if (!foundExcludedJars.isEmpty()) {
-        getLogger().warn("Unexpected Jars were added as dependencies in init script: " + foundExcludedJars);
-      }
+    var foundExcludedJars = paths.stream()
+      .filter(EXCLUDED_JARS::contains)
+      .collect(Collectors.joining());
+    if (!foundExcludedJars.isEmpty()) {
+      getLogger().warn("Unexpected Jars were added as dependencies in init script: " + foundExcludedJars);
+    }
   }
 
   @NotNull
@@ -199,33 +200,44 @@ public class GradleInitScripts {
       StringBuilder paths = new StringBuilder();
       for (String path : repoPaths) {
         path = escapeGroovyStringLiteral(path);
-        paths.append("      maven { url '").append(path).append("'}\n");
+        paths.append("maven { url '").append(path).append("'}\n");
       }
-      return "import org.gradle.util.GradleVersion\n\n" +
-             "allprojects {\n" +
-             "  buildscript {\n" +
-             "    repositories {\n" + paths +
-             "    }\n" +
-             "  }\n" +
-             "  repositories {\n" + paths +
-             "  }\n" +
-             "}\n" +
-             "if (GradleVersion.current().baseVersion >= GradleVersion.version('7.0')) {\n" +
-             "  beforeSettings {\n" +
-             "    it.pluginManagement {\n" +
-             "      repositories {\n" + paths +
-             "      }\n" +
-             "    }\n" +
-             "  }\n" +
-             "}\n" +
-             "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
-             "  beforeSettings {\n" +
-             "    it.dependencyResolutionManagement {\n" +
-             "      repositories {\n" + paths +
-             "      }\n" +
-             "    }\n" +
-             "  }\n" +
-             "}\n";
+      String pathsString = paths.toString();
+
+      return """
+        import org.gradle.util.GradleVersion
+
+        allprojects {
+          buildscript {
+            repositories {
+              %s
+            }
+          }
+          repositories {
+              %s
+          }
+        }
+
+        if (GradleVersion.current().baseVersion >= GradleVersion.version('7.0')) {
+          beforeSettings {
+            it.pluginManagement {
+              repositories {
+                %s
+              }
+            }
+          }
+        }
+
+        if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {
+          beforeSettings {
+            it.dependencyResolutionManagement {
+              repositories {
+                %s
+              }
+            }
+          }
+        }
+        """.stripIndent().formatted(pathsString, pathsString, pathsString, pathsString);
     }
 
     @NotNull
@@ -235,14 +247,23 @@ public class GradleInitScripts {
         warnOnExcludedJarInclusion(paths);
       }
 
-      return "initscript {\n" +
-             "    dependencies {\n" +
-             "        " + createClassPathString(paths) + "\n" +
-             "    }\n" +
-             "}\n" +
-             "allprojects {\n" +
-             "    apply plugin: " + AndroidStudioToolingPlugin.class.getName() + "\n" +
-             "}\n";
+      return """
+        initscript {
+          dependencies {
+            %s
+          }
+        }
+        if (GradleVersion.current().baseVersion >= GradleVersion.version("8.8")) {
+          gradle.lifecycle.beforeProject { Project project ->
+            project.apply plugin: %s
+          }
+        } else {
+          allprojects {
+            apply plugin: %s
+          }
+        }
+        """.stripIndent()
+        .formatted(createClassPathString(paths), AndroidStudioToolingPlugin.class.getName(), AndroidStudioToolingPlugin.class.getName());
     }
 
     @NotNull
@@ -280,7 +301,7 @@ public class GradleInitScripts {
     @NotNull
     List<String> getJarPaths() {
       return Stream.of(
-        getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class))
+          getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     }
