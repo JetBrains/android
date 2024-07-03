@@ -58,8 +58,6 @@ object Preview {
 
     const val PARAMETER_WIDTH = "width"
     const val PARAMETER_HEIGHT = "height"
-    const val PARAMETER_SHAPE = "shape"
-    const val PARAMETER_UNIT = "unit"
     const val PARAMETER_DPI = "dpi"
 
     /**

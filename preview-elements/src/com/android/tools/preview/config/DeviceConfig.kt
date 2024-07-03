@@ -39,8 +39,6 @@ import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ID
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_IS_ROUND
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ORIENTATION
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_PARENT
-import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_SHAPE
-import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_UNIT
 import com.android.tools.preview.config.Preview.DeviceSpec.SEPARATOR
 import com.android.utils.HashCodes
 import kotlin.math.roundToInt
@@ -60,18 +58,6 @@ val referenceDeviceIds =
     "spec:width=673dp,height=841dp" to DEVICE_CLASS_FOLDABLE_ID,
     "spec:width=1280dp,height=800dp,dpi=240" to DEVICE_CLASS_TABLET_ID,
     "spec:width=1920dp,height=1080dp,dpi=160" to DEVICE_CLASS_DESKTOP_ID
-  )
-
-/**
- * Map linking reference device ids to their real density, so that it can be used when displaying
- * the preview in
- */
-private val referenceDeviceRealDensities =
-  mapOf(
-    DEVICE_CLASS_PHONE_ID to DEFAULT_DPI,
-    DEVICE_CLASS_FOLDABLE_ID to DEFAULT_DPI,
-    DEVICE_CLASS_TABLET_ID to 240,
-    DEVICE_CLASS_DESKTOP_ID to 160
   )
 
 /**
@@ -243,37 +229,7 @@ open class DeviceConfig(
                 paramString.substringAfter(OPERATOR).trim()
               )
             }
-
-      if (!paramsMap.containsKey(PARAMETER_SHAPE)) {
-        return parseDeviceSpecLanguage(paramsMap, availableDevices)
-      }
-
-      // This format supports (and requires) 5 parameters: shape, width, height, unit, dpi
-      // This should only be called because the Preview Inspection didn't find anything wrong, so we
-      // can just worry about parsing the
-      // parameters we use and ignore everything else
-      val shape =
-        enumValueOfOrNull<Shape>(paramsMap.getOrDefault(PARAMETER_SHAPE, "")) ?: return null
-      val width = paramsMap.getOrDefault(PARAMETER_WIDTH, "").toIntOrNull() ?: return null
-      val height = paramsMap.getOrDefault(PARAMETER_HEIGHT, "").toIntOrNull() ?: return null
-      val dimUnit =
-        enumValueOfOrNull<DimUnit>(paramsMap.getOrDefault(PARAMETER_UNIT, "").lowercase())
-          ?: return null
-      val dpi =
-        if (referenceDeviceId != null) {
-          referenceDeviceRealDensities[referenceDeviceId]!!
-        } else {
-          paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null
-        }
-      return DeviceConfig(
-        deviceId = referenceDeviceId,
-        width = width.toFloat(),
-        height = height.toFloat(),
-        dimUnit = dimUnit,
-        dpi = dpi,
-        shape = shape,
-        orientation = if (width > height) Orientation.landscape else Orientation.portrait
-      )
+      return parseDeviceSpecLanguage(paramsMap, availableDevices)
     }
 
     /**
@@ -388,7 +344,7 @@ open class DeviceConfig(
         chinSize = chinSizeValue,
         orientation = orientation,
         parentDeviceId =
-          null // Not supported when explicitly declaring width, height, dpi, shape, chinSize
+          null // Not supported when explicitly declaring width, height, dpi, chinSize
       )
     }
   }
