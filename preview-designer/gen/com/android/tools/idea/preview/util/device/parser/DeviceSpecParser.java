@@ -56,8 +56,7 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
     create_token_set_(CHIN_SIZE_PARAM, CUTOUT_PARAM, DPI_PARAM, HEIGHT_PARAM,
       ID_PARAM, IS_ROUND_PARAM, NAME_PARAM, NAVIGATION_PARAM,
-      ORIENTATION_PARAM, PARAM, PARENT_PARAM, SHAPE_PARAM,
-      UNIT_PARAM, WIDTH_PARAM),
+      ORIENTATION_PARAM, PARAM, PARENT_PARAM, WIDTH_PARAM),
   };
 
   /* ********************************************************** */
@@ -235,8 +234,6 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
   //    | name_param
   //    | width_param
   //    | height_param
-  //    | shape_param // Deprecated, just here to be compatible with the old parser
-  //    | unit_param // Deprecated, just here to be compatible with the old parser
   //    | orientation_param
   //    | is_round_param
   //    | chin_size_param
@@ -252,8 +249,6 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     if (!r) r = name_param(b, l + 1);
     if (!r) r = width_param(b, l + 1);
     if (!r) r = height_param(b, l + 1);
-    if (!r) r = shape_param(b, l + 1);
-    if (!r) r = unit_param(b, l + 1);
     if (!r) r = orientation_param(b, l + 1);
     if (!r) r = is_round_param(b, l + 1);
     if (!r) r = chin_size_param(b, l + 1);
@@ -297,30 +292,6 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     r = consumeTokens(b, 0, SPEC_KEYWORD, COLON);
     r = r && spec(b, l + 1);
     exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin")
-  public static boolean shape_param(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "shape_param")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, SHAPE_PARAM, "<shape param>");
-    r = consumeToken(b, "Shape");
-    r = r && consumeToken(b, EQUALS);
-    r = r && shape_param_2(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // "Normal" | "Square" | "Round" | "Chin"
-  private static boolean shape_param_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "shape_param_2")) return false;
-    boolean r;
-    r = consumeToken(b, "Normal");
-    if (!r) r = consumeToken(b, "Square");
-    if (!r) r = consumeToken(b, "Round");
-    if (!r) r = consumeToken(b, "Chin");
     return r;
   }
 
@@ -398,19 +369,6 @@ public class DeviceSpecParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, PX);
     if (!r) r = consumeToken(b, DP);
     exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // UNIT_KEYWORD EQUALS unit
-  public static boolean unit_param(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "unit_param")) return false;
-    if (!nextTokenIs(b, UNIT_KEYWORD)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, UNIT_KEYWORD, EQUALS);
-    r = r && unit(b, l + 1);
-    exit_section_(b, m, UNIT_PARAM, r);
     return r;
   }
 
