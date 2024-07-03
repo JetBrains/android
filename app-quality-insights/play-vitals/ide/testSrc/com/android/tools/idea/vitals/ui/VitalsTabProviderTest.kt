@@ -95,7 +95,13 @@ class VitalsTabProviderTest {
           assertThat(component).isInstanceOf(VitalsTab::class.java)
           manager.configuration.value = AppInsightsModel.Unauthenticated
         }
-        2 -> assertThat(component.toString()).contains("loggedOutErrorStateComponent")
+        2 -> {
+          assertThat(component.toString()).contains("loggedOutErrorStateComponent")
+          manager.configuration.value = AppInsightsModel.InitializationFailed
+        }
+        3 -> {
+          assertThat(component.toString()).contains("initializationFailedComponent")
+        }
       }
     }
   }
