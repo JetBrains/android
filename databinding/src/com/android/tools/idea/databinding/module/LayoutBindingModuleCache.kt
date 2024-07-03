@@ -36,6 +36,7 @@ import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.Disposable
@@ -68,7 +69,8 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     // unitTest and androidTest modules all access the same resources (all the resources). Ideally,
     // they should only access their own resources.
     @JvmStatic
-    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.mainModule.service()
+    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache =
+      facet.module.getMainModule().service()
   }
 
   /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */

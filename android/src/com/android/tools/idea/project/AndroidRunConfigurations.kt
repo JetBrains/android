@@ -23,6 +23,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -78,7 +79,7 @@ class AndroidRunConfigurations {
   @WorkerThread
   private fun createAndroidRunConfiguration(facet: AndroidFacet) {
     // Android run configuration should always be created with the main module
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
     for (configuration in configurations) {
@@ -123,7 +124,7 @@ class AndroidRunConfigurations {
   }
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
-    val module = facet.mainModule
+    val module = facet.module.getMainModule()
     if (module.project.isDisposed) {
       return
     }

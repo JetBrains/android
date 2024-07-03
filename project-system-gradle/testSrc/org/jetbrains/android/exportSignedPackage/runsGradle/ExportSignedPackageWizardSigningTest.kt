@@ -18,6 +18,7 @@ package org.jetbrains.android.exportSignedPackage.runsGradle
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
@@ -165,7 +166,7 @@ class ExportSignedPackageWizardSigningTest(private val targetType: TargetType,
     val keyStorePath = AndroidTestBase.getTestDataPath() + File.separator + "signingKey" + File.separator + "debug.keystore"
     val signingInfo = GradleSigningInfo(keyStorePath, storePassword, keyAlias, keyPassword)
     val apkPath = androidModel!!.rootDirPath.path
-    val modules = listOf(facet.mainModule)
+    val modules = listOf(facet.module.getMainModule())
     ExportSignedPackageWizard.doBuildAndSignGradleProject(project, facet, variants, modules, signingInfo, apkPath, targetType,
                                                           buildResultHandler)
   }
