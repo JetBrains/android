@@ -169,7 +169,7 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
 
     // Make a copy to ensure Paste is available
-    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    surface.actionHandlerProvider(surface)?.performCopy(DataContext.EMPTY_CONTEXT)
     validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
@@ -231,7 +231,7 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
 
     // Make a copy to ensure Paste is available
-    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    surface.actionHandlerProvider(surface)?.performCopy(DataContext.EMPTY_CONTEXT)
     validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
@@ -269,7 +269,7 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
 
     // Make a copy to ensure Paste is available
-    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    surface.actionHandlerProvider(surface)?.performCopy(DataContext.EMPTY_CONTEXT)
     validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
@@ -314,7 +314,7 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
 
     // Make a copy to ensure Paste is available
-    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    surface.actionHandlerProvider(surface)?.performCopy(DataContext.EMPTY_CONTEXT)
     validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
@@ -404,12 +404,12 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[5], DeleteAction::class.java, "Delete", true)
 
     // Make a copy to ensure Paste is available
-    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    surface.actionHandlerProvider(surface)?.performCopy(DataContext.EMPTY_CONTEXT)
     validateItem(items[4], PasteAction::class.java, "Paste", true)
   }
 
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
-    val surfaceActionProvider = surface.actionHandlerProvider.apply(surface)
+    val surfaceActionProvider = surface.actionHandlerProvider(surface)
     val dataContext = SimpleDataContext.builder()
       .add(CommonDataKeys.PROJECT, project)
       .add(DESIGN_SURFACE, surface)

@@ -342,10 +342,10 @@ class TestDesignSurface(
   DesignSurface<SceneManager>(
     project,
     disposable,
-    java.util.function.Function { ModelBuilder.TestActionManager(it) },
-    java.util.function.Function { TestInteractionHandler(it) },
-    java.util.function.Function { TestLayoutManager(it) },
-    java.util.function.Function { TestActionHandler(it) },
+    { ModelBuilder.TestActionManager(it) },
+    { TestInteractionHandler(it) },
+    { TestLayoutManager(it) },
+    { TestActionHandler(it) },
     ZoomControlsPolicy.VISIBLE,
   ) {
 
