@@ -49,31 +49,31 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-private fun ProjectBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
+private fun RenderingBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
-    it == ProjectStatus.Ready
+    it == RenderingBuildStatus.Ready
   }
 }
 
-private fun ProjectBuildStatusManager.awaitNeedsBuild(
+private fun RenderingBuildStatusManager.awaitNeedsBuild(
     message: String? = null,
     timeout: Duration = 5.seconds
 ) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) {
-    it == ProjectStatus.NeedsBuild
+    it == RenderingBuildStatus.NeedsBuild
   }
 }
 
-private fun ProjectBuildStatusManager.awaitOutOfDate(
+private fun RenderingBuildStatusManager.awaitOutOfDate(
     message: String? = null,
     timeout: Duration = 5.seconds
 ) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) {
-    it is ProjectStatus.OutOfDate
+    it is RenderingBuildStatus.OutOfDate
   }
 }
 
-class ProjectBuildStatusManagerTest {
+class RenderingBuildStatusManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   val project: Project
     get() = projectRule.project
@@ -83,7 +83,7 @@ class ProjectBuildStatusManagerTest {
 
   @Before
   fun setUp() {
-    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     dispatcher = execution.asCoroutineDispatcher()
   }
 
@@ -105,7 +105,7 @@ class ProjectBuildStatusManagerTest {
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
     val statusManager =
-        ProjectBuildStatusManager.create(
+        RenderingBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
         )
@@ -144,7 +144,7 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-        ProjectBuildStatusManager.create(
+        RenderingBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
             dispatcher = dispatcher,
@@ -172,7 +172,7 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-        ProjectBuildStatusManager.create(
+        RenderingBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
             dispatcher = dispatcher,
@@ -200,7 +200,7 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-        ProjectBuildStatusManager.create(
+        RenderingBuildStatusManager.create(
             projectRule.fixture.testRootDisposable,
             psiFile,
             dispatcher = dispatcher,

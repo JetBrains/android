@@ -23,8 +23,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.smartModeFlow
-import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
@@ -152,7 +152,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
     requestRefresh: () -> Unit,
     requestFastPreviewRefresh: suspend () -> Unit,
     restorePreviousMode: () -> Unit,
-    queryStatus: () -> ProjectStatus,
+    queryStatus: () -> RenderingBuildStatus,
     updateVisibilityAndNotifications: () -> Unit,
   ) {
     with(this@initializeFlows) {
@@ -200,9 +200,9 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
           when (projectBuildStatus) {
             // Do not refresh if we still need to build the project. Instead, only update the
             // empty panel and editor notifications if needed.
-            ProjectStatus.NotReady,
-            ProjectStatus.NeedsBuild,
-            ProjectStatus.Building -> updateVisibilityAndNotifications()
+            RenderingBuildStatus.NotReady,
+            RenderingBuildStatus.NeedsBuild,
+            RenderingBuildStatus.Building -> updateVisibilityAndNotifications()
             else -> requestRefresh()
           }
         }
