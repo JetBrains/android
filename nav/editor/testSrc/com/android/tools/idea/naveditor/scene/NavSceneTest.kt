@@ -96,7 +96,7 @@ class NavSceneTest {
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
     moveComponentTo(scene.getSceneComponent("nested")!!, 380, 20)
     moveComponentTo(scene.getSceneComponent("activity")!!, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
@@ -132,7 +132,7 @@ class NavSceneTest {
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nav")!!, 320, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
@@ -233,7 +233,7 @@ class NavSceneTest {
     moveComponentTo(component2, 20, 20)
     val component3 = scene.getSceneComponent("fragment3")!!
     moveComponentTo(component3, 380, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, sceneView.context)
 
@@ -259,7 +259,7 @@ class NavSceneTest {
     moveComponentTo(component1, 200, 20)
     var component2 = scene.getSceneComponent("fragment2")!!
     moveComponentTo(component2, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     model.treeWriter.delete(listOf(model.treeReader.find("fragment2")!!))
 
@@ -309,7 +309,7 @@ class NavSceneTest {
     moveComponentTo(component2, 380, 20)
     val nested = scene.getSceneComponent("nested")!!
     moveComponentTo(nested, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val surface = model.surface as NavDesignSurface
     val sceneView = scene.sceneManager.sceneViews.first()
@@ -326,7 +326,7 @@ class NavSceneTest {
     val component4 = scene.getSceneComponent("fragment4")!!
     moveComponentTo(component4, 20, 20)
 
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
     scene.layout(0, sceneView.context)
 
     assertDrawRectEquals(sceneView, component3, 490f, 400f, 76.5f, 128f)
@@ -390,7 +390,7 @@ class NavSceneTest {
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nav1")!!, 320, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
@@ -443,7 +443,7 @@ class NavSceneTest {
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
 
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
@@ -503,7 +503,7 @@ class NavSceneTest {
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val transform = scene.sceneManager.sceneViews.first().context
     scene.layout(0, transform)
@@ -559,7 +559,7 @@ class NavSceneTest {
 
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val transform = scene.sceneManager.sceneViews.first().context
     scene.layout(0, transform)
@@ -591,7 +591,7 @@ class NavSceneTest {
     val scene = surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val sceneContext = scene.sceneManager.sceneViews.first().context
 
@@ -672,7 +672,7 @@ class NavSceneTest {
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
     moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
     moveComponentTo(scene.getSceneComponent("fragment3")!!, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
@@ -700,7 +700,7 @@ class NavSceneTest {
     val scene = surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
     moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, SceneContext.get())
 
@@ -756,7 +756,7 @@ class NavSceneTest {
     moveComponentTo(scene.getSceneComponent("fragment4")!!, 20, 260)
     moveComponentTo(scene.getSceneComponent("fragment5")!!, 200, 320)
     moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
@@ -861,7 +861,7 @@ class NavSceneTest {
     moveComponentTo(scene.getSceneComponent("fragment2")!!, 500, 20)
     moveComponentTo(scene.getSceneComponent("nav1")!!, 200, 500)
     moveComponentTo(scene.getSceneComponent("nav2")!!, 500, 500)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     scene.layout(0, SceneContext.get())
 
