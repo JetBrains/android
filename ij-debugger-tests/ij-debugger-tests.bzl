@@ -5,6 +5,8 @@ load("//tools/adt/idea/jps-build:idea.bzl", "jps_test")
 def debugger_test(
         name,
         suite,
+        test_exclude_filter_jvm,
+        test_exclude_filter_art,
         **kwargs):
     """Define a debugger test that runs on a ART and JVM.
 
@@ -17,12 +19,14 @@ def debugger_test(
 
     jps_test(
         name = name + "_jvm",
+        test_exclude_filter = test_exclude_filter_jvm,
         test_suite = suite,
         **kwargs
     )
 
     jps_test(
         name = name + "_art",
+        test_exclude_filter = test_exclude_filter_art,
         test_suite = suite,
         env = {
             "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "art",

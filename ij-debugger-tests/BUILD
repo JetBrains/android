@@ -1,6 +1,6 @@
 load("//tools/adt/idea/jps-build:idea.bzl", "jps_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load(":ignored-tests.bzl", "TEST_EXCLUDE_FILTER")
+load(":ignored-tests.bzl", "TEST_EXCLUDE_FILTER_JVM", "TEST_EXCLUDE_FILTER_ART")
 load(":ij-debugger-tests.bzl", "debugger_test")
 
 jps_library(
@@ -30,7 +30,8 @@ debugger_test(
         "//tools/base/bazel/ci/conditions:studio-linux": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    test_exclude_filter = TEST_EXCLUDE_FILTER,
+    test_exclude_filter_art = TEST_EXCLUDE_FILTER_ART,
+    test_exclude_filter_jvm = TEST_EXCLUDE_FILTER_JVM,
     deps = [
         ":kotlin.jvm-debugger.test_lib",
         ":test_repo.zip",
