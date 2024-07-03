@@ -159,12 +159,6 @@
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
-    <action
-      id="LayoutEditor.AddSampleData"
-      class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
-      text="Add Sample Data File"
-      description="Adds a new data sample file">
-    </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
 
     <action id="RenderLaggingMode" internal="true" class="com.android.tools.idea.rendering.actions.RenderLaggingMode">
