@@ -77,7 +77,7 @@ internal class DeviceSpecCheckTest {
         package example
         import test.Preview
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
+        @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         fun myFun() {}
       """
           .trimIndent()
@@ -106,7 +106,7 @@ internal class DeviceSpecCheckTest {
         package example;
         import test.Preview;
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
+        @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         void myFun() {}
       """
           .trimIndent()
@@ -135,24 +135,17 @@ internal class DeviceSpecCheckTest {
         package example
         import test.Preview
 
-        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         fun myFun() {}
 """
           .trimIndent()
       )
-    assertEquals(6, result.issues.size)
+    assertEquals(4, result.issues.size)
     assertEquals(
-      listOf(
-        BadType::class,
-        BadType::class,
-        BadType::class,
-        Unknown::class,
-        Repeated::class,
-        Missing::class,
-      ),
+      listOf(BadType::class, Unknown::class, Repeated::class, Missing::class),
       result.issues.map { it::class },
     )
-    assertEquals("spec:shape=Normal,width=411,unit=dp,dpi=320,height=891", result.proposedFix)
+    assertEquals("spec:isRound=false,width=411dp,dpi=320,height=891dp", result.proposedFix)
 
     result =
       addKotlinFileAndCheckPreviewAnnotation(
@@ -182,24 +175,17 @@ internal class DeviceSpecCheckTest {
         package example;
         import test.Preview;
 
-        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         void myFun() {}
 """
           .trimIndent()
       )
-    assertEquals(6, result.issues.size)
+    assertEquals(4, result.issues.size)
     assertEquals(
-      listOf(
-        BadType::class,
-        BadType::class,
-        BadType::class,
-        Unknown::class,
-        Repeated::class,
-        Missing::class,
-      ),
+      listOf(BadType::class, Unknown::class, Repeated::class, Missing::class),
       result.issues.map { it::class },
     )
-    assertEquals("spec:shape=Normal,width=411,unit=dp,dpi=320,height=891", result.proposedFix)
+    assertEquals("spec:isRound=false,width=411dp,dpi=320,height=891dp", result.proposedFix)
 
     result =
       addJavaFileAndCheckPreviewAnnotation(
@@ -268,7 +254,7 @@ internal class DeviceSpecCheckTest {
         package example
         import test.Preview
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Preview(device = "spec:width=1080px,height=1920pxdpi=320")
         fun myFun() {}
 """
             .trimIndent(),
@@ -528,7 +514,7 @@ internal class DeviceSpecCheckTest {
         package example
         import test.Preview
 
-        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         fun myFun() {}
 """
         .trimIndent(),
@@ -549,16 +535,14 @@ internal class DeviceSpecCheckTest {
     assertNotNull(problem)
     assertEquals(
       """
-      Bad value type for: shape, width, unit.
+      Bad value type for: width.
 
-      Parameter: shape should be one of: Normal, Round.
-      Parameter: width should have Integer value.
-      Parameter: unit should be one of: px, dp.
+      Parameter: width should have Float(dp/px) value.
 
       Unknown parameter: madeUpParam.
 
 
-      Parameters should not be repeated: shape.
+      Parameters should not be repeated: isRound.
 
 
       Missing parameter: height.
@@ -592,7 +576,7 @@ internal class DeviceSpecCheckTest {
         package example;
         import test.Preview;
 
-        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         void myFun() {}
 """
         .trimIndent(),
@@ -613,16 +597,14 @@ internal class DeviceSpecCheckTest {
     assertNotNull(problem)
     assertEquals(
       """
-      Bad value type for: shape, width, unit.
+      Bad value type for: width.
 
-      Parameter: shape should be one of: Normal, Round.
-      Parameter: width should have Integer value.
-      Parameter: unit should be one of: px, dp.
+      Parameter: width should have Float(dp/px) value.
 
       Unknown parameter: madeUpParam.
 
 
-      Parameters should not be repeated: shape.
+      Parameters should not be repeated: isRound.
 
 
       Missing parameter: height.
