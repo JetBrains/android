@@ -21,27 +21,24 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.openapi.vfs.refreshAndFindVirtualDirectory
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.builders.EmptyModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
-import java.io.File
 
 /**
  * Rule that sets up a basic fixture for adding/opening files, etc. but without anything
  * Android-related.
  */
 interface FixtureRule : TestRule {
-  val projectIfOpened: ProjectEx?
   val project: Project
   val module: Module
   val fixture: CodeInsightTestFixture
@@ -53,35 +50,31 @@ interface FixtureRule : TestRule {
 
     /** Create a [FixtureRule] with an in-memory fake file system. */
     fun inMemory(): FixtureRule {
-      val projectRule = ProjectRule()
-      val fixtureRule = FixtureRuleWithLightTempDir(projectRule::project)
-      return createChain(projectRule, fixtureRule)
+      val fixtureRule = FixtureRuleWithLightTempDir()
+      return createChain(fixtureRule)
     }
 
     /** Create a [FixtureRule] using a temp directory on disk. */
     fun onDisk(): FixtureRule {
-      val projectRule = ProjectRule()
-      val fixtureRule = FixtureRuleWithTempDir(projectRule::project)
-      return createChain(projectRule, fixtureRule)
+      val fixtureRule = FixtureRuleWithTempDir()
+      return createChain(fixtureRule)
     }
 
-    private fun createChain(projectRule: ProjectRule, fixtureRule: FixtureRuleBase): FixtureRule {
-      val chain = RuleChain.outerRule(projectRule).around(fixtureRule)
+    private fun createChain(fixtureRule: FixtureRuleBase): FixtureRule {
+      val disposableRule = DisposableRule()
+      val chain = RuleChain.outerRule(disposableRule).around(fixtureRule)
       return object : FixtureRule, TestRule by chain {
-        override val projectIfOpened: ProjectEx?
-          get() = projectRule.projectIfOpened
-
         override val project: Project
           get() = fixture.project
 
         override val module: Module
-          get() = projectRule.module
+          get() = project.modules.single()
 
         override val fixture: CodeInsightTestFixture
           get() = fixtureRule.fixture
 
         override val disposable: Disposable
-          get() = projectRule.project.earlyDisposable
+          get() = disposableRule.disposable
       }
     }
   }
@@ -100,29 +93,19 @@ private sealed class FixtureRuleBase : ExternalResource() {
 }
 
 /** Fixture that uses a fake file system in memory. */
-private open class FixtureRuleWithLightTempDir(
-  /**
-   * This must be a supplier because the project might not be ready when this object is constructed.
-   */
-  private val projectSupplier: () -> Project
-) : FixtureRuleBase() {
+private open class FixtureRuleWithLightTempDir: FixtureRuleBase() {
   override val fixture by lazy {
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(projectSupplier().name)
+    val projectBuilder = factory.createLightFixtureBuilder(this::class.java.name)
     factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 }
 
 /** Fixture that uses a temp directory in the real file system. */
-private class FixtureRuleWithTempDir(
-  /**
-   * This must be a supplier because the project might not be ready when this object is constructed.
-   */
-  private val projectSupplier: () -> Project
-) : FixtureRuleBase() {
+private class FixtureRuleWithTempDir: FixtureRuleBase() {
   override val fixture by lazy {
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(projectSupplier().name)
+    val projectBuilder = factory.createLightFixtureBuilder(this::class.java.name)
     factory.createCodeInsightFixture(projectBuilder.fixture, factory.createTempDirTestFixture())
   }
 
