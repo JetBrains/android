@@ -48,10 +48,6 @@ const val PARAMETER_WALLPAPER = "wallpaper"
 
 object Preview {
   object DeviceSpec {
-    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of
-    // PropertyItem name and parameter name,
-    //  alternatively restructure properties so that they are not a flat list, so that the 'device'
-    // PropertyItem has its own PropertyItems
     const val PREFIX = "spec:"
     const val SEPARATOR = ','
     const val OPERATOR = '='
