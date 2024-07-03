@@ -22,7 +22,6 @@ import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.Coordinates;
@@ -54,7 +53,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentAdapter;
@@ -72,17 +70,20 @@ import javax.swing.OverlayLayout;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T> {
 
-  /**
-   * {@link JScrollPane} contained in this surface when zooming is enabled.
-   */
   @Nullable protected final JScrollPane myScrollPane;
+
+  @Nullable
+  @Override
+  public JScrollPane getScrollPane() {
+    return myScrollPane;
+  }
+
   /**
    * Component that wraps the displayed content. If this is a scrollable surface, that will be the Scroll Pane.
    * Otherwise, it will be the ScreenViewPanel container.
@@ -397,6 +398,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    * Re-layouts the ScreenViews contained in this design surface immediately.
    */
   @UiThread
+  @Override
   public void validateScrollArea() {
     // Mark both the sceneview panel and the scroll pane as invalid to force a relayout.
     mySceneViewPanel.invalidate();
@@ -419,11 +421,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   public JComponent getPreferredFocusedComponent() {
     return getInteractionPane();
-  }
-
-  public Rectangle getCurrentScrollRectangle() {
-    if (myScrollPane == null) return null;
-    return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
@@ -482,15 +479,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @Override
   public GuiInputHandler getGuiInputHandler() {
     return myGuiInputHandler;
-  }
-
-  @TestOnly
-  public void setScrollViewSizeAndValidate(@SwingCoordinate int width, @SwingCoordinate int height) {
-    if (myScrollPane != null) {
-      myScrollPane.setSize(width, height);
-      myScrollPane.doLayout();
-      UIUtil.invokeAndWaitIfNeeded((Runnable)this::validateScrollArea);
-    }
   }
 
   @Override
