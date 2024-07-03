@@ -24,6 +24,7 @@ import static com.intellij.testFramework.VfsTestUtil.createFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
@@ -69,7 +70,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
   public void testTestFolders() throws Exception {
     loadSimpleApplication();
 
-    Module androidTestModule = myAndroidFacet.getAndroidTestModule();
+    Module androidTestModule = ModuleSystemUtil.getAndroidTestModule(myAndroidFacet.getModule());
     assertThat(androidTestModule).isNotNull();
     AndroidFacet androidTestFacet = AndroidFacet.getInstance(androidTestModule);
     assertThat(androidTestFacet).isNotNull();

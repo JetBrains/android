@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -234,10 +235,10 @@ class FacetFinderTest {
 
     writeManifestFileContents(appFacet.mainModule, appManifest)
     writeManifestFileContents(appFacet.mainModule, appDebugManifest, sourceSetName = "debug")
-    writeManifestFileContents(appFacet.androidTestModule, appAndroidTestManifest)
+    writeManifestFileContents(appFacet.module.getAndroidTestModule(), appAndroidTestManifest)
     writeManifestFileContents(libFacet.mainModule, libManifest)
-    writeManifestFileContents(libFacet.androidTestModule, libAndroidTestManifest)
-    writeManifestFileContents(libFacet.androidTestModule, libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
+    writeManifestFileContents(libFacet.module.getAndroidTestModule(), libAndroidTestManifest)
+    writeManifestFileContents(libFacet.module.getAndroidTestModule(), libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
   }
 
   @Test
@@ -287,7 +288,7 @@ class FacetFinderTest {
   @Test
   fun testGlobalProcessFromAppAndroidTestModule() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromappandroidtest"))
-    assertEquals(appFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals(appFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("testApplicationId", result.applicationId)
   }
 
@@ -301,7 +302,7 @@ class FacetFinderTest {
   @Test
   fun testGlobalProcessFromLibModuleAndroidTest() {
     val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromlibandroidtest"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId)
   }
 
@@ -309,7 +310,7 @@ class FacetFinderTest {
   fun testGlobalProcessFromLibModuleAndroidTestDebug() {
     val result = FacetFinder.findFacetForProcess(project,
                                                  mockClient(applicationId = null, processName = "globalfromlibdebugandroidtest"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId)  // Might be imprecise?
   }
 
@@ -317,7 +318,7 @@ class FacetFinderTest {
   fun testTestPackageName() {
     val result = FacetFinder.findFacetForProcess(project,
                                                  mockClient(applicationId = "libTestApplicationId", processName = "overridden"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId)
   }
 }
