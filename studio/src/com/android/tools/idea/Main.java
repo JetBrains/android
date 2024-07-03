@@ -1,5 +1,7 @@
 package com.android.tools.idea;
 
+import java.io.IOException;
+
 /**
  * This trampoline exists primarily to encourage IntelliJ IDEA to provide the right classpath for the "Android Studio" (and "K2")
  * Run Configurations.
@@ -16,7 +18,7 @@ package com.android.tools.idea;
  * This class should not end up in production, as its only function is to satisfy a constraint in IntelliJ IDEA.
  */
 public class Main {
-  public static void main(String[] args) {
-    com.intellij.idea.Main.main(args);
+  public static void main(String[] args) throws IOException {
+    com.android.tools.idea.MainWrapper.main(args);
   }
 }

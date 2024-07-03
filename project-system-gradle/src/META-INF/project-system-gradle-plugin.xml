@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/project-system-gradle-plugin-k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
-  <xi:include href="/META-INF/project-system-gradle-plugin-k2.xml" xpointer="xpointer(/idea-plugin/*)" includeIf="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin-k1.xml" includeUnless="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin-k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
@@ -141,6 +141,8 @@
     <psi.referenceContributor language="TOML"
                               implementation="com.android.tools.idea.gradle.catalog.VersionCatalogDependencyReferenceContributor" order="first"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogDescriptionProvider" order="first"/>
+    <lang.documentationProvider language="TOML" implementationClass="com.android.tools.idea.gradle.service.VersionCatalogDocumentationProvider" />
+
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
@@ -153,8 +155,6 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <!--
       These two activities, along with NativeStartupActivity in android-ndk, have an ordering requirement.  In production,
       that ordering requirement is satisfied by the services within the activities, providing DeferredCompletables which
@@ -180,6 +180,9 @@
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
+    <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
+    <spellchecker.support language="kotlin" implementationClass="org.jetbrains.kotlin.android.spellchecker.AndroidGradleKtsSpellcheckingStrategy" order="first"/>
+    <versionCatalogFilesGradleModel implementation="com.android.tools.idea.gradle.catalog.VersionCatalogFilesGradleModel"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.properties">
     <implicitPropertyUsageProvider implementation="com.android.tools.idea.editors.GradleImplicitPropertyUsageProvider"/>
@@ -234,6 +237,8 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.InitializeGradleLocalJavaHomeListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.SdkIndexIssuesSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <externallyHandledExtensions implementation="com.android.tools.idea.gradle.catalog.GradleDslVersionCatalogHandler"/>
@@ -272,9 +277,11 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedJdkMinimumVersionIssueChecker"/>
     <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker"/>
     <gradleJvmResolver implementation="com.android.tools.idea.gradle.resolvers.GradleJvmEnvironmentStudioJdkResolver" order="first" />
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
+    <operationHelperExtension implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$BuildPhaseListenerOperationHelperExtension"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
@@ -286,6 +293,11 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.projectsystem.gradle.GradleApplicationProjectContextProvider"/>
     <projectsystem.pseudoLocalesToken implementation="com.android.tools.idea.projectsystem.gradle.GradlePseudoLocalesToken"/>
+    <projectsystem.libraryDependenciesTroubleInfoCollectorToken
+        implementation="com.android.tools.idea.projectsystem.gradle.LibraryDependenciesTroubleInfoCollectorGradleToken"/>
+    <projectsystem.dynamicAppFeatureOnFeatureToken implementation="com.android.tools.idea.gradle.util.DynamicAppFeatureOnFeatureGradleToken"/>
+    <projectsystem.findDependenciesWithResourcesToken implementation="com.android.tools.idea.projectsystem.gradle.FindDependenciesWithResourcesGradleToken"/>
+    <projectsystem.androidIconProviderProjectToken implementation="com.android.tools.idea.projectsystem.gradle.AndroidIconProviderProjectGradleToken"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
@@ -294,6 +306,10 @@
   <extensions defaultExtensionNs="com.android.tools.idea.model">
     <mergedManifestInfoToken implementation="com.android.tools.idea.model.MergedManifestInfoGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <versionCatalogFilesGradleModel implementation="com.android.tools.idea.gradle.catalog.VersionCatalogFilesGradleModel"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.memorysettings">
     <memorySettingsToken implementation="com.android.tools.idea.memorysettings.MemorySettingsGradleToken"/>
   </extensions>

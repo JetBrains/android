@@ -96,7 +96,7 @@ class EmbeddedRenderTargetTest {
       TODO("Not yet implemented")
     }
 
-    override fun getSkins(): Array<Path> {
+    override fun getSkins(): MutableList<Path> {
       TODO("Not yet implemented")
     }
 

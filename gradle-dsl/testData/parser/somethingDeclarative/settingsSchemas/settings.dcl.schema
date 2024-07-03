@@ -1,0 +1,1034 @@
+{
+    "topLevelReceiverType": {
+        "type": "data",
+        "name": {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.internal",
+            "simpleName": "SettingsInternal"
+        },
+        "supertypes": [
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.initialization",
+                "simpleName": "Settings"
+            },
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.plugins",
+                "simpleName": "PluginAware"
+            },
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "kotlin",
+                "simpleName": "Any"
+            },
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.plugins",
+                "simpleName": "ExtensionAware"
+            },
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.internal.plugins",
+                "simpleName": "PluginAwareInternal"
+            },
+            {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.internal",
+                "simpleName": "FinalizableValue"
+            }
+        ],
+        "properties": [
+            {
+                "type": "dataProperty",
+                "name": "rootProject",
+                "valueType": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.initialization",
+                        "simpleName": "ProjectDescriptor"
+                    }
+                },
+                "mode": {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                },
+                "hasDefaultValue": true
+            },
+            {
+                "type": "dataProperty",
+                "name": "pluginManagement",
+                "valueType": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.plugin.management",
+                        "simpleName": "PluginManagementSpec"
+                    }
+                },
+                "mode": {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                },
+                "hasDefaultValue": true
+            }
+        ],
+        "memberFunctions": [
+            {
+                "type": "dataMemberFunction",
+                "receiver": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.internal",
+                        "simpleName": "SettingsInternal"
+                    }
+                },
+                "simpleName": "include",
+                "parameters": [
+                    {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                        "name": "projectPath",
+                        "privateType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "string"
+                            }
+                        },
+                        "isDefault": false,
+                        "semantics": {
+                            "type": "unknown"
+                        }
+                    }
+                ],
+                "isDirectAccessOnly": false,
+                "semantics": {
+                    "type": "addAndConfigure",
+                    "objectType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "unit"
+                        }
+                    },
+                    "configureBlockRequirement": {
+                        "type": "notAllowed"
+                    }
+                }
+            },
+            {
+                "type": "dataMemberFunction",
+                "receiver": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.internal",
+                        "simpleName": "SettingsInternal"
+                    }
+                },
+                "simpleName": "pluginManagement",
+                "parameters": [
+                ],
+                "isDirectAccessOnly": false,
+                "semantics": {
+                    "type": "accessAndConfigure",
+                    "accessor": {
+                        "type": "property",
+                        "dataProperty": {
+                            "type": "dataProperty",
+                            "name": "pluginManagement",
+                            "valueType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "org.gradle.plugin.management",
+                                    "simpleName": "PluginManagementSpec"
+                                }
+                            },
+                            "mode": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                            },
+                            "hasDefaultValue": true
+                        }
+                    },
+                    "returnType": {
+                        "type": "unit"
+                    },
+                    "configureBlockRequirement": {
+                        "type": "required"
+                    }
+                }
+            },
+            {
+                "type": "dataMemberFunction",
+                "receiver": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.internal",
+                        "simpleName": "SettingsInternal"
+                    }
+                },
+                "simpleName": "enableFeaturePreview",
+                "parameters": [
+                    {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                        "name": "name",
+                        "privateType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "string"
+                            }
+                        },
+                        "isDefault": false,
+                        "semantics": {
+                            "type": "unknown"
+                        }
+                    }
+                ],
+                "isDirectAccessOnly": false,
+                "semantics": {
+                    "type": "addAndConfigure",
+                    "objectType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "unit"
+                        }
+                    },
+                    "configureBlockRequirement": {
+                        "type": "notAllowed"
+                    }
+                }
+            },
+            {
+                "type": "dataMemberFunction",
+                "receiver": {
+                    "type": "dataTypeRefName",
+                    "fqName": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "org.gradle.api.internal",
+                        "simpleName": "SettingsInternal"
+                    }
+                },
+                "simpleName": "dependencyResolutionManagement",
+                "parameters": [
+                ],
+                "isDirectAccessOnly": false,
+                "semantics": {
+                    "type": "accessAndConfigure",
+                    "accessor": {
+                        "type": "configuringLambdaArgument",
+                        "objectType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.resolve",
+                                "simpleName": "DependencyResolutionManagement"
+                            }
+                        }
+                    },
+                    "returnType": {
+                        "type": "unit"
+                    },
+                    "configureBlockRequirement": {
+                        "type": "required"
+                    }
+                }
+            }
+        ],
+        "constructors": [
+        ]
+    },
+    "dataClassesByFqName": [
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.internal",
+            "simpleName": "SettingsInternal"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.internal",
+                "simpleName": "SettingsInternal"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.initialization",
+                    "simpleName": "Settings"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.plugins",
+                    "simpleName": "PluginAware"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.plugins",
+                    "simpleName": "ExtensionAware"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.internal.plugins",
+                    "simpleName": "PluginAwareInternal"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.internal",
+                    "simpleName": "FinalizableValue"
+                }
+            ],
+            "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "rootProject",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.initialization",
+                            "simpleName": "ProjectDescriptor"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "pluginManagement",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.plugin.management",
+                            "simpleName": "PluginManagementSpec"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                }
+            ],
+            "memberFunctions": [
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.internal",
+                            "simpleName": "SettingsInternal"
+                        }
+                    },
+                    "simpleName": "include",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "projectPath",
+                            "privateType": {
+                                "type": "dataTypeRefType",
+                                "dataType": {
+                                    "type": "string"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "unit"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.internal",
+                            "simpleName": "SettingsInternal"
+                        }
+                    },
+                    "simpleName": "pluginManagement",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "accessAndConfigure",
+                        "accessor": {
+                            "type": "property",
+                            "dataProperty": {
+                                "type": "dataProperty",
+                                "name": "pluginManagement",
+                                "valueType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "org.gradle.plugin.management",
+                                        "simpleName": "PluginManagementSpec"
+                                    }
+                                },
+                                "mode": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                                },
+                                "hasDefaultValue": true
+                            }
+                        },
+                        "returnType": {
+                            "type": "unit"
+                        },
+                        "configureBlockRequirement": {
+                            "type": "required"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.internal",
+                            "simpleName": "SettingsInternal"
+                        }
+                    },
+                    "simpleName": "enableFeaturePreview",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "name",
+                            "privateType": {
+                                "type": "dataTypeRefType",
+                                "dataType": {
+                                    "type": "string"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "unit"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.internal",
+                            "simpleName": "SettingsInternal"
+                        }
+                    },
+                    "simpleName": "dependencyResolutionManagement",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "accessAndConfigure",
+                        "accessor": {
+                            "type": "configuringLambdaArgument",
+                            "objectType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "org.gradle.api.initialization.resolve",
+                                    "simpleName": "DependencyResolutionManagement"
+                                }
+                            }
+                        },
+                        "returnType": {
+                            "type": "unit"
+                        },
+                        "configureBlockRequirement": {
+                            "type": "required"
+                        }
+                    }
+                }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.plugin.management",
+            "simpleName": "PluginManagementSpec"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.plugin.management",
+                "simpleName": "PluginManagementSpec"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "repositories",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.artifacts.dsl",
+                            "simpleName": "RepositoryHandler"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                }
+            ],
+            "memberFunctions": [
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.plugin.management",
+                            "simpleName": "PluginManagementSpec"
+                        }
+                    },
+                    "simpleName": "includeBuild",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "rootProject",
+                            "privateType": {
+                                "type": "dataTypeRefType",
+                                "dataType": {
+                                    "type": "string"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefType",
+                            "dataType": {
+                                "type": "unit"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.plugin.management",
+                            "simpleName": "PluginManagementSpec"
+                        }
+                    },
+                    "simpleName": "repositories",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "accessAndConfigure",
+                        "accessor": {
+                            "type": "property",
+                            "dataProperty": {
+                                "type": "dataProperty",
+                                "name": "repositories",
+                                "valueType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "org.gradle.api.artifacts.dsl",
+                                        "simpleName": "RepositoryHandler"
+                                    }
+                                },
+                                "mode": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                                },
+                                "hasDefaultValue": true
+                            }
+                        },
+                        "returnType": {
+                            "type": "unit"
+                        },
+                        "configureBlockRequirement": {
+                            "type": "required"
+                        }
+                    }
+                }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.artifacts.dsl",
+            "simpleName": "RepositoryHandler"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.artifacts.dsl",
+                "simpleName": "RepositoryHandler"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.artifacts",
+                    "simpleName": "ArtifactRepositoryContainer"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api",
+                    "simpleName": "NamedDomainObjectList"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api",
+                    "simpleName": "NamedDomainObjectCollection"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api",
+                    "simpleName": "DomainObjectCollection"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin.collections",
+                    "simpleName": "Collection"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin.collections",
+                    "simpleName": "Iterable"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin.collections",
+                    "simpleName": "List"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.util",
+                    "simpleName": "Configurable"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.artifacts.dsl",
+                            "simpleName": "RepositoryHandler"
+                        }
+                    },
+                    "simpleName": "google",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.repositories",
+                                "simpleName": "MavenArtifactRepository"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.artifacts.dsl",
+                            "simpleName": "RepositoryHandler"
+                        }
+                    },
+                    "simpleName": "gradlePluginPortal",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.repositories",
+                                "simpleName": "ArtifactRepository"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.artifacts.dsl",
+                            "simpleName": "RepositoryHandler"
+                        }
+                    },
+                    "simpleName": "mavenCentral",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "addAndConfigure",
+                        "objectType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.repositories",
+                                "simpleName": "MavenArtifactRepository"
+                            }
+                        },
+                        "configureBlockRequirement": {
+                            "type": "notAllowed"
+                        }
+                    }
+                }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.artifacts.repositories",
+            "simpleName": "MavenArtifactRepository"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.artifacts.repositories",
+                "simpleName": "MavenArtifactRepository"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.artifacts.repositories",
+                    "simpleName": "ArtifactRepository"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.artifacts.repositories",
+                    "simpleName": "UrlArtifactRepository"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.artifacts.repositories",
+                    "simpleName": "AuthenticationSupported"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "org.gradle.api.artifacts.repositories",
+                    "simpleName": "MetadataSupplierAware"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.artifacts.repositories",
+            "simpleName": "ArtifactRepository"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.artifacts.repositories",
+                "simpleName": "ArtifactRepository"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "kotlin",
+            "simpleName": "Unit"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "kotlin",
+                "simpleName": "Unit"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.initialization.resolve",
+            "simpleName": "DependencyResolutionManagement"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.initialization.resolve",
+                "simpleName": "DependencyResolutionManagement"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "repositories",
+                    "valueType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.artifacts.dsl",
+                            "simpleName": "RepositoryHandler"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                    },
+                    "hasDefaultValue": true
+                }
+            ],
+            "memberFunctions": [
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.initialization.resolve",
+                            "simpleName": "DependencyResolutionManagement"
+                        }
+                    },
+                    "simpleName": "repositories",
+                    "parameters": [
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "accessAndConfigure",
+                        "accessor": {
+                            "type": "property",
+                            "dataProperty": {
+                                "type": "dataProperty",
+                                "name": "repositories",
+                                "valueType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "org.gradle.api.artifacts.dsl",
+                                        "simpleName": "RepositoryHandler"
+                                    }
+                                },
+                                "mode": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly"
+                                },
+                                "hasDefaultValue": true
+                            }
+                        },
+                        "returnType": {
+                            "type": "unit"
+                        },
+                        "configureBlockRequirement": {
+                            "type": "required"
+                        }
+                    }
+                }
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "org.gradle.api.initialization",
+            "simpleName": "ProjectDescriptor"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "org.gradle.api.initialization",
+                "simpleName": "ProjectDescriptor"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                }
+            ],
+            "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "name",
+                    "valueType": {
+                        "type": "dataTypeRefType",
+                        "dataType": {
+                            "type": "string"
+                        }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                }
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "kotlin",
+            "simpleName": "String"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "kotlin",
+                "simpleName": "String"
+            },
+            "supertypes": [
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Comparable"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "Any"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "kotlin",
+                    "simpleName": "CharSequence"
+                },
+                {
+                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                    "packageName": "java.io",
+                    "simpleName": "Serializable"
+                }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        }
+    ],
+    "externalFunctionsByFqName": [
+    ],
+    "externalObjectsByFqName": [
+    ],
+    "defaultImports": [
+    ]
+}

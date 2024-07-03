@@ -67,14 +67,16 @@ class CollapsibleLabelPanel(
   // long
   private val valueWithoutEllipsis = toHtmlString(model.name)
 
-  private val expandAction =
-    object : AnAction() {
-      override fun actionPerformed(event: AnActionEvent) {
-        toggle()
-      }
-    }
+  private val expandAction = createAction { model.expanded = true }
+  private val collapseAction = createAction { model.expanded = false }
+  private val activateAction = createAction { toggle() }
 
-  private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
+  private val expandButton =
+    IconWithFocusBorder(
+      { expandAction.takeIf { model.expandable } },
+      { collapseAction.takeIf { model.expandable } },
+      { activateAction.takeIf { model.expandable } },
+    )
   private val actionButtons = mutableListOf<FocusableActionButton>()
   private val resizeHandler =
     ColumnFractionChangeHandler(
@@ -191,6 +193,13 @@ class CollapsibleLabelPanel(
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
   }
+
+  private fun createAction(operation: () -> Unit): AnAction =
+    object : AnAction() {
+      override fun actionPerformed(event: AnActionEvent) {
+        operation()
+      }
+    }
 
   private class ButtonPanel : JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0)) {
     override fun doLayout() {

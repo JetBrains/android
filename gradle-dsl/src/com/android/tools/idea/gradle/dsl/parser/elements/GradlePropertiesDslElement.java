@@ -120,6 +120,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     addPropertyInternal(element, DEFAULT);
   }
 
+  public void addDefaultPropertyAt(@NotNull GradleDslElement element, int index) {
+    element.setElementType(REGULAR);
+    myProperties.addElementAtIndex(element, DEFAULT, index, false);
+  }
+
   private void removePropertyInternal(@NotNull String property) {
     List<GradleDslElement> elements = myProperties.removeAll(e -> e.myElement.getName().equals(property));
     elements.forEach(e -> {

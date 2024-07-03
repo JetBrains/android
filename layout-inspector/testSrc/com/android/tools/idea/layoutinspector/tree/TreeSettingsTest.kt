@@ -111,6 +111,11 @@ class InspectorTreeSettingsTest {
   }
 
   @Test
+  fun testRecompositionsEnabledByDefault() {
+    assertThat(DEFAULT_RECOMPOSITIONS).isTrue()
+  }
+
+  @Test
   fun testShowRecompositions() {
     testFlag(
       DEFAULT_RECOMPOSITIONS,

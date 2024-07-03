@@ -887,7 +887,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       val decorator = when {
         snapshot.isLoadedLast -> getLiveIndicator(EmptyIcon.ICON_16)
         snapshot.isCompatible -> EmptyIcon.ICON_16
-        else -> IconUtil.toSize(StudioIcons.Emulator.Snapshots.INVALID_SNAPSHOT_DECORATOR, baseIcon.iconWidth, baseIcon.iconHeight)
+        else -> IconUtil.toSize(StudioIcons.Common.ERROR_DECORATOR, baseIcon.iconWidth, baseIcon.iconHeight)
       }
       return createDecoratedIcon(baseIcon, decorator)
     }

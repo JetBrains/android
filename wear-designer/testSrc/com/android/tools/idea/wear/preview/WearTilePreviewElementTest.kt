@@ -110,7 +110,10 @@ class WearTilePreviewElementTest {
     assertEquals(newConfig, derivedPreviewElement.configuration)
     assertEquals(originalPreviewElement.methodFqn, derivedPreviewElement.methodFqn)
     assertEquals(originalPreviewElement.instanceId, derivedPreviewElement.instanceId)
-    assertEquals(originalPreviewElement.previewElementDefinition, derivedPreviewElement.previewElementDefinition)
+    assertEquals(
+      originalPreviewElement.previewElementDefinition,
+      derivedPreviewElement.previewElementDefinition,
+    )
     assertEquals(originalPreviewElement.previewBody, derivedPreviewElement.previewBody)
     assertEquals(originalPreviewElement.hasAnimations, derivedPreviewElement.hasAnimations)
   }

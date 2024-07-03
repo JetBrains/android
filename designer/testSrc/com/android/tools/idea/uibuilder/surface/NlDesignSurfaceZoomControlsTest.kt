@@ -25,6 +25,7 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -113,9 +114,9 @@ class NlDesignSurfaceZoomControlsTest {
     }
 
     val model =
-      NlModel.builder(
+      NlModel.Builder(
           androidProjectRule.testRootDisposable,
-          facet,
+          BuildTargetReference.gradleOnly(facet),
           layout.virtualFile,
           configuration,
         )

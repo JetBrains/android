@@ -188,7 +188,13 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
     val getMainMethod =
       uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
     val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
-    val combinedContext = classLoader.loadClass(COMBINED_CONTEXT_FQN)
+    val combinedContext =
+      try {
+        classLoader.loadClass(COMBINED_CONTEXT_FQN)
+      } catch (e: ClassNotFoundException) {
+        // Standalone CLI tool doesn't repackage kotlin packages.
+        classLoader.loadClass(COMBINED_CONTEXT_FQN.removePrefix(INTERNAL_PACKAGE))
+      }
     val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
     val uiDispatcherObj = elementField[mainObj]
 

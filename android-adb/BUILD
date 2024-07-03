@@ -31,6 +31,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:libadblib-tools-proto",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

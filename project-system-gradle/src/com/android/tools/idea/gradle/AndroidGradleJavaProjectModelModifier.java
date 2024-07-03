@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import static com.android.tools.idea.gradle.LibraryFilePaths.NAME_PREFIX;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.SCREENSHOT_TEST_IMPLEMENTATION;
@@ -26,7 +27,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ADD_MODULE_DEPENDENCY;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_LANGUAGE_LEVEL_CHANGED;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -44,10 +44,10 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -449,9 +449,13 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getCompileClasspath();
     for (IdeLibrary gradleLibrary : dependencies.getLibraries()) {
-      if (!(gradleLibrary instanceof IdeJavaLibrary dependency)) continue;
-      String libraryName = getNameWithoutExtension(dependency.getArtifact());
-      if (libraryName.equals(library.getName())) {
+      if (!(gradleLibrary instanceof IdeArtifactLibrary dependency)) continue;
+      String dependencyAddress = dependency.getArtifactAddress();
+      String libraryName = library.getName();
+      if (libraryName != null && libraryName.startsWith(NAME_PREFIX)) {
+        libraryName = libraryName.substring(NAME_PREFIX.length());
+      }
+      if (dependencyAddress.equals(libraryName)) {
         Component component = dependency.getComponent();
         if (component != null) {
           return ArtifactDependencySpec.create(component.getName(), component.getGroup(), component.getVersion().toString());

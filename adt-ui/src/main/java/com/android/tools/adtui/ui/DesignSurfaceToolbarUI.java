@@ -63,12 +63,6 @@ public class DesignSurfaceToolbarUI extends BasicPanelUI {
     paint(g, c);
   }
 
-  public static void applyToPanel(JPanel c) {
-    c.setUI(new DesignSurfaceToolbarUI());
-    c.setOpaque(true);
-    c.setBackground(JBColor.white);
-  }
-
   public static JPanel createPanel(JComponent c) {
     JPanel container = new JPanel() {
       @Override

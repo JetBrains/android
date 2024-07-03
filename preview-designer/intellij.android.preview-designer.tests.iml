@@ -46,6 +46,7 @@
     <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering.tests" scope="TEST" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />
 </module>

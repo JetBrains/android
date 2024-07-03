@@ -49,8 +49,8 @@ class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>)
     val model = sceneView.sceneManager.model
 
     // Make sure we start from root if we don't have anything selected
-    if (selectionModel.isEmpty && !model.components.isEmpty()) {
-      selectionModel.setSelection(listOf(model.components[0].root!!))
+    if (selectionModel.isEmpty && !model.treeReader.components.isEmpty()) {
+      selectionModel.setSelection(listOf(model.treeReader.components[0].root!!))
     }
 
     // See if you're dragging inside a selected parent; if so, drag the selection instead of any

@@ -100,6 +100,9 @@ class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCa
     }
   }
 
+  // If Task-Based UX is enabled, no toolbar is added to the memory capture stage view.
+  override fun isToolbarVisible() = !stage.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
+
   override fun getToolbar() = JPanel(BorderLayout()).apply {
     add(JLabel().apply {
       border = JBEmptyBorder(0, 4, 0, 2)

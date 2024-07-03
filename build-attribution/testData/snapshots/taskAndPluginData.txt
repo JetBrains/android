@@ -40,10 +40,6 @@ Task                          : :app:createDebugCompatibleScreenManifests
     PrimaryTaskCategory           : MANIFEST
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:expandDebugArtProfileWildcards
-    TaskType                      : com.android.build.gradle.internal.tasks.ExpandArtProfileWildcardsTask
-    PrimaryTaskCategory           : ART_PROFILE
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:extractDeepLinksDebug
     TaskType                      : com.android.build.gradle.tasks.ExtractDeepLinksTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
@@ -74,11 +70,6 @@ Task                          : :app:mapDebugSourceSetPaths
     TaskType                      : com.android.build.gradle.tasks.MapSourceSetPathsTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:mergeDebugArtProfile
-    TaskType                      : com.android.build.gradle.internal.tasks.MergeArtProfileTask
-    PrimaryTaskCategory           : ART_PROFILE
-    SecondaryTaskCategories       : MERGING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : UNCATEGORIZED
@@ -108,11 +99,6 @@ Task                          : :app:mergeDebugShaders
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : UNCATEGORIZED
     SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:mergeDebugStartupProfile
-    TaskType                      : com.android.build.gradle.internal.tasks.MergeStartupProfileTask
-    PrimaryTaskCategory           : ART_PROFILE
-    SecondaryTaskCategories       : MERGING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:minifyDebugWithR8
     TaskType                      : com.android.build.gradle.internal.tasks.R8Task

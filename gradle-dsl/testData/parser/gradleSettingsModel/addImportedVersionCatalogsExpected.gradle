@@ -1,0 +1,9 @@
+dependencyResolutionManagement {
+  versionCatalogs {
+    foo {
+      from 'com.mycompany:catalog:1.0'
+    }
+    bar {
+    }
+  }
+}

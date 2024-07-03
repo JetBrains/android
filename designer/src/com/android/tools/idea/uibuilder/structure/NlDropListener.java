@@ -22,10 +22,14 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeReader;
+import com.android.tools.idea.common.model.NlTreeWriter;
+import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -127,7 +131,7 @@ public class NlDropListener extends DropTargetAdapter {
     if (scene == null) {
       return null;
     }
-    NlModel model = scene.getSceneManager().getModel();
+    NlTreeWriter treeWriter = scene.getSceneManager().getModel().getTreeWriter();
     if (event.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
       try {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
@@ -137,7 +141,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType)));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(treeWriter.createComponents(myTransferItem, insertType)));
         }
         return insertType;
       }
@@ -155,7 +159,7 @@ public class NlDropListener extends DropTargetAdapter {
       return InsertType.MOVE;
     }
     DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-    return model.determineInsertType(dragType, myTransferItem, isPreview, true /* generateIds */);
+    return model.getTreeWriter().determineInsertType(dragType, myTransferItem, isPreview, true /* generateIds */);
   }
 
   private void clearDraggedComponents() {
@@ -190,7 +194,7 @@ public class NlDropListener extends DropTargetAdapter {
     assert model != null;
 
     if (NlComponentHelperKt.isGroup(myDragReceiver) &&
-        model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0), true)) {
+        model.getTreeWriter().canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0), true)) {
       performNormalDrop(event, insertType, model);
     }
     else {
@@ -213,21 +217,21 @@ public class NlDropListener extends DropTargetAdapter {
       Scene scene = myTree.getScene();
       DesignSurface<?> surface = scene != null ? scene.getDesignSurface() : null;
       if (surface != null) {
-        UtilsKt.addComponentsAndSelectedIfCreated(model,
-                                                  myDragged,
-                                                  myDragReceiver,
-                                                  myNextDragSibling,
-                                                  insertType,
-                                                  surface.getSelectionModel());
+        NlTreeWriterKt.addComponentsAndSelectedIfCreated(model.getTreeWriter(),
+                                                         myDragged,
+                                                         myDragReceiver,
+                                                         myNextDragSibling,
+                                                         insertType,
+                                                         surface.getSelectionModel());
       }
       else {
-        model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, null);
+        model.getTreeWriter().addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, null);
       }
 
       event.accept(insertType);
 
       event.complete();
-      model.notifyModified(NlModel.ChangeType.DROP);
+      model.notifyModified(ChangeType.DROP);
 
       if (scene != null) {
         scene.getDesignSurface().getSelectionModel().setSelection(myDragged);

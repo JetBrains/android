@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.studiobot.prompts
 
+import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
-import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.ApiStatus.Experimental
 
 /**
  * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
@@ -84,7 +86,11 @@ inline fun buildPrompt(
   val builder = PromptBuilderImpl(project)
   existingPrompt?.let { builder.addAll(existingPrompt) }
   val prompt = builder.apply(builderAction).build()
-  val usedAnyFiles = prompt.messages.any { it.chunks.any { chunk -> chunk.filesUsed.isNotEmpty() } }
+  val usedAnyFiles =
+    prompt.messages.any {
+      it.chunks.any { chunk -> chunk.filesUsed.isNotEmpty() } ||
+        (it is Prompt.Context && it.files.isNotEmpty())
+    }
   if (usedAnyFiles) {
     // Enforce the context sharing setting
     check(StudioBot.getInstance().isContextAllowed(project)) {
@@ -96,7 +102,6 @@ inline fun buildPrompt(
 
 /** Utility for constructing prompts for ML models. */
 interface PromptBuilder {
-  val messages: List<Prompt.Message>
 
   interface MessageBuilder {
     /**
@@ -122,7 +127,7 @@ interface PromptBuilder {
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService
      */
-    fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>)
+    fun code(code: String, language: MimeType?, filesUsed: Collection<VirtualFile>)
 
     /**
      * Adds data of a given type, for multi-modal models.
@@ -133,8 +138,64 @@ interface PromptBuilder {
     fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>)
   }
 
+  interface ContextBuilder {
+    /**
+     * Adds a file to the context of the prompt. How it ends up being included in the request
+     * depends on the [Model] being used. Some model APIs have a dedicated field for including
+     * files. Others take a generic string of context, and others still don't accept context as a
+     * dedicated argument at all, and expect any context to be included in the user or system
+     * messages.
+     *
+     * The file must be allowed by aiexclude.
+     *
+     * @param file The file to include in the context.
+     * @param isCurrentFile Whether the file is currently open in an active editor.
+     * @param selection The current text selection in [file], if any.
+     */
+    fun virtualFile(file: VirtualFile, isCurrentFile: Boolean = false, selection: TextRange? = null)
+
+    /** Convenience method for adding multiple files at once. */
+    fun virtualFiles(files: List<VirtualFile>) = files.forEach { virtualFile(it) }
+
+    /** You can also construct the ContextFiles yourself and pass them directly if desired * */
+    fun file(file: Prompt.ContextFile)
+
+    /** Convenience method for adding multiple files at once. */
+    fun files(files: List<Prompt.ContextFile>) = files.forEach { file(it) }
+  }
+
   interface UserMessageBuilder : MessageBuilder {
     val project: Project
+  }
+
+  interface FunctionsBuilder {
+    /**
+     * Adds a declaration of a function, for models that support function calling. This structure is
+     * based on the Gemini APIs documented here:
+     * https://ai.google.dev/gemini-api/docs/function-calling
+     *
+     * If you provide a function to a [Model] that supports it, and it returns a function call, it
+     * will be reflected as a [Content.FunctionCall] in the returned flow.
+     */
+    fun function(function: Prompt.Function)
+
+    fun functions(functions: List<Prompt.Function>)
+
+    /**
+     * Copied from the Gemini docs (https://ai.google.dev/gemini-api/docs/function-calling):
+     *
+     * You can use the function calling mode to define the execution behavior for function calling.
+     * There are three modes available:
+     *
+     * AUTO: The default model behavior. The model decides to predict either a function call or a
+     * natural language response.
+     *
+     * ANY: The model is constrained to always predict a function call.
+     *
+     * NONE: The model won't predict a function call. In this case, the model behavior is the same
+     * as if you don't pass any function declarations.
+     */
+    fun setMode(mode: Prompt.FunctionCallingMode)
   }
 
   fun systemMessage(builderAction: MessageBuilder.() -> Unit)
@@ -142,6 +203,29 @@ interface PromptBuilder {
   fun userMessage(builderAction: UserMessageBuilder.() -> Unit)
 
   fun modelMessage(builderAction: MessageBuilder.() -> Unit)
+
+  fun context(builderAction: ContextBuilder.() -> Unit)
+
+  /**
+   * No prod models currently support function calling. Only the Gemini 1.5 APIs support it. You can
+   * verify if a model supports function calling by inspecting its [ModelConfig]. For now, do not
+   * build prod features that use function calling.
+   */
+  @Experimental fun functions(builderAction: FunctionsBuilder.() -> Unit)
+
+  /**
+   * This is an experimental API, and no prod models currently support function calling.
+   *
+   * TODO(b/344944954): Handle .aiexclude and other problems before productionizing
+   */
+  @Experimental fun functionCall(call: Content.FunctionCall)
+
+  /**
+   * This is an experimental API, and no prod models currently support function calling.
+   *
+   * TODO(b/344944954): Handle .aiexclude and other problems before productionizing
+   */
+  @Experimental fun functionResponse(name: String, response: String)
 }
 
 class MalformedPromptException(message: String) : RuntimeException(message)

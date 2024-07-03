@@ -34,12 +34,14 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.FileHyperlinkInfo
+import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.isDefaultForTheme
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
@@ -49,8 +51,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.unscramble.AnalyzeStacktraceUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import java.awt.CardLayout
+import java.awt.Graphics
+import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,8 +68,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 private val CONSOLE_LOCK = Any()
+private const val CONSOLE_VIEW = "ConsoleView"
+private const val EMPTY_STATE_PANEL = "EmptyStatePanel"
 
 data class StackTraceConsoleState(
   val connection: Connection? = null,
@@ -71,7 +82,7 @@ data class StackTraceConsoleState(
 )
 
 class StackTraceConsole(
-  controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsProjectLevelController,
   private val project: Project,
   private val tracker: AppInsightsTracker,
 ) : Disposable {
@@ -95,6 +106,32 @@ class StackTraceConsole(
 
   private var currentEvent: Event? = null
 
+  private val cardLayout = CardLayout()
+
+  val stackPanel = JPanel(cardLayout)
+
+  val emptyStatePane =
+    object : JPanel() {
+      init {
+        isOpaque = false
+      }
+
+      override fun paint(g: Graphics) {
+        super.paint(g)
+        emptyStatusText.paint(this, g)
+      }
+    }
+
+  private val emptyStatusText: AppInsightsStatusText =
+    AppInsightsStatusText(emptyStatePane) { true }
+      .apply {
+        val regularTextAttr =
+          SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getLabelTextForeground())
+        appendText("Could not fetch a stack trace for this event. Click ", regularTextAttr)
+        appendText("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) { controller.refresh() }
+        appendText(" to try again", regularTextAttr)
+      }
+
   init {
     Disposer.register(this, consoleView)
     stackTraceConsoleState
@@ -109,6 +146,11 @@ class StackTraceConsole(
         PROJECT_SYSTEM_SYNC_TOPIC,
         ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
       )
+
+    stackPanel.add(consoleView, CONSOLE_VIEW)
+    stackPanel.add(emptyStatePane, EMPTY_STATE_PANEL)
+    cardLayout.show(stackPanel, CONSOLE_VIEW)
+
     consoleView.editor.setBorder(JBUI.Borders.empty())
     updateUI()
   }
@@ -147,12 +189,20 @@ class StackTraceConsole(
     var startOfOtherThreads = 0
     synchronized(CONSOLE_LOCK) {
       currentEvent = null
-      // ConsoleViewImpl.clear() clears non-deferred text asynchonously, causing a race condition
+      // ConsoleViewImpl.clear() clears non-deferred text asynchronously, causing a race condition
       // when setting the new text below, so here we manually flush and then set the text to empty.
       consoleView.flushDeferredText()
       consoleView.editor.document.setText("")
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, event.appVcsInfo)
       consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connection)
+
+      if (event == Event.EMPTY) {
+        cardLayout.show(stackPanel, EMPTY_STATE_PANEL)
+        stackPanel.preferredSize = emptyStatePane.preferredSize
+      } else {
+        cardLayout.show(stackPanel, CONSOLE_VIEW)
+        stackPanel.preferredSize = consoleView.preferredSize
+      }
 
       fun Blames.getConsoleViewContentType() =
         if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
@@ -242,7 +292,7 @@ class StackTraceConsole(
       setCaretEnabled(false)
     }
 
-    val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState)
+    val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState, scope)
     consoleView.editor.addEditorMouseListener(listener, this)
 
     return consoleView
@@ -256,9 +306,16 @@ class ListenerForTracking(
   private val tracker: AppInsightsTracker,
   private val project: Project,
   private val stackTraceConsoleState: StateFlow<StackTraceConsoleState>,
+  private val scope: CoroutineScope,
 ) : EditorMouseListener {
   override fun mouseReleased(event: EditorMouseEvent) {
     val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
+    // Run tracking logic in a coroutine since it requires read lock.
+    // Without the read lock, it is considered a slow operation.
+    scope.trackClick(hyperlinkInfo)
+  }
+
+  private fun CoroutineScope.trackClick(hyperlinkInfo: HyperlinkInfo) = launch {
     val metricsEventBuilder =
       AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder().apply {
         clickLocation =
@@ -267,7 +324,8 @@ class ListenerForTracking(
         crashType = stackTraceConsoleState.value.issue?.issueDetails?.fatality?.toCrashType()
         localFile =
           (hyperlinkInfo as? FileHyperlinkInfo)?.descriptor?.file?.let {
-            ProjectFileIndex.getInstance(project).isInSourceContent(it)
+            // isInSourceContent() requires read lock
+            readAction { ProjectFileIndex.getInstance(project).isInSourceContent(it) }
           } ?: false
       }
 

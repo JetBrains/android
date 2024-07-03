@@ -26,6 +26,7 @@ import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toDuration
 import kotlin.time.toDurationUnit
@@ -56,6 +57,25 @@ fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
 @Throws(TimeoutException::class)
 fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean) {
   waitForCondition(timeout.toDuration(timeUnit.toDurationUnit()), condition)
+}
+
+/**
+ * Keeps dispatching invocation events for the given duration. The duration must not exceed
+ * 500 milliseconds to avoid a substantial test slowdown. Use this function only as the last
+ * resort when there is no suitable condition to use with [waitForCondition].
+ */
+@JvmSynthetic
+fun dispatchInvocationEventsFor(duration: Duration) {
+  check(EDT.isCurrentThreadEdt())
+  require(duration <= 500.milliseconds) { "Duration must not exceed 500 milliseconds" }
+  val durationMillis = duration.inWholeMilliseconds
+  val deadline = System.currentTimeMillis() + durationMillis
+  var waitUnit = ((durationMillis + 9) / 10).coerceAtMost(10)
+  while (waitUnit > 0) {
+    UIUtil.dispatchAllInvocationEvents()
+    Thread.sleep(waitUnit)
+    waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
+  }
 }
 
 /**

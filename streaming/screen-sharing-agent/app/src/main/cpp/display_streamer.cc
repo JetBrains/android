@@ -331,10 +331,6 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
       }
       request_sync_frame = false;
     }
-    int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
-    if (delta < 1000) {
-      Log::D("Display %d: video packet of %d bytes at %" PRIi64 " ms since last touch event", display_id_, codec_buffer.size(), delta);
-    }
     packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
     if (codec_buffer.IsConfig()) {
       packet_header->presentation_timestamp_us = 0;

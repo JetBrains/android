@@ -183,6 +183,7 @@ studio_plugin(
             "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
+            "//tools/adt/idea/avd:intellij.android.avd",
             "//tools/adt/idea/intellij.android.device",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/android-navigator:intellij.android.navigator",
@@ -464,6 +465,7 @@ studio_plugin(
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
             "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
+            "//tools/adt/idea/motion-editor:intellij.android.motion-editor",
         ],
     },
     resources = {
@@ -667,7 +669,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
-        "//prebuilts/tools/common/m2:commonmark-0.20.0",
+        "//prebuilts/tools/common/m2:commonmark-0.22.0",
     ],
     modules = {
         "aiplugin.jar": [
@@ -989,6 +991,7 @@ iml_module(
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
         "//tools/vendor/google/ml/aiplugin/android:aiplugin.android[module]",
+        "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
@@ -1114,7 +1117,6 @@ iml_module(
         "@intellij//:com.intellij.cidr.lang.clangd",
         "@intellij//:com.intellij.cidr.lang.clangdBridge",
         "@intellij//:com.intellij.completion.ml.ranking",
-        "@intellij//:com.intellij.completion.ml.ranking.models",
         "@intellij//:com.intellij.configurationScript",
         "@intellij//:com.intellij.copyright",
         "@intellij//:com.intellij.dev",

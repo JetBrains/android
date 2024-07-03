@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 public interface GradleBuildListener {
   void buildStarted(@NotNull BuildContext context);
 
-  void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context);
+  void buildFinished(@NotNull BuildStatus status, @NotNull BuildContext context);
 
   abstract class Adapter implements GradleBuildListener {
     @Override
@@ -29,7 +29,7 @@ public interface GradleBuildListener {
     }
 
     @Override
-    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+    public void buildFinished(@NotNull BuildStatus status, @NotNull BuildContext context) {
     }
   }
 }

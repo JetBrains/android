@@ -72,10 +72,9 @@ fun createRenderTaskFuture(
     ComposeAdapterLightVirtualFile(
       "singlePreviewElement.xml",
       previewElement.toPreviewXml().buildString(),
-    ) {
-      originFile // Note: the same as previewElement.previewElementDefinition?.virtualFile, if
-      // available.
-    }
+      // Note: the same as previewElement.previewElementDefinition?.virtualFile, if available.
+      originFile,
+    )
   return RenderFutureForTests(
     lightVirtualFile = lightVirtualFile,
     future =

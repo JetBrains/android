@@ -48,6 +48,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -58,10 +60,13 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.KeyStroke
+import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
 private const val UI_CONFIGURATION_KEY =
@@ -151,7 +156,7 @@ data class SelectedTabState(
           UiConfig.HORIZONTAL_SWAP -> {
             // Create a vertical split panel containing the device view at the top and the tool
             // windows at the bottom.
-            val toolsPanel = createToolsPanel(disposable, uiConfig)
+            val toolsPanel = createToolsPanel(disposable, uiConfig, inspectorPanel, null)
             val splitPanel =
               OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
                 firstComponent = centerPanel
@@ -168,7 +173,7 @@ data class SelectedTabState(
           UiConfig.RIGHT_VERTICAL_SWAP -> {
             // Create a workbench containing the panels on the side and the device view at the
             // center.
-            createToolsPanel(disposable, uiConfig, centerPanel)
+            createToolsPanel(disposable, uiConfig, inspectorPanel, centerPanel)
           }
         }
 
@@ -192,11 +197,12 @@ data class SelectedTabState(
   private fun createToolsPanel(
     disposable: Disposable,
     uiConfig: UiConfig,
+    rootPanel: JComponent,
     centerPanel: JComponent? = null,
   ): JPanel {
     val toolsPanel = BorderLayoutPanel()
 
-    val toolbar = createToolbar(disposable, toolsPanel)
+    val toolbar = createToolbar(disposable, toolsPanel, rootPanel)
 
     val workBench =
       createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
@@ -219,13 +225,27 @@ data class SelectedTabState(
     return toolsPanel
   }
 
-  private fun createToolbar(parentDisposable: Disposable, targetComponent: JComponent): JComponent {
+  private fun createToolbar(
+    parentDisposable: Disposable,
+    targetComponent: JComponent,
+    rootComponent: JComponent,
+  ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
         { layoutInspectorRenderer.interceptClicks },
         { layoutInspectorRenderer.interceptClicks = it },
         { layoutInspector.currentClient },
       )
+    val shortcut =
+      KeyboardShortcut(
+        KeyStroke.getKeyStroke(
+          KeyEvent.VK_I,
+          InputEvent.SHIFT_DOWN_MASK + InputEvent.META_DOWN_MASK,
+        ),
+        null,
+      )
+    val shortcutSet = CustomShortcutSet(shortcut)
+    toggleDeepInspectAction.registerCustomShortcutSet(shortcutSet, rootComponent)
 
     val processPicker =
       TargetSelectionActionFactory.getSingleDeviceProcessPicker(

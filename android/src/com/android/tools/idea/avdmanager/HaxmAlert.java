@@ -20,10 +20,12 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.analytics.CommonMetricsData;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.HyperlinkAdapter;
@@ -42,6 +44,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -190,7 +193,10 @@ public class HaxmAlert extends JPanel {
 
   @NotNull
   private static ListenableFuture<AccelerationErrorCode> computeAccelerationState() {
-    AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
-    return manager.checkAccelerationAsync();
+    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
+        .submit(
+            () ->
+                EmulatorAccelerationCheck.checkAcceleration(
+                    AndroidSdks.getInstance().tryToChooseSdkHandler()));
   }
 }

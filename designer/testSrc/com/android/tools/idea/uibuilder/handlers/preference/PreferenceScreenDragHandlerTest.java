@@ -66,10 +66,10 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(model);
 
     handler.update(180, 205, 0, SceneContext.get());
-    assertEquals(model.find("category1"), handler.myGroup.getNlComponent());
+    assertEquals(model.getTreeReader().find("category1"), handler.myGroup.getNlComponent());
 
     handler.update(180, 230, 0, SceneContext.get());
-    assertEquals(model.find("category2"), handler.myGroup.getNlComponent());
+    assertEquals(model.getTreeReader().find("category2"), handler.myGroup.getNlComponent());
   }
 
   public void testDrawDropPreviewLine() {

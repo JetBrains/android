@@ -276,8 +276,4 @@ Count of disposed-but-strong-referenced objects: 0
 Disposed-but-strong-referenced dominator object count: 0
 Disposed-but-strong-referenced dominator sub-graph size: 0B
 
-============ DOMINATOR TREE FLAME GRAPH ===========
-1
-root
-0 149660 0
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.common.surface.organization
 
+import java.awt.Dimension
 import java.awt.Graphics2D
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Test
@@ -71,6 +73,36 @@ class OrganizationLineTest {
   fun drawTwoLines2() {
     val panels = listOf(listOf(JPanel()), listOf(JPanel(), JPanel(), JPanel()))
     verifyCalls(panels, 2)
+  }
+
+  @Test
+  fun checkLinePositions() {
+    val panel1 =
+      JPanel().apply {
+        size = Dimension(10, 10)
+        location = Point(15, 15)
+      }
+    val panel2 =
+      JPanel().apply {
+        size = Dimension(15, 15)
+        location = Point(100, 100)
+      }
+    val panel3 =
+      JPanel().apply {
+        size = Dimension(20, 20)
+        location = Point(200, 200)
+      }
+    val panel4 =
+      JPanel().apply {
+        size = Dimension(30, 30)
+        location = Point(210, 210)
+      }
+    val panels = listOf(listOf(panel1, panel2), listOf(panel3, panel4))
+    val g2d = createG2d()
+    panels.paintLines(g2d)
+    Mockito.verify(g2d, times(1)).drawLine(18, 15, 18, 115)
+
+    Mockito.verify(g2d, times(1)).drawLine(18, 200, 18, 240)
   }
 
   private fun verifyCalls(panels: Collection<Collection<JComponent>>, calls: Int) {

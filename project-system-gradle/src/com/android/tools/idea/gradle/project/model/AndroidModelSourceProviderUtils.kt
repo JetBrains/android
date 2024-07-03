@@ -136,32 +136,32 @@ fun convertVersion(
 
 val GradleAndroidModelData.activeSourceProviders: List<IdeSourceProvider>
   get() = collectMainSourceProviders(selectedVariantCore)
-val GradleAndroidModelData.hostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+val GradleAndroidModelData.hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
   get() =
-    mutableMapOf<TestComponentType, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectUnitTestSourceProviders(selectedVariantCore))
+    mutableMapOf<TestComponentType.HostTest, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectUnitTestSourceProviders(selectedVariantCore))
       .apply {
         val screenshotTestSources = collectScreenshotTestSourceProviders(selectedVariantCore)
         if (screenshotTestSources.isNotEmpty()) {
           this[CommonTestType.SCREENSHOT_TEST] = screenshotTestSources
         }
       }.toImmutableMap()
-val GradleAndroidModelData.deviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+val GradleAndroidModelData.deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   get() = mapOf(CommonTestType.ANDROID_TEST to collectAndroidTestSourceProviders(selectedVariantCore))
 val GradleAndroidModelData.testFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectTestFixturesSourceProviders(selectedVariantCore)
 
 val GradleAndroidModelData.allSourceProviders: List<IdeSourceProvider>
   get() = collectAllSourceProviders()
-val GradleAndroidModelData.allHostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+val GradleAndroidModelData.allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
   get() =
-    mutableMapOf<TestComponentType, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectAllUnitTestSourceProviders())
+    mutableMapOf<TestComponentType.HostTest, List<IdeSourceProvider>>(CommonTestType.UNIT_TEST to collectAllUnitTestSourceProviders())
       .apply {
         val screenshotTestSources = collectAllScreenshotTestSourceProviders()
         if (screenshotTestSources.isNotEmpty()) {
           this[CommonTestType.SCREENSHOT_TEST] = screenshotTestSources
         }
       }.toImmutableMap()
-val GradleAndroidModelData.allDeviceSourceProviders: Map<TestComponentType, List<IdeSourceProvider>>
+val GradleAndroidModelData.allDeviceSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   get() = mapOf(CommonTestType.ANDROID_TEST to collectAllAndroidTestSourceProviders())
 val GradleAndroidModelData.allTestFixturesSourceProviders: List<IdeSourceProvider>
   get() = collectAllTestFixturesSourceProviders()

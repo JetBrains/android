@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import java.util.Arrays;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "pixel_fold", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isPhone(definition)),
-  TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isTablet(definition)),
-  WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
-  DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
-  TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && (HardwareConfigHelper.isTv(definition) || hasTvScreen(definition))),
+  PHONE("Phone", "pixel_fold", definition -> !definition.getIsDeprecated() && Device.isPhone(definition)),
+  TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && Device.isTablet(definition)),
+  WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && Device.isWear(definition)),
+  DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && Device.isDesktop(definition)),
+  TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && Device.isTv(definition)),
 
   AUTOMOTIVE("Automotive", "automotive_1024p_landscape", definition ->
-    !definition.getIsDeprecated() && HardwareConfigHelper.isAutomotive(definition)),
+    !definition.getIsDeprecated() && Device.isAutomotive(definition)),
 
   LEGACY("Legacy", "Nexus S", Device::getIsDeprecated);
 
@@ -41,10 +40,6 @@ enum Category {
 
   @NotNull
   private final Predicate<Device> myPredicate;
-
-  private static boolean hasTvScreen(@NotNull Device definition) {
-    return definition.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
-  }
 
   Category(@NotNull String name, @NotNull String defaultDefinitionId, @NotNull Predicate<Device> predicate) {
     myName = name;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
 import com.intellij.testFramework.EdtRule
@@ -37,12 +38,13 @@ class TimelineLineTest {
     // Call layoutAndDispatchEvents() so positionProxy returns correct values
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     slider.sliderUI.apply {
-      val line = TimelineLine(0, null, 50, 150, 50)
+      val line = TimelineLine(0, SupportedAnimationManager.FrozenState(false), 50, 150, 50)
       assertFalse(line.contains(30, 85))
       assertTrue(line.contains(51, 85))
       assertTrue(line.contains(150, 85))
       assertFalse(line.contains(160, 85))
-      val lineWithOffset = TimelineLine(-100, null, 50, 150, 50)
+      val lineWithOffset =
+        TimelineLine(-100, SupportedAnimationManager.FrozenState(false), 50, 150, 50)
       assertFalse(lineWithOffset.contains(30 - 100, 85))
       assertTrue(lineWithOffset.contains(50 - 100, 85))
       assertTrue(lineWithOffset.contains(150 - 100, 85))
@@ -60,10 +62,16 @@ class TimelineLineTest {
     slider.sliderUI.apply {
       elements =
         listOf(
-          TimelineLine(0, null, 50, 150, 50).apply { status = TimelineElementStatus.Hovered },
-          TimelineLine(0, null, 50, 150, 150).apply { status = TimelineElementStatus.Dragged },
-          TimelineLine(0, null, 50, 150, 250).apply { status = TimelineElementStatus.Inactive },
-          TimelineLine(0, null, 50, 150, 350).apply {},
+          TimelineLine(0, SupportedAnimationManager.FrozenState(false), 50, 150, 50).apply {
+            status = TimelineElementStatus.Hovered
+          },
+          TimelineLine(0, SupportedAnimationManager.FrozenState(false), 50, 150, 150).apply {
+            status = TimelineElementStatus.Dragged
+          },
+          TimelineLine(0, SupportedAnimationManager.FrozenState(false), 50, 150, 250).apply {
+            status = TimelineElementStatus.Inactive
+          },
+          TimelineLine(0, SupportedAnimationManager.FrozenState(false), 50, 150, 350).apply {},
         )
     }
     // Call layoutAndDispatchEvents() so positionProxy returns correct values

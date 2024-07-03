@@ -33,7 +33,8 @@ class VersionsTomlAnnotator : Annotator {
     private val FILE_IS_GOOD_FOR_LONG_CHECKS = Key.create<Boolean>("FILE_IS_GOOD_FOR_LONG_CHECKS")
   }
 
-  val tables = listOf("plugins", "versions", "libraries", "bundles")
+  val dependencyTables = listOf("plugins", "libraries", "bundles")
+  val tables = dependencyTables + "versions"
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!element.containingFile.name.endsWith("versions.toml"))
@@ -70,6 +71,10 @@ class VersionsTomlAnnotator : Annotator {
         holder.newAnnotation(HighlightSeverity.ERROR,
                              "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
                              "and be made up of letters, digits and the symbols '-' or '_' only").create()
+      }
+      else if (".+[_\\-][0-9]".toRegex().find(text) != null) {
+        holder.newAnnotation(if (table.header.key?.text in dependencyTables) HighlightSeverity.ERROR else HighlightSeverity.WARNING,
+                             "Invalid alias `${text}`. There must be letter after '-' or '_ delimiter.").create()
       }
       else if ((text.endsWith("_") || text.endsWith("-"))) {
         holder.newAnnotation(HighlightSeverity.ERROR,
@@ -108,7 +113,7 @@ class VersionsTomlAnnotator : Annotator {
     val same = parent.entries.map { it.key }
       .filter { it != element && it.segments.size == 1 }
       .mapNotNull { it.firstSegmentNormalizedText() }
-      .filter { compareAliases(elementName, it) }
+      .filter { sameAliases(elementName, it) }
     if (same.isNotEmpty()) {
       val suffix = if (same.size > 2) " etc." else "."
       holder.newAnnotation(HighlightSeverity.ERROR,
@@ -116,9 +121,18 @@ class VersionsTomlAnnotator : Annotator {
     }
   }
 
-  private fun compareAliases(alias1: String, alias2: String): Boolean {
+  private fun sameAliases(alias1: String, alias2: String): Boolean {
     if (alias1.length != alias2.length) return false
-    return alias1.zip(alias2).all { (a, b) -> a.normalize() == b.normalize() }
+    for (i in alias1.indices) {
+      val char1 = alias1[i].normalize()
+      val char2 = alias2[i].normalize()
+      if (i > 0 && alias1[i-1].normalize() == '_' && alias2[i-1].normalize() == '_') {
+        if (!char1.equals(char2, true)) return false
+      }
+      else
+        if (char1 != char2) return false
+    }
+    return true
   }
 
   private fun Char.normalize(): Char = if (this == '-' || this == '.') '_' else this

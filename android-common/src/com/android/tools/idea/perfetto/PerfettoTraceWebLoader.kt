@@ -32,6 +32,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.net.URI
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
 /**
@@ -54,39 +55,33 @@ object PerfettoTraceWebLoader {
 
   private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val requestQueue = Channel<File>(capacity = Channel.UNLIMITED)
-  private var server: HttpServer? = null
 
   private val logger = Logger.getInstance(PerfettoTraceWebLoader::class.java)
 
-  val handledTraceIds = mutableSetOf<Long>()
-
   init {
     CoroutineScope(taskExecutor.asCoroutineDispatcher()).launch {
-      while (true) {
-        // launch a transient web server to provide the trace file to ui.perfetto.dev (file://... is not supported, it must be http://...)
-        val traceFile = requestQueue.receive()
-        val requestReceivedLatch = Job() // allows us to wait until the request starts getting processed by the web server
-        server = HttpServer(traceFile, requestReceivedLatch).also { it.start() }
+      for (traceFile in requestQueue) {
+        // A latch used for waiting until the request has been received by the server and then shutting down the server.
+        val requestReceivedLatch = Job()
 
-        // open ui.perfetto.dev in the browser (with trace file url passed as an url parameter)
+        // Transient web server to provide the trace file to ui.perfetto.dev (file://... is not supported, it must be http://...).
+        val server = HttpServer(traceFile, requestReceivedLatch).also { it.start() }
+
+        // Opening the trace file in ui.perfetto.dev in the browser (with trace file url passed as an url parameter).
         val urlEncodedFileName = URLEncoder.encode(traceFile.name, Charsets.UTF_8)
         BrowserLauncher.instance.browse(
           URI.create("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop"))
 
-        // Wait until the request has been received and order the server to gracefully shut down (requests being processed will be allowed
-        // to finish before the server is completely stopped)
+        // Wait until we start serving the trace file, then allow the request to finish before shutting down the server.
         requestReceivedLatch.join()
-        server?.stop()
-        server = null
+        server.stop(gracePeriod = 10, SECONDS)
       }
     }
   }
 
-  fun loadTrace(traceFile: File, traceId: Long? = null) {
-    if (traceId != null) handledTraceIds.add(traceId)
-
+  fun loadTrace(traceFile: File) {
     val result = requestQueue.trySend(traceFile)
-    if (!result.isSuccess) logger.error("Failed to load a trace file ${traceFile.name}", result.exceptionOrNull())
+    if (!result.isSuccess) logger.error("Failed to load the trace file ${traceFile.name}", result.exceptionOrNull())
   }
 }
 
@@ -95,15 +90,28 @@ private class HttpServer(traceFile: File, requestReceivedLatch: CompletableJob) 
     .bootstrap()
     .setListenerPort(port)
     .setSocketConfig(SocketConfig.custom().setSoReuseAddress(true).setSoKeepAlive(true).build())
-    .registerHandler("/${traceFile.name}") { _, response, _ ->
+    .registerHandler("/${traceFile.name}") { request, response, _ ->
+      when (request.requestLine.method) {
+        "OPTIONS" -> {
+          response.addHeader("Allow", "OPTIONS, GET")
+        }
+        "GET" -> {
+          response.entity = FileEntity(traceFile, ContentType.DEFAULT_BINARY)
+          requestReceivedLatch.complete()
+        }
+        else -> {
+          response.setStatusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
+          return@registerHandler
+        }
+      }
+
       response.setStatusCode(HttpStatus.SC_OK)
       response.setHeader("Access-Control-Allow-Origin", origin)
       response.setHeader("Cache-Control", "no-cache")
-      response.entity = FileEntity(traceFile, ContentType.DEFAULT_BINARY)
-      requestReceivedLatch.complete() // mark the request as now received and being processed by the server
     }.create()
 
   fun start() = server.start()
 
-  fun stop() = server.shutdown(10, SECONDS) // grace period to finish any currently running downloads if any are present
+  // Stop the server waiting for exising requests to finish before shutting down (or until the timeout of the gracePeriod).
+  fun stop(gracePeriod: Long, timeUnit: TimeUnit) = server.shutdown(gracePeriod, timeUnit)
 }

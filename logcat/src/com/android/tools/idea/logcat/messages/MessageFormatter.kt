@@ -75,7 +75,7 @@ internal class MessageFormatter(
 
         val msg =
           when {
-            StudioBot.getInstance()?.isAvailable() != true -> message.message
+            !StudioBot.getInstance().isAvailable() -> message.message
             exceptionLinePattern.containsMatchIn(message.message) ->
               insertStudioBotText(message.message)
             else -> message.message
@@ -92,6 +92,11 @@ internal class MessageFormatter(
       val end = textAccumulator.getTextLength()
       textAccumulator.addMessageRange(start, end - 1, message)
     }
+  }
+
+  fun reset() {
+    previousTag = null
+    previousPid = null
   }
 
   private fun insertStudioBotText(message: String): String {

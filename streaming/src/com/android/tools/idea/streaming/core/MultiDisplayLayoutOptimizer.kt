@@ -276,8 +276,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
     }
 
     private fun createSplitTypeIterator(splitTypeToAvoid: SplitType?): Iterator<SplitType> {
-      val values = ArrayList<SplitType>(SplitType.values().asList())
-      values.remove(splitTypeToAvoid)
+      val values = if (splitTypeToAvoid == null) SplitType.entries else SplitType.entries - splitTypeToAvoid
       return values.iterator()
     }
 

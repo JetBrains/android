@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.DataContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -125,7 +126,8 @@ class ComposeViewSingleWordFilterTest {
     val sceneManager = mock<SceneManager>()
     val view = mock<SceneView>()
 
-    whenever(model.modelDisplayName).thenReturn(name)
+    val displayName = MutableStateFlow(name)
+    whenever(model.modelDisplayName).thenReturn(displayName)
     whenever(sceneManager.sceneViews).thenReturn(listOf(view))
     whenever(sceneManager.model).thenReturn(model)
     whenever(view.sceneManager).thenReturn(sceneManager)

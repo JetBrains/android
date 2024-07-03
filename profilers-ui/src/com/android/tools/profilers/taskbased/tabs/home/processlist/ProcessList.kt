@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.DeviceSelection
 import org.jetbrains.jewel.ui.component.Text

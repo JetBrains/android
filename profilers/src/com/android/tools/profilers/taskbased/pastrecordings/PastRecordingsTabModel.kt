@@ -19,6 +19,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 import com.google.common.annotations.VisibleForTesting
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * The PastRecordingsTabModel serves as the data model for the past recordings tab. It owns the recording list model to manage the
@@ -26,26 +28,39 @@ import com.google.common.annotations.VisibleForTesting
  * task button click, reading the recording and Profiler task selection and using such values to launch the Profiler task.
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  @VisibleForTesting
   val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection, taskGridModel::onTaskSelection,
                                               ::onEnterTaskButtonClick)
 
   @VisibleForTesting
   val selectedRecording get() = recordingListModel.selectedRecording.value
 
-  override fun onEnterTaskButtonClick() {
+  private val _isBannerClosed = MutableStateFlow(false)
+  val isBannerClosed = _isBannerClosed.asStateFlow()
+
+  fun onRecordingBannerClose() {
+    _isBannerClosed.value = true
+  }
+
+  fun onRecordingBannerDontShowAgainClick() {
+    // Clicking "Don't show again" should also close the banner, effectively performing the same behavior as clicking the close button,
+    // but with the additional save of permanent preference to never show the banner again.
+    onRecordingBannerClose()
+    profilers.ideServices.persistentProfilerPreferences.setBoolean(DONT_SHOWN_AGAIN_RECORDING_BANNER, true)
+  }
+
+  fun isRecordingBannerNotShownAgain(): Boolean {
+    return profilers.ideServices.persistentProfilerPreferences.getBoolean(DONT_SHOWN_AGAIN_RECORDING_BANNER, false)
+  }
+
+  override fun doEnterTaskButton() {
     val selectedSession = selectedRecording!!.session
-
-    // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
-    // existing task tab will be re-opened.
-    if (selectedSession == profilers.session) {
-      profilers.openTaskTab()
-      return
-    }
-
     // Update the currently selected task type used to launch the recording with before setting the session. This guarantees that the
     // most up-to-date Profiler task will be used to handle the set session's data.
     profilers.sessionsManager.currentTaskType = selectedTaskType
     profilers.sessionsManager.setSession(selectedSession)
+  }
+
+  companion object {
+    const val DONT_SHOWN_AGAIN_RECORDING_BANNER = "DONT_SHOW_AGAIN_RECORDING_BANNER"
   }
 }

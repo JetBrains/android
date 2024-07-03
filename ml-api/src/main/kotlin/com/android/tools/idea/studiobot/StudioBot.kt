@@ -50,7 +50,7 @@ interface StudioBot {
    */
   fun isContextAllowed(project: Project): Boolean = false
 
-  fun aiExcludeService(): AiExcludeService
+  fun aiExcludeService(project: Project): AiExcludeService
 
   /**
    * Returns an instance of the chat service, which is used to interface with the Studio Bot chat
@@ -84,7 +84,8 @@ interface StudioBot {
 
     override fun isContextAllowed(project: Project): Boolean = false
 
-    override fun aiExcludeService(): AiExcludeService = AiExcludeService.FakeAiExcludeService()
+    override fun aiExcludeService(project: Project): AiExcludeService =
+      AiExcludeService.FakeAiExcludeService(project)
 
     override fun chat(project: Project): ChatService = ChatService.StubChatService()
 

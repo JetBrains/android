@@ -62,7 +62,7 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
 
   fun changeEndState() = logEvent(ComposeAnimationToolingEventType.CHANGE_END_STATE)
 
-  fun triggerSwapStatesAction() =
+  override fun triggerSwapStatesAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
 
   override fun clickAnimationInspectorTimeline() =
@@ -90,5 +90,5 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
 
   override fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
 
-  fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
+  override fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
 }

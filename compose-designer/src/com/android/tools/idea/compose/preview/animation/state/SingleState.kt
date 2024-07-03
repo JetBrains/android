@@ -15,44 +15,47 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
-import com.android.tools.idea.compose.preview.animation.actions.SwapAction
+import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.state.SwapAction
+import com.intellij.platform.util.coroutines.flow.mapStateIn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 /**
- * [AnimationState] to control animations like AnimatedVisibility.
+ * [ComposeAnimationState] to control animations like AnimatedVisibility.
  *
- * @param tracker usage tracker for animation tooling
- * @param callback when state has changed
+ * @param tracker The [AnimationTracker] for tracking animation usage.
+ * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing
+ *   coroutine operations within the state.
  */
-class SingleState(private val tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+class SingleState(private val tracker: AnimationTracker, scope: CoroutineScope) :
+  ComposeAnimationState {
 
-  private val enumState = EnumStateAction(stateCallback)
+  private val enumState = EnumStateAction()
+
+  override val stateHashCode: StateFlow<Int> =
+    enumState.currentState.mapStateIn(scope) { it?.hashCode() ?: 0 }
 
   /** Contains [SwapAction] and [EnumStateAction] for Enter/Exit state. */
-  override val extraActions =
+  override val changeStateActions =
     listOf(
       SwapAction(tracker) {
-        enumState.states
-          .firstOrNull { it != enumState.currentState }
-          ?.let { enumState.currentState = it }
-        stateCallback()
+        val nextState =
+          enumState.states.firstOrNull { state -> state != enumState.currentState.value }
+            ?: return@SwapAction
+        enumState.currentState.value = nextState
       },
       enumState,
     )
-
-  override fun stateHashCode() = enumState.stateHashCode
 
   override fun updateStates(states: Set<Any>) {
     enumState.states = states.toTypedArray().toSet()
     setStartState(states.firstOrNull())
   }
 
-  override fun getState(index: Int): Any? = enumState.currentState
+  override fun getState(index: Int): Any? = enumState.currentState.value
 
   override fun setStartState(state: Any?) {
-    enumState.currentState = state
-    stateCallback()
+    enumState.currentState.value = state
   }
 }

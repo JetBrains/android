@@ -271,11 +271,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
           as? ToolWindowEx
       toolWindow?.let {
-        val width = it.component.width
-        // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH
-        // stretchWidth resizes relatively to the current width of the tool window.
-        if (width != JBUIScale.scale(DEFAULT_WINDOW_WIDTH)) {
-          it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
+        // When Running Devices tabs are in split mode, there can be multiple components.
+        val currentWidth =
+          toolWindow.contentManager.contentsRecursively.maxOfOrNull { it.component.width }
+        val desiredWidth = JBUIScale.scale(DEFAULT_WINDOW_WIDTH)
+        // Resize only if the tool window is currently smaller than the desired width.
+        if (currentWidth != null && currentWidth < desiredWidth) {
+          // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH.
+          // stretchWidth resizes relatively to the current width of the tool window.
+          toolWindow.stretchWidth(desiredWidth - currentWidth)
         }
       }
 

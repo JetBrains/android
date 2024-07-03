@@ -34,7 +34,11 @@ import org.jetbrains.kotlin.resolve.source.getPsi
 /**
  * Represents parts of a Composable function to be used for rendering in various menus or dialogs.
  */
-data class ComposableFunctionRenderParts(val parameters: String?, val tail: String?)
+data class ComposableFunctionRenderParts(
+  val totalParameterCount: Int,
+  val parameters: String?,
+  val tail: String?,
+)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
@@ -78,7 +82,7 @@ fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRen
 
   val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { hasTrailingLambda }
 
-  return ComposableFunctionRenderParts(parameters, tail)
+  return ComposableFunctionRenderParts(allParameters.size, parameters, tail)
 }
 
 private fun ValueParameterDescriptor.isRequired(): Boolean {

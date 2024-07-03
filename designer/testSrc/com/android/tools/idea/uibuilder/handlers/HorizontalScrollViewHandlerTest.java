@@ -33,7 +33,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   public void testScrollNothing() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     screen(model)
       .get("@id/myText1")
@@ -50,7 +50,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   public void testCancel() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {
@@ -74,7 +74,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   public void testScroll() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {
@@ -130,13 +130,13 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
                                                    .height("40dp")
                                        )));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<HorizontalScrollView>, bounds=[0,0:90x90}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:120x90}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,0:40x40}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[40,0:40x40}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[80,0:40x40}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     format(model.getFile());
     return model;
   }

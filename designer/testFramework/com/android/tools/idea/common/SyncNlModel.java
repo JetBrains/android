@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.common;
 
-import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.common.model.DefaultModelUpdater;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.NlModelBuilder;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.function.Consumer;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link NlModel} that runs all the operations synchronously for testing
@@ -42,29 +41,29 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @NotNull AndroidFacet facet,
+                                   @NotNull BuildTargetReference buildTarget,
                                    @NotNull VirtualFile file) {
-    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet.getModule());
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(buildTarget.getModule());
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(parent, componentRegistrar, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, buildTarget, file, configuration);
   }
 
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @NotNull AndroidFacet facet,
+                                   @NotNull BuildTargetReference buildTarget,
                                    @NotNull VirtualFile file,
                                    @NotNull Configuration configuration) {
-    return new SyncNlModel(parent, componentRegistrar, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, buildTarget, file, configuration);
   }
 
   private SyncNlModel(@NotNull Disposable parent,
                       @NotNull Consumer<NlComponent> componentRegistrar,
-                      @NotNull AndroidFacet facet,
+                      @NotNull BuildTargetReference buildTarget,
                       @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
+    super(parent, buildTarget, file, configuration, componentRegistrar, NlModel.Companion::getDefaultFile, DataContext.EMPTY_CONTEXT);
   }
 
   /**

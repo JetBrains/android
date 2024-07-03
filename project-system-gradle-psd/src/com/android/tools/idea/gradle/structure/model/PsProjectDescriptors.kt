@@ -95,7 +95,10 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
       preferredVariableName = { "agp_version" },
       variableScope = { buildScriptVariables },
-      canExtractVariable = { parsedModel.versionCatalogsModel.catalogNames().isEmpty() }
+      canExtractVariable = {
+        parsedModel.versionCatalogsModel.catalogNames().isEmpty() &&
+        parsedModel.projectBuildModel != null
+      }
     )
   }
 

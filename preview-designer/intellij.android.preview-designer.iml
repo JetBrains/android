@@ -60,5 +60,8 @@
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
     <orderEntry type="module" module-name="intellij.android.completion" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.util.ex" />
+    <orderEntry type="module" module-name="intellij.java.analysis.impl" />
+    <orderEntry type="module" module-name="kotlin.base.code-insight" />
   </component>
 </module>

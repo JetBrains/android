@@ -94,7 +94,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
     val issues = ArrayList<VisualLintAtfIssue>()
 
     try {
-      val components = model.components
+      val components = model.treeReader.components
       if (components.isEmpty()) {
         // Result not available.
         return issues
@@ -146,7 +146,7 @@ class VisualLintAtfIssue(result: ValidatorData.Issue, component: NlComponent) :
 
   fun appliedColorBlindFilter(): ColorBlindMode {
     return ColorBlindMode.values().firstOrNull {
-      sourceModel?.modelDisplayName?.startsWith(it.displayName) ?: false
+      sourceModel?.modelDisplayName?.value?.startsWith(it.displayName) ?: false
     } ?: ColorBlindMode.NONE
   }
 }

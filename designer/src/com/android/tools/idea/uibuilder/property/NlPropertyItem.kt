@@ -23,7 +23,6 @@ import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NULL_RESOURCE
 import com.android.SdkConstants.TOOLS_URI
-import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
@@ -82,7 +81,6 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.swing.Icon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -291,7 +289,7 @@ open class NlPropertyItem(
       return parseColor(value)
     }
     val resValue = asResourceValue(value) ?: return null
-    return resolver?.resolveColor(resValue, project)
+    return model.resolver?.resolveColor(resValue, project)
   }
 
   private fun asResourceValue(value: String?): ResourceValue? {
@@ -321,8 +319,8 @@ open class NlPropertyItem(
         ResourceNamespace.Resolver.EMPTY_RESOLVER,
       ) ?: return null
 
-    val themeOverlayStyle = resolver?.getStyle(themeReference) ?: return null
-    return resolver?.findItemInStyle(themeOverlayStyle, reference)
+    val themeOverlayStyle = model.resolver?.getStyle(themeReference) ?: return null
+    return model.resolver?.findItemInStyle(themeOverlayStyle, reference)
   }
 
   private fun asResourceValue(reference: ResourceReference?): ResourceValue? {
@@ -331,10 +329,12 @@ open class NlPropertyItem(
     }
     if (reference.resourceType == ResourceType.ATTR) {
       val resValue =
-        asResourceValueFromOverlay(reference) ?: resolver?.findItemInTheme(reference) ?: return null
-      return resolver?.resolveResValue(resValue)
+        asResourceValueFromOverlay(reference)
+          ?: model.resolver?.findItemInTheme(reference)
+          ?: return null
+      return model.resolver?.resolveResValue(resValue)
     } else {
-      return resolver?.getResolvedResource(reference)
+      return model.resolver?.getResolvedResource(reference)
     }
   }
 
@@ -365,22 +365,6 @@ open class NlPropertyItem(
       .toString()
   }
 
-  private var cachedResolver: LazyCachedValue<ResourceResolver?> =
-    LazyCachedValue(
-      supervisorScope,
-      loader = { runInterruptible(workerThread) { getResourceResolver() } },
-      onValueLoaded = { _ ->
-        withContext(uiThread) {
-          // Trigger refresh of all properties due to the resolver being available
-          model.firePropertyValueChanged()
-        }
-      },
-      null,
-    )
-
-  val resolver: ResourceResolver?
-    get() = cachedResolver.getCachedValueOrUpdate()
-
   val tagName: String
     get() {
       val tagName = firstComponent?.tagName ?: return ""
@@ -403,9 +387,6 @@ open class NlPropertyItem(
 
   private val nlModel: NlModel?
     get() = firstComponent?.model
-
-  @Slow
-  private fun getResourceResolver(): ResourceResolver? = nlModel?.configuration?.resourceResolver
 
   private fun computeDefaultNamespace(): ResourceNamespace =
     ReadAction.compute<ResourceNamespace, RuntimeException> {
@@ -562,6 +543,10 @@ open class NlPropertyItem(
         }
       return Pair(EditingErrorCategory.ERROR, message)
     }
+    if (model.resolver == null) {
+      // If the resolver is not ready: Do not report unresolved symbols.
+      return null
+    }
     val value = asResourceValue(text)
     return if (value == null)
       Pair(EditingErrorCategory.ERROR, "Cannot resolve symbol: '${parsed.resourceName}'")
@@ -686,7 +671,7 @@ open class NlPropertyItem(
       val rawValueToCalculate = rawValue
       if (rawValueToCalculate != null) {
         supervisorScope.launch(workerThread) {
-          val icon = cachedResolver.getValue()?.resolveAsIcon(resValue, model.facet)
+          val icon = model.resolver?.resolveAsIcon(resValue, model.facet)
           if (icon != null) {
             val currentRawValue = readAction { rawValue }
             cachedIcon.updateAndGet { previous ->

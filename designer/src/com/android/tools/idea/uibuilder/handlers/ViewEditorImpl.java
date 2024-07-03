@@ -22,12 +22,14 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -161,7 +163,8 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture =
+      RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, model.getBuildTarget(), getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 
@@ -220,17 +223,17 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index) {
-    return getModel().canAddComponents(children, parent, getChild(parent, index));
+    return getModel().getTreeWriter().canAddComponents(children, parent, getChild(parent, index));
   }
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    UtilsKt.addComponentsAndSelectedIfCreated(getModel(),
-                                              children,
-                                              parent,
-                                              getChild(parent, index),
-                                              insertType,
-                                              myScene.getDesignSurface().getSelectionModel());
+    NlTreeWriterKt.addComponentsAndSelectedIfCreated(getModel().getTreeWriter(),
+                                                     children,
+                                                     parent,
+                                                     getChild(parent, index),
+                                                     insertType,
+                                                     myScene.getDesignSurface().getSelectionModel());
   }
 
   @Nullable

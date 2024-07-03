@@ -21,10 +21,13 @@ import com.intellij.execution.process.BaseOSProcessHandler
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.util.io.BaseOutputReader
-
 
 private const val SEVERITY = "(?<severity>VERBOSE|DEBUG|INFO|WARNING|ERROR|FATAL|UNKNOWN)"
 private const val MESSAGE = "(?<message>.*)"
@@ -41,7 +44,8 @@ class EmulatorProcessHandler(
   avdInfo: AvdInfo
 ) : BaseOSProcessHandler(process, commandLine, null) {
 
-  private val log = Logger.getInstance("Emulator: " + avdInfo.displayName)
+  private val avdName = avdInfo.displayName
+  private val log = Logger.getInstance("Emulator: $avdName")
 
   /**
    * Matches emulator messages in the default logging format.
@@ -66,6 +70,8 @@ class EmulatorProcessHandler(
    * ```
    */
   private val verboseMessagePattern = Regex("""^$TIMESTAMP $THREAD\s+$SEVERITY\s+$LOCATION\s+\| $MESSAGE""")
+
+  private val isEmbedded = getCommandLine().contains(" -qt-hide-window ")
 
   init {
     addProcessListener(ConsoleListener())
@@ -117,13 +123,22 @@ class EmulatorProcessHandler(
       when (severity) {
         "VERBOSE" -> log.trace(message)
         "DEBUG" -> log.debug(message)
-        "WARNING" -> log.warn(message)
-        "ERROR", "FATAL" ->
-          // Don't use error level because we don't want Studio crash reports for this; there is no detail in the
-          // crash reports to make them actionable
-          log.warn(message, null as Throwable?)
+        // Emulator errors are treated as warning to prevent them from appearing in Studio crash reports.
+        // Such crash reports would not be actionable due to insufficient information.
+        "WARNING", "ERROR" -> log.warn(message)
+        "FATAL" -> {
+          log.warn(message)
+          notify("Emulator: $avdName", message, NotificationType.ERROR)
+        }
         else -> log.info(message)
       }
+    }
+
+    private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {
+      val notificationGroup = if (isEmbedded) "Running Devices Messages" else "Device Manager Messages"
+      NotificationGroup.findRegisteredGroup(notificationGroup)
+        ?.createNotification(title, content, notificationType)
+        ?.notify(null)
     }
   }
 }

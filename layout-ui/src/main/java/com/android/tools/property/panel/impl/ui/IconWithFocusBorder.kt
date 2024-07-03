@@ -38,22 +38,28 @@ import kotlin.properties.Delegates
 
 /**
  * A component to show an icon with a focus border.
- *
- * Specify [actionToPerform] when clicked or activated via the keyboard.
+ * - Specify [activateAction] when clicked or activated via the keyboard.
+ * - Specify [collapseAction] when left arrow should collapse the control.
+ * - Specify [expandAction] when right arrow should expand the control.
  */
-open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) :
-  JBLabel(), DataProvider {
+open class IconWithFocusBorder(
+  private val expandAction: () -> AnAction? = { null },
+  private val collapseAction: () -> AnAction? = { null },
+  private val activateAction: () -> AnAction?,
+) : JBLabel(), DataProvider {
 
   init {
     background = secondaryPanelBackground
     isFocusable = false
     @Suppress("LeakingThis") super.addFocusListener(ImageFocusListener(this))
-    registerActionKey({ iconClicked(null) }, KeyStrokes.SPACE, "space")
-    registerActionKey({ iconClicked(null) }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ performAction(null, activateAction) }, KeyStrokes.SPACE, "space")
+    registerActionKey({ performAction(null, activateAction) }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ performAction(null, collapseAction) }, KeyStrokes.LEFT, "left")
+    registerActionKey({ performAction(null, expandAction) }, KeyStrokes.RIGHT, "right")
     super.addMouseListener(
       object : MouseAdapter() {
         override fun mousePressed(event: MouseEvent) {
-          iconClicked(event)
+          performAction(event, activateAction)
         }
       }
     )
@@ -67,10 +73,10 @@ open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) :
   }
 
   private fun updateFocusability() {
-    isFocusable = icon != null && actionToPerform() != null && !readOnly
+    isFocusable = icon != null && activateAction() != null && !readOnly
   }
 
-  private fun iconClicked(mouseEvent: MouseEvent?) {
+  private fun performAction(mouseEvent: MouseEvent?, actionToPerform: () -> AnAction?) {
     if (readOnly) {
       return
     }

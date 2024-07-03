@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error;
 
 import static com.android.tools.idea.common.error.MockIssueFactoryKt.createIssue;
+import static kotlinx.coroutines.flow.StateFlowKt.MutableStateFlow;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,6 +66,7 @@ public class IssueModelTest {
     assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
     NlModel sourceNlModel = Mockito.mock(NlModel.class);
+    Mockito.when(sourceNlModel.getModelDisplayName()).thenReturn(MutableStateFlow(""));
     Mockito.when(sourceNlModel.getVirtualFile()).thenReturn(file);
     myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
     assertTrue(myIssueModel.hasIssues());

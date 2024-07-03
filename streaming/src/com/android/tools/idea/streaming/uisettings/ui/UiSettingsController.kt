@@ -39,11 +39,12 @@ internal abstract class UiSettingsController(
 
   init {
     model.inDarkMode.uiChangeListener = LoggingChangeListener(::setDarkMode, stats::setDarkMode)
-    model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
+    model.fontScaleInPercent.uiChangeListener = LoggingChangeListener(::setFontScale, stats::setFontScale)
+    model.screenDensity.uiChangeListener = LoggingChangeListener(::setScreenDensity, stats::setScreenDensity)
     model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
     model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
-    model.fontSizeInPercent.uiChangeListener = LoggingChangeListener(::setFontSize, stats::setFontSize)
-    model.screenDensity.uiChangeListener = LoggingChangeListener(::setScreenDensity, stats::setScreenDensity)
+    model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
+    model.debugLayout.uiChangeListener =  LoggingChangeListener(::setDebugLayout, stats::setDebugLayout)
     model.resetAction = { reset(); stats.reset() }
   }
 
@@ -71,15 +72,14 @@ internal abstract class UiSettingsController(
   protected abstract fun setDarkMode(on: Boolean)
 
   /**
-   * Changes the navigation mode on the device to use gestures instead of buttons.
+   * Changes the font scale on the device/emulator.
    */
-  protected abstract fun setGestureNavigation(on: Boolean)
+  protected abstract fun setFontScale(percent: Int)
 
   /**
-   * Changes the application language of the project application on the device/emulator.
-   * A null language means the same as the default AppLanguage.
+   * Changes the screen density on the device/emulator.
    */
-  protected abstract fun setAppLanguage(applicationId: String, language: AppLanguage?)
+  protected abstract fun setScreenDensity(density: Int)
 
   /**
    * Turns TackBack on or off.
@@ -92,14 +92,20 @@ internal abstract class UiSettingsController(
   protected abstract fun setSelectToSpeak(on: Boolean)
 
   /**
-   * Changes the font size on the device/emulator.
+   * Changes the navigation mode on the device to use gestures instead of buttons.
    */
-  protected abstract fun setFontSize(percent: Int)
+  protected abstract fun setGestureNavigation(on: Boolean)
 
   /**
-   * Changes the screen density on the device/emulator.
+   * Turns debug layout boxes on or off.
    */
-  protected abstract fun setScreenDensity(density: Int)
+  protected abstract fun setDebugLayout(on: Boolean)
+
+  /**
+   * Changes the application language of the project application on the device/emulator.
+   * A null language means the same as the default AppLanguage.
+   */
+  protected abstract fun setAppLanguage(applicationId: String, language: AppLanguage?)
 
   /**
    * Reset UI settings to factory defaults.

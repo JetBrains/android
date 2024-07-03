@@ -36,7 +36,7 @@ import javax.swing.JCheckBox
 import javax.swing.JPanel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.application.invokeLater
 
 // These 3 mask values comes from android/text/InputType.java:
 private const val TYPE_MASK_CLASS = 0x0f

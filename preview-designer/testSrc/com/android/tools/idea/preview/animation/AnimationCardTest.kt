@@ -23,7 +23,7 @@ import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Component
 import java.awt.Dimension
@@ -47,13 +47,12 @@ class AnimationCardTest {
 
   @Test
   fun `create animation card`(): Unit = runBlocking {
+    val frozenFlow = MutableStateFlow(SupportedAnimationManager.FrozenState(false))
     val card =
       AnimationCard(
-          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          MutableStateFlow(ElementState()),
           "Title",
-          emptyList(),
+          listOf(FreezeAction(createTestSlider(), frozenFlow, NoopAnimationTracker)),
           NoopAnimationTracker,
         )
         .apply { setDuration(111) }
@@ -67,11 +66,13 @@ class AnimationCardTest {
           layoutAndDispatchEvents()
         }
       }
-    var stateChanges = 0
-    val job = launch { card.state.collect { stateChanges++ } }
+    var expendedStateChanges = 0
+    val job = launch { card.expanded.collect { expendedStateChanges++ } }
+    var frozenStateChanges = 0
+    val job2 = launch { frozenFlow.collect { frozenStateChanges++ } }
 
     // collector above will collect once even without any user action
-    delayUntilCondition(200) { stateChanges == 1 }
+    delayUntilCondition(200) { expendedStateChanges == 1 && frozenStateChanges == 1 }
 
     withContext(uiThread) {
       // Expand/collapse button.
@@ -83,8 +84,8 @@ class AnimationCardTest {
         ui.updateToolbars()
         ui.layoutAndDispatchEvents()
         // Expand/collapse button clicked
-        delayUntilCondition(200) { stateChanges == 2 }
-        assertEquals(2, stateChanges)
+        delayUntilCondition(200) { expendedStateChanges == 2 }
+        assertEquals(2, expendedStateChanges)
       }
       // Transition name label.
       (card.components[0] as JComponent).components[1].also {
@@ -109,13 +110,13 @@ class AnimationCardTest {
         ui.clickOn(freezeButton)
         ui.updateToolbars()
         // Freeze button clicked
-        delayUntilCondition(200) { stateChanges == 3 }
-        assertEquals(3, stateChanges)
+        delayUntilCondition(200) { frozenStateChanges == 2 }
+        assertEquals(2, frozenStateChanges)
         freezeButton = findFreezeButton(card)
         ui.clickOn(freezeButton)
         // Freeze button clicked
-        delayUntilCondition(200) { stateChanges == 4 }
-        assertEquals(4, stateChanges)
+        delayUntilCondition(200) { frozenStateChanges == 3 }
+        assertEquals(3, frozenStateChanges)
       }
       // Double click to open in new tab. Use label position just to make sure we are not clicking
       // on any button.
@@ -126,6 +127,7 @@ class AnimationCardTest {
       assertEquals(1, openInTabActions)
       assertNotNull(ui)
       job.cancel()
+      job2.cancel()
     }
   }
 

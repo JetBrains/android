@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.gallery
 
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -27,13 +28,13 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
- * If Gallery mode is enabled, one preview at a time is available with tabs to select between them.
- * Gallery mode is always enabled for Essentials mode.
+ * If Gallery mode is enabled, one preview at a time is available with dropdown to select between
+ * them. Gallery mode is always enabled for Essentials mode.
  */
 class GalleryMode(rootComponent: JComponent) {
 
-  private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
-    val previewElement = tab?.element
+  private val selectionListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, key ->
+    val previewElement = key?.element
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
       previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
     }
@@ -55,19 +56,24 @@ class GalleryMode(rootComponent: JComponent) {
     }
   }
 
-  private val tabs: GalleryTabs<PreviewElementKey> =
-    GalleryTabs(rootComponent, selectedProvider, keysProvider, tabChangeListener)
+  private val galleryView: Gallery<PreviewElementKey> =
+    if (StudioFlags.GALLERY_PREVIEW.get())
+      GalleryView(rootComponent, selectedProvider, keysProvider, selectionListener)
+    else GalleryTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
 
-  /** [JPanel] for tabs. */
-  val component: JComponent = tabs
+  /** [JPanel] for [GalleryView]. */
+  val component: JComponent = galleryView.component
 
-  /** Simulates a tab change, firing the [tabChangeListener]. Intended to be used in tests only. */
+  /**
+   * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
+   * used in tests only.
+   */
   @TestOnly
-  fun triggerTabChange(context: DataContext, previewElement: PreviewElement<*>) {
-    tabChangeListener(context, PreviewElementKey(previewElement))
+  fun triggerSelectionChange(context: DataContext, previewElement: PreviewElement<*>) {
+    selectionListener(context, PreviewElementKey(previewElement))
   }
 
   @get:TestOnly
   val selectedKey: PreviewElementKey?
-    get() = tabs.selectedKey
+    get() = galleryView.selectedKey
 }

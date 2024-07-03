@@ -1,8 +1,8 @@
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 
 common_data = [
     ":sdkindexapp",
@@ -39,18 +39,6 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
-)
-
-iml_studio_test(
-    name = "PolicyIssuesPsdTest",
-    timeout = "long",
-    data = common_data,
-    module = ":intellij.android.projectSystem.integration.tests",
-    tags_linux = ["block-network"],
-    # Commented out due to b/242358149
-    # tags_mac = ["block-network"],
-    tags_windows = ["block-network"],
-    test_class = "com.android.tools.idea.projectsystem.gradle.PolicyIssuesPsdTest",
 )
 
 iml_studio_test(

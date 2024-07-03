@@ -17,6 +17,7 @@
 #include "session_environment.h"
 
 #include "accessors/surface_control.h"
+#include "agent.h"
 #include "log.h"
 #include "num_to_string.h"
 #include "settings.h"
@@ -55,13 +56,17 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
   if (turn_off_display) {
     // Turn off display.
     Jni jni = Jvm::GetJni();
-    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-    if (display_token.IsNotNull()) {
-      Log::D("Turning off display");
-      SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_OFF);
+    if (Agent::feature_level() >= 35) {
+      DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, false);
       restore_normal_display_power_mode_ = true;
-    } else {
-      Log::W(jni.GetAndClearException(), "Unable to get display token to turn off display");
+    } else if (Agent::feature_level() <= 33) {
+      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+      if (display_token.IsNotNull()) {
+        SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_OFF);
+        restore_normal_display_power_mode_ = true;
+      } else {
+        Log::W(jni.GetAndClearException(), "Unable to get display token to turn off display");
+      }
     }
   }
 
@@ -71,9 +76,13 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
     Jni jni = Jvm::GetJni();
-    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-    if (display_token.IsNotNull()) {
-      SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_NORMAL);
+    if (Agent::feature_level() >= 35) {
+      DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, true);
+    } else if (Agent::feature_level() <= 33) {
+      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+      if (display_token.IsNotNull()) {
+        SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_NORMAL);
+      }
     }
   }
   stay_on_.Restore();

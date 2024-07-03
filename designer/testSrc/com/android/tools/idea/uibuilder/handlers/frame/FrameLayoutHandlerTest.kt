@@ -92,11 +92,11 @@ class FrameLayoutHandlerTest : SceneTest() {
       )
 
     val model = builder.build()
-    assertEquals(1, model.components.size)
+    assertEquals(1, model.treeReader.components.size)
     assertEquals(
       "NlComponent{tag=<FrameLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
-      NlTreeDumper.dumpTree(model.components),
+      NlTreeDumper.dumpTree(model.treeReader.components),
     )
     format(model.file)
 

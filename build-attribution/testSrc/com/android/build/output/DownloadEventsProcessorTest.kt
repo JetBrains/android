@@ -30,6 +30,7 @@ import com.google.common.truth.Truth
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.gradle.tooling.events.ProgressEvent
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,6 +44,18 @@ class DownloadEventsProcessorTest {
 
   private val projectConfigurationDescriptor = createProjectConfigurationOperationDescriptor(":")
 
+  lateinit var dataModel: DownloadInfoDataModel
+  lateinit var eventsProcessor: DownloadsAnalyzer.DownloadEventsProcessor
+
+  @Before
+  fun setUp() {
+    dataModel = DownloadInfoDataModel(projectRule.testRootDisposable)
+    eventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(
+      statsAccumulator = null,
+      downloadsInfoDataModel = dataModel
+    )
+  }
+
   @Test
   fun testSuccessfulDownloadEventsProcessed() {
     doTestReceivedEvents(
@@ -54,7 +67,30 @@ class DownloadEventsProcessorTest {
         )
       ),
       expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE),
+        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)
+      )
+    )
+  }
+
+  @Test
+  fun testDownloadEventsProcessedInSeveralUpdates() {
+    doTestReceivedEvents(
+      gradleProgressEvents = listOf(
+        downloadStartEventStub(downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor))
+      ),
+      expectedModelUpdates = listOf(
+        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE)
+      )
+    )
+
+    doTestReceivedEvents(
+      gradleProgressEvents = listOf(
+        downloadFinishEventStub(
+          downloadOperationDescriptorStub(url = url1,parent = projectConfigurationDescriptor),
+          downloadSuccessStub(0, 100, 10000) // time: 100, totalRepoTime: 100, totalRepoBytes: 10000
+        )
+      ),
+      expectedModelUpdates = listOf(
         DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100)
       )
     )
@@ -71,7 +107,6 @@ class DownloadEventsProcessorTest {
         )
       ),
       expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE),
         DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 10000, 100, "Failed request 1\nCaused by 1\n"),
       )
     )
@@ -88,7 +123,6 @@ class DownloadEventsProcessorTest {
         )
       ),
       expectedModelUpdates = listOf(
-        DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE),
         DownloadRequestItem(DownloadRequestKey(0, url1), GOOGLE, true, 0, 100, "Not Found"),
       )
     )
@@ -98,11 +132,6 @@ class DownloadEventsProcessorTest {
     gradleProgressEvents: List<ProgressEvent>,
     expectedModelUpdates: List<DownloadRequestItem>
   ) {
-    val dataModel = DownloadInfoDataModel(projectRule.testRootDisposable)
-    val eventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(
-      statsAccumulator = null,
-      downloadsInfoDataModel = dataModel
-    )
     gradleProgressEvents.forEach {
       eventsProcessor.receiveEvent(it)
     }

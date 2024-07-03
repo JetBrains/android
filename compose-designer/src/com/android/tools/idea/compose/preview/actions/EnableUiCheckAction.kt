@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
@@ -41,7 +41,7 @@ class EnableUiCheckAction :
     val isUiCheckModeEnabled = StudioFlags.COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
     val disableForWear =
-      HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
+      Device.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
         !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = isUiCheckModeEnabled
     e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !disableForWear
@@ -58,7 +58,7 @@ class EnableUiCheckAction :
     val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val instance = modelDataContext.previewElement() ?: return
     val device = modelDataContext.getData(SCENE_VIEW)?.configuration?.device
-    val isWearDevice = HardwareConfigHelper.isWear(device)
+    val isWearDevice = Device.isWear(device)
     manager.setMode(PreviewMode.UiCheck(baseInstance = UiCheckInstance(instance, isWearDevice)))
 
     e.project?.let { ProblemsViewToolWindowUtils.selectTab(it, instance.instanceId) }

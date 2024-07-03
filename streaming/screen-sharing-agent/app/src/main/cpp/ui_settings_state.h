@@ -32,7 +32,7 @@ public:
     result->app_locales_ = app_locales_;
   }
 
-  void copy(UiSettingsResponse* response) {
+  void copy(UiSettingsResponse* response) const {
     response_.copy(response);
   }
 
@@ -40,56 +40,16 @@ public:
     response_.set_dark_mode(dark_mode);
   }
 
-  bool dark_mode() {
+  bool dark_mode() const {
     return response_.dark_mode();
   }
 
-  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
-    response_.set_gesture_overlay_installed(gesture_overlay_installed);
+  void set_font_scale(int32_t font_scale) {
+    response_.set_font_scale(font_scale);
   }
 
-  bool gesture_overlay_installed() {
-    return response_.gesture_overlay_installed();
-  }
-
-  void set_gesture_navigation(bool gesture_navigation) {
-    response_.set_gesture_navigation(gesture_navigation);
-  }
-
-  bool gesture_navigation() {
-    return response_.gesture_navigation();
-  }
-
-  void set_talkback_installed(bool installed) {
-    response_.set_talkback_installed(installed);
-  }
-
-  bool talkback_installed() {
-    return response_.talkback_installed();
-  }
-
-  void set_talkback_on(bool on) {
-    response_.set_talkback_on(on);
-  }
-
-  bool talkback_on() {
-    return response_.talkback_on();
-  }
-
-  void set_select_to_speak_on(bool on) {
-    response_.set_select_to_speak_on(on);
-  }
-
-  bool select_to_speak_on() {
-    return response_.select_to_speak_on();
-  }
-
-  void set_font_size(int32_t font_size) {
-    response_.set_font_size(font_size);
-  }
-
-  int32_t font_size() {
-    return response_.font_size();
+  int32_t font_scale() {
+    return response_.font_scale();
   }
 
   void set_density(int32_t density) {
@@ -100,7 +60,39 @@ public:
     return response_.density();
   }
 
-  std::string app_locale_of(const std::string application_id);
+  void set_talkback_on(bool on) {
+    response_.set_talkback_on(on);
+  }
+
+  bool talkback_on() const {
+    return response_.talkback_on();
+  }
+
+  void set_select_to_speak_on(bool on) {
+    response_.set_select_to_speak_on(on);
+  }
+
+  bool select_to_speak_on() const {
+    return response_.select_to_speak_on();
+  }
+
+  void set_gesture_navigation(bool gesture_navigation) {
+    response_.set_gesture_navigation(gesture_navigation);
+  }
+
+  bool gesture_navigation() const {
+    return response_.gesture_navigation();
+  }
+
+  void set_debug_layout(bool debug_layout) {
+    response_.set_debug_layout(debug_layout);
+  }
+
+  bool debug_layout() const {
+    return response_.debug_layout();
+  }
+
+  std::string app_locale_of(const std::string application_id) const;
 
   void add_app_locale(const std::string& application_id, const std::string& locale) {
     app_locales_[application_id] = locale;
@@ -108,7 +100,31 @@ public:
 
   void add_unseen_app_locales(UiSettingsState* result) const;
 
-  std::vector<std::string> get_application_ids();
+  std::vector<std::string> get_application_ids() const;
+
+  void set_original_values(bool original_values) {
+    response_.set_original_values(original_values);
+  }
+
+  bool original_values() const {
+    return response_.original_values();
+  }
+
+  void set_talkback_installed(bool installed) {
+    response_.set_talkback_installed(installed);
+  }
+
+  bool talkback_installed() {
+    return response_.talkback_installed();
+  }
+
+  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
+    response_.set_gesture_overlay_installed(gesture_overlay_installed);
+  }
+
+  bool gesture_overlay_installed() {
+    return response_.gesture_overlay_installed();
+  }
 
 private:
   // Device specific settings:

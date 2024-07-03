@@ -22,12 +22,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
-  WizardDialogScope, WizardPageScope {
+  WizardDialogScope, WizardPageScope() {
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
 
   @Composable
   fun Content() {
+    prevAction =
+      if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
+
     pageStack.last()()
   }
 
@@ -46,4 +49,10 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
 
   override var nextAction by mutableStateOf(WizardAction.Disabled)
   override var finishAction by mutableStateOf(WizardAction.Disabled)
+
+  var prevAction: WizardAction = WizardAction.Disabled
+
+  fun performAction(action: WizardAction) {
+    action.action?.invoke(this)
+  }
 }

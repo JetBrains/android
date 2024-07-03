@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -53,7 +54,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(1, 576));
 
     NlModel model = model("menu.xml", menuDescriptor).build();
-    NlComponent menuComponent = model.getComponents().get(0);
+    NlComponent menuComponent = model.getTreeReader().getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
     NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
@@ -83,7 +84,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(10, 480));
 
     NlModel model = model("menu.xml", menuDescriptor).build();
-    NlComponent menuComponent = model.getComponents().get(0);
+    NlComponent menuComponent = model.getTreeReader().getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
     NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
@@ -113,7 +114,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(2, 576),
         item(1, 480));
 
-    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
+    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getTreeReader().getComponents().get(0);
 
     NlComponent item = menuComponent.getChild(0);
     assert item != null;
@@ -149,7 +150,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {
-      sceneComponent = manager.createTemporaryComponent(item);
+      sceneComponent = new TemporarySceneComponent(scene, item);
     }
     List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
     return new GroupDragHandler(mockViewEditor(model), new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList, DragType.MOVE);

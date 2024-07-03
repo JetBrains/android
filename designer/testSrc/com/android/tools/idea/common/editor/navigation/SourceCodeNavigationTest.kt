@@ -30,7 +30,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
     super.setUp()
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope),
+      FileEditorManagerImpl(project, project.coroutineScope()),
       testRootDisposable,
     )
   }

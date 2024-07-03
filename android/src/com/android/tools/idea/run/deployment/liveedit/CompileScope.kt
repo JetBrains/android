@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -179,9 +180,13 @@ private object CompileScopeImpl : CompileScope {
 
   override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
-
-    input.firstOrNull { it.module != module }?.let {
-      throw LiveEditUpdateException.internalErrorFileOutsideModule(it) }
+    // Ideally, we want to make sure that each compilation only contains files of a single module.
+    // However, the current algorithm would fail if a file depends on an inline function that is in another module.
+    // If we are unable to pull the binary version of the inline function from the .class directories, we would need to include the .kt
+    // file in the input.
+    if (input.isNotEmpty() && input.first().module != module) {
+      throw LiveEditUpdateException.internalErrorFileOutsideModule(input.first())
+    }
 
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
@@ -196,7 +201,12 @@ private object CompileScopeImpl : CompileScope {
       put(CommonConfigurationKeys.MODULE_NAME,
           module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
       KotlinFacet.get(module)?.let { kotlinFacet ->
-        (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
+        val moduleName = when(val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+          is K2JVMCompilerArguments -> compilerArguments.moduleName
+          is K2MetadataCompilerArguments -> compilerArguments.moduleName
+          else -> null
+        }
+        moduleName?.let {
           put(CommonConfigurationKeys.MODULE_NAME, it)
         }
       }

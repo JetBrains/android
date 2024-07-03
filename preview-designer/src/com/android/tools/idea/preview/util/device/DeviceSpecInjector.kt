@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.util.device
 
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.preview.config.PARAMETER_DEVICE
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.injection.general.Injection
 import com.intellij.lang.injection.general.LanguageInjectionContributor
@@ -29,20 +28,15 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiLiteralExpression
+import com.intellij.psi.PsiNameValuePair
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UExpression
-import org.jetbrains.uast.UNamedExpression
-import org.jetbrains.uast.getParentOfType
-import org.jetbrains.uast.toUElement
 
 /**
  * Denotes which [PsiElement] may be injected with the [DeviceSpecLanguage].
@@ -55,7 +49,7 @@ import org.jetbrains.uast.toUElement
  * handle string concatenation with references to other variables properly.
  *
  * To identify which @Preview is a valid preview annotation, subclasses must implement
- * [isPreviewAnnotation].
+ * [isInPreviewAnnotation].
  */
 abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   override fun getInjection(context: PsiElement): Injection? {
@@ -83,35 +77,26 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
       return null
     }
 
-    if (
-      context.containingFile.fileType != KotlinFileType.INSTANCE &&
-        context.containingFile.fileType != JavaFileType.INSTANCE
-    ) {
+    if (context.language !is KotlinLanguage && context.language !is JavaLanguage) {
       return null
     }
 
-    val expression = context.toUElement(UExpression::class.java) ?: return null
-    val annotation = expression.getParentOfType(UAnnotation::class.java) ?: return null
-
-    if (!isPreviewAnnotation(annotation)) {
+    if (!isInPreviewAnnotation(context)) {
       return null
     }
 
-    val namedExpression = expression.getParentOfType(UNamedExpression::class.java) ?: return null
-    if (
-      !namedExpression.isForDeviceParameter() ||
-        namedExpression.getFirstStringExpression() !== context
-    ) {
+    if (!isDeviceSpecParameter(context)) {
       return null
     }
+
     return SimpleInjection(DeviceSpecLanguage, "", "", null)
   }
 
   /**
-   * Returns if the [UAnnotation] is a preview annotation. Each subclass must implement this method
-   * to identify their preview-specific annotation.
+   * Returns if the [PsiElement] is a child element of a preview annotation. Each subclass must
+   * implement this method to identify their preview-specific parent annotation.
    */
-  protected abstract fun isPreviewAnnotation(annotation: UAnnotation): Boolean
+  protected abstract fun isInPreviewAnnotation(psiElement: PsiElement): Boolean
 }
 
 /**
@@ -236,19 +221,38 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
   return collectedSegments
 }
 
-private fun UNamedExpression.isForDeviceParameter(): Boolean = name == PARAMETER_DEVICE
+private fun isDeviceSpecParameter(psiElement: PsiElement): Boolean =
+  when (psiElement.language) {
+    is KotlinLanguage -> isKotlinDeviceSpecParameter(psiElement)
+    is JavaLanguage -> isJavaDeviceSpecParameter(psiElement)
+    else -> throw IllegalStateException("Unsupported language ${psiElement.language}")
+  }
 
-/**
- * This function returns the [PsiElement] representing the first string expression in the
- * [UNamedExpression] descendants, if there is one. In the case of kotlin, that element is of type
- * [KtStringTemplateExpression]. In the case of java, that element is [PsiLiteralExpression].
- */
-private fun UNamedExpression.getFirstStringExpression(): PsiElement? {
-  val psiExpressionType =
-    when (lang) {
-      is KotlinLanguage -> KtStringTemplateExpression::class.java
-      is JavaLanguage -> PsiLiteralExpression::class.java
-      else -> throw IllegalStateException("Unsupported language $lang")
-    }
-  return PsiTreeUtil.findChildOfType(expression.sourcePsi, psiExpressionType, false)
+private fun isKotlinDeviceSpecParameter(psiElement: PsiElement): Boolean {
+  val valueArgument = psiElement.parentOfType<KtValueArgument>() ?: return false
+  return valueArgument.isForDeviceParameter() &&
+    valueArgument.getFirstStringExpression() === psiElement
+}
+
+private fun isJavaDeviceSpecParameter(psiElement: PsiElement): Boolean {
+  val nameValuePair = psiElement.parentOfType<PsiNameValuePair>() ?: return false
+  return nameValuePair.isForDeviceParameter() &&
+    nameValuePair.getFirstStringExpression() === psiElement
+}
+
+private fun KtValueArgument.isForDeviceParameter() = getArgumentName()?.text == PARAMETER_DEVICE
+
+private fun PsiNameValuePair.isForDeviceParameter(): Boolean = name == PARAMETER_DEVICE
+
+private fun KtValueArgument.getFirstStringExpression(): PsiElement? {
+  val containingExpression = getArgumentExpression() ?: return null
+  return PsiTreeUtil.findChildOfType(
+    containingExpression,
+    KtStringTemplateExpression::class.java,
+    false,
+  )
+}
+
+private fun PsiNameValuePair.getFirstStringExpression(): PsiElement? {
+  return PsiTreeUtil.findChildOfType(value, PsiLiteralExpression::class.java, false)
 }

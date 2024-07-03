@@ -34,6 +34,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
@@ -167,8 +168,9 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlDesignSurface.builder(project, this@VisualizationForm)
-        .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+      NlDesignSurface.builder(project, this@VisualizationForm) {
+          surface: NlDesignSurface,
+          model: NlModel ->
           val sceneManager = LayoutlibSceneManager(model, surface, config)
           sceneManager.setListenResourceChange(false)
           sceneManager.setShowDecorations(
@@ -368,7 +370,8 @@ class VisualizationForm(
     if (myFile == null) {
       return
     }
-    val file = PsiManager.getInstance(project).findFile(myFile!!)
+    val targetFile = myFile!!
+    val file = PsiManager.getInstance(project).findFile(targetFile)
     var facet: AndroidFacet? = null
     updateActionToolbar(myActionToolbarPanel)
 
@@ -384,7 +387,12 @@ class VisualizationForm(
             (if (file != null) AndroidFacet.getInstance(file) else null)
               ?: return@supplyAsync emptyList()
           // Hide the content while adding the models.
-          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet!!)
+          val models =
+            myCurrentModelsProvider.createNlModels(
+              this,
+              file!!,
+              BuildTargetReference.from(facet!!, targetFile),
+            )
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")
             return@supplyAsync null
@@ -393,40 +401,46 @@ class VisualizationForm(
         },
         AppExecutorUtil.getAppExecutorService(),
       )
-      .thenAcceptAsync(
+      .thenApplyAsync(
         { models: List<NlModel>? ->
           if (models == null || isRequestCancelled.get()) {
             unregisterResourceNotification(myFile)
-            return@thenAcceptAsync
+            return@thenApplyAsync emptyList()
           }
           myWorkBench.showContent()
           interruptRendering()
           ApplicationManager.getApplication().invokeLater {
             surface.registerIndicator(myProgressIndicator)
           }
-          // In visualization tool, we add model and layout the scroll pane before rendering
-          CompletableFuture.allOf(
-              *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
-            )
-            .join()
-          // Re-layout and set scale before rendering. This may be processed delayed but we have
-          // known the preview number and sizes because the
-          // models are added, so it would layout correctly.
-          ApplicationManager.getApplication().invokeLater {
-            surface.invalidate()
-            val lastScaling =
-              VisualizationToolProjectSettings.getInstance(project).projectState.scale
-            if (!surface.zoomController.setScale(lastScaling)) {
-              // Update scroll area because the scaling doesn't change, which keeps the old scroll
-              // area and may not suitable to new
-              // configuration set.
-              surface.revalidateScrollArea()
-            }
-          }
-
+          models
+        },
+        EdtExecutorService.getInstance(),
+      )
+      .thenCompose { models: List<NlModel> ->
+        // In visualization tool, we add model and layout the scroll pane before rendering
+        CompletableFuture.allOf(
+            *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
+          )
+          .whenCompleteAsync(
+            { _, _ ->
+              // Re-layout and set scale before rendering. This may be processed delayed but we have
+              // known the preview number and sizes because the
+              // models are added, so it would layout correctly.
+              surface.invalidate()
+              val lastScaling =
+                VisualizationToolProjectSettings.getInstance(project).projectState.scale
+              if (!surface.zoomController.setScale(lastScaling)) {
+                // Update scroll area because the scaling doesn't change, which keeps the old scroll
+                // area and may not suitable to new
+                // configuration set.
+                surface.revalidateScrollArea()
+              }
+            },
+            EdtExecutorService.getInstance(),
+          )
+          .thenCompose { renderCurrentModels() }
           // We render the model sequentially to avoid memory and performance issue.
-          val renderFuture = renderCurrentModels()
-          renderFuture.thenRunAsync(
+          .thenRunAsync(
             {
               ApplicationManager.getApplication().invokeLater {
                 surface.unregisterIndicator(myProgressIndicator)
@@ -439,9 +453,7 @@ class VisualizationForm(
             },
             EdtExecutorService.getInstance(),
           )
-        },
-        EdtExecutorService.getInstance(),
-      )
+      }
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.

@@ -24,29 +24,44 @@ import org.junit.Test
 class WearPairingSettingsTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  private val phoneDevice = PairingDevice(
-    deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE
-  )
-  private val wearDevice = PairingDevice(
-    deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE
-  )
+  private val phoneDevice =
+    PairingDevice(
+      deviceID = "id1",
+      displayName = "My Phone",
+      apiLevel = 30,
+      isWearDevice = false,
+      isEmulator = true,
+      hasPlayStore = true,
+      state = ConnectionState.ONLINE,
+    )
+  private val wearDevice =
+    PairingDevice(
+      deviceID = "id2",
+      displayName = "Round Watch",
+      apiLevel = 30,
+      isEmulator = true,
+      isWearDevice = true,
+      hasPlayStore = true,
+      state = ConnectionState.ONLINE,
+    )
 
   @Before
   fun setUp() {
-    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance()
+      .loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   @Test
   fun loadSettingsShouldSetPairedDevices() {
     assertThat(WearPairingManager.getInstance().getPairsForDevice(phoneDevice.deviceID)).isEmpty()
 
-    val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
-    val pairedConnectionState = PairingConnectionsState().apply {
-      phoneId = phoneDevice.deviceID
-      wearDeviceIds.add(wearDevice.deviceID)
-    }
+    val pairedDevices =
+      listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
+    val pairedConnectionState =
+      PairingConnectionsState().apply {
+        phoneId = phoneDevice.deviceID
+        wearDeviceIds.add(wearDevice.deviceID)
+      }
 
     WearPairingManager.getInstance().loadSettings(pairedDevices, listOf(pairedConnectionState))
 
@@ -57,29 +72,37 @@ class WearPairingSettingsTest {
     assertThat(phoneWearPair.wear.deviceID).isEqualTo(wearDevice.deviceID)
     assertThat(phoneWearPair.phone.state).isEqualTo(ConnectionState.DISCONNECTED)
     assertThat(phoneWearPair.wear.state).isEqualTo(ConnectionState.DISCONNECTED)
-    assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID).isEqualTo(wearDevice.deviceID)
-    assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID).isEqualTo(phoneDevice.deviceID)
+    assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID)
+      .isEqualTo(wearDevice.deviceID)
+    assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID)
+      .isEqualTo(phoneDevice.deviceID)
   }
 
   @Test
   fun addListenerShouldReceiveCurrentState() {
-    val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
-    val pairedConnectionState = PairingConnectionsState().apply {
-      phoneId = phoneDevice.deviceID
-      wearDeviceIds.add(wearDevice.deviceID)
-    }
+    val pairedDevices =
+      listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
+    val pairedConnectionState =
+      PairingConnectionsState().apply {
+        phoneId = phoneDevice.deviceID
+        wearDeviceIds.add(wearDevice.deviceID)
+      }
 
     WearPairingManager.getInstance().loadSettings(pairedDevices, listOf(pairedConnectionState))
 
     var receivedPairingStatus: WearPairingManager.PhoneWearPair? = null
-    WearPairingManager.getInstance().addDevicePairingStatusChangedListener(object : WearPairingManager.PairingStatusChangedListener {
-      override fun pairingStatusChanged(phoneWearPair: WearPairingManager.PhoneWearPair) {
-        receivedPairingStatus = phoneWearPair
-      }
-      override fun pairingDeviceRemoved(phoneWearPair: WearPairingManager.PhoneWearPair) {
-      }
-    })
+    WearPairingManager.getInstance()
+      .addDevicePairingStatusChangedListener(
+        object : WearPairingManager.PairingStatusChangedListener {
+          override fun pairingStatusChanged(phoneWearPair: WearPairingManager.PhoneWearPair) {
+            receivedPairingStatus = phoneWearPair
+          }
 
-    assertThat(receivedPairingStatus?.pairingStatus).isEqualTo(WearPairingManager.PairingState.OFFLINE)
+          override fun pairingDeviceRemoved(phoneWearPair: WearPairingManager.PhoneWearPair) {}
+        }
+      )
+
+    assertThat(receivedPairingStatus?.pairingStatus)
+      .isEqualTo(WearPairingManager.PairingState.OFFLINE)
   }
 }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
@@ -126,9 +126,8 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   /***
    * Initialize the SDK index and set flags according to StudioFlags
    */
-  fun initializeAndSetFlags() {
-    initialize()
-    showPolicyIssues = StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get()
+  fun initializeAndSetFlags(googleMavenRepository: GoogleMavenRepository) {
+    initialize(googleMavenRepository)
   }
 
   private fun findProject(file: File): Project? {

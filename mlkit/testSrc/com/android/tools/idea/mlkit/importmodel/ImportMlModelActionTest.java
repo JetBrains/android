@@ -26,11 +26,11 @@ import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.testFramework.MapDataContext;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.util.AndroidBundle;
@@ -58,12 +58,13 @@ public class ImportMlModelActionTest {
   private void setupProject(String version, int version2) {
     MlProjectTestUtil.setupTestMlProject(
       projectRule.getProject(), version, version2, ImmutableList.of());
-    myEvent = TestActionEvent.createTestEvent(new MapDataContext(
-      ImmutableMap.of(
-        CommonDataKeys.PROJECT, projectRule.getProject(),
-        PlatformCoreDataKeys.MODULE, gradleModule(projectRule.getProject(), ":")
-      )
-    ));
+
+    DataContext dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.getProject())
+        .add(PlatformCoreDataKeys.MODULE, gradleModule(projectRule.getProject(), ":"))
+        .build();
+    myEvent = TestActionEvent.createTestEvent(dataContext);
   }
 
   @Test

@@ -68,9 +68,14 @@ data class ApkInfo @JvmOverloads constructor (
     minSdkVersionForDexing: Int? = null,
   ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk, baselineProfiles, minSdkVersionForDexing)
 
+  constructor(
+    file: File,
+    applicationId: String,
+    minSdkVersionForDexing: Int? = null,
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, emptySet(), false, emptyList(), minSdkVersionForDexing)
+
   constructor(apkFileList: List<ApkFileUnit>, pkgName: String,
               baselineProfiles: List<BaselineProfileDetails>, minSdkVersionForDexing: Int?) :
     this(files = apkFileList, pkgName, baselineProfiles = baselineProfiles, minSdkVersionForDexing = minSdkVersionForDexing) {
   }
-
 }

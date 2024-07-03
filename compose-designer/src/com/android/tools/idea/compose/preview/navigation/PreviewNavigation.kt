@@ -130,7 +130,7 @@ private fun findNavigatableComponent(
   val model = sceneView.sceneManager.model
 
   // Find component to navigate to
-  val root = model.components.firstOrNull() ?: return null
+  val root = model.treeReader.components.firstOrNull() ?: return null
   val viewInfo = root.viewInfo ?: return null
   val module = model.module
   val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)

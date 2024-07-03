@@ -15,7 +15,7 @@
  */
 package com.android.tools.rendering.log;
 
-import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.api.RenderModelModuleLoggingId;
 import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -33,7 +33,7 @@ public class LogAnonymizerUtil {
    * the hash for the module will change.
    */
   @NotNull
-  public static String anonymize(@Nullable RenderModelModule module) {
+  public static String anonymize(@Nullable RenderModelModuleLoggingId module) {
     if (module == null) {
       return "null";
     }

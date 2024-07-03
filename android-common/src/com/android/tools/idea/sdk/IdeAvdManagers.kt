@@ -23,7 +23,6 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.sdk.DeviceManagerCache
 import com.android.tools.sdk.DeviceManagers
 import com.android.utils.ILogger
-import com.intellij.openapi.diagnostic.ControlFlowException
 import java.nio.file.Path
 
 /**
@@ -31,10 +30,10 @@ import java.nio.file.Path
  */
 interface AvdManagerCache {
   @Throws(AndroidLocationsException::class)
-  fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager?
+  fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager
 
   @Throws(AndroidLocationsException::class)
-  fun getAvdManager(sdkHandler: AndroidSdkHandler): AvdManager? =
+  fun getAvdManager(sdkHandler: AndroidSdkHandler): AvdManager =
     getAvdManager(sdkHandler, AndroidLocationsSingleton.avdLocation)
 }
 
@@ -47,30 +46,17 @@ internal class AvdManagerCacheImpl(
   private val avdManagers = mutableMapOf<AvdManagerCacheKey, AvdManager>()
 
   @Throws(AndroidLocationsException::class)
-  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager? =
+  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager =
     synchronized(avdManagers) {
       val key = AvdManagerCacheKey(sdkHandler, avdHomeDir)
-      var avdManager = avdManagers[key]
-      if (avdManager == null) {
-        try {
-          avdManager =
-            AvdManager.createInstance(
-              key.sdkHandler,
-              key.avdHomeDir,
-              deviceManagerCache.getDeviceManager(key.sdkHandler),
-              logger
-            )
-          avdManagers.put(key, avdManager)
-        } catch (e: AndroidLocationsException) {
-          throw e
-        } catch (e: Exception) {
-          if (e is ControlFlowException) throw e
-          // This is somewhat suspect
-          logger.error(e, "Exception during AvdManager initialization")
-          return null
-        }
+      return avdManagers.computeIfAbsent(key) {
+        AvdManager.createInstance(
+          key.sdkHandler,
+          key.avdHomeDir,
+          deviceManagerCache.getDeviceManager(key.sdkHandler),
+          logger
+        )
       }
-      return avdManager
     }
 }
 
@@ -84,6 +70,6 @@ object IdeAvdManagers : AvdManagerCache {
   // We don't use "by AvdManagerCacheImpl" because Kotlin doesn't preserve @Throws on the resulting
   // delegate methods.
   @Throws(AndroidLocationsException::class)
-  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager? =
+  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager =
     impl.getAvdManager(sdkHandler, avdHomeDir)
 }

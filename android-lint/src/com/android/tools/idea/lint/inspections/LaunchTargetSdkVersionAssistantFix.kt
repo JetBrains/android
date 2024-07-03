@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.inspections
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.lint.detector.api.LintFix
@@ -27,16 +28,17 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 private const val minSdkUpgradeAsstVersion = 26
-private const val maxSdkUpgradeAsstVersion = 33
+private val maxSdkUpgradeAsstVersion
+  get() = if (StudioFlags.TSDKVUA_API_35.get()) 34 else 33
 
 class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
 
-  private val sdkUpgradeAssistantHasSupport =
-    fix?.let {
-      val tsdkv = LintFix.getInt(it, "currentTargetSdkVersion", -1)
-      tsdkv in minSdkUpgradeAsstVersion..maxSdkUpgradeAsstVersion
-    } == true
+  // -1 if there is no valid current target SDK version for some reason
+  private val tsdkv: Int = fix?.let { LintFix.getInt(it, "currentTargetSdkVersion", -1) } ?: -1
+
+  private val sdkUpgradeAssistantHasSupport: Boolean
+    get() = tsdkv in minSdkUpgradeAsstVersion..maxSdkUpgradeAsstVersion
 
   override fun isApplicable(
     startElement: PsiElement,

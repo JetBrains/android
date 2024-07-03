@@ -24,14 +24,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeAssignmentImpl extends ASTWrapperPsiElement implements DeclarativeAssignment {
+public class DeclarativeAssignmentImpl extends CompositePsiElement implements DeclarativeAssignment {
 
-  public DeclarativeAssignmentImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeAssignmentImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
@@ -47,25 +48,25 @@ public class DeclarativeAssignmentImpl extends ASTWrapperPsiElement implements D
   @Override
   @Nullable
   public DeclarativeFactory getFactory() {
-    return findChildByClass(DeclarativeFactory.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
   }
 
   @Override
   @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return findNotNullChildByClass(DeclarativeIdentifier.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
   @Override
   @Nullable
   public DeclarativeLiteral getLiteral() {
-    return findChildByClass(DeclarativeLiteral.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeLiteral.class);
   }
 
   @Override
   @Nullable
   public DeclarativeProperty getProperty() {
-    return findChildByClass(DeclarativeProperty.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeProperty.class);
   }
 
   @Override

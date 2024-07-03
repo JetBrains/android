@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
@@ -41,7 +42,7 @@ class TimelineElementTest {
         FakeUi(this.parent).apply { layoutAndDispatchEvents() }
       }
     slider.sliderUI.apply {
-      val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
+      val line = TestUtils.TestTimelineElement(50, 50)
       assertEquals(0, line.offsetPx)
       assertEquals(TimelineElementStatus.Inactive, line.status)
     }
@@ -57,7 +58,7 @@ class TimelineElementTest {
         FakeUi(this.parent).apply { layoutAndDispatchEvents() }
       }
     slider.sliderUI.apply {
-      val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
+      val line = TestUtils.TestTimelineElement(50, 50)
       assertEquals(0, line.offsetPx)
       assertEquals(TimelineElementStatus.Inactive, line.status)
     }
@@ -74,7 +75,7 @@ class TimelineElementTest {
       }
     slider.sliderUI.apply {
       var newOffset = 0
-      val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
+      val line = TestUtils.TestTimelineElement(50, 50)
       line.setNewOffsetCallback { newOffset = it }
       line.setNewOffset(-100)
       assertEquals(-100, newOffset)
@@ -92,7 +93,7 @@ class TimelineElementTest {
       }
     slider.sliderUI.apply {
       val parent =
-        ParentTimelineElement(0, null, emptyList()).apply {
+        ParentTimelineElement(0, SupportedAnimationManager.FrozenState(false), emptyList()).apply {
           Disposer.register(projectRule.testRootDisposable, this)
         }
       assertEquals(0, parent.minX)

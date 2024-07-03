@@ -195,7 +195,7 @@ class PerfgateGradleClassFileFinderTest {
 
     repeat(NUMBER_OF_SAMPLES) {
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.create(projectRule.module, false)
+      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
       classesToQuery.forEach {
         assertNotNull(gradleClassFinder.findClassFile(it))
       }
@@ -223,7 +223,7 @@ class PerfgateGradleClassFileFinderTest {
       projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.create(projectRule.module, false)
+      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
       classesToQuery.forEach {
         assertNotNull(gradleClassFinder.findClassFile(it))
       }

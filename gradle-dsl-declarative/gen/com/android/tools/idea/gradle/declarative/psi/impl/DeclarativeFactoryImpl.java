@@ -24,14 +24,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeFactoryImpl extends ASTWrapperPsiElement implements DeclarativeFactory {
+public class DeclarativeFactoryImpl extends CompositePsiElement implements DeclarativeFactory {
 
-  public DeclarativeFactoryImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeFactoryImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
@@ -47,13 +48,13 @@ public class DeclarativeFactoryImpl extends ASTWrapperPsiElement implements Decl
   @Override
   @Nullable
   public DeclarativeArgumentsList getArgumentsList() {
-    return findChildByClass(DeclarativeArgumentsList.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
   }
 
   @Override
   @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return findNotNullChildByClass(DeclarativeIdentifier.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

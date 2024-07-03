@@ -33,12 +33,6 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -46,6 +40,13 @@ import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JTextField
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class WearHealthServicesContentPanelTest {
@@ -54,41 +55,46 @@ class WearHealthServicesContentPanelTest {
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
 
-  private val deviceManager by lazy { FakeDeviceManager() }
-  private val stateManager by lazy {
-    WearHealthServicesStateManagerImpl(deviceManager, pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS).apply {
-      runPeriodicUpdates = true
-    }
-  }
-  private val whsPanel by lazy {
-    val uiScope: CoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    val workerScope: CoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
-    createWearHealthServicesPanel(stateManager, uiScope, workerScope)
-  }
+  private lateinit var deviceManager: FakeDeviceManager
+  private lateinit var stateManager: WearHealthServicesStateManagerImpl
+  private lateinit var whsPanel: WearHealthServicesPanel
 
   @Before
   fun setUp() {
-    Disposer.register(projectRule.testRootDisposable, stateManager)
+    val testUiScope =
+      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
+    val testWorkerScope =
+      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    deviceManager = FakeDeviceManager()
+
+    stateManager =
+      WearHealthServicesStateManagerImpl(
+          deviceManager,
+          pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+          workerScope = testWorkerScope,
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
+    whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
   }
 
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
-    deviceManager.setCapabilities(mapOf(
-      WhsDataType.HEART_RATE_BPM to true,
-      WhsDataType.LOCATION to true,
-      WhsDataType.STEPS to true
-    ))
+    deviceManager.setCapabilities(
+      mapOf(
+        WhsDataType.HEART_RATE_BPM to true,
+        WhsDataType.LOCATION to true,
+        WhsDataType.STEPS to true,
+      )
+    )
 
     fakeUi.waitForCheckbox("Heart rate", true)
     fakeUi.waitForCheckbox("Location", true)
@@ -101,42 +107,45 @@ class WearHealthServicesContentPanelTest {
       testDataPath = testDataPath,
       fileNameBase = "screens/whs-panel-default",
       actual = fakeUi.render(),
-      maxPercentDifferent = 4.0)
+      maxPercentDifferent = 4.0,
+    )
   }
 
   @Test
-  fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
-    deviceManager.activeExercise = true
+  fun `test panel screenshot matches expectation with modified state manager values`() =
+    runBlocking {
+      deviceManager.activeExercise = true
 
-    stateManager.forceUpdateState()
+      stateManager.forceUpdateState()
 
-    stateManager.preset.value = Preset.CUSTOM
-    stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
-    stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
-    stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
-    stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
-    stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
-    stateManager.applyChanges()
+      stateManager.preset.value = Preset.CUSTOM
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
+      stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
+      stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
+      stateManager.applyChanges()
 
-    val fakeUi = FakeUi(whsPanel)
+      val fakeUi = FakeUi(whsPanel.component)
 
-    fakeUi.waitForCheckbox("Heart rate", true)
-    fakeUi.waitForCheckbox("Location", false)
-    fakeUi.waitForCheckbox("Steps", false)
+      fakeUi.waitForCheckbox("Heart rate", true)
+      fakeUi.waitForCheckbox("Location", false)
+      fakeUi.waitForCheckbox("Steps", false)
 
-    fakeUi.root.size = Dimension(400, 400)
-    fakeUi.layoutAndDispatchEvents()
+      fakeUi.root.size = Dimension(400, 400)
+      fakeUi.layoutAndDispatchEvents()
 
-    ImageDiffUtil.assertImageSimilarPerPlatform(
-      testDataPath = testDataPath,
-      fileNameBase = "screens/whs-panel-state-manager-modified",
-      actual = fakeUi.render(),
-      maxPercentDifferent = 4.0)
-  }
+      ImageDiffUtil.assertImageSimilarPerPlatform(
+        testDataPath = testDataPath,
+        fileNameBase = "screens/whs-panel-state-manager-modified",
+        actual = fakeUi.render(),
+        maxPercentDifferent = 4.0,
+      )
+    }
 
   @Test
   fun `test override value doesn't get reformatted from int to float`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = true
 
@@ -154,7 +163,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test override value allows numbers and decimals and rejects invalid text`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = true
 
@@ -215,96 +224,126 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test panel displays the dropdown for event triggers`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
     val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
     assertThat(dropDownButton).isNotNull()
     assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
-    assertThat(dropDownButton.action.childrenActions[0].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[1].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[2].childrenActions).hasSize(EVENT_TRIGGER_GROUPS[2].eventTriggers.size)
+    assertThat(dropDownButton.action.childrenActions[0].childrenActions)
+      .hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
+    assertThat(dropDownButton.action.childrenActions[1].childrenActions)
+      .hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
+    assertThat(dropDownButton.action.childrenActions[2].childrenActions)
+      .hasSize(EVENT_TRIGGER_GROUPS[2].eventTriggers.size)
   }
 
   @Test
-  fun `test panel disables checkboxes and dropdown during an exercise`() = runBlocking<Unit> {
-    val fakeUi = FakeUi(whsPanel)
+  fun `test panel disables checkboxes and dropdown during an exercise`() =
+    runBlocking<Unit> {
+      val fakeUi = FakeUi(whsPanel.component)
 
-    fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && it.isEnabled }
+      fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && it.isEnabled }
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && it.isEnabled }
 
-    deviceManager.activeExercise = true
+      deviceManager.activeExercise = true
 
-    fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && !it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && !it.isEnabled }
-  }
+      fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && !it.isEnabled }
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && !it.isEnabled }
+    }
 
   @Test
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     // TODO: Remove this apply when ag/26161198 is merged
     val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
     applyButton.doClick()
 
-    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     hrCheckBox.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
     applyButton.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
     deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
     applyButton.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
   }
 
   @Test
-  fun `test enabled sensors have enabled override value fields and units during exercise`() = runBlocking<Unit> {
-    val fakeUi = FakeUi(whsPanel)
+  fun `test enabled sensors have enabled override value fields and units during exercise`() =
+    runBlocking<Unit> {
+      val fakeUi = FakeUi(whsPanel.component)
 
-    // Heart Rate
-    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
-    stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
-    stateManager.applyChanges()
+      // Heart Rate
+      stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
+      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+      stateManager.applyChanges()
 
-    deviceManager.activeExercise = true
+      deviceManager.activeExercise = true
 
-    fakeUi.waitForCheckbox("Heart rate", true)
-    fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && it.isEnabled }
-    fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
-  }
+      fakeUi.waitForCheckbox("Heart rate", true)
+      fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && it.isEnabled }
+      fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
+    }
+
+  @Ignore("b/342411390")
+  @Test
+  fun `test disabled sensors have disabled override value fields and units during exercise`() =
+    runBlocking<Unit> {
+      val fakeUi = FakeUi(whsPanel.component)
+
+      // Heart Rate
+      stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+      stateManager.applyChanges()
+
+      deviceManager.activeExercise = true
+
+      fakeUi.waitForCheckbox("Heart rate", false)
+      fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }
+      fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
+    }
 
   @Test
-  fun `test disabled sensors have disabled override value fields and units during exercise`() = runBlocking<Unit> {
-    val fakeUi = FakeUi(whsPanel)
-
-    // Heart Rate
-    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-    stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
-    stateManager.applyChanges()
+  fun `test apply button flow notification`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+    val userApplyChanges = whsPanel.onUserApplyChangesFlow
 
     deviceManager.activeExercise = true
 
-    fakeUi.waitForCheckbox("Heart rate", false)
-    fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }
-    fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    textField.text = "50"
+
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+
+    userApplyChanges.take(1).collect {}
   }
 
-  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {
-    it.text.contains(text) && it.isSelected == selected
-  }
+  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
+    waitForDescendant<JCheckBox> { checkbox ->
+      checkbox.hasLabel(text) && checkbox.isSelected == selected
+    }
+
+  private fun JCheckBox.hasLabel(text: String) =
+    parent.findDescendant<JLabel> { it.text.contains(text) } != null
 
   // The UI loads on asynchronous coroutine, we need to wait
-  private inline fun <reified T> FakeUi.waitForDescendant(crossinline predicate: (T) -> Boolean = { true }): T {
+  private inline fun <reified T> FakeUi.waitForDescendant(
+    crossinline predicate: (T) -> Boolean = { true }
+  ): T {
     waitForCondition(TEST_MAX_WAIT_TIME_SECONDS, TimeUnit.SECONDS) {
       root.findDescendant(predicate) != null
     }

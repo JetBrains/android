@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.widget
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -66,11 +65,11 @@ class ChessBoardPanel(
     private val scaledCellSize = JBUIScale.scale(cellSize)
     private val scaledPatternSize = scaledCellSize * 2
 
-    private var isDarcula = UIUtil.isUnderDarcula()
+    private var isDarkTheme = !JBColor.isBright()
     private var paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
-      if (isDarcula != UIUtil.isUnderDarcula()) {
-        isDarcula = UIUtil.isUnderDarcula()
+      if (isDarkTheme == JBColor.isBright()) {
+        isDarkTheme = !JBColor.isBright()
         paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
       }
       return paint

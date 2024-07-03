@@ -27,6 +27,8 @@ import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import perfetto.protos.PerfettoConfig
 
 object SessionArtifactUtils {
@@ -99,7 +101,7 @@ object SessionArtifactUtils {
                         initialSession: Common.Session,
                         sessionId: Long,
                         childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    return createSessionItem(profilers, initialSession, sessionId, "", childArtifacts)
+    return createSessionItem(profilers, initialSession, sessionId, ProfilerTaskType.UNSPECIFIED, childArtifacts)
   }
 
   fun createSessionItem(profilers: StudioProfilers,
@@ -107,15 +109,25 @@ object SessionArtifactUtils {
                         sessionName: String,
                         childArtifacts: List<SessionArtifact<*>>): SessionItem {
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    return createSessionItem(profilers, session, sessionId, sessionName, childArtifacts)
+    return createSessionItem(profilers, session, sessionId, sessionName, ProfilerTaskType.UNSPECIFIED, childArtifacts)
+  }
+
+  fun createSessionItem(profilers: StudioProfilers,
+                        initialSession: Common.Session,
+                        sessionId: Long,
+                        taskType: ProfilerTaskType,
+                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+    return createSessionItem(profilers, initialSession, sessionId, "", taskType, childArtifacts)
   }
 
   fun createSessionItem(profilers: StudioProfilers,
                         initialSession: Common.Session,
                         sessionId: Long,
                         sessionName: String,
+                        taskType: ProfilerTaskType,
                         childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).setSessionName(sessionName).build()
+    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).setSessionName(sessionName).setTaskType(
+      TaskTypeMappingUtils.convertTaskType(taskType)).build()
     return SessionItem(profilers, initialSession, sessionMetadata).apply {
       setChildArtifacts(childArtifacts)
     }
@@ -126,7 +138,7 @@ object SessionArtifactUtils {
     val systemTraceArtifact = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
                                                                         TraceConfiguration.newBuilder().setPerfettoOptions(
                                                                           PerfettoConfig.TraceConfig.getDefaultInstance()).build())
-    return createSessionItem(profilers, session, sessionId, name, listOf(systemTraceArtifact))
+    return createSessionItem(profilers, session, sessionId, name, ProfilerTaskType.SYSTEM_TRACE, listOf(systemTraceArtifact))
   }
 
   /**

@@ -20,7 +20,6 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
@@ -89,12 +88,12 @@ class EmulatorConfiguration private constructor(
       val deviceType = when {
         tagId?.startsWith("android-automotive") == true -> DeviceType.AUTOMOTIVE
         tagId == "google-tv" -> DeviceType.TV
+        tagId == "android-tv" -> DeviceType.TV
         tagId == "android-wear" -> DeviceType.WEAR
         else -> DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
-      val postureMode = if (StudioFlags.EMBEDDED_EMULATOR_RESIZABLE_FOLDING.get())
-          parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1) else -1
+      val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
       val displayModes = try {
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
       }
@@ -113,7 +112,7 @@ class EmulatorConfiguration private constructor(
         emptyList()
       }
       var postures = emptyList<PostureDescriptor>()
-      for (type in PostureDescriptor.ValueType.values()) {
+      for (type in PostureDescriptor.ValueType.entries) {
         val key = when (type) {
           PostureDescriptor.ValueType.HINGE_ANGLE -> "hw.sensor.hinge_angles_posture_definitions"
           else -> "hw.sensor.roll_percentages_posture_definitions"
@@ -203,7 +202,7 @@ class EmulatorConfiguration private constructor(
 
     private fun parseDisplayMode(mode: String, postureMode: Int): DisplayMode {
       val segments = Splitter.on('-').splitToList(mode)
-      val displayModeId = DisplayModeValue.values()[segments[1].toInt()]
+      val displayModeId = DisplayModeValue.entries[segments[1].toInt()]
       val width = segments[2].toInt()
       val height = segments[3].toInt()
       if (width <= 0 || height <= 0) {

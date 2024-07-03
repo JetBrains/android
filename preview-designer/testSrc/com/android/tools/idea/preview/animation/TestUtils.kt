@@ -18,7 +18,6 @@ package com.android.tools.idea.preview.animation
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.preview.NoopAnimationTracker
-import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor
@@ -54,10 +53,10 @@ object TestUtils {
   class TestTimelineElement(
     private val x: Int,
     private val y: Int,
-    positionProxy: PositionProxy,
     valueOffset: Int = 0,
-    frozenValue: Int? = null,
-  ) : TimelineElement(valueOffset, frozenValue, x, x + TEST_ELEMENT_WIDTH) {
+    frozenState: SupportedAnimationManager.FrozenState =
+      SupportedAnimationManager.FrozenState(false),
+  ) : TimelineElement(valueOffset, frozenState, x, x + TEST_ELEMENT_WIDTH) {
     override fun contains(x: Int, y: Int): Boolean {
       return x in this.x + offsetPx..this.x + TEST_ELEMENT_WIDTH + offsetPx &&
         y in this.y..this.y + TEST_ELEMENT_HEIGHT

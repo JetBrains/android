@@ -20,6 +20,38 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <localInspection implementationClass="com.android.tools.idea.glance.preview.GlancePreviewNeedsComposableAnnotationInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.glance.GlancePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.no.composable.name"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.glance.preview.GlancePreviewMustBeTopLevelFunction"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.glance.GlancePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.top.level.function"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.glance.preview.GlancePreviewNotSupportedInUnitTestFiles"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.glance.GlancePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.unit.test.files"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.glance.preview.GlancePreviewDimensionRespectsLimit"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.glance.GlancePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.dimension.limit.name"
+                     level="WARNING"/>
+
     <notificationGroup id="Glance Preview Notification" displayType="NONE"/>
   </extensions>
 

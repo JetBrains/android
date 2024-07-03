@@ -59,7 +59,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.Formats
 import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
@@ -1007,7 +1007,7 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
                                              row: Int,
                                              column: Int): Component {
     val results = value as? AndroidTestResults ?: return this
-    val durationText = StringUtil.formatDuration(results.getRoundedTotalDuration().toMillis(), "\u2009")
+    val durationText = Formats.formatDuration(results.getRoundedTotalDuration().toMillis(), "\u2009")
     super.getTableCellRendererComponent(table, durationText, isSelected, hasFocus, row, column)
     icon = null
     horizontalTextPosition = CENTER

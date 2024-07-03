@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.type
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar.register
+import java.util.concurrent.CopyOnWriteArraySet
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.TestOnly
  */
 object DesignerTypeRegistrar {
 
-  private val types = mutableSetOf<DesignerEditorFileType>()
+  private val types: MutableSet<DesignerEditorFileType> = CopyOnWriteArraySet()
 
   val registeredTypes: Set<DesignerEditorFileType>
     get() = types

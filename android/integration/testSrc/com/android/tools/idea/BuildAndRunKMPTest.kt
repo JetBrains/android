@@ -20,7 +20,9 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.asdriver.tests.MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics
 import com.android.tools.perflogger.Benchmark
+import com.android.tools.perflogger.PerfData
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -36,7 +38,7 @@ class BuildAndRunKMPTest {
 
   @Test
   fun buildAndRunKmpTest() {
-    val benchmark = Benchmark.Builder("KMP_Test").setProject("KMP_E2E_Test").build()
+    val benchmark = createBenchmark()
 
     benchmark.log("test_start", System.currentTimeMillis())
 
@@ -49,6 +51,7 @@ class BuildAndRunKMPTest {
       system.runStudio(project,benchmark)  { studio ->
         system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
           studio.waitForSync()
+          collectMemoryUsageStatistics(studio, system.installation, watcher, "afterSync")
           studio.waitForIndex()
           println("Finished waiting for index")
 
@@ -72,5 +75,20 @@ class BuildAndRunKMPTest {
         }
       }
     }
+  }
+
+  @Throws(Exception::class)
+  private fun createBenchmark(): Benchmark {
+    val benchmarkName = "BuildAndRunKMP"
+    val perfData = PerfData()
+
+    val benchmark =
+      Benchmark.Builder(benchmarkName)
+        .setProject("Android Studio E2E")
+        .build()
+    perfData.addBenchmark(benchmark)
+    perfData.commit()
+
+    return benchmark
   }
 }

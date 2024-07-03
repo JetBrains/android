@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.enumsupport
 
 import com.android.SdkConstants
+import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
@@ -199,6 +200,20 @@ class PreviewPickerValuesProviderTest {
     // For api, we just check that there's at least an element available
     val apiLevelValues = valuesProvider.getValuesProvider("apiLevel")!!.invoke()
     assertTrue(apiLevelValues.isNotEmpty())
+  }
+
+  @Test
+  fun testIAndroidTargetDisplayNameHandlesNulls() {
+    val target =
+      object : MockPlatformTarget(35, 1) {
+        override fun getVersionName(): String = "name"
+      }
+    val nullVersionTarget =
+      object : MockPlatformTarget(35, 1) {
+        override fun getVersionName(): String? = null
+      }
+    assertEquals("35 (Android name)", target.displayName())
+    assertEquals("35", nullVersionTarget.displayName())
   }
 
   @RunsInEdt

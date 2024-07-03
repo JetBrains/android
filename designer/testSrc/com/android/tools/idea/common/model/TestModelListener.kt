@@ -25,22 +25,22 @@ class TestModelListener : ModelListener {
   fun clear() = callLog.clear()
 
   override fun modelDerivedDataChanged(model: NlModel) {
-    callLog.appendLine("modelDerivedDataChanged (${model.modelDisplayName})")
+    callLog.appendLine("modelDerivedDataChanged (${model.modelDisplayName.value})")
   }
 
   override fun modelChanged(model: NlModel) {
-    callLog.appendLine("modelChanged (${model.modelDisplayName})")
+    callLog.appendLine("modelChanged (${model.modelDisplayName.value})")
   }
 
   override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
-    callLog.appendLine("modelLiveUpdate (${model.modelDisplayName}, animate=$animate)")
+    callLog.appendLine("modelLiveUpdate (${model.modelDisplayName.value}, animate=$animate)")
   }
 
   override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
-    callLog.appendLine("modelChangedOnLayout (${model.modelDisplayName}, animate=$animate)")
+    callLog.appendLine("modelChangedOnLayout (${model.modelDisplayName.value}, animate=$animate)")
   }
 
   override fun modelActivated(model: NlModel) {
-    callLog.appendLine("modelActivated (${model.modelDisplayName})")
+    callLog.appendLine("modelActivated (${model.modelDisplayName.value})")
   }
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.actions.GotoComponentAction;
-import com.android.tools.idea.common.actions.PasteWithNewIds;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
@@ -99,6 +98,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private AnAction mySelectNextAction;
   private AnAction mySelectPreviousAction;
   private AnAction myPasteWithNewIdsAction;
+  private AnAction myPasteWithExistingIdsAction;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
@@ -124,7 +124,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       mySelectParent = new SelectParentAction();
       mySelectNextAction = new SelectNextAction();
       mySelectPreviousAction = new SelectPreviousAction();
-      myPasteWithNewIdsAction = new PasteWithNewIds();
+      myPasteWithNewIdsAction = getAction("android.designer.paste.with.new.ids");
+      myPasteWithExistingIdsAction = getAction("android.designer.paste.with.existing.ids");
     }
     registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
@@ -134,6 +135,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), focusablePane);
     registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane);
     registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane);
+  }
+
+  private static AnAction getAction(@NotNull String id) {
+    return com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(id);
   }
 
   @NotNull
@@ -222,8 +227,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_COPY));
     //noinspection ConstantConditions
-    group.add(getRegisteredActionByName(IdeActions.ACTION_PASTE));
     group.add(myPasteWithNewIdsAction);
+    group.add(myPasteWithExistingIdsAction);
     group.addSeparator();
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));

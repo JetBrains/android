@@ -18,7 +18,7 @@ package com.android.tools.idea.preview.fast
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable
@@ -64,8 +64,8 @@ class CommonFastPreviewSurface(
   private val delegateRefresh: suspend () -> Unit,
 ) : Disposable, FastPreviewSurface {
 
-  private val psiCodeFileChangeDetectorService =
-    PsiCodeFileChangeDetectorService.getInstance(psiFilePointer.project)
+  private val myPsiCodeFileOutOfDateStatusReporter =
+    PsiCodeFileOutOfDateStatusReporter.getInstance(psiFilePointer.project)
 
   private val coroutineScope: CoroutineScope
 
@@ -104,7 +104,7 @@ class CommonFastPreviewSurface(
           IllegalStateException("Preview File does not have a valid module")
         )
     val outOfDateFiles =
-      psiCodeFileChangeDetectorService.outOfDateFiles
+      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true

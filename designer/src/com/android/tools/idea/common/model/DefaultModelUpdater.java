@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * edits such that for example the selection (a set of {@link NlComponent} instances)
  * are preserved.
  */
-public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
+public class DefaultModelUpdater implements NlModelUpdaterInterface {
 
   private static class ModelUpdaterData {
     protected NlModel myModel;
@@ -83,29 +83,29 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
   /**
    * Update the component hierarchy associated with this {@link NlModel} such
    * that the associated component list correctly reflects the latest versions of the
-   * XML PSI file, the given tag snapshot and {@link NlModel.TagSnapshotTreeNode} hierarchy
+   * XML PSI file, the given tag snapshot and {@link TagSnapshotTreeNode} hierarchy
    */
   @VisibleForTesting
   @Override
-  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
+  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<? extends TagSnapshotTreeNode> roots) {
     ModelUpdaterData data = new ModelUpdaterData();
 
     data.myModel = model;
 
     if (newRoot == null) {
-      data.myModel.setRootComponent(null);
+      data.myModel.getTreeReader().setRootComponent(null);
       return;
     }
 
     // Make sure the root is valid during these operation.
-    data.myModel.setRootComponent(ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+    data.myModel.getTreeReader().setRootComponent(ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
       if (!newRoot.isValid()) {
         return null;
       }
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      for (NlModel.TagSnapshotTreeNode root : roots) {
+      for (TagSnapshotTreeNode root : roots) {
         gatherTagsAndSnapshots(root, data.myTagToSnapshot);
       }
 
@@ -136,13 +136,13 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     }
 
     // Update the components' snapshots
-    for (NlModel.TagSnapshotTreeNode root : roots) {
+    for (TagSnapshotTreeNode root : roots) {
       updateHierarchy(root, data);
     }
   }
 
   @Override
-  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos) { }
+  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<? extends ViewInfo> viewInfos) { }
 
   private void mapOldToNew(
       @NotNull XmlTag newRootTag,
@@ -153,7 +153,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     // If there have been no structural changes, these map 1-1 from the previous hierarchy.
     // We first attempt to do it based on the XmlTags:
     //  (1) record a map from XmlTag to NlComponent in the previous component list
-    for (NlComponent component : data.myModel.getComponents()) {
+    for (NlComponent component : data.myModel.getTreeReader().getComponents()) {
       gatherTagsAndSnapshots(component, data);
     }
 
@@ -301,13 +301,13 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     }
   }
 
-  private static void gatherTagsAndSnapshots(@NotNull NlModel.TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
+  private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
     TagSnapshot snapshot = node.getTagSnapshot();
     if (snapshot != null && snapshot.tag instanceof PsiXmlTag xmlTag) {
       map.put(xmlTag.getPsiXmlTag(), snapshot);
     }
 
-    for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
+    for (TagSnapshotTreeNode child : node.getChildren()) {
       gatherTagsAndSnapshots(child, map);
     }
   }
@@ -338,7 +338,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     return component;
   }
 
-  private void updateHierarchy(@NotNull NlModel.TagSnapshotTreeNode node, ModelUpdaterData data) {
+  private void updateHierarchy(@NotNull TagSnapshotTreeNode node, ModelUpdaterData data) {
     TagSnapshot snapshot = ApplicationManager.getApplication().runReadAction((Computable<? extends TagSnapshot>)node::getTagSnapshot);
     NlComponent component;
     if (snapshot != null) {
@@ -354,7 +354,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
         component.setTag(((PsiXmlTag)snapshot.tag).getPsiXmlTag());
       }
     }
-    for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
+    for (TagSnapshotTreeNode child : node.getChildren()) {
       updateHierarchy(child, data);
     }
   }

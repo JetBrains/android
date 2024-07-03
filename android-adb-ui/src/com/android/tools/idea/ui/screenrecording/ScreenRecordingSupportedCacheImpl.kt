@@ -19,7 +19,8 @@ import com.android.adblib.AdbSession
 import com.android.adblib.CoroutineScopeCache.Key
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.adblib.DeviceSelector
-import com.android.adblib.deviceCache
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.device
 import com.android.adblib.shellAsText
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.openapi.diagnostic.thisLogger
@@ -41,7 +42,9 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   private val cacheKey = Key<Boolean>("ScreenRecordingSupportedCache")
 
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    return adbSession.deviceCache(serialNumber).getOrPutSuspending(
+    val connectedDevice = adbSession.connectedDevicesTracker.device(serialNumber) ?: return false
+
+    return connectedDevice.cache.getOrPutSuspending(
         cacheKey, fastDefaultValue = { false }, defaultValue = { computeIsSupported(serialNumber, sdk) })
   }
 

@@ -36,55 +36,79 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="jetbrains-jewel-int-ui-standalone" type="repository">
-        <properties maven-id="org.jetbrains.jewel:jewel-int-ui-standalone:0.11.0">
+        <properties maven-id="org.jetbrains.jewel:jewel-int-ui-standalone-241:0.19.6">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone/0.11.0/jewel-int-ui-standalone-0.11.0.jar">
-              <sha256sum>891669764c5234d4424991f9d81e2238559fc531ae3b6438aadbd098fd7c62d0</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.6/jewel-int-ui-standalone-241-0.19.6.jar">
+              <sha256sum>972211c7972751048ff24aea2216b62f8abc3929cd7d26a176326dd41a7e4c01</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui/0.11.0/jewel-ui-0.11.0.jar">
-              <sha256sum>01318e0723ceb7bea0f0e99c949c67cc5da64e89e88ad0e28fd0c4e05f67ec71</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar">
+              <sha256sum>a8954a8285953f364fa43f9164cd8c0b4d39f669692c4a29f8d177c6c2a2e77b</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation/0.11.0/jewel-foundation-0.11.0.jar">
-              <sha256sum>8760448d6bd6f1396b6d505bf066c5d52a12673e5d0ceab89390069db68aea07</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar">
+              <sha256sum>51973d89b2016ff5d15092805b320a2e19f311a8138930f4b673f531cbf80de7</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.5.11/foundation-desktop-1.5.11.jar">
-              <sha256sum>a1784c41038820547b2b3cf9215edfdf6b5e43e5e47d82a7898b5207ea5f21f4</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>f919ac56da271429dcaf2f201c8c9bf67bcc48231967cdc6b6b0f49d6da3a580</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.5.11/animation-desktop-1.5.11.jar">
-              <sha256sum>5584bcda67d586271a8282d30e2d373f90b9018b611b23f29fa594bb5ff79da1</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar">
+              <sha256sum>9aab326d9492800991854360ac248f493ce7f7c3183519309b78ace9e240f6f6</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.5.11/animation-core-desktop-1.5.11.jar">
-              <sha256sum>09a20f782d7688fcae76b0c41e6c7f97ab256490eeb9ad8143111cebd6d77fbd</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar">
+              <sha256sum>d5cf7b72647c7995071588fe870450ff9c8f127f253d2d4851e161b800f67ae0</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.5.11/ui-geometry-desktop-1.5.11.jar">
-              <sha256sum>6a1fa6e5b0e79bd0c89de1c821fefa33932329a57f24f85caf02b2e536c8fb1f</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>149a98d2702fdf2bbb4e2039cd5f5769284ee86b67ee346087a49ade5048f9f7</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.5.11/foundation-layout-desktop-1.5.11.jar">
-              <sha256sum>358c1998a16eb47b5f02409a8ea42f294de64abff91b41e86b16937778ed52db</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar">
+              <sha256sum>6487c4c965c887e9f7d3d658b3c291dd3d3c0bb82f1805fce2b4ef9d7089cd66</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.5.11/runtime-desktop-1.5.11.jar">
-              <sha256sum>6e67a4ed8e1aaa9ec5d275b24c5456e82d492ad5710aa28f425da09678016033</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar">
+              <sha256sum>b962f1fc129a05a8ac1513eeaf50367a19f142fd4938fa83de519d0c8c5a8f1f</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.5.11/ui-desktop-1.5.11.jar">
-              <sha256sum>9f2eaa8a39eda52723b490f8ba1635f5641d1c89524128ae0d87cb3627cf8b25</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar">
+              <sha256sum>3180587e0f170b01b02ac0fb61b98e53772103def930f1ca6fb273cb93400465</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.5.11/runtime-saveable-desktop-1.5.11.jar">
-              <sha256sum>57fdcc6e187885701ca6cda7d52cb7fb616dbe8f37e2946e7b723a58ee6a1715</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar">
+              <sha256sum>66c97d0d48ac8852ed2780de5a747ea94a26c29b37196e23e6225502a2a09c96</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.5.11/ui-graphics-desktop-1.5.11.jar">
-              <sha256sum>94cb91181e016926ffcd519ec7ac9f3d5f9378f94111f176f4034ae8d12cdcdf</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar">
+              <sha256sum>8349e9d4bc77dd7bcdd09095c787bf693fee5b48e8c24f6265583d775f02656b</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.5.11/ui-unit-desktop-1.5.11.jar">
-              <sha256sum>7a30c4a3baf9ead2cb3b4b8629604fa1a273450fe5d08f78bff26d77fd56c54a</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar">
+              <sha256sum>61c873a7327c946ec033c310bb98f3f92eeabcede0e1a5200ab8a1896483c7bf</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.5.11/ui-text-desktop-1.5.11.jar">
-              <sha256sum>a0a620fccee62caafa53f9ce33054001de8df6be0146466892e862b0c0d6c9c1</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar">
+              <sha256sum>10bfe53bb2752f967751a5102cdb785eeea54e1d4df6bde88fb0f50b0a49156c</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.5.11/ui-util-desktop-1.5.11.jar">
-              <sha256sum>d8dff32de582ed38a161453f9ae69eb07f0712ce093c478b209aef06023f4009</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar">
+              <sha256sum>65308a06b1c00ee186cb9e19321383f043b993813f1522c47f4a3e3303bdba41</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.7.85.4/skiko-awt-0.7.85.4.jar">
-              <sha256sum>7efd80868bca4ff2bcf8def7340e78e91751059b0de68f2820ca3473815c59ca</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar">
+              <sha256sum>d38d63edb30f1467818d50aaf05f8a692dea8b31392a049bfa991b159ad5b692</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar">
+              <sha256sum>5c28f3ba9732f2180685038dbe674059fd9b7843c721cd0f6c73f3dbfcb2683c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar">
+              <sha256sum>a38464368e327e792acceb5ebcd26defdae9d62438ea9f5b24bb16cab29a3eca</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5e57a42a37457112eb560d1021e66e544da031559607e4408e3aa7f865f34c83</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5c816f1e3ff0c67d50941915fb8232347a94598ce4cf904230cbabec43950a2a</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar">
+              <sha256sum>9bf8c0ee2d60a0a74df6e4153f109a265bdc17d0040d27412b3817244505ca26</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar">
+              <sha256sum>c014073d865f784fb94c22fb6bb9d056a996af63c93a176e90118a58ff0facc6</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar">
+              <sha256sum>05b16a745c7fbdb637f0df23bce033fc0dced122deaf794712750c9127a833ce</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar">
+              <sha256sum>a9da8815e049ed1f350bde4f418b188113aaf20076a8c8c5cff177089f78d174</sha256sum>
             </artifact>
           </verification>
           <exclude>
@@ -99,22 +123,30 @@
           </exclude>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone/0.11.0/jewel-int-ui-standalone-0.11.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui/0.11.0/jewel-ui-0.11.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation/0.11.0/jewel-foundation-0.11.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.5.11/foundation-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.5.11/animation-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.5.11/animation-core-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.5.11/ui-geometry-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.5.11/foundation-layout-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.5.11/runtime-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.5.11/ui-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.5.11/runtime-saveable-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.5.11/ui-graphics-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.5.11/ui-unit-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.5.11/ui-text-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.5.11/ui-util-desktop-1.5.11.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.7.85.4/skiko-awt-0.7.85.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.6/jewel-int-ui-standalone-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -122,10 +154,16 @@
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="jetbrains-jewel-ide-laf-bridge" type="repository">
-        <properties maven-id="org.jetbrains.jewel:jewel-ide-laf-bridge-241:0.14.0">
+        <properties maven-id="org.jetbrains.jewel:jewel-ide-laf-bridge-241:0.19.6">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.14.0/jewel-ide-laf-bridge-241-0.14.0.jar">
-              <sha256sum>6f80d4ffcd9d10b615ae30cd8151b6e022bdbe4222d414cc3ecbfc6f3ccaa356</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.6/jewel-ide-laf-bridge-241-0.19.6.jar">
+              <sha256sum>b0d67233bf423e88d629bc6c9073db3ae2f5c29d58fcc3c3d905f70353674f22</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar">
+              <sha256sum>a8954a8285953f364fa43f9164cd8c0b4d39f669692c4a29f8d177c6c2a2e77b</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar">
+              <sha256sum>51973d89b2016ff5d15092805b320a2e19f311a8138930f4b673f531cbf80de7</sha256sum>
             </artifact>
           </verification>
           <exclude>
@@ -154,7 +192,9 @@
           </exclude>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.14.0/jewel-ide-laf-bridge-241-0.14.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.6/jewel-ide-laf-bridge-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -213,6 +253,158 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="jetbrains-jewel-markdown-laf-bridge-styling" type="repository">
+        <properties maven-id="org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-241:0.19.6">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0.19.6/jewel-markdown-ide-laf-bridge-styling-241-0.19.6.jar">
+              <sha256sum>ad16fdd18ac8b28de84a35af4d5ab23592cb61c3ca423744b04e7c4465110431</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0.19.6/jewel-markdown-core-241-0.19.6.jar">
+              <sha256sum>ea49d7d9332ac3130bd8830840211ce5297c6a4ac40c4c929920ab01b8cec8aa</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar">
+              <sha256sum>a8954a8285953f364fa43f9164cd8c0b4d39f669692c4a29f8d177c6c2a2e77b</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar">
+              <sha256sum>51973d89b2016ff5d15092805b320a2e19f311a8138930f4b673f531cbf80de7</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>f919ac56da271429dcaf2f201c8c9bf67bcc48231967cdc6b6b0f49d6da3a580</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar">
+              <sha256sum>9aab326d9492800991854360ac248f493ce7f7c3183519309b78ace9e240f6f6</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar">
+              <sha256sum>d5cf7b72647c7995071588fe870450ff9c8f127f253d2d4851e161b800f67ae0</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>149a98d2702fdf2bbb4e2039cd5f5769284ee86b67ee346087a49ade5048f9f7</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar">
+              <sha256sum>6487c4c965c887e9f7d3d658b3c291dd3d3c0bb82f1805fce2b4ef9d7089cd66</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar">
+              <sha256sum>b962f1fc129a05a8ac1513eeaf50367a19f142fd4938fa83de519d0c8c5a8f1f</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar">
+              <sha256sum>3180587e0f170b01b02ac0fb61b98e53772103def930f1ca6fb273cb93400465</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar">
+              <sha256sum>66c97d0d48ac8852ed2780de5a747ea94a26c29b37196e23e6225502a2a09c96</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.8.0/kotlinx-coroutines-core-1.8.0.jar">
+              <sha256sum>20aa434b6a930ea66d2e61b00deefae09fea3d32f9640d2e0c271312880e0add</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar">
+              <sha256sum>8349e9d4bc77dd7bcdd09095c787bf693fee5b48e8c24f6265583d775f02656b</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar">
+              <sha256sum>61c873a7327c946ec033c310bb98f3f92eeabcede0e1a5200ab8a1896483c7bf</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar">
+              <sha256sum>10bfe53bb2752f967751a5102cdb785eeea54e1d4df6bde88fb0f50b0a49156c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar">
+              <sha256sum>65308a06b1c00ee186cb9e19321383f043b993813f1522c47f4a3e3303bdba41</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar">
+              <sha256sum>d38d63edb30f1467818d50aaf05f8a692dea8b31392a049bfa991b159ad5b692</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar">
+              <sha256sum>5c28f3ba9732f2180685038dbe674059fd9b7843c721cd0f6c73f3dbfcb2683c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar">
+              <sha256sum>a38464368e327e792acceb5ebcd26defdae9d62438ea9f5b24bb16cab29a3eca</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5e57a42a37457112eb560d1021e66e544da031559607e4408e3aa7f865f34c83</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5c816f1e3ff0c67d50941915fb8232347a94598ce4cf904230cbabec43950a2a</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar">
+              <sha256sum>9bf8c0ee2d60a0a74df6e4153f109a265bdc17d0040d27412b3817244505ca26</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.23/kotlin-stdlib-jdk8-1.9.23.jar">
+              <sha256sum>d624c60cc1b472a1dcbee3ad1ec4ea95f2fba0032152ddb15905c6207f7718ec</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.23/kotlin-stdlib-jdk7-1.9.23.jar">
+              <sha256sum>34b1dff7ee4e42af452dca1e3c001e352bcd9e9ec27dfdd478bb7e76e7bfa3e1</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar">
+              <sha256sum>c014073d865f784fb94c22fb6bb9d056a996af63c93a176e90118a58ff0facc6</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar">
+              <sha256sum>05b16a745c7fbdb637f0df23bce033fc0dced122deaf794712750c9127a833ce</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.9.23/kotlin-stdlib-1.9.23.jar">
+              <sha256sum>8910cc238807d86ef550cb1f0b10dd5ed40b35a4ec1a52525f760aede84ead37</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar">
+              <sha256sum>ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.23/kotlin-stdlib-common-1.9.23.jar">
+              <sha256sum>d7a74fb51091e755467914659e3bf2b00e5bf6c299bc3c2bc2d8716484070528</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/atomicfu-jvm/0.23.2/atomicfu-jvm-0.23.2.jar">
+              <sha256sum>101ff43ff563fca167af5ade98c3b69bf569010eab745013b84d8955034d3b3c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar">
+              <sha256sum>a9da8815e049ed1f350bde4f418b188113aaf20076a8c8c5cff177089f78d174</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar">
+              <sha256sum>9860906a1937490bf5f3b06d2f0e10ef451e65b95b269f22daf68a3d1f5065c5</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar">
+              <sha256sum>3417909f2997bc8c61d90d64c6af29f4a3f5b6729caceaef97221ceac93df814</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.6/jewel-ide-laf-bridge-241-0.19.6.jar">
+              <sha256sum>b0d67233bf423e88d629bc6c9073db3ae2f5c29d58fcc3c3d905f70353674f22</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0.19.6/jewel-markdown-ide-laf-bridge-styling-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0.19.6/jewel-markdown-core-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.8.0/kotlinx-coroutines-core-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.23/kotlin-stdlib-jdk8-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.23/kotlin-stdlib-jdk7-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.9.23/kotlin-stdlib-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.23/kotlin-stdlib-common-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/atomicfu-jvm/0.23.2/atomicfu-jvm-0.23.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.6/jewel-ide-laf-bridge-241-0.19.6.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -220,5 +412,159 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.platform.editor" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="jetbrains.jewel.markdown.int.ui.standalone.styling.241" type="repository">
+        <properties maven-id="org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling-241:0.19.6">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-241/0.19.6/jewel-markdown-int-ui-standalone-styling-241-0.19.6.jar">
+              <sha256sum>df8a3bd22a6e3871a6839f645dfe8a6deb5ddcdee68f3c1213e7bc3b8a5a4ed0</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0.19.6/jewel-markdown-core-241-0.19.6.jar">
+              <sha256sum>ea49d7d9332ac3130bd8830840211ce5297c6a4ac40c4c929920ab01b8cec8aa</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar">
+              <sha256sum>a8954a8285953f364fa43f9164cd8c0b4d39f669692c4a29f8d177c6c2a2e77b</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar">
+              <sha256sum>51973d89b2016ff5d15092805b320a2e19f311a8138930f4b673f531cbf80de7</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>f919ac56da271429dcaf2f201c8c9bf67bcc48231967cdc6b6b0f49d6da3a580</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar">
+              <sha256sum>9aab326d9492800991854360ac248f493ce7f7c3183519309b78ace9e240f6f6</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar">
+              <sha256sum>d5cf7b72647c7995071588fe870450ff9c8f127f253d2d4851e161b800f67ae0</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar">
+              <sha256sum>149a98d2702fdf2bbb4e2039cd5f5769284ee86b67ee346087a49ade5048f9f7</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar">
+              <sha256sum>6487c4c965c887e9f7d3d658b3c291dd3d3c0bb82f1805fce2b4ef9d7089cd66</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar">
+              <sha256sum>b962f1fc129a05a8ac1513eeaf50367a19f142fd4938fa83de519d0c8c5a8f1f</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar">
+              <sha256sum>3180587e0f170b01b02ac0fb61b98e53772103def930f1ca6fb273cb93400465</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar">
+              <sha256sum>66c97d0d48ac8852ed2780de5a747ea94a26c29b37196e23e6225502a2a09c96</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.8.0/kotlinx-coroutines-core-1.8.0.jar">
+              <sha256sum>20aa434b6a930ea66d2e61b00deefae09fea3d32f9640d2e0c271312880e0add</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar">
+              <sha256sum>8349e9d4bc77dd7bcdd09095c787bf693fee5b48e8c24f6265583d775f02656b</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar">
+              <sha256sum>61c873a7327c946ec033c310bb98f3f92eeabcede0e1a5200ab8a1896483c7bf</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar">
+              <sha256sum>10bfe53bb2752f967751a5102cdb785eeea54e1d4df6bde88fb0f50b0a49156c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar">
+              <sha256sum>65308a06b1c00ee186cb9e19321383f043b993813f1522c47f4a3e3303bdba41</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar">
+              <sha256sum>d38d63edb30f1467818d50aaf05f8a692dea8b31392a049bfa991b159ad5b692</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar">
+              <sha256sum>5c28f3ba9732f2180685038dbe674059fd9b7843c721cd0f6c73f3dbfcb2683c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar">
+              <sha256sum>a38464368e327e792acceb5ebcd26defdae9d62438ea9f5b24bb16cab29a3eca</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5e57a42a37457112eb560d1021e66e544da031559607e4408e3aa7f865f34c83</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar">
+              <sha256sum>5c816f1e3ff0c67d50941915fb8232347a94598ce4cf904230cbabec43950a2a</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar">
+              <sha256sum>9bf8c0ee2d60a0a74df6e4153f109a265bdc17d0040d27412b3817244505ca26</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.23/kotlin-stdlib-jdk8-1.9.23.jar">
+              <sha256sum>d624c60cc1b472a1dcbee3ad1ec4ea95f2fba0032152ddb15905c6207f7718ec</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.23/kotlin-stdlib-jdk7-1.9.23.jar">
+              <sha256sum>34b1dff7ee4e42af452dca1e3c001e352bcd9e9ec27dfdd478bb7e76e7bfa3e1</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar">
+              <sha256sum>c014073d865f784fb94c22fb6bb9d056a996af63c93a176e90118a58ff0facc6</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar">
+              <sha256sum>05b16a745c7fbdb637f0df23bce033fc0dced122deaf794712750c9127a833ce</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.9.23/kotlin-stdlib-1.9.23.jar">
+              <sha256sum>8910cc238807d86ef550cb1f0b10dd5ed40b35a4ec1a52525f760aede84ead37</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar">
+              <sha256sum>ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.23/kotlin-stdlib-common-1.9.23.jar">
+              <sha256sum>d7a74fb51091e755467914659e3bf2b00e5bf6c299bc3c2bc2d8716484070528</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/atomicfu-jvm/0.23.2/atomicfu-jvm-0.23.2.jar">
+              <sha256sum>101ff43ff563fca167af5ade98c3b69bf569010eab745013b84d8955034d3b3c</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar">
+              <sha256sum>a9da8815e049ed1f350bde4f418b188113aaf20076a8c8c5cff177089f78d174</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar">
+              <sha256sum>9860906a1937490bf5f3b06d2f0e10ef451e65b95b269f22daf68a3d1f5065c5</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar">
+              <sha256sum>3417909f2997bc8c61d90d64c6af29f4a3f5b6729caceaef97221ceac93df814</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.6/jewel-int-ui-standalone-241-0.19.6.jar">
+              <sha256sum>972211c7972751048ff24aea2216b62f8abc3929cd7d26a176326dd41a7e4c01</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-241/0.19.6/jewel-markdown-int-ui-standalone-styling-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0.19.6/jewel-markdown-core-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-241/0.19.6/jewel-ui-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-241/0.19.6/jewel-foundation-241-0.19.6.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.6.20-dev1663/foundation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1.8.0/annotation-jvm-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.6.20-dev1663/animation-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.6.20-dev1663/animation-core-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.6.20-dev1663/ui-geometry-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.6.20-dev1663/foundation-layout-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.6.20-dev1663/runtime-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.8.0/kotlinx-coroutines-core-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.6.20-dev1663/ui-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2.8.0/lifecycle-common-jvm-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2.8.0/lifecycle-runtime-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.0/lifecycle-viewmodel-desktop-2.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.0-dev1663/lifecycle-runtime-compose-desktop-2.8.0-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.6.20-dev1663/runtime-saveable-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.6.20-dev1663/ui-graphics-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.6.20-dev1663/ui-unit-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.23/kotlin-stdlib-jdk8-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.23/kotlin-stdlib-jdk7-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.6.20-dev1663/ui-text-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.6.20-dev1663/ui-util-desktop-1.6.20-dev1663.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.9.23/kotlin-stdlib-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.23/kotlin-stdlib-common-1.9.23.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/atomicfu-jvm/0.23.2/atomicfu-jvm-0.23.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.8.4/skiko-awt-0.8.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.6/jewel-int-ui-standalone-241-0.19.6.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

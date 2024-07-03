@@ -75,7 +75,7 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
 @VisibleForTesting
 val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->
-    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
+    val groups = mutableMapOf<Any?, MutableList<PositionableContent>>()
     for (content in contents) {
       groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
     }
@@ -173,39 +173,41 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     SceneViewAlignment.LEFT,
   )
 
-/** List layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+/** List layout option without grouping. */
 val LIST_LAYOUT_OPTION =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-    SurfaceLayoutOption(
-      message("new.list.layout.title"),
-      ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
-      true,
-      SceneViewAlignment.LEFT,
-    )
-  else
-    SurfaceLayoutOption(
-      message("new.list.layout.title"),
-      GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-      false,
-      SceneViewAlignment.LEFT,
-    )
+  SurfaceLayoutOption(
+    message("new.list.layout.title"),
+    GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
+    false,
+    SceneViewAlignment.LEFT,
+  )
+
+/** List layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
+val LIST_EXPERIMENTAL_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.list.experimental.layout.title"),
+    ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
+    true,
+    SceneViewAlignment.LEFT,
+  )
+
+/** Grid layout option without grouping. */
+val GRID_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.grid.layout.title"),
+    GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
+    false,
+    SceneViewAlignment.LEFT,
+  )
 
 /** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
-val GRID_LAYOUT_OPTION =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-    SurfaceLayoutOption(
-      message("new.grid.layout.title"),
-      GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
-      true,
-      SceneViewAlignment.LEFT,
-    )
-  else
-    SurfaceLayoutOption(
-      message("new.grid.layout.title"),
-      GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
-      false,
-      SceneViewAlignment.LEFT,
-    )
+val GRID_EXPERIMENTAL_LAYOUT_OPTION =
+  SurfaceLayoutOption(
+    message("new.grid.experimental.layout.title"),
+    GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
+    true,
+    SceneViewAlignment.LEFT,
+  )
 
 /** The default layout that should appear when the Preview is open. */
 val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION

@@ -120,26 +120,6 @@ public class DefaultActivityLocator extends ActivityLocator {
     UsageTracker.log(proto);
   }
 
-  @Nullable
-  public static String getDefaultLauncherActivityName(@NotNull Project project, @NotNull final Manifest manifest) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      // this method needs both read access and indexing support
-      return DumbService.getInstance(project).runReadActionInSmartMode(() -> getDefaultLauncherActivityName(project, manifest));
-    }
-
-    Application application = manifest.getApplication();
-    if (application == null) {
-      return null;
-    }
-
-    if (!ApplicationManager.getApplication().isUnitTestMode() && DumbService.isDumb(project)) {
-      LOG.warn("Cannot locate default activity when indices are not available");
-      return null;
-    }
-
-    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliases()));
-  }
-
   /**
    * Returns true if there is a default launcher Activity in the manifest.
    */

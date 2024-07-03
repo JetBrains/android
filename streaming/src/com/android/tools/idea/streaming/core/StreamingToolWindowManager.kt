@@ -45,7 +45,6 @@ import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
-import com.android.tools.idea.streaming.device.B330395367Logger
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -58,6 +57,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.utils.TraceUtils.simpleId
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -77,7 +77,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -95,6 +94,11 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ActivateToolWindow
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.MovedOrResized
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
@@ -110,6 +114,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -126,25 +131,19 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
-import java.text.Collator
 import java.time.Duration
-import java.util.Arrays
 import java.util.function.Supplier
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
 private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.zoom.toolbar.visible"
 private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
-private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
+private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000L
 
 private val ID_KEY = Key.create<DeviceId>("device-id")
 
 private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
 private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
-
-private val COLLATOR = Collator.getInstance()
-
-private val TAB_COMPARATOR = compareBy<Content, Any?>(COLLATOR) { it.tabName ?: "" }.thenBy { ID_KEY.get(it) }
 
 private val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
 @Suppress("UnstableApiUsage")
@@ -167,7 +166,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
   private val deviceProvisioner
     @AnyThread get() = project.service<DeviceProvisionerService>().deviceProvisioner
-  private val deviceClientRegistry = ApplicationManager.getApplication().service<DeviceClientRegistry>()
+  private val deviceClientRegistry = service<DeviceClientRegistry>()
   private var initialized = false
   private var contentShown = false
   private var initialContentUpdate = false
@@ -286,24 +285,30 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
-      override fun stateChanged(toolWindowManager: ToolWindowManager) {
+      // TODO: Override the stateChanged method that takes a ToolWindow when it becomes a public API.
+      override fun stateChanged(toolWindowManager: ToolWindowManager, changeType: ToolWindowManagerEventType) {
         val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
-        toolWindowManager.invokeLater {
-          if (!toolWindow.isDisposed) {
-            if (toolWindow.isVisible) {
-              initialContentUpdate = true
-              try {
-                onToolWindowShown()
+        when (changeType) {
+          ActivateToolWindow, ShowToolWindow, HideToolWindow, MovedOrResized -> {
+            toolWindowManager.invokeLater {
+              if (!toolWindow.isDisposed) {
+                if (toolWindow.isVisible) {
+                  initialContentUpdate = true
+                  try {
+                    onToolWindowShown()
+                  }
+                  finally {
+                    initialContentUpdate = false
+                  }
+                }
+                else {
+                  onToolWindowHidden()
+                }
               }
-              finally {
-                initialContentUpdate = false
-              }
-            }
-            else {
-              onToolWindowHidden()
             }
           }
+          else -> {}
         }
       }
     })
@@ -328,6 +333,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     deviceClientRegistry.removeListener(this)
     contentManagers.clear()
     onToolWindowHidden()
+    RunningEmulatorCatalog.getInstance().removeListener(this)
   }
 
   @AnyThread
@@ -361,7 +367,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun onPhysicalDeviceHeadsUp(serialNumber: String, activation: ActivationLevel) {
     val content = findContentBySerialNumberOfPhysicalDevice(serialNumber)
-    content?.select() ?: recentAttentionRequests.put(serialNumber, activation)
+    content?.select(activation) ?: recentAttentionRequests.put(serialNumber, activation)
     toolWindow.activate(activation)
   }
 
@@ -383,12 +389,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
     }
     else {
-      content.select()
+      content.select(activation)
     }
   }
 
   private fun onToolWindowShown() {
-    B330395367Logger.log { "StreamingToolWindowManager.onToolWindowShown" }
     if (!initialized) {
       initialized = true
 
@@ -474,13 +479,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onToolWindowHidden() {
-    B330395367Logger.log { "StreamingToolWindowManager.onToolWindowHidden" }
     if (!contentShown) {
       return
     }
     contentShown = false
 
-    RunningEmulatorCatalog.getInstance().removeListener(this)
+    RunningEmulatorCatalog.getInstance().addListener(this, Long.MAX_VALUE) // Don't need frequent updates.
     for (emulator in emulators) {
       emulator.removeConnectionStateListener(connectionStateListener)
     }
@@ -508,7 +512,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
     val avdId = emulator.emulatorId.avdFolder.toString()
-    val contentManager = recentAvdStartRequesters.getIfPresent(avdId)?.also { recentAvdStartRequesters.invalidate(avdId) }
+    val contentManager = recentAvdStartRequesters.remove(avdId)
     addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManager)
   }
 
@@ -534,38 +538,21 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      if (findContentByDeviceId(panel.id) != null) {
-        reportDuplicatePanel(content)
-        return null
-      }
-
-      // Add panel to the end.
-      contentManager.addContent(content)
+    if (findContentByDeviceId(panel.id) != null) {
+      reportDuplicatePanel(content)
+      return null
     }
-    else {
-      var index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
-      if (index < 0) {
-        index = index.inv()
-        if (panel.id == ID_KEY.get(contentManager.contents[index])) {
-          reportDuplicatePanel(content)
-          return null
-        }
-      }
 
-      // Insert panel in alphabetical order of the title.
-      contentManager.addContent(content, index)
-    }
+    // Add panel to the end.
+    contentManager.addContent(content)
 
     if (!content.isSelected) {
-      // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
       val deviceId = panel.id
-      if (deviceId is DeviceId.EmulatorDeviceId) {
-        val avdId = deviceId.emulatorId.avdId
-        if (recentAvdLaunches.getIfPresent(avdId) != null) {
-          recentAvdLaunches.invalidate(avdId)
-          content.select()
-        }
+      val activation = max(
+          recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB,
+          (deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId?.let(recentAvdLaunches::remove) ?: ActivationLevel.CREATE_TAB)
+      if (activation >= ActivationLevel.SELECT_TAB) {
+        content.select(activation)
       }
     }
 
@@ -623,7 +610,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun viewSelectionChanged() {
-    B330395367Logger.log { "StreamingToolWindowManager.viewSelectionChanged" }
     for (contentManager in contentManagers) {
       for (i in 0 until contentManager.contentCount) {
         val content = contentManager.getContent(i) ?: break
@@ -769,13 +755,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (contentShown) {
       val contentManager: ContentManager? = when {
         handle.reservationAction == null -> null
-        else -> recentRemoteDeviceRequesters.getIfPresent(handle)?.also { recentRemoteDeviceRequesters.invalidate(handle) }
+        else -> recentRemoteDeviceRequesters.remove(handle)
       }
       recentAttentionRequests.invalidate(serialNumber)
       if (serialNumber !in deviceClients && serialNumber !in devicesExcludedFromMirroring) {
         startMirroringIfConfirmed(serialNumber, handle, config, activation, contentManager)
       }
-      if (activation >= ActivationLevel.SELECT_TAB) {
+      else if (activation >= ActivationLevel.SELECT_TAB) {
         onPhysicalDeviceHeadsUp(serialNumber, activation)
       }
     }
@@ -819,11 +805,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         val panel = DeviceToolWindowPanel(toolWindow.disposable, project, deviceHandle, deviceClient)
         val content = addPanel(panel, contentManager)
         if (activation >= ActivationLevel.SELECT_TAB && content != null) {
-          content.manager?.setSelectedContent(content, activation >= ActivationLevel.ACTIVATE_TAB)
+          content.select(activation)
         }
       }
-      else if (activation >= ActivationLevel.SHOW_TOOL_WINDOW) {
-        recentAttentionRequests.put(serialNumber, activation)
+      if (activation >= ActivationLevel.SHOW_TOOL_WINDOW) {
+        if (!contentShown) {
+          recentAttentionRequests.put(serialNumber, activation)
+        }
         toolWindow.activate(activation)
       }
     }
@@ -858,7 +846,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
     if (serialNumber in onlineDevices && serialNumber !in deviceClients) {
       val activation = when {
-        recentAttentionRequests.getIfPresent(serialNumber) != null -> ActivationLevel.SELECT_TAB
+        recentAttentionRequests.remove(serialNumber) != null -> ActivationLevel.SELECT_TAB
         deviceMirroringSettings.activateOnConnection -> ActivationLevel.SHOW_TOOL_WINDOW
         deviceClientRegistry.clientsBySerialNumber.containsKey(serialNumber) -> ActivationLevel.CREATE_TAB
         else -> null
@@ -1135,7 +1123,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class ReserveRemoteDeviceAction(private val template: DeviceTemplate): DumbAwareAction(template.properties.composeDeviceName(), null, template.properties.icon) {
+  private inner class ReserveRemoteDeviceAction(
+      private val template: DeviceTemplate
+  ): DumbAwareAction(template.properties.composeDeviceName(), null, template.properties.icon) {
     override fun actionPerformed(e: AnActionEvent) {
       val childScope = toolWindowScope.createChildScope(true)
       template.launchCatchingDeviceActionException(childScope) { activationAction.activate() }
@@ -1203,17 +1193,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
                                   val config: DeviceConfiguration)
-
-  private enum class ActivationLevel {
-    /** Create tab, but don't select it and don't show the tool window if hidden. */
-    CREATE_TAB,
-    /** Create tab and show the tool window if hidden. */
-    SHOW_TOOL_WINDOW,
-    /** Create tab, show the tool window if hidden and select the new tab. */
-    SELECT_TAB,
-    /** Create tab, show the tool window if hidden, select the new tab and focus on it. */
-    ACTIVATE_TAB,
-  }
 }
 
 private class ConnectedDevice(val handle: DeviceHandle, val state: DeviceState.Connected)
@@ -1282,8 +1261,8 @@ private val ContentManager.placeholderContent: Content?
     return if (ID_KEY.get(content) == null) content else null
   }
 
-private fun Content.select() {
-  manager?.setSelectedContent(this)
+private fun Content.select(activation: ActivationLevel) {
+  manager?.setSelectedContent(this, activation >= ActivationLevel.ACTIVATE_TAB)
 }
 
 private fun Content.removeAndDispose() {
@@ -1308,6 +1287,17 @@ private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
 
 private fun shortenTitleText(title: String): String =
     StringUtil.shortenTextWithEllipsis(title, 25, 6)
+
+private enum class ActivationLevel {
+  /** Create tab, but don't select it and don't show the tool window if hidden. */
+  CREATE_TAB,
+  /** Create tab and show the tool window if hidden. */
+  SHOW_TOOL_WINDOW,
+  /** Create tab, show the tool window if hidden and select the new tab. */
+  SELECT_TAB,
+  /** Create tab, show the tool window if hidden, select the new tab and focus on it. */
+  ACTIVATE_TAB,
+}
 
 @Service(Service.Level.APP)
 internal class DeviceClientRegistry : Disposable {
@@ -1385,3 +1375,5 @@ internal class DeviceClientRegistry : Disposable {
     fun deviceClientRemoved(client: DeviceClient, requester: Any?)
   }
 }
+
+private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }

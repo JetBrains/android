@@ -207,9 +207,11 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
     val composableWithMultipreview =
       PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
-    val configuration = createConfigurationFromElement(composableWithMultipreview)
-    assertEquals("Preview1", configuration.name)
-    assertEquals("my.composable.app.TestMultipreviewKt.Preview1", configuration.composableMethodFqn)
+    // Creating a configuration for a MultiPreview should not succeed
+    val configuration =
+      createConfigurationFromElement(composableWithMultipreview, setUpShouldSucceed = false)
+    assertEquals("", configuration.name)
+    assertEquals(null, configuration.composableMethodFqn)
   }
 
   fun testInvalidContexts() {

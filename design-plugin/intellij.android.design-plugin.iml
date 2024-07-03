@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="intellij.android.wear-designer" />
     <orderEntry type="module" module-name="intellij.android.design-plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.nav.editor.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.motion-editor" scope="RUNTIME" />
   </component>
 </module>

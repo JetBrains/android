@@ -23,34 +23,12 @@ import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 
-private val AUTO_CONNECT_FLAG =
-  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
 private val EMBEDDED_LAYOUT_INSPECTOR_FLAG =
   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
 
 class LayoutInspectorSettingsTest {
 
   @get:Rule val applicationRule = ApplicationRule()
-
-  @Test
-  fun testAutoConnectEnabledFlag() {
-    val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
-
-    layoutInspectorSettings.autoConnectEnabled = false
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
-
-    runWithFlagState(AUTO_CONNECT_FLAG, false) {
-      assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
-      layoutInspectorSettings.autoConnectEnabled = true
-      assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
-    }
-
-    runWithFlagState(AUTO_CONNECT_FLAG, true) {
-      layoutInspectorSettings.autoConnectEnabled = true
-      assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
-    }
-  }
 
   @Test
   fun testEmbeddedLayoutInspectorEnabledFlag() = withEmbeddedLayoutInspector {

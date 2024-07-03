@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-private val MATERIAL = packageNameHash("androidx.compose.material")
-private val FOUNDATION_TEXT = packageNameHash("androidx.compose.foundation.text")
 private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 
 class ComposeViewNodeTest {
-  @get:Rule val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val chain = RuleChain(disposableRule, ApplicationRule())
 
   @Test
   fun testIsSystemNode() {
@@ -36,8 +39,8 @@ class ComposeViewNodeTest {
         view(ROOT) {
           compose(VIEW1, "MyApplicationTheme", composePackageHash = EXAMPLE) {
             compose(VIEW2, "Text", composePackageHash = EXAMPLE) {
-              compose(VIEW3, "Text", composePackageHash = MATERIAL) {
-                compose(VIEW4, "CoreText", composePackageHash = FOUNDATION_TEXT)
+              compose(VIEW3, "Text", composePackageHash = SYSTEM_PKG) {
+                compose(VIEW4, "CoreText", composePackageHash = SYSTEM_PKG)
               }
             }
           }

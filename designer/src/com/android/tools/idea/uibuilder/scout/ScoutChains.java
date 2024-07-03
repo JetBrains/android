@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.model.NlComponent;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,7 +54,7 @@ public class ScoutChains {
     }
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
-      ScoutWidget[] group = getCandiateListX(base, child, children);
+      ScoutWidget[] group = getCandiateListX(child, children);
       group = removeOverlapsX(group);
       if (group != null) { // We have a solid candidate group
         Dir dir = Dir.HORIZONTAL;
@@ -107,7 +105,7 @@ public class ScoutChains {
     }
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
-      ScoutWidget[] group = getCandiateListY(base, child, children);
+      ScoutWidget[] group = getCandiateListY(child, children);
       group = removeOverlapsY(group);
 
       if (group != null) {
@@ -387,7 +385,6 @@ public class ScoutChains {
 
   private static void creatVerticalChain(ScoutWidget[] scoutWidgets, ScoutWidget parentScoutWidget, ChainMode chain_mode, int[] margin) {
     Arrays.sort(scoutWidgets, ScoutArrange.sSortRecY);
-    NlComponent parent = parentScoutWidget.mNlComponent;
     ScoutWidget topConnect, bottomConnect;
     ArrayList<String[]> attrList = new ArrayList<>();
     for (int i = 0; i < scoutWidgets.length; i++) {
@@ -437,59 +434,6 @@ public class ScoutChains {
       scoutChainConnect(widget.mNlComponent, Direction.BOTTOM, bottomConnect.mNlComponent, bdir, attrList);
       // TODO set  wrap & margins
     }
-  }
-
-  private static int[] getGapsX(ScoutWidget[] group) {
-    int[] ret = new int[group.length - 1];
-    for (int i = 0; i < ret.length; i++) {
-      ret[i] = group[i + 1].getDpX() - (group[i].getDpX() + group[i].getDpWidth());
-    }
-
-    return ret;
-  }
-
-  private static int consistantGapX(ScoutWidget[] group) {
-    int sum = 0;
-    int count = 0;
-    int max_error = 0;
-    int len_1 = group.length - 1;
-
-    for (int i = 0; i < len_1; i++) {
-      int dist = group[i + 1].getDpX() - (group[i].getDpX() + group[i].getDpWidth());
-      count++;
-      sum += dist;
-    }
-    int avg_gap = sum / count; // average gap
-    for (int i = 0; i < len_1; i++) {
-      int dist = group[i + 1].getDpX() - (group[i].getDpX() + group[i].getDpWidth());
-      max_error = Math.max(max_error, Math.abs(dist - avg_gap));
-    }
-    if (max_error > 4) {
-      return -1;
-    }
-    return avg_gap;
-  }
-
-  private static int consistantGapY(ScoutWidget[] group) {
-    int sum = 0;
-    int count = 0;
-    int max_error = 0;
-    int len_1 = group.length - 1;
-
-    for (int i = 0; i < len_1; i++) {
-      int dist = group[i + 1].getDpY() - (group[i].getDpY() + group[i].getDpHeight());
-      count++;
-      sum += dist;
-    }
-    int avg_gap = sum / count; // average gap
-    for (int i = 0; i < len_1; i++) {
-      int dist = group[i + 1].getDpY() - (group[i].getDpY() + group[i].getDpHeight());
-      max_error = Math.max(max_error, Math.abs(dist - avg_gap));
-    }
-    if (max_error > 4) {
-      return -1;
-    }
-    return avg_gap;
   }
 
   /**
@@ -584,9 +528,8 @@ public class ScoutChains {
     return sum / count;
   }
 
-  public static ScoutWidget[] getCandiateListX(ScoutWidget base, ScoutWidget candidate,
+  public static ScoutWidget[] getCandiateListX(ScoutWidget candidate,
                                                ScoutWidget[] list) {
-    //int[] hist = new int[base.getDpWidth()];
     ScoutWidget a = candidate;
     ScoutWidget[] shortList = new ScoutWidget[list.length];
     int shortListCount = 1;
@@ -601,7 +544,6 @@ public class ScoutChains {
         int ab_gap = a.getDpX() + a.getDpWidth() - b.getDpX();
         if (ba_gap * ab_gap <= 0) { // does not overlap in x
           shortList[shortListCount++] = b;
-          int gap = (b.getDpX() > a.getDpX()) ? -ab_gap : -ba_gap;
         }
       }
     }
@@ -622,9 +564,8 @@ public class ScoutChains {
     return shortList;
   }
 
-  public static ScoutWidget[] getCandiateListY(ScoutWidget base, ScoutWidget candidate,
+  public static ScoutWidget[] getCandiateListY(ScoutWidget candidate,
                                                ScoutWidget[] list) {
-    //int[] hist = new int[base.getDpWidth()];
     ScoutWidget a = candidate;
     ScoutWidget[] shortList = new ScoutWidget[list.length];
     int shortListCount = 1;
@@ -639,7 +580,6 @@ public class ScoutChains {
         int ab_gap = a.getDpY() + a.getDpHeight() - b.getDpY();
         if (ba_gap * ab_gap <= 0) { // does not overlap in x
           shortList[shortListCount++] = b;
-          int gap = (b.getDpY() > a.getDpY()) ? -ab_gap : -ba_gap;
         }
       }
     }

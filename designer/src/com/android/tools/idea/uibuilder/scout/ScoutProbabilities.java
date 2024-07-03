@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.uibuilder.scout;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -32,7 +31,6 @@ public class ScoutProbabilities {
     private static final int RESULT_PROBABILITY = 0;
     private static final int RESULT_MARGIN = 1;
     private static final boolean SUPPORT_CENTER_TO_NON_ROOT = true;
-    private static final boolean SUPPORT_WEAK_TO_CENTER = true;
     private static final int NEGATIVE_GAP_FLAG = -3;
     private static final int CONSTRAINT_FAILED_FLAG = -2;
     private static final float CENTER_ERROR = 2;
@@ -58,8 +56,7 @@ public class ScoutProbabilities {
             throw new IllegalArgumentException("list must contain more than 1 widget");
         }
         for (int i = 1; i < list.length; i++) {
-            ScoutWidget widget = list[i];
-            if (list[i].getParent()!=list[0]) {
+          if (list[i].getParent()!=list[0]) {
                 for (int j = 0; j < list.length; j++) {
                     ScoutWidget scoutWidget = list[j];
                     System.out.println("["+j+"]"+scoutWidget);
@@ -100,7 +97,7 @@ public class ScoutProbabilities {
                     Direction connectTo = (opposite == 0) ? direction : direction.getOpposite();
 
                     estimateProbability(list[i], direction, list[widgetNumber],
-                            connectTo, list, result);
+                                        connectTo, result);
                     mProbability[i][dir][candidate] = result[RESULT_PROBABILITY];
                     mMargin[i][dir][candidate] = result[RESULT_MARGIN];
                 }
@@ -129,7 +126,7 @@ public class ScoutProbabilities {
                         estimateBinaryProbability(list[i], horizontal,
                                 list[widget1Number], widget1Side,
                                 list[widget2Number], widget2Side,
-                                list, result);
+                                                  result);
                         mBinaryProbability[i][horizontal][candidate1][candidate2] =
                                 result[RESULT_PROBABILITY];
                         mBinaryBias[i][horizontal][candidate1][candidate2] =
@@ -207,11 +204,6 @@ public class ScoutProbabilities {
         }
     }
 
-    //private static boolean sameCol(ScoutWidget a, ScoutWidget b) {
-    //    return a.mNlComponent.getX() == b.mNlComponent.getX() &&
-    //            a.mNlComponent.getWidth() == b.mNlComponent.getWidth();
-    //}
-
     /**
      * This searches for baseline connections with a very narrow tolerance
      *
@@ -221,8 +213,6 @@ public class ScoutProbabilities {
         final int baseline = Direction.BASELINE.getDirection();
         final int north = Direction.TOP.getDirection();
         final int south = Direction.BOTTOM.getDirection();
-        final int east = Direction.RIGHT.getDirection();
-        final int west = Direction.LEFT.getDirection();
 
         // Search for baseline connections
         for (int i = 1; i < len; i++) {
@@ -231,9 +221,8 @@ public class ScoutProbabilities {
             if (widgetProbability == null || widgetProbability[baseline] == null) {
                 continue;
             }
-            float maxValue = 0.0f;
 
-            float maxNorth = widgetProbability[north][Utils.max(widgetProbability[north])];
+          float maxNorth = widgetProbability[north][Utils.max(widgetProbability[north])];
             float maxSouth = widgetProbability[south][Utils.max(widgetProbability[south])];
 
             int maxIndex = Utils.max(widgetProbability[baseline]);
@@ -356,7 +345,6 @@ public class ScoutProbabilities {
                     int maxIndex = 0;
                     int maxDirection = 0;
                     float maxValue = 0.0f;
-                    int rowType = 0;
                     for (int j = 0; j < setlen; j++) {
                         int rowMaxIndex = Utils.max(widgetProbability[dirs[j]]);
                         if (maxValue < widgetProbability[dirs[j]][rowMaxIndex]) {
@@ -409,135 +397,7 @@ public class ScoutProbabilities {
 
     }
 
-    /**
-     * pick weak constraints
-     *
-     * @param list
-     */
-    private void pickWeakConstraints(ScoutWidget[] list) {
-        Direction[] directions =
-                { Direction.TOP, Direction.BOTTOM, Direction.LEFT, Direction.RIGHT};
-        ScoutWidget[][] candidates = new ScoutWidget[directions.length][]; // no arrays of generics
-        ScoutWidget[] maxCandidate = new ScoutWidget[directions.length];
-        ScoutWidget centeredVertical = null;
-        ScoutWidget centeredHorizontal = null;
-        float[] maxDist = { -1, -1, -1, -1 };
-
-        // find the biggest widget centered
-        for (int i = 1; i < list.length; i++) {
-            ScoutWidget widget = list[i];
-            if (widget.isCentered(Direction.ORIENTATION_VERTICAL)) {
-                if (centeredVertical == null || centeredVertical.getHeight() > widget.getHeight()) {
-                    centeredVertical = widget;
-                }
-            }
-            if (widget.isCentered(Direction.ORIENTATION_HORIZONTAL)) {
-                if (centeredHorizontal == null ||
-                        centeredHorizontal.getWidth() > widget.getWidth()) {
-                    centeredHorizontal = widget;
-                }
-            }
-        }
-        ScoutWidget[] centeredMax =
-                { centeredVertical, centeredVertical, centeredHorizontal, centeredHorizontal };
-        // build ourConverts of widgets open from each direction
-        for (int j = 0; j < directions.length; j++) {
-            Direction direction = directions[j];
-            ArrayList<ScoutWidget> tmp = new ArrayList<ScoutWidget>();
-            for (int i = 1; i < list.length; i++) {
-                ScoutWidget widget = list[i];
-                if (widget.isGuideline()) {
-                    continue;
-                }
-                if (!widget.isConnected(directions[j].getOpposite())) {
-                    float dist = widget.connectedDistanceToRoot(list, direction);
-                    if (!Float.isNaN(dist)) {
-                        if (dist > maxDist[j]) {
-                            maxDist[j] = dist;
-                            maxCandidate[j] = widget;
-                        }
-                        tmp.add(widget);
-                    }
-                }
-            }
-            candidates[j] = tmp.toArray(new ScoutWidget[tmp.size()]);
-            if (DEBUG) {
-                String s = "[" + direction + "]";
-                s += "max=" + maxCandidate[j] + " ";
-                for (int i = 0; i < candidates[j].length; i++) {
-                    ScoutWidget c = candidates[j][i];
-                    s += " " + c + " " + c.connectedDistanceToRoot(list, direction);
-                }
-                System.out.println(s);
-            }
-        }
-
-        // when there is nothing on the other side add a constraint to the longest
-        // optionally attaching to the center if it fits
-        for (int j = 0; j < directions.length; j++) {
-            if ((candidates[j].length > 0) && (candidates[j ^ 1].length == 0)) {
-
-                int dirInt = directions[j].getOpposite().getDirection();
-                int rootDirInt = directions[j].getOpposite().getDirection();
-                ScoutWidget connect = list[0];
-                int connectSide = rootDirInt;
-
-                if (SUPPORT_WEAK_TO_CENTER) {
-                    if (centeredMax[j] != null) {
-                        float centerPos = centeredMax[j].getLocation(directions[j]);
-                        float maxPos = maxCandidate[j].getLocation(directions[j].getOpposite());
-                        float delta = centerPos - maxPos;
-                        if (directions[j] == Direction.RIGHT || directions[j] == Direction.BOTTOM) {
-                            delta = -delta;
-                        }
-                        if (delta > 0) {
-                            connectSide = directions[j].getDirection();
-                            connect = centeredMax[j];
-                        }
-                    }
-                }
-                maxCandidate[j].setWeakConstraint(dirInt, connect, connectSide);
-                candidates[j] = new ScoutWidget[0]; // prevent next step from using
-            }
-        }
-
-        // Where there is no overlap
-        for (int j = 0; j < directions.length; j += 2) {
-            if ((candidates[j].length > 0) && (candidates[j + 1].length > 0)) {
-                Direction side = directions[j].getOpposite();
-                Direction otherSide = directions[j];
-                if (maxCandidate[j].getLocation(side) <
-                        maxCandidate[j + 1].getLocation(otherSide)) {
-                    maxCandidate[j].setWeakConstraint(side.getDirection(), maxCandidate[j + 1],
-                            otherSide.getDirection());
-                    candidates[j] = new ScoutWidget[0]; // prevent next step from using
-                    maxCandidate[j] = null;
-                }
-            }
-        }
-
-        //  pick the closest clean shot to the other side if it is a maximum
-        for (int j = 0; j < directions.length; j += 2) {
-            if ((candidates[j].length > 0) && (candidates[j + 1].length > 0)) {
-                Direction side = directions[j].getOpposite();
-                Direction otherSide = directions[j];
-
-                boolean clearToRoot1 = maxCandidate[j].getNeighbor(otherSide, list).isRoot();
-                boolean clearToRoot2 = maxCandidate[j].getNeighbor(side, list).isRoot();
-                if (clearToRoot1 && clearToRoot2) {
-                    if (maxDist[j] > maxDist[j + 1]) {
-                        maxCandidate[j].setWeakConstraint(side.getDirection(), list[0],
-                                side.getDirection());
-                    } else {
-                        maxCandidate[j + 1].setWeakConstraint(otherSide.getDirection(), list[0],
-                                otherSide.getDirection());
-                    }
-                }
-            }
-        }
-    }
-
-    /*-----------------------------------------------------------------------*/
+  /*-----------------------------------------------------------------------*/
     // core probability estimators
     /*-----------------------------------------------------------------------*/
 
@@ -551,9 +411,7 @@ public class ScoutProbabilities {
      * @param result  populates results with probability and offset
      */
     private static void estimateProbability(ScoutWidget from, Direction fromDir,
-            ScoutWidget to, Direction toDir,
-            ScoutWidget[] list,
-            float[] result) {
+            ScoutWidget to, Direction toDir, float[] result) {
         result[RESULT_PROBABILITY] = 0;
         result[RESULT_MARGIN] = 0;
 
@@ -627,7 +485,6 @@ public class ScoutProbabilities {
             ScoutWidget from, int orientation, // 0 = north/south 1 = east/west
             ScoutWidget to1, Direction toDir1,
             ScoutWidget to2, Direction toDir2,
-            ScoutWidget[] list,
             float[] result) {
 
         result[RESULT_PROBABILITY] = 0;
@@ -709,10 +566,8 @@ public class ScoutProbabilities {
     public void printCenterTable(ScoutWidget[] list) {
         // PRINT DEBUG
         System.out.println("----------------- BASELINE TABLE --------------------");
-        final int SIZE = 10;
-        String padd = new String(new char[SIZE]).replace('\0', ' ');
 
-        System.out.print("  ");
+      System.out.print("  ");
         for (int i = 0; i < len; i++) {
             String dbg = "[" + i + "] " + list[i] + "-------------------------";
             dbg = dbg.substring(0, 20);

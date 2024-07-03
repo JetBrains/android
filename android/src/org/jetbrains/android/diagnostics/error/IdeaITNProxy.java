@@ -2,6 +2,7 @@
 package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -12,6 +13,7 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -65,9 +67,12 @@ public class IdeaITNProxy {
 
     params.add(Pair.create("assignee.id", null));
 
-    for (Attachment attachment : error.getAttachments()) {
-      params.add(Pair.create("attachment.name", attachment.getName()));
-      params.add(Pair.create("attachment.value", attachment.getEncodedBytes()));
+    List<Attachment> attachments = error.getAttachments();
+    for (int i = 0; i < attachments.size(); i++) {
+      Attachment attachment = attachments.get(i);
+      // The list of key-value pairs may be converted to a map later, add indices to the keys' names to make sure they are unique
+      params.add(Pair.create("attachment" + (i + 1) + ".name", attachment.getName()));
+      params.add(Pair.create("attachment" + (i + 1) + ".value", getAttachmentValue(attachment)));
     }
 
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
@@ -81,4 +86,23 @@ public class IdeaITNProxy {
   private static String format(Calendar calendar) {
     return calendar == null ? "" : Long.toString(calendar.getTime().getTime());
   }
+
+  /**
+   * Names of attachment types that are text-based (i.e., when getting those attachments' values, we should get them in text format, not
+   * binary format).
+   */
+  @NotNull
+  private static final List<String> TEXT_BASED_ATTACHMENTS = new ImmutableList.Builder<String>()
+    .add("Kotlin version") // See https://github.com/JetBrains/intellij-community/blob/8cd28dd/plugins/kotlin/gradle/gradle/src/org/jetbrains/kotlin/idea/gradle/diagnostic/KotlinGradleBuildErrorsChecker.kt#L74
+    .build();
+
+  @NotNull
+  private static String getAttachmentValue(@NotNull Attachment attachment) {
+    if (TEXT_BASED_ATTACHMENTS.contains(attachment.getName())) {
+      return attachment.getDisplayText();
+    } else {
+      return attachment.getEncodedBytes();
+    }
+  }
+
 }

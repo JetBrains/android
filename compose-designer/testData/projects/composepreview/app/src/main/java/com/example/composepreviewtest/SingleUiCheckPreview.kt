@@ -36,7 +36,7 @@ fun VisualLintErrorPreview() {
     TextField(
       value = textState.value,
       modifier = Modifier.fillMaxWidth(),
-      onValueChange = { textState.value = it }
+      onValueChange = { textState.value = it },
     )
     Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
       Text(text = "This is a wide button")

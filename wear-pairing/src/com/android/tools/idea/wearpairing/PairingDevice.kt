@@ -21,7 +21,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 
 enum class ConnectionState {
-  ONLINE, OFFLINE, DISCONNECTED
+  ONLINE,
+  OFFLINE,
+  DISCONNECTED,
 }
 
 data class PairingDevice(
@@ -33,7 +35,8 @@ data class PairingDevice(
   val hasPlayStore: Boolean,
   val state: ConnectionState,
 ) {
-  // This field is declared outside the main constructor because it should not be used for equals/hash. Kotlin doesn't have a better way.
+  // This field is declared outside the main constructor because it should not be used for
+  // equals/hash. Kotlin doesn't have a better way.
   lateinit var launch: (Project?) -> ListenableFuture<IDevice>
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE

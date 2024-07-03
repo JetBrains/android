@@ -16,6 +16,10 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.detector.api.Context
+import com.android.tools.lint.detector.api.Incident
+import com.android.tools.lint.detector.api.LintFix
+import com.android.tools.lint.detector.api.LintFix.DataMap
+import com.android.tools.lint.detector.api.LintFix.LintFixGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -100,3 +104,39 @@ fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
   } else {
     findAnnotationK1(fqName)
   }
+
+/** Gets and removes the single [DataMap] fix from [incident], if there is one. */
+fun getAndRemoveMapFix(incident: Incident): DataMap? {
+  val (updatedFix, dataMap) = getAndRemoveMapFix(incident.fix)
+  incident.fix = updatedFix
+  return dataMap
+}
+
+/**
+ * Gets the single [DataMap] fix from [fix], if there is one, and returns a new [LintFix] without
+ * the [DataMap] fix, and the [DataMap] fix. Intended for when [fix] can be a [LintFixGroup] and you
+ * want to remove the [DataMap] fix from the group. Other cases are also handled.
+ */
+fun getAndRemoveMapFix(fix: LintFix?): Pair<LintFix?, DataMap?> {
+  return when (fix) {
+    null -> null to null
+    is LintFixGroup -> {
+      val numMaps = fix.fixes.count { it is DataMap }
+      if (numMaps == 1) {
+        val dataMap = fix.fixes.single { it is DataMap } as DataMap
+        LintFixGroup(
+          fix.getDisplayName(),
+          fix.getFamilyName(),
+          fix.type,
+          fix.fixes.filter { it !is DataMap },
+          fix.robot,
+          fix.independent,
+        ) to dataMap
+      } else {
+        fix to null
+      }
+    }
+    is DataMap -> null to fix
+    else -> fix to null
+  }
+}

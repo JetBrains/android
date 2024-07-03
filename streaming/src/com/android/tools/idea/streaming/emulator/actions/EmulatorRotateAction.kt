@@ -29,7 +29,7 @@ import java.awt.EventQueue
  */
 sealed class EmulatorRotateAction(
   private val rotationQuadrants: Int,
-) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && it.deviceType != DeviceType.WEAR }) {
+) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && it.deviceType != DeviceType.WEAR && it.deviceType != DeviceType.AUTOMOTIVE }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return

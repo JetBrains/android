@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.Sdks;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -42,13 +43,16 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
 import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.ui.UIUtil;
@@ -61,6 +65,10 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
+import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -74,6 +82,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   protected JavaCodeInsightTestFixture myFixture;
   private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
+
+  // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+  public static final String K2_KTS_KEY = "kotlin.k2.scripting.enabled";
 
   @Override
   protected void setUp() throws Exception {
@@ -90,12 +101,40 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected void tearDown() throws Exception {
     myFixture = null;
     try {
+      // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+      if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+        Registry.get(K2_KTS_KEY).setValue(false);
+      }
       super.tearDown();
     } finally {
       // Clean up Mockito refs *after* super.tearDown() because project disposal may trigger new mock interactions.
       mockitoCleaner.cleanupAndTearDown();
     }
     checkUndisposedAndroidRelatedObjects();
+  }
+
+  protected void unmaskKotlinHighlightVisitor() {
+    unmaskKotlinHighlightVisitor(myFixture);
+  }
+
+  public static void unmaskKotlinHighlightVisitor(@NotNull CodeInsightTestFixture fixture) {
+    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(fixture.getProject()).stream()
+      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
+    ExtensionTestUtil.maskExtensions(
+      HighlightVisitor.EP_HIGHLIGHT_VISITOR,
+      highlightVisitors,
+      fixture.getProjectDisposable(),
+      false,
+      fixture.getProject()
+    );
+  }
+
+  private static boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
+    // K1: a subtype of [AbstractKotlinHighlightVisitor]
+    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
+    return visitor instanceof AbstractKotlinHighlightVisitor
+           || visitor instanceof KotlinDiagnosticHighlightVisitor
+           || visitor instanceof KotlinSemanticHighlightingVisitor;
   }
 
   public static void refreshProjectFiles() {

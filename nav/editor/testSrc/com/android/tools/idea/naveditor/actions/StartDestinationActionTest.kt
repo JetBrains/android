@@ -31,7 +31,7 @@ class StartDestinationActionTest : NavTestCase() {
       }
     }
 
-    val component = model.find("fragment1")!!
+    val component = model.treeReader.find("fragment1")!!
     val action = StartDestinationAction(component)
     action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
 
@@ -40,7 +40,7 @@ class StartDestinationActionTest : NavTestCase() {
         NlComponent{tag=<navigation>, instance=0}
             NlComponent{tag=<fragment>, instance=1}
       """.trimIndent(),
-      NlTreeDumper().toTree(model.components)
+      NlTreeDumper().toTree(model.treeReader.components)
     )
 
     assert(component.isStartDestination)

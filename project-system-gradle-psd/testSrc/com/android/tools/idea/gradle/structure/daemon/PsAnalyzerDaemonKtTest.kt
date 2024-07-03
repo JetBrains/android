@@ -35,7 +35,7 @@ class PsAnalyzerDaemonKtTest {
                                       TestPath("testPath"), parentModuleRootDir = null, sdkIndex = sdkIndex)
       assertThat(issues).hasSize(expectedMessages.size)
       issues.forEachIndexed {index, issue ->
-        assertThat(issue.text.replace("\n<br>", " ")).endsWith(expectedMessages[index])
+        assertThat(issue.text.replace("<br/>\n", " ")).isEqualTo(expectedMessages[index])
       }
     }
 
@@ -43,16 +43,16 @@ class PsAnalyzerDaemonKtTest {
       const val LIBRARY_GROUP = "test-group"
       const val LIBRARY_ARTIFACT = "test-artifact"
       const val LIBRARY_VERSION = "test-version"
-      private const val MESSAGE_POLICY = "has policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_BLOCKING = "has policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_OUTDATED = "has been reported as outdated by its author"
-      private const val MESSAGE_OUTDATED_BLOCKING = "has been reported as outdated by its author and will block publishing of your app to Play Console"
-      private const val MESSAGE_CRITICAL = "has an associated message from its author"
-      private const val MESSAGE_CRITICAL_BLOCKING = "has been reported as problematic by its author and will block publishing of your app to Play Console"
-      private const val MESSAGE_POLICY_USER = "has User Data policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_USER_BLOCKING = "has User Data policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_POLICY_PERMISSIONS = "has Permissions policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "has Permissions policy issues that will block publishing of your app to Play Console"
+      private const val MESSAGE_POLICY = "test-group:test-artifact version test-version has policy issues that will block publishing of your app to Play Console in the future"
+      private const val MESSAGE_POLICY_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has policy issues that will block publishing of your app to Play Console"
+      private const val MESSAGE_OUTDATED = "test-group:test-artifact version test-version has been reported as outdated by its author"
+      private const val MESSAGE_OUTDATED_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as outdated by its author and will block publishing of your app to Play Console"
+      private const val MESSAGE_CRITICAL = "test-group:test-artifact version test-version has an associated message from its author. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
+      private const val MESSAGE_CRITICAL_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as problematic by its author and will block publishing of your app to Play Console. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
+      private const val MESSAGE_POLICY_USER = "test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console in the future"
+      private const val MESSAGE_POLICY_USER_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console"
+      private const val MESSAGE_POLICY_PERMISSIONS = "test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console in the future"
+      private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console"
 
       @JvmStatic
       @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, message={4}")
@@ -108,7 +108,9 @@ class PsAnalyzerDaemonKtTest {
           labels.setOutdatedIssueInfo(LibraryVersionLabels.OutdatedIssueInfo.newBuilder())
         }
         if (critical) {
-          labels.setCriticalIssueInfo(LibraryVersionLabels.CriticalIssueInfo.newBuilder())
+          labels.setCriticalIssueInfo(LibraryVersionLabels.CriticalIssueInfo.newBuilder()
+                                        .setDescription("More information at http://www.google.com")
+          )
         }
         val proto = Index.newBuilder()
           .addSdks(
@@ -136,7 +138,7 @@ class PsAnalyzerDaemonKtTest {
               .build()
           )
           .build()
-        this.initialize(ByteArrayInputStream(proto.toByteArray()))
+        this.initialize(overriddenData =  ByteArrayInputStream(proto.toByteArray()), null)
       }
     }
   }
@@ -144,18 +146,31 @@ class PsAnalyzerDaemonKtTest {
   class WrappingTests {
     @Test
     fun `Text wrapped correctly`() {
-      val message = "Message should be wrapped up to 10 characters per line unless there_is_a_very_long_word in the text"
-      val wrappedMessage = wrapMessage(message, 10)
-      val expectedMessage = "Message\n" +
-                            "<br>should be\n" +
-                            "<br>wrapped up\n" +
-                            "<br>to 10\n" +
-                            "<br>characters\n" +
-                            "<br>per line\n" +
-                            "<br>unless\n" +
-                            "<br>there_is_a_very_long_word\n" +
-                            "<br>in the\n" +
-                            "<br>text"
+      val message = "   Message should be wrapped up to 10 characters per line unless there_is_a_very_long_word in the text    "
+      val wrappedMessage = formatToPSD(message, 10)
+      val expectedMessage = "Message<br/>\n" +
+                            "should be<br/>\n" +
+                            "wrapped up<br/>\n" +
+                            "to 10<br/>\n" +
+                            "characters<br/>\n" +
+                            "per line<br/>\n" +
+                            "unless<br/>\n" +
+                            "there_is_a_very_long_word<br/>\n" +
+                            "in the<br/>\n" +
+                            "text"
+      assertThat(wrappedMessage).isEqualTo(expectedMessage)
+    }
+
+    @Test
+    fun `Links preserved without breaking tags`() {
+      val message = "Links like http:///google.com should be tagged and not be broken"
+      val wrappedMessage = formatToPSD(message, 10)
+      val expectedMessage = "Links like<br/>\n" +
+                            "<a href=\"http:///google.com\">http:///google.com</a><br/>\n" +
+                            "should be<br/>\n" +
+                            "tagged and<br/>\n" +
+                            "not be<br/>\n" +
+                            "broken"
       assertThat(wrappedMessage).isEqualTo(expectedMessage)
     }
   }

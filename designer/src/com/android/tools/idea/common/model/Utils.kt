@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.model
 
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
@@ -31,62 +30,4 @@ suspend fun NlModel.updateFileContentBlocking(content: String): NlModel {
     psiFileManager.reloadFromDisk(this@updateFileContentBlocking.file)
   }
   return this
-}
-
-/**
- * Helper function to wrapped [NlModel.addComponents] to select the added [NlComponent]s when
- * [insertType] is [InsertType.CREATE]. This happens when adding a new created [NlComponent]s into
- * [NlModel] but not moving the existing [NlComponent]s.
- *
- * We use [NlModel.addComponents] to create and moving [NlComponent]s, so we need to check the
- * [insertType].
- *
- * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
- */
-@JvmOverloads
-fun NlModel.addComponentsAndSelectedIfCreated(
-  toAdd: List<NlComponent>,
-  receiver: NlComponent,
-  before: NlComponent?,
-  insertType: InsertType,
-  selectionModel: SelectionModel,
-  attributeUpdatingTask: Runnable? = null,
-) {
-  addComponents(
-    toAdd,
-    receiver,
-    before,
-    insertType,
-    {
-      if (insertType == InsertType.CREATE) {
-        selectionModel.setSelection(toAdd)
-      }
-    },
-    attributeUpdatingTask,
-  )
-}
-
-/**
- * Helper function to wrapped [NlModel.addComponents] to add and selected the added [NlComponent]s.
- * This is used to add a new created [NlComponent]s into [NlModel] but not moving the existing
- * [NlComponent]s.
- *
- * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
- */
-@JvmOverloads
-fun NlModel.createAndSelectComponents(
-  toAdd: List<NlComponent>,
-  receiver: NlComponent,
-  before: NlComponent?,
-  selectionModel: SelectionModel,
-  attributeUpdatingTask: Runnable? = null,
-) {
-  addComponents(
-    toAdd,
-    receiver,
-    before,
-    InsertType.CREATE,
-    { selectionModel.setSelection(toAdd) },
-    attributeUpdatingTask,
-  )
 }

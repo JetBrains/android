@@ -34,9 +34,7 @@ fun Configuration.updateScreenSize(
   original: Device? = this.cachedDevice
 ) {
   val deviceBuilder =
-    if (original != null) Device.Builder(original) else return // doesn't copy tag id
-  deviceBuilder.setTagId(original.tagId)
-
+    if (original != null) Device.Builder(original) else return
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
   val device = deviceBuilder.build()

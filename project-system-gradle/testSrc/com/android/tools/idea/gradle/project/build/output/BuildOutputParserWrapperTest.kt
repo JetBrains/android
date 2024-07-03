@@ -60,9 +60,6 @@ class BuildOutputParserWrapperTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  private val tracker = TestUsageTracker(VirtualTimeScheduler())
-  private val buildId = Mockito.mock(Object::class.java)
-
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
   private lateinit var outputParserManager: BuildOutputParserManager
@@ -81,86 +78,12 @@ class BuildOutputParserWrapperTest {
     }
     myParserWrapper = BuildOutputParserWrapper(parser)
     outputParserManager = BuildOutputParserManager(myProject, listOf(myParserWrapper))
-    UsageTracker.setWriterForTest(tracker)
 
     whenever(myProject.basePath).thenReturn("test")
 
     val moduleManager = Mockito.mock(ModuleManager::class.java)
     whenever(myProject.getService(ModuleManager::class.java)).thenReturn(moduleManager)
     whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
-  }
-
-  @After
-  fun tearDown() {
-    UsageTracker.cleanAfterTesting()
-  }
-
-  private fun checkSentMetricsData(sentMetricsData: BuildErrorMessage,
-                                   errorType: BuildErrorMessage.ErrorType,
-                                   fileType: BuildErrorMessage.FileType,
-                                   fileIncluded: Boolean,
-                                   lineIncluded: Boolean) {
-    assertThat(sentMetricsData).isNotNull()
-    assertThat(sentMetricsData.errorShownType).isEquivalentAccordingToCompareTo(errorType)
-    assertThat(sentMetricsData.fileIncludedType).isEquivalentAccordingToCompareTo(fileType)
-    assertThat(sentMetricsData.fileLocationIncluded).isEqualTo(fileIncluded)
-    assertThat(sentMetricsData.lineLocationIncluded).isEqualTo(lineIncluded)
-  }
-
-  @Test
-  fun testMetricsReporting() {
-    val folder = temporaryFolder.newFolder("test")
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Compiler", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
-    myParserWrapper.parse(null, null) {}
-
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "D8 errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "build", "intermediates", "res", "tmp"), -1, -1))
-    myParserWrapper.parse(null, null) {}
-
-
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "AAPT errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "build", "generated", "merged", "res", "merged.xml"), -1, -1))
-    myParserWrapper.parse(null, null) {}
-
-
-    messageEvent = MessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Android Gradle Plugin errors", "error message", "error message")
-    myParserWrapper.parse(null, null) {}
-
-    messageEvent = MessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Unknown error", "error message", "error message")
-    myParserWrapper.parse(null, null) {}
-
-    outputParserManager.sendBuildFailureMetrics()
-
-    val buildOutputEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    assertThat(buildOutputEvents).hasSize(1)
-
-    val buildOutputEvent = buildOutputEvents[0]
-    val messages = buildOutputEvent.studioEvent.buildOutputWindowStats.buildErrorMessagesList
-    assertThat(messages).hasSize(5)
-    checkSentMetricsData(messages[0], BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.FileType.PROJECT_FILE,
-                         fileIncluded = true, lineIncluded = true)
-    checkSentMetricsData(messages[1], BuildErrorMessage.ErrorType.D8, BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
-                         fileIncluded = true, lineIncluded = false)
-    checkSentMetricsData(messages[2], BuildErrorMessage.ErrorType.AAPT, BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
-                         fileIncluded = true, lineIncluded = false)
-    checkSentMetricsData(messages[3], BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
-                         BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
-                         fileIncluded = false, lineIncluded = false)
-    checkSentMetricsData(messages[4], BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE, BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
-                         fileIncluded = false, lineIncluded = false)
-  }
-
-  @Test
-  fun testNoErrorFoundMetricsReporting() {
-    outputParserManager.sendBuildFailureMetrics()
-
-    val buildOutputEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    assertThat(buildOutputEvents).hasSize(1)
-
-    val buildOutputEvent = buildOutputEvents[0]
-    val messages = buildOutputEvent.studioEvent.buildOutputWindowStats.buildErrorMessagesList
-    assertThat(messages).hasSize(0)
   }
 
   /** Regression test for b/323135834. */

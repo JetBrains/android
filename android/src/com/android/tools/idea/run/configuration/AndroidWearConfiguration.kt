@@ -36,7 +36,6 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
@@ -163,7 +162,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     environment.putUserData(RunStats.KEY, stats)
 
     // Record stat if we launched a device.
-    stats.setLaunchedDevices(deviceFutures.devices.any { it is LaunchableAndroidDevice })
+    stats.setLaunchedDevices(deviceFutures.devices.any { !it.isRunning })
     // Store the chosen target on the execution environment so before-run tasks can access it.
     environment.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
   }

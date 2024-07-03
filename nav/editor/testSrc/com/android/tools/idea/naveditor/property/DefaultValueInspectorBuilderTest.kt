@@ -39,7 +39,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)
@@ -69,7 +69,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)
@@ -84,7 +84,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
     assertEquals(1, tableModel.rowCount)
     assertEquals(tableModel, 0, "argument1", "int", "15")
 
-    action1.model.delete(listOf(action1.children[0]))
+    action1.model.treeWriter.delete(listOf(action1.children[0]))
     lineModel.refresh()
     assertEquals(1, tableModel.rowCount)
     assertEquals(tableModel, 0, "argument1", "int", "")

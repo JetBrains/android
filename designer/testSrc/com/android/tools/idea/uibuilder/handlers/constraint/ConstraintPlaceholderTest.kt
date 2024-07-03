@@ -261,7 +261,7 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     // To simulate dragging from Palette, we add a Layout from another model.
     val root = myScreen.get("@id/constraint").sceneComponent!!
-    val nlComponent = model.find("match_parent_linear")!!
+    val nlComponent = model.treeReader.find("match_parent_linear")!!
     val placeholder = ConstraintPlaceholder(root)
 
     val tempSceneComponent = TemporarySceneComponent(myScene, nlComponent)
@@ -311,7 +311,7 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     // To simulate dragging from Palette, we add a Layout from another model.
     val root = myScreen.get("@id/constraint").sceneComponent!!
-    val nlComponent = model.find("match_parent_linear")!!
+    val nlComponent = model.treeReader.find("match_parent_linear")!!
     val placeholder = ConstraintPlaceholder(root)
 
     val tempSceneComponent = TemporarySceneComponent(myScene, nlComponent)

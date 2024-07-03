@@ -55,7 +55,8 @@ class ErrorReporterTest {
 
   @Test
   fun `Error with file name`() {
-    eq(nonKotlin(file1), "Modifying a non-Kotlin file is not supported in fileOne.java.")
+    eq(nonKotlin(file1), "Non-Kotlin file not supported.\n" +
+                         "Modification to fileOne.java not supported.")
   }
 
   @Test

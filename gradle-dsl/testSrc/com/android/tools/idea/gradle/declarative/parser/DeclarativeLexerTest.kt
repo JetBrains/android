@@ -40,9 +40,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         /* foo */ "abc"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
-        DeclarativeTokenType.*/ ('*/')
+        DeclarativeTokenType.BLOCK_COMMENT ('/* foo */')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"abc"')
       """.trimIndent()
@@ -55,10 +53,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         /** foo */ "abc"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
-        DeclarativeTokenType.*/ ('*/')
+        DeclarativeTokenType.BLOCK_COMMENT ('/** foo */')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"abc"')
       """.trimIndent()
@@ -73,11 +68,7 @@ class DeclarativeLexerTest : LexerTestCase() {
          */ "abc"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('\n ')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' foo\n ')
-        DeclarativeTokenType.*/ ('*/')
+        DeclarativeTokenType.BLOCK_COMMENT ('/*\n * foo\n */')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"abc"')
       """.trimIndent()
@@ -90,12 +81,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         /* foo // bar */ "abc"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('/')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('/')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' bar ')
-        DeclarativeTokenType.*/ ('*/')
+        DeclarativeTokenType.BLOCK_COMMENT ('/* foo // bar */')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"abc"')
       """.trimIndent()
@@ -111,13 +97,7 @@ class DeclarativeLexerTest : LexerTestCase() {
          */ "abc"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' foo\n   bar ')
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS (' baz ')
-        DeclarativeTokenType.*/ ('*/')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('\n   quux\n ')
-        DeclarativeTokenType.*/ ('*/')
+        DeclarativeTokenType.BLOCK_COMMENT ('/* foo\n   bar /* baz */\n   quux\n */')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"abc"')
       """.trimIndent()
@@ -131,16 +111,13 @@ class DeclarativeLexerTest : LexerTestCase() {
         /***/ "def"
       """.trimIndent(),
       """
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.*/ ('*/')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
-        WHITE_SPACE ('\n')
-        DeclarativeTokenType./* ('/*')
-        DeclarativeTokenType.BLOCK_COMMENT_CONTENTS ('*')
-        DeclarativeTokenType.*/ ('*/')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"def"')
+      DeclarativeTokenType.BLOCK_COMMENT ('/**/')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string ('"abc"')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.BLOCK_COMMENT ('/***/')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string ('"def"')
       """.trimIndent()
     )
   }

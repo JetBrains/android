@@ -51,7 +51,7 @@ public class ScoutTest extends SceneTest {
                  "    android:id=\"@+id/textview\"\n" +
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"/>");
-    Scout.inferConstraintsAndCommit (myModel.getComponents());
+    Scout.inferConstraintsAndCommit (myModel.getTreeReader().getComponents());
     myScreen.get("@+id/textview")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview\"\n" +

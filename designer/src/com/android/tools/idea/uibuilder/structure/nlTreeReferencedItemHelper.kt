@@ -50,6 +50,7 @@ fun getSelectedComponents(tree: NlComponentTree, model: NlModel?): SelectedCompo
 
 /** Find the component with the matching id. */
 fun findComponent(id: String, model: NlModel?): NlComponent? {
-  val optional = model?.flattenComponents()?.filter { it.id == id }?.findFirst() ?: return null
+  val optional =
+    model?.treeReader?.flattenComponents()?.filter { it.id == id }?.findFirst() ?: return null
   return if (optional.isPresent) optional.get() else null
 }

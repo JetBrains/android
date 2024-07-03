@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.troubleshooting
 
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -22,6 +24,35 @@ import org.junit.Test
 
 class DesignToolsTroubleInfoCollectorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
+  @Test
+  fun `verify default collectors with Gradle Project System`() {
+    ProjectSystemService.getInstance(projectRule.project)
+      .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
+    val output = DesignToolsTroubleInfoCollector().collectInfo(projectRule.project)
+    assertEquals(
+      """
+        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN, timestampMillis=123)
+
+        FastPreviewStatus: available=true disableReason=null
+
+        Project:
+        Module(light_idea_test_case): isLoaded=true type=TYPE_NON_ANDROID isDisposed=false
+          isGradleModule=false isAndroidTest=false isUnitTest=false
+          scopeType=MAIN useAndroidX=true rClassTransitive=true
+          libDepCount=0
+
+
+        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
+
+        IssuePanelService: nIssues=0
+
+
+      """
+        .trimIndent(),
+      output.replace(Regex("timestampMillis=\\d+"), "timestampMillis=123"),
+    )
+  }
 
   @Test
   fun `verify default collectors`() {
@@ -34,12 +65,12 @@ class DesignToolsTroubleInfoCollectorTest {
 
         Project:
         Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false
-          isGradleModule=false isAndroidTest=false isUnitTest=false
-          scopeType=MAIN useAndroidX=false rClassTransitive=true
+          isGradleModule=false
+          useAndroidX=false rClassTransitive=true
           libDepCount=0
 
 
-        PsiCodeFileChangeDetectorService: outOfDateFiles=[]
+        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
 
         IssuePanelService: nIssues=0
 

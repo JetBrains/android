@@ -39,8 +39,10 @@ internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnA
       .setShadow(true)
       .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
+      .setRequestFocus(true)
       .setAnimationCycle(200)
       .setFillColor(secondaryPanelBackground)
+      .setBorderColor(secondaryPanelBackground)
       .createBalloon()
 
   // Show the UI settings popup relative to the ActionButton.

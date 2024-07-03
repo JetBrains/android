@@ -80,7 +80,12 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     disabledIcon = IconLoader.getDisabledIcon(icon)
     toolTipText = "Stop recording Java / Kotlin allocations"
     addActionListener {
-      stage.stopTracking()
+      if (getStage().studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        stage.stopTask.invoke()
+      }
+      else {
+        stage.stopTracking()
+      }
       hideLiveButtons()
     }
   }

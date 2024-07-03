@@ -622,7 +622,7 @@ public final class GuiTests {
         });
     }
     catch (WaitTimedOutError e) {
-      PerformanceWatcher.getInstance().dumpThreads("waiting-background-tasks", true);
+      PerformanceWatcher.getInstance().dumpThreads("waiting-background-tasks", true, false);
       LOG.error("Current progress indicators: " + last[0]);
       LOG.error("Timeout out waiting background tasks to finish" + ThreadDumper.dumpThreadsToString());
       throw e;
@@ -659,7 +659,7 @@ public final class GuiTests {
         .until(isProjectIndexed::get);
     }
     catch (WaitTimedOutError e) {
-      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true);
+      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true, false);
       LOG.error("Timeout out waiting project indexing to finish" + ThreadDumper.dumpThreadsToString());
       throw e;
     }
@@ -680,7 +680,7 @@ public final class GuiTests {
         .until(isDependenciesIndexed::get);
     }
     catch (WaitTimedOutError e) {
-      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true);
+      PerformanceWatcher.getInstance().dumpThreads("waiting-indexing", true, false);
       LOG.error("Timeout out waiting project dependencies indexing to finish" + ThreadDumper.dumpThreadsToString());
       throw e;
     }

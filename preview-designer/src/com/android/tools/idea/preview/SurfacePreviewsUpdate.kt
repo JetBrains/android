@@ -19,15 +19,17 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.NlModelBuilder
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -169,7 +171,7 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
  * @param onRenderCompleted method called when all the elements created/updated by this call have
  *   finished rendering. The elements count is passed as an argument.
  * @param previewElementModelAdapter object to adapt the [PreviewElement]s to the [NlModel].
- * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
+ * @param modelUpdater [NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a
  *   [LayoutlibSceneManager].
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
@@ -184,7 +186,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   onRenderCompleted: (Int) -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
-  modelUpdater: NlModel.NlModelUpdaterInterface,
+  modelUpdater: NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
@@ -229,6 +231,13 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
 
+  /** Reuse existing organizationGroup. */
+  val groups =
+    elementsToReusableModels
+      .mapNotNull { (_, model) -> model?.organizationGroup }
+      .associateBy { it.methodFqn }
+      .toMutableMap()
+
   // Second, reorder the models to reuse and create the new models needed,
   // adding placeholders for all of them, but without rendering anything yet.
   val elementsToSceneManagers =
@@ -271,10 +280,15 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           Configuration.create(configurationManager, FolderConfiguration.createDefault())
         newModel =
           withContext(AndroidDispatchers.workerThread) {
-            NlModel.builder(parentDisposable, facet, file, configuration)
+            NlModel.Builder(
+                parentDisposable,
+                BuildTargetReference.from(facet, psiFile.virtualFile),
+                file,
+                configuration,
+              )
               .withComponentRegistrar(NlComponentRegistrar)
               .withXmlProvider { project, virtualFile ->
-                NlModelBuilder.getDefaultFile(project, virtualFile).also {
+                NlModel.getDefaultFile(project, virtualFile).also {
                   it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
                 }
               }
@@ -283,11 +297,17 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       }
 
       // Common configuration steps for new and reused models
-      newModel.modelDisplayName = previewElement.displaySettings.name
+      newModel.setDisplayName(previewElement.displaySettings.name)
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      (previewElement as? MethodPreviewElement<*>)?.let {
-        newModel.organizationGroup = it.methodFqn
+      (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
+        newModel.organizationGroup =
+          groups.getOrPut(methodPreviewElement.methodFqn) {
+            OrganizationGroup(
+              methodPreviewElement.methodFqn,
+              methodPreviewElement.displaySettings.name,
+            )
+          }
       }
       val newSceneManager =
         withContext(AndroidDispatchers.workerThread) { addModelWithoutRender(newModel).await() }
@@ -346,11 +366,13 @@ private suspend fun renderAndTrack(
   val startMs = System.currentTimeMillis()
   sceneManager.render {
     onCompleteCallback(it)
+    val renderResult = sceneManager.renderResult
     refreshEventBuilder?.addPreviewRenderDetails(
-      sceneManager.renderResult?.isErrorResult() ?: false,
+      renderResult?.isErrorResult() ?: false,
       inflate,
       quality,
       System.currentTimeMillis() - startMs,
+      renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
     )
   }
 }

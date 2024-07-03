@@ -29,7 +29,7 @@ class HideablePanelTest {
   @Test
   fun toggleDisplay() {
     composeTestRule.setContent {
-      JewelTestTheme { HideablePanel("Header", initiallyOpen = false) { Text("Content") } }
+      StudioTestTheme { HideablePanel("Header", initiallyOpen = false) { Text("Content") } }
     }
     composeTestRule.onNodeWithText("Content").assertDoesNotExist()
     composeTestRule.onNodeWithText("Header").performClick()

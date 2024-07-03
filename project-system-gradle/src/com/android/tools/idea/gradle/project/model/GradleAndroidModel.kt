@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSourceProvider
@@ -42,6 +43,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
@@ -114,6 +116,16 @@ class GradleAndroidModel(
     }
   }
 
+  /**
+   * Returns the [IdeAndroidArtifact] that should be used for screenshot testing.
+   *
+   *
+   * For screenshot test-only modules this is the main artifact.
+   */
+  fun getArtifactForScreenshotTest(): IdeJavaArtifact? {
+    return selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+  }
+
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
     return selectedVariantCore.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
@@ -133,12 +145,12 @@ class GradleAndroidModel(
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
   val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
   val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
-  val hostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
-  val deviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
+  val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
+  val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
   val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
   val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
-  val allHostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
-  val allDeviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
+  val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
+  val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
   /**

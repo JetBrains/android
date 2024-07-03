@@ -92,7 +92,8 @@ enum class ModelFeature(
   HAS_RUN_TEST_IN_SEPARATE_PROCESS(AgpVersion.parse("8.3.0-alpha11")),
   USES_ABSOLUTE_GRADLE_BUILD_PATHS_IN_DEPENDENCY_MODEL(AgpVersion.parse("8.2.0-alpha13")),
   HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH(AgpVersion.parse("8.2.0-alpha03")),
-  HAS_SCREENSHOT_TESTS_SUPPORT(AgpVersion.parse("8.4.0-alpha07"))
+  HAS_SCREENSHOT_TESTS_SUPPORT(AgpVersion.parse("8.4.0-alpha07")),
+  HAS_EXPERIMENTAL_PROPERTIES(AgpVersion.parse("8.6.0-alpha01"))
   ;
 
   init {

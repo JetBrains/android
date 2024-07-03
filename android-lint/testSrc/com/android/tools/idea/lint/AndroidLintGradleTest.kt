@@ -44,6 +44,7 @@ import java.util.Locale
 class AndroidLintGradleTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
+
     val analyticsSettings = AnalyticsSettingsData()
     analyticsSettings.optedIn = false
     setInstanceForTest(analyticsSettings)

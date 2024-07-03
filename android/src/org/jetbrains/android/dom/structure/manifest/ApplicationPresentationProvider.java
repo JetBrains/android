@@ -15,16 +15,19 @@
  */
 package org.jetbrains.android.dom.structure.manifest;
 
+import com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.presentation.PresentationProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import icons.StudioIcons;
+import java.util.Arrays;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
-import static com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon;
 
 public class ApplicationPresentationProvider extends PresentationProvider<Application> {
   @Nullable
@@ -40,7 +43,15 @@ public class ApplicationPresentationProvider extends PresentationProvider<Applic
     // Use Android Studio icons
     Module module = application.getModule();
     if (module != null) {
-      return getModuleIcon(module);
+      Project project = module.getProject();
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      AndroidIconProviderProjectToken<AndroidProjectSystem> token =
+        Arrays.stream(AndroidIconProviderProjectToken.getEP_NAME().getExtensions())
+          .filter(it -> it.isApplicable(projectSystem))
+          .findFirst().orElse(null);
+      if (token != null) {
+        return token.getModuleIcon(projectSystem, module);
+      }
     }
     return StudioIcons.Shell.Filetree.ANDROID_MODULE;
   }

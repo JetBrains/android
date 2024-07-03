@@ -20,12 +20,12 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -52,7 +52,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
@@ -60,7 +60,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     }
 
     val virtualFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
 
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
@@ -70,11 +70,11 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel =
-        NlModel.builder(parentDisposable, facet, virtualFile, fontConfig)
-          .withModelTooltip(fontConfig.toHtmlTooltip())
+        NlModel.Builder(parentDisposable, buildTarget, virtualFile, fontConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      fontModel.modelDisplayName = displayName
+      fontModel.setTooltip(fontConfig.toHtmlTooltip())
+      fontModel.setDisplayName(displayName)
       models.add(fontModel)
 
       registerModelsProviderConfigurationListener(

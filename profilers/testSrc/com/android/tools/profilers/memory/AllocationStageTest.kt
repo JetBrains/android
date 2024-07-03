@@ -11,16 +11,11 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.ProfilingProcessStartingPoint
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.SelectionStateOnTaskEnter
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -92,39 +87,6 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     stage.stopTrackingDueToUnattachableAgent()
     assertTrue { stage.hasEndedTracking }
     assertTrue { stage.hasAgentError }
-  }
-
-  @Test
-  fun `agent not attached during stage enter will not start tracking in taskBasedUx, on agent change tracking has started`() {
-    assumeTrue(isLive)
-    (transportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
-      trackStatus = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build()
-    }
-    // Mark agent attached as false
-    MockitoKt.whenever(stage.isAgentAttached).thenReturn(false)
-    ideProfilerServices.enableTaskBasedUx(true)
-    // For taskBasedUx, set the current selected task, so the process is set
-    profilers.taskHomeTabModel.selectionStateOnTaskEnter = SelectionStateOnTaskEnter(
-      ProfilingProcessStartingPoint.PROCESS_START, ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
-    profilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
-                             JavaKotlinAllocationsTaskHandler(profilers.sessionsManager))
-
-    // Wait for the 'update' of the studio profiler to be done
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    // Set the selectedTask
-    stage.liveAllocationSamplingMode = SAMPLED
-    profilers.stage = stage
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    // Verify allocation not started, when agent is not attached
-    assertFalse { stage.hasStartedTracking }
-
-    // Mark agent attached as true
-    MockitoKt.whenever(stage.isAgentAttached).thenReturn(true)
-    profilers.changed(ProfilerAspect.AGENT)
-    // Wait for the transport poller to finish
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    // Allocation tracking is started
-    assertTrue { stage.hasStartedTracking }
   }
 
   @Test

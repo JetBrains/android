@@ -24,12 +24,11 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.testing.ThreadingCheckRule
 import com.google.common.truth.Truth
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.util.LineSeparator
@@ -104,7 +103,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val view = MockPairingCodePairingView(project, notificationService, model).also {
       lastPairingCodeView = it
     }
-    return PairingCodePairingController((project as ComponentManagerEx).getCoroutineScope(), devicePairingService, view).also {
+    return PairingCodePairingController(project.coroutineScope(), devicePairingService, view).also {
       lastPairingCodeController = it
     }
   }
@@ -143,7 +142,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @Test
   fun viewShouldShowSdkManagerLinkIfOutOfDate() {
     createModalDialogAndInteractWithIt({ view.showDialog() }) {
-      view.showMdnsNotSupportedByAdbError();
+      view.showMdnsNotSupportedByAdbError()
 
       val fakeUi = FakeUi(it.rootPane)
       val pane = fakeUi.getComponent<JEditorPane> {comp -> comp.name == "errorText"}
@@ -175,9 +174,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
-      pumpAndWait(view.showDialogTracker.consume());
-      pumpAndWait(view.startMdnsCheckTracker.consume());
-      pumpAndWait(view.showMdnsCheckErrorTracker.consume());
+      pumpAndWait(view.showDialogTracker.consume())
+      pumpAndWait(view.startMdnsCheckTracker.consume())
+      pumpAndWait(view.showMdnsCheckErrorTracker.consume())
     }
   }
 

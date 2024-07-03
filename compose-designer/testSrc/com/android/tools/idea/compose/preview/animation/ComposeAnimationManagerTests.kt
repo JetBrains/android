@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
-import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -138,7 +138,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     var transitionCalls = 0
     var stateCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getTransitions(animation: Any, clockTimeMsStep: Long) =
           super.getTransitions(animation, clockTimeMsStep).also { transitionCalls++ }
 
@@ -150,6 +150,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
+      delayUntilCondition(200) { transitionCalls == 1 }
       assertEquals(1, transitionCalls)
       delayUntilCondition(200) { stateCalls == 1 }
       assertEquals(1, stateCalls)
@@ -167,20 +168,45 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
   }
 
   @Test
-  fun faultyClock() {
+  fun `show error panel on faulty clock`() {
+    var numberOfCalls = 0
+
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun updateFromAndToStates(
           animation: ComposeAnimation,
           fromState: Any,
           toState: Any,
         ) {
+          numberOfCalls++
           throw ClassCastException("updateFromAndToStates fails")
         }
       }
 
-    assertFailsWith<AssertionError>("No animation is added") {
-      setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui -> }
+    val inspector = createAndOpenInspector()
+
+    val animation =
+      object : ComposeAnimation {
+        override val animationObject = Any()
+        override val type = animationType
+        override val states = setOf("one", "two")
+      }
+
+    runBlocking {
+      surface.sceneManagers.forEach { it.render() }
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+      withContext(uiThread) {
+        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui.updateToolbars()
+        ui.layout()
+        delayUntilCondition(200) { numberOfCalls == 1 }
+        val errorPanel =
+          TreeWalker(ui.root)
+            .descendantStream()
+            .filter { it is JPanel && it.name == "Error Panel" }
+            .findFirst()
+        assertTrue(errorPanel.isPresent)
+      }
     }
   }
 
@@ -188,31 +214,31 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
   fun changeTime() {
     var numberOfCalls = 0
     val clock =
-      object : TestClockWithCoordination() {
+      object : TestClock() {
         override fun getAnimatedProperties(animation: Any): List<ComposeAnimatedProperty> =
           super.getAnimatedProperties(animation).also { numberOfCalls++ }
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
-      // one from AnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
+      // one from AnimationManager.setup and one from offset.collect
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
-      assertEquals(2, numberOfCalls)
-      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
+      timelineSlider.value = 200
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
+      assertEquals(4, numberOfCalls)
     }
   }
 
   private fun setupAndCheckToolbar(
     type: ComposeAnimationType,
     states: Set<Any>,
-    clock: TestClock = TestClockWithCoordination(),
+    clock: TestClock = TestClock(),
     checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
     val inspector = createAndOpenInspector()

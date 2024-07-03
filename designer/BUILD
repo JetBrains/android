@@ -67,9 +67,6 @@ iml_module(
         "common": {
             "test_filter": "com.android.tools.idea.common",
         },
-        "motion": {
-            "test_filter": "com.android.tools.idea.uibuilder.motion",
-        },
         "visual": {
             "test_filter": "com.android.tools.idea.uibuilder.visual",
         },

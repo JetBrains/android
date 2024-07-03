@@ -114,19 +114,26 @@ class PreviewRefreshEventBuilder(
     inflate: Boolean,
     renderQuality: Float,
     renderTimeMillis: Long,
+    renderExceptionSimpleName: String?,
   ) {
     if (renderQuality < 0f || 1f < renderQuality) {
       logger.warn("Attempted to log a render with not valid quality: $renderQuality")
     }
-    eventBuilder.addPreviewRenders(
+    val previewRenders =
       PreviewRefreshEvent.SinglePreviewRender.newBuilder()
         .setResult(
-          if (renderError) PreviewRefreshEvent.SinglePreviewRender.RenderResult.ERROR
-          else PreviewRefreshEvent.SinglePreviewRender.RenderResult.SUCCESS
+          if (renderError) {
+            PreviewRefreshEvent.SinglePreviewRender.RenderResult.ERROR
+          } else PreviewRefreshEvent.SinglePreviewRender.RenderResult.SUCCESS
         )
         .setInflate(inflate)
         .setRenderQuality(renderQuality.coerceIn(0f, 1f))
         .setRenderTimeMillis(renderTimeMillis.toInt())
+
+    eventBuilder.addPreviewRenders(
+      if (renderExceptionSimpleName.isNullOrEmpty()) {
+        previewRenders
+      } else previewRenders.setRenderExceptionSimpleName(renderExceptionSimpleName)
     )
   }
 

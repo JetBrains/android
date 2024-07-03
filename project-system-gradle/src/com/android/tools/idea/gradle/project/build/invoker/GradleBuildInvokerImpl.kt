@@ -460,6 +460,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       stopPresentation.description = "Stop the build"
       stopPresentation.icon = AllIcons.Actions.Suspend
 
+      project.getService(BuildOutputParserManager::class.java).onBuildStart(id)
+
       // If build is invoked in the context of a task that has already opened the build output tool window by sending a similar event
       // sending another one replaces the mapping from the buildId to the build view breaking the build even pipeline. (See: b/190426050).
       if (buildViewManager.getBuildView(id) == null) {
@@ -511,9 +513,6 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
       val eventDispatcherFinished = CountDownLatch(1)
       buildEventDispatcher.invokeOnCompletion {
-        if (buildFailed) {
-          project.getService(BuildOutputParserManager::class.java).sendBuildFailureMetrics()
-        }
         eventDispatcherFinished.countDown()
       }
       buildEventDispatcher.close()

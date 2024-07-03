@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -28,6 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.runningdevices.withAutoConnect
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -72,7 +72,7 @@ class TargetSelectionActionFactoryTest {
 
   @Test
   fun testDeviceSelectorIsCreated() =
-    runWithFlagState(true) {
+    withAutoConnect(true) {
       val action = TargetSelectionActionFactory.getAction(layoutInspector)
       assertThat(action).isNotNull()
       assertThat(action!!.dropDownAction).isInstanceOf(SelectDeviceAction::class.java)
@@ -80,20 +80,9 @@ class TargetSelectionActionFactoryTest {
 
   @Test
   fun testProcessSelectorIsCreated() =
-    runWithFlagState(false) {
+    withAutoConnect(false) {
       val action = TargetSelectionActionFactory.getAction(layoutInspector)
       assertThat(action).isNotNull()
       assertThat(action!!.dropDownAction).isInstanceOf(SelectProcessAction::class.java)
     }
-
-  private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
-    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-    val flagPreviousState = flag.get()
-    flag.override(desiredFlagState)
-
-    task()
-
-    // restore flag state
-    flag.override(flagPreviousState)
-  }
 }

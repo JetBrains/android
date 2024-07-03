@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.gradle.declarative
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.DataClass
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -34,40 +37,73 @@ import java.io.File
  */
 @Service(Service.Level.PROJECT)
 class DeclarativeService {
-
   val map = HashMap<Module, DeclarativeSchema>()
 
   companion object {
     fun getInstance(project: Project) = project.service<DeclarativeService>()
+    val log = Logger.getInstance(DeclarativeService::class.java)
   }
 
   fun getSchema(module: Module): DeclarativeSchema? {
+    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
     return map.getOrPut(module) {
       val parentPath = module.guessModuleDir()?.path
-      val project = File(parentPath, ".gradle/declarative-schema/project.dcl.schema")
-      val plugins = File(parentPath, ".gradle/declarative-schema/plugins.dcl.schema")
-      try {
-        val projectSchema = SchemaSerialization.schemaFromJsonString(project.readText())
-        val pluginSchema = SchemaSerialization.schemaFromJsonString(plugins.readText())
-        DeclarativeSchema(projectSchema, pluginSchema)
+      val schemaFolder = File(parentPath, ".gradle/declarative-schema")
+      schemaFolder.lastModified()
+      val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
+      val schemas = mutableListOf<DefaultAnalysisSchema>()
+      var failure = false
+      for (path in paths) {
+        try {
+          val schema = File(schemaFolder, path)
+          val analysisSchema = SchemaSerialization.schemaFromJsonString(schema.readText())
+          schemas.add(analysisSchema)
+        }
+        catch (e: Exception) {
+          failure = true
+          log.warn("Declarative schema parsing error: $e")
+        }
       }
-      catch (e: Exception) {
-        return null
-      }
+      return if (schemas.isNotEmpty())
+        DeclarativeSchema(schemas, failure)
+      else null
     }
   }
 }
 
-class DeclarativeSchema(private val project: AnalysisSchema, private val plugin: AnalysisSchema) {
-  fun getDataClassesByFqName(): Map<FqName, DataClass> = project.dataClassesByFqName + plugin.dataClassesByFqName
-  fun getRootMemberFunctions(): List<SchemaMemberFunction> =
-    project.topLevelReceiverType.memberFunctions + plugin.topLevelReceiverType.memberFunctions
+class DeclarativeSchema(private val schemas: List<DefaultAnalysisSchema>, val failureHappened: Boolean) {
+  private val _dataClassesByFqName: Map<FqName, DataClass> by lazy {
+    schemas.fold(mapOf()) { acc, e -> acc + e.dataClassesByFqName }
+  }
+  private val _rootMemberFunctions: List<SchemaMemberFunction> by lazy {
+    schemas.fold(listOf()) { acc, e -> acc + e.topLevelReceiverType.memberFunctions }
+  }
+
+  fun getDataClassesByFqName(): Map<FqName, DataClass> = _dataClassesByFqName
+
+  fun getRootMemberFunctions(): List<SchemaMemberFunction> = _rootMemberFunctions
 }
-fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
-  getReceiverByName(name, schema.getRootMemberFunctions())
+
+fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? {
+  getReceiverByName(name, schema.getRootMemberFunctions())?.let {
+    return it
+  }
+  // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
+  // to have all settingsInternal attributes in rootMembers
+  schema.getDataClassesByFqName()[DefaultFqName("org.gradle.api.internal", "SettingsInternal")]?.let {
+    return (it.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
+  }
+  return null
+
+}
+
+private fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
 
 fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
   val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
-  val accessor = (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor
-  return (accessor?.objectType as? DataTypeRef.Name)?.fqName
+  (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor?.let {
+    return it.objectType.fqName()
+  }
+  dataMemberFunction.receiver.fqName()?.let { return it }
+  return null
 }

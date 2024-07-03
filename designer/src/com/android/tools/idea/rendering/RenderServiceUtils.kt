@@ -21,7 +21,6 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
 fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
   return createLogger(
@@ -37,7 +36,7 @@ fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
  * HTML rendering of issues and fix actions.
  */
 fun RenderService.taskBuilderWithHtmlLogger(
-  facet: AndroidFacet,
+  buildTarget: BuildTargetReference,
   configuration: Configuration,
 ): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createHtmlLogger(facet.module.project))
+  taskBuilder(buildTarget, configuration, createHtmlLogger(buildTarget.project))

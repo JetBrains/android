@@ -3898,4 +3898,3 @@
 05-17 09:28:04.456  3940  3940 I Finsky  : [1] hdf.r(-1): APK integrity will be verified using [SHA-256] method
 05-17 09:28:04.470  3940  4266 I Finsky  : [319] knj.run(6): DU: Stored data usage stats for package com.google.android.googlequicksearchbox; completed bytes: 99619020.
 05-17 09:28:04.473  3940  3972 I Finsky  : [249] iwt.call(9): Decompressing com.google.android.googlequicksearchbox (com.google.android.googlequicksearchbox) format 2
-05-17 09:28:04.475  1400  1400 I         : free_cache(204692622) avail 5801299968

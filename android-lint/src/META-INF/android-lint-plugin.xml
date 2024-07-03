@@ -15,7 +15,7 @@
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/android-lint.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/android-lint.k1.xml" includeUnless="idea.kotlin.plugin.use.k2"/>
 
   <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAaptCrash" groupName="Android Lint: Correctness" displayName="Potential AAPT crash" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintAaptCrashInspection"/>
@@ -411,6 +411,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintSelectedPhotoAccess" groupName="Android Lint: Correctness" displayName="Behavior change when requesting photo library access" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintSelectedPhotoAccessInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWakelock" groupName="Android Lint: Performance" displayName="Incorrect WakeLock usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWakelockInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintUnclosedTrace" groupName="Android Lint: Correctness" displayName="Incorrect trace section usage" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintUnclosedTraceInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintPictureInPictureIssue" groupName="Android Lint: Correctness" displayName="Picture In Picture best practices not followed" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintPictureInPictureIssueInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -418,7 +419,7 @@
         serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
         serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport" />
     <lang.inspectionSuppressor
-        language="JAVA"
+        language="UAST"
         implementationClass="com.android.tools.idea.lint.inspections.JavaApiUsageInspectionSuppressor"/>
   </extensions>
 

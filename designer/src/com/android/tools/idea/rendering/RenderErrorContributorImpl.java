@@ -22,6 +22,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
+import static com.android.SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
@@ -51,6 +52,7 @@ import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
+import com.android.tools.idea.rendering.errors.WearTileRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -1032,7 +1034,6 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
 
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
-        builder.newline().addNbsps(3);
         Project project = myModule.getProject();
         boolean useAndroidX = MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
@@ -1043,15 +1044,18 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         builder.add(", ");
       }
       else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
-        builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
         builder.add(", ");
       }
       else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
-        builder.newline().addNbsps(3);
-        builder.addLink("Add ui-tooling-preview library dependency to the project",
+        builder.addLink("Add ui-tooling library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
+        builder.add(", ");
+      }
+      else if (CLASS_TILE_SERVICE_VIEW_ADAPTER.equals(className)) {
+        builder.addLink("Add tiles-tooling library dependency to the project",
+                        myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.WEAR_TILES_TOOLING));
         builder.add(", ");
       }
 
@@ -1103,6 +1107,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         addHtmlForIssue164378(throwable, project, myLinkManager, builder, false);
         break;
       }
+      else if (DataBindingErrorUtils.handleDataBindingMapperError(throwable, builder)) break;
     }
 
     builder.add("The following classes could not be instantiated:");
@@ -1116,6 +1121,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
       if (throwable != null && throwable.getMessage() != null && throwable.getMessage().startsWith(APP_COMPAT_REQUIRED_MSG)) {
         // This is already handled by #reportAppCompatRequired
+        continue;
+      }
+
+      if (WearTileRenderErrorContributor.isHandledByWearTileContributor(throwable)) {
+        // This will be handled separately by WearTileRenderErrorContributor.reportWearTileErrors
         continue;
       }
 
@@ -1312,6 +1322,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     if (!myModule.isDisposed()) {
       myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler, myModule.getProject()));
     }
+    myIssues.addAll(WearTileRenderErrorContributor.reportWearTileErrors(logger, myLinkManager, myLinkHandler, mySourceFile));
 
     return getIssues();
   }

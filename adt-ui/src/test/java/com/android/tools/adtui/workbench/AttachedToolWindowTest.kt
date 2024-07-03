@@ -15,12 +15,14 @@
  */
 package com.android.tools.adtui.workbench
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -68,7 +70,7 @@ class AttachedToolWindowTest {
   private val popupRule = JBPopupRule()
 
   @get:Rule
-  val chain = RuleChain(projectRule, disposableRule, popupRule)
+  val chain = RuleChain(projectRule, disposableRule, popupRule, FlagRule(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true))
 
   private val project: Project
     get() = projectRule.project
@@ -142,6 +144,17 @@ class AttachedToolWindowTest {
       .isFalse()
     assertThat(myPropertiesComponent.getBoolean(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING"))
       .isFalse()
+  }
+
+  @Test
+  fun testFloatingAndDetachedIgnoredWhenFlagIsOff() {
+    myPropertiesComponent.setValue(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING", true)
+    myPropertiesComponent.setValue(AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.DETACHED", true)
+    StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.override(false)
+
+    val window = myToolWindow
+    assertThat(window.isDetached).isFalse()
+    assertThat(window.isFloating).isFalse()
   }
 
   @Test

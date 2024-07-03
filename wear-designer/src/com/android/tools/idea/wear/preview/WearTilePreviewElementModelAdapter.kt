@@ -28,7 +28,6 @@ private const val PREFIX = "WearTilePreview"
 private val PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<PsiWearTilePreviewElement>("$PREFIX.PreviewElement")
 
-internal const val TILE_SERVICE_VIEW_ADAPTER = "androidx.wear.tiles.tooling.TileServiceViewAdapter"
 internal const val DEFAULT_WEAR_TILE_BACKGROUND = "#ff000000"
 
 internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
@@ -37,7 +36,7 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
     PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE
   ) {
   override fun toXml(previewElement: PsiWearTilePreviewElement) =
-    PreviewXmlBuilder(TILE_SERVICE_VIEW_ADAPTER)
+    PreviewXmlBuilder(SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
       .androidAttribute(
@@ -52,5 +51,5 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
     backedFile: VirtualFile,
     id: Long,
   ): LightVirtualFile =
-    WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
+    WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content, backedFile)
 }

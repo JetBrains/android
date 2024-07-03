@@ -24,6 +24,9 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -45,7 +48,6 @@ import java.io.File
 import java.util.UUID
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
@@ -198,15 +200,15 @@ private class AnimationOptionComboBoxModel(ids: Set<String>) :
   override fun removeListener(listener: ValueChangedListener) = Unit
 }
 
-private object EmptyModelUpdater : NlModel.NlModelUpdaterInterface {
+private object EmptyModelUpdater : NlModelUpdaterInterface {
   // Do nothing because the file content will be re-wrote frequently.
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: MutableList<NlModel.TagSnapshotTreeNode>,
+    roots: List<TagSnapshotTreeNode>,
   ) = Unit
 
-  override fun updateFromViewInfo(model: NlModel, viewInfos: MutableList<ViewInfo>) = Unit
+  override fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>) = Unit
 }
 
 private const val ID_ANIMATED_SELECTOR_MODEL = "Select Transition..."
@@ -221,7 +223,7 @@ class AnimatedSelectorModel(
   originalFile: VirtualFile,
   parentDisposable: Disposable,
   project: Project,
-  facet: AndroidFacet,
+  buildTarget: BuildTargetReference,
   componentRegistrar: Consumer<NlComponent>,
   config: Configuration,
 ) {
@@ -239,7 +241,7 @@ class AnimatedSelectorModel(
       createModelWithFile(
         parentDisposable,
         project,
-        facet,
+        buildTarget,
         componentRegistrar,
         config,
         tempModelFile,
@@ -294,19 +296,19 @@ class AnimatedSelectorModel(
   private fun createModelWithFile(
     parentDisposable: Disposable,
     project: Project,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
     componentRegistrar: Consumer<NlComponent>,
     config: Configuration,
     file: VirtualFile,
   ): NlModel {
     val psiXmlFile = file.toPsiFile(project) as XmlFile
-    psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+    psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, buildTarget.module)
 
-    return NlModel.builder(parentDisposable, facet, file, config)
+    return NlModel.Builder(parentDisposable, buildTarget, file, config)
       .withComponentRegistrar(componentRegistrar)
-      .withModelUpdater(EmptyModelUpdater)
       .withXmlProvider { _, _ -> psiXmlFile }
       .build()
+      .apply { setModelUpdater(EmptyModelUpdater) }
   }
 
   private fun createTempAnimatedSelectorFile(): VirtualFile {

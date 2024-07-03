@@ -17,8 +17,8 @@ package com.android.tools.idea.preview.animation.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.SupportedAnimationManager.FrozenState
 import com.android.tools.idea.preview.animation.TimelinePanel
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /** A toggle action to freeze / unfreeze animation. */
 class FreezeAction(
   private val timelinePanel: TimelinePanel,
-  val state: MutableStateFlow<ElementState>,
+  private val frozenState: MutableStateFlow<FrozenState>,
   val tracker: AnimationTracker,
 ) :
   ToggleAction(
@@ -38,7 +38,7 @@ class FreezeAction(
   ) {
 
   override fun setSelected(e: AnActionEvent, frozen: Boolean) {
-    state.value = state.value.copy(frozen = frozen, frozenValue = timelinePanel.value)
+    frozenState.value = FrozenState(frozen, timelinePanel.value)
     if (frozen) {
       tracker.lockAnimation()
       e.presentation.text = message("animation.inspector.action.unfreeze")
@@ -49,7 +49,7 @@ class FreezeAction(
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return state.value.frozen
+    return frozenState.value.isFrozen
   }
 
   override fun update(e: AnActionEvent) {

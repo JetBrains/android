@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -133,8 +134,8 @@ class LayoutRendererTest {
   }
 }
 
-private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
-  StudioRenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
+private fun createRenderTaskForTest(buildTarget: BuildTargetReference, xmlFile: XmlFile, configuration: Configuration) =
+  StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()

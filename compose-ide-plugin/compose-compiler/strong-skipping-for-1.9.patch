@@ -1,0 +1,45 @@
+diff --git androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+index 581b526..91084e4 100644
+--- androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
++++ androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+@@ -159,6 +159,13 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+             allowMultipleOccurrences = false
+         )
+         val STRONG_SKIPPING_OPTION = CliOption(
++            "strongSkipping",
++            "<true|false>",
++            "Enable strong skipping mode",
++            required = false,
++            allowMultipleOccurrences = false
++        )
++        val EXPERIMENTAL_STRONG_SKIPPING_OPTION = CliOption(
+             "experimentalStrongSkipping",
+             "<true|false>",
+             "Enable experimental strong skipping mode",
+@@ -194,6 +201,7 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+         SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION,
+         DECOYS_ENABLED_OPTION,
+         STRONG_SKIPPING_OPTION,
++        EXPERIMENTAL_STRONG_SKIPPING_OPTION,
+         STABLE_CONFIG_PATH_OPTION,
+         TRACE_MARKERS_OPTION
+     )
+@@ -243,6 +251,18 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+             ComposeConfiguration.DECOYS_ENABLED_KEY,
+             value == "true"
+         )
++        EXPERIMENTAL_STRONG_SKIPPING_OPTION -> {
++            val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
++            msgCollector?.report(
++                CompilerMessageSeverity.WARNING,
++                "${EXPERIMENTAL_STRONG_SKIPPING_OPTION.optionName} is deprecated." +
++                " Use ${STRONG_SKIPPING_OPTION.optionName} instead."
++            )
++            configuration.put(
++                ComposeConfiguration.STRONG_SKIPPING_ENABLED_KEY,
++                value == "true"
++            )
++        }
+         STRONG_SKIPPING_OPTION -> configuration.put(
+             ComposeConfiguration.STRONG_SKIPPING_ENABLED_KEY,
+             value == "true"

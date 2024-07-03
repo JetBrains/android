@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
+import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -24,11 +25,13 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -37,6 +40,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
@@ -50,12 +54,17 @@ import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -134,7 +143,7 @@ interface ComposePreviewView : PreviewRepresentationView {
     progressIndicator: ProgressIndicator,
     onRenderCompleted: (Int) -> Unit,
     previewElementModelAdapter: ComposePreviewElementModelAdapter,
-    modelUpdater: NlModel.NlModelUpdaterInterface,
+    modelUpdater: NlModelUpdaterInterface,
     navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
@@ -472,7 +481,27 @@ internal class ComposePreviewViewImpl(
               message("panel.no.previews.defined"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              null,
+              StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
+                ActionData(message("action.generate.previews.for.file")) {
+                  val psiFile = psiFilePointer.element ?: return@ActionData
+                  val selectedEditor =
+                    (FileEditorManager.getInstance(psiFile.project).selectedEditor
+                        as? TextEditorWithPreview)
+                      ?.editor ?: return@ActionData
+                  val simpleContext =
+                    SimpleDataContext.builder()
+                      .add(CommonDataKeys.PSI_FILE, psiFile)
+                      .add(CommonDataKeys.EDITOR, selectedEditor)
+                      .build()
+                  ActionUtil.invokeAction(
+                    GenerateComposePreviewsForFileAction(),
+                    simpleContext,
+                    ActionPlaces.UNKNOWN,
+                    null,
+                    null,
+                  )
+                }
+              },
             )
           }
         }

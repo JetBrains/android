@@ -165,7 +165,7 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
   public void testResizeTargetOutOfLayout() throws Exception {
     // First move the TextView to the right such that the right half is outside the layout.
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-      NlComponent component = myModel.find("myText");
+      NlComponent component = myModel.getTreeReader().find("myText");
       assertThat(component).isNotNull();
       component.setAndroidAttribute(ATTR_LAYOUT_X, "950dp");
       NlComponentHelperKt.setBounds(component, 1900, 200, 200, 200);

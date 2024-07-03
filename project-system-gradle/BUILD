@@ -115,10 +115,12 @@ iml_module(
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
+            "tags": ["cpu:4"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
         "errors.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.errors.integration",
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -128,6 +130,8 @@ iml_module(
         },
         "providers.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase",
+            "tags": ["cpu:4"],
+            "shard_count": 2,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -139,6 +143,7 @@ iml_module(
         # indexing off elsewhere by masking the KotlinScriptWorkspaceFileIndexContributor extension, but it has to stay on here.
         "kts.highlighting": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.highlighting.GradleKtsResolveSymbolsTest",
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -148,12 +153,14 @@ iml_module(
         },
         "runs_gradle": {
             "test_filter": ".runsGradle",
+            "tags": ["cpu:4"],
             "shard_count": 15,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//prebuilts/studio/jdk:jdk21",
             ],
         },
         "other": {
@@ -162,7 +169,6 @@ iml_module(
             "data": [],
         },
     },
-    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
         ":test_deps",
@@ -182,8 +188,8 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "cpu:3",
         "no_test_mac",
+        "no_test_windows",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
@@ -335,6 +341,7 @@ maven_repository(
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
+        "@maven//:com.google.android.gms.play-services-ads_9.8.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",

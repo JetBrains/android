@@ -20,6 +20,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -49,7 +50,7 @@ class ComposeScreenViewProvidersTest {
     val model =
       withContext(uiThread) {
         NlModelBuilderUtil.model(
-            projectRule.module.androidFacet!!,
+            BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             projectRule.fixture,
             SdkConstants.FD_RES_LAYOUT,
             "model.xml",

@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.animation.timeline
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.Transition
 import com.intellij.openapi.util.Disposer
 
@@ -25,14 +26,14 @@ import com.intellij.openapi.util.Disposer
 class TransitionCurve
 private constructor(
   offsetPx: Int,
-  frozenValue: Int?,
+  frozenState: SupportedAnimationManager.FrozenState,
   private val propertyCurves: List<PropertyCurve>,
-) : ParentTimelineElement(offsetPx, frozenValue, propertyCurves) {
+) : ParentTimelineElement(offsetPx, frozenState, propertyCurves) {
 
   companion object {
     fun create(
       offsetPx: Int,
-      frozenValue: Int?,
+      frozenState: SupportedAnimationManager.FrozenState,
       transition: Transition,
       rowMinY: Int,
       positionProxy: PositionProxy,
@@ -51,11 +52,11 @@ private constructor(
       val curves =
         properties.filterNotNull().mapIndexed { index, it ->
           val curve =
-            PropertyCurve.create(offsetPx, frozenValue, it, currentMinY, index, positionProxy)
+            PropertyCurve.create(offsetPx, frozenState, it, currentMinY, index, positionProxy)
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(offsetPx, frozenValue, curves).also {
+      return TransitionCurve(offsetPx, frozenState, curves).also {
         curves.forEach { curve -> Disposer.register(it, curve) }
       }
     }

@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat.message
 
 /** TODO */
 import com.android.processmonitor.monitor.ProcessNameMonitor
-import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import java.time.Instant
@@ -115,16 +114,7 @@ internal class LogcatHeaderParser(
    * @return the log level corresponding to the priority. If the argument is not one of the expected
    *   letters returns LogLevel.WARN.
    */
-  private fun parsePriority(string: String): LogLevel {
-    val priority = LogLevel.getByLetter(string)
-    if (priority != null) {
-      return priority
-    }
-    if (string != "F") {
-      return WARN
-    }
-    return ASSERT
-  }
+  private fun parsePriority(string: String) = LogLevel.getByLetter(string) ?: WARN
 }
 
 private fun MatchResult.getEpochTimestamp(): Instant {

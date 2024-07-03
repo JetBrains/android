@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.AndroidXConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
@@ -30,7 +31,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
@@ -68,7 +68,6 @@ import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -308,7 +307,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           mySelectionIsUpdating.set(true);
 
           // TODO b/157095734 resolve multi-selection in motion layout
-          getSelectionModel().setSelectionMode(MotionUtils.getTreeSelectionModel(myModel));
+          int selectionModel = myModel.getTreeReader().getComponents().isEmpty() ||
+                               !NlComponentHelperKt.isOrHasSuperclass(myModel.getTreeReader().getComponents().get(0), AndroidXConstants.MOTION_LAYOUT)
+                               ? TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
+                               : TreeSelectionModel.SINGLE_TREE_SELECTION;
+          getSelectionModel().setSelectionMode(selectionModel);
 
           List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
           Object oldRoot = treeModel.getRoot();

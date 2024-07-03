@@ -18,5 +18,7 @@ package com.android.tools.idea.res
 import com.android.ide.common.resources.ResourceUpdateTracerService
 
 class IJResourceUpdateTracerService : ResourceUpdateTracerService() {
-  override fun dumpTrace(message: String?) = ResourceUpdateTracer.dumpTrace(message)
+  override fun dumpTrace(message: String?) {
+    ResourceUpdateTracer.getInstance().dumpTrace(message)
+  }
 }

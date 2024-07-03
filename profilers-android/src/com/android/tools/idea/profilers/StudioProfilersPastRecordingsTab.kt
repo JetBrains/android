@@ -24,5 +24,5 @@ import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabMod
  * A tab in the Profiler tool window, wrapping a [StudioProfilersPastRecordingsTabView].
  */
 class StudioProfilersPastRecordingsTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val view = StudioProfilersPastRecordingsTabView(PastRecordingsTabModel(profilers), ideProfilerComponents)
+  val view = StudioProfilersPastRecordingsTabView(profilers.pastRecordingsTabModel, ideProfilerComponents)
 }

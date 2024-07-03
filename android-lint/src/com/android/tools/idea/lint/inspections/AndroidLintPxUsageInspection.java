@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix;
+import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.lint.checks.PxUsageDetector;
+import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintPxUsageInspection extends AndroidLintInspectionBase {
@@ -29,7 +31,7 @@ public class AndroidLintPxUsageInspection extends AndroidLintInspectionBase {
 
   @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
-    return new LintIdeQuickFix[]{new ConvertToDpQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{ new ModCommandLintQuickFix(new ConvertToDpQuickFix(startElement))};
   }
 }

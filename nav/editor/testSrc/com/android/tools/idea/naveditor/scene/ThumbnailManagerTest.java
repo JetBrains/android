@@ -30,7 +30,6 @@ import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.scale.ScaleContext;
@@ -70,17 +69,12 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     Image image = imageFuture.getTerminalImage();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
-    assertSame(image, imageFuture.getTerminalImage());
-
-    // We should survive psi reparse
-    psiFile.clearCaches();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
 
@@ -99,6 +93,10 @@ public class ThumbnailManagerTest extends NavTestCase {
     image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
+
+    model.getConfiguration().setFontScale(0.8f);
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
+    assertNotSame(image, imageFuture.getTerminalImage());
   }
 
   public void testOldVersion() throws Exception {
@@ -130,7 +128,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -143,7 +141,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     inProgressCheckDone.acquire();
     taskStarted.acquire();
 
-    ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
+    psiFile.clearCaches();
 
     RefinableImage image = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200), scaleContext);
     taskStarted.acquire();
@@ -179,7 +177,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -203,7 +201,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();

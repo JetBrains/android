@@ -12,6 +12,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 

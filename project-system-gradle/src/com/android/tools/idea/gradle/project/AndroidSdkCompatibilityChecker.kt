@@ -40,7 +40,8 @@ class AndroidSdkCompatibilityChecker {
 
   fun checkAndroidSdkVersion(importedModules: Collection<DataNode<GradleAndroidModelData>>,
                              project: Project,
-                             serverFlag: MutableMap<String, RecommendedVersions>?) {
+                             serverFlag: MutableMap<String, RecommendedVersions>?,
+                             maxRecommendedCompileSdk: AndroidVersion = MAX_RECOMMENDED_COMPILE_SDK_VERSION) {
     if (StudioUpgradeReminder(project).shouldAsk().not()) return
 
     val modulesViolatingSupportRules = importedModules.mapNotNull {
@@ -50,7 +51,7 @@ class AndroidSdkCompatibilityChecker {
       val compileTargetSdk: String = androidProject.compileTarget
       val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
       return@mapNotNull version?.let { sdkVersion ->
-        if (sdkVersion.compareTo(MAX_RECOMMENDED_COMPILE_SDK_VERSION.apiLevel, MAX_RECOMMENDED_COMPILE_SDK_VERSION.codename) > 0) {
+        if (sdkVersion.compareTo(maxRecommendedCompileSdk.apiLevel, maxRecommendedCompileSdk.codename) > 0) {
           Pair(moduleName, sdkVersion)
         } else {
           null

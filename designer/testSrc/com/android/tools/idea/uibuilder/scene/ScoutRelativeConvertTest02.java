@@ -162,9 +162,9 @@ public class ScoutRelativeConvertTest02 extends SceneTest {
                  "</LinearLayout>\n" +
                  "\n" +
                  "</RelativeLayout>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), () -> {
-      ScoutDirectConvert.directProcess(myModel.getComponents().get(0));
+      ScoutDirectConvert.directProcess(myModel.getTreeReader().getComponents().get(0));
     });
     myScreen.get("@+id/content_main")
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

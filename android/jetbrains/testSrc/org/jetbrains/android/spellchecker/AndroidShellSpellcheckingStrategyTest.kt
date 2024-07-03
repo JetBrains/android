@@ -37,8 +37,7 @@ class AndroidShellSpellcheckingStrategyTest : AndroidTestCase() {
     myFixture.checkHighlighting(true, false, false)
   }
 
-  // TODO(b/232037999): Re-enable this test when flakiness is fixed.
-  fun ignoreTestNotIgnoredShellScript() {
+  fun testNotIgnoredShellScript() {
     val typosScript = myFixture.copyFileToProject("spellchecker/gradlew", "typos")
     myFixture.configureFromExistingVirtualFile(typosScript)
     val highlightingResults = myFixture.doHighlighting()

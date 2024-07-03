@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -50,8 +48,6 @@ class ToggleLayoutInspectorAction :
   ),
   TooltipDescriptionProvider,
   TooltipLinkProvider {
-
-  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {

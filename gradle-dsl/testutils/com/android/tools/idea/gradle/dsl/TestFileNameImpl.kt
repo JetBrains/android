@@ -152,6 +152,7 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED("viewBindingModel/editElementsExpected"),
   VIEW_BINDING_MODEL_ADD_ELEMENTS("viewBindingModel/addElements"),
   VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED("viewBindingModel/addElementsExpected"),
+  VIEW_BINDING_MODEL_ADD_ELEMENTS_800_EXPECTED("viewBindingModel/addElements800Expected"),
   VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING("viewBindingModel/addElementsFromExisting"),
   VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED("viewBindingModel/addElementsFromExistingExpected"),
   VIEW_BINDING_MODEL_REMOVE_ELEMENTS("viewBindingModel/removeElements"),

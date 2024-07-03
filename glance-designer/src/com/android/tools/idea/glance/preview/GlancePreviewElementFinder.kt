@@ -23,6 +23,8 @@ import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.preview.buildPreviewName
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
@@ -35,10 +37,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
+import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 
 private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
-private const val GLANCE_PREVIEW_ANNOTATION_FQN =
+internal const val GLANCE_PREVIEW_ANNOTATION_FQN =
   "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 
 /** Returns true if this [UAnnotation] is a Glance @Preview annotation. */
@@ -46,6 +49,10 @@ private fun isGlancePreview(annotation: UAnnotation) =
   ReadAction.compute<Boolean, Throwable> {
     GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
   }
+
+/** Returns true if the [UElement] is a `@Preview` annotation */
+private fun UElement?.isGlancePreviewAnnotation() =
+  (this as? UAnnotation)?.let { isGlancePreview(it) } == true
 
 @Slow
 private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
@@ -56,7 +63,14 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
 
   val uClass = uMethod.uastParent as UClass
   val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
-  val displaySettings = PreviewDisplaySettings(uMethod.name, null, false, false, null)
+  val displaySettings =
+    PreviewDisplaySettings(
+      buildPreviewName(uMethod.name, nameParameter = null, UElement?::isGlancePreviewAnnotation),
+      null,
+      false,
+      false,
+      null,
+    )
   val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
   val widthDp =
     annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int
@@ -66,7 +80,7 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
       ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
   return GlancePreviewElement(
     displaySettings,
-    annotation.toSmartPsiPointer(),
+    (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer(),
     uMethod.uastBody.toSmartPsiPointer(),
     methodFqn,
     PreviewConfiguration.cleanAndGet(width = widthDp, height = heightDp),
@@ -104,3 +118,12 @@ open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePrevie
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
 object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
+
+/**
+ * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
+ * annotation that is annotated with @Preview or with other MultiPreview.
+ */
+fun isMultiPreviewAnnotation(annotation: UAnnotation) =
+  !isGlancePreview(annotation) &&
+    annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&
+    annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null

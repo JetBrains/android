@@ -22,8 +22,6 @@ import com.android.tools.idea.compose.preview.animation.getAnimatedVisibilitySta
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -35,11 +33,10 @@ class AnimatedVisibilityAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   timelinePanel: TimelinePanel,
-  sceneManager: LayoutlibSceneManager?,
+  executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
-  resetCallback: suspend (Boolean) -> Unit,
   updateTimelineElementsCallback: suspend () -> Unit,
   scope: CoroutineScope,
 ) :
@@ -50,50 +47,27 @@ class AnimatedVisibilityAnimationManager(
     animationClock,
     maxDurationPerIteration,
     timelinePanel,
-    sceneManager,
+    executeInRenderSession,
     tabbedPane,
     rootComponent,
     playbackControls,
-    resetCallback,
     updateTimelineElementsCallback,
     scope,
   ) {
 
-  /**
-   * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation,
-   * and resets the timeline
-   */
-  override suspend fun setup() {
-    stateComboBox.updateStates(animation.states)
-    // Update the animated visibility combo box with the correct initial state, obtained from
-    // PreviewAnimationClock.
-    var state: Any? = null
-    sceneManager?.executeInRenderSession(useLongTimeout = true) {
+  override suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
+    executeInRenderSession(true) {
       // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
       // calling `getAnimatedVisibilityState`
       // via reflection will return a String rather than an AnimatedVisibilityState. To work
       // around that, we select the initial combo
       // box item by checking the display value.
-      state =
+      val state =
         animationClock.getAnimatedVisibilityState(animation).let { loadedState ->
           animation.states.firstOrNull { it.toString() == loadedState.toString() }
         }
+      val finalState = state ?: animation.states.firstOrNull()
+      animationState.setStartState(finalState)
     }
-
-    stateComboBox.setStartState(state ?: animation.states.firstOrNull())
-
-    // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
-    // we're running off EDT, the UI will not
-    // freeze. This is necessary here because it's the first time the animation mutable states
-    // will be written, when setting the clock,
-    // and read, when getting its duration. These operations take longer than the default 30ms
-    // timeout the first time they're executed.
-    updateAnimatedVisibility(longTimeout = true)
-    loadTransitionFromCacheOrLib(longTimeout = true)
-    loadProperties()
-
-    // Set up the combo box listener so further changes to the selected state will trigger a
-    // call to updateAnimatedVisibility.
-    stateComboBox.callbackEnabled = true
   }
 }

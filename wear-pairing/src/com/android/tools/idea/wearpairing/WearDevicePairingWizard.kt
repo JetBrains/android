@@ -47,48 +47,57 @@ class WearDevicePairingWizard {
   @Synchronized
   private fun show(project: Project?, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {
-      window?.toFront()  // We already have a dialog, just bring it to the front and return
+      window?.toFront() // We already have a dialog, just bring it to the front and return
       return@show
     }
 
-    val wizardAction = object : WizardAction {
-      override fun closeAndStartAvd(project: Project?) {
-        wizardDialog?.close(CANCEL_EXIT_CODE)
+    val wizardAction =
+      object : WizardAction {
+        override fun closeAndStartAvd(project: Project?) {
+          wizardDialog?.close(CANCEL_EXIT_CODE)
 
-        if (project == null) {
-          val actionId =
-            if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) "WelcomeScreen.RunDeviceManager2"
-            else "WelcomeScreen.RunDeviceManager"
-          ActionManager.getInstance().getAction(actionId).actionPerformed(
-            AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
-          )
-        }
-        else {
-          val actionId =
+          if (project == null) {
+            val actionId =
               if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get())
-                "Android.DeviceManager2" // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
-              else "Android.DeviceManager" // from com.android.tools.idea.devicemanager.DeviceManagerAction
-          val deviceManagerAction = ActionManager.getInstance().getAction(actionId)
-          val projectContext = SimpleDataContext.getProjectContext(project)
-          ActionUtil.invokeAction(deviceManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
+                "WelcomeScreen.RunDeviceManager2"
+              else "WelcomeScreen.RunDeviceManager"
+            ActionManager.getInstance()
+              .getAction(actionId)
+              .actionPerformed(
+                AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
+              )
+          } else {
+            val actionId =
+              if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) "Android.DeviceManager2" // from
+              // com.android.tools.idea.devicemanagerv2.DeviceManager2Action
+              else "Android.DeviceManager" // from
+            // com.android.tools.idea.devicemanager.DeviceManagerAction
+            val deviceManagerAction = ActionManager.getInstance().getAction(actionId)
+            val projectContext = SimpleDataContext.getProjectContext(project)
+            ActionUtil.invokeAction(
+              deviceManagerAction,
+              projectContext,
+              ActionPlaces.UNKNOWN,
+              null,
+              null,
+            )
+          }
+        }
+
+        override fun restart(project: Project?) {
+          wizardDialog?.close(CANCEL_EXIT_CODE)
+          show(project, selectedDevice)
         }
       }
-
-      override fun restart(project: Project?) {
-        wizardDialog?.close(CANCEL_EXIT_CODE)
-        show(project, selectedDevice)
-      }
-    }
 
     val model = WearDevicePairingModel()
     when (selectedDevice?.isWearDevice) {
       true -> model.selectedWearDevice.setNullableValue(selectedDevice)
       false -> model.selectedPhoneDevice.setNullableValue(selectedDevice)
-      null -> { }
+      null -> {}
     }
-    val modelWizard = ModelWizard.Builder()
-      .addStep(DeviceListStep(model, project, wizardAction))
-      .build()
+    val modelWizard =
+      ModelWizard.Builder().addStep(DeviceListStep(model, project, wizardAction)).build()
 
     // Remove the dialog reference when the dialog is disposed (closed).
     Disposer.register(modelWizard) { wizardDialog = null }
@@ -96,14 +105,15 @@ class WearDevicePairingWizard {
     WearPairingManager.getInstance().setDeviceListListener(model, wizardAction)
 
     val modality = if (EmulatorSettings.getInstance().launchInToolWindow) MODELESS else IDE
-    wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
-      .setProject(project)
-      .setHelpUrl(URL(WEAR_DOCS_LINK))
-      .setModalityType(modality)
-      .setCancellationPolicy(ALWAYS_CAN_CANCEL)
-      .setPreferredSize(JBUI.size(560, 420))
-      .setMinimumSize(JBUI.size(400, 250))
-      .build(SimpleStudioWizardLayout())
+    wizardDialog =
+      StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
+        .setProject(project)
+        .setHelpUrl(URL(WEAR_DOCS_LINK))
+        .setModalityType(modality)
+        .setCancellationPolicy(ALWAYS_CAN_CANCEL)
+        .setPreferredSize(JBUI.size(560, 420))
+        .setMinimumSize(JBUI.size(400, 250))
+        .build(SimpleStudioWizardLayout())
 
     wizardDialog?.show()
   }
@@ -111,17 +121,18 @@ class WearDevicePairingWizard {
   @UiThread
   fun show(project: Project?, selectedDeviceId: String?) {
     object : Task.Modal(project, message("wear.assistant.device.connection.balloon.link"), true) {
-      var selectedDevice: PairingDevice? = null
+        var selectedDevice: PairingDevice? = null
 
-      override fun run(indicator: ProgressIndicator) {
-        if (selectedDeviceId != null) {
-          selectedDevice = WearPairingManager.getInstance().findDevice(selectedDeviceId)
+        override fun run(indicator: ProgressIndicator) {
+          if (selectedDeviceId != null) {
+            selectedDevice = WearPairingManager.getInstance().findDevice(selectedDeviceId)
+          }
+        }
+
+        override fun onFinished() {
+          show(project, selectedDevice)
         }
       }
-
-      override fun onFinished() {
-        show(project, selectedDevice)
-      }
-    }.queue()
+      .queue()
   }
 }

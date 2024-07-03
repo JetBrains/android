@@ -18,6 +18,8 @@
 
 #include <android/input.h>
 
+#include <string>
+
 #include "jvm.h"
 
 namespace screensharing {
@@ -32,15 +34,18 @@ enum class InputEventInjectionSync : int32_t {
 // Provides access to the android.hardware.input.IInputManager.injectInputEvent method.
 class InputManager {
 public:
-  static void InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode);
+  // Injects an input event. May throw a Java exception if it fails.
+  static bool InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode);
+  static void AddPortAssociation(Jni jni, const std::string& input_port, int32_t display_id);
+  static void RemovePortAssociation(Jni jni, const std::string& input_port);
 
 private:
-  InputManager(Jni jni);
-  ~InputManager();
-  static InputManager& GetInstance(Jni jni);
+  static void InitializeStatics(Jni jni);
 
-  JObject input_manager_;
-  jmethodID inject_input_event_method_;
+  static JObject input_manager_;
+  static jmethodID inject_input_event_method_;
+  static jmethodID add_port_association_method_;
+  static jmethodID remove_port_association_method_;
 };
 
 }  // namespace screensharing

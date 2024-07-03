@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 import intellij
 import mkspec
 from collections import defaultdict
+from pathlib import Path
 
 ALL = "all"
 LINUX = "linux"
@@ -117,7 +118,7 @@ def update_files(workspace, version, mac_bundle_name):
 
   ides = {}
   for platform in PLATFORMS:
-    ides[platform] = intellij.IntelliJ.create(platform, f'{workspace}{sdk}/{platform}/android-studio')
+    ides[platform] = intellij.IntelliJ.create(platform, Path(f'{workspace}{sdk}/{platform}/android-studio'))
 
   write_xml_files(workspace, sdk, ides)
   mkspec.write_spec_file(workspace + sdk + "/spec.bzl", mac_bundle_name, ides)

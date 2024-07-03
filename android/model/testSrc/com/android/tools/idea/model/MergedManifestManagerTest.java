@@ -19,6 +19,8 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.resources.ScreenSize.LARGE;
 import static com.android.resources.ScreenSize.NORMAL;
 import static com.android.resources.ScreenSize.XLARGE;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.xml.XmlFormatPreferences;
@@ -341,6 +343,106 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest2", supplier.getNow().getPackage());
   }
 
+  public void testUnparsableManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                                    "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                                    "    <uses-permission\n" +
+                                                    "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                                    "    <permission\n" +
+                                                    "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                                    "        android:protectionLevel=\"dangerous\" />\n" +
+                                                    "</manifest>\n";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$ParsingError"));
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testUnparsableApplicationManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "  package='com.example' android:enabled='true'>\n" +
+                                                    "  <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>\n" +
+                                                    "    <  > />" +
+                                                    "</manifest>";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    // still want MergedManifestException to be internal class so compare names here
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$ParsingError"));
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testMissingAttributeApplicationManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                                    // missing package
+                                                    "    <application android:label=\"MinApp\">\n" +
+                                                    "        <activity android:name=\".MainActivity\" android:exported=\"true\">\n" +
+                                                    "            <intent-filter>\n" +
+                                                    "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+                                                    "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+                                                    "            </intent-filter>\n" +
+                                                    "        </activity>\n" +
+                                                    "    </application>\n" +
+                                                    "</manifest>";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$MissingAttribute"));
+
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testCachingWithBadManifest() throws Exception {
+    @Language("xml")
+    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                   " $placeholder$ " +
+                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                   "    <uses-permission\n" +
+                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                   "    <permission\n" +
+                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                   "        android:protectionLevel=\"dangerous\" />\n" +
+                                   "</manifest>\n";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    // We've never loaded a snapshot so that must return null
+    assertNull(supplier.getNow());
+
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertNull(supplier.getNow().getPackage());
+    assertEquals(supplier.getNow(), supplier.getNow()); // check that cache works for failed try
+    assertFalse(supplier.getNow().isValid());
+    assertNotNull(supplier.getNow().getException());
+
+
+    // check failed to failed
+    updateManifestContents(originalContent.replace("unittest", "unittest2"));
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertNull(supplier.getNow().getPackage());
+
+    // check failed to merged
+    updateManifestContents(originalContent.replace("$placeholder$", " package='com.android.unittest'>"));
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertEquals("com.android.unittest", supplier.getNow().getPackage());
+    assertNull(supplier.getNow().getException());
+  }
+
   public void testNamespaceAndApplicationIdFromProjectSystem() throws Exception {
 
     TestProjectSystem projectSystem = new TestProjectSystem(getProject());
@@ -479,8 +581,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     }
 
     @Override
-    @NotNull
-    public Path[] getSkins() {
+    public List<Path> getSkins() {
       return null;
     }
 

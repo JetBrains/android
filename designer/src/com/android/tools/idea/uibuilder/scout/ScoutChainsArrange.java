@@ -39,15 +39,10 @@ import static com.android.SdkConstants.*;
 public class ScoutChainsArrange {
   private List<NlComponent> myChain = new ArrayList<>();
   private boolean myVertical = false;
-  private String attr_a_to_a = myVertical ? ATTR_LAYOUT_TOP_TO_TOP_OF : ATTR_LAYOUT_START_TO_START_OF;
-  private String attr_a_to_b = myVertical ? ATTR_LAYOUT_TOP_TO_BOTTOM_OF : ATTR_LAYOUT_START_TO_END_OF;
-  private String attr_b_to_a = myVertical ? ATTR_LAYOUT_BOTTOM_TO_TOP_OF : ATTR_LAYOUT_END_TO_START_OF;
-  private String attr_b_to_b = myVertical ? ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF : ATTR_LAYOUT_END_TO_END_OF;
-  private String myHeadType; // a_to_a or a_to_b
-  private String myTailType; // b_to_a or b_to_b
-
-  private String myHeadID; // where the head (top/left) of the myChain connects to
-  private String myTailID; // where the tail (bottom/right) of the myChain connects to
+  private String attr_a_to_a = ATTR_LAYOUT_START_TO_START_OF;
+  private String attr_a_to_b = ATTR_LAYOUT_START_TO_END_OF;
+  private String attr_b_to_a = ATTR_LAYOUT_END_TO_START_OF;
+  private String attr_b_to_b = ATTR_LAYOUT_END_TO_END_OF;
 
   private void setVertical(boolean vertical) {
     myVertical = vertical;
@@ -74,14 +69,12 @@ public class ScoutChainsArrange {
     while (c != null) {
       String belowString = getAttr(c, attr_b_to_a);
       if (belowString == null) {
-        myTailType = attr_b_to_b; // if attr_b_to_a is null must be b_to_b which means end of myChain
-        myTailID = getAttr(c, attr_b_to_b);
+        // if attr_b_to_a is null must be b_to_b which means end of myChain
         break;
       }
       NlComponent next_c = get(c, attr_b_to_a);
       if (c != get(next_c, attr_a_to_b)) {
-        myTailType = attr_b_to_a; // if next does not point to me end of myChain
-        myTailID = belowString;
+        // if next does not point to me end of myChain
         break;
       }
       c = next_c;
@@ -100,14 +93,10 @@ public class ScoutChainsArrange {
     while (true) {
       String aboveString = getAttr(c, attr_a_to_b);
       if (aboveString == null) {
-        myHeadID = getAttr(c, attr_a_to_a);
-        myHeadType = attr_a_to_a;
         return c;
       }
       NlComponent above = getComponent(c, aboveString);
       if (c != get(above, attr_b_to_a)) {
-        myHeadType = attr_a_to_b;
-        myHeadID = aboveString;
         return c;
       }
       c = above;

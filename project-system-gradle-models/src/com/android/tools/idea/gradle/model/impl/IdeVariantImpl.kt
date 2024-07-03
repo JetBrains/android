@@ -60,7 +60,8 @@ data class IdeVariantCoreImpl(
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
   override val deprecatedPreMergedTestApplicationId: String?,
-  override val desugaredMethodsFiles: Collection<File>
+  override val desugaredMethodsFiles: Collection<File>,
+  override val experimentalProperties: Map<String, String>
 ) : IdeVariantCore, Serializable
 
 data class IdeVariantImpl(

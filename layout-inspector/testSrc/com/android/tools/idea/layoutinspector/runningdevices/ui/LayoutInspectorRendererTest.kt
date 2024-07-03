@@ -96,7 +96,7 @@ class LayoutInspectorRendererTest {
 
   private lateinit var sessionStats: SessionStatisticsImpl
 
-  private val treeSettings = FakeTreeSettings()
+  private val treeSettings = FakeTreeSettings(showRecompositions = false)
   private val renderSettings = FakeRenderSettings()
 
   private val disposable: Disposable

@@ -46,8 +46,8 @@ class ActivateSelectionActionTest : NavTestCase() {
     action.actionPerformed(event)
     verify(spy, never()).notifyComponentActivate(any())
 
-    val nested = model.find("nested")!!
-    val fragment = model.find("fragment")!!
+    val nested = model.treeReader.find("nested")!!
+    val fragment = model.treeReader.find("fragment")!!
 
     surface.selectionModel.setSelection(listOf(nested, fragment))
     action.actionPerformed(event)

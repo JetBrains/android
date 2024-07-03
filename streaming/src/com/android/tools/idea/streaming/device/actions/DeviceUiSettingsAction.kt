@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
@@ -49,14 +50,15 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val project = event.project ?: return
     val deviceController = getDeviceController(event) ?: return
     val config = getDeviceConfig(event) ?: return
+    val deviceType = config.deviceProperties.deviceType ?: DeviceType.HANDHELD
     val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
     val density = config.deviceProperties.density ?: return
-    val model = UiSettingsModel(screenSize, density, config.apiLevel)
-    val controller = DeviceUiSettingsController(deviceController, config, project, model)
+    val model = UiSettingsModel(screenSize, density, config.apiLevel, deviceType)
+    val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, showResetButton = false, isWear = config.isWatch)
+        val panel = UiSettingsPanel(model, deviceType)
         showUiSettingsPopup(panel, this@DeviceUiSettingsAction, event, deviceView)
       }
     }

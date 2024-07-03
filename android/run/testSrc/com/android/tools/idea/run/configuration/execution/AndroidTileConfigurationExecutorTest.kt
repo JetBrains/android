@@ -29,8 +29,8 @@ import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
@@ -100,7 +100,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -174,7 +174,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -224,7 +224,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -293,7 +293,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {

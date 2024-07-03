@@ -29,6 +29,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.KotlinCompilerCrash;
+import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -139,7 +141,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     if (data instanceof ErrorReportCustomizer) {
       feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
-      Map<String, String> errorDataMap = getPlatformErrorData(bean);
+      Map<String, String> errorDataMap = getPlatformErrorData(event, bean);
       feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), errorDataMap, successCallback, errorCallback);
     }
 
@@ -228,7 +230,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
       mapBuilder.put(e.getKey().toString(), e.getValue().toString());
     }
 
-    Map<String, String> platformMap = getPlatformErrorData(bean);
+    Map<String, String> platformMap = getPlatformErrorData(loggingEvent, bean);
     for (Entry<String, String> e : platformMap.entrySet()) {
       mapBuilder.put(e.getKey(), e.getValue());
     }
@@ -279,7 +281,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
   }
 
   @NotNull
-  private static Map<String, String> getPlatformErrorData(ErrorBean bean) {
+  private static Map<String, String> getPlatformErrorData(@NotNull IdeaLoggingEvent loggingEvent, @NotNull ErrorBean bean) {
     List<Pair<String, String>> keyValuePairs = IdeaITNProxy
       .getKeyValuePairs(
         null,
@@ -296,6 +298,13 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
         builder.put(p.first, p.second);
       }
     }
+
+    // Record the Kotlin Gradle plugin version where the crash occurred (see b/268521501)
+    KotlinCompilerCrash kotlinCompilerCrash = getKotlinCompilerCrashOrNull(loggingEvent);
+    if (kotlinCompilerCrash != null) {
+      builder.put("kotlinGradlePluginVersion", kotlinCompilerCrash.getVersion());
+    }
+
     return builder.build();
   }
 
@@ -307,4 +316,18 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
 
     return false;
   }
+
+  @Nullable
+  private static KotlinCompilerCrash getKotlinCompilerCrashOrNull(@NotNull IdeaLoggingEvent loggingEvent) {
+    KotlinCompilerCrash kotlinCompilerCrash = null;
+    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash) {
+      kotlinCompilerCrash = (KotlinCompilerCrash)loggingEvent.getThrowable();
+    }
+    else if (loggingEvent.getData() instanceof LogMessage &&
+             ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
+      kotlinCompilerCrash = (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    }
+    return kotlinCompilerCrash;
+  }
+
 }

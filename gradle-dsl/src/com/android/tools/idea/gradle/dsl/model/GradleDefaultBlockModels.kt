@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel
+import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsMode
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
+import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
@@ -43,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
@@ -72,6 +75,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslF
       "dependencies" to DependenciesDslElement.DEPENDENCIES,
       "ext" to ExtDslElement.EXT,
       "java" to JavaDslElement.JAVA,
+      "kotlin" to KotlinDslElement.KOTLIN,
       "repositories" to RepositoriesDslElement.REPOSITORIES,
       "subprojects" to SubProjectsDslElement.SUBPROJECTS,
       "plugins" to PluginsDslElement.PLUGINS)
@@ -120,6 +124,10 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslF
 
       JavaModel::class.java from {
         JavaModelImpl(it.ensurePropertyElement(JavaDslElement.JAVA))
+      },
+
+      KotlinModel::class.java from {
+        KotlinModelImpl(it.ensurePropertyElement(KotlinDslElement.KOTLIN))
       },
 
       RepositoriesModel::class.java from {

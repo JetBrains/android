@@ -78,14 +78,14 @@ class ComposeStatisticsTest {
     compose.recompositionHighlightColor = HIGHLIGHT_COLOR_RED
     compose.frameReceived()
     compose.frameReceived()
-    compose.updateRecompositionStats(RecompositionData(12, 33, 2.1f), 2.1f)
-    compose.updateRecompositionStats(RecompositionData(34, 51, 1.1f), 5.1f)
+    compose.updateRecompositionStats(RecompositionData(12, 33, 51, 2.1f), 2.1f)
+    compose.updateRecompositionStats(RecompositionData(34, 51, 0, 1.1f), 5.1f)
     compose.resetRecompositionCountsClick()
     compose.resetRecompositionCountsClick()
     compose.recompositionHighlightColor = HIGHLIGHT_COLOR_ORANGE
     compose.frameReceived()
-    compose.updateRecompositionStats(RecompositionData(5, 10, 1.1f), 1.1f)
-    compose.updateRecompositionStats(RecompositionData(17, 103, 4.1f), 9.1f)
+    compose.updateRecompositionStats(RecompositionData(5, 10, 103, 1.1f), 1.1f)
+    compose.updateRecompositionStats(RecompositionData(17, 103, 0, 4.1f), 9.1f)
     val data = DynamicLayoutInspectorCompose.newBuilder()
     compose.save { data }
     assertThat(data.maxRecompositionCount).isEqualTo(34)

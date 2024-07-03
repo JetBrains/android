@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
@@ -37,14 +35,11 @@ class AddBenchmarkModuleTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
-
   @Before
   @Throws(java.lang.Exception::class)
   fun setUp() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful).isTrue()
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(300)).isBuildSuccessful).isTrue()
 
     //Clearing notifications present on the screen.
     ideFrame.clearNotificationsPresentOnIdeFrame()
@@ -81,7 +76,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
 
     guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
@@ -127,7 +122,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
 
     guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
       assertThat(this).contains("""android:debuggable="false"""")
@@ -176,7 +171,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)
       .setSourceLanguage(Java)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml")
 
@@ -222,7 +217,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)
       .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml")
 

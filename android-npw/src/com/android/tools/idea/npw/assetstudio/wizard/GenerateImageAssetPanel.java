@@ -61,6 +61,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
@@ -208,7 +210,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
-    DrawableRenderer renderer = new DrawableRenderer(facet);
+    // NOTE: `res` folder should work fine with project systems to represent a specific target.
+    VirtualFile targetFile = Objects.requireNonNull(VfsUtil.findFileByIoFile(resFolder, false));
+    DrawableRenderer renderer = new DrawableRenderer(facet, targetFile);
     Disposer.register(this, renderer);
     for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view;

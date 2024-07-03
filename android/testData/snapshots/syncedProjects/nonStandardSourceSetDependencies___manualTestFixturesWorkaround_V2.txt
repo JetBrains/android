@@ -69,8 +69,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -127,10 +125,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -239,10 +233,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -348,8 +338,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -894,8 +882,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -950,10 +936,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-a/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-a/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-a/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1104,10 +1086,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-a/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-a/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-a/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1233,8 +1211,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1382,8 +1358,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1438,12 +1412,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1567,12 +1535,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/androidMain/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/androidDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1695,8 +1657,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2123,8 +2083,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2179,10 +2137,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2253,10 +2207,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2331,8 +2281,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2707,8 +2655,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2763,10 +2709,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2895,10 +2837,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -2997,8 +2935,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1

@@ -49,6 +49,9 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -60,9 +63,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -263,8 +263,7 @@ class WearTilePreviewRepresentationTest {
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
       runWriteActionAndWait {
-        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled =
-          value
+        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = value
         ApplicationManager.getApplication()
           .messageBus
           .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)

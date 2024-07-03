@@ -21,8 +21,8 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
@@ -91,4 +91,6 @@ class ClearLogcatActionTest {
 }
 
 private fun testEvent(logcatPresenter: LogcatPresenter) =
-  TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))
+  TestActionEvent.createTestEvent(
+    SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build()
+  )

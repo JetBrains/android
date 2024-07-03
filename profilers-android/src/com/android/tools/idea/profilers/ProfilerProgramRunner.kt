@@ -30,6 +30,7 @@ import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
+import com.android.tools.profilers.SupportLevel
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -40,16 +41,12 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
-import java.awt.BorderLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   override fun getRunnerId() = "ProfilerProgramRunner"
@@ -140,27 +137,16 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     if (projectSupported && apiLevelSupported && systemSupported) {
       return doExecuteInternal(state, environment)
     }
-    val dialog = object : DialogWrapper(environment.project) {
-      override fun createCenterPanel(): JComponent {
-        return JPanel(BorderLayout()).apply {
-          add(JBLabel(buildProfileableRequirementMessage(projectSupported, apiLevelSupported, systemSupported)), BorderLayout.CENTER)
-        }
-      }
 
-      init {
-        title = "Confirmation"
-        init()
-      }
-    }
-    if (dialog.showAndGet()) {
-      // Profileable is unsupported but user agrees to fall back to debuggable.
-      return doExecuteInternal(state, environment)
-    }
+    // Prompt the user.
+    Messages.showErrorDialog(environment.project, buildProfileableRequirementMessage(projectSupported, apiLevelSupported, systemSupported),
+                             "Unsupported Device or Emulator")
+
     // Reset user's selection stored on task enter (e.g. startup tasks being enabled) as the task execution has been canceled and thus the
     // state is invalid.
     if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
       val taskHomeTabModel = AndroidProfilerToolWindowFactory.getProfilerToolWindow(environment.project)?.profilers?.taskHomeTabModel
-      taskHomeTabModel?.resetSelectionStateOnTaskEnter()
+      taskHomeTabModel?.resetSelectionStateAndClearStartupTaskConfigs()
     }
     // Cancel the profiling session.
     return resolvedPromise()
@@ -239,28 +225,38 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       return ProfileRunExecutor.EXECUTOR_ID == executorId
     }
 
-    private fun isProjectSupported(project: Project): Boolean {
+    fun isProjectSupported(project: Project): Boolean {
       val projectSystem = project.getProjectSystem()
       val token = projectSystem.getTokenOrNull(ProfilerProgramRunnerToken.EP_NAME) ?: return false
       return token.isProfileableBuildSupported(projectSystem)
     }
 
+    fun isApiLevelSupported(featureLevel: Int) = featureLevel >= (VersionCodes.Q)
+
+    /**
+     * Overload that finds the target device in addition to checking the device's api level.
+     */
     private fun isApiLevelSupported(env: ExecutionEnvironment): Boolean {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
       if (targetDevices.isNotEmpty()) {
         val device = targetDevices[0]
-        return device.version.isGreaterOrEqualThan(VersionCodes.Q)
+        return isApiLevelSupported(device.version.featureLevel)
       }
       return false
     }
 
+    fun isSystemSupported(isDebuggable: Boolean) = !isDebuggable
+
+    /**
+     * Overload that finds the target device in addition to checking the system support.
+     */
     private fun isSystemSupported(env: ExecutionEnvironment): Boolean {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
       if (targetDevices.isNotEmpty()) {
         val device = targetDevices[0]
-        return !device.isDebuggable
+        return isSystemSupported(device.isDebuggable)
       }
       return false
     }
@@ -270,26 +266,23 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     fun buildProfileableRequirementMessage(isProjectSupported: Boolean, isApiLevelSupported: Boolean, isSystemSupported: Boolean): String {
       val PROJECT_CRITERIA = "Android Gradle Plugin 7.3 or higher"
       val API_LEVEL_CRITERIA = "a device with API level 29 or higher"
-      val NON_DEBUGGABLE_CRITERIA = "a system that is not debuggable (e.g., a Google Play enabled emulator system image)"
+      val NON_DEBUGGABLE_CRITERIA = "a system that is not debuggable. Example: A Google Play enabled emulator system image"
 
       var reasons = mutableListOf<String>()
       if (!isProjectSupported) reasons.add(PROJECT_CRITERIA)
       if (!isApiLevelSupported) reasons.add(API_LEVEL_CRITERIA)
       if (!isSystemSupported) reasons.add(NON_DEBUGGABLE_CRITERIA)
 
-      var message = StringBuilder("Profiling with Low Overhead requires ")
+      var message = StringBuilder("“Run as profileable (low overhead)” is not available because it requires ")
       when (reasons.size) {
         0 -> assert(false)  // This method shouldn't be called with no unsupported reasons
         1 -> message.append(reasons[0])
         2 -> message.append(reasons[0]).append(" and ").append(reasons[1])
         else -> message.append(reasons[0]).append(", ").append(reasons[1]).append(", and ").append(reasons[2])
       }
-      // Wrap the line at MAX_MESSAGE_LINE_LENGTH characters
-      if (message.length > MAX_MESSAGE_LINE_LENGTH) {
-        val index = message.lastIndexOf(" ", MAX_MESSAGE_LINE_LENGTH)
-        message.setRange(index, index+1, "<br>")
-      }
-      message.append(".<br>Do you want to Profile with Complete Data instead?")
+
+      message.append(".<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the app with " +
+                     "\"Profiler: Run as debuggable (complete data)\". <a href=\"${SupportLevel.DOC_LINK}\">More Info</a>")
       return message.insert(0, "<html>").append("</html>").toString()
     }
   }

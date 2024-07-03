@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -206,9 +207,8 @@ class CustomViewPreviewRepresentation(
 
   private val view = invokeAndWaitIfNeeded {
     CustomViewPreviewView(
-      NlDesignSurface.builder(project, this)
-        .setSceneManagerProvider { surface, model ->
-          NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+      NlDesignSurface.builder(project, this) { surface, model ->
+          NlDesignSurface.defaultSceneManagerProvider(surface, model, null).apply {
             setShrinkRendering(true)
           }
         }
@@ -398,10 +398,15 @@ class CustomViewPreviewRepresentation(
       val model =
         if (surface.models.isEmpty()) {
           val customPreviewXml =
-            CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
+            CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          NlModel.builder(this@CustomViewPreviewRepresentation, facet, customPreviewXml, config)
+          NlModel.Builder(
+              this@CustomViewPreviewRepresentation,
+              BuildTargetReference.from(facet, psiFile.virtualFile),
+              customPreviewXml,
+              config,
+            )
             .withXmlProvider(
               BiFunction { project, _ ->
                 AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
@@ -409,7 +414,7 @@ class CustomViewPreviewRepresentation(
             )
             .withComponentRegistrar(NlComponentRegistrar)
             .build()
-            .apply { modelDisplayName = className }
+            .apply { setDisplayName(className) }
         } else {
           // We want to deactivate the surface so that configuration changes do not trigger scene
           // repaint.

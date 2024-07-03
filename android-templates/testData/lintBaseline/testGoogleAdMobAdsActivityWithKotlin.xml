@@ -39,7 +39,7 @@
         id="SetTextI18n"
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
         errorLine1="        levelTextView.text = &quot;Level &quot; + (++currentLevel)"
-        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine2="                             ~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MainActivity.kt"
             line="145"
@@ -50,11 +50,11 @@
         id="SetTextI18n"
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
         errorLine1="        levelTextView.text = &quot;Level &quot; + (++currentLevel)"
-        errorLine2="                              ~~~~~~">
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MainActivity.kt"
             line="145"
-            column="31"/>
+            column="30"/>
     </issue>
 
     <issue

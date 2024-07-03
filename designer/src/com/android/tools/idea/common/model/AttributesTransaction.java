@@ -311,7 +311,7 @@ public class AttributesTransaction implements NlAttributesHolder {
         // discard those changes.
         // The most simple way is notifying modification to NlModel to trigger re-render. After that the new LayoutParam and
         // ViewInfo will be used which their values are same as the original ones.
-        myModel.notifyModified(NlModel.ChangeType.DND_END);
+        myModel.notifyModified(ChangeType.DND_END);
       }
       return finishTransaction();
     }

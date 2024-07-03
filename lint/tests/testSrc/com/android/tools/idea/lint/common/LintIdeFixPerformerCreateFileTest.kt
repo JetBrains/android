@@ -28,13 +28,15 @@ import com.intellij.util.ThrowableRunnable
 import java.io.File
 import java.util.Base64
 
+// Test creating new text files, new binary files, and deleting files. Note that the intention
+// preview supports either multiple file diffs or navigation (rendered in HTML format), but not
+// both; because of this, we can't use the simple checkPreviewAndLaunchAction().
 class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
   override fun tuneFixture(builder: JavaModuleFixtureBuilder<*>) {
     builder.addJdk(TestUtils.getMockJdk().toString())
   }
 
   private fun createCurrentFile(): PsiFile {
-    // Test creating new text files, new binary files, and deleting files.
     val keepFile =
       myFixture.addFileToProject(
         "/src/android/support/annotation/Keep.java",
@@ -50,9 +52,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testTextNoFormatting() {
-    // Test creating new text files, new binary files, and deleting files.
     val currentFile = createCurrentFile()
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, currentFile)
     val newFile = File(VfsUtilCore.virtualToIoFile(currentFile.virtualFile).parentFile, "MyFile.kt")
 
     val source =
@@ -71,10 +71,8 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         .select("// ()your code here")
         .build()
 
-    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
+    val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
+    myFixture.launchAction(fix.rawIntention())
 
     val editor = FileEditorManager.getInstance(project).selectedTextEditor
     assertNotNull(editor)
@@ -85,9 +83,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testCreateTextWithFormattingAndSelection() {
-    // Test creating new text files, new binary files, and deleting files.
     val currentFile = createCurrentFile()
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, currentFile)
     val newFile = File(VfsUtilCore.virtualToIoFile(currentFile.virtualFile).parentFile, "MyFile.kt")
 
     val source =
@@ -107,10 +103,8 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         .select("// (your code here)")
         .build()
 
-    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
+    val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
+    myFixture.launchAction(fix.rawIntention())
 
     val editor = FileEditorManager.getInstance(project).selectedTextEditor
     assertEquals(
@@ -131,18 +125,15 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
   fun testCreateBinary() {
     // Create a binary file
     val currentFile = createCurrentFile()
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, currentFile)
     val newFile = File(VfsUtilCore.virtualToIoFile(currentFile.virtualFile).parentFile, "new.bin")
 
     val binary = byteArrayOf(0, 1, 2, 3, 4)
     val lintFix = LintFix.create().name("Create ${newFile.name}").newFile(newFile, binary).build()
 
-    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
+    val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
+    myFixture.launchAction(fix.rawIntention())
 
-    val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(newFile)
+    val virtualBinFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newFile)
     val contents = virtualBinFile?.contentsToByteArray()
     assertEquals(
       Base64.getEncoder().encodeToString(binary),
@@ -153,7 +144,6 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
   fun testDeletion() {
     // Create a binary file
     val currentFile = createCurrentFile()
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, currentFile)
     val folder = currentFile.parent!!
 
     WriteCommandAction.writeCommandAction(myFixture.project)
@@ -172,10 +162,8 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
     val lintFix =
       LintFix.create().name("Delete ${deleteVirtualFile.name}").deleteFile(deleteFile).build()
 
-    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
+    val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
+    myFixture.launchAction(fix.rawIntention())
 
     assertNull(folder.findFile("delete.txt"))
     assertFalse(deleteFile.isFile)

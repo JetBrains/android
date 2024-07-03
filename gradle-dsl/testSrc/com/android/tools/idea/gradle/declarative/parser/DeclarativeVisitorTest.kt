@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.declarative.parser
 
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeASTFactory
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeElement
@@ -26,11 +27,17 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeVisitor
+import com.intellij.lang.LanguageASTFactory
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.ParsingTestCase
 import kotlin.reflect.KClass
 
 class DeclarativeVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", DeclarativeParserDefinition()) {
+  override fun setUp() {
+    super.setUp()
+    addExplicitExtension(LanguageASTFactory.INSTANCE, myLanguage, DeclarativeASTFactory())
+  }
+
   fun `test visit array table`() {
     doTest<DeclarativeBlock>(
       """

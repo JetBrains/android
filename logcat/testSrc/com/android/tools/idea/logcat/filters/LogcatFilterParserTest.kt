@@ -16,8 +16,8 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.flags.junit.FlagRule
-import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -206,7 +206,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
 
   @Test
   fun parse_levelKeys() {
-    for (logLevel in LogLevel.values()) {
+    for (logLevel in LogLevel.entries) {
       assertThat(logcatFilterParser().parse("level: $logLevel", matchCase))
         .isEqualTo(LevelFilter(logLevel, "level: $logLevel".asRange()))
       assertThat(logcatFilterParser().parse("level:$logLevel", matchCase))
@@ -255,7 +255,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
 
   @Test
   fun isValidLogLevel() {
-    for (logLevel in LogLevel.values()) {
+    for (logLevel in LogLevel.entries) {
       assertThat(logLevel.name.isValidLogLevel()).named(logLevel.name).isTrue()
     }
     assertThat("foo".isValidLogLevel()).isFalse()
@@ -291,7 +291,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
   @Test
   fun parse_isLevel() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    LogLevel.values().forEach {
+    LogLevel.entries.forEach {
       assertThat(logcatFilterParser().parse("is:${it.stringValue}", matchCase))
         .isEqualTo(ExactLevelFilter(it, "is:${it.stringValue}".asRange()))
     }

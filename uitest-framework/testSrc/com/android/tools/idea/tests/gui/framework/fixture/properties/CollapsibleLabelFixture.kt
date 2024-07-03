@@ -24,7 +24,7 @@ import com.google.common.collect.Lists
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.icons.AllIcons
 import org.fest.swing.core.Robot
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.application.invokeLater
 
 /**
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.

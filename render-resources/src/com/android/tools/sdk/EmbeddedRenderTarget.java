@@ -209,7 +209,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
 
   @Override
   @NonNull
-  public Path[] getSkins() {
+  public List<Path> getSkins() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 

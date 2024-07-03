@@ -66,7 +66,7 @@ internal class TestPreviewRefreshRequest(
         // Some parts of the metrics to be collected are responsibility of each preview tool
         refreshEventBuilder?.withPreviewsCount(1)
         refreshEventBuilder?.withPreviewsToRefresh(1)
-        refreshEventBuilder?.addPreviewRenderDetails(false, true, 1f, 1)
+        refreshEventBuilder?.addPreviewRenderDetails(false, true, 1f, 1, "IllegalStateException")
       }
     return runningRefreshJob!!
   }

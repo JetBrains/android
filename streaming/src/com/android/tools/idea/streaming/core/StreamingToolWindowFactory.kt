@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,9 +37,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun init(toolWindow: ToolWindow) {
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
-    }
+    toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
     toolWindow.component.putClientProperty(ToolWindowContentUi.DONT_HIDE_TOOLBAR_IN_HEADER, true)
     StreamingToolWindowManager(toolWindow)
   }

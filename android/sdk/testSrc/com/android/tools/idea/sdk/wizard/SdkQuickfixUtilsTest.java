@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Path;
@@ -68,6 +69,7 @@ public class SdkQuickfixUtilsTest {
   RepositoryPackages myPackages;
 
   private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
+  private AndroidSdkData originalAndroidSdkData;
 
   @Before
   public void setUp() throws Exception {
@@ -78,6 +80,7 @@ public class SdkQuickfixUtilsTest {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
 
+    originalAndroidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     AndroidSdkData data = mock(AndroidSdkData.class);
     when(data.getSdkHandler()).thenReturn(mySdkHandler);
     AndroidSdks.getInstance().setSdkData(data);
@@ -85,7 +88,11 @@ public class SdkQuickfixUtilsTest {
 
   @After
   public void tearDown() {
-    AndroidSdks.getInstance().setSdkData(null);
+    AndroidSdks.getInstance().setSdkData(originalAndroidSdkData);
+
+    // Workaround for https://youtrack.jetbrains.com/issue/IJPL-149706:
+    // test tear-down during indexing triggers flaky "already disposed" exceptions.
+    IndexingTestUtil.waitUntilIndexesAreReady(androidProjectRule.getProject());
   }
 
   @Test

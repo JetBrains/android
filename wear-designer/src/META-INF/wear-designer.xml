@@ -30,21 +30,59 @@
     <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint" />
 
     <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
-                     shortName="WearTilePreviewNotSupportedInKotlinUnitTestFiles"
-                     language="kotlin"
+                     language="UAST"
                      enabledByDefault="true"
                      bundle="bundle.wear.WearBundle"
                      groupKey="inspection.group.name"
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
-                     shortName="WearTilePreviewNotSupportedInJavaUnitTestFiles"
-                     language="JAVA"
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation"
+                     language="UAST"
                      enabledByDefault="true"
                      bundle="bundle.wear.WearBundle"
                      groupKey="inspection.group.name"
-                     key="inspection.unit.test.files"
+                     key="inspection.preview.annotation.not.from.tile.package"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewComposableAnnotationIsNotSupported"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.annotation.composable.not.supported"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewContextComesFromParameter"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.context.comes.from.parameter"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewHasValidMethodSignature"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.invalid.signature"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewShouldBeTopLevelFunction"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.top.level.function"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewDeviceSpecInspection"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.device.spec"
                      level="ERROR"/>
 
   </extensions>

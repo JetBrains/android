@@ -16,14 +16,14 @@
 package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.annotations.concurrency.UiThread
-import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.InformationPopupImpl
-import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.status.IdeStatus
+import com.android.tools.adtui.status.InformationPopup
+import com.android.tools.adtui.status.InformationPopupImpl
+import com.android.tools.adtui.status.IssueNotificationAction
 import com.android.tools.idea.actions.BrowserHelpAction
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
@@ -36,7 +36,6 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -190,12 +189,12 @@ class LiveEditIssueNotificationAction(
   }
 
   @UiThread
-  override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
+  override fun shouldHide(status: IdeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
   @UiThread
-  override fun shouldSimplify(status: ComposeStatus, dataContext: DataContext): Boolean {
+  override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
     val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
 
     if (toolWindowId != null && toolWindowId.id == RUNNING_DEVICES_TOOL_WINDOW_ID) {
@@ -211,7 +210,7 @@ class LiveEditIssueNotificationAction(
 }
 
 @UiThread
-private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
+private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
   if (status != LiveEditStatus.Disabled) {
     // Always show when it's an active status, even if error.
     return false
@@ -223,7 +222,18 @@ private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boo
   // Only show for running devices tool window.
   val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
   val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
-  val device = AndroidDebugBridge.getBridge()?.devices?.find { it.serialNumber == serial } ?: return true
+  val bridge = AdbService.getInstance().getDebugBridge(project).let {
+    if (!it.isDone || it.isCancelled) {
+      null
+    } else {
+      try {
+        it.get()
+      } catch (e: Exception) {
+        null
+      }
+    }
+  }
+  val device = bridge?.devices?.find { it.serialNumber == serial } ?: return true
   // Hide status when the device doesn't support Live Edit.
   if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
     return true

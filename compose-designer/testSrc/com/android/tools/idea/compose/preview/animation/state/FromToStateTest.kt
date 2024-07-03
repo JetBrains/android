@@ -20,10 +20,13 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.testFramework.RunsInEdt
@@ -46,21 +49,26 @@ class FromToStateTest {
   @RunsInEdt
   @Test
   fun createCard() {
-    var callbacks = 0
     val state =
-      FromToState(NoopComposeAnimationTracker) { callbacks++ }
+      FromToState(
+          NoopComposeAnimationTracker,
+          AndroidCoroutineScope(projectRule.testRootDisposable),
+        )
         .apply {
           updateStates(setOf("One", "Two", "Three"))
           setStartState("One")
-          callbackEnabled = true
         }
     val card =
       AnimationCard(
-          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          MutableStateFlow(ElementState()),
           "Title",
-          state.extraActions,
+          listOf(
+            FreezeAction(
+              createTestSlider(),
+              MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
+              NoopAnimationTracker,
+            )
+          ) + state.changeStateActions,
           NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }
@@ -80,13 +88,12 @@ class FromToStateTest {
     assertEquals("Two", (toolbar.components[4] as JPanel).findComboBox().text)
     assertEquals("One", state.getState(0))
     assertEquals("Two", state.getState(1))
-    val hash = state.stateHashCode()
+    val hash = state.stateHashCode.value
     // Swap state.
     ui.clickOn(toolbar.components[1])
     // State hashCode has changed.
-    assertNotEquals(hash, state.stateHashCode())
+    assertNotEquals(hash, state.stateHashCode.value)
     // The states swapped.
-    assertEquals(1, callbacks)
     assertEquals("Two", (toolbar.components[2] as JPanel).findComboBox().text)
     assertEquals("One", (toolbar.components[4] as JPanel).findComboBox().text)
     assertEquals("Two", state.getState(0))

@@ -20,8 +20,13 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
-import com.android.utils.time.TestTimeSource
 import com.google.common.truth.Truth.assertThat
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.TestTimeSource
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -30,11 +35,6 @@ import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 private const val INPUT_RATE_HZ = 5
 private val INPUTS = 1..500
@@ -47,17 +47,35 @@ class BenchmarkerTest {
   private val testTimeSource = TestTimeSource()
   private val mockTimer: Timer = mock()
   private val dispatched: MutableList<Int> = mutableListOf()
-  private val adapter = object : Adapter<Int> {
-    private val inputsIterator = INPUTS.iterator()
-    lateinit var adapterCallbacks: Adapter.Callbacks<Int>
-    override fun inputs(): Iterator<Int> = inputsIterator
-    override fun numInputs(): Int = numValues
-    override fun dispatch(input: Int) { dispatched.add(input) }
-    override fun setCallbacks(callbacks: Adapter.Callbacks<Int>) { adapterCallbacks = callbacks }
-    override fun ready() { readyCalls++ }
-    override fun finalizeInputs() { finalizeInputsCalls++ }
-    override fun cleanUp() { cleanUpCalls++ }
-  }
+  private val adapter =
+    object : Adapter<Int> {
+      private val inputsIterator = INPUTS.iterator()
+      lateinit var adapterCallbacks: Adapter.Callbacks<Int>
+
+      override fun inputs(): Iterator<Int> = inputsIterator
+
+      override fun numInputs(): Int = numValues
+
+      override fun dispatch(input: Int) {
+        dispatched.add(input)
+      }
+
+      override fun setCallbacks(callbacks: Adapter.Callbacks<Int>) {
+        adapterCallbacks = callbacks
+      }
+
+      override fun ready() {
+        readyCalls++
+      }
+
+      override fun finalizeInputs() {
+        finalizeInputsCalls++
+      }
+
+      override fun cleanUp() {
+        cleanUpCalls++
+      }
+    }
   private val benchmarker = createBenchmarker()
 
   private val progressValues: MutableList<Pair<Double, Double>> = mutableListOf()
@@ -79,7 +97,8 @@ class BenchmarkerTest {
     // Should now be in SENDING_INPUTS
     val expectedFrameDurationMillis = (1.seconds / INPUT_RATE_HZ).inWholeMilliseconds
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
-    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
+    verify(mockTimer)
+      .scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
     assertThat(dispatched).isEmpty()
 
     taskCaptor.value.run()
@@ -128,7 +147,7 @@ class BenchmarkerTest {
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()
 
-    repeat(numValues - 1) {taskCaptor.value.run() }
+    repeat(numValues - 1) { taskCaptor.value.run() }
     assertThat(finalizeInputsCalls).isEqualTo(0)
     // One more time should finish it off.
     taskCaptor.value.run()
@@ -174,9 +193,7 @@ class BenchmarkerTest {
     repeat(numValues + 1) { taskCaptor.value.run() }
 
     assertThat(dispatched).hasSize(numValues)
-    dispatched.forEach {
-      adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow())
-    }
+    dispatched.forEach { adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow()) }
 
     // All inputs should be received now, so we should be in state COMPLETE.
     assertThat(benchmarker.isDone()).isTrue()
@@ -187,9 +204,7 @@ class BenchmarkerTest {
     assertThat(results).hasSize(1)
     assertThat(results[0].raw).hasSize(numValues)
     assertThat(results[0].raw.values.toSet()).containsExactly(Duration.ZERO)
-    results[0].percentiles.values.forEach {
-      assertThat(it).isWithin(0.0000000001).of(0.0)
-    }
+    results[0].percentiles.values.forEach { assertThat(it).isWithin(0.0000000001).of(0.0) }
   }
 
   @Test
@@ -202,14 +217,15 @@ class BenchmarkerTest {
 
     repeat(numValues) {
       taskCaptor.value.run()
-      testTimeSource += it.seconds  // Each input will take 1s longer than the last.
+      testTimeSource += it.seconds // Each input will take 1s longer than the last.
       adapter.adapterCallbacks.inputReturned(dispatched.last(), testTimeSource.markNow())
     }
     assertThat(dispatched).hasSize(numValues)
     assertThat(benchmarker.isDone()).isTrue()
     val expectedRawResults = (0 until numValues).associate { dispatched[it] to it.seconds }
     assertThat(results[0].raw).containsExactlyEntriesIn(expectedRawResults)
-    // This distribution just increases linearly, so each percentile is a relative fraction of the max.
+    // This distribution just increases linearly, so each percentile is a relative fraction of the
+    // max.
     val maxDurationMillis = (numValues - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
     results[0].percentiles.forEach { (k, v) ->
       assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100)
@@ -227,27 +243,37 @@ class BenchmarkerTest {
 
     assertThat(dispatched).hasSize(numValues)
 
-    dispatched.forEach {
-      adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow())
-    }
+    dispatched.forEach { adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow()) }
 
     // The first one is a 0,0 we always set to clear the progress bar.
     val values = progressValues.drop(1)
     assertThat(values).hasSize(dispatched.size)
-    assertThat(values.map{it.second}).isStrictlyOrdered()
+    assertThat(values.map { it.second }).isStrictlyOrdered()
     assertThat(values.first().second).isWithin(0.000001).of(1 / dispatched.size.toDouble())
     assertThat(values.last().second).isWithin(0.000001).of(1.0)
-    values.map{it.first}.forEach { assertThat(it).isWithin(0.000001).of(1.0) }
+    values.map { it.first }.forEach { assertThat(it).isWithin(0.000001).of(1.0) }
   }
 
   private fun createBenchmarker(inputRateHz: Int = INPUT_RATE_HZ) =
     Benchmarker(adapter, inputRateHz, testTimeSource, mockTimer).apply {
-      addCallbacks(object: Benchmarker.Callbacks<Int> {
-        override fun onProgress(dispatched: Double, returned: Double) { progressValues.add(dispatched to returned) }
-        override fun onStopped() { stopCallbackCalled = true }
-        override fun onFailure(failureMessage: String) { failureMessages.add(failureMessage) }
-        override fun onComplete(results: Benchmarker.Results<Int>) { this@BenchmarkerTest.results.add(results) }
-      })
-    }
+      addCallbacks(
+        object : Benchmarker.Callbacks<Int> {
+          override fun onProgress(dispatched: Double, returned: Double) {
+            progressValues.add(dispatched to returned)
+          }
 
+          override fun onStopped() {
+            stopCallbackCalled = true
+          }
+
+          override fun onFailure(failureMessage: String) {
+            failureMessages.add(failureMessage)
+          }
+
+          override fun onComplete(results: Benchmarker.Results<Int>) {
+            this@BenchmarkerTest.results.add(results)
+          }
+        }
+      )
+    }
 }

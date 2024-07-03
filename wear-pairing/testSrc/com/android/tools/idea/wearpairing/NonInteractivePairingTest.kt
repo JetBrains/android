@@ -23,14 +23,15 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
-import java.util.concurrent.TimeUnit
 
-private const val LOGCAT_FORMAT = "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
+private const val LOGCAT_FORMAT =
+  "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
 
 class NonInteractivePairingTest : LightPlatform4TestCase() {
   private lateinit var device: IDevice
@@ -43,15 +44,21 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
     outputReceiver = null
     device = MockitoKt.mock()
     Mockito.doAnswer { invocation: InvocationOnMock ->
-      outputReceiver = invocation.getTypedArgument(1)
+        outputReceiver = invocation.getTypedArgument(1)
 
-      runBlocking {
-        // We need to keep this job alive until we're done with the log reader.
-        keepAliveSemaphore.acquire()
+        runBlocking {
+          // We need to keep this job alive until we're done with the log reader.
+          keepAliveSemaphore.acquire()
+        }
+        null
       }
-      null
-    }.whenever(device).executeShellCommand(Mockito.anyString(),
-                                         Mockito.any(), Mockito.anyLong(), Mockito.any())
+      .whenever(device)
+      .executeShellCommand(
+        Mockito.anyString(),
+        Mockito.any(),
+        Mockito.anyLong(),
+        Mockito.any(),
+      )
   }
 
   @Test
@@ -101,8 +108,6 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
   }
 
   private fun sendLogCat(log: String) {
-    log.toByteArray().let {
-      outputReceiver?.addOutput(it, 0, it.size)
-    }
+    log.toByteArray().let { outputReceiver?.addOutput(it, 0, it.size) }
   }
 }

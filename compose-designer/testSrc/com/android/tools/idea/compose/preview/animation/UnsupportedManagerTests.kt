@@ -58,7 +58,7 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
         override val states = emptySet<Any>()
       }
 
-    val clock = TestClockWithCoordination()
+    val clock = TestClock()
 
     ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
 

@@ -16,30 +16,38 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import com.google.common.collect.Range
 import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
   fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") { addDeviceInitialPage(sources) }
+    return ComposeWizard(project, "Add Device") { DeviceGridPage(sources) }
   }
 }
 
+@Stable
+internal class DeviceGridState(profiles: List<DeviceProfile>) {
+  val selectionState = TableSelectionState<DeviceProfile>()
+  val filterState = DeviceFilterState(profiles)
+}
+
 @Composable
-internal fun WizardPageScope.addDeviceInitialPage(sources: List<DeviceSource>) {
+internal fun WizardPageScope.DeviceGridPage(sources: List<DeviceSource>) {
   val profiles = remember(sources) { sources.flatMap { it.profiles } }
   nextActionName = "Configure"
   finishActionName = "Add"
 
-  val selectionState = remember { TableSelectionState<DeviceProfile>() }
-  val filterState = remember { DeviceFilterState(profiles) }
+  val pageState = getOrCreateState { DeviceGridState(profiles) }
+  val selectionState = pageState.selectionState
+  val filterState = pageState.filterState
   DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
 
   val selection = selectionState.selection
   val source = sources.find { it.javaClass == selection?.source }
 
-  if (selection == null || source == null) {
+  if (selection == null || source == null || !filterState.apply(selection)) {
     nextAction = WizardAction.Disabled
     finishAction = WizardAction.Disabled
   } else {

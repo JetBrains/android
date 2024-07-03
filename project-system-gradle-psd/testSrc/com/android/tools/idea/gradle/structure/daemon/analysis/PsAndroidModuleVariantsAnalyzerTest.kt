@@ -301,10 +301,13 @@ class PsAndroidModuleVariantsAnalyzerTest {
     }
   }
 
+  /**
+   * Previously
+   * testNoMatchingDimensionInSourceAndMultipleFlavorsInTargetButMissingDimensionStrategy(), but
+   * shortened because that name was too long for Windows (b/149874781)
+   */
   @Test
-  fun testNoMatchingDimensionInSourceAndMultipleFlavorsInTargetButMissingDimensionStrategy() {
-    if (SystemInfoRt.isWindows) return  // b/149874781
-
+  fun testNoMatchingDimensionButMissingDimensionStrategy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
     projectRule.psTestWithProject(preparedProject) {
 

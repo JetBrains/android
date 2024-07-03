@@ -25,6 +25,7 @@ import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -211,13 +212,14 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.activate()
 
-    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
+    val model =
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
+      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi
@@ -278,13 +280,14 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.activate()
 
-    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
+    val model =
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
+      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi
@@ -347,13 +350,14 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.activate()
 
-    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
+    val model =
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
+      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi

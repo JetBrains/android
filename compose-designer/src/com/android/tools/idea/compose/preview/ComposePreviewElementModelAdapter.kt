@@ -43,6 +43,5 @@ abstract class ComposePreviewElementModelAdapter :
     content: String,
     backedFile: VirtualFile,
     id: Long,
-  ): LightVirtualFile =
-    ComposeAdapterLightVirtualFile("compose-model-$id.xml", content) { backedFile }
+  ): LightVirtualFile = ComposeAdapterLightVirtualFile("compose-model-$id.xml", content, backedFile)
 }

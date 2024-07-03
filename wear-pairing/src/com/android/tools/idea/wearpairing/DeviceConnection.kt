@@ -24,7 +24,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
-
 private const val REFRESH_CONNECTION_COMMAND =
   "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation refresh-emulator-connection"
 private const val GET_PAIRING_STATUS_COMMAND =
@@ -34,33 +33,31 @@ private val PEER_NODE_REGEX = "Peer:\\[([^\\[\\],]+),(true|false),(true|false)]"
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 object DeviceConnection
-private val LOG get() = logger<DeviceConnection>()
+
+private val LOG
+  get() = logger<DeviceConnection>()
 
 suspend fun IDevice.executeShellCommand(cmd: String) {
-  withContext(Dispatchers.IO) {
-    runCatching {
-      executeShellCommand(cmd, NullOutputReceiver())
-    }
-  }
+  withContext(Dispatchers.IO) { runCatching { executeShellCommand(cmd, NullOutputReceiver()) } }
 }
 
-suspend fun IDevice.runShellCommand(cmd: String): String = withContext(Dispatchers.IO) {
-  val outputReceiver = CollectingOutputReceiver()
-  runCatching {
-    executeShellCommand(cmd, outputReceiver)
+suspend fun IDevice.runShellCommand(cmd: String): String =
+  withContext(Dispatchers.IO) {
+    val outputReceiver = CollectingOutputReceiver()
+    runCatching { executeShellCommand(cmd, outputReceiver) }
+    outputReceiver.output.trim()
   }
-  outputReceiver.output.trim()
-}
 
 private suspend fun IDevice.localNodeFromPairingStatus(): String? =
   LOCAL_NODE_REGEX.find(runShellCommand(GET_PAIRING_STATUS_COMMAND))?.groupValues?.get(1)
 
-suspend fun IDevice.isPairingStatusAvailable(): Boolean =
-  localNodeFromPairingStatus() != null
+suspend fun IDevice.isPairingStatusAvailable(): Boolean = localNodeFromPairingStatus() != null
 
 suspend fun IDevice.loadNodeID(): String {
   if (hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
-    localNodeFromPairingStatus()?.let { return it }
+    localNodeFromPairingStatus()?.let {
+      return it
+    }
   }
   val localIdPattern = "local: "
   val output = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
@@ -69,11 +66,16 @@ suspend fun IDevice.loadNodeID(): String {
 
 suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String {
   val cloudNetworkIdPattern = "cloud network id: "
-  val output = runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
-  return output.replace(cloudNetworkIdPattern, "").run {
-    // The Wear Device may have a "null" cloud ID until ADB forward is established and a properly setup phone connects to it.
-    if (ignoreNullOutput) replace("null", "") else this
-  }.trim()
+  val output =
+    runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
+  return output
+    .replace(cloudNetworkIdPattern, "")
+    .run {
+      // The Wear Device may have a "null" cloud ID until ADB forward is established and a properly
+      // setup phone connects to it.
+      if (ignoreNullOutput) replace("null", "") else this
+    }
+    .trim()
 }
 
 suspend fun IDevice.retrieveUpTime(): Double {
@@ -87,8 +89,7 @@ suspend fun IDevice.retrieveUpTime(): Double {
 suspend fun IDevice.refreshEmulatorConnection() {
   if (hasPairingFeature(PairingFeature.REFRESH_EMULATOR_CONNECTION)) {
     runShellCommand(REFRESH_CONNECTION_COMMAND)
-  }
-  else {
+  } else {
     restartGmsCore()
   }
 }
@@ -102,18 +103,30 @@ data class PairingStatus(val nodeId: String?, val connected: Boolean, val enable
 
 private suspend fun IDevice.getPairingStatus(peerNodeId: String): Pair<String?, PairingStatus?> {
   val (localNodeId, pairingStatuses) = getPairingStatus()
-  return Pair(localNodeId, pairingStatuses.firstOrNull { peerNodeId.equals(it.nodeId, ignoreCase = true) })
+  return Pair(
+    localNodeId,
+    pairingStatuses.firstOrNull { peerNodeId.equals(it.nodeId, ignoreCase = true) },
+  )
 }
 
 suspend fun IDevice.getPairingStatus(): Pair<String?, List<PairingStatus>> {
   val broadcastResult = runShellCommand(GET_PAIRING_STATUS_COMMAND)
   var localNodeId: String? = null
-  val peerStatus = broadcastResult.lines()
-    .also { if (it.size > 1) localNodeId = LOCAL_NODE_REGEX.find(it[1])?.groupValues?.get(1) }
-    .takeIf { it.size > 2 }?.let { it.subList(2, it.size) }
-    ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
-    ?.filter { it.size >= 4 }
-    ?.map { PairingStatus(if ("null".equals(it[1], ignoreCase = true)) null else it[1], it[2].toBoolean(), it[3].toBoolean()) }
+  val peerStatus =
+    broadcastResult
+      .lines()
+      .also { if (it.size > 1) localNodeId = LOCAL_NODE_REGEX.find(it[1])?.groupValues?.get(1) }
+      .takeIf { it.size > 2 }
+      ?.let { it.subList(2, it.size) }
+      ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
+      ?.filter { it.size >= 4 }
+      ?.map {
+        PairingStatus(
+          if ("null".equals(it[1], ignoreCase = true)) null else it[1],
+          it[2].toBoolean(),
+          it[3].toBoolean(),
+        )
+      }
   if (localNodeId == null) LOG.error("Unexpected pairing status: $broadcastResult")
   return Pair(localNodeId, peerStatus.orEmpty())
 }
@@ -130,7 +143,8 @@ suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boole
   val phoneDeviceID = phoneDevice.loadNodeID()
   if (phoneDeviceID.isNotEmpty()) {
     val wearPattern = "connection to peer node: $phoneDeviceID"
-    val wearOutput = wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
+    val wearOutput =
+      wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
     return wearOutput.isNotBlank()
   }
   return false
@@ -143,8 +157,7 @@ private suspend fun IDevice.killGmsCore() {
     if (uptime > 120.0) {
       LOG.warn("[$name] Killing Google Play Services")
       executeShellCommand("am force-stop $GMS_PACKAGE")
-    }
-    else {
+    } else {
       LOG.warn("[$name] Skip killing Google Play Services (uptime = $uptime)")
     }
   }
@@ -154,14 +167,15 @@ private suspend fun IDevice.restartGmsCore() {
   killGmsCore()
 
   LOG.warn("[$name] Wait for Google Play Services re-start")
-  val res = withTimeoutOrNull(30_000) {
-    while (loadNodeID().isEmpty()) {
-      // Restart in case it doesn't restart automatically
-      executeShellCommand("am broadcast -a $GMS_PACKAGE.INITIALIZE")
-      delay(1_000)
+  val res =
+    withTimeoutOrNull(30_000) {
+      while (loadNodeID().isEmpty()) {
+        // Restart in case it doesn't restart automatically
+        executeShellCommand("am broadcast -a $GMS_PACKAGE.INITIALIZE")
+        delay(1_000)
+      }
+      true
     }
-    true
-  }
   when (res) {
     true -> LOG.warn("[$name] Google Play Services started")
     else -> LOG.warn("[$name] Google Play Services never started")

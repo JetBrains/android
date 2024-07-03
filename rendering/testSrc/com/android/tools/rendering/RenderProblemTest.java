@@ -41,8 +41,8 @@ public class RenderProblemTest {
     assertEquals("Plain<BR/>" +
                  "<A HREF=\"runnable:0\">mylink</A><BR/>" +
                  "<DL>" +
-                 "<DD>-&NBSP;item 1" +
-                 "<DD>-&NBSP;item 2" +
+                 "<DD>-&nbsp;item 1" +
+                 "<DD>-&nbsp;item 2" +
                  "</DL>", message.getHtml());
   }
 

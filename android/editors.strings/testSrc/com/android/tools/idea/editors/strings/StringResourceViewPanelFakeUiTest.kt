@@ -78,7 +78,7 @@ class StringResourceViewPanelFakeUiTest {
     resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
     localResourceRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory))
 
-    stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet, projectRule.testRootDisposable)
+    stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet!!, projectRule.testRootDisposable)
     invokeAndWaitIfNeeded {
       fakeUi = FakeUi(stringResourceViewPanel.loadingPanel)
       fakeUi.root.validate()

@@ -27,6 +27,11 @@ object TaskModelTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
+  fun stopProcess(device: Common.Device, process: Common.Process, transportService: FakeTransportService, timer: FakeTimer) {
+    transportService.stopProcess(device, process)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+  }
+
   fun createDevice(deviceName: String, deviceState: Common.Device.State): Common.Device = createDevice(deviceName, deviceState, deviceName)
 
   fun createDevice(deviceName: String,
@@ -59,10 +64,10 @@ object TaskModelTestUtils {
     Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(processState).setExposureLevel(
       exposureLevel).build()
 
-  fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) = ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning,
-                                                                                                     Common.Device.newBuilder().setModel(
-                                                                                                       "FakeDevice").setFeatureLevel(
-                                                                                                       featureLevel).build())
+  fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) =
+    ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning, false,
+                            if (isRunning) Common.Device.newBuilder().setModel("FakeDevice").setFeatureLevel(featureLevel).build()
+                            else Common.Device.getDefaultInstance())
 
   fun updateDeviceState(deviceName: String, deviceState: Common.Device.State, transportService: FakeTransportService, timer: FakeTimer) {
     val newDevice = createDevice(deviceName, deviceState)

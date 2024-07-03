@@ -41,6 +41,8 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
   init {
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
+    // This component is not editable. Taking focus would be confusing: b/147907441
+    isFocusable = false
     model.addListener { updateFromModel() }
     ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) {
       // Allow expansion when the user is hovering over this label:

@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.scene.SceneTest
 class ScaleTypeViewActionTest : SceneTest() {
 
   fun testChangeScaleType() {
-    val imageView = myModel.find("imageView")!!
+    val imageView = myModel.treeReader.find("imageView")!!
     for (type in ScaleType.values()) {
       val action = ScaleTypeViewAction(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SCALE_TYPE, type)
       val editor = ViewEditorImpl(myModel, myScene)

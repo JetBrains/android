@@ -23,13 +23,13 @@ import com.intellij.openapi.project.DumbAware
 /** Dumps resource trace to idea.log. */
 class DumpResourceTraceAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
-    ResourceUpdateTracer.dumpTrace(null)
+    ResourceUpdateTracer.getInstance().dumpTrace(null)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
+    event.presentation.isEnabled = ResourceUpdateTracer.getInstance().isTracingActive
   }
 }

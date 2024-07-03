@@ -39,8 +39,6 @@ import static com.android.SdkConstants.*;
 public class ViewTagHandler extends ViewHandler {
   private static final String DIVIDER_BACKGROUND = "?android:attr/listDivider";
 
-  public static final Predicate<String> SUITABLE_LAYOUT_CLASS = ViewTagHandler::isViewSuitableForLayout;
-
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
@@ -134,7 +132,7 @@ public class ViewTagHandler extends ViewHandler {
 
   @Nullable
   private static String browseClasses(@NotNull NlModel model, @Nullable String existingValue) {
-    return ViewEditor.displayClassInput(model, "Views", Collections.singleton(CLASS_VIEW), SUITABLE_LAYOUT_CLASS, existingValue);
+    return ViewEditor.displayClassInput(model, "Views", Collections.singleton(CLASS_VIEW), existingValue);
   }
 
   private static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {

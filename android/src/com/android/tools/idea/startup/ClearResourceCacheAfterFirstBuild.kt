@@ -24,6 +24,7 @@ import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -40,14 +41,18 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
-  private class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
+  private inner class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable) : Disposable {
+    override fun dispose() {
+      callbacks.remove(this)
+    }
+  }
 
   private val lock = Any()
   @GuardedBy("lock")
   private var cacheClean = false
   @GuardedBy("lock")
   private var errorOccurred = false
-  private val callbacks = mutableListOf<CacheClearedCallback>()
+  private val callbacks = Sets.newConcurrentHashSet<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
 
   class MyStartupActivity : ProjectActivity {
@@ -105,7 +110,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     val (cacheClean, errorOccurred) = synchronized(lock) {
       if (!cacheClean) {
         val callback = CacheClearedCallback(onCacheClean, onSourceGenerationError)
-        Disposer.register(parentDisposable) { callbacks.remove(callback) }
+        Disposer.register(parentDisposable, callback)
         callbacks.add(callback)
       }
 
@@ -162,6 +167,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     clearResourceCacheIfNecessary()
 
     callbacks.forEach { it.onCacheCleared.run() }
+    callbacks.forEach { it.dispose() }
     callbacks.clear()
   }
 

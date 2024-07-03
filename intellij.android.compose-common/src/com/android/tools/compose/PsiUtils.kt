@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -58,6 +59,8 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.allConstructors
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private val composableFunctionKey =
   Key.create<CachedValue<KtAnnotationEntry?>>(
@@ -229,3 +232,31 @@ private fun KtFunction.getParameterForArgument(argument: KtValueArgument): KtPar
     ?.indexOf(argument)
     ?.let(valueParameters::getOrNull)
 }
+
+/**
+ * Returns whether a function is a valid Preview location, which can be either:
+ * 1. Top-level functions
+ * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
+ *    constructor
+ */
+fun KtNamedFunction.isValidPreviewLocation(): Boolean {
+  if (isTopLevel) {
+    return true
+  }
+
+  if (parentOfType<KtNamedFunction>() == null) {
+    // This is not a nested method
+    val containingClass = containingClass()
+    if (containingClass != null) {
+      // We allow functions that are not top level defined in top level classes that have a default
+      // (no parameter) constructor.
+      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+private fun KtClass.hasDefaultConstructor() =
+  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })

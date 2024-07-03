@@ -89,16 +89,22 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     message: String,
     copyTo: String,
     extension: String,
+    local: Boolean = true,
   ) {
     val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
-    doTestWithAction(extension, action)
+    doTestWithAction(extension, action, local)
   }
 
-  private fun doTestWithAction(extension: String, action: IntentionAction) {
+  private fun doTestWithAction(extension: String, action: IntentionAction, local: Boolean) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     // TODO(b/319287252): Remove write command after migration to ModCommand API is complete.
     if (action.asModCommandAction() != null) {
-      myFixture.checkPreviewAndLaunchAction(action)
+      if (local) {
+        myFixture.checkPreviewAndLaunchAction(action)
+      } else {
+        // the preview shows a diff for a different file, so we can't compare the results
+        myFixture.launchAction(action)
+      }
     } else {
       WriteCommandAction.runWriteCommandAction(myFixture.project) {
         action.invoke(myFixture.project, myFixture.editor, myFixture.file)

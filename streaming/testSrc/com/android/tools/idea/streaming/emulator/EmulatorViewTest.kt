@@ -333,11 +333,10 @@ class EmulatorViewTest {
     }
 
     val keyStrokeCases = mapOf(
-      getKeyStroke(ACTION_CUT) to listOf("eventType: keypress key: \"Cut\""),
-      getKeyStroke(ACTION_COPY) to listOf("eventType: keypress key: \"Copy\""),
-      getKeyStroke(ACTION_PASTE) to listOf("eventType: keypress key: \"Paste\""),
-      getKeyStroke(ACTION_SELECT_ALL) to
-          listOf("key: \"Control\"", "eventType: keypress key: \"a\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_CUT) to listOf("key: \"Control\"", "eventType: keypress key: \"x\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_COPY) to  listOf("key: \"Control\"", "eventType: keypress key: \"c\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_PASTE) to  listOf("key: \"Control\"", "eventType: keypress key: \"v\"", "eventType: keyup key: \"Control\""),
+      getKeyStroke(ACTION_SELECT_ALL) to listOf("key: \"Control\"", "eventType: keypress key: \"a\"", "eventType: keyup key: \"Control\""),
       getKeyStroke(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Shift\""),
       getKeyStroke(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION) to

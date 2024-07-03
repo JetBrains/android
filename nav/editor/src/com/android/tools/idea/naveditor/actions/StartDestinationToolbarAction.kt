@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.isActivity
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isStartDestination
@@ -32,23 +33,27 @@ class StartDestinationToolbarAction private constructor(): AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    // FIXME: This action should be disabled when the selected component cannot be a start destination
-    //        But the toolbar of navigation editor is not updated after disable it.
-    //        Thus we keep it enabled in navigation editor and do nothing when selected component is not illegible.
-    e.presentation.isEnabled = (e.getData(DESIGN_SURFACE) as? NavDesignSurface != null)
+    e.presentation.isEnabled = false
+    executeCallbackIfValidDestination(e) {
+      e.presentation.isEnabled = true
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    executeCallbackIfValidDestination(e) {
+      WriteCommandAction.runWriteCommandAction(it.model.project) {
+        it.setAsStartDestination()
+      }
+    }
+  }
+
+  private fun executeCallbackIfValidDestination(e: AnActionEvent, callback: (NlComponent) -> Unit) {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     val component = surface.selectionModel.selection.singleOrNull() ?: return
     if (!component.id.isNullOrEmpty() &&
         component.isDestination && component != surface.currentNavigation &&
         !component.isActivity && !component.isStartDestination) {
-      surface.selectionModel.selection.firstOrNull()?.let {
-        WriteCommandAction.runWriteCommandAction(it.model.project) {
-          it.setAsStartDestination()
-        }
-      }
+      callback(component)
     }
   }
 

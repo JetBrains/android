@@ -55,7 +55,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.largeFilesEditor.GuiUtils
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
@@ -81,7 +80,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AppUIUtil
@@ -379,7 +378,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       } else {
         Duration.ofSeconds(testDuration.seconds)
       }
-      statusBreakdownText.append(", ${StringUtil.formatDuration(roundedTestDuration.toMillis(), "\u2009")}")
+      statusBreakdownText.append(", ${Formats.formatDuration(roundedTestDuration.toMillis(), "\u2009")}")
     }
 
     myStatusBreakdownText.text = statusBreakdownText.toString()

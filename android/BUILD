@@ -315,7 +315,7 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:windows": [
+        "@platforms//os:windows": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/installer/tests:fake_device_proto",
             "//tools/base/deploy/proto:deploy_java_proto",
@@ -393,7 +393,7 @@ filegroup(
         ":transport-artifacts",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
-        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/adt/idea/compose-ide-plugin/compose-compiler",
         "//tools/adt/idea/compose-ide-plugin/compose-compiler:compose-compiler-src.jar",
@@ -432,7 +432,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
     ] + select({
-        "//tools/base/bazel:windows": [],
+        "@platforms//os:windows": [],
         "//conditions:default": [
             "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
         ],
@@ -449,13 +449,16 @@ maven_repository(
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.3",
-        "@maven//:androidx.compose.foundation.foundation_1.5.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
+        "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.10.0",
+        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.core.core-ktx_1.9.0",

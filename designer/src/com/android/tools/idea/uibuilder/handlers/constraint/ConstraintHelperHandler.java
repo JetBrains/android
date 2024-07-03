@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentReference;
 import com.android.tools.idea.common.model.NlModel;
@@ -85,7 +86,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
               component = model.createComponent(tag);
             }
-            model.addTags(Collections.singletonList(component), receiver, before, insert);
+            model.getTreeWriter().addTags(Collections.singletonList(component), receiver, before, insert);
           }
         }
         else {
@@ -105,7 +106,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         }
         event.accept(insertType);
         event.complete();
-        model.notifyModified(NlModel.ChangeType.DROP);
+        model.notifyModified(ChangeType.DROP);
       }
       catch (Exception exception) {
         Logger.getInstance(NlDropListener.class).warn(exception);

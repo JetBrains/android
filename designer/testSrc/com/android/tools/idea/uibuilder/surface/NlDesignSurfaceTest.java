@@ -212,16 +212,16 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
-    NlComponent button2 = model.find("cuteLittleButton2");
+    NlComponent button2 = model.getTreeReader().find("cuteLittleButton2");
     assertNotNull(button2);
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button2));
     handler.performCopy(dataContext);
     handler.performPaste(dataContext);
-    NlComponent button3 = model.find("cuteLittleButton3");
+    NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
     assertNotNull(button3);
   }
 
@@ -244,7 +244,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
@@ -280,9 +280,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
-    NlComponent button2 = model.find("cuteLittleButton2");
-    NlComponent button3 = model.find("cuteLittleButton3");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
+    NlComponent button2 = model.getTreeReader().find("cuteLittleButton2");
+    NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
@@ -320,9 +320,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
-    NlComponent button2 = model.find("cuteLittleButton2");
-    NlComponent button3 = model.find("cuteLittleButton3");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
+    NlComponent button2 = model.getTreeReader().find("cuteLittleButton2");
+    NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
     handler.performCopy(dataContext);
     mySurface.getSelectionModel().clear();
@@ -348,11 +348,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
-    NlComponent button2 = model.find("cuteLittleButton");
+    NlComponent button2 = model.getTreeReader().find("cuteLittleButton");
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2);
 
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button2));
@@ -381,11 +381,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
-    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button = model.getTreeReader().find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
-    NlComponent buttonCut = model.find("cuteLittleButton");
+    NlComponent buttonCut = model.getTreeReader().find("cuteLittleButton");
     assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut);
 
     mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCut));
@@ -393,12 +393,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     handler.performPaste(dataContext);
     assertComponentWithId(model, "cuteLittleButton2");
 
-    NlComponent buttonCopied = model.find("cuteLittleButton2");
+    NlComponent buttonCopied = model.getTreeReader().find("cuteLittleButton2");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(buttonCopied));
     handler.performCut(dataContext);
     handler.performPaste(dataContext);
     handler.performPaste(dataContext);
-    assertNull(model.find("cuteLittleButton4"));
+    assertNull(model.getTreeReader().find("cuteLittleButton4"));
     assertComponentWithId(model, "cuteLittleButton2");
   }
 
@@ -505,11 +505,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   private static void assertComponentWithId(@NotNull NlModel model, @NotNull String expectedId) {
-    NlComponent component = model.find(expectedId);
+    NlComponent component = model.getTreeReader().find(expectedId);
     assertNotNull("Expected id is \"" +
                   expectedId +
                   "\" but current ids are: " +
-                  model.flattenComponents().map(NlComponent::getId).collect(Collectors.joining(", ")),
+                  model.getTreeReader().flattenComponents().map(NlComponent::getId).collect(Collectors.joining(", ")),
                   component);
   }
 

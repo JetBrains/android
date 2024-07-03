@@ -15,22 +15,30 @@
  */
 package com.android.tools.adtui.compose
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
+import org.jetbrains.jewel.foundation.Stroke
+import org.jetbrains.jewel.foundation.modifier.border
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.util.thenIf
 
 /**
  * A panel that can be opened or closed. It has a header with a title and an arrow indicating
@@ -44,8 +52,21 @@ fun HideablePanel(
   content: @Composable () -> Unit,
 ) {
   var isOpen by remember { mutableStateOf(initiallyOpen) }
+  var isFocused by remember { mutableStateOf(false) }
   Column(modifier) {
-    Row(modifier = Modifier.clickable { isOpen = !isOpen }) {
+    Row(
+      modifier =
+        Modifier.thenIf(isFocused) {
+            border(
+              Stroke.Alignment.Outside,
+              shape = RoundedCornerShape(4.dp),
+              color = JewelTheme.globalColors.outlines.focused,
+              width = JewelTheme.globalMetrics.outlineWidth,
+            )
+          }
+          .onFocusChanged { isFocused = it.isFocused }
+          .clickable { isOpen = !isOpen }
+    ) {
       if (isOpen) {
         Icon("general/arrowDown.svg", "open", AllIcons::class.java)
       } else {

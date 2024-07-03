@@ -18,11 +18,8 @@ package com.android.tools.idea.streaming.device.settings
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
-import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -54,7 +51,6 @@ class DeviceMirroringSettingsPageTest {
 
   @Before
   fun setUp() {
-    StudioFlags.DEVICE_MIRRORING_AUDIO.override(true, projectRule.disposable)
     settings.loadState(DeviceMirroringSettings())
   }
 

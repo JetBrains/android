@@ -25,6 +25,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -34,7 +35,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
 import java.util.WeakHashMap
-import org.jetbrains.android.facet.AndroidFacet
 
 data class CustomConfigurationSet(
   var title: String = "Custom",
@@ -122,24 +122,24 @@ class CustomModelsProvider(
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
 
     val currentFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     val currentFileConfig = configurationManager.getConfiguration(currentFile)
 
     val models = mutableListOf<NlModel>()
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(
-      NlModel.builder(parentDisposable, facet, currentFile, currentFileConfig)
+      NlModel.Builder(parentDisposable, buildTarget, currentFile, currentFileConfig)
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
-        .apply { modelDisplayName = "Default (Current File)" }
+        .apply { setDisplayName("Default (Current File)") }
     )
 
     // Custom Configurations
@@ -157,12 +157,12 @@ class CustomModelsProvider(
         ) ?: currentFile
 
       val model =
-        NlModel.builder(parentDisposable, facet, betterFile, config)
-          .withModelTooltip(config.toHtmlTooltip())
+        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)
           .build()
-      model.modelDisplayName = customConfig.name
+      model.setTooltip(config.toHtmlTooltip())
+      model.setDisplayName(customConfig.name)
       models.add(model)
       configurationToConfigurationAttributesMap[config] = attributes
     }

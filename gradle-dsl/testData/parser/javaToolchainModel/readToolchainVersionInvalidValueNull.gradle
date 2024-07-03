@@ -1,5 +1,5 @@
 java {
   toolchain {
-    languageVersion JavaLanguageVersion.of(null)
+    languageVersion = JavaLanguageVersion.of(null)
   }
 }

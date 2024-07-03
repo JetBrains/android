@@ -50,7 +50,7 @@ class PreviewElementFilterTest {
       .inOrder()
 
     // Set an instance filter
-    filterFlow.value = PreviewElementFilter.Single(allPreviews.first() as TestPreviewElement)
+    filterFlow.value = PreviewElementFilter.Single(allPreviews.first())
     assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly("PreviewMethod1")
 

@@ -21,5 +21,6 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
     ],
 )

@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.preview.animation.timeline.PropertyCurve
@@ -56,7 +57,7 @@ class PropertyCurveTest {
     val propertyCurveOne =
       PropertyCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           property,
           InspectorLayout.timelineHeaderHeightScaled(),
           0,
@@ -70,7 +71,7 @@ class PropertyCurveTest {
     val propertyCurveTwo =
       PropertyCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           property,
           InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
           1,

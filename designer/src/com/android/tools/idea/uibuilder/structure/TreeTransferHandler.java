@@ -71,7 +71,7 @@ public final class TreeTransferHandler extends TransferHandler {
       NlModel model = tree.getDesignerModel();
       List<NlComponent> selected = tree.getSelectedComponents();
       if (model != null && !selected.isEmpty()) {
-        ApplicationManager.getApplication().invokeLater(() -> model.delete(selected));
+        ApplicationManager.getApplication().invokeLater(() -> model.getTreeWriter().delete(selected));
       }
     }
   }

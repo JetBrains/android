@@ -52,6 +52,26 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun updateExistingDefinitionDefinedInKotlinBlock() {
+    writeToBuildFile(TestFileName("JavaToolchain/appToolchain17DefinedInKotlinBlock"))
+
+    val processor = AddJavaToolchainDefinition(project, 21, listOf(projectRule.module))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain21DefinedInKotlinBlock"))
+  }
+
+  @Test
+  fun updateExistingDefinitionDefinedInBothJavaAndKotlinBlocks() {
+    writeToBuildFile(TestFileName("JavaToolchain/appToolchain17DefinedInBothJavaAndKotlinBlocks"))
+
+    val processor = AddJavaToolchainDefinition(project, 21, listOf(projectRule.module))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("JavaToolchain/appToolchain21DefinedInBothJavaAndKotlinBlocks"))
+  }
+
+  @Test
   fun addingOnlyToRequestedModules() {
     writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
 

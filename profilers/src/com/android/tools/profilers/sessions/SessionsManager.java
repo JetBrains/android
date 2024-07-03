@@ -130,11 +130,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   private ProfilerTaskType myCurrentTaskType = ProfilerTaskType.UNSPECIFIED;
 
   /**
-   * Whether the current task initiated by the user is to be started on startup of the process or not.
-   */
-  private boolean myIsCurrentTaskStartup = false;
-
-  /**
    * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
    */
   private final Map<Long, Range> mySessionViewRangeMap;
@@ -215,7 +210,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   public boolean isCurrentTaskStartup() {
-    return myIsCurrentTaskStartup;
+    return getSelectedSessionMetaData().getIsStartupTask();
   }
 
   @NotNull
@@ -305,12 +300,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
         sessionNewlyEnded = true;
-
-        // (b/326497871) In session-based UI, importing file shouldn't reset the session with defaultInstance because doing so would
-        // disable the stop profiling session button.
-        if (myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-          setProfilingSession(Common.Session.getDefaultInstance());
-        }
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
@@ -322,6 +311,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
           setProfilingSession(sessionItem.getSession());
         }
         setSessionInternal(sessionItem.getSession());
+      }
+
+      if (!newSessionFound && sessionNewlyEnded) {
+        changed(SessionAspect.ONGOING_SESSION_NEWLY_ENDED);
       }
 
       final SessionItem item = sessionItem;
@@ -429,12 +422,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setProcessAbi(sessionData.getProcessAbi())
       .setJvmtiEnabled(sessionData.getJvmtiEnabled())
       .setSessionName(sessionData.getSessionName())
+      .setTaskType(sessionData.getTaskType())
+      .setIsStartupTask(sessionData.getIsStartupTask())
       .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
     myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
-    myIsCurrentTaskStartup = sessionData.getIsStartupTask();
     return sessionItem;
   }
 
@@ -486,6 +480,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     myProfilingSession = session;
     changed(SessionAspect.PROFILING_SESSION);
+  }
+
+  public void resetSessionSelection() {
+    setSession(Common.Session.getDefaultInstance());
   }
 
   public void setCurrentTaskType(ProfilerTaskType taskType) {
@@ -566,10 +564,24 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     Common.Session profilingSession = myProfilingSession;
     setProfilingSession(Common.Session.getDefaultInstance());
 
+    endSession(profilingSession);
+  }
+
+  /**
+   * Terminates the selected session, rather than the profiling session (as done by `endCurrentSession`).
+   *
+   * In the Task-Based UX, if a session is started it is noticed quickly enough that is faulty (before it is set as the profiling session,
+   * but after it is set as the selected session), this method is utilized to end the session.
+   */
+  public void endSelectedSession() {
+    endSession(mySelectedSession);
+  }
+
+  private void endSession(Common.Session session) {
     Command command = Command.newBuilder()
-      .setStreamId(profilingSession.getStreamId())
-      .setPid(profilingSession.getPid())
-      .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
+      .setStreamId(session.getStreamId())
+      .setPid(session.getPid())
+      .setEndSession(EndSession.newBuilder().setSessionId(session.getSessionId()))
       .setType(Command.CommandType.END_SESSION)
       .build();
     myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());

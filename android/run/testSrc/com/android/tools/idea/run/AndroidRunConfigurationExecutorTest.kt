@@ -47,6 +47,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration.Companion.DO_NOTHING
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.override
@@ -56,7 +57,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
-import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -81,7 +81,6 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
-import org.mockito.Spy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -120,7 +119,7 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val stats = RunStatsService.get(projectRule.project).create()
     val env = getExecutionEnvironment(listOf(device)).apply {
@@ -187,7 +186,7 @@ class AndroidRunConfigurationExecutorTest {
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val stats = RunStatsService.get(projectRule.project).create()
     val env = getExecutionEnvironment(listOf(device), isDebug = true).apply {
@@ -228,7 +227,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun applyChangesSucceeded() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningDescriptor = setSwapInfo(env, device)
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
@@ -278,7 +277,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun applyCodeChangesSucceeded() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningDescriptor = setSwapInfo(env, device)
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
@@ -330,7 +329,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun runFailedApkProvisionException() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
@@ -366,7 +365,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun runGetApplicationIdException() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
@@ -409,7 +408,7 @@ class AndroidRunConfigurationExecutorTest {
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val stats = RunStatsService.get(projectRule.project).create()
     val env = getExecutionEnvironment(listOf(device)).apply {
@@ -475,7 +474,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun runFailedDeployException() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
 
     var liveEditServiceNotified = false
@@ -539,7 +538,7 @@ class AndroidRunConfigurationExecutorTest {
   @Test
   fun swapRunFailedButProcessHandlerShouldNotBeDetached() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
@@ -573,7 +572,7 @@ class AndroidRunConfigurationExecutorTest {
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
@@ -624,7 +623,7 @@ class AndroidRunConfigurationExecutorTest {
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
@@ -771,7 +770,7 @@ class AndroidRunConfigurationExecutorTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(33))
     Mockito.`when`(device.forceStop(any())).thenThrow(RuntimeException("Should not kill"))
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
 
     val stats = RunStatsService.get(projectRule.project).create()
     val env = getExecutionEnvironment(listOf(device)).apply {

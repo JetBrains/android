@@ -75,7 +75,7 @@ class BuildListenerTest {
 
   @Test
   fun testBuildSuccessful() {
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
 
     buildState.buildStarted(buildMode)
     processEvents()
@@ -91,7 +91,7 @@ class BuildListenerTest {
 
   @Test
   fun testBuildFailed() {
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
 
     buildState.buildStarted(buildMode)
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.FAILED)
@@ -127,7 +127,7 @@ class BuildListenerTest {
 
     Disposer.dispose(secondDisposable)
 
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     buildState.buildStarted(buildMode)
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
@@ -139,7 +139,7 @@ class BuildListenerTest {
 
   @Test
   fun testCalledOnSubscriptionWhenPreviousBuildIsSuccessful() {
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
@@ -177,7 +177,7 @@ class BuildListenerTest {
     val secondDisposable = Disposer.newDisposable()
     setupBuildListener(project, secondListener, secondDisposable, buildManager = testBuildManager)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
@@ -186,7 +186,7 @@ class BuildListenerTest {
 
     Disposer.dispose(firstDisposable)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
@@ -204,7 +204,7 @@ class BuildListenerTest {
 
     assertThat(thirdListenerCalls).isEqualTo(1)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
@@ -214,7 +214,7 @@ class BuildListenerTest {
     Disposer.dispose(secondDisposable)
     Disposer.dispose(thirdDisposable)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
@@ -233,7 +233,7 @@ class BuildListenerTest {
 
     assertThat(fourthListenerCalls).isEqualTo(1)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -145,7 +147,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
         throw new IllegalStateException();
       }
     }).get();
-    assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
+    assertTrue(Device.isWear(config.getDevice()));
   }
 
   public void testDefaultThemeCompute() throws ExecutionException, InterruptedException {

@@ -34,11 +34,15 @@ import javax.swing.TransferHandler
  * E.g: Drag a Drawable [ResourceAssetSet] into the LayoutEditor.
  *
  * @param importResourceDelegate Object to which [TransferHandler.importData] is delegated.
+ * @param isValidTransferTarget Whether data is being transferred to a valid target.
  */
-fun resourceDragHandler(importResourceDelegate: ImportResourceDelegate) = if (GraphicsEnvironment.isHeadless()) {
+fun resourceDragHandler(
+  importResourceDelegate: ImportResourceDelegate,
+  isValidTransferTarget: () -> Boolean
+) = if (GraphicsEnvironment.isHeadless()) {
   HeadlessDragHandler()
 } else {
-  ResourceDragHandlerImpl(importResourceDelegate)
+  ResourceDragHandlerImpl(importResourceDelegate, isValidTransferTarget)
 }
 
 interface ResourceDragHandler {
@@ -62,11 +66,12 @@ class HeadlessDragHandler internal constructor() : ResourceDragHandler {
 }
 
 /**
- * Handles the transfers of the assets when they gets dragged
+ * Handles the transfers of the assets when they get dragged. Assets are only transferred to valid targets.
  */
 private class ResourceFilesTransferHandler(
   private val assetList: JList<ResourceAssetSet>,
-  private val importDelegate: ImportResourceDelegate
+  private val importDelegate: ImportResourceDelegate,
+  private val isValidTransferTarget: () -> Boolean
 ): TransferHandler() {
 
   override fun canImport(support: TransferSupport?): Boolean {
@@ -76,7 +81,7 @@ private class ResourceFilesTransferHandler(
   }
 
   override fun importData(comp: JComponent?, t: Transferable?): Boolean {
-    if (t == null) return false
+    if (t == null || !isValidTransferTarget()) return false
     return importDelegate.doImport(t)
   }
 
@@ -98,13 +103,17 @@ private class ResourceFilesTransferHandler(
  * Drag handler for the resources list in the resource explorer.
  *
  * It doesn't deal with importing, but since it may consume the event, delegates the import operation to a given [ImportResourceDelegate].
+ * The import operation is only passed to the delegate if [isValidTransferTarget] is true.
  */
-internal class ResourceDragHandlerImpl (private val importDelegate: ImportResourceDelegate) : ResourceDragHandler {
+internal class ResourceDragHandlerImpl(
+  private val importDelegate: ImportResourceDelegate,
+  private val isValidTransferTarget: () -> Boolean
+) : ResourceDragHandler {
 
   override fun registerSource(assetList: JList<ResourceAssetSet>) {
     assetList.dragEnabled = true
     assetList.dropMode = DropMode.ON
-    assetList.transferHandler = ResourceFilesTransferHandler(assetList, importDelegate)
+    assetList.transferHandler = ResourceFilesTransferHandler(assetList, importDelegate, isValidTransferTarget)
   }
 }
 

@@ -53,6 +53,9 @@ internal abstract class AbstractStreamingAction<T : AnAction, U : AnAction>(
       virtualDeviceAction.actionPerformed(event)
     }
   }
+
+  fun isDelegatingTo(action: AnAction): Boolean =
+      action == virtualDeviceAction || action == physicalDeviceAction
 }
 
 internal open class StreamingAction(virtualDeviceAction: AnAction, physicalDeviceAction: AnAction) :

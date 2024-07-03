@@ -36,7 +36,7 @@ final class NlComponentTreeModel implements TreeModel {
   }
 
   NlComponentTreeModel(@NotNull NlModel model) {
-    List<NlComponent> components = model.getComponents();
+    List<NlComponent> components = model.getTreeReader().getComponents();
     myRoot = components.isEmpty() ? null : components.get(0);
   }
 

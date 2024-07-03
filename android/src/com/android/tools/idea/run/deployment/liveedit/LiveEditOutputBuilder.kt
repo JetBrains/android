@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.deploy.proto.Deploy.LiveEditRequest.InvalidateMode
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedUserClass
@@ -100,11 +101,12 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
       if (groups.isEmpty()) {
-        output.resetState = true
+        output.invalidateMode = InvalidateMode.SAVE_AND_LOAD
+        output.hasNonComposeChanges = true
         return newClass
       }
 
-      selectComposeGroups(sourceFile, groups, newClass.methods).forEach { output.groupIds.add(it.key) }
+      selectComposeGroups(sourceFile, groups, newClass.methods).forEach { output.addGroupId(it.key) }
       return newClass
     }
 
@@ -157,12 +159,13 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     // annotations, so still perform group ID resolution in that case. Also skip if we don't have any groups.
     val modifiedNonCompose = classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }
     if (modifiedNonCompose || groups.isEmpty()) {
-      output.resetState = true
+      output.invalidateMode = InvalidateMode.SAVE_AND_LOAD
+      output.hasNonComposeChanges = true
       return newClass
     }
 
     debug.log("select groups for ${newClass.name}")
-    selectComposeGroups(sourceFile, groups, modifiedIrMethods).forEach { output.groupIds.add(it.key) }
+    selectComposeGroups(sourceFile, groups, modifiedIrMethods).forEach { output.addGroupId(it.key) }
     return newClass
   }
 }

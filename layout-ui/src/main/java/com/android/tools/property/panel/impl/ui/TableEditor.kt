@@ -122,6 +122,14 @@ class TableEditor(
     }
   }
 
+  fun setPreviousTableEditor(editor: TableEditor?) {
+    table.previousTable = editor?.table
+  }
+
+  fun setNextTableEditor(editor: TableEditor?) {
+    table.nextTable = editor?.table
+  }
+
   private fun updateUI() {
     // The font height may change on a LaF change: recompute and set the row height.
     component.rowHeight = computeRowHeight()

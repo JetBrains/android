@@ -32,12 +32,20 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
+import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
+import com.android.sdklib.internal.avd.HardwareProperties.HardwareProperty;
+import com.android.sdklib.internal.avd.SdCards;
 import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.ExternalSdCard;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.avd.InternalSdCard;
+import com.android.sdklib.internal.avd.SdCard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.avdmanager.EmulatorFeatures;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.flags.StudioFlags;
@@ -46,7 +54,6 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
-import com.android.tools.idea.observable.core.ObservableObject;
 import com.android.tools.idea.observable.core.ObservableString;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -61,7 +68,6 @@ import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -75,6 +81,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,10 +152,10 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myCommandLineOptions = new StringValueProperty();
 
   private ObservableString existingSdLocation = new StringValueProperty();
-  private ObservableObject<Storage> myOriginalSdCard;
 
   private AvdDeviceData myAvdDeviceData;
   private @Nullable AvdInfo myCreatedAvd;
+  private @Nullable EmulatorPackage myEmulatorPackage;
 
   public void setAsCopy() {
     // Copying this AVD. Adjust its name.
@@ -173,11 +180,14 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdInfo = avdInfo;
     myAvdCreatedCallback = avdCreatedCallback;
     myAvdDeviceData = new AvdDeviceData();
-
-    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
+    myEmulatorPackage =
+        EmulatorPackages.getEmulatorPackage(
             AndroidSdks.getInstance().tryToChooseSdkHandler(),
-            new StudioLoggerProgressIndicator(AvdOptionsModel.class),
-            new LogWrapper(Logger.getInstance(AvdOptionsModel.class)));
+            new StudioLoggerProgressIndicator(AvdOptionsModel.class));
+
+    Set<String> features = EmulatorFeatures.getEmulatorFeatures(myEmulatorPackage);
+
+    boolean supportsVirtualCamera = features.contains(EmulatorAdvancedFeatures.VIRTUAL_SCENE);
     mySelectedAvdFrontCamera = new ObjectValueProperty<>(AvdCamera.EMULATED);
     mySelectedAvdBackCamera = new ObjectValueProperty<>(
             supportsVirtualCamera ? AvdCamera.VIRTUAL_SCENE : AvdCamera.EMULATED);
@@ -185,8 +195,28 @@ public final class AvdOptionsModel extends WizardModel {
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
     }
-    else {
-      updateValuesFromHardwareProperties();
+    else if (myEmulatorPackage != null) {
+      // Set values to their defaults based on the emulator's hardware-properties.ini.
+      var hardwareProperties = myEmulatorPackage.getHardwareProperties(new LogWrapper(AvdOptionsModel.class));
+      if (hardwareProperties != null) {
+        HardwareProperty sdCardStorage = hardwareProperties.get(AvdManager.AVD_INI_SDCARD_SIZE);
+        if (sdCardStorage != null) {
+          Storage storage = getStorageFromIni(sdCardStorage.getDefault(), false);
+          if (storage != null) {
+            mySdCardStorage.setValue(storage);
+          }
+        }
+        HardwareProperty internalStorage = hardwareProperties.get(AvdManager.AVD_INI_DATA_PARTITION_SIZE);
+        if (internalStorage != null) {
+          Storage storage = getStorageFromIni(internalStorage.getDefault(), true);
+          // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is
+          // defaulted to 0. In this case, We will skip this default value. When the hardware-properties.ini is
+          // updated, we will delete the redundant value check.
+          if (storage != null && storage.getSize() != 0) {
+            myInternalStorage.set(storage);
+          }
+        }
+      }
     }
     myDevice.addListener(() -> {
       if (myDevice.get().isPresent()) {
@@ -559,7 +589,6 @@ public final class AvdOptionsModel extends WizardModel {
           Storage sdCardSize = new Storage(sdFile.length());
           myUseExternalSdCard.set(false);
           myUseBuiltInSdCard.set(true);
-          myOriginalSdCard = new ObjectValueProperty<>(sdCardSize);
           mySdCardStorage.setValue(sdCardSize);
         }
         else {
@@ -621,24 +650,6 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   /**
-   * Set the initial internal storage size and sd card storage size, using values from hardware-properties.ini
-   */
-  private void updateValuesFromHardwareProperties() {
-    AvdManagerConnection conn = AvdManagerConnection.getDefaultAvdManagerConnection();
-    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties(), false);
-    if (storage != null) {
-      mySdCardStorage.setValue(storage);
-    }
-    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties(), true);
-    // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is defaulted
-    // to 0. In this case, We will skip this default value. When the hardware-properties.ini is
-    // updated, we will delete the redundant value check.
-    if (storage != null && storage.getSize() != 0) {
-      myInternalStorage.set(storage);
-    }
-  }
-
-  /**
    * Returns a map containing all of the properties editable on this wizard to be passed on to the AVD prior to serialization
    */
   private Map<String, Object> generateUserEditedPropertiesMap() {
@@ -675,18 +686,6 @@ public final class AvdOptionsModel extends WizardModel {
       map.remove(AvdWizardUtils.CPU_CORES_KEY);
     }
 
-    if (myOriginalSdCard != null) {
-      map.put(AvdWizardUtils.SD_CARD_STORAGE_KEY, myOriginalSdCard);
-    }
-
-    if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
-      map.put(AvdWizardUtils.EXISTING_SD_LOCATION, existingSdLocation.get());
-    }
-    if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
-      map.put(AvdWizardUtils.EXISTING_SD_LOCATION, myExternalSdCardLocation.get());
-      map.put(AvdWizardUtils.DISPLAY_SD_LOCATION_KEY, myExternalSdCardLocation.get());
-    }
-    map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY, myUseExternalSdCard.get());
     map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY, myInternalStorage.get());
     map.put(AvdWizardUtils.NETWORK_SPEED_KEY, mySelectedNetworkSpeed.get().getAsParameter());
     map.put(AvdWizardUtils.NETWORK_LATENCY_KEY, mySelectedNetworkLatency.get().getAsParameter());
@@ -703,9 +702,6 @@ public final class AvdOptionsModel extends WizardModel {
       map.put(AvdWizardUtils.BACKUP_SKIN_FILE_KEY, myBackupSkinFile.getValue());
     }
 
-    if (mySdCardStorage.get().isPresent()) {
-      map.put(AvdWizardUtils.DISPLAY_SD_SIZE_KEY, mySdCardStorage.getValue());
-    }
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
       map.put(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY, myCommandLineOptions.get());
     }
@@ -730,36 +726,16 @@ public final class AvdOptionsModel extends WizardModel {
     Map<String, Object> userEditedProperties = generateUserEditedPropertiesMap();
     Map<String, String> userSettings = generateUserSettingsMap();
 
-    String sdCard = null;
-    boolean hasSdCard = false;
+    @Nullable SdCard sdCard;
     if (myUseExternalSdCard.get()) {
-      sdCard = myExternalSdCardLocation.get();
-      // Remove SD card storage size because it will use external file
-      userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
-      hasSdCard = true;
-    } else if (myUseBuiltInSdCard.get()){
-      if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
-        // unchanged, use existing card
-        sdCard = existingSdLocation.get();
-        hasSdCard = true;
-      } else {
-        // Remove existing sd card because we will create a new one
-        userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
-        Storage storage = null;
-        myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
-        if (mySdCardStorage.get().isPresent()) {
-          storage = mySdCardStorage.getValue();
-          sdCard = toIniString(storage, false);
-        }
-        hasSdCard = storage != null && storage.getSize() > 0;
-      }
+      sdCard = new ExternalSdCard(myExternalSdCardLocation.get());
+    } else if (myUseBuiltInSdCard.get() && mySdCardStorage.get().isPresent()) {
+      sdCard = new InternalSdCard(Math.max(mySdCardStorage.get().get().getSize(), SdCards.SDCARD_MIN_BYTE_SIZE));
     } else {
-      hasSdCard = false;
-      // Remove existing sd card, since device doesn't have sdcard
-      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
+      sdCard = null;
     }
 
-    hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
+    hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(sdCard != null));
     // Remove any internal keys from the map
     userEditedProperties = Maps.filterEntries(
       userEditedProperties,
@@ -786,9 +762,8 @@ public final class AvdOptionsModel extends WizardModel {
       }
       else if (value instanceof GpuMode) {
         GpuMode gpuMode = (GpuMode)value;
-        if (gpuMode == GpuMode.SWIFT &&
-            !AvdManagerConnection.getDefaultAvdManagerConnection().
-              emulatorVersionIsAtLeast(new Revision(27, 1, 6))) {
+        if (gpuMode == GpuMode.SWIFT && myEmulatorPackage != null &&
+            myEmulatorPackage.getVersion().compareTo(new Revision(27, 1, 6)) < 0) {
           // Older Emulator versions expect "guest" when SWIFT is selected on the UI
           return "guest";
         }
@@ -850,13 +825,12 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
-    final String sdCardFinal = sdCard;
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
 
     ProgressManager.getInstance().runProcessWithProgressSynchronously(
       () -> {
         myCreatedAvd =
-          connection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCardFinal,
+          connection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCard,
                                        skinFile, hardwareProperties, userSettings, myRemovePreviousAvd.get());
 
         if (myAvdCreatedCallback != null) {

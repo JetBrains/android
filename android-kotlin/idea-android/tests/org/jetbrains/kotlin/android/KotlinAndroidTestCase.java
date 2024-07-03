@@ -106,8 +106,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
-    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    AndroidTestCase.registerLongRunningThreads();
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());

@@ -37,6 +37,12 @@
     <externalAnnotator language="TOML" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
     <externalAnnotator language="Declarative" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>
 
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAccessibilityFocus" groupName="Android Lint: Accessibility" displayName="Forcing accessibility focus" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccessibilityFocusInspection"/>
+
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAccessibilityScrollActions" groupName="Android Lint: Accessibility" displayName="Incomplete Scroll Action support" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccessibilityScrollActionsInspection"/>
+
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAccessibilityWindowStateChangedEvent" groupName="Android Lint: Accessibility" displayName="Use of accessibility window state change events" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccessibilityWindowStateChangedEventInspection"/>
+
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" groupName="Android Lint: Correctness" displayName="Accidental Octal" bundle="messages.LintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.common.AndroidLintAccidentalOctalInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintAssertionSideEffect" groupName="Android Lint: Performance" displayName="Assertions with Side Effects" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintAssertionSideEffectInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintBadHostnameVerifier" groupName="Android Lint: Security" displayName="Insecure HostnameVerifier" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintBadHostnameVerifierInspection"/>

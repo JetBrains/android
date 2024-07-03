@@ -59,6 +59,12 @@ interface PTable {
   /** Wrap when navigating past the end of the table */
   var wrap: Boolean
 
+  /** Previous table to jump to when navigating up. Null if this is the first table. */
+  var previousTable: PTable?
+
+  /** Next table to jump to when navigating down. Null if this is the last table. */
+  var nextTable: PTable?
+
   /**
    * The grid color used in the table.
    *

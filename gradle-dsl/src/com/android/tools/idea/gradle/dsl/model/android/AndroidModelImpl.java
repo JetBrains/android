@@ -503,7 +503,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ViewBindingModel viewBinding() {
     ViewBindingDslElement viewBindingElement = myDslElement.ensurePropertyElement(VIEW_BINDING);
-    return new ViewBindingModelImpl(viewBindingElement);
+    return new ViewBindingModelImpl(viewBindingElement, this);
   }
 
   @NotNull

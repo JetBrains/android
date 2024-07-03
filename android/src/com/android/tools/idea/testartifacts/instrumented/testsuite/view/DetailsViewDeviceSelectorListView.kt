@@ -24,6 +24,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.intellij.largeFilesEditor.GuiUtils
+import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColorUtil
@@ -176,7 +177,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myDeviceLabelPanel.foreground = list.foreground
       if (value is AndroidDevice) {
         val testDurationText = myTestResults?.getRoundedDuration(value)?.let {
-          StringUtil.formatDuration(it.toMillis(), "\u2009")
+          Formats.formatDuration(it.toMillis(), "\u2009")
         } ?: ""
         if (StringUtil.isNotEmpty(testDurationText)) {
           myDeviceLabel.text = String.format(Locale.US,

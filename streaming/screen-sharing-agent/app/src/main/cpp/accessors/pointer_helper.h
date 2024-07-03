@@ -24,7 +24,7 @@ namespace screensharing {
 // Creates and manipulates MotionEvent.PointerProperties and MotionEvent.PointerCoords objects.
 class PointerHelper {
 public:
-  PointerHelper(Jni jni);
+  explicit PointerHelper(Jni jni);
   ~PointerHelper();
 
   JObjectArray NewPointerPropertiesArray(int32_t length);

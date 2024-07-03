@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.tools.idea.common.model.ChangeType
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.TargetProvider
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.isErrorResult
-import com.android.tools.rendering.ExecuteCallbacksResult
+import com.android.tools.idea.uibuilder.model.getViewHandler
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.future.await
-
-/** Suspendable equivalent to [LayoutlibSceneManager.executeCallbacks]. */
-suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult =
-  executeCallbacksAsync().await()
 
 /**
  * Returns whether the [SceneView] has failed to render or has rendered with errors.
@@ -48,3 +48,37 @@ suspend fun LayoutlibSceneManager.executeInRenderSession(
   this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS)
     .await()
 }
+
+/** Update the [TargetProvider] of the given [component] and its subcomponents. */
+internal fun updateTargetProviders(component: SceneComponent, whenUpdated: Runnable) {
+  val handler = component.nlComponent.getViewHandler(whenUpdated)
+  component.setTargetProvider(handler)
+
+  for (child in component.children) {
+    updateTargetProviders(child, whenUpdated)
+  }
+}
+
+/** Find the corresponding trigger for tracking metrics according to the [changeType]. */
+internal fun getTriggerFromChangeType(changeType: ChangeType?): LayoutEditorRenderResult.Trigger? =
+  when (changeType) {
+    ChangeType.RESOURCE_EDIT,
+    ChangeType.RESOURCE_CHANGED -> LayoutEditorRenderResult.Trigger.RESOURCE_CHANGE
+    ChangeType.EDIT,
+    ChangeType.ADD_COMPONENTS,
+    ChangeType.DELETE,
+    ChangeType.DND_COMMIT,
+    ChangeType.DND_END,
+    ChangeType.DROP,
+    ChangeType.RESIZE_END,
+    ChangeType.RESIZE_COMMIT -> LayoutEditorRenderResult.Trigger.EDIT
+    ChangeType.BUILD -> LayoutEditorRenderResult.Trigger.BUILD
+    else -> null
+  }
+
+/**
+ * Returns true if the [changeType] should trigger a refresh when the corresponding
+ * [LayoutlibSceneManager] is in power save mode.
+ */
+internal fun shouldRefreshInPowerSaveMode(changeType: ChangeType?) =
+  changeType != ChangeType.RESOURCE_CHANGED && changeType != ChangeType.RESOURCE_EDIT
