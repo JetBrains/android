@@ -366,6 +366,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   @SwingCoordinate
   @Override
+  @NotNull
   protected Dimension getScrollToVisibleOffset() {
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X, 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
