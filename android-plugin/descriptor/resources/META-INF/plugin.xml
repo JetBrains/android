@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2023.1.2 Canary 7</version>
+  <version>2024.1.2 Canary 7</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
