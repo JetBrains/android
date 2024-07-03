@@ -78,6 +78,7 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 import kotlin.concurrent.withLock
@@ -114,6 +115,13 @@ abstract class PreviewSurface<T : SceneManager>(
   private val progressIndicators: MutableSet<ProgressIndicator> = HashSet()
 
   protected abstract val sceneViewPanel: SceneViewPanel
+
+  /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
+  abstract val scrollPane: JScrollPane?
+
+  /** Current scrollable [Rectangle] if available or null. */
+  val currentScrollRectangle: Rectangle?
+    get() = scrollPane?.viewport?.let { Rectangle(it.viewPosition, it.size) }
 
   val layeredPane: JComponent =
     JLayeredPane().apply {
@@ -157,6 +165,8 @@ abstract class PreviewSurface<T : SceneManager>(
    * not happen immediately in this call.
    */
   @UiThread abstract fun revalidateScrollArea()
+
+  @UiThread abstract fun validateScrollArea()
 
   /** Converts a given point that is in view coordinates to viewport coordinates. */
   @TestOnly
@@ -492,6 +502,18 @@ abstract class PreviewSurface<T : SceneManager>(
     val extraW = availableSpace.width - rectangle.width
     val extraH = availableSpace.height - rectangle.height
     setScrollPosition(rectangle.x - (extraW + 1) / 2, rectangle.y - (extraH + 1) / 2)
+  }
+
+  @TestOnly
+  fun setScrollViewSizeAndValidateForTest(
+    @SwingCoordinate width: Int,
+    @SwingCoordinate height: Int,
+  ) {
+    scrollPane?.let {
+      it.setSize(width, height)
+      it.doLayout()
+      UIUtil.invokeAndWaitIfNeeded { validateScrollArea() }
+    }
   }
 
   protected open fun isKeepingScaleWhenReopen(): Boolean {
