@@ -34,7 +34,7 @@ internal class DeviceConfigTest {
     var config = parseDeviceSpec(null)
     assertNull(config)
 
-    config = parseDeviceSpec("spec:shape=Normal,width=120,height=240,unit=px,dpi=480")
+    config = parseDeviceSpec("spec:width=120px,height=240px,dpi=480")
     assertNotNull(config)
     assertNull(config.deviceId)
     assertEquals(120f, config.width)
@@ -43,7 +43,7 @@ internal class DeviceConfigTest {
     assertEquals(480, config.dpi)
     assertEquals(Orientation.portrait, config.orientation)
 
-    config = parseDeviceSpec("spec:shape=Round,width=240,height=120,unit=px,dpi=480")
+    config = parseDeviceSpec("spec:isRound=true,width=240px,height=120px")
     assertNotNull(config)
     assertNull(config.deviceId)
     assertEquals(Orientation.landscape, config.orientation)
@@ -51,14 +51,14 @@ internal class DeviceConfigTest {
 
     // Additional parameters ignored, should be handled by Inspections
     assertNotNull(
-      parseDeviceSpec("spec:id=myId,shape=Round,width=240,height=120,unit=px,dpi=480,foo=bar")
+      parseDeviceSpec("spec:id=myId,isRound=true,width=240px,height=120px,dpi=480,foo=bar")
     )
 
-    // Invalid values in known parameters
-    assertNull(parseDeviceSpec("spec:shape=Round,width=invalid,height=1920,unit=px,dpi=invalid"))
+    // Invalid values in known parameters, should fail to parse
+    assertNull(parseDeviceSpec("spec:width=invalid,height=1920,dpi=invalid"))
 
-    // Missing required parameters
-    assertNull(parseDeviceSpec("spec:shape=Round,width=240,height=120"))
+    // Missing required parameters, should fail to parse
+    assertNull(parseDeviceSpec("spec:isRound=true,width=240px"))
   }
 
   @Test
@@ -106,9 +106,6 @@ internal class DeviceConfigTest {
     // Width, height & chinSize (when present) should have matching units
     assertNull(parseDeviceSpec("spec:width=100dp,height=200dp,chinSize=200px"))
     assertNull(parseDeviceSpec("spec:width=100px,height=200px,chinSize=200dp"))
-
-    // Old syntax has no effect, these types of issues should be highlighted by Inspections
-    assertEquals(DimUnit.px, parseDeviceSpec("spec:width=1080px,height=1920px,unit=dp")!!.dimUnit)
   }
 
   @Test
