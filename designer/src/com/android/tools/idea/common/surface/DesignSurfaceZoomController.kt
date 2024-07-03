@@ -29,7 +29,6 @@ import javax.swing.JViewport
 import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 @SurfaceScale private const val MIN_SCALE: Double = 0.03
 
@@ -285,6 +284,4 @@ abstract class DesignSurfaceZoomController(
     val tolerance: Double = SCALING_THRESHOLD / screenScalingFactor
     return abs(scaleA - scaleB) < tolerance
   }
-
-  private fun getBoundedScale(scale: Double): Double = min(max(scale, minScale), maxScale)
 }
