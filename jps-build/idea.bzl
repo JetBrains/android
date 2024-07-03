@@ -172,7 +172,7 @@ def _jps_test_impl(ctx):
         "--env JVM_ARGS_FILE $PWD/" + jvmargs_file.short_path,
         "--env JAVA_BIN $PWD/" + ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path,
         "--env TEST_SUITE '" + ctx.attr.test_suite + "'",
-        "--env IGNORE_SUITES '" + ":".join(ctx.attr.ignore_suites) + "'",
+        "--env TEST_EXCLUDE_FILTER '" + "|".join(ctx.attr.test_exclude_filter) + "'",
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
@@ -202,7 +202,7 @@ jps_test = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
-        "ignore_suites": attr.string_list(default = []),
+        "test_exclude_filter": attr.string_list(default = []),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
         "_test_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:test_runner"),
         "_bazel_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:jps-test-runner_deploy.jar"),

@@ -49,4 +49,9 @@ public class Test1 {
     public void testOther() {
         System.out.println("Test1::testOther");
     }
+
+    @Test
+    public void testFilterIndividualTest() {
+        throw new RuntimeException("I always fail");
+    }
 }
