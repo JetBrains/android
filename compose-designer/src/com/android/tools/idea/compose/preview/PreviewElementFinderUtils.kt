@@ -36,7 +36,6 @@ import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
-import com.google.common.base.Preconditions.checkState
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -218,6 +217,8 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   }
 }
 
+private val areAssertionsEnabled = MultiPreviewNodeImpl::class.java.desiredAssertionStatus()
+
 /**
  * Converts a composable [UMethod] to a [MultiPreviewNodeImpl].
  *
@@ -227,7 +228,11 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
 private fun UMethod.toMultiPreviewNode(
   multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>
 ): MultiPreviewNodeImpl {
-  checkState(isComposable())
+  if (areAssertionsEnabled) {
+    // This assertion is expensive as it runs a read action. We don't want to compute the value if
+    // the assertions are not enabled.
+    assert(isComposable())
+  }
   val nonPreviewChildNodes =
     runReadAction { getUAnnotations() }.nonPreviewNodes(multiPreviewNodesByFqn)
 
