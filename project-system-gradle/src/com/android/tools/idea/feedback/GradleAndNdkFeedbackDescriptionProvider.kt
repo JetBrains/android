@@ -110,7 +110,7 @@ private fun getNdkDetails(
 ): String {
   return buildString {
     project.getAndroidFacets().forEach(Consumer { facet: AndroidFacet ->
-      val module = facet.holderModule
+      val module = facet.module
       val ndkFacet = getInstance(module)
       val ndkModuleModel = ndkFacet?.ndkModuleModel
       if (ndkModuleModel != null) {

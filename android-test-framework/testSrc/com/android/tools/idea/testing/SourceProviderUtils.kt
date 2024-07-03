@@ -150,9 +150,9 @@ fun Project.dumpSourceProviders(): String {
   }
 
     this@dumpSourceProviders.getAndroidFacets()
-      .sortedBy { it.holderModule.name }
+      .sortedBy { it.module.name }
       .forEach { facet ->
-        out("MODULE: ${facet.holderModule.name}")
+        out("MODULE: ${facet.module.name}")
         nest {
           nest("by Facet:") {
             val sourceProviderManager = SourceProviderManager.getInstance(facet)

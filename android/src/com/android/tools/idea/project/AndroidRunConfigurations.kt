@@ -110,8 +110,7 @@ class AndroidRunConfigurations {
 
     val wearRunConfigurationsToAdd = mutableListOf<RunnerAndConfigurationSettings>()
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-      // wear run configurations require a holder module
-      wearRunConfigurationsToAdd += createWearConfigurations(it.holderModule)
+      wearRunConfigurationsToAdd += createWearConfigurations(it.module)
       if (existingRunConfigurationCount + wearRunConfigurationsToAdd.size > maxAllowedRunConfigurations) {
         // We don't want to breach the maximum number of allowed run configurations
         return

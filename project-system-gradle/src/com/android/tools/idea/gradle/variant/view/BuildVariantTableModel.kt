@@ -115,7 +115,7 @@ private fun buildVariantTableModelRows(project: Project) =
       val buildVariantItems =
         GradleAndroidModel.get(androidFacet)?.filteredVariantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
       val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
-      if (buildVariantItems.isNotEmpty()) BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems) else null
+      if (buildVariantItems.isNotEmpty()) BuildVariantTableRow(androidFacet.module, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems) else null
     }
 
 private fun getAbiItems(facet: AndroidFacet, foVariant: String): List<AbiItem> {
@@ -136,6 +136,6 @@ private fun getNdkModuleModelIfNotJustDummy(ndkFacet: NdkFacet): NdkModuleModel?
 }
 
 private fun getNdkModuleModelIfNotJustDummy(facet: AndroidFacet): NdkModuleModel? {
-  val ndkFacet = getInstance(facet.holderModule) ?: return null
+  val ndkFacet = getInstance(facet.module) ?: return null
   return getNdkModuleModelIfNotJustDummy(ndkFacet)
 }
