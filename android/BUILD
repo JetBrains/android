@@ -457,7 +457,7 @@ maven_repository(
         "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.10.0",
         "@maven//:androidx.core.core-ktx_1.12.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
