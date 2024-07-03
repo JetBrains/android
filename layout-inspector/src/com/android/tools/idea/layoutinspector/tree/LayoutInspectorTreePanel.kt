@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
@@ -323,6 +324,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       val show =
         layoutInspector?.treeSettings?.showRecompositions ?: false &&
           layoutInspector?.currentClient?.isConnected ?: false &&
+          layoutInspector?.currentClient !is FileEditorInspectorClient &&
           layoutInspector
             ?.currentClient
             ?.capabilities
