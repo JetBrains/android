@@ -1,4 +1,4 @@
-<!--
+  <!--
   ~ Copyright (C) 2022 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,12 @@
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
                              bundle="messages.AndroidBundle"
                              key="configurable.DeploymentConfigurable.displayName"/>
+
+    <!-- Note: AndroidPluginIdeaInitializer should be executed only on the IntelliJ IDEA side.
+    It disables a UsageTracker and can be used to disable any kind of Android Studio analytics or services that shouldn't be run in IJ IDEA.
+    -->
+    <applicationInitializedListener id="Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.AndroidPluginIdeaInitializer" />
+
   </extensions>
   <actions>
     <reference ref="AndroidToolsGroup">
