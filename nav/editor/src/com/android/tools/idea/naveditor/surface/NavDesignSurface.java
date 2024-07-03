@@ -477,7 +477,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     getSceneManager().update();
-    getSceneManager().layout(false);
+    getSceneManager().requestLayoutAsync(false);
     myZoomController.zoomToFit();
     currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
     repaint();
@@ -582,7 +582,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       NavSceneManager sceneManager = getSceneManager();
 
       if (sceneManager != null) {
-        sceneManager.layout(false);
+        sceneManager.requestLayoutAsync(false);
         // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
         validateScrollArea();
       }
