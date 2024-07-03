@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.typedef
 
 import com.android.tools.idea.kotlin.getQualifiedName
-import com.intellij.codeInsight.CodeInsightWorkspaceSettings
 import com.intellij.codeInsight.actions.OptimizeImportsProcessor
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -26,6 +25,7 @@ import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiAnnotation
@@ -115,12 +115,14 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   protected abstract val insertHandler: InsertHandler<LookupElement>
 
   protected abstract class TypeDefInsertHandler : InsertHandler<LookupElement> {
+    protected abstract fun shouldOptimizeImports(project: Project): Boolean
+
     protected abstract fun bindToTarget(context: InsertionContext, target: PsiElement)
 
     override fun handleInsert(context: InsertionContext, item: LookupElement) {
       val target = item.psiElement ?: return
       bindToTarget(context, target)
-      if (CodeInsightWorkspaceSettings.getInstance(context.project).isOptimizeImportsOnTheFly) {
+      if (shouldOptimizeImports(context.project)) {
         val psiFile =
           PsiDocumentManager.getInstance(context.project).getPsiFile(context.document) ?: return
         OptimizeImportsProcessor(context.project, psiFile).runWithoutProgress()

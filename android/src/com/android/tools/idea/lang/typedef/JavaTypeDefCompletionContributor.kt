@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.lang.typedef
 
+import com.intellij.codeInsight.CodeInsightWorkspaceSettings
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.psi.PsiCall
@@ -48,6 +50,9 @@ class JavaTypeDefCompletionContributor : TypeDefCompletionContributor() {
 
   override val insertHandler =
     object : TypeDefInsertHandler() {
+      override fun shouldOptimizeImports(project: Project) =
+        CodeInsightWorkspaceSettings.getInstance(project).isOptimizeImportsOnTheFly
+
       override fun bindToTarget(context: InsertionContext, target: PsiElement) {
         val expr = context.getParent() as? PsiReference ?: return
         val psiField =
