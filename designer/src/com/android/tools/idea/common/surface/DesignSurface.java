@@ -39,16 +39,12 @@ import com.android.tools.idea.common.layout.manager.MatchParentLayoutManager;
 import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
@@ -57,7 +53,6 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -431,37 +426,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());
   }
 
-  /**
-   * Ensures that the given model is visible in the surface by scrolling to it if needed.
-   * If the {@link NlModel} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
-   */
-  public final void scrollToVisible(@NotNull NlModel model, boolean forceScroll) {
-    getSceneViews().stream().filter(sceneView -> sceneView.getSceneManager().getModel() == model).findFirst()
-      .ifPresent(sceneView -> scrollToVisible(sceneView, forceScroll));
-  }
-  
-  /**
-   * Returns the size of the surface scroll viewport.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getExtentSize() {
-    return getViewport().getExtentSize();
-  }
-
-  /**
-   * Returns the size of the surface containing the ScreenViews.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getViewSize() {
-    return getViewport().getViewSize();
-  }
-
-  @SurfaceScale protected double getBoundedScale(@SurfaceScale double scale) {
-    return Math.min(Math.max(scale, getZoomController().getMinScale()), getZoomController().getMaxScale());
-  }
-
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
   @NotNull
   public JComponent getInteractionPane() {
@@ -501,8 +465,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     getIssueModel().activate();
   }
 
-
-
   public void deactivate() {
     if (myIsActive) {
       Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
@@ -515,8 +477,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
     myGuiInputHandler.cancelInteraction();
   }
-
-
 
   @NotNull
   @Override

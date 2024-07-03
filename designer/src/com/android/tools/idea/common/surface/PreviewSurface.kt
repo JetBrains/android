@@ -124,6 +124,16 @@ abstract class PreviewSurface<T : SceneManager>(
 
   abstract val viewport: DesignSurfaceViewport
 
+  /** Returns the size of the surface scroll viewport. */
+  @get:SwingCoordinate
+  val extentSize: Dimension
+    get() = viewport.extentSize
+
+  /** Returns the size of the surface containing the ScreenViews. */
+  @get:SwingCoordinate
+  val viewSize: Dimension
+    get() = viewport.viewSize
+
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
    * surface.
@@ -440,6 +450,16 @@ abstract class PreviewSurface<T : SceneManager>(
         setScrollPosition(sceneViewRectangle.x - offset.width, sceneViewRectangle.y - offset.height)
       }
     }
+  }
+
+  /**
+   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the
+   * [NlModel] is partially visible and [forceScroll] is set to false, no scroll will happen.
+   */
+  fun scrollToVisible(model: NlModel, forceScroll: Boolean) {
+    sceneViews
+      .firstOrNull { it.sceneManager.model == model }
+      ?.let { view -> scrollToVisible(view, forceScroll) }
   }
 
   /**
