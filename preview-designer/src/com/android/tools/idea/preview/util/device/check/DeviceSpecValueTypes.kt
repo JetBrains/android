@@ -15,18 +15,10 @@
  */
 package com.android.tools.idea.preview.util.device.check
 
-import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Orientation
-import com.android.tools.preview.config.Shape
 
 /** Expected the value to be an Integer. */
 internal val ExpectedInteger = OpenEndedValueType("Integer")
-
-/** Value should be one of the supported Shapes. */
-internal val ExpectedShape = MultipleChoiceValueType(Shape.values().map { it.name })
-
-/** Value should be a unit used in dimension. Ie: "px", "dp". */
-internal val ExpectedDimUnit = MultipleChoiceValueType(DimUnit.values().map { it.name })
 
 /** Value should be a boolean, either 'true' or 'false'. */
 internal val ExpectedStrictBoolean =
