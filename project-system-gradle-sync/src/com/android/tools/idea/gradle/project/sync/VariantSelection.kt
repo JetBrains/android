@@ -101,7 +101,18 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
     val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
     return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
       val featureModuleId = Modules.createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
-      propagateVariantSelectionChangeFallback(featureModuleId)
+      val featureModule = androidModulesById[featureModuleId] ?: return@mapNotNull null
+      val featureSelectedVariant = selectedVariants.getSelectedVariant(featureModuleId)
+      val appSelectedVariant = ideVariant.model.name.takeIf { featureModule.allVariantNames?.contains(it) == true }
+      return@mapNotNull ModuleConfiguration(
+        featureModuleId,
+        // In all valid cases, app selected variant should also be available in the feature module.
+        // Fallbacks are added just in case there is an invalid project configuration
+        // 1st fallback: variant selected by the user
+        // 2nd fallback: alphabetically first
+        appSelectedVariant ?: featureSelectedVariant  ?: return@mapNotNull propagateVariantSelectionChangeFallback(featureModuleId),
+        abiToPropagate,
+        isRoot = false)
     }
   }
 
