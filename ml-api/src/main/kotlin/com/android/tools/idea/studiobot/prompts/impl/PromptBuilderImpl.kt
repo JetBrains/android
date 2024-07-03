@@ -22,6 +22,7 @@ import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -145,14 +146,19 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
           else -> msg.chunks.flatMap { chunk -> chunk.filesUsed }
         }
       }
-      .filter { StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it) }
+      .filter {
+        DumbService.getInstance(project).runReadActionInSmartMode<Boolean> {
+          // Check aiexclude rules *in smart mode* so that we don't run into
+          // ExclusionStatus.INDETERMINATE
+          StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it)
+        }
+      }
       .toSet()
 
   fun build(): Prompt {
     // Verify that the prompt is well-formed
     checkPromptFormat(messages.isNotEmpty(), "Prompt has no messages.")
 
-    // Check aiexclude rules
     val excludedFiles = excludedFiles()
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
