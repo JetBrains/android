@@ -103,8 +103,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T>
-  implements Disposable, InteractableScenesSurface, ScaleListener {
+public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T> {
 
   /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
@@ -322,20 +321,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
   }
 
-  /**
-   * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
-   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no model.
-   */
-  public boolean restoreZoomOrZoomToFit() {
-    NlModel model = Iterables.getFirst(getModels(), null);
-    if (model == null) {
-      return false;
-    }
-    if (!restorePreviousScale(model)) {
-      getZoomController().zoomToFit();
-    }
-    return true;
-  }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
@@ -851,25 +836,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     state.saveFileScale(getProject(), model.getVirtualFile(), getZoomController());
   }
 
-  /**
-   * Load the saved zoom level from the file of the given {@link NlModel}.
-   * Return true if the previous zoom level is restored, false otherwise.
-   */
-  private boolean restorePreviousScale(@NotNull NlModel model) {
-    if (!isKeepingScaleWhenReopen()) {
-      return false;
-    }
-    SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    Double previousScale = state.loadFileScale(getProject(), model.getVirtualFile(), getZoomController());
-    if (previousScale != null) {
-      getZoomController().setScale(previousScale);
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
   @NotNull
   public JComponent getLayeredPane() {
     return myLayeredPane;
@@ -1094,8 +1060,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
     return requestSequentialRender(manager -> manager.requestLayoutAndRenderAsync(false));
   }
-
-
 
   /**
    * Converts a given point that is in view coordinates to viewport coordinates.

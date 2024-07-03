@@ -28,6 +28,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
@@ -56,7 +57,7 @@ abstract class PreviewSurface<T : SceneManager>(
   val selectionModel: SelectionModel,
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
-) : EditorDesignSurface(layout), Disposable {
+) : EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener {
 
   init {
     isOpaque = true
@@ -238,7 +239,37 @@ abstract class PreviewSurface<T : SceneManager>(
     return true
   }
 
-  @Slow // Some implementations might be slow
+  /**
+   * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
+   *
+   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no
+   *   model.
+   */
+  fun restoreZoomOrZoomToFit(): Boolean {
+    val model = model ?: return false
+    if (!restorePreviousScale(model)) {
+      zoomController.zoomToFit()
+    }
+    return true
+  }
+
+  /**
+   * Load the saved zoom level from the file of the given [NlModel]. Return true if the previous
+   * zoom level is restored, false otherwise.
+   */
+  private fun restorePreviousScale(model: NlModel): Boolean {
+    if (!isKeepingScaleWhenReopen()) {
+      return false
+    }
+    val state = getInstance(model.project).surfaceState
+    val previousScale =
+      state.loadFileScale(project, model.virtualFile, zoomController) ?: return false
+    zoomController.setScale(previousScale)
+    return true
+  }
+
+  @Slow
+  /** Some implementations might be slow */
   protected abstract fun createSceneManager(model: NlModel): T
 
   /**
