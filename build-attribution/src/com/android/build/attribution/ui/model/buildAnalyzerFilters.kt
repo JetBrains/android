@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.AutoPopupSupportingListener
@@ -111,7 +112,7 @@ abstract class WarningsFilterToggleAction(
   init {
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
-    templatePresentation.isMultiChoice = true
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.IfPreferred
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -287,7 +288,7 @@ abstract class TasksFilterToggleAction(
   init {
     templatePresentation.icon = toggleableIcon
     templatePresentation.selectedIcon = toggleableSelectedIcon
-    templatePresentation.isMultiChoice = true
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.IfPreferred
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
