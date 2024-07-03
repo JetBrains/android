@@ -29,6 +29,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.devices.VendorDevices
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
 import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
@@ -48,6 +49,98 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class SystemImageTest {
+  @Test
+  fun softwareItemFeatureLevelIsLessThan23() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-22;default;arm64-v8a",
+        "ARM 64 v8a System Image",
+        AndroidVersion(22),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(219_124_634),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItemAbiDoesntSupportMultipleCores() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;default;arm64-v8a",
+        "ARM 64 v8a System Image",
+        AndroidVersion(23),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(253_807_785),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItemDoesntHaveGoogleApis() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;default;x86_64",
+        "Intel x86_64 Atom System Image",
+        AndroidVersion(23),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.X86_64).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(365_009_313),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItem() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;google_apis;x86_64",
+        "Google APIs Intel x86_64 Atom System Image",
+        AndroidVersion(23),
+        Services.GOOGLE_APIS,
+        setOf(Abi.X86_64).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.GOOGLE_APIS_TAG).toImmutableList(),
+        Storage(667_471_680),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.SWIFT, item)
+  }
+
   @Test
   fun matchesDevice() {
     val devices = VendorDevices(NullLogger())
