@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -152,7 +153,9 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible =
-      isActionActive(event, Capability.SUPPORTS_COMPOSE) && inLiveMode(event)
+      isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
+        LayoutInspector.get(event)?.currentClient !is FileEditorInspectorClient
+
     // The compose inspector is tracking the recompositions based on a compiler generated key
     // based on the source information. If the source information is missing we cannot track
     // recompositions.
