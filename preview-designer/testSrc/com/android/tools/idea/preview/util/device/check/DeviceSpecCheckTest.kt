@@ -438,14 +438,14 @@ internal class DeviceSpecCheckTest {
     assertEquals(BadType::class, result.issues[0]::class)
     assertEquals("spec:parent=pixel_5", result.proposedFix)
 
-    // Correct parent ID and orientation
+    // Correct parent ID, orientation, and navigation
     result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
         package example
         import test.Preview
 
-        @Preview(device = "spec:parent=pixel_4,orientation=portrait")
+        @Preview(device = "spec:parent=pixel_4,orientation=portrait,navigation=buttons")
         fun myFun() {}
 """
           .trimIndent()
@@ -475,7 +475,7 @@ internal class DeviceSpecCheckTest {
         package example
         import test.Preview
 
-        @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait")
+        @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait,navigation=gesture")
         fun myFun() {}
 """
           .trimIndent()
@@ -486,7 +486,10 @@ internal class DeviceSpecCheckTest {
     assertEquals(Unknown::class, result.issues[2]::class)
     assertEquals(Unknown::class, result.issues[3]::class)
     assertEquals(Unknown::class, result.issues[4]::class)
-    assertEquals("spec:parent=pixel_4_xl,orientation=portrait", result.proposedFix)
+    assertEquals(
+      "spec:parent=pixel_4_xl,orientation=portrait,navigation=gesture",
+      result.proposedFix,
+    )
 
     // Width and parent ID, missing height, parent takes priority
     result =

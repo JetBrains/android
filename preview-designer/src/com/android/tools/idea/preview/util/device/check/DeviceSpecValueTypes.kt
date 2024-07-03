@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.preview.util.device.check
 
+import com.android.tools.preview.config.Cutout
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 
 /** Expected the value to be an Integer. */
@@ -29,3 +31,9 @@ internal val ExpectedOrientation = MultipleChoiceValueType(Orientation.values().
 
 /** Value should be a Float with a unit suffix. Eg: 120.1dp */
 internal val ExpectedFloatWithUnit = OpenEndedValueType("Float(dp/px)")
+
+/** Value should be one of the supported Cutouts. */
+internal val ExpectedCutout = MultipleChoiceValueType(Cutout.entries.map { it.name })
+
+/** Value should be either 'buttons' or 'gesture'. */
+internal val ExpectedNavigation = MultipleChoiceValueType(Navigation.entries.map { it.name })
