@@ -99,7 +99,7 @@ private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 open class NavSceneManager(
   model: NlModel,
   surface: NavDesignSurface
-) : SceneManager(model, surface, NavSceneComponentHierarchyProvider(), null) {
+) : SceneManager(model, surface, NavSceneComponentHierarchyProvider()) {
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
