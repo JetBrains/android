@@ -170,10 +170,11 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
             )
             emptyList()
           }
-          AppInsightsModel.InitialSyncFailed -> {
-            // This only happens at project startup and sync failure.
+          AppInsightsModel.InitializationFailed -> {
+            // This indicates some failure happened at startup and AQI has no useful information to
+            // show.
             logger.debug(
-              "Skip annotation collection for ${tabProvider.displayName} because it initial sync failed."
+              "Skip annotation collection for ${tabProvider.displayName} because its initialization failed."
             )
             emptyList()
           }

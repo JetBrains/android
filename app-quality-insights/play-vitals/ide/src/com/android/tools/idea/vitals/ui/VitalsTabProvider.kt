@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -80,6 +81,9 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
                 )
               )
+            }
+            is AppInsightsModel.InitializationFailed -> {
+              tabPanel.setComponent(initializationFailedComponent(configManager))
             }
             else -> {}
           }
@@ -161,6 +165,32 @@ class VitalsTabProvider : AppInsightsTabProvider {
       override fun paint(g: Graphics?) {
         super.paint(g)
         loggedOutText.paint(this, g)
+      }
+    }
+  }
+
+  private fun initializationFailedComponent(
+    configurationManager: AppInsightsConfigurationManager
+  ): JPanel {
+    val failureText =
+      object : StatusText() {
+          override fun isStatusVisible() = true
+        }
+        .apply {
+          appendLine("Failed to query for accessible Android Vitals apps.")
+          appendLine("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) { e ->
+            configurationManager.refreshConfiguration()
+          }
+        }
+
+    return object : JPanel() {
+      init {
+        failureText.attachTo(this)
+      }
+
+      override fun paint(g: Graphics?) {
+        super.paint(g)
+        failureText.paint(this, g)
       }
     }
   }
