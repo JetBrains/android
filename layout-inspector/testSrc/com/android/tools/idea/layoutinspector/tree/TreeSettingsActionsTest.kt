@@ -31,8 +31,10 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
@@ -73,6 +75,9 @@ class TreeSettingsActionsTest {
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
   private var inLiveMode = true
+  private val appClient: AppInspectionInspectorClient = mock()
+  private val snapshotClient: FileEditorInspectorClient = mock()
+  private var currentClient: InspectorClient? = appClient
 
   @Test
   fun testFilterSystemNodeAction() {
@@ -166,11 +171,11 @@ class TreeSettingsActionsTest {
       .isEqualTo("Show Recomposition Counts (No Source Information Found)")
 
     capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
-    inLiveMode = false
+    currentClient = snapshotClient
     RecompositionCounts.update(event)
     assertThat(event.presentation.isVisible).isFalse()
 
-    inLiveMode = true
+    currentClient = appClient
     RecompositionCounts.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
@@ -266,16 +271,19 @@ class TreeSettingsActionsTest {
     val panel = JPanel()
     panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
     val inspector: LayoutInspector = mock()
-    val client: AppInspectionInspectorClient = mock()
     whenever(treePanel.tree).thenReturn(tree)
     whenever(treePanel.component).thenReturn(component)
     whenever(inspector.inspectorModel).thenReturn(model)
-    whenever(inspector.currentClient).thenReturn(client)
     whenever(inspector.treeSettings).thenReturn(treeSettings)
-    whenever(client.stats).thenReturn(stats)
-    Mockito.doAnswer { capabilities }.whenever(client).capabilities
-    Mockito.doAnswer { isConnected }.whenever(client).isConnected
-    Mockito.doAnswer { inLiveMode }.whenever(client).inLiveMode
+    whenever(appClient.stats).thenReturn(stats)
+    whenever(snapshotClient.stats).thenReturn(stats)
+    Mockito.doAnswer { currentClient }.whenever(inspector).currentClient
+    Mockito.doAnswer { capabilities }.whenever(appClient).capabilities
+    Mockito.doAnswer { capabilities }.whenever(snapshotClient).capabilities
+    Mockito.doAnswer { isConnected }.whenever(appClient).isConnected
+    Mockito.doAnswer { isConnected }.whenever(snapshotClient).isConnected
+    Mockito.doAnswer { inLiveMode }.whenever(appClient).inLiveMode
+    Mockito.doAnswer { inLiveMode }.whenever(snapshotClient).inLiveMode
 
     val dataContext =
       object : DataContext {
