@@ -80,6 +80,17 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessorTe
   }
 
   @Test
+  fun testExtractNativeLibsToUseLegacyPackaging800() {
+    writeToBuildFile(TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ExtractNativeLibsToUseLegacyPackagingApplication"))
+    writeToManifestFile(TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ManifestWithExtractNativeLibs"))
+    val processor = AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("8.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ExtractNativeLibsToUseLegacyPackagingApplicationPackagingExpected"))
+    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ManifestWithoutExtractNativeLibs"))
+  }
+
+  @Test
   fun testExtractNativeLibsToUseLegacyPackagingNoValue() {
     writeToBuildFile(TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ExtractNativeLibsToUseLegacyPackagingApplication"))
     writeToManifestFile(TestFileName("AndroidManifestExtractNativeLibsToUseLegacyPackaging/ManifestWithoutExtractNativeLibs"))

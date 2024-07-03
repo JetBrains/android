@@ -81,12 +81,16 @@ class ComposeCompletionContributorTest {
 
     val expectedLookupItems =
       listOf(
-        "FoobarOne(required: Int)",
-        "FoobarTwo(required: Int, ...)",
-        "FoobarThree(...) {...}",
-        "FoobarFour {...}",
-        "FoobarFive(icon: String) {...}",
-        "FoobarSix(icon: String, ...)",
+        "FoobarOne(required: Int) (com.example)",
+        "FoobarTwo(required: Int, ...) (com.example)",
+        "FoobarThree(...) {...} (com.example)",
+        if (KotlinPluginModeProvider.isK2Mode()) {
+          "FoobarFour {...} (children: @Composable (() -> Unit)) (com.example)"
+        } else {
+          "FoobarFour {...} (children: () -> Unit) (com.example)"
+        },
+        "FoobarFive(icon: String) {...} (com.example)",
+        "FoobarSix(icon: String, ...) (com.example)",
       )
 
     // Given:
@@ -194,7 +198,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne(first = , second = )
+        FoobarOne(${caret})
       }
       """
         .trimIndent()
@@ -348,9 +352,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
@@ -388,9 +390,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarTwo {
-          
-        }
+        FoobarTwo { ${caret} }
       }
       """
         .trimIndent(),
@@ -557,9 +557,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
@@ -616,9 +614,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        AppBarIcon(icon = ) {
-          
-        }
+        AppBarIcon(${caret}) { }
       }
       """
         .trimIndent(),
@@ -675,7 +671,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        RadioButton(text = , onClick = { /*TODO*/ })
+        RadioButton(${caret})
       }
       """
         .trimIndent(),
@@ -915,9 +911,7 @@ class ComposeCompletionContributorTest {
 
     @Composable
     fun Test() {
-      ObjectWithComposables.TestMethod {
-
-      }
+      ObjectWithComposables.TestMethod { ${caret} }
     }
     """
         .trimIndent(),
@@ -964,12 +958,12 @@ class ComposeCompletionContributorTest {
       if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "() -> Unit"
     val expectedLookupItems =
       listOf(
-        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",
-        "FoobarTwo(...)",
+        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...) (com.example)",
+        "FoobarTwo(optionalArg: Int = ...) (com.example)",
         "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
-        "FoobarFive(requiredArg: () -> Unit, ...)",
-        "FoobarSix(...)",
+        "FoobarFive(requiredArg: () -> Unit, ...) (com.example)",
+        "FoobarSix(optionalArg: Int = ...) (com.example)",
       )
 
     // Given:
@@ -1050,7 +1044,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne(requiredArg = { /*TODO*/ })
+        FoobarOne(${caret})
       }
       """
         .trimIndent(),
@@ -1107,9 +1101,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
@@ -1166,7 +1158,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne()
+        ${if (KotlinPluginModeProvider.isK2Mode()) "FoobarOne {  }" else "FoobarOne()"}
       }
       """
         .trimIndent(),

@@ -153,12 +153,12 @@ class GridLayoutV7HandlerTest : SceneTest() {
           ),
       )
     val model = builder.build()
-    assertEquals(1, model.components.size)
+    assertEquals(1, model.treeReader.components.size)
     assertEquals(
       "NlComponent{tag=<android.support.v7.widget.GridLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
         "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
-      NlTreeDumper.dumpTree(model.components),
+      NlTreeDumper.dumpTree(model.treeReader.components),
     )
 
     format(model.file)

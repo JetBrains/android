@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.filters.FilterTextField
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterUpdated
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
@@ -34,6 +38,13 @@ import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+private val BUFFER_RELOAD_DELAY = 100.milliseconds
 
 /** A header for the Logcat panel. */
 internal class LogcatHeaderPanel(
@@ -48,18 +59,10 @@ internal class LogcatHeaderPanel(
   private val filterTextField =
     FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
+  private val scope = AndroidCoroutineScope(logcatPresenter)
 
   init {
-    filterTextField.apply {
-      font = Font.getFont(Font.MONOSPACED)
-      addFilterChangedListener(
-        object : FilterTextField.FilterChangedListener {
-          override fun onFilterChanged(filter: String, matchCase: Boolean) {
-            runInEdt { logcatPresenter.applyFilter(filterParser.parse(filter, matchCase)) }
-          }
-        }
-      )
-    }
+    filterTextField.font = Font.getFont(Font.MONOSPACED)
 
     addComponentListener(
       object : ComponentAdapter() {
@@ -79,6 +82,21 @@ internal class LogcatHeaderPanel(
           }
         }
       )
+    }
+
+    filterTextField.onFilterUpdate(BUFFER_RELOAD_DELAY) {
+      withContext(uiThread) {
+        logcatPresenter.applyFilter(filterParser.parse(it.filter, it.matchCase))
+      }
+    }
+
+    val fileReloadDelay = StudioFlags.LOGCAT_FILE_RELOAD_DELAY_MS.get()
+    if (fileReloadDelay > 0) {
+      filterTextField.onFilterUpdate(fileReloadDelay.milliseconds) {
+        if (logcatPresenter.getSelectedItem() is FileItem) {
+          logcatPresenter.reloadFile()
+        }
+      }
     }
   }
 
@@ -144,5 +162,14 @@ internal class LogcatHeaderPanel(
         )
     )
     return layout
+  }
+
+  private fun FilterTextField.onFilterUpdate(
+    delay: Duration,
+    block: suspend (FilterUpdated) -> Unit,
+  ) {
+    scope.launch {
+      @Suppress("OPT_IN_USAGE") trackFilterUpdates().debounce(delay).collect { block(it) }
+    }
   }
 }

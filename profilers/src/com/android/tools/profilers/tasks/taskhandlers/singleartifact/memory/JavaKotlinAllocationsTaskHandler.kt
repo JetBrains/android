@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.AllocationSessionArtifact
+import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider
@@ -38,12 +40,22 @@ class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsMana
     stage.startJavaKotlinAllocationCapture()
   }
 
-  override fun stopCapture(stage: MainMemoryProfilerStage) {
-    // For non-legacy (O+ api devices) allocation tracking, stopping a Java/Kotlin Allocations capture is invoked and only accessible
-    // within the Allocations stage itself, thus the following call to stop the memory recording is not needed for a non-legacy recording,
-    // and we leave it to the Allocation stage to handle stopping of the allocations. For legacy (pre-O api devices), we can invoke the
-    // stop via the interim stage: MainMemoryProfilerStage.
-    stage.stopMemoryRecording()
+  override fun stopTask() {
+    profilers.taskHomeTabModel.selectedDevice?.device?.let { device ->
+      // For legacy (pre-O api devices), we can invoke the stop via the interim stage: MainMemoryProfilerStage.
+      if (device.featureLevel < AndroidVersion.VersionCodes.O) {
+        if (profilers.stage is MainMemoryProfilerStage) {
+          (profilers.stage as MainMemoryProfilerStage).stopMemoryRecording()
+        }
+      }
+      // For non-legacy (O+ api devices) allocation tracking, stopping a Java/Kotlin Allocations capture is invoked and only accessible
+      // via the Allocations stage itself.
+      else {
+        if (profilers.stage is AllocationStage) {
+          (profilers.stage as AllocationStage).stopTracking()
+        }
+      }
+    }
   }
 
   override fun loadTask(args: TaskArgs): Boolean {

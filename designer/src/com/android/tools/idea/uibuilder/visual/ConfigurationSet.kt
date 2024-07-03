@@ -93,11 +93,6 @@ class UserDefinedCustom(
 
   override fun createModelsProvider(listener: ConfigurationSetListener) =
     CustomModelsProvider(id, customConfigurationSet, listener)
-
-  fun setCustomName(customName: String) {
-    this.customConfigurationSet.title = customName
-    VisualizationUtil.setCustomConfigurationSet(id, this.customConfigurationSet)
-  }
 }
 
 object ConfigurationSetProvider {

@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
@@ -160,7 +161,7 @@ internal fun createNlModelForCompose(
   facet: AndroidFacet,
   file: VirtualFile,
 ): NlModel {
-  val nlModel = create(parent, NlComponentRegistrar, facet, file)
+  val nlModel = create(parent, NlComponentRegistrar, BuildTargetReference.gradleOnly(facet), file)
   // Sets the correct model update for Compose
   nlModel.setModelUpdater(AccessibilityModelUpdater())
   return nlModel

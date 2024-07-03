@@ -69,5 +69,5 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
     backedFile: VirtualFile,
     id: Long,
   ): LightVirtualFile =
-    GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content) { backedFile }
+    GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content, backedFile)
 }

@@ -19,13 +19,18 @@ import com.android.adblib.AdbChannel
 import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
+import com.android.adblib.tools.debugging.processinventory.ProcessInventoryJdwpProcessPropertiesCollectorFactory
+import com.android.adblib.tools.debugging.processinventory.server.ProcessInventoryServerConfiguration
 import com.android.ddmlib.DdmPreferences
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.subscribe
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.components.serviceIfCreated
@@ -61,7 +66,22 @@ class AdbLibApplicationService : Disposable {
     host = host,
     channelProvider = channelProvider,
     connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
-  )
+  ).also { session ->
+    // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance on
+    //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
+    //   are delegated to this AdbSession.
+
+    val enabled = {
+      StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
+      StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
+    }
+
+    ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
+      session,
+      enabled = enabled,
+      config = StudioProcessInventoryServerConfiguration(),
+    )
+  }
 
   init {
     // Listen to "project closed" events to unregister projects
@@ -88,6 +108,32 @@ class AdbLibApplicationService : Disposable {
     override fun runActivity(project: Project) {
       // Startup activities run quite late when opening a project
       instance.channelProvider.registerProject(project)
+    }
+  }
+
+  private class StudioProcessInventoryServerConfiguration : ProcessInventoryServerConfiguration {
+
+    private var _clientDescription: String? = null
+    override val clientDescription: String
+      get() {
+        // Note: "Cheap" lazy implementation
+        return _clientDescription ?: "ProcessInventory(role='client', ${applicationInfo()})".also {
+          _clientDescription = it
+        }
+      }
+
+    private var _serverDescription: String? = null
+    override val serverDescription: String
+      get() {
+        // Note: "Cheap" lazy implementation
+        return _serverDescription ?: "ProcessInventory(role='server', ${applicationInfo()})".also {
+          _serverDescription = it
+        }
+      }
+
+    private fun applicationInfo(): String {
+      return "product='${ApplicationInfo.getInstance().fullApplicationName}', " +
+             "pathSelector='${PathManager.getPathsSelector()}'"
     }
   }
 

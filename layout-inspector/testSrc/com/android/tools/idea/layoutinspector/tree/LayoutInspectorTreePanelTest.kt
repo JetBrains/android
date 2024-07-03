@@ -35,9 +35,11 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -73,6 +75,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
@@ -83,6 +86,7 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -93,7 +97,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateS
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
+import org.junit.rules.TestName
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -103,7 +107,6 @@ import javax.swing.JTable
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreeModel
 
-private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
 private const val TIMEOUT = 20L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
@@ -118,6 +121,7 @@ class LayoutInspectorTreePanelTest {
     LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
       it.name == PROCESS.name
     }
+  private val nameRule = TestName()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
   private var updateSettingsCommands = 0
@@ -125,11 +129,14 @@ class LayoutInspectorTreePanelTest {
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(appInspectorRule)
-      .around(inspectorRule)
-      .around(fileOpenCaptureRule)
-      .around(EdtRule())!!
+    RuleChain(
+      projectRule,
+      appInspectorRule,
+      inspectorRule,
+      fileOpenCaptureRule,
+      nameRule,
+      EdtRule(),
+    )
 
   @Before
   fun setUp() {
@@ -206,6 +213,8 @@ class LayoutInspectorTreePanelTest {
         .setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance())
         .build()
     }
+    val withoutSourceInfo =
+      nameRule.methodName == "testRecompositionColumnVisibilityWhenNoSourceInformationAvailable"
 
     appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder()
@@ -221,22 +230,25 @@ class LayoutInspectorTreePanelTest {
               viewId = VIEW4
               ComposableNode {
                 id = COMPOSE3
-                packageHash = 1
-                filename = 2
+                packageHash = if (withoutSourceInfo) -1 else 1
+                filename = if (withoutSourceInfo) 0 else 2
+                lineNumber = if (withoutSourceInfo) 0 else 15
                 name = 5
                 flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
               }
               ComposableNode {
                 id = COMPOSE1
-                packageHash = 1
-                filename = 2
+                packageHash = if (withoutSourceInfo) -1 else 1
+                filename = if (withoutSourceInfo) 0 else 2
+                lineNumber = if (withoutSourceInfo) 0 else 34
                 name = 3
                 recomposeCount = 7
                 recomposeSkips = 14
                 ComposableNode {
                   id = COMPOSE2
-                  packageHash = 1
-                  filename = 2
+                  packageHash = if (withoutSourceInfo) -1 else 1
+                  filename = if (withoutSourceInfo) 0 else 2
+                  lineNumber = if (withoutSourceInfo) 0 else 57
                   name = 4
                   recomposeCount = 9
                   recomposeSkips = 33
@@ -917,25 +929,33 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+      false,
+      projectRule.testRootDisposable,
+    )
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
     tree.setToolContext(inspector)
+    UIUtil.dispatchAllInvocationEvents()
     val columnModel = (tree.focusComponent as JTable).columnModel
     assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
 
     inspector.treeSettings.showRecompositions = false
     tree.updateRecompositionColumnVisibility()
     UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
 
     inspector.treeSettings.showRecompositions = true
     tree.updateRecompositionColumnVisibility()
     UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
-    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
 
     // The recomposition columns should be hidden when disconnected:
     inspectorRule.launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
@@ -943,6 +963,61 @@ class LayoutInspectorTreePanelTest {
     UIUtil.dispatchAllInvocationEvents()
     assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testRecompositionColumnVisibilityWithChildCounts() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+      true,
+      projectRule.testRootDisposable,
+    )
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    inspector.treeSettings.showRecompositions = true
+    tree.setToolContext(inspector)
+    UIUtil.dispatchAllInvocationEvents()
+    val columnModel = (tree.focusComponent as JTable).columnModel
+    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
+
+    inspector.treeSettings.showRecompositions = false
+    tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
+
+    inspector.treeSettings.showRecompositions = true
+    tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(columnModel.getColumn(1).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isGreaterThan(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isGreaterThan(0)
+
+    // The recomposition columns should be hidden when disconnected:
+    inspectorRule.launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
+    tree.updateRecompositionColumnVisibility()
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testRecompositionColumnVisibilityWhenNoSourceInformationAvailable() {
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    inspector.treeSettings.showRecompositions = true
+    tree.setToolContext(inspector)
+    UIUtil.dispatchAllInvocationEvents()
+    val columnModel = (tree.focusComponent as JTable).columnModel
+    assertThat(columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
+    assertThat(columnModel.getColumn(3).maxWidth).isEqualTo(0)
   }
 
   @Test
@@ -966,8 +1041,10 @@ class LayoutInspectorTreePanelTest {
 
     assertThat(compose1.recompositions.count).isEqualTo(7)
     assertThat(compose1.recompositions.skips).isEqualTo(14)
+    assertThat(compose1.recompositions.childCount).isEqualTo(9)
     assertThat(compose2.recompositions.count).isEqualTo(9)
     assertThat(compose2.recompositions.skips).isEqualTo(33)
+    assertThat(compose2.recompositions.childCount).isEqualTo(0)
 
     setToolContext(tree, inspector)
     assertThat(columnDataChanged).isEqualTo(1)

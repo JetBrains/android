@@ -35,9 +35,9 @@ class InspectorClientSettings(private val project: Project) {
     set(value) = PropertiesComponent.getInstance(project).setValue(IN_LIVE_MODE_KEY, value, true)
 
   /**
-   * Disable capturing of bitmap screenshots. The agent will only capture view boundaries and SKP
-   * screenshots.
+   * Enable capturing of bitmap screenshots. The agent will otherwise only capture view boundaries
+   * and SKP screenshots.
    */
-  val disableBitmapScreenshot: Boolean
-    get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+  val enableBitmapScreenshot: Boolean
+    get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled.not()
 }

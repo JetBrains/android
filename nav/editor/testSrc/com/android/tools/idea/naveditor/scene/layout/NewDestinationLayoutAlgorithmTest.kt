@@ -29,9 +29,9 @@ class NewDestinationLayoutAlgorithmTest : NavTestCase() {
       }
     }
 
-    model.find("fragment1")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
-    model.find("fragment2")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
-    model.find("fragment3")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+    model.treeReader.find("fragment1")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+    model.treeReader.find("fragment2")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+    model.treeReader.find("fragment3")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
 
     model.surface.sceneManager!!.requestRenderAsync()
     val scene = model.surface.scene!!

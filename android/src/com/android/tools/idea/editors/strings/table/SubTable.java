@@ -44,7 +44,7 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable<M> frozenColumnTable) {
     super(model);
 
-    getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
     getColumnModel().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF);

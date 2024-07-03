@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
@@ -25,11 +25,9 @@ import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.TestActionEvent
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
@@ -61,8 +59,8 @@ class AddToExistingGraphActionTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
-    val root = model.components[0]
-    val navigation1 = model.find("navigation1")!!
+    val root = model.treeReader.components[0]
+    val navigation1 = model.treeReader.find("navigation1")!!
     val action = AddToExistingGraphAction("navigation", navigation1)
     val event = TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
     TestNavUsageTracker.create(model).use { tracker ->
@@ -72,8 +70,8 @@ class AddToExistingGraphActionTest : NavTestCase() {
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
       assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
-      val fragment2 = model.find("fragment2")!!
-      val fragment3 = model.find("fragment3")!!
+      val fragment2 = model.treeReader.find("fragment2")!!
+      val fragment3 = model.treeReader.find("fragment3")!!
 
       surface.selectionModel.setSelection(listOf(fragment2, fragment3))
       action.actionPerformed(event)
@@ -83,15 +81,15 @@ class AddToExistingGraphActionTest : NavTestCase() {
 
       assertEquals(navigation1.startDestinationId, "fragment4")
 
-      val action1 = model.find("action1")!!
+      val action1 = model.treeReader.find("action1")!!
       assertEquals(action1.parent?.id, "fragment1")
       assertEquals(action1.actionDestinationId, "navigation1")
 
-      val action2 = model.find("action2")!!
+      val action2 = model.treeReader.find("action2")!!
       assertEquals(action2.parent, fragment2)
       assertEquals(action2.actionDestinationId, "fragment3")
 
-      val action3 = model.find("action3")!!
+      val action3 = model.treeReader.find("action3")!!
       assertEquals(action3.parent?.id, "fragment4")
       assertEquals(action3.actionDestinationId, "fragment2")
 
@@ -117,23 +115,23 @@ class AddToExistingGraphActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.scene?.getSceneComponent("f1")?.setPosition(100, 200)
     surface.scene?.getSceneComponent("f2")?.setPosition(400, 500)
-    surface.selectionModel.setSelection(listOf(model.find("f1")!!, model.find("f2")!!))
+    surface.selectionModel.setSelection(listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!))
     surface.sceneManager?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
 
-    val action = AddToExistingGraphAction("existing", model.find("subnav")!!)
+    val action = AddToExistingGraphAction("existing", model.treeReader.find("subnav")!!)
     action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertEquals(100, surface.scene?.getSceneComponent("f1")?.drawX)
     assertEquals(200, surface.scene?.getSceneComponent("f1")?.drawY)
     assertEquals(400, surface.scene?.getSceneComponent("f2")?.drawX)
     assertEquals(500, surface.scene?.getSceneComponent("f2")?.drawY)
 
-    assertEquals(model.components[0], model.find("f1")?.parent)
-    assertEquals(model.components[0], model.find("f2")?.parent)
-    assertEquals(model.components[0], model.find("f3")?.parent)
-    assertEquals(model.find("subnav")!!, model.find("f4")?.parent)
+    assertEquals(model.treeReader.components[0], model.treeReader.find("f1")?.parent)
+    assertEquals(model.treeReader.components[0], model.treeReader.find("f2")?.parent)
+    assertEquals(model.treeReader.components[0], model.treeReader.find("f3")?.parent)
+    assertEquals(model.treeReader.find("subnav")!!, model.treeReader.find("f4")?.parent)
   }
 }

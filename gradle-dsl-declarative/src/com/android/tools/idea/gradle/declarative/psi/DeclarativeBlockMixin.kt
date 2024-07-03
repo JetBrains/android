@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.declarative.psi
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement
-import com.intellij.lang.ASTNode
+import com.intellij.psi.impl.source.tree.CompositePsiElement
+import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 
-abstract class DeclarativeBlockMixin(node: ASTNode): ASTWrapperPsiElement(node) {
+abstract class DeclarativeBlockMixin(type: IElementType): CompositePsiElement(type) {
 
   fun getEntries(): List<DeclarativeEntry> {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, DeclarativeEntry::class.java)

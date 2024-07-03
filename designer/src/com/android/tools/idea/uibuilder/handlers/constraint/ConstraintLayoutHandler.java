@@ -1962,4 +1962,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                            StudioIcons.LayoutEditor.Palette.FLOW,
                            ADD_FLOW));
   }
+
+  /**
+   * Auxiliar interface to tag a {@link ViewGroupHandler} that can handle Constraint Layout.
+   */
+  public interface ConstraintLayoutSupported {}
 }

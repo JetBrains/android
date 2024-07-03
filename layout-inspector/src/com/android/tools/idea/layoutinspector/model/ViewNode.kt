@@ -111,6 +111,18 @@ open class ViewNode(
     get() = false
 
   /**
+   * Returns true if this [ViewNode] represents an entity that we have source code information for.
+   *
+   * In the case of a view, this should return true since we assume the code is present. A resource
+   * lookup must be made regardless.
+   */
+  open val hasSourceCodeInformation: Boolean
+    get() = true
+
+  /** Recomposition counts. */
+  open val recompositions = emptyRecompositionData
+
+  /**
    * Return the closest unfiltered node
    *
    * This will either be:

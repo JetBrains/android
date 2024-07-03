@@ -29,7 +29,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
-    expectedErrorNodeNameVerifier: (String) -> Unit
+    expectedErrorNodeNameVerifier: (String) -> Unit,
+    expectedPhases: String
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { buildEvents ->
@@ -46,6 +47,7 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND)
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
         .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+      expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhases)
     },
   )
 
@@ -61,7 +63,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo(
           "Could not find method incude() for arguments [:app] on settings 'project' of type org.gradle.initialization.DefaultSettings")
-      }
+      },
+      // When settings.gradle file is broken GRADLE_CONFIGURE_ROOT_BUILD is not reported.
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 
@@ -77,7 +83,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo(
           "Could not find method abdd() for arguments [] on root project 'project' of type org.gradle.api.Project")
-      }
+      },
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 
@@ -92,7 +102,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo("Could not set unknown property 'abdd' for root project 'project' of type org.gradle.api.Project")
-      }
+      },
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 
@@ -107,7 +121,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo("Could not get unknown property 'abdd' for root project 'project' of type org.gradle.api.Project")
-      }
+      },
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 
@@ -124,7 +142,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
         // Contains '[build_amf2rqavq1o9tpj2lvcymfp27$_run_closure3$_closure9@6263dc2d]' in the middle so verify before and after that.
         expect.that(it).startsWith("Could not find method abdd() for arguments [")
         expect.that(it).endsWith("] on extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension")
-      }
+      },
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 
@@ -140,7 +162,11 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo(
           "Could not set unknown property 'abdd' for extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension")
-      }
+      },
+      expectedPhases = """
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent()
     )
   }
 }

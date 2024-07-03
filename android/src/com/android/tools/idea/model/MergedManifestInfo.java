@@ -61,6 +61,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXParseException;
 
 /**
  * Immutable data object encapsulating the result of merging all of the manifest files related to a particular
@@ -219,6 +220,17 @@ final class MergedManifestInfo {
     return new MergedManifestInfo(facet, document, modificationStamps, syncModificationCount, loggingRecords, actions);
   }
 
+  @NotNull
+  public static MergedManifestInfo createEmpty(@NotNull AndroidFacet facet) {
+    Project project = facet.getModule().getProject();
+
+    MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
+    ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
+    long syncModificationCount = ProjectSyncModificationTracker.getInstance(project).getModificationCount();
+
+    return new MergedManifestInfo(facet, null, modificationStamps, syncModificationCount, null, null);
+  }
+
   @Slow
   @Nullable
   private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {
@@ -246,6 +258,9 @@ final class MergedManifestInfo {
     catch (ManifestMerger2.MergeFailureException e) {
       if (e.getCause() instanceof ProcessCanceledException) {
         throw (ProcessCanceledException) e.getCause();
+      }
+      if (e.getCause() instanceof SAXParseException) {
+        throw new MergedManifestException.ParsingError(e.getCause());
       }
       throw new MergedManifestException.MergingError(facet.getModule(), e);
     }

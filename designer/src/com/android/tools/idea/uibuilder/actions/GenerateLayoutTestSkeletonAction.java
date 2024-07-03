@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -141,7 +140,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
 
   @NotNull
   private static String generateModelFixture(@NotNull NlModel model) {
-    List<NlComponent> components = model.getComponents();
+    List<NlComponent> components = model.getTreeReader().getComponents();
     StringBuilder builder = new StringBuilder();
     builder
       .append("import com.android.tools.idea.uibuilder.LayoutTestCase;\n")

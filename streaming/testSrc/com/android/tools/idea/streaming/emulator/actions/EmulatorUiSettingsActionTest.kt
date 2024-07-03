@@ -30,10 +30,14 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.UiSettingsRule
+import com.android.tools.idea.streaming.uisettings.ui.APP_LANGUAGE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
+import com.android.tools.idea.streaming.uisettings.ui.FONT_SCALE_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -51,6 +55,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.components.ActionLink
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -60,8 +65,8 @@ import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
-import javax.swing.JButton
 import javax.swing.JCheckBox
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JSlider
 import javax.swing.SwingUtilities
@@ -128,7 +133,7 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testHasResetButton() {
+  fun testHasResetLink() {
     StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
@@ -138,7 +143,7 @@ class EmulatorUiSettingsActionTest {
     waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNotNull()
+    assertThat(balloon.component.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
   }
 
   @Test
@@ -155,6 +160,11 @@ class EmulatorUiSettingsActionTest {
     waitForCondition(10.seconds) { balloon.isShowing }
     val panel = balloon.component
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
+
+    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }

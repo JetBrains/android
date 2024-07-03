@@ -65,43 +65,52 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 
-internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
+internal const val WEAR_DOCS_LINK =
+  "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
 
-class DeviceListStep(model: WearDevicePairingModel, private val project: Project?, private val wizardAction: WizardAction) :
-  ModelWizardStep<WearDevicePairingModel>(model, "") {
+class DeviceListStep(
+  model: WearDevicePairingModel,
+  private val project: Project?,
+  private val wizardAction: WizardAction,
+) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
-  private val phoneListPanel = createDeviceListPanel(
-    title = message("wear.assistant.device.list.phone.header"),
-    listName = "phoneList",
-    emptyTextTitle = message("wear.assistant.device.list.no.phone")
-  )
-  private val wearListPanel = createDeviceListPanel(
-    title = message("wear.assistant.device.list.wear.header"),
-    listName = "wearList",
-    emptyTextTitle = message("wear.assistant.device.list.no.wear")
-  )
+  private val phoneListPanel =
+    createDeviceListPanel(
+      title = message("wear.assistant.device.list.phone.header"),
+      listName = "phoneList",
+      emptyTextTitle = message("wear.assistant.device.list.no.phone"),
+    )
+  private val wearListPanel =
+    createDeviceListPanel(
+      title = message("wear.assistant.device.list.wear.header"),
+      listName = "wearList",
+      emptyTextTitle = message("wear.assistant.device.list.no.wear"),
+    )
   private var preferredFocus: JComponent? = null
   private val canGoForward = BoolValueProperty()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    if (model.selectedPhoneDevice.valueOrNull == null) { // Don't update list if a value is pre-selected
-      listeners.listenAndFire(model.phoneList) {
-        updateList(phoneListPanel, model.phoneList.get())
-      }
+    if (
+      model.selectedPhoneDevice.valueOrNull == null
+    ) { // Don't update list if a value is pre-selected
+      listeners.listenAndFire(model.phoneList) { updateList(phoneListPanel, model.phoneList.get()) }
     }
 
-    if (model.selectedWearDevice.valueOrNull == null) { // Don't update list if a value is pre-selected
-      listeners.listenAndFire(model.wearList) {
-        updateList(wearListPanel, model.wearList.get())
-      }
+    if (
+      model.selectedWearDevice.valueOrNull == null
+    ) { // Don't update list if a value is pre-selected
+      listeners.listenAndFire(model.wearList) { updateList(wearListPanel, model.wearList.get()) }
     }
   }
 
   override fun onEntering() {
-    val eventType = if (model.selectedPhoneDevice.valueOrNull == null && model.selectedWearDevice.valueOrNull == null)
-      WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION
-    else
-      WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION
+    val eventType =
+      if (
+        model.selectedPhoneDevice.valueOrNull == null &&
+          model.selectedWearDevice.valueOrNull == null
+      )
+        WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION
+      else WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION
     WearPairingUsageTracker.log(eventType)
   }
 
@@ -112,33 +121,54 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
     )
   }
 
-  override fun getComponent(): JComponent = JBPanel<JBPanel<*>>(GridBagLayout()).apply {
-    border = empty(24)
+  override fun getComponent(): JComponent =
+    JBPanel<JBPanel<*>>(GridBagLayout()).apply {
+      border = empty(24)
 
-    val selectedPhone = model.selectedPhoneDevice.valueOrNull
-    val selectedWear = model.selectedWearDevice.valueOrNull
-    add(JBLabel(UIUtil.ComponentStyle.LARGE).apply {
-      font = JBFont.label().biggerOn(5.0f)
-      text = message("wear.assistant.device.list.title")
-    }, gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
+      val selectedPhone = model.selectedPhoneDevice.valueOrNull
+      val selectedWear = model.selectedWearDevice.valueOrNull
+      add(
+        JBLabel(UIUtil.ComponentStyle.LARGE).apply {
+          font = JBFont.label().biggerOn(5.0f)
+          text = message("wear.assistant.device.list.title")
+        },
+        gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL),
+      )
 
-    add(HtmlLabel().apply {
-      border = empty(24, 0)
-      HtmlLabel.setUpAsHtmlLabel(this)
-      text = when {
-        selectedPhone != null -> message("wear.assistant.device.list.subtitle_one", selectedPhone.displayName, WEAR_DOCS_LINK)
-        selectedWear != null -> message("wear.assistant.device.list.subtitle_one", selectedWear.displayName, WEAR_DOCS_LINK)
-        else -> message("wear.assistant.device.list.subtitle_two", WEAR_DOCS_LINK)
-      }
-    }, gridConstraint(x = 0, y = 1, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
+      add(
+        HtmlLabel().apply {
+          border = empty(24, 0)
+          HtmlLabel.setUpAsHtmlLabel(this)
+          text =
+            when {
+              selectedPhone != null ->
+                message(
+                  "wear.assistant.device.list.subtitle_one",
+                  selectedPhone.displayName,
+                  WEAR_DOCS_LINK,
+                )
+              selectedWear != null ->
+                message(
+                  "wear.assistant.device.list.subtitle_one",
+                  selectedWear.displayName,
+                  WEAR_DOCS_LINK,
+                )
+              else -> message("wear.assistant.device.list.subtitle_two", WEAR_DOCS_LINK)
+            }
+        },
+        gridConstraint(x = 0, y = 1, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL),
+      )
 
-    add(Splitter(false, 0.5f).apply {
-      firstComponent = phoneListPanel.takeIf { selectedPhone == null }
-      secondComponent = wearListPanel.takeIf { selectedWear == null }
-    }, gridConstraint(x = 0, y = 2, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.BOTH))
+      add(
+        Splitter(false, 0.5f).apply {
+          firstComponent = phoneListPanel.takeIf { selectedPhone == null }
+          secondComponent = wearListPanel.takeIf { selectedWear == null }
+        },
+        gridConstraint(x = 0, y = 2, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.BOTH),
+      )
 
-    preferredFocus = if (selectedPhone == null) phoneListPanel.list else wearListPanel.list
-  }
+      preferredFocus = if (selectedPhone == null) phoneListPanel.list else wearListPanel.list
+    }
 
   override fun getPreferredFocusComponent(): JComponent? = preferredFocus
 
@@ -157,17 +187,25 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
 
   private fun updateGoForward() {
     canGoForward.set(
-      (model.selectedPhoneDevice.valueOrNull != null || phoneListPanel.list.selectedValue != null) &&
-      (model.selectedWearDevice.valueOrNull != null || wearListPanel.list.selectedValue != null)
+      (model.selectedPhoneDevice.valueOrNull != null ||
+        phoneListPanel.list.selectedValue != null) &&
+        (model.selectedWearDevice.valueOrNull != null || wearListPanel.list.selectedValue != null)
     )
   }
 
-  private fun createDeviceListPanel(title: String, listName: String, emptyTextTitle: String): DeviceListPanel {
+  private fun createDeviceListPanel(
+    title: String,
+    listName: String,
+    emptyTextTitle: String,
+  ): DeviceListPanel {
     val list = createList(listName)
     HelpTooltipForList<PairingDevice>().installOnList(this, list) { listIndex, helpTooltip ->
       val tooltip = list.model.getElementAt(listIndex).getTooltip() ?: return@installOnList false
       helpTooltip.setDescription(tooltip)
-      helpTooltip.setBrowserLink(message("wear.assistant.device.list.tooltip.learn.more"), URL(WEAR_DOCS_LINK))
+      helpTooltip.setBrowserLink(
+        message("wear.assistant.device.list.tooltip.learn.more"),
+        URL(WEAR_DOCS_LINK),
+      )
       true
     }
 
@@ -178,24 +216,24 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
     return TooltipList<PairingDevice>().apply {
       name = listName
       setCellRenderer { _, value, index, isSelected, _ ->
-
         JPanel().apply {
           layout = GridBagLayout()
 
           if (value.isDisabled() && (index == 0 || !model.getElementAt(index - 1).isDisabled())) {
             if (index == 0) {
               add(
-                JBLabel("No compatible devices are available to pair.", SwingConstants.CENTER).apply {
-                  isOpaque = true
-                  foreground = UIUtil.getLabelDisabledForeground()
-                  background = UIUtil.getListBackground()
-                  border = empty(32, 16)
-                },
+                JBLabel("No compatible devices are available to pair.", SwingConstants.CENTER)
+                  .apply {
+                    isOpaque = true
+                    foreground = UIUtil.getLabelDisabledForeground()
+                    background = UIUtil.getListBackground()
+                    border = empty(32, 16)
+                  },
                 GridBagConstraints().apply {
                   gridwidth = GridBagConstraints.REMAINDER
                   fill = GridBagConstraints.HORIZONTAL
                   gridy = 0
-                }
+                },
               )
             }
             add(
@@ -207,61 +245,73 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                 gridwidth = GridBagConstraints.REMAINDER
                 fill = GridBagConstraints.HORIZONTAL
                 gridy = 1
-              }
+              },
             )
           }
 
           add(
-            JBLabel(getDeviceIcon(value, isSelected)).apply {
-              border = emptyLeft(16)
-            },
+            JBLabel(getDeviceIcon(value, isSelected)).apply { border = emptyLeft(16) },
             GridBagConstraints().apply {
               gridx = 0
               gridy = 2
-            }
+            },
           )
           add(
             JPanel().apply {
               layout = BoxLayout(this, BoxLayout.Y_AXIS)
               border = empty(4, 4, 8, 16)
               isOpaque = false
-              add(JBLabel(value.displayName).apply {
-                icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
-                foreground = when {
-                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
-                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
-                  else -> UIUtil.getLabelForeground()
+              add(
+                JBLabel(value.displayName).apply {
+                  icon =
+                    if (!value.isWearDevice && value.hasPlayStore)
+                      getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected)
+                    else null
+                  foreground =
+                    when {
+                      isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                      value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                      else -> UIUtil.getLabelForeground()
+                    }
+                  horizontalTextPosition = SwingConstants.LEFT
                 }
-                horizontalTextPosition = SwingConstants.LEFT
-              })
-              add(JBLabel(computeFullApiName(
-                apiLevel = value.apiLevel,
-                extensionLevel = null,
-                includeReleaseName = true,
-                includeCodeName = true
-              )).apply {
-                foreground = when {
-                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
-                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
-                  else -> UIUtil.getContextHelpForeground()
-                }
-                font = JBFont.label().lessOn(2f)
-              })
+              )
+              add(
+                JBLabel(
+                    computeFullApiName(
+                      apiLevel = value.apiLevel,
+                      extensionLevel = null,
+                      includeReleaseName = true,
+                      includeCodeName = true,
+                    )
+                  )
+                  .apply {
+                    foreground =
+                      when {
+                        isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                        value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                        else -> UIUtil.getContextHelpForeground()
+                      }
+                    font = JBFont.label().lessOn(2f)
+                  }
+              )
             },
             GridBagConstraints().apply {
               fill = GridBagConstraints.HORIZONTAL
               weightx = 1.0
               gridx = 1
               gridy = 2
-            }
+            },
           )
 
-          // For accessibility purposes, pick the first visible label in this cell and use the text from
+          // For accessibility purposes, pick the first visible label in this cell and use the text
+          // from
           // it for the screen reader.
           allComponents(this)
             .filterIsInstance<JLabel>()
             .filter { it.accessibleContext.accessibleName != null }
-            .firstOrNull()?.let {
+            .firstOrNull()
+            ?.let {
               accessibleContext.accessibleName = it.accessibleContext.accessibleName
               accessibleContext.accessibleDescription = it.accessibleContext.accessibleDescription
             }
@@ -281,8 +331,12 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
     }
   }
 
-  private fun updateList(deviceListPanel: DeviceListPanel, originalDeviceList: List<PairingDevice>) {
-    val deviceList = originalDeviceList.sortedWith(compareBy { it.isDisabled() }) // Disabled at the bottom
+  private fun updateList(
+    deviceListPanel: DeviceListPanel,
+    originalDeviceList: List<PairingDevice>,
+  ) {
+    val deviceList =
+      originalDeviceList.sortedWith(compareBy { it.isDisabled() }) // Disabled at the bottom
     val uiList: JBList<PairingDevice> = deviceListPanel.list
     if (uiList.model.size == deviceList.size) {
       deviceList.forEachIndexed { index, device ->
@@ -291,8 +345,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
           (uiList.model as CollectionListModel).setElementAt(device, index)
         }
       }
-    }
-    else {
+    } else {
       uiList.model = CollectionListModel(deviceList)
     }
 
@@ -312,82 +365,103 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
   }
 
   private fun getDeviceIcon(device: PairingDevice, isSelected: Boolean): Icon {
-    val baseIcon = when {
-      device.isWearDevice -> getIcon(StudioIcons.Avd.DEVICE_WEAR, isSelected)
-      else -> getIcon(StudioIcons.Avd.DEVICE_PHONE, isSelected)
-    }
+    val baseIcon =
+      when {
+        device.isWearDevice -> getIcon(StudioIcons.Avd.DEVICE_WEAR, isSelected)
+        else -> getIcon(StudioIcons.Avd.DEVICE_PHONE, isSelected)
+      }
     return if (device.isOnline()) ExecutionUtil.getLiveIndicator(baseIcon) else baseIcon
   }
 
   // Cache generated white icons, so we don't keep creating new ones
   private val whiteIconsCache = hashMapOf<Icon, Icon>()
-  private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
-    isSelected && !ExperimentalUI.isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
-    else -> icon
-  }
+
+  private fun getIcon(icon: Icon, isSelected: Boolean): Icon =
+    when {
+      isSelected && !ExperimentalUI.isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+      else -> icon
+    }
 
   private fun showCloudSyncDialog(pairedPhone: PairingDevice) {
     Messages.showIdeaMessageDialog(
       project,
-      message("wear.assistant.device.list.cloud.sync.subtitle", pairedPhone.displayName, WEAR_DOCS_LINK),
+      message(
+        "wear.assistant.device.list.cloud.sync.subtitle",
+        pairedPhone.displayName,
+        WEAR_DOCS_LINK,
+      ),
       message("wear.assistant.device.list.cloud.sync.title"),
       arrayOf(Messages.getOkButton()),
       0,
       Messages.getWarningIcon(),
-      null
+      null,
     )
   }
 
-  private class SomeDisabledSelectionModel(val list: JBList<PairingDevice>) : DefaultListSelectionModel() {
+  private class SomeDisabledSelectionModel(val list: JBList<PairingDevice>) :
+    DefaultListSelectionModel() {
     init {
       selectionMode = ListSelectionModel.SINGLE_SELECTION
     }
 
     override fun setSelectionInterval(idx0: Int, idx1: Int) {
       // Note from javadoc: in SINGLE_SELECTION selection mode, only the second index is used
-      val n = if (idx1 < 0 || idx1 >= list.model.size || list.model.getElementAt(idx1).isDisabled()) -1 else idx1
+      val n =
+        if (idx1 < 0 || idx1 >= list.model.size || list.model.getElementAt(idx1).isDisabled()) -1
+        else idx1
       super.setSelectionInterval(n, n)
     }
   }
 
-  private fun createEmptyListPanel(list: JBList<PairingDevice>, emptyTextTitle: String): JPanel = JPanel(GridBagLayout()).apply {
-    background = list.background
-    border = IdeBorderFactory.createBorder(SideBorder.TOP)
-    add(JEditorPane().apply {
-      name = "${list.name}EmptyText"
-      border = empty(0, 16, 0, 16)
-      HtmlLabel.setUpAsHtmlLabel(this)
-      text = "<div style='text-align:center'>$emptyTextTitle</div>" // Center text horizontally
-      addHyperlinkListener {
-        if (it.eventType == ACTIVATED) {
-          wizardAction.closeAndStartAvd(project)
-        }
-      }
-    }, gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
-  }
+  private fun createEmptyListPanel(list: JBList<PairingDevice>, emptyTextTitle: String): JPanel =
+    JPanel(GridBagLayout()).apply {
+      background = list.background
+      border = IdeBorderFactory.createBorder(SideBorder.TOP)
+      add(
+        JEditorPane().apply {
+          name = "${list.name}EmptyText"
+          border = empty(0, 16, 0, 16)
+          HtmlLabel.setUpAsHtmlLabel(this)
+          text = "<div style='text-align:center'>$emptyTextTitle</div>" // Center text horizontally
+          addHyperlinkListener {
+            if (it.eventType == ACTIVATED) {
+              wizardAction.closeAndStartAvd(project)
+            }
+          }
+        },
+        gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL),
+      )
+    }
 }
 
 private fun PairingDevice.isDisabled(): Boolean {
-  return state == ConnectionState.DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
-         || isEmulator && isWearDevice && apiLevel < 28
+  return state == ConnectionState.DISCONNECTED ||
+    isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore) ||
+    isEmulator && isWearDevice && apiLevel < 28
 }
 
 private fun PairingDevice.getTooltip(): String? {
   return when {
-    isEmulator && isWearDevice && apiLevel < 28 -> message("wear.assistant.device.list.tooltip.requires.api", 28)
-    isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api", 30)
-    isEmulator && !isWearDevice && !hasPlayStore -> message("wear.assistant.device.list.tooltip.requires.play")
+    isEmulator && isWearDevice && apiLevel < 28 ->
+      message("wear.assistant.device.list.tooltip.requires.api", 28)
+    isEmulator && !isWearDevice && apiLevel < 30 ->
+      message("wear.assistant.device.list.tooltip.requires.api", 30)
+    isEmulator && !isWearDevice && !hasPlayStore ->
+      message("wear.assistant.device.list.tooltip.requires.play")
     else -> null
   }
 }
 
-/**
- * A [JBList] with a special tooltip that can take html links
- */
+/** A [JBList] with a special tooltip that can take html links */
 private class TooltipList<E> : JBList<E>() {
-  private data class CellRendererItem<E>(val value: E, val isSelected: Boolean, val cellHasFocus: Boolean)
+  private data class CellRendererItem<E>(
+    val value: E,
+    val isSelected: Boolean,
+    val cellHasFocus: Boolean,
+  )
 
-  // Tooltip manager keeps requesting cell items when the mouse moves (even inside the same item!). Keep the last few in memory.
+  // Tooltip manager keeps requesting cell items when the mouse moves (even inside the same item!).
+  // Keep the last few in memory.
   private val cellRendererCache = FixedHashMap<CellRendererItem<E>, Component>(8)
 
   override fun setCellRenderer(cellRenderer: ListCellRenderer<in E>) {
@@ -405,18 +479,29 @@ private class TooltipList<E> : JBList<E>() {
   }
 }
 
-private class DeviceListPanel(title: String, val list: TooltipList<PairingDevice>, val emptyListPanel: JPanel) : JPanel(BorderLayout()) {
-  val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
-    border = IdeBorderFactory.createBorder(SideBorder.TOP)
-  }
+private class DeviceListPanel(
+  title: String,
+  val list: TooltipList<PairingDevice>,
+  val emptyListPanel: JPanel,
+) : JPanel(BorderLayout()) {
+  val scrollPane =
+    ScrollPaneFactory.createScrollPane(
+        list,
+        VERTICAL_SCROLLBAR_AS_NEEDED,
+        HORIZONTAL_SCROLLBAR_NEVER,
+      )
+      .apply { border = IdeBorderFactory.createBorder(SideBorder.TOP) }
 
   init {
     border = IdeBorderFactory.createBorder(SideBorder.ALL)
 
-    add(JBLabel(title).apply {
-      font = JBFont.label().asBold()
-      border = empty(4, 16)
-    }, BorderLayout.NORTH)
+    add(
+      JBLabel(title).apply {
+        font = JBFont.label().asBold()
+        border = empty(4, 16)
+      },
+      BorderLayout.NORTH,
+    )
     add(scrollPane, BorderLayout.CENTER)
   }
 

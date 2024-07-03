@@ -32,10 +32,11 @@ class FakeTraceProcessorServiceTest {
     Truth.assertThat(loadOk).isTrue()
 
     val processList = fakeService.getProcessMetadata(1, fakeIdeProfilerServices)
-    Truth.assertThat(processList).hasSize(35)
+    // Equivalent to "SELECT count(upid) FROM process"
+    Truth.assertThat(processList).hasSize(76)
 
     val model = fakeService.loadCpuData(1, listOf(processList[0]), ProcessModel(1, "", emptyMap(), emptyMap()), fakeIdeProfilerServices)
-    Truth.assertThat(model.getProcesses()).hasSize(35)
+    Truth.assertThat(model.getProcesses()).hasSize(76)
     Truth.assertThat(model.getCpuCores()).hasSize(8)
   }
 

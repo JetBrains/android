@@ -56,7 +56,6 @@
 
     <applicationService serviceImplementation="com.android.tools.idea.logcat.settings.AndroidLogcatSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatNamedFilters"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory"/>
     <applicationService serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecorderPersistentOptions"/>
     <applicationService
@@ -97,7 +96,7 @@
               text="Pause/Resume Logcat"
               description="Pause/Resume the Logcat panel"/>
       <action id="Logcat.RestartLogcat"
-              class="com.android.tools.idea.logcat.actions.RestartLogcatAction"
+              class="com.android.tools.idea.logcat.actions.RestartOrReloadLogcatAction"
               text="Restart Logcat"
               description="Restart Logcat monitoring"/>
       <action id="Logcat.ToggleSoftWrap"

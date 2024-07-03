@@ -84,7 +84,7 @@ class BuildInvokerTest : AndroidGradleTestCase() {
         gradleBuildStateBuildStartedNotificationReceived = true
       }
 
-      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+      override fun buildFinished(status: BuildStatus, context: BuildContext) {
         gradleBuildStateBuildFinishedNotificationReceived = true
       }
     })

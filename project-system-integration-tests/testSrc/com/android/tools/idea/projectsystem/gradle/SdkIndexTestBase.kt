@@ -50,7 +50,7 @@ open class SdkIndexTestBase {
 
   fun verifySdkIndexIsInitializedAndUsedWhen(showFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)?,
                                              beforeClose: (() -> Unit)?,
-                                             expectedIssues: Set<String>) {
+                                             expectedIssues: List<List<String>>) {
     val project = AndroidProject(testProjectPath)
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo(testRepoManifest))
@@ -72,18 +72,24 @@ open class SdkIndexTestBase {
       // Check that the snapshot now exists
       assertWithMessage("SDK index snapshot ($indexPath) should exist after opening build file").that(indexPath.exists()).isTrue()
       // Check lint caused SDK Index to look for issues
+      val expectedHeaders = mutableSetOf<String>()
       for (issue in expectedIssues) {
-        val escapedIssue = ".*${Pattern.quote(issue)}.*"
-        system.installation.ideaLog.waitForMatchingLine(escapedIssue, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
+        val escapedIssueHeader = ".*IdeGooglePlaySdkIndex - ${Pattern.quote(issue[0])}$"
+        expectedHeaders.add(issue[0])
+        system.installation.ideaLog.waitForMatchingLine(escapedIssueHeader, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
+        for (line in issue.drop(1)) {
+          val escapedLine = "${Pattern.quote(line)}$"
+          system.installation.ideaLog.waitForMatchingLine(escapedLine, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
+        }
       }
       // Now check that only expected issues were present
-      val foundIssues: MutableSet<String> = mutableSetOf()
+      val foundHeaders: MutableSet<String> = mutableSetOf()
       while (true) {
         try {
           // TODO(b/243691427): Change the way we confirm no more issues were created
           val matcher = system.installation.ideaLog.waitForMatchingLine(".*IdeGooglePlaySdkIndex - (.*)$", timeoutBetweenIssuesSeconds,
                                                                         TimeUnit.SECONDS)
-          foundIssues.add(matcher.group(1))
+          foundHeaders.add(matcher.group(1))
         }
         catch (expected: InterruptedException) {
           // This means that no more matches were found
@@ -91,18 +97,13 @@ open class SdkIndexTestBase {
         }
       }
       beforeClose?.invoke()
-      assertThat(foundIssues).isEqualTo(expectedIssues)
+      assertThat(foundHeaders).isEqualTo(expectedHeaders)
     }
   }
 
-  protected fun verifyPsdIssues(numWarnings: Int) {
+  protected fun verifyPsdIssues(numErrors:Int, numWarnings: Int) {
     val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
-    // The test project uses the following libraries:
-    //  - com.startapp:inapp-sdk: 3.9.1 error (blocking critical and outdated)
-    //  - com.stripe:stripe-android:9.3.2 error (if policy issues are enabled, not blocking)
-    //  - com.mopub:mopub-sdk:4.16.0 warning (outdated)
-    //  - com.snowplowanalytics:snowplow-android-tracker:1.4.1 info (critical, but not blocking)
-    val expectedSummary = "2 errors, $numWarnings warnings, 1 information, 0 updates, 0 other"
+    val expectedSummary = "$numErrors errors, $numWarnings warnings, 2 information, 0 updates, 0 other"
     val foundSummary: String
     try {
       val matcher = system.installation.ideaLog.waitForMatchingLine(summaryRegex, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)

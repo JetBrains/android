@@ -21,6 +21,7 @@ import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundLayer
@@ -28,8 +29,10 @@ import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.util.Disposer
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -51,9 +54,9 @@ class DrawableBackgroundLayerTest {
 
       val mockLayoutlibSceneManager = Mockito.mock<LayoutlibSceneManager>()
       val nlModel =
-        NlModel.builder(
+        NlModel.Builder(
             projectRule.testRootDisposable,
-            projectRule.module.androidFacet!!,
+            BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             virtualFile,
             ConfigurationManager.getOrCreateInstance(projectRule.module)
               .getConfiguration(virtualFile),
@@ -67,7 +70,11 @@ class DrawableBackgroundLayerTest {
           ScreenView(
             mockDesignSurface,
             mockLayoutlibSceneManager,
-            { _, outDimension -> outDimension.setSize(300, 200) },
+            object : ContentSizePolicy {
+              override fun measure(screenView: ScreenView, outDimension: Dimension) {
+                outDimension.setSize(300, 200)
+              }
+            },
           ) {
           override val scale: Double
             get() = 1.0

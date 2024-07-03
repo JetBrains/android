@@ -42,11 +42,6 @@ class LayoutInspectorConfigurableProvider(
   private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() }
 ) : ConfigurableProvider() {
 
-  override fun canCreateConfigurable(): Boolean {
-    // only show the setting if the auto connect flat is enabled.
-    return StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-  }
-
   override fun createConfigurable(): Configurable {
     return LayoutInspectorConfigurable(showRestartAndroidStudioDialog)
   }

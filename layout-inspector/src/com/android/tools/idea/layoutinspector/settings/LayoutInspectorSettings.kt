@@ -32,21 +32,13 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
     }
   }
 
-  // TODO Replace with a regular variable once the flags are removed.
-  private val autoConnectSetting =
-    FlagControlledSetting(true) {
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-    }
-
   private val embeddedLayoutInspectorSetting =
     FlagControlledSetting(true) {
       StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     }
 
   // Property needs to have public setters and getters in order to be persisted.
-  var autoConnectEnabled: Boolean
-    get() = autoConnectSetting.get()
-    set(value) = autoConnectSetting.set(value)
+  var autoConnectEnabled = true
 
   // Property needs to have public setters and getters in order to be persisted.
   var embeddedLayoutInspectorEnabled: Boolean

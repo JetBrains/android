@@ -379,8 +379,6 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     prop("GenFolderRelativePathAidl") { GEN_FOLDER_RELATIVE_PATH_AIDL.nullize() }
     prop("ManifestFileRelativePath") { MANIFEST_FILE_RELATIVE_PATH.nullize() }
     prop("ResFolderRelativePath") { RES_FOLDER_RELATIVE_PATH.nullize() }
-    RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- ResFoldersRelativePath") { it } }
-    TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- TestResFoldersRelativePath") { it } }
     prop("AssetsFolderRelativePath") { ASSETS_FOLDER_RELATIVE_PATH.nullize() }
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
     prop("ApkPath") { APK_PATH.nullize() }

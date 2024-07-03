@@ -152,7 +152,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       }
     }
 
-    if (allItems.isEmpty() && ResourceUpdateTracer.isTracingActive()) {
+    val resourceUpdateTracer = ResourceUpdateTracer.getInstance()
+    if (allItems.isEmpty() && resourceUpdateTracer.isTracingActive) {
       resourceRepository.traceHasResources(resourceReference)
       for (repository in resourceRepository.leafResourceRepositories) {
         if (repository is ResourceFolderRepository) {
@@ -160,9 +161,9 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
         }
       }
       val file =
-        ResourceUpdateTracer.pathForLogging(context.getParentOfType<PsiFile>(true))
+        resourceUpdateTracer.pathForLogging(context.getParentOfType<PsiFile>(true))
           ?: "unknown file"
-      ResourceUpdateTracer.dumpTrace(
+      resourceUpdateTracer.dumpTrace(
         "Unresolved resource reference \"${resourceReference.resourceUrl}\" in $file"
       )
     }

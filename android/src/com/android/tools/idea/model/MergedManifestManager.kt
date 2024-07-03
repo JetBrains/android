@@ -20,6 +20,12 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
+import com.android.tools.idea.model.MergedManifestException.MergingError
+import com.android.tools.idea.model.MergedManifestException.MissingAttribute
+import com.android.tools.idea.model.MergedManifestException.MissingElement
+import com.android.tools.idea.model.MergedManifestException.ParsingError
+import com.android.tools.idea.model.MergedManifestManager.Companion.LOG
+import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.TraceUtils
@@ -29,6 +35,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -104,7 +111,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
                   ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        facet.isDisposed() || module.project.isDisposed -> throw ProcessCanceledException()
+        facet.isDisposed || module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> createMergedManifestSnapshot(facet)
       }
@@ -119,16 +126,29 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
     ApplicationManager.getApplication().messageBus.syncPublisher(MergedManifestSnapshotComputeListener.TOPIC)
       .snapshotCreationStarted(token, startMillis)
 
-    val snapshot: MergedManifestSnapshot
+    var snapshot: MergedManifestSnapshot
     var result = MergeResult.FAILED
 
     try {
-      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
+      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet)
       result = MergeResult.SUCCESS
     }
     catch (e: ProcessCanceledException) {
       result = MergeResult.CANCELED
       throw e
+    }
+    catch (e: MergedManifestException) {
+      when (e) {
+        is MergingError,
+        is MissingElement,
+        is ParsingError,
+        is MissingAttribute -> {
+          LOG.info("Manifest merge attempt failed", e)
+          snapshot = MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module, facet, e)
+        }
+        // skipping InfrastructureError as it is a wrapper for general Exception
+        is MergedManifestException.InfrastructureError -> throw e
+      }
     }
     finally {
       val endMillis = System.currentTimeMillis()
@@ -159,7 +179,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
 
     logger<MergedManifestSupplier>().warn(
         "Infinite recursion detected when computing merged manifest for module ${module.name}\n" + TraceUtils.currentStack)
-    return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
+    return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module, module.androidFacet, null)
   }
 
   private fun doGetOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
@@ -372,9 +392,11 @@ class MergedManifestManager(module: Module) : Disposable {
         throw e
       }
       catch (e: Exception) {
-        MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
+        MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module, module.androidFacet, e)
       }
     }
+
+    val LOG: Logger = Logger.getInstance(MergedManifestManager::class.java)
   }
 }
 
@@ -403,4 +425,5 @@ interface MergedManifestSnapshotComputeListener {
    * be the same object for a given single merge computation.
    */
   fun snapshotCreationEnded(token: Any, startTimestampMillis: Long, endTimestampMillis: Long, result: MergeResult)
+
 }

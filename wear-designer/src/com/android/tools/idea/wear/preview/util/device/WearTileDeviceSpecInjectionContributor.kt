@@ -15,12 +15,27 @@
  */
 package com.android.tools.idea.wear.preview.util.device
 
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.util.device.DeviceSpecInjectionContributor
-import com.android.tools.idea.wear.preview.isTilePreviewAnnotation
-import org.jetbrains.uast.UAnnotation
+import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
 class WearTileDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
-  override fun isPreviewAnnotation(annotation: UAnnotation): Boolean {
-    return annotation.isTilePreviewAnnotation()
-  }
+  override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
+    when (psiElement.language) {
+      is KotlinLanguage -> {
+        psiElement.parentOfType<KtAnnotationEntry>()?.fqNameMatches(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+          ?: false
+      }
+      is JavaLanguage -> {
+        psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+          ?: false
+      }
+      else -> false
+    }
 }

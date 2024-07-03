@@ -52,19 +52,19 @@ class ConstraintLayoutHandlerTest : SceneTest() {
         )
         .build()
 
-    val handler = nlModel.find("root")!!.getLayoutHandler {}!!
+    val handler = nlModel.treeReader.find("root")!!.getLayoutHandler {}!!
     assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
       handler.clearAttributes(listOf())
     }
   }
 
   fun testClearConstraintAttributes() {
-    val handler = myModel.find("root")!!.getLayoutHandler {}!!
-    val button1 = myModel.find("button1")!!
-    val text1 = myModel.find("text1")!!
-    val barrier1 = myModel.find("barrier1")!!
-    val group1 = myModel.find("group1")!!
-    val recyclerView = myModel.find("recycler_view")!!
+    val handler = myModel.treeReader.find("root")!!.getLayoutHandler {}!!
+    val button1 = myModel.treeReader.find("button1")!!
+    val text1 = myModel.treeReader.find("text1")!!
+    val barrier1 = myModel.treeReader.find("barrier1")!!
+    val group1 = myModel.treeReader.find("group1")!!
+    val recyclerView = myModel.treeReader.find("recycler_view")!!
 
     handler.clearAttributes(listOf(button1, text1, recyclerView, barrier1, group1))
 
@@ -210,10 +210,10 @@ class ConstraintLayoutHandlerTest : SceneTest() {
           "    android:layout_marginTop=\"16dp\"/>"
       )
 
-    val button = model.find("button")!!
-    val button2 = model.find("button2")!!
+    val button = model.treeReader.find("button")!!
+    val button2 = model.treeReader.find("button2")!!
 
-    val handler = model.find("root")!!.getLayoutHandler {}!!
+    val handler = model.treeReader.find("root")!!.getLayoutHandler {}!!
     handler.clearAttributes(listOf(button, button2))
 
     screen
@@ -251,18 +251,18 @@ class ConstraintLayoutHandlerTest : SceneTest() {
   fun testSelectedIds() {
     val model = createTestModel()
     val list = ArrayList<NlComponent>()
-    list.add(model.find("view1")!!)
-    list.add(model.find("view2")!!)
-    list.add(model.find("non_view1")!!)
+    list.add(model.treeReader.find("view1")!!)
+    list.add(model.treeReader.find("view2")!!)
+    list.add(model.treeReader.find("non_view1")!!)
 
     assertEquals("view1,view2", getSelectedIds(list))
   }
 
   fun testMoveOutRemovesReference() {
     val model = createTestFlowModel()
-    val text1 = model.find("text1")!!
-    val linear = model.find("linear")!!
-    val flow = model.find("flow")!!
+    val text1 = model.treeReader.find("text1")!!
+    val linear = model.treeReader.find("linear")!!
+    val flow = model.treeReader.find("flow")!!
     NlWriteCommandActionUtil.run(text1, "Move text1") {
       text1.moveTo(linear, null, InsertType.MOVE, emptySet())
     }

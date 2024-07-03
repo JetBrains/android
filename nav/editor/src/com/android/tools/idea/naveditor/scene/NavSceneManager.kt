@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
@@ -26,12 +24,12 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.actionDestination
@@ -61,6 +59,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag
@@ -217,13 +216,13 @@ open class NavSceneManager(
     }
   }
 
-  override fun createTemporaryComponent(component: NlComponent) = TemporarySceneComponent(scene, component)
-
   override fun requestRenderAsync(): CompletableFuture<Void> {
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
-      designSurface.zoomController.zoomToFit()
+      ApplicationManager.getApplication().invokeLater {
+        designSurface.zoomController.zoomToFit()
+      }
     }
 
     return CompletableFuture.completedFuture(null)
@@ -301,10 +300,6 @@ open class NavSceneManager(
   }
 
   override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
-
-  override fun getDefaultProperties() = mapOf<Any, Map<ResourceReference, ResourceValue>>()
-
-  override fun getDefaultStyles() = mapOf<Any, ResourceReference>()
 
   private inner class ModelChangeListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {
@@ -541,12 +536,12 @@ open class NavSceneManager(
 
 // TODO: this should be moved somewhere model-specific, since it is relevant even absent a Scene
 fun updateHierarchy(model: NlModel, newModel: NlModel?) {
-  var roots: List<NlModel.TagSnapshotTreeNode> = listOf()
+  var roots: List<TagSnapshotTreeNode> = listOf()
   var newRoot = AndroidPsiUtils.getRootTagSafely(model.file)
 
   newModel?.let {
     newRoot = AndroidPsiUtils.getRootTagSafely(it.file)
-    roots = buildTree(it.components.map { c -> c.tagDeprecated })
+    roots = buildTree(it.treeReader.components.map { c -> c.tagDeprecated })
   }
 
   newRoot?.let {
@@ -555,16 +550,14 @@ fun updateHierarchy(model: NlModel, newModel: NlModel?) {
   }
 }
 
-private fun buildTree(roots: List<XmlTag>): List<NlModel.TagSnapshotTreeNode> {
+private fun buildTree(roots: List<XmlTag>): List<TagSnapshotTreeNode> {
   return roots.map {
-    object : NlModel.TagSnapshotTreeNode {
-      override fun getTagSnapshot(): TagSnapshot {
-        return TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
-      }
+    object : TagSnapshotTreeNode {
+      override val tagSnapshot: TagSnapshot?
+        get() = TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
 
-      override fun getChildren(): List<NlModel.TagSnapshotTreeNode> {
-        return buildTree(it.subTags.toList())
-      }
+      override val children: List<TagSnapshotTreeNode>
+        get() = buildTree(it.subTags.toList())
     }
   }
 }

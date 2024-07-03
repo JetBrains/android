@@ -177,6 +177,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   message("android.wizard.module.new.tv") -> TemplateRenderer.ANDROID_TV_MODULE
   message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
+  message("android.wizard.module.new.kotlin.multiplatform.library") -> TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
 
   "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
@@ -329,7 +330,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     TemplateRenderer.ANDROID_NATIVE_MODULE,
-    TemplateRenderer.BASELINE_PROFILES_MODULE -> throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.BASELINE_PROFILES_MODULE,
+    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE -> throw RuntimeException("Invalid Template Title")
   }
 }
 
@@ -348,10 +350,8 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
     TemplateRenderer.JAVA_LIBRARY -> ModuleType.JAVA_OR_KOTLIN_LIBRARY
     TemplateRenderer.BENCHMARK_LIBRARY_MODULE -> ModuleType.BENCHMARK_LIBRARY
     TemplateRenderer.BASELINE_PROFILES_MODULE -> ModuleType.BASELINE_PROFILES
+    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE -> ModuleType.KOTLIN_MULTIPLATFORM_LIBRARY
     else -> ModuleType.UNKNOWN
-
-    // TODO: b/161230278 Some new modules don't render a template. Need to send the event from their Model render.
-    // IMPORT_GRADLE = 10; IMPORT_ECLIPSE = 11; IMPORT_JAR_AAR = 12;
   }
 }
 

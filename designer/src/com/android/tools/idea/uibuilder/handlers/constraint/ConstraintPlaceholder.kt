@@ -36,8 +36,6 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   private val delegator = ViewGroupPlaceholder(host)
 
-  override val isLiveUpdatable = true
-
   override val dominate = false
 
   override val region = delegator.region
@@ -97,4 +95,11 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
       }
     }
   }
+
+  /**
+   * For Constraint Layout, we update the attributes if the dragging component has the same parent
+   * as this placeholder.
+   */
+  override fun isLiveUpdatableForComponent(draggedComponent: SceneComponent): Boolean =
+    host == draggedComponent.parent
 }

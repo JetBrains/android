@@ -16,16 +16,6 @@
     <option name="rtl" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="support" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="where" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="add" path="ActionManager" hit="Add sample data file" />
-    <option name="data" path="ActionManager" hit="Add sample data file" />
-    <option name="file" path="ActionManager" hit="Add sample data file" />
-    <option name="sample" path="ActionManager" hit="Add sample data file" />
-    <option name="a" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="adds" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="data" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="file" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="new" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="sample" path="ActionManager" hit="Adds a new data sample file" />
     <option name="a" path="ActionManager" hit="Adds a new module to the project" />
     <option name="adds" path="ActionManager" hit="Adds a new module to the project" />
     <option name="module" path="ActionManager" hit="Adds a new module to the project" />
@@ -339,6 +329,11 @@
     <option name="single" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="that" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="the" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="dagger" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="go" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="items" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="related" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="to" path="ActionManager" hit="Go to Related Dagger Items" />
     <option name="hardware" path="ActionManager" hit="Hardware Input" />
     <option name="input" path="ActionManager" hit="Hardware Input" />
     <option name="help" path="ActionManager" hit="Help" />
@@ -904,6 +899,20 @@
     <option name="warn" hit="Warn indicator" />
     <option name="message" hit="Warn message" />
     <option name="warn" hit="Warn message" />
+  </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Gradle Declarative Configuration Language" configurable_name="Gradle Declarative Configuration Language">
+    <option name="configuration" hit="Gradle Declarative Configuration Language" />
+    <option name="declarative" hit="Gradle Declarative Configuration Language" />
+    <option name="gradle" hit="Gradle Declarative Configuration Language" />
+    <option name="language" hit="Gradle Declarative Configuration Language" />
+    <option name="block" hit="Block comments" />
+    <option name="comments" hit="Block comments" />
+    <option name="boolean" hit="Boolean" />
+    <option name="comments" hit="Comments" />
+    <option name="null" hit="Null" />
+    <option name="number" hit="Number" />
+    <option name="string" hit="String//String text" />
+    <option name="text" hit="String//String text" />
   </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
     <option name="filter" hit="Logcat Filter" />

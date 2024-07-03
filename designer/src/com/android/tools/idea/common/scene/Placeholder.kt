@@ -34,14 +34,13 @@ abstract class Placeholder(val host: SceneComponent) {
   open val associatedComponent: SceneComponent = host
 
   /**
-   * Return true if this Placeholder updates the attribute when dragging component in same parent.
-   * The updated attributes are pending in
-   * [com.android.tools.idea.common.model.AttributesTransaction] which is committed after mouse
-   * released.
+   * Returns true if this Placeholder updates the attributes when dragging a given component. The
+   * updated attributes are pending in [com.android.tools.idea.common.model.AttributesTransaction]
+   * which is committed after mouse released.
    *
    * @see updateLiveAttribute
    */
-  open val isLiveUpdatable = false
+  open fun isLiveUpdatableForComponent(draggedComponent: SceneComponent): Boolean = false
 
   /**
    * Only dominate [Placeholder] would be rendered. Also, dominate [Placeholder]s has higher

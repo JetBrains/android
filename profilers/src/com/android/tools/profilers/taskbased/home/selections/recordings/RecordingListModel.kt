@@ -49,7 +49,7 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   fun onRecordingSelection(newRecording: SessionItem?) {
-    val recordingTaskType = newRecording?.let { getSupportedTask(it) } ?: ProfilerTaskType.UNSPECIFIED
+    val recordingTaskType = newRecording?.getTaskType() ?: ProfilerTaskType.UNSPECIFIED
     setTaskSelection(recordingTaskType)
     _selectedRecording.value = newRecording
     updateTaskSelection()
@@ -74,20 +74,6 @@ class RecordingListModel(val profilers: StudioProfilers,
     _selectedRecording.value = null
   }
 
-  /**
-   * Returns the task or viewer that can be launched from a given recording.
-   *
-   * Note: A "viewer" is essentially the same as a task, but it specifies the context in which the task is used when opening an imported or
-   * past recording. This method assumes a one-to-one mapping between each recording or artifact and each corresponding task or viewer.
-   */
-  fun getSupportedTask(recording: SessionItem): ProfilerTaskType {
-    val supportedTaskTypes = taskHandlers.filter { (taskType, taskHandler) ->
-      TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, recording)
-    }.keys
-
-    return if (supportedTaskTypes.size == 1) supportedTaskTypes.first() else ProfilerTaskType.UNSPECIFIED
-  }
-
   private fun updateTaskSelection() {
     // If only one task is supported after the recording is selected, that task is auto-selected.
     val supportedTasks = taskHandlers.entries.toList().filter {
@@ -98,7 +84,9 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   private fun sessionItemsUpdated() {
-    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
+    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter {
+      !it.isOngoing && it.getTaskType() != ProfilerTaskType.UNSPECIFIED
+    }
     val newRecordingList = mutableListOf<SessionItem>()
     newRecordingList.addAll(sessionItems)
     val oldRecordingList = _recordingList.value.toList()
@@ -114,9 +102,16 @@ class RecordingListModel(val profilers: StudioProfilers,
     val difference = newRecordingList.toSet() - oldRecordingList.toSet()
     // Confirm there is one, new recording added. If so, auto open the new recording.
     if (newRecordingList.size > oldRecordingList.size && difference.size == 1 && difference.first().isImported()) {
-      onRecordingSelection(difference.first())
-      openProfilerTask()
+      openRecording(difference.first())
     }
+  }
+
+  /**
+   * Selects the recording and launches it in the task tab with its respective task type.
+   */
+  fun openRecording(recording: SessionItem) {
+    onRecordingSelection(recording)
+    openProfilerTask()
   }
 
   @VisibleForTesting

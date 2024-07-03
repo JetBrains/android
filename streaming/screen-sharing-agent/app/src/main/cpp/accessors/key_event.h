@@ -16,13 +16,8 @@
 
 #pragma once
 
-#include <android/input.h>
-
-#include <cstdint>
-#include <string>
-
 #include <common.h>
-#include "geom.h"
+
 #include "jvm.h"
 
 namespace screensharing {
@@ -30,10 +25,13 @@ namespace screensharing {
 // Mechanism for creation of android.view.KeyEvent objects.
 class KeyEvent {
 public:
-  KeyEvent(Jni jni);
+  explicit KeyEvent(Jni jni);
 
   // Returns a android.view.KeyEvent Java object.
-  JObject ToJava() const;
+  [[nodiscard]] JObject ToJava() const;
+
+  [[nodiscard]] static int32_t GetKeyCode(const JObject& key_event);
+  [[nodiscard]] static int32_t GetAction(const JObject& key_event);
 
   jlong down_time_millis = 0;
   jlong event_time_millis = 0;
@@ -44,14 +42,16 @@ public:
   jint device_id = 0;
   jint scancode = 0;
   jint flags = 0;
-  jint source = AINPUT_SOURCE_KEYBOARD;
+  jint source;
 
 private:
-  static void InitializeStatics(Jni jni);
+  static void InitializeConstructor(Jni jni);
+  static void InitializeFieldIds(const JObject& key_event);
 
-  static bool statics_initialized_;
   static JClass key_event_class_;
   static jmethodID constructor_;
+  static jfieldID key_code_field_;
+  static jfieldID action_field_;
 
   Jni jni_;
 

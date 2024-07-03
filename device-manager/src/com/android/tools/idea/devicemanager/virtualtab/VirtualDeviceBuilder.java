@@ -82,7 +82,7 @@ final class VirtualDeviceBuilder {
       .setState(VirtualDevice.State.valueOf(myIsAvdRunning.get()))
       .setAvdInfo(myDevice);
 
-    if (AvdManagerConnection.isSystemImageDownloadProblem(myDevice.getStatus())) {
+    if (myDevice.getStatus().equals(AvdInfo.AvdStatus.ERROR_IMAGE_MISSING)) {
       builder.setIcon(AllIcons.Actions.Download);
     }
 

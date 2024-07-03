@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.modes
 
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.truth.Truth.assertThat
@@ -24,11 +25,12 @@ import org.junit.Test
 
 class SurfaceLayoutOptionTest {
 
-  open class TestPositionableContent(override val organizationGroup: String?) :
+  open class TestPositionableContent(override val organizationGroup: OrganizationGroup?) :
     PositionableContent {
     override val scale = 0.0
     override val x = 0
     override val y = 0
+    override val isFocusedContent = false
 
     override fun getContentSize(dimension: Dimension?) = Dimension(0, 0)
 
@@ -37,27 +39,33 @@ class SurfaceLayoutOptionTest {
     override fun getMargin(scale: Double): Insets = Insets(0, 0, 0, 0)
   }
 
-  class HeaderTestPositionableContent(override val organizationGroup: String?) :
+  class HeaderTestPositionableContent(override val organizationGroup: OrganizationGroup?) :
     TestPositionableContent(organizationGroup), HeaderPositionableContent
 
   @Test
   fun groupByOrganizationId1() {
     // Groups are [0, 0], [1], [2, 2, 2], [3, 4], [5, 5]
+    val group0 = OrganizationGroup("0", "0")
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
+    val group3 = OrganizationGroup("3", "3")
+    val group4 = OrganizationGroup("4", "4")
+    val group5 = OrganizationGroup("5", "5")
     val content =
       listOf(
-        HeaderTestPositionableContent("0"),
-        TestPositionableContent("0"),
-        TestPositionableContent("0"),
-        TestPositionableContent("1"),
-        HeaderTestPositionableContent("2"),
-        TestPositionableContent("2"),
-        TestPositionableContent("2"),
-        TestPositionableContent("2"),
-        TestPositionableContent("3"),
-        TestPositionableContent("4"),
-        HeaderTestPositionableContent("5"),
-        TestPositionableContent("5"),
-        TestPositionableContent("5"),
+        HeaderTestPositionableContent(group0),
+        TestPositionableContent(group0),
+        TestPositionableContent(group0),
+        TestPositionableContent(group1),
+        HeaderTestPositionableContent(group2),
+        TestPositionableContent(group2),
+        TestPositionableContent(group2),
+        TestPositionableContent(group2),
+        TestPositionableContent(group3),
+        TestPositionableContent(group4),
+        HeaderTestPositionableContent(group5),
+        TestPositionableContent(group5),
+        TestPositionableContent(group5),
       )
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(5)
@@ -76,11 +84,14 @@ class SurfaceLayoutOptionTest {
   @Test
   fun groupByOrganizationId2() {
     // Groups are [0, 1, 2]
+    val group0 = OrganizationGroup("0", "0")
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
     val content =
       listOf(
-        TestPositionableContent("0"),
-        TestPositionableContent("1"),
-        TestPositionableContent("2"),
+        TestPositionableContent(group0),
+        TestPositionableContent(group1),
+        TestPositionableContent(group2),
       )
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(1)
@@ -91,7 +102,8 @@ class SurfaceLayoutOptionTest {
   @Test
   fun groupByOrganizationId3() {
     // Groups are [0]
-    val content = listOf(TestPositionableContent("0"))
+    val group0 = OrganizationGroup("0", "0")
+    val content = listOf(TestPositionableContent(group0))
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(1)
     assertThat(groups[0].content).containsExactly(content[0])
@@ -101,7 +113,8 @@ class SurfaceLayoutOptionTest {
   @Test
   fun groupByOrganizationId4() {
     // Groups are [0]
-    val content = listOf(TestPositionableContent("0"), HeaderTestPositionableContent("0"))
+    val group0 = OrganizationGroup("0", "0")
+    val content = listOf(TestPositionableContent(group0), HeaderTestPositionableContent(group0))
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(1)
     assertThat(groups[0].content).containsExactly(content[0])
@@ -111,13 +124,16 @@ class SurfaceLayoutOptionTest {
   @Test
   fun groupByOrganizationId5() {
     // Groups are [0, 1], [2, 2]
+    val group0 = OrganizationGroup("0", "0")
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
     val content =
       listOf(
-        TestPositionableContent("0"),
-        TestPositionableContent("1"),
-        HeaderTestPositionableContent("2"),
-        TestPositionableContent("2"),
-        TestPositionableContent("2"),
+        TestPositionableContent(group0),
+        TestPositionableContent(group1),
+        HeaderTestPositionableContent(group2),
+        TestPositionableContent(group2),
+        TestPositionableContent(group2),
       )
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(2)
@@ -130,12 +146,14 @@ class SurfaceLayoutOptionTest {
   @Test
   fun headerWithoutContent() {
     // Groups are [], [2, 2]
+    val group0 = OrganizationGroup("0", "0")
+    val group2 = OrganizationGroup("2", "2")
     val content =
       listOf(
-        HeaderTestPositionableContent("0"),
-        HeaderTestPositionableContent("2"),
-        TestPositionableContent("2"),
-        TestPositionableContent("2"),
+        HeaderTestPositionableContent(group0),
+        HeaderTestPositionableContent(group2),
+        TestPositionableContent(group2),
+        TestPositionableContent(group2),
       )
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(2)
@@ -148,11 +166,14 @@ class SurfaceLayoutOptionTest {
   @Test
   fun headerWithoutContent2() {
     // Groups are [], [], []
+    val group0 = OrganizationGroup("0", "0")
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
     val content =
       listOf(
-        HeaderTestPositionableContent("0"),
-        HeaderTestPositionableContent("1"),
-        HeaderTestPositionableContent("2"),
+        HeaderTestPositionableContent(group0),
+        HeaderTestPositionableContent(group1),
+        HeaderTestPositionableContent(group2),
       )
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(3)

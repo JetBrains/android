@@ -122,7 +122,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
   }
 
   private fun update(model: NlModel) {
-    componentTreeModel.treeRoot = model.components.firstOrNull()
+    componentTreeModel.treeRoot = model.treeReader.components.firstOrNull()
   }
 
   class NlComponentNodeType : ViewNodeType<NlComponent>() {

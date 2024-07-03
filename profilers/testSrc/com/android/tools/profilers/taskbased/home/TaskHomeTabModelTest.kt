@@ -25,8 +25,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.TaskEntranceTabModel.Companion.HIDE_NEW_TASK_PROMPT
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromNow
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
@@ -35,6 +39,7 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.Callsta
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -58,6 +63,8 @@ class TaskHomeTabModelTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     taskHomeTabModel = TaskHomeTabModel(myProfilers)
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
+    taskHandlers.forEach { (type, handler) -> myProfilers.addTaskHandler(type, handler) }
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -71,7 +78,7 @@ class TaskHomeTabModelTest {
   fun `test retrieval of most recent device selection`() {
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     taskHomeTabModel.processListModel.onDeviceSelection(device)
-    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(ProfilerDeviceSelection(device.model, 0, true, device))
+    assertThat(taskHomeTabModel.selectedDevice).isEqualTo(ProfilerDeviceSelection(device.model, 0, true, false, device))
   }
 
   @Test
@@ -119,14 +126,14 @@ class TaskHomeTabModelTest {
     myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, CallstackSampleTaskHandler(myManager))
 
     // Ensure the method returns true for valid inputs
-    assertTrue(taskHomeTabModel.canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+    assertTrue(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, myProfilers.taskHandlers))
   }
 
   @Test
   fun `test canTaskStartFromNow with default device instance selected and no process selected`() {
     // Create and set device to be default instance of Common.Device, this should cause `canTaskRunFromRunningProcess` to return false.
     // This simulates a running device selection detected from toolbar, with the corresponding device from the pipeline not found yet.
-    val selectedDevice = ProfilerDeviceSelection("FakeDevice", 30, true, Common.Device.getDefaultInstance())
+    val selectedDevice = ProfilerDeviceSelection("FakeDevice", 30, true, false, Common.Device.getDefaultInstance())
     // Create an empty process instance as if there is no running device from transport pipeline found, there is no process to be selected
     val selectedProcess = Common.Process.getDefaultInstance()
     // Set a valid task type and add its corresponding task handler so the task handler can be used to check if the selected device and
@@ -135,7 +142,7 @@ class TaskHomeTabModelTest {
     myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, CallstackSampleTaskHandler(myManager))
 
     // Ensure the method returns false as the selected device contains a default instance of Common.Device
-    assertFalse(taskHomeTabModel.canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, myProfilers.taskHandlers))
   }
 
   @Test
@@ -150,7 +157,7 @@ class TaskHomeTabModelTest {
     myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, CallstackSampleTaskHandler(myManager))
 
     // Ensure the method returns false as the selected process is not alive
-    assertFalse(taskHomeTabModel.canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, myProfilers.taskHandlers))
   }
 
   @Test
@@ -166,7 +173,7 @@ class TaskHomeTabModelTest {
     myProfilers.addTaskHandler(ProfilerTaskType.HEAP_DUMP, HeapDumpTaskHandler(myManager))
 
     // Ensure the method returns false as the process is profileable, but the heap dump task only can use a debuggable process
-    assertFalse(taskHomeTabModel.canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, myProfilers.taskHandlers))
   }
 
   @Test
@@ -182,7 +189,7 @@ class TaskHomeTabModelTest {
     myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, CallstackSampleTaskHandler(myManager))
 
     // Ensure the method returns false as the device feature level (N) is less than the minimum required by the callstack task handler
-    assertFalse(taskHomeTabModel.canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, myProfilers.taskHandlers))
   }
 
   @Test
@@ -196,7 +203,7 @@ class TaskHomeTabModelTest {
     val selectedTaskType = ProfilerTaskType.CALLSTACK_SAMPLE
 
     // Ensure the method returns true as the all selections are valid for starting a task from process start
-    assertTrue(taskHomeTabModel.canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
+    assertTrue(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, myProfilers))
   }
 
   @Test
@@ -210,7 +217,7 @@ class TaskHomeTabModelTest {
     val selectedTaskType = ProfilerTaskType.HEAP_DUMP
 
     // Ensure the method returns false as the selected task is not a startup-capable task
-    assertFalse(taskHomeTabModel.canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, myProfilers))
   }
 
   @Test
@@ -224,7 +231,7 @@ class TaskHomeTabModelTest {
     val selectedTaskType = ProfilerTaskType.CALLSTACK_SAMPLE
 
     // Ensure the method returns false as the selected process is not the preferred process
-    assertFalse(taskHomeTabModel.canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, myProfilers))
   }
 
   @Test
@@ -238,7 +245,7 @@ class TaskHomeTabModelTest {
     val selectedTaskType = ProfilerTaskType.CALLSTACK_SAMPLE
 
     // Ensure the method returns false as the device feature level (N) is less than the min required by the callstack startup task
-    assertFalse(taskHomeTabModel.canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, myProfilers))
   }
 
   @Test
@@ -252,7 +259,7 @@ class TaskHomeTabModelTest {
     val selectedTaskType = ProfilerTaskType.NATIVE_ALLOCATIONS
 
     // Ensure the method returns false as the device feature level (P) is less than the min required by the native allocations startup task
-    assertFalse(taskHomeTabModel.canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess))
+    assertFalse(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, myProfilers))
   }
 
   @Test
@@ -262,5 +269,49 @@ class TaskHomeTabModelTest {
 
     taskHomeTabModel.processListModel.onProcessSelection(Common.Process.newBuilder().setName("FakeProcess").build())
     assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
+  }
+
+  @Test
+  fun `test starting new task with ongoing task attempts stop of ongoing task`() {
+    // Create and select the device
+    val selectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE, "12", AndroidVersion.VersionCodes.S)
+    taskHomeTabModel.processListModel.onDeviceSelection(selectedDevice)
+    // Create and select the process
+    val selectedProcess = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, selectedDevice.deviceId)
+    addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
+    taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
+
+    // Select the task and populate the respective task handler
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
+    assertTrue(canTaskStartFromNow(ProfilerTaskType.CALLSTACK_SAMPLE,
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
+                                   selectedProcess, myProfilers.taskHandlers))
+
+    // Populate current task handler to simulate valid state (due to lack of interface with tool window code, the current task handler can
+    // not be set when the task is started.
+    myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers[ProfilerTaskType.CALLSTACK_SAMPLE] }
+
+    // Start the task (this will not actually launch the task tab, it will only start the underlying session).
+    taskHomeTabModel.onEnterTaskButtonClick()
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myProfilers.sessionsManager.isSessionAlive).isTrue()
+    assertThat(myProfilers.sessionsManager.currentTaskType).isEqualTo(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Attempt start of new task (should attempt to stop previous, Callstack Sample task)
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.NATIVE_ALLOCATIONS)
+    assertTrue(canTaskStartFromNow(ProfilerTaskType.NATIVE_ALLOCATIONS,
+                                   ProfilerDeviceSelection("FakeDevice", selectedDevice.featureLevel, true, false, selectedDevice),
+                                   selectedProcess, myProfilers.taskHandlers))
+
+    // Because it is difficult to simulate the launch of an actual task recording (as it requires launching a new tab), attempting a new
+    // task cant actually stop the previous task recording. However, to verify that the previous task recording was attempted to be stopped,
+    // the following assertion error can be expected on start of a new task.
+    val e = assertThrows(AssertionError::class.java) {
+      taskHomeTabModel.onEnterTaskButtonClick()
+    }
+    // Make sure that it attempted to stop the current/ongoing task (Callstack Sample)
+    assertThat(e.message).isEqualTo(
+      "There was an error with the Callstack Sample task. Error message: Cannot stop the task as the InterimStage was null.")
   }
 }

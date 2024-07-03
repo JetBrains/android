@@ -38,6 +38,10 @@ import com.android.sdklib.internal.avd.AvdCamera;
 import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
 import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
+import com.android.sdklib.internal.avd.EmulatorFeaturesChannel;
+import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.adtui.ASGallery;
@@ -46,7 +50,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdNameVerifier;
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.avdmanager.EmulatorFeatures;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector;
@@ -86,6 +90,8 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -125,6 +131,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
@@ -271,6 +278,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private ArrayList<SnapshotListItem> mySnapshotList;
 
+  private EmulatorPackage myEmulator;
+  private Set<String> myEmulatorFeatures;
+
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     this(project, model, new SkinComboBox(project, SkinCollector::updateAndCollect));
   }
@@ -311,10 +321,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     refreshSnapshotPullDown();
     myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
 
-    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
-      AndroidSdks.getInstance().tryToChooseSdkHandler(),
-      new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
-      new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+    myEmulator =
+        EmulatorPackages.getEmulatorPackage(
+            AndroidSdks.getInstance().tryToChooseSdkHandler(),
+            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class));
+    myEmulatorFeatures = EmulatorFeatures.getEmulatorFeatures(myEmulator);
+
+    boolean supportsVirtualCamera = myEmulatorFeatures.contains(EmulatorAdvancedFeatures.VIRTUAL_SCENE);
 
     setupCameraComboBox(myFrontCameraCombo, false);
     setupCameraComboBox(myBackCameraCombo, supportsVirtualCamera);
@@ -845,21 +858,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       File emuOutputFile = null;
 
       try {
-        // Get a temporary file for us to give parameters to the Emulator
-        tempDir = AvdManagerConnection.tempFileDirectory();
-        if (tempDir == null) {
-          return;
-        }
         try {
           // Get the name of a different temporary file for the Emulator to return parameters to us
-          emuOutputFile = File.createTempFile("emu_output_", ".tmp", tempDir);
+          emuOutputFile = File.createTempFile("emu_output_", ".tmp");
           // Tell the Emulator to use this second file
           String emuOutputFileInfo = "snapshotTempFile=" + emuOutputFile.getAbsolutePath();
           paramFile = AvdManagerConnection.writeTempFile(Collections.singletonList(emuOutputFileInfo));
         }
         catch (IOException ioEx) {
           Logger.getInstance(ConfigureAvdOptionsStep.class)
-            .info("Could not write temporary file to " + tempDir.getAbsolutePath(), ioEx);
+            .info("Could not create temporary file", ioEx);
           return;
         }
         if (paramFile == null) {
@@ -890,7 +898,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      * @return true on success, false on failure
      */
     private boolean launchEmulatorForSnapshotControl(@NotNull File paramFileForEmulator) {
-      Path emulatorBinary = connection.getEmulatorBinary();
+      if (myEmulator == null) {
+        return false;
+      }
+      Path emulatorBinary = myEmulator.getEmulatorBinary();
       if (emulatorBinary == null) {
         return false;
       }
@@ -1230,10 +1241,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
     // Separately handle the Boot Option. It is only
     // shown if the Emulator supports it.
-    myBootOptionPanel.setVisible(show && EmulatorAdvFeatures.emulatorSupportsFastBoot(
-      AndroidSdks.getInstance().tryToChooseSdkHandler(),
-      new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
-      new LogWrapper(Logger.getInstance(AvdManagerConnection.class))));
+    myBootOptionPanel.setVisible(show && myEmulatorFeatures.contains(EmulatorAdvancedFeatures.FAST_BOOT));
 
     toggleSystemOptionals(false);
 

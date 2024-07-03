@@ -36,7 +36,7 @@ class LocaleModelsProviderTest : LayoutTestCase() {
     val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = LocaleModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myBuildTarget)
 
     // There is 1 locale "en" in this project.
     // LocaleModelsProvider should provide 2 NlModels, one for no locale and one for en locale.
@@ -58,7 +58,7 @@ class LocaleModelsProviderTest : LayoutTestCase() {
     // LocaleModelsProvider should provide 2 NlModels, one for no locale and one for en locale.
 
     val modelsProvider = LocaleModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myBuildTarget)
 
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(Locale.ANY, nlModels[0].configuration.locale)
@@ -77,7 +77,7 @@ class LocaleModelsProviderTest : LayoutTestCase() {
     val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = LocaleModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, enFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, enFile, myBuildTarget)
 
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(Locale.ANY, nlModels[0].configuration.locale)
@@ -95,7 +95,7 @@ class LocaleModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = LocaleModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, true)

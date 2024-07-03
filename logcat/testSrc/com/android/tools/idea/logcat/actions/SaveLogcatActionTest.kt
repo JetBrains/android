@@ -18,6 +18,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -28,7 +29,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
@@ -236,10 +236,10 @@ class SaveLogcatActionTest {
     logcatPresenter: FakeLogcatPresenter? = fakeLogcatPresenter,
   ) =
     TestActionEvent.createTestEvent(
-      MapDataContext().apply {
-        put(CommonDataKeys.PROJECT, project)
-        put(LOGCAT_PRESENTER_ACTION, logcatPresenter)
-      }
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, project)
+        .add(LOGCAT_PRESENTER_ACTION, logcatPresenter)
+        .build()
     )
 
   private inner class FakeFileChooserFactory : FileChooserFactoryImpl() {

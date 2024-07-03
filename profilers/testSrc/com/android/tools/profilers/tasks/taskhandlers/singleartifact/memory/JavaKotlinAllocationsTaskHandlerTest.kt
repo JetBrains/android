@@ -42,6 +42,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -159,8 +160,9 @@ class JavaKotlinAllocationsTaskHandlerTest {
   }
 
   @Test
-  fun testStopTaskSuccessfullyTerminatesTasksSession() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
+  fun testNonLegacyStopTaskSuccessfullyTerminatesTasksSession() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.O, myProfilers, myTransportService, myTimer,
                                       Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
     // Set the start allocation tracking status to be successful.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
@@ -178,9 +180,45 @@ class JavaKotlinAllocationsTaskHandlerTest {
     myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    // Because the Java/Kotlin task's stop is self-contained within the AllocationStage, we must force stop tracking allocations.
-    MemoryProfilerTestUtils.stopTrackingHelper(myJavaKotlinAllocationsTaskHandler.stage!!, myTransportService, myTimer, 0,
-                                               TrackStatus.Status.SUCCESS, false)
+    // Set device so stopTask knows which implementation of stopping the recording to use (legacy or non-legacy). Here we set the api of
+    // the device to android version O (api 26), which is the min api to use the non-legacy version of this task.
+    myProfilers.taskHomeTabModel.processListModel.onDeviceSelection(createDevice(AndroidVersion.VersionCodes.O))
+    // Stop the task.
+    myJavaKotlinAllocationsTaskHandler.stopTask()
+
+    // Wait for successful end event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Issuing a stop allocation tracking command should result in the session terminating as well.
+    assertThat(myManager.isSessionAlive).isFalse()
+  }
+
+  @Test
+  fun testLegacyStopTaskSuccessfullyTerminatesTasksSession() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, AndroidVersion.VersionCodes.N, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    // Set the start allocation tracking status to be successful.
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
+      trackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).build()
+    }
+    // In order to proceed with the allocation tracking, a MEMORY_ALLOC_TRACKING event is expected with underlying data populated.
+    // This data is faked (as well as the hard coded range) to simulate the data that would normally be fetched in a production scenario.
+    myTransportService.addEventToStream(1234, Common.Event.newBuilder().setPid(1).setKind(
+      Common.Event.Kind.MEMORY_ALLOC_TRACKING).setMemoryAllocTracking(
+      Memory.MemoryAllocTrackingData.newBuilder().setInfo(
+        Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(true).build()).build()).build())
+    myProfilers.timeline.dataRange.set(0.0, 1.0)
+
+    myJavaKotlinAllocationsTaskHandler.setupStage()
+    myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Set device so stopTask knows which implementation of stopping the recording to use (legacy or non-legacy). Here we set the api of
+    // the device to android version N (api 24), which is below the min api (26) to use the non-legacy version of this task.
+    myProfilers.taskHomeTabModel.processListModel.onDeviceSelection(createDevice(AndroidVersion.VersionCodes.N))
+    // Stop the task.
+    myJavaKotlinAllocationsTaskHandler.stopTask()
+
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Issuing a stop allocation tracking command should result in the session terminating as well.

@@ -24,7 +24,7 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
 
     for (direction in VERTICAL_BARRIER_DIRECTIONS) {
       val model = createNlModelWithBarrier(direction)
-      val barrier = model.find("barrier")!!
+      val barrier = model.treeReader.find("barrier")!!
       assertEquals(
         StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL,
         barrierHandler.getIcon(barrier),
@@ -33,7 +33,7 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
 
     for (direction in HORIZONTAL_BARRIER_DIRECTION) {
       val model = createNlModelWithBarrier(direction)
-      val barrier = model.find("barrier")!!
+      val barrier = model.treeReader.find("barrier")!!
       assertEquals(
         StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL,
         barrierHandler.getIcon(barrier),
@@ -46,19 +46,19 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
 
     run {
       val model = createNlModelWithBarrierWithoutDirection()
-      val barrier = model.find("barrier")!!
+      val barrier = model.treeReader.find("barrier")!!
       assertEquals("Barrier", barrierHandler.getTitle(barrier))
     }
 
     for (direction in VERTICAL_BARRIER_DIRECTIONS) {
       val model = createNlModelWithBarrier(direction)
-      val barrier = model.find("barrier")!!
+      val barrier = model.treeReader.find("barrier")!!
       assertEquals("Vertical Barrier", barrierHandler.getTitle(barrier))
     }
 
     for (direction in HORIZONTAL_BARRIER_DIRECTION) {
       val model = createNlModelWithBarrier(direction)
-      val barrier = model.find("barrier")!!
+      val barrier = model.treeReader.find("barrier")!!
       assertEquals("Horizontal Barrier", barrierHandler.getTitle(barrier))
     }
   }

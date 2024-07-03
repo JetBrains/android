@@ -116,7 +116,7 @@ public class ExceptionTestUtils {
       Matcher outerMatcher = outerPattern.matcher(line);
       if (!outerMatcher.matches()) {
         throw new RuntimeException(
-          "Line " + line + " does not match expected stactrace pattern");
+          "Line " + line + " does not match expected stacktrace pattern");
       } else {
         String clz = outerMatcher.group(1);
         String method = outerMatcher.group(2);

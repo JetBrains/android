@@ -22,6 +22,7 @@ import com.android.tools.adtui.TabularLayout.SizingRule
 import com.android.tools.adtui.TabularLayout.SizingRule.Type.FIXED
 import com.android.tools.adtui.TabularLayout.SizingRule.Type.PROPORTIONAL
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
@@ -204,7 +205,7 @@ internal class OverviewTabContent : TabContent() {
       if (requestSize > 0) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Request size"), TabularLayout.Constraint(row, 0))
-        val contentLengthLabel = JLabel(StringUtil.formatFileSize(requestSize.toLong()))
+        val contentLengthLabel = JLabel(NumberFormatter.formatFileSize(requestSize.toLong()))
         contentLengthLabel.name = ID_REQUEST_SIZE
         myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
       }
@@ -222,7 +223,7 @@ internal class OverviewTabContent : TabContent() {
       if (responseSize > 0) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Response size"), TabularLayout.Constraint(row, 0))
-        val contentLengthLabel = JLabel(StringUtil.formatFileSize(responseSize.toLong()))
+        val contentLengthLabel = JLabel(NumberFormatter.formatFileSize(responseSize.toLong()))
         contentLengthLabel.name = ID_RESPONSE_SIZE
         myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
       }

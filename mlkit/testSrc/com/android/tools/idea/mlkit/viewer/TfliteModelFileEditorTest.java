@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit.viewer;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.annotations.NonNull;
+import com.android.testutils.AsyncTestUtils;
 import com.android.test.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
@@ -32,9 +33,11 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.WaitFor;
+import java.awt.Component;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -79,11 +82,13 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     usageTracker.close();
   }
 
-  public void testCreateHtmlBody_imageClassificationModel() {
+  public void testCreateHtmlBody_imageClassificationModel() throws Exception {
     VirtualFile modelFile = setupProject("mobilenet_quant_metadata.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
+    waitForSampleCode(contentPanel);
+
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Tensors");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(2), "Sample Code");
@@ -123,11 +128,13 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "}\n");
   }
 
-  public void testCreateHtmlBody_objectDetectionModel() {
+  public void testCreateHtmlBody_objectDetectionModel() throws Exception {
     VirtualFile modelFile = setupProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
+    waitForSampleCode(contentPanel);
+
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Tensors");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(2), "Sample Code");
@@ -177,10 +184,12 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
                  "}\n");
   }
 
-  public void testCreateHtmlBody_modelWithoutMetadata() {
+  public void testCreateHtmlBody_modelWithoutMetadata() throws Exception {
     VirtualFile modelFile = setupProject("mobilenet_quant_no_metadata.tflite", "ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
+    waitForSampleCode(contentPanel);
+
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Sample Code");
@@ -200,5 +209,20 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
   private static void verifySectionPanelContainsLabel(@NonNull JPanel sectionPanel, @NonNull String labelText) {
     assertThat(((JBLabel)sectionPanel.getComponent(0)).getText()).isEqualTo(labelText);
+  }
+
+  private static void waitForSampleCode(JPanel contentPanel) throws TimeoutException {
+    AsyncTestUtils.waitForCondition(10, TimeUnit.SECONDS, () -> {
+      for (Component component : contentPanel.getComponents()) {
+        if (component instanceof JPanel panel && panel.getComponentCount() > 0) {
+          Component firstPanelChild = panel.getComponent(0);
+          if (firstPanelChild instanceof JBLabel label && label.getText().equals("Sample Code")) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
   }
 }

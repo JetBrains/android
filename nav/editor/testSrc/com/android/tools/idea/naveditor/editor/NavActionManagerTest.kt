@@ -104,8 +104,8 @@ class NavActionManagerTest : NavTestCase() {
                  "    NlComponent{tag=<navigation>, instance=2}\n" +
                  "        NlComponent{tag=<fragment>, instance=3}\n" +
                  "    NlComponent{tag=<activity>, instance=4}",
-                 NlTreeDumper().toTree(model.components))
-    val newChild = model.find("myId")!!
+                 NlTreeDumper().toTree(model.treeReader.components))
+    val newChild = model.treeReader.find("myId")!!
     assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
                  newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
     assertEquals("mytest.navtest.MainActivity", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
@@ -123,7 +123,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    whenever(surface.currentNavigation).thenReturn(model.find("subflow"))
+    whenever(surface.currentNavigation).thenReturn(model.treeReader.find("subflow"))
 
     val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
     WriteCommandAction.runWriteCommandAction(project) {
@@ -133,7 +133,7 @@ class NavActionManagerTest : NavTestCase() {
                  "    NlComponent{tag=<navigation>, instance=1}\n" +
                  "        NlComponent{tag=<fragment>, instance=2}\n" +
                  "        NlComponent{tag=<activity>, instance=3}\n" +
-                 "    NlComponent{tag=<fragment>, instance=4}", NlTreeDumper().toTree(model.components))
+                 "    NlComponent{tag=<fragment>, instance=4}", NlTreeDumper().toTree(model.treeReader.components))
   }
 
   fun testFragmentContextMenu() {
@@ -147,7 +147,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     PlatformTestUtil.waitForFuture(surface.setModel(model))
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     val actionManager = NavActionManager(surface)
     surface.selectionModel.setSelection(listOf(fragment1))
     var menuGroup = actionManager.getPopupMenuActions(fragment1)
@@ -185,14 +185,14 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(nestedGraphItems[1], Separator::class.java, null, true)
     validateItem(nestedGraphItems[2], AddToExistingGraphAction::class.java, "subflow", true)
 
-    val fragment2 = model.find("fragment2")!!
+    val fragment2 = model.treeReader.find("fragment2")!!
     surface.selectionModel.setSelection(listOf(fragment2))
     menuGroup = actionManager.getPopupMenuActions(fragment2)
     items = menuGroup.getChildren(null)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", false)
 
-    val fragment3 = model.find("fragment3")!!
+    val fragment3 = model.treeReader.find("fragment3")!!
     menuGroup = actionManager.getPopupMenuActions(fragment3)
     surface.selectionModel.setSelection(listOf(fragment3))
     items = menuGroup.getChildren(null)
@@ -208,7 +208,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     PlatformTestUtil.waitForFuture(surface.setModel(model))
-    val activity = model.find("activity")!!
+    val activity = model.treeReader.find("activity")!!
     // Select the activity to enable Cut and Copy
     surface.selectionModel.setSelection(listOf(activity))
     val actionManager = NavActionManager(surface)
@@ -247,7 +247,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     PlatformTestUtil.waitForFuture(surface.setModel(model))
-    val subflow = model.find("subflow")!!
+    val subflow = model.treeReader.find("subflow")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(subflow)
     surface.selectionModel.setSelection(listOf(subflow))
@@ -292,7 +292,7 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     PlatformTestUtil.waitForFuture(surface.setModel(model))
-    val nav = model.find("nav")!!
+    val nav = model.treeReader.find("nav")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(nav)
     surface.selectionModel.setSelection(listOf(nav))
@@ -331,7 +331,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
-    val subnav = model.find("subnav")!!
+    val subnav = model.treeReader.find("subnav")!!
     surface.currentNavigation = subnav
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(subnav)
@@ -361,8 +361,8 @@ class NavActionManagerTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
-    val fragment1 = model.find("fragment1")!!
-    surface.selectionModel.setSelection(listOf(fragment1, model.find("fragment2")!!))
+    val fragment1 = model.treeReader.find("fragment1")!!
+    surface.selectionModel.setSelection(listOf(fragment1, model.treeReader.find("fragment2")!!))
     val menuGroup = actionManager.getPopupMenuActions(fragment1)
     val items = menuGroup.getChildren(null)
 
@@ -391,7 +391,7 @@ class NavActionManagerTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
     val menuGroup = actionManager.getPopupMenuActions(action1)
     surface.selectionModel.setSelection(listOf(action1))
     val items = menuGroup.getChildren(null)

@@ -15,32 +15,25 @@
  */
 package com.android.tools.idea.actions;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 
-public class MeetAndroidStudioHelpAction extends AnAction {
-
-  public MeetAndroidStudioHelpAction() {
-    super(ApplicationNamesInfo.getInstance().getFullProductName()+" Help", "Help", AllIcons.Actions.Help);
-  }
-
-  @NotNull
+public class MeetAndroidStudioHelpAction extends AnAction implements DumbAware {
   @Override
-  public ActionUpdateThread getActionUpdateThread() {
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     if (e.getPlace().equals(ActionPlaces.MAIN_MENU)) {
-      // Remove the toolbar icon from the menu to keep all the menu items left aligned:
+      // Remove the toolbar icon from the menu to keep all the menu items left aligned.
       Presentation presentation = e.getPresentation();
       presentation.setIcon(null);
     }

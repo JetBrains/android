@@ -60,7 +60,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
 
   private fun createRenderer(
     module: Module,
-    contextFile: VirtualFile?
+    targetFile: VirtualFile,
   ): CompletableFuture<DrawableRenderer> {
     val facet =
       AndroidFacet.getInstance(module)
@@ -69,15 +69,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
         }
 
     return CompletableFuture.supplyAsync(
-      Supplier {
-        return@Supplier if (contextFile == null) {
-          DrawableRenderer(facet)
-        } else {
-          val configuration =
-            ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(contextFile)
-          DrawableRenderer(facet, configuration)
-        }
-      },
+      Supplier { return@Supplier DrawableRenderer(facet, targetFile) },
       AppExecutorUtil.getAppExecutorService()
     )
   }
@@ -124,7 +116,9 @@ class DrawableAssetRenderer : DesignAssetRenderer {
         }
       }
 
-      val renderer = createRenderer(module, context as? VirtualFile)
+      val contextFile = context as? VirtualFile
+      val targetFile = contextFile ?: file  // A file representing a target that includes required resources.
+      val renderer = createRenderer(module, targetFile)
 
       val xmlContent = String(file.contentsToByteArray())
 

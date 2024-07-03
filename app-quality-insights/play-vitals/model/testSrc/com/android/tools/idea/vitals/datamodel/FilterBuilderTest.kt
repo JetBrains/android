@@ -31,8 +31,8 @@ import org.junit.Test
 
 private val VERSION90 = Version(buildVersion = "90")
 private val VERSION120 = Version(buildVersion = "120")
-private val PIXEL_4A = Device(manufacturer = "Google", model = "Google/Pixel 4a")
-private val PIXEL_4 = Device(manufacturer = "Google", model = "Google/Pixel 4")
+private val PIXEL_4A = Device(manufacturer = "Google", model = "Pixel 4a")
+private val PIXEL_4 = Device(manufacturer = "Google", model = "Pixel 4")
 private val ANDROID_12 = OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)")
 private val ANDROID_14 = OperatingSystemInfo(displayVersion = "14", displayName = "Android (14)")
 

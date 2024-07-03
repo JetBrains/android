@@ -108,28 +108,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
     myProject = project;
   }
 
-  @Nullable
-  @Override
-  public Version getHighestKnownVersion(@NonNull Dependency dependency, @Nullable Predicate<Version> filter) {
-    AndroidSdkHandler sdkHandler = getSdk();
-    if (sdkHandler == null) {
-      return null;
-    }
-    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    com.android.ide.common.gradle.Module module = dependency.getModule();
-    if (module == null) return null;
-    RemotePackage sdkPackage =
-      SdkMavenRepository.findLatestRemoteVersion(module, dependency.getExplicitlyIncludesPreview(), sdkHandler, filter, logger);
-    if (sdkPackage != null) {
-      Component found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.getPath());
-      if (found != null) {
-        return found.getVersion();
-      }
-    }
-
-    return null;
-  }
-
   @Override
   @NotNull
   public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {

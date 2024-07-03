@@ -23,9 +23,7 @@ import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.TestActionEvent
-import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
@@ -64,22 +62,22 @@ class NestedGraphToolbarActionTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       action.actionPerformed(event)
 
-      val navigation1 = model.find("navigation1")!!
-      val root = model.components[0]
+      val navigation1 = model.treeReader.find("navigation1")!!
+      val root = model.treeReader.components[0]
 
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
       assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
       verifyNoMoreInteractions(tracker)
 
-      val fragment1 = model.find("fragment1")!!
-      val fragment2 = model.find("fragment2")!!
-      val fragment3 = model.find("fragment3")!!
-      val fragment4 = model.find("fragment4")!!
+      val fragment1 = model.treeReader.find("fragment1")!!
+      val fragment2 = model.treeReader.find("fragment2")!!
+      val fragment3 = model.treeReader.find("fragment3")!!
+      val fragment4 = model.treeReader.find("fragment4")!!
       surface.selectionModel.setSelection(listOf(fragment2, fragment3))
       action.actionPerformed(event)
 
-      val newNavigation = model.find("navigation")!!
+      val newNavigation = model.treeReader.find("navigation")!!
 
       assertSameElements(newNavigation.children.map { it.id }, "fragment2", "fragment3")
       assertSameElements(root.children.map { it.id }, "fragment1", "navigation1", "navigation")
@@ -87,15 +85,15 @@ class NestedGraphToolbarActionTest : NavTestCase() {
 
       assertEquals(newNavigation.startDestinationId, "fragment2")
 
-      val action1 = model.find("action1")!!
+      val action1 = model.treeReader.find("action1")!!
       assertEquals(action1.parent, fragment1)
       assertEquals(action1.actionDestinationId, "navigation")
 
-      val action2 = model.find("action2")!!
+      val action2 = model.treeReader.find("action2")!!
       assertEquals(action2.parent, fragment2)
       assertEquals(action2.actionDestinationId, "fragment3")
 
-      val action3 = model.find("action3")!!
+      val action3 = model.treeReader.find("action3")!!
       assertEquals(action3.parent, fragment4)
       assertEquals(action3.actionDestinationId, "navigation")
 

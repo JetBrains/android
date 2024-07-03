@@ -98,10 +98,10 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
           .setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance())
           .build()
       }
-      Command.SpecializedCase.DISABLE_BITMAP_SCREENSHOT_COMMAND -> {
+      Command.SpecializedCase.ENABLE_BITMAP_SCREENSHOT_COMMAND -> {
         Response.newBuilder()
-          .setDisableBitmapScreenshotResponse(
-            LayoutInspectorViewProtocol.DisableBitmapScreenshotResponse.getDefaultInstance()
+          .setEnableBitmapScreenshotResponse(
+            LayoutInspectorViewProtocol.EnableBitmapScreenshotResponse.getDefaultInstance()
           )
           .build()
       }

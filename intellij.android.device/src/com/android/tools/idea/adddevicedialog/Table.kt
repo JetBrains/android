@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +23,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
@@ -33,7 +39,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +50,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
+import org.jetbrains.jewel.foundation.Stroke
+import org.jetbrains.jewel.foundation.modifier.border
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
@@ -49,13 +60,14 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.util.thenIf
 
-internal data class TableColumn<T>(
+data class TableColumn<T>(
   val name: String,
   val width: TableColumnWidth,
   val comparator: Comparator<T>? = null,
   val rowContent: @Composable (T) -> Unit,
 )
 
+@Suppress("ModifierFactoryExtensionFunction")
 sealed interface TableColumnWidth {
   fun RowScope.widthModifier(): Modifier
 
@@ -68,18 +80,19 @@ sealed interface TableColumnWidth {
   }
 }
 
-internal fun <T> TableTextColumn(
+fun <T> TableTextColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
+  attribute: (T) -> String,
+  comparator: Comparator<T>? = compareBy(attribute),
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
-  attribute: (T) -> String,
 ) =
-  TableColumn<T>(name, width, compareBy(attribute)) {
+  TableColumn(name, width, comparator) {
     Text(attribute(it), overflow = overflow, maxLines = maxLines)
   }
 
-internal enum class SortOrder {
+enum class SortOrder {
   ASCENDING,
   DESCENDING;
 
@@ -92,7 +105,7 @@ internal enum class SortOrder {
 }
 
 @Composable
-internal fun SortOrder.icon() =
+internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
@@ -101,12 +114,12 @@ internal fun SortOrder.icon() =
   }
 
 @Stable
-internal class TableSelectionState<T> {
-  var selection: T? by mutableStateOf(null)
+class TableSelectionState<T>(selectedValue: T? = null) {
+  var selection by mutableStateOf(selectedValue)
 }
 
 @Stable
-internal class TableSortState<T> {
+class TableSortState<T> {
   var sortColumn: TableColumn<T>? by mutableStateOf(null)
   var sortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
 
@@ -129,14 +142,21 @@ internal fun <T> TableHeader(
 ) {
   Row(
     Modifier.fillMaxWidth().padding(ROW_PADDING),
-    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
+    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING / 2),
   ) {
     columns.forEach {
       val widthModifier = with(it.width) { widthModifier() }
-      Row(widthModifier.clickable { onClick(it) }) {
+      var isFocused by remember { mutableStateOf(false) }
+      Row(
+        widthModifier
+          .thenIf(isFocused) { focusBorder() }
+          .padding(CELL_SPACING / 2)
+          .onFocusChanged { isFocused = it.isFocused }
+          .thenIf(it.comparator != null) { clickable { onClick(it) } }
+      ) {
         Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
-          sortOrder.icon()
+          sortOrder.Icon()
         }
       }
     }
@@ -150,15 +170,20 @@ internal fun <T> TableRow(
   onClick: (T) -> Unit = {},
   columns: List<TableColumn<T>>,
 ) {
+  var isFocused by remember { mutableStateOf(false) }
   Row(
-    Modifier.fillMaxWidth()
-      .clickable { onClick(value) }
-      .thenIf(selected) {
+    Modifier.thenIf(selected) {
         background(
           retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
         )
       }
-      .padding(ROW_PADDING),
+      // Divide the padding before and after the border
+      .padding(ROW_PADDING / 2)
+      .thenIf(isFocused) { focusBorder() }
+      .padding(ROW_PADDING / 2)
+      .onFocusChanged { isFocused = it.isFocused }
+      .selectable(selected, onClick = { onClick(value) })
+      .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
     val contentColor =
@@ -171,7 +196,7 @@ internal fun <T> TableRow(
 }
 
 @Composable
-internal fun <T> Table(
+fun <T> Table(
   columns: List<TableColumn<T>>,
   rows: List<T>,
   rowId: (T) -> Any,
@@ -179,7 +204,7 @@ internal fun <T> Table(
   tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
   tableSortState: TableSortState<T> = remember { TableSortState<T>() },
 ) {
-  Column(modifier) {
+  Column(modifier.padding(ROW_PADDING)) {
     TableHeader(
       tableSortState.sortColumn,
       tableSortState.sortOrder,
@@ -194,20 +219,36 @@ internal fun <T> Table(
       columns,
     )
     Divider(Orientation.Horizontal)
-    LazyColumn {
-      val sortedRows = tableSortState.comparator?.let { rows.sortedWith(it) } ?: rows
+    Box {
+      val lazyListState = rememberLazyListState()
+      LazyColumn(state = lazyListState) {
+        val sortedRows = tableSortState.comparator?.let { rows.sortedWith(it) } ?: rows
 
-      items(sortedRows.size, { index -> rowId(sortedRows[index]) }) { index ->
-        TableRow(
-          sortedRows[index],
-          selected = sortedRows[index] == tableSelectionState.selection,
-          onClick = { row -> tableSelectionState.selection = row },
-          columns,
-        )
+        items(sortedRows.size, { index -> rowId(sortedRows[index]) }) { index ->
+          TableRow(
+            sortedRows[index],
+            selected = sortedRows[index] == tableSelectionState.selection,
+            onClick = { row -> tableSelectionState.selection = row },
+            columns,
+          )
+        }
       }
+      VerticalScrollbar(
+        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+        adapter = rememberScrollbarAdapter(lazyListState),
+      )
     }
   }
 }
+
+@Composable
+private fun Modifier.focusBorder() =
+  border(
+    Stroke.Alignment.Center,
+    shape = RoundedCornerShape(4.dp),
+    color = JewelTheme.globalColors.outlines.focused,
+    width = JewelTheme.globalMetrics.outlineWidth,
+  )
 
 private val CELL_SPACING = 4.dp
 private val ROW_PADDING = 4.dp

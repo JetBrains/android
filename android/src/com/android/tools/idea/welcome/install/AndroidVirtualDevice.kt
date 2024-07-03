@@ -28,6 +28,7 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.HardwareProperties
+import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
@@ -85,7 +86,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
-    val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
+    val sdCard = InternalSdCard(EmulatedProperties.DEFAULT_INTERNAL_STORAGE.size)
     val hardwareSkinPath = d.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }
       ?.let { defaultHardwareSkin ->
         DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
@@ -101,7 +102,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
     return avdManager.createOrUpdateAvd(
-      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
+      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, sdCard,
       hardwareSkinPath, settings, null, true
     )
   }

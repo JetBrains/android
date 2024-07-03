@@ -17,18 +17,19 @@ package com.android.tools.idea.util.fsm
 
 import com.android.tools.idea.util.fsm.StateMachine.Config
 import com.android.tools.idea.util.fsm.StateMachine.SelfTransitionBehavior
-import com.android.utils.time.TestTimeSource
-import com.android.utils.time.TimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TestTimeSource
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+import org.apache.log4j.Level
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class StateMachineTest {
@@ -53,11 +54,12 @@ class StateMachineTest {
     assertThat(defaultConfig).isEqualTo(Config())
 
     val logger = Logger.getInstance("Testing")
-    val timeSource = object : TimeSource {
-      override fun markNow(): TimeMark {
-        throw NotImplementedError("Should never be called")
+    val timeSource =
+      object : TimeSource {
+        override fun markNow(): TimeMark {
+          throw NotImplementedError("Should never be called")
+        }
       }
-    }
 
     val config =
       Config.Builder()
@@ -78,10 +80,9 @@ class StateMachineTest {
   @Test
   fun logging_usesProvidedLogger() {
     val stateMachine =
-      StateMachine.stateMachine(
-        MyGreatFsmState.INITIAL,
-        Config(logger = fakeLogger)
-      ) { MyGreatFsmState.INITIAL.transitionsTo(MyGreatFsmState.AWESOME) }
+      StateMachine.stateMachine(MyGreatFsmState.INITIAL, Config(logger = fakeLogger)) {
+        MyGreatFsmState.INITIAL.transitionsTo(MyGreatFsmState.AWESOME)
+      }
 
     stateMachine.state = MyGreatFsmState.AWESOME
 
@@ -94,33 +95,32 @@ class StateMachineTest {
       StateMachine.stateMachine(
         MyGreatFsmState.INITIAL,
         Config(logger = fakeLogger),
-        StateMachine.IllegalTransitionHandler.warn()
+        StateMachine.IllegalTransitionHandler.warn(),
       ) {}
 
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.warnLogs)
+      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
   fun illegalTransition_throws() {
     val stateMachine = StateMachine.Builder(MyGreatFsmState.INITIAL).build()
-    assertFailsWith<IllegalArgumentException> {
-      stateMachine.state = MyGreatFsmState.AWESOME
-    }
+    assertFailsWith<IllegalArgumentException> { stateMachine.state = MyGreatFsmState.AWESOME }
   }
 
   @Test
   fun illegalTransition_allowed() {
     val stateMachine =
-      StateMachine.Builder(MyGreatFsmState.INITIAL,
-                           Config(logger = fakeLogger))
+      StateMachine.Builder(MyGreatFsmState.INITIAL, Config(logger = fakeLogger))
         .setIllegalTransitionHandler(StateMachine.IllegalTransitionHandler.allow())
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.AWESOME)
 
-    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME! Allowing anyway.")
+    assertThat(fakeLogger.warnLogs)
+      .containsExactly("Illegal state transition from INITIAL to AWESOME! Allowing anyway.")
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.")
   }
 
@@ -142,7 +142,8 @@ class StateMachineTest {
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.warnLogs)
+      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
@@ -153,7 +154,8 @@ class StateMachineTest {
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.debugLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.debugLogs)
+      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
@@ -174,7 +176,7 @@ class StateMachineTest {
     assertThat(illegalTransitions)
       .containsExactly(
         MyGreatFsmState.INITIAL to MyGreatFsmState.AWESOME,
-        MyGreatFsmState.AWESOME to MyGreatFsmState.AWESOMER
+        MyGreatFsmState.AWESOME to MyGreatFsmState.AWESOMER,
       )
       .inOrder()
   }
@@ -192,8 +194,11 @@ class StateMachineTest {
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.")
     stateMachine.state = MyGreatFsmState.AWESOMER
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.AWESOMER)
-    assertThat(fakeLogger.debugLogs).containsExactly(
-      "Transition from INITIAL to AWESOME.", "Transition from AWESOME to AWESOMER.")
+    assertThat(fakeLogger.debugLogs)
+      .containsExactly(
+        "Transition from INITIAL to AWESOME.",
+        "Transition from AWESOME to AWESOMER.",
+      )
   }
 
   @Test
@@ -241,7 +246,7 @@ class StateMachineTest {
         .addTransitionCallback(
           MyGreatFsmState.INITIAL,
           MyGreatFsmState.AWESOME,
-          Runnable { calls++ }
+          Runnable { calls++ },
         )
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
@@ -304,12 +309,12 @@ class StateMachineTest {
         .addTransitionCallback(
           MyGreatFsmState.INITIAL,
           MyGreatFsmState.AWESOME,
-          Runnable { calls += "third" }
+          Runnable { calls += "third" },
         )
         .addTransitionCallback(
           MyGreatFsmState.INITIAL,
           MyGreatFsmState.AWESOME,
-          Runnable { calls += "fourth" }
+          Runnable { calls += "fourth" },
         )
         .addTransitionExitCallback(MyGreatFsmState.INITIAL, Runnable { calls += "first" })
         .addTransitionExitCallback(MyGreatFsmState.INITIAL, Runnable { calls += "second" })
@@ -359,9 +364,9 @@ class StateMachineTest {
   fun selfTransition_noop() {
     val stateMachine =
       StateMachine.Builder(
-        MyGreatFsmState.INITIAL,
-        Config(selfTransitionBehavior = SelfTransitionBehavior.NOOP, logger = fakeLogger)
-      )
+          MyGreatFsmState.INITIAL,
+          Config(selfTransitionBehavior = SelfTransitionBehavior.NOOP, logger = fakeLogger),
+        )
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "fifth" }
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "sixth" }
         .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
@@ -404,17 +409,13 @@ class StateMachineTest {
   @Test
   fun selfTransition_normal_illegal() {
     val stateMachine = StateMachine.Builder(MyGreatFsmState.INITIAL).build()
-    assertFailsWith<IllegalArgumentException> {
-      stateMachine.state = MyGreatFsmState.INITIAL
-    }
+    assertFailsWith<IllegalArgumentException> { stateMachine.state = MyGreatFsmState.INITIAL }
   }
 
   @Test
   fun assertState() {
     val stateMachine = StateMachine.Builder(MyGreatFsmState.INITIAL).build()
-    assertFailsWith<IllegalStateException> {
-      stateMachine.assertState(MyGreatFsmState.AWESOME)
-    }
+    assertFailsWith<IllegalStateException> { stateMachine.assertState(MyGreatFsmState.AWESOME) }
   }
 
   @Test
@@ -503,7 +504,7 @@ class StateMachineTest {
         "initialToAwesome",
         "enterAwesome",
         "exitAwesome",
-        "awesomeToSomethingElse"
+        "awesomeToSomethingElse",
       )
       .inOrder()
   }

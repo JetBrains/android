@@ -26,11 +26,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
 public class DeclarativeQualifiedImpl extends DeclarativePropertyImpl implements DeclarativeQualified {
 
-  public DeclarativeQualifiedImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeQualifiedImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   @Override
@@ -47,13 +48,13 @@ public class DeclarativeQualifiedImpl extends DeclarativePropertyImpl implements
   @Override
   @Nullable
   public DeclarativeIdentifier getIdentifier() {
-    return findChildByClass(DeclarativeIdentifier.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
   @Override
   @NotNull
   public DeclarativeProperty getProperty() {
-    return findNotNullChildByClass(DeclarativeProperty.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeProperty.class);
   }
 
 }

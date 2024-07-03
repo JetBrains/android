@@ -38,6 +38,7 @@ import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -177,7 +178,7 @@ public class ThemeResolver {
 
     List<AndroidFacet> allAndroidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
-      fillModuleResources(facet.getModule(), configModule.getResourceRepositoryManager().getModuleResources(), result);
+      fillModuleResources(facet.getModule(), StudioResourceRepositoryManager.getModuleResources(facet), result);
     }
 
     return result;

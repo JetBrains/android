@@ -225,6 +225,45 @@ class VariablesTableTest {
   }
 
   @Test
+  fun testMultiVersionCatalogNodeDisplay() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_MULTI_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
+      val tableModel = variablesTable.tableModel
+
+      val rootNode = tableModel.root as DefaultMutableTreeNode
+      assertThat(rootNode.childCount, equalTo(5))
+
+      val buildScriptNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(buildScriptNode, 0) as String, equalTo("project (build script)"))
+      assertThat(tableModel.getValueAt(buildScriptNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(buildScriptNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(buildScriptNode.path)), equalTo(true))
+
+      val versionCatalogNode = rootNode.getChildAt(1) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(versionCatalogNode, 0) as String,
+                 equalTo("Default version catalog: libs (libs.versions.toml)"))
+      assertThat(tableModel.getValueAt(versionCatalogNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(versionCatalogNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(versionCatalogNode.path)), equalTo(false))
+
+      val secondVersionCatalogNode = rootNode.getChildAt(2) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(secondVersionCatalogNode, 0) as String,
+                 equalTo("Version catalog: libsTest (libsTest.versions.toml)"))
+      assertThat(tableModel.getValueAt(secondVersionCatalogNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(secondVersionCatalogNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(secondVersionCatalogNode.path)), equalTo(false))
+
+      val projectNode = rootNode.getChildAt(3) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("project (project)"))
+      assertThat(tableModel.getValueAt(projectNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(projectNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(projectNode.path)), equalTo(false))
+    }
+  }
+
+  @Test
   fun testTreeStructure() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->

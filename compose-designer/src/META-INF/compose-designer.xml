@@ -34,7 +34,7 @@
                      key="inspection.no.parameters.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewNeedsComposableAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
@@ -42,7 +42,7 @@
                      key="inspection.no.composable.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewMustBeTopLevelFunction"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
@@ -50,7 +50,7 @@
                      key="inspection.top.level.function"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewDimensionRespectsLimit"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
@@ -146,7 +146,7 @@
                      key="inspection.preview.device.spec.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNotSupportedInUnitTestFiles"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewNotSupportedInUnitTestFiles"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
@@ -205,12 +205,6 @@
     <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop" />
     <action internal="true" id="FastRefresh.SimulateAutoDisable" class="com.android.tools.idea.compose.preview.actions.internal.SimulateFastPreviewAutoDisable" />
 
-    <action id="Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
-            class="com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActionForNotification"
-            use-shortcut-of="ForceRefresh" >
-      <add-to-group group-id="Android.Designer.CommonActions" />
-    </action>
-
     <action id="Android.Designer.ReRunUiCheckModeAction"
             icon="AllIcons.Actions.Refresh"
             class="com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction">
@@ -224,6 +218,8 @@
            icon="StudioIcons.Compose.Toolbar.RUN_CONFIGURATION">
       <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
               id="Android.Designer.GenerateComposePreviewAction"/>
+      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
+              id="Android.Designer.GenerateComposePreviewsForFileAction"/>
       <add-to-group anchor="before" group-id="EditorPopupMenu" relative-to-action="$SearchWeb"/>
     </group>
 

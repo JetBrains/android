@@ -147,6 +147,13 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
       dynamicFeatureItem.delete()
       module.isModified = true
     }
+    for (module in parent.modules) {
+      module.dependencies.let { dependencies ->
+        dependencies.findModuleDependencies(key.gradlePath).forEach {
+          module.removeDependency(it)
+        }
+      }
+    }
     parent.parsedModel.projectSettingsModel?.removeModulePath(key.gradlePath)
   }
 

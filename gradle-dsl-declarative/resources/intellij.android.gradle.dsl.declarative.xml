@@ -7,29 +7,42 @@
               extensions="dcl"/>
     <lang.parserDefinition language="Declarative"
                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition"/>
+    <lang.ast.factory language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.psi.DeclarativeASTFactory"/>
     <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeHighlighter"/>
     <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeQuoteHandler"/>
-    <lang.braceMatcher language="Declarative"
-                       implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>
+    <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>
+    <todoIndexer filetype="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeTodoIndexer"/>
+    <indexPatternBuilder implementation="com.android.tools.idea.gradle.declarative.DeclarativeTodoIndexPatternBuilder"/>
+
     <lang.formatter
         language="Declarative"
         implementationClass="com.android.tools.idea.gradle.declarative.formatting.DeclarativeFormattingModelBuilder"/>
     <langCodeStyleSettingsProvider
         implementation="com.android.tools.idea.gradle.declarative.formatting.settings.DeclarativeLanguageCodeStyleSettingsProvider"/>
     <completion.contributor language="Declarative"
-                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCompletionContributor"/>
+                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCompletionContributor" />
     <completion.confidence language="Declarative"
                            id="EnableAutoPopupInDeclarativeCompletion"
-                           implementationClass="com.android.tools.idea.gradle.declarative.EnableAutoPopupInDeclarativeCompletion"/>
+                           implementationClass="com.android.tools.idea.gradle.declarative.EnableAutoPopupInDeclarativeCompletion" />
     <annotator language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeAnnotator"/>
 
-    <psi.referenceContributor language="Declarative"
-                              implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
+    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
+    <lang.commenter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCommenter"/>
+    <lang.foldingBuilder language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeFoldingBuilder"/>
+    <colorSettingsPage implementation="com.android.tools.idea.gradle.declarative.color.DeclarativeColorSettingsPage"/>
+
+    <localInspection language="Declarative"
+                     bundle="messages.DeclarativeBundle"
+                     groupKey="inspection.group.declarative"
+                     key="inspection.declarative.unresolved.reference.display.name"
+                     enabledByDefault="true" level="WARNING"
+                     implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeUnresolvedReferenceInspection"/>
+
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.uast">
     <uastLanguagePlugin implementation="com.android.tools.idea.gradle.declarative.DeclarativeUastLanguagePlugin"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-    <transformerFactory implementation="com.android.tools.idea.gradle.declarative.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
   </extensions>
 </idea-plugin>

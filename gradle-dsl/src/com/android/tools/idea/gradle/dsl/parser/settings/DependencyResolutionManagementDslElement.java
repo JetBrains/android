@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -22,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -29,12 +33,24 @@ import org.jetbrains.annotations.NotNull;
 
 public class DependencyResolutionManagementDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DependencyResolutionManagementDslElement> DEPENDENCY_RESOLUTION_MANAGEMENT =
-    new PropertiesElementDescription<>("dependencyResolutionManagement", DependencyResolutionManagementDslElement.class, DependencyResolutionManagementDslElement::new);
+    new PropertiesElementDescription<>("dependencyResolutionManagement", DependencyResolutionManagementDslElement.class,
+                                       DependencyResolutionManagementDslElement::new);
+
+  public static final String DEFAULT_LIBRARIES_EXTENSION_NAME = "mDefaultLibrariesExtensionName";
 
   public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(new Object[][]{
     {"repositories", RepositoriesDslElement.REPOSITORIES},
     {"versionCatalogs", VersionCatalogsDslElement.VERSION_CATALOGS},
-  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+  }).collect(toImmutableMap(data -> (String)data[0], data -> (PropertiesElementDescription<?>)data[1]));
+
+  private static final ExternalToModelMap externalToModelMap = Stream.of(new Object[][]{
+    {"defaultLibrariesExtensionName", property, DEFAULT_LIBRARIES_EXTENSION_NAME, VAR},
+  }).collect(toModelMap());
+
+  @Override
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    return externalToModelMap;
+  }
 
   @Override
   public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(

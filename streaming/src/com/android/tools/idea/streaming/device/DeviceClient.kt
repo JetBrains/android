@@ -26,7 +26,6 @@ import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
@@ -37,7 +36,6 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
-import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
@@ -47,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.Strings.capitalize
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
@@ -115,9 +114,10 @@ private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
 internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
-internal const val AUTO_RESET_UI_SETTINGS = 0x04
-internal const val STREAM_AUDIO = 0x08
-internal const val AUDIO_STREAMING_SUPPORTED = 0x10
+internal const val STREAM_AUDIO = 0x04
+internal const val USE_UINPUT = 0x08
+internal const val AUTO_RESET_UI_SETTINGS = 0x10
+internal const val DEBUG_LAYOUT_UI_SETTINGS = 0x20
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -164,7 +164,7 @@ internal class DeviceClient(
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
     AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.establishAgentConnection startVideoStream=$startVideoStream" }
+
     streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
@@ -200,7 +200,7 @@ internal class DeviceClient(
   private suspend fun startAgentAndConnect(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
     AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect" }
+
     val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -209,21 +209,16 @@ internal class DeviceClient(
       }
     }
 
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect opening AsynchronousServerSocketChannel" }
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
     var channels: Channels? = null
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect creating SuspendingServerSocketChannel" }
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
-      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting reverse forwarding" }
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect waiting for agent to be pushed" }
         agentPushed.await()
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting agent" }
         startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
@@ -262,7 +257,6 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)" }
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -350,7 +344,6 @@ internal class DeviceClient(
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adbSession: AdbSession, project: Project) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent" }
     streamingSessionTracker.agentPushStarted()
 
     val soFile: Path
@@ -363,8 +356,8 @@ internal class DeviceClient(
         // Use the agent built by running "Build > Make Project" in Studio.
         val facet = project.modules.firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
-        soFile = projectDir.resolve(
-          "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        val prefix = "app/build/intermediates/stripped_native_libs/$buildVariant/strip${capitalize(buildVariant)}DebugSymbols/out/lib"
+        soFile = projectDir.resolve("$prefix/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
@@ -400,7 +393,6 @@ internal class DeviceClient(
       }
       adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
-      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent pushed" }
     }
     streamingSessionTracker.agentPushEnded()
   }
@@ -414,15 +406,15 @@ internal class DeviceClient(
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
       startVideoStream: Boolean) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgent" }
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
-                (if (isAudioStreamingSupported()) AUDIO_STREAMING_SUPPORTED else 0) or
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
-                (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0)
+                (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0) or
+                (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
+                (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
@@ -494,7 +486,7 @@ internal class DeviceClient(
   }
 
   private fun isAudioStreamingSupported(): Boolean =
-      StudioFlags.DEVICE_MIRRORING_AUDIO.get() && deviceConfig.featureLevel >= 31
+      deviceConfig.featureLevel >= 31
 
   private fun isAudioStreamingEnabled(): Boolean =
       isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())
@@ -569,8 +561,6 @@ internal class DeviceClient(
     when {
       throwable is CancellationException -> throw throwable
       isDeviceConnected() == false -> {
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.throwIfCancellationOrDeviceDisconnected" +
-                               " device disconnected, throwing CancellationException" }
         throw CancellationException()
       }
     }
@@ -681,15 +671,10 @@ internal class DeviceClient(
     }
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
-      B330395367Logger.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                             " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
-                           " deviceController=${deviceController.simpleId}" }
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
         if (videoDecoder?.enableDecodingForDisplay(displayId) == true) {
-          B330395367Logger.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                                 " sending ${StartVideoStreamMessage(displayId, maxOutputSize)}" }
           deviceController?.sendControlMessage(StartVideoStreamMessage(displayId, maxOutputSize))
         }
       }
@@ -700,15 +685,10 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
-      B330395367Logger.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
-                             " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
-                             " deviceController=${deviceController.simpleId}" }
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
         if (videoDecoder?.disableDecodingForDisplay(displayId) == true) {
-          B330395367Logger.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
-                                 " sending ${StopVideoStreamMessage(displayId)}" }
           deviceController?.sendControlMessage(StopVideoStreamMessage(displayId))
           if (displayId == PRIMARY_DISPLAY_ID) {
             streamingSessionTracker.streamingEnded()

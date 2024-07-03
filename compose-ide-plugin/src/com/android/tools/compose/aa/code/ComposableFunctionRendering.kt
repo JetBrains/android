@@ -45,12 +45,13 @@ internal fun KaSession.getComposableFunctionRenderParts(
     when {
       hasOptionalParams -> if (inParens.isEmpty()) "..." else ", ..."
       // Don't render empty parentheses if we're rendering a lambda afterward.
-      inParens.isEmpty() && hasTrailingLambda -> return ComposableFunctionRenderParts(null, tail)
+      inParens.isEmpty() && hasTrailingLambda ->
+        return ComposableFunctionRenderParts(allParameters.size, null, tail)
       else -> ""
     }
 
   val parameters = renderValueParameters(inParens, stringAfterValueParameters)
-  return ComposableFunctionRenderParts(parameters, tail)
+  return ComposableFunctionRenderParts(allParameters.size, parameters, tail)
 }
 
 @OptIn(KaExperimentalApi::class)

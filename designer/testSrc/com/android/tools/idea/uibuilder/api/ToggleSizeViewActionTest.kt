@@ -31,8 +31,8 @@ class ToggleSizeViewActionTest : SceneTest() {
   fun testNoExceptionWhenPerform() {
     val action = ToggleSizeViewAction("Toggle", ATTR_WIDTH, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
 
-    val root = myModel.find("root")!!
-    val text = myModel.find("myText")!!
+    val root = myModel.treeReader.find("root")!!
+    val text = myModel.treeReader.find("myText")!!
     val editor = ViewEditorImpl(myScreen.screen)
 
     try {

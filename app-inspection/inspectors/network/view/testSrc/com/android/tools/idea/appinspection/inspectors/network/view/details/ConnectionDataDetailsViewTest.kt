@@ -21,6 +21,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.ide.analytics.IdeNetworkInspectorTracker
@@ -304,7 +305,8 @@ class ConnectionDataDetailsViewTest {
     val data = DEFAULT_DATA.copy(responsePayload = ByteString.copyFromUtf8("Response payload"))
     detailsView.setConnectionData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()!!
-    assertThat(value.text).isEqualTo("${data.responsePayload.size()} B")
+    assertThat(value.text)
+      .isEqualTo(NumberFormatter.formatFileSize(data.responsePayload.size().toLong()))
   }
 
   @Test

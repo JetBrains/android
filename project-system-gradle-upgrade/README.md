@@ -279,7 +279,8 @@ Most of the Component Refactoring Processors make changes to build files, and
 most (all?) of them do so using the facilities of the gradle-dsl model.  This
 model provides a view of the build configuration, mostly independent of how that
 configuration is expressed, and allows changes to be made to build and
-configuration files whether they are expressed in Groovy, Kotlin or Toml.
+configuration files whether they are expressed in Groovy, Kotlin or Gradle
+Declarative Build Configuration Language.
 
 The changes to the build model made by the processors accumulate within the
 build model, with later queries to the model reflecting earlier changes, but are

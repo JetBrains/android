@@ -305,6 +305,22 @@
       ],
       "pluginArtifact": "de.mannodermaus.gradle.plugins:android-junit5",
       "configurationCachingCompatibleFrom": "1.8.2.1"
+    },
+    {
+      "name": "com.osacky.doctor",
+      "pluginClasses": [
+        "com.osacky.doctor.DoctorPlugin"
+      ],
+      "pluginArtifact": "com.osacky.doctor:doctor-plugin",
+      "configurationCachingCompatibleFrom": "0.6.0"
+    },
+    {
+      "name": "com.autonomousapps.dependency-analysis",
+      "pluginClasses": [
+        "com.autonomousapps.DependencyAnalysisPlugin"
+      ],
+      "pluginArtifact": "com.autonomousapps:dependency-analysis-gradle-plugin",
+      "configurationCachingCompatibleFrom": "1.28.0"
     }
   ],
   "pluginEntryTemplate": {

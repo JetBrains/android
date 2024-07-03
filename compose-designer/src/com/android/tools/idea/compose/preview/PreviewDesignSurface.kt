@@ -25,7 +25,9 @@ import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.GRID_EXPERIMENTAL_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
@@ -41,7 +43,10 @@ import com.intellij.openapi.project.Project
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_OPTIONS =
-  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
+  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION) +
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      listOf(LIST_EXPERIMENTAL_LAYOUT_OPTION, GRID_EXPERIMENTAL_LAYOUT_OPTION)
+    else emptyList()
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
@@ -62,11 +67,7 @@ private fun createPreviewDesignSurfaceBuilder(
   screenViewProvider: ScreenViewProvider,
   isInteractive: () -> Boolean,
 ): NlDesignSurface.Builder =
-  NlDesignSurface.builder(project, parentDisposable)
-    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
-    .setInteractionHandlerProvider { delegateInteractionHandler }
-    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setSceneManagerProvider { surface, model ->
+  NlDesignSurface.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
@@ -81,6 +82,9 @@ private fun createPreviewDesignSurfaceBuilder(
           it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         }
     }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
+    .setInteractionHandlerProvider { delegateInteractionHandler }
+    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(
       if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()

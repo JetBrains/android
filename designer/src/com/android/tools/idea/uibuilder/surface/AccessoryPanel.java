@@ -147,7 +147,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       return null;
     }
     NlModel mainModel = models.get(0);
-    List<NlComponent> roots = mainModel.getComponents();
+    List<NlComponent> roots = mainModel.getTreeReader().getComponents();
     if (roots.size() != 1) {
       return null;
     }

@@ -18,7 +18,11 @@
 package com.android.tools.analytics
 
 import com.android.AndroidProjectTypes
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.deviceProperties
+import com.android.adblib.serialNumber
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.PROP_BUILD_CHARACTERISTICS
 import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.idea.model.AndroidModel
@@ -116,4 +120,33 @@ fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
     .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
 }
 
+suspend fun connectedDeviceToDeviceInfo(device: ConnectedDevice): DeviceInfo {
+  val properties = device.deviceProperties().allReadonly()
+  val mdnsConnectionType = when {
+    isMdnsAutoConnectUnencrypted(
+      device.serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+
+    isMdnsAutoConnectTls(device.serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+    else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+  }
+
+  // TODO: Fix classification of `CLOUD_EMULATOR` and `CLOUD_PHYSICAL` device types
+  val deviceType = if (LOCAL_EMULATOR_REGEX.matches(device.serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR
+  else DeviceInfo.DeviceType.LOCAL_PHYSICAL
+
+  return DeviceInfo.newBuilder()
+    .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(device.serialNumber))
+    .setBuildTags(Strings.nullToEmpty(properties[IDevice.PROP_BUILD_TAGS]))
+    .setBuildType(Strings.nullToEmpty(properties[IDevice.PROP_BUILD_TYPE]))
+    .setBuildVersionRelease(Strings.nullToEmpty(properties[IDevice.PROP_BUILD_VERSION]))
+    .setBuildApiLevelFull(Strings.nullToEmpty(properties[IDevice.PROP_BUILD_API_LEVEL]))
+    .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(properties[IDevice.PROP_DEVICE_CPU_ABI]))
+    .setManufacturer(Strings.nullToEmpty(properties[IDevice.PROP_DEVICE_MANUFACTURER]))
+    .setDeviceType(deviceType)
+    .setMdnsConnectionType(mdnsConnectionType)
+    .addAllCharacteristics((properties[PROP_BUILD_CHARACTERISTICS] ?: "").split(","))
+    .setModel(Strings.nullToEmpty(properties[IDevice.PROP_DEVICE_MODEL])).build()
+}
+
+private val LOCAL_EMULATOR_REGEX = "emulator-(\\d+)".toRegex()
 private val LOG = logger<AndroidStudioEvent>()

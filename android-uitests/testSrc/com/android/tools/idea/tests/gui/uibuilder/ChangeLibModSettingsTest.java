@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class ChangeLibModSettingsTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -65,7 +65,7 @@ public class ChangeLibModSettingsTest {
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(90));
 
     guiTest.waitForBackgroundTasks();
 

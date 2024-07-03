@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
 import com.intellij.codeInsight.editorActions.TextBlockTransferable
-import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.ide.CopyPasteManager
@@ -33,7 +33,7 @@ internal class CopyMessageTextAction : DumbAwareAction(null as Icon?) {
     }
   }
 
-  override fun getActionUpdateThread() = BGT
+  override fun getActionUpdateThread() = EDT
 
   override fun actionPerformed(e: AnActionEvent) {
     val transferable =

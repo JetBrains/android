@@ -20,6 +20,7 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBus;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildState {
+  private static final Logger LOG = Logger.getInstance(GradleBuildState.class);
   @VisibleForTesting
   static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle build", GradleBuildListener.class);
 
@@ -70,21 +72,29 @@ public class GradleBuildState {
     myMessageBus = project.getMessageBus();
   }
 
-  public void buildStarted(@NotNull BuildContext context) {
+  public @NotNull BuildCompleter buildStarted(@NotNull BuildContext context) {
     synchronized (myLock) {
       myCurrentContext = context;
     }
     syncPublisher(listener -> listener.buildStarted(context));
+    return new BuildCompleter(context);
   }
 
-  public void buildFinished(@NotNull BuildStatus status) {
-    BuildContext context;
-    synchronized (myLock) {
-      context = myCurrentContext;
-      myCurrentContext = null;
-      mySummary = new BuildSummary(status, context);
+  public class BuildCompleter {
+    private final @NotNull BuildContext myContext;
+
+    public BuildCompleter(@NotNull BuildContext context) { myContext = context; }
+
+    public void buildFinished(@NotNull BuildStatus status) {
+      synchronized (myLock) {
+        if (myCurrentContext != myContext) {
+          LOG.error(new IllegalStateException("buildStarted and buildFinished contexts do not match"));
+        }
+        myCurrentContext = null;
+        mySummary = new BuildSummary(status, myContext);
+      }
+      syncPublisher(listener -> listener.buildFinished(status, myContext));
     }
-    syncPublisher(listener -> listener.buildFinished(status, context));
   }
 
   private void syncPublisher(@NotNull Consumer<GradleBuildListener> consumer) {

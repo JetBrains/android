@@ -15,34 +15,30 @@
  */
 package com.android.tools.adtui.workbench;
 
-import static com.android.tools.adtui.workbench.SideModel.EventType.LOCAL_UPDATE;
-import static com.android.tools.adtui.workbench.SideModel.EventType.SWAP;
-import static com.android.tools.adtui.workbench.SideModel.EventType.UPDATE;
-import static com.android.tools.adtui.workbench.SideModel.EventType.UPDATE_DETACHED_WINDOW;
-import static com.android.tools.adtui.workbench.SideModel.EventType.UPDATE_TOOL_ORDER;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
+import com.android.flags.junit.FlagRule;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import java.util.List;
-import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.List;
+import java.util.Properties;
+
+import static com.android.tools.adtui.workbench.SideModel.EventType.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
 public class SideModelTest {
@@ -71,6 +67,9 @@ public class SideModelTest {
   private Project myProject;
   @InjectMocks
   private SideModel<String> mySideModel;
+
+  @Rule
+  public TestRule myFlagRule = new FlagRule<>(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true);
 
   @Before
   public void setUp() {

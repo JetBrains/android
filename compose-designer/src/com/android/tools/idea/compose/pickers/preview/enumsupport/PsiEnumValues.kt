@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.compose.pickers.common.enumsupport.BaseClassEnumValue
 import com.android.tools.idea.compose.pickers.common.enumsupport.ClassConstantEnumValue
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 
@@ -183,7 +184,8 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 
   override val display: String = visibleName
 
-  override fun select(property: PropertyItem): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+    newEnumValue.newValue("${this.value}f")
     property.value = "${this.value}f"
     return true
   }

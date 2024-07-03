@@ -20,7 +20,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 
 class WearHealthServicesEventLogger(
-  private val logFunction: (AndroidStudioEvent.Builder) -> Unit = { event -> UsageTracker.log(event) }) {
+  private val logFunction: (AndroidStudioEvent.Builder) -> Unit = { event ->
+    UsageTracker.log(event)
+  }
+) {
 
   fun logApplyChangesSuccess() {
     logFunction(newEventOfKind(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS))
@@ -41,7 +44,5 @@ class WearHealthServicesEventLogger(
   private fun newEventOfKind(kind: WearHealthServicesEvent.EventKind): AndroidStudioEvent.Builder =
     AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-      .setWearHealthServicesEvent(
-        WearHealthServicesEvent.newBuilder().setKind(kind)
-      )
+      .setWearHealthServicesEvent(WearHealthServicesEvent.newBuilder().setKind(kind))
 }

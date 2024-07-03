@@ -19,12 +19,12 @@ import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -42,7 +42,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parent: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
@@ -50,7 +50,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     }
 
     val virtualFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
 
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
@@ -58,11 +58,11 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     for (mode in ColorBlindMode.values()) {
       val config = defaultConfig.clone()
       val model =
-        NlModel.builder(parent, facet, virtualFile, config)
-          .withModelTooltip(defaultConfig.toHtmlTooltip())
+        NlModel.Builder(parent, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.modelDisplayName = mode.displayName
+      model.setTooltip(defaultConfig.toHtmlTooltip())
+      model.setDisplayName(mode.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

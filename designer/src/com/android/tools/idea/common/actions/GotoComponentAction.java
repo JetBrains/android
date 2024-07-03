@@ -77,7 +77,7 @@ public class GotoComponentAction extends DumbAwareAction {
     } else if (!selectionModel.getSelection().isEmpty()) {
       componentToNavigate = selectionModel.getSelection().get(0);
     } else if (model != null) {
-      ImmutableList<NlComponent> components = model.getComponents();
+      ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
       if (!components.isEmpty()) {
         componentToNavigate = components.get(0);
       }

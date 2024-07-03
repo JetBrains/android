@@ -16,20 +16,32 @@
 package com.android.tools.idea.editors.strings.table;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.testFramework.DisposableRule;
+import com.intellij.testFramework.RuleChain;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import com.intellij.testFramework.ApplicationRule;
 import javax.swing.DefaultRowSorter;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
 public final class FrozenColumnTableTest {
+  private final DisposableRule myRule = new DisposableRule();
+
   @Rule
-  public final TestRule myRule = AndroidProjectRule.inMemory();
+  public RuleChain chain = new RuleChain(new ApplicationRule(), myRule);
+
+  private static final String NEXT_COLUMN_ACTION = "selectNextColumn";
+  private static final String PREVIOUS_COLUMN_ACTION = "selectPreviousColumn";
 
   @Test
   public void getRowHeight() {
@@ -50,7 +62,7 @@ public final class FrozenColumnTableTest {
   public void tableIsScrollableEvenWithoutLocales() {
     Object[][] data = new Object[][] {
       new Object[]{"east", "app/src/main/res", false, "east"},
-      new Object[]{"west", "app/src/main/res", false, "west"},
+      new Object[]{"east", "app/src/main/res", false, "east"},
       new Object[]{"north", "app/src/main/res", false, "north"}
     };
     Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value"};
@@ -63,6 +75,45 @@ public final class FrozenColumnTableTest {
     new FakeUi(pane, 1.0, true);
     pane.doLayout();
     assertThat(pane.getVerticalScrollBar().isVisible()).isTrue();
+  }
+
+  @Test
+  public void tablePreviousNextCanJumpTable() {
+    Object[][] data = new Object[][] {
+      new Object[]{"east", "app/src/main/res", false, "east", "est", "øst"},
+      new Object[]{"west", "app/src/main/res", false, "west", "ouest", "vest"},
+      new Object[]{"north", "app/src/main/res", false, "north", "nord", "nord"}
+    };
+    Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value", "French (fr)", "Danish (da)"};
+    DefaultTableModel model = new DefaultTableModel(data, columns);
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(model, 4);
+    JTable frozenTable = frozenColumnTable.getFrozenTable();
+    JTable scrollableTable = frozenColumnTable.getScrollableTable();
+    frozenTable.createDefaultColumnsFromModel();
+    scrollableTable.createDefaultColumnsFromModel();
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(frozenTable, BorderLayout.CENTER);
+    panel.add(frozenColumnTable.getScrollPane(), BorderLayout.WEST);
+    new FakeUi(panel, 1.0, true, myRule.getDisposable());
+    FakeKeyboardFocusManager focusManager = new FakeKeyboardFocusManager(myRule.getDisposable());
+    focusManager.setFocusOwner(frozenColumnTable.getFrozenTable());
+    JComponent focusOwner = (JComponent)focusManager.getFocusOwner();
+    assertThat(focusOwner).isNotNull();
+    frozenTable.changeSelection(1, 3, false, false);
+
+    // Move right jumps to scrollable table:
+    focusOwner.getActionMap().get(NEXT_COLUMN_ACTION).actionPerformed(new ActionEvent(focusOwner, 0, NEXT_COLUMN_ACTION));
+    focusOwner = (JComponent)focusManager.getFocusOwner();
+    assertThat(focusOwner).isSameAs(scrollableTable);
+    assertThat(scrollableTable.getSelectedRow()).isEqualTo(1);
+    assertThat(scrollableTable.getSelectedColumn()).isEqualTo(0);
+
+    // Move left jumps to frozen table:
+    focusOwner.getActionMap().get(PREVIOUS_COLUMN_ACTION).actionPerformed(new ActionEvent(focusOwner, 0, PREVIOUS_COLUMN_ACTION));
+    focusOwner = (JComponent)focusManager.getFocusOwner();
+    assertThat(focusOwner).isSameAs(frozenTable);
+    assertThat(frozenTable.getSelectedRow()).isEqualTo(1);
+    assertThat(frozenTable.getSelectedColumn()).isEqualTo(3);
   }
 
   @Test
@@ -82,5 +133,31 @@ public final class FrozenColumnTableTest {
     assertThat(frozenColumnTable.getRowSorter()).isNull();
     assertThat(frozenColumnTable.getFrozenTable().getRowSorter()).isNull();
     assertThat(frozenColumnTable.getScrollableTable().getRowSorter()).isNull();
+  }
+
+  @Test
+  public void tableSelection() {
+    Object[][] data = new Object[][] {
+      new Object[]{"east", "app/src/main/res", false, "east"},
+      new Object[]{"west", "app/src/main/res", false, "west"},
+      new Object[]{"north", "app/src/main/res", false, "north"}
+    };
+    Object[] columns = new Object[]{"Key", "Resource Folder", "Untranslatable", "Default Value"};
+    DefaultTableModel model = new DefaultTableModel(data, columns);
+    FrozenColumnTable frozenColumnTable = new FrozenColumnTable(model, 4);
+    frozenColumnTable.getFrozenTable().createDefaultColumnsFromModel();
+    frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
+    JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
+    pane.setBounds(0, 0, 800, 20);
+    new FakeUi(pane, 1.0, true);
+    pane.doLayout();
+
+    assertEquals(0, frozenColumnTable.getSelectedModelRows().length);
+
+    frozenColumnTable.selectCellAt(0, 0);
+    assertThat(frozenColumnTable.getSelectedModelRows()).isEqualTo(new int[] {0});
+
+    frozenColumnTable.selectCellAt(2, 3);
+    assertThat(frozenColumnTable.getSelectedModelRows()).isEqualTo(new int[] {2});
   }
 }

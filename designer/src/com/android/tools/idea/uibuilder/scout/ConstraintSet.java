@@ -18,11 +18,7 @@ package com.android.tools.idea.uibuilder.scout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Stack;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
 
 
 /**
@@ -30,8 +26,6 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintCom
  */
 public class ConstraintSet {
   private ArrayList<ConstrainedWidget> myWidgets;
-  private ScoutWidget myParentWidget;
-  private double myProbability;
   private ArrayList<Chain> myChains;
   private ArrayList<Connection> myChainConnnections;
   private double myError;
@@ -48,12 +42,9 @@ public class ConstraintSet {
   public ConstraintSet(int[] cWidgets, ArrayList<ArrayList<ConstrainedWidget>> validConns, ScoutWidget parent) {
     myWidgets = new ArrayList<ConstrainedWidget>();
     myChainConnnections = new ArrayList<Connection>();
-    myProbability = 0;
-    myParentWidget = parent;
     for (int i = 0; i < validConns.size(); i++) {
       ConstrainedWidget widget = validConns.get(i).get(cWidgets[i]);
       myWidgets.add(widget);
-      myProbability += widget.getCost();
     }
   }
 
@@ -64,7 +55,6 @@ public class ConstraintSet {
    * @param widgets list of already constrained scout widgets
    */
   public ConstraintSet(ScoutWidget[] widgets) {
-    myParentWidget = widgets[0];
     myChainConnnections = new ArrayList<>();
     myWidgets = new ArrayList<>();
     ConstrainedWidget temp;
@@ -82,17 +72,17 @@ public class ConstraintSet {
             }
           }
           if (destIdx == 0) {
-            connections[dir.ordinal()] = new Connection(Connection.PARENT_CONNECTION, dir, destDir, destWid);
+            connections[dir.ordinal()] = new Connection(Connection.PARENT_CONNECTION, destDir);
           }
           else {
-            connections[dir.ordinal()] = new Connection(destIdx, dir, destDir, destWid);
+            connections[dir.ordinal()] = new Connection(destIdx, destDir);
           }
           int originLine = wid.getPos(dir);
           int destLine = destWid.getPos(destDir);
           connections[dir.ordinal()].setMargin(destLine - originLine);
         }
         else {
-          connections[dir.ordinal()] = new Connection(Connection.NO_CONNECTION, dir, dir, wid);
+          connections[dir.ordinal()] = new Connection(Connection.NO_CONNECTION, dir);
         }
       }
       temp = new ConstrainedWidget(connections[Direction.TOP.ordinal()],
@@ -103,45 +93,6 @@ public class ConstraintSet {
                                    wid);
       myWidgets.add(temp);
     }
-  }
-
-  /**
-   * Get a string to generate a display list representing the constraint set for testing purposes
-   */
-  public String displayString() {
-    String connections = "";
-    String tempBase = "";
-    for (ConstrainedWidget wid : myWidgets) {
-      if (wid.getScoutWidget().isGuideline()) {
-        continue;
-      }
-      tempBase = String.format(Locale.US, "DrawConnection,1,%dx%dx%dx%d,",
-                               (int)wid.getScoutWidget().getX(),
-                               (int)wid.getScoutWidget().getY(),
-                               wid.getScoutWidget().getWidthInt(),
-                               wid.getScoutWidget().getHeightInt());
-      if (wid.north.destWidget() != Connection.NO_CONNECTION) {
-        connections += tempBase;
-        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 2, wid.north.getDisplayString());
-      }
-
-      if (wid.south.destWidget() != Connection.NO_CONNECTION) {
-        connections += tempBase;
-        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 3, wid.south.getDisplayString());
-      }
-
-      if (wid.east.destWidget() != Connection.NO_CONNECTION) {
-        connections += tempBase;
-        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 1, wid.east.getDisplayString());
-      }
-
-      if (wid.west.destWidget() != Connection.NO_CONNECTION) {
-        connections += tempBase;
-        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 0, wid.west.getDisplayString());
-      }
-    }
-    connections += "UNClip\n";
-    return connections;
   }
 
   /**
@@ -294,21 +245,6 @@ public class ConstraintSet {
     return str;
   }
 
-
-  int compareTo(ConstraintSet other) {
-    int val = myError < other.error() ? 1 : myError == other.error() ? 0 : -1;
-    return val;
-  }
-
-  ScoutWidget getScoutWidget(int widget) {
-    if (widget == Connection.PARENT_CONNECTION) {
-      return myParentWidget;
-    }
-    else {
-      return myWidgets.get(widget).getScoutWidget();
-    }
-  }
-
   /**
    * Calculates the total error of the constraint set that adds all chain errors,
    * all centered connections and all margin connections.
@@ -398,83 +334,12 @@ public class ConstraintSet {
   }
 
   /**
-   * Applies the connections specified in the constraint set to show the final connections to the user
-   */
-  public void applySet() {
-    for (Chain chain : myChains) {
-      chain.apply();
-    }
-
-    for (ConstrainedWidget wid : myWidgets) {
-      //For both orientations
-      for (int i = 0; i < 2; i++) {
-        Direction dir = Direction.getDirections(i)[0];
-
-        // Simple margin connections
-        if (wid.getConnection(dir).isConnected() &&
-            !wid.getConnection(dir.getOpposite()).isConnected()) {
-          Connection newConnection = wid.getConnection(dir);
-          wid.getScoutWidget().setConstraint(dir.ordinal(),
-                                             getScoutWidget(newConnection.destWidget()),
-                                             newConnection.destDirection().ordinal(),
-                                             newConnection.getAbsoluteMargin());
-        }
-        else if (!wid.getConnection(dir).isConnected() &&
-                 wid.getConnection(dir.getOpposite()).isConnected()) {
-          Connection newConnection = wid.getConnection(dir.getOpposite());
-          wid.getScoutWidget().setConstraint(dir.getOpposite().ordinal(),
-                                             getScoutWidget(newConnection.destWidget()),
-                                             newConnection.destDirection().ordinal(),
-                                             newConnection.getAbsoluteMargin());
-        }
-        else if (i == Direction.ORIENTATION_VERTICAL &&
-                 wid.getConnection(Direction.BASELINE).isConnected()) {
-          Connection newConnection = wid.getConnection(Direction.BASELINE);
-          wid.getScoutWidget().setConstraint(Direction.BASELINE.ordinal(),
-                                             getScoutWidget(newConnection.destWidget()),
-                                             newConnection.destDirection().ordinal(),
-                                             newConnection.getAbsoluteMargin());
-        }
-        else {
-          // Centered connection
-          if (!myChainConnnections.contains(wid.getConnection(dir)) &&
-              !myChainConnnections.contains(wid.getConnection(dir.getOpposite()))) {
-            // Edge centered
-            if (wid.getConnection(dir).destWidget() ==
-                wid.getConnection(dir.getOpposite()).destWidget() &&
-                wid.getConnection(dir).destDirection() ==
-                wid.getConnection(dir.getOpposite()).destDirection()) {
-              Connection conn = wid.getConnection(dir);
-              wid.getScoutWidget().setEdgeCentered(i,
-                                                   getScoutWidget(conn.destWidget()),
-                                                   conn.destDirection());
-            }
-            else {
-              // Centered
-              Connection aConn = wid.getConnection(dir);
-              Connection bConn = wid.getConnection(dir.getOpposite());
-              wid.getScoutWidget().setCenteredWithBias(i,
-                                                       getScoutWidget(aConn.destWidget()),
-                                                       getScoutWidget(bConn.destWidget()),
-                                                       aConn.destDirection(),
-                                                       bConn.destDirection(),
-                                                       (float)wid.calculateBias(i));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Class to represent a Chain in a constraint set, involving several widgets with
    * cycled connections and two closing widgets with finishing connections.
    */
   private class Chain {
     private int myOrientation;
     private ArrayList<ConstrainedWidget> myGroup;
-    private ArrayList<Integer> myMargins;
-    private ScoutChains.ChainMode myMode;
     private int myTotalError;
     private int errorFactor = 5;
 
@@ -486,7 +351,6 @@ public class ConstraintSet {
     public Chain(int orientation) {
       myOrientation = orientation;
       myGroup = new ArrayList<>();
-      myMargins = new ArrayList<>();
     }
 
     public int orientation() {
@@ -519,22 +383,16 @@ public class ConstraintSet {
 
       if (spreadTotal < packedTotal &&
           spreadTotal < spreadInTotal) {
-        myMode = ScoutChains.ChainMode.CHAIN_SPREAD;
-        myMargins = spread;
         myTotalError = spreadTotal * errorFactor;
       }
 
       if (packedTotal < spreadTotal &&
           packedTotal < spreadInTotal) {
-        myMode = ScoutChains.ChainMode.CHAIN_PACKED;
-        myMargins = packed;
         myTotalError = packedTotal * errorFactor;
       }
 
       if (spreadInTotal < packedTotal &&
           spreadInTotal < spreadTotal) {
-        myMode = ScoutChains.ChainMode.CHAIN_SPREAD_INSIDE;
-        myMargins = spreadIn;
         myTotalError = spreadInTotal * errorFactor;
       }
     }
@@ -601,62 +459,6 @@ public class ConstraintSet {
       spreadIn.add(0, myGroup.get(0).getConnection(dir.getOpposite()).getAbsoluteMargin());
       spreadIn.add(myGroup.get(myGroup.size() - 1).getConnection(dir).getAbsoluteMargin());
       return spreadIn;
-    }
-
-    /**
-     * Applies the chain so that the connections chosen are visible to the user and effective in the editor
-     */
-    public void apply() {
-      ScoutWidget aConnect, bConnect;
-      ScoutWidget begin, end;
-      ArrayList<String[]> attrList = new ArrayList<>();
-      for (int i = 0; i < myGroup.size(); i++) {
-        ConstrainedWidget widget = myGroup.get(i);
-        Direction aDir = Direction.getDirections(myOrientation)[1]; //BOTTOM or RIGHT
-        Direction bDir = Direction.getDirections(myOrientation)[0]; //TOP or LEFT
-        begin = getScoutWidget(myGroup.get(0).getConnection(bDir).destWidget());
-        end = getScoutWidget(myGroup.get(myGroup.size() - 1).getConnection(aDir).destWidget());
-        if (i + 1 < myGroup.size()) {
-          bConnect = myGroup.get(i + 1).getScoutWidget();
-        }
-        else {
-          bConnect = end;
-          bDir = Direction.getDirections(myOrientation)[1];
-        }
-        if (i > 0) {
-          aConnect = myGroup.get(i - 1).getScoutWidget();
-        }
-        else {
-          aConnect = begin;
-          aDir = Direction.getDirections(myOrientation)[0];
-        }
-
-        attrList.clear();
-        if (widget.getScoutWidget().isCandidateResizable(1)) {
-          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_ZERO_DP});
-        }
-
-        scoutChainConnect(widget.getScoutWidget().mNlComponent, Direction.LEFT, aConnect.mNlComponent, aDir, attrList);
-        attrList.clear();
-        String[] modes = {ATTR_LAYOUT_CHAIN_SPREAD, ATTR_LAYOUT_CHAIN_SPREAD_INSIDE, ATTR_LAYOUT_CHAIN_PACKED};
-        if (i == 0) {
-          String mode = modes[myMode.ordinal()];
-          if (myMode != ScoutChains.ChainMode.CHAIN_SPREAD) {
-            attrList.add(new String[]{SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, mode});
-          }
-          int gap = myMargins.get(i);
-          if (gap > 0) {
-            attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_START, Integer.toString(gap) + "dp"});
-          }
-        }
-
-        int gap = myMargins.get(i + 1);
-        if (gap > 0) {
-          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_END, Integer.toString(gap) + "dp"});
-        }
-
-        scoutChainConnect(widget.getScoutWidget().mNlComponent, Direction.RIGHT, bConnect.mNlComponent, bDir, attrList);
-      }
     }
   }
 }

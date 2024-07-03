@@ -46,10 +46,12 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -324,6 +326,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private void doRefreshScreenshot() {
     assert myScreenshotSupplier != null;
     new ScreenshotTask(myProject, myScreenshotSupplier) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        Disposer.register(getDisposable(), indicator::cancel);
+        super.run(indicator);
+      }
+
       @Override
       public void onSuccess() {
         String msg = getError();

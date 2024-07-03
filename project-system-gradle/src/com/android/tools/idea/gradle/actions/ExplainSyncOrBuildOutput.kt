@@ -110,7 +110,7 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
       val gradleErrorContextEnabled = StudioFlags.STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED.get()
 
       // With context enabled, we can build a richer query by looking at the error details and location
-      val aiExcludeService = studioBot.aiExcludeService()
+      val aiExcludeService = studioBot.aiExcludeService(project)
       val filesUsedAsContext = mutableListOf<VirtualFile>()
       val context = if (!contextEnabled) null else buildString {
         val projectInfo =
@@ -136,7 +136,7 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         if (file != null &&
             (isCompilerIssue && compilerErrorContextEnabled || !isCompilerIssue && gradleErrorContextEnabled)
           ) {
-          getErrorFileLocationContext(fileLocation, project, aiExcludeService)?.let {
+          getErrorFileLocationContext(fileLocation, aiExcludeService)?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.add(it.second)
           }
@@ -192,10 +192,10 @@ Explain this error and how to fix it.
      * and a reference to that file.
      */
     @VisibleForTesting
-    fun getErrorFileLocationContext(navigatable: FileNavigatable, project: Project, aiExcludeService: AiExcludeService): Pair<String, VirtualFile>? {
+    fun getErrorFileLocationContext(navigatable: FileNavigatable, aiExcludeService: AiExcludeService): Pair<String, VirtualFile>? {
       val file = navigatable.fileDescriptor?.file ?: return null
 
-      if (aiExcludeService.isFileExcluded(project, file)) {
+      if (aiExcludeService.isFileExcluded(file)) {
         return null
       }
 
@@ -238,7 +238,7 @@ $fileTextWithErrorArrow
           listOfNotNull(it.getBuildScriptPsiFile(), it.getBuildScriptSettingsPsiFile())
         }.distinctBy { it.virtualFile.path }
       }.filterNot {
-        aiExcludeService.isFileExcluded(project, it.virtualFile)
+        aiExcludeService.isFileExcluded(it.virtualFile)
       }
 
       if (gradleFiles.isEmpty()) return null

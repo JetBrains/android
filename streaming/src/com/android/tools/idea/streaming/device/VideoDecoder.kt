@@ -207,6 +207,8 @@ internal class VideoDecoder(
   interface FrameListener {
     fun onNewFrameAvailable()
     fun onEndOfVideoStream()
+    /** Called when the decoder rejected a video frame. */
+    fun onInvalidFrame(e: InvalidFrameException)
   }
 
   internal class VideoFrame(
@@ -394,6 +396,9 @@ internal class VideoDecoder(
         try {
           processDataPacket(packetToProcess, header)
         }
+        catch (e: InvalidFrameException) {
+          onInvalidFrame(e)
+        }
         finally {
           if (hasPendingPacket) {
             // The pending packet must be discarded.
@@ -423,7 +428,7 @@ internal class VideoDecoder(
     private fun processFrame(packet: AVPacket, header: VideoPacketHeader) {
       val ret = avcodec_send_packet(codecContext, packet)
       if (ret < 0) {
-        throw VideoDecoderException(
+        throw InvalidFrameException(
             "Display $displayId: video packet was rejected by the decoder: $ret ${packet.toDebugString()} header: $header")
       }
 
@@ -525,6 +530,12 @@ internal class VideoDecoder(
         listener.onEndOfVideoStream()
       }
     }
+
+    private fun onInvalidFrame(e: InvalidFrameException) {
+      for (listener in frameListeners) {
+        listener.onInvalidFrame(e)
+      }
+    }
   }
 
   private class VideoPacketHeader private constructor(
@@ -599,7 +610,8 @@ internal class VideoDecoder(
   }
 }
 
-internal class VideoDecoderException(message: String) : RuntimeException(message)
+internal open class VideoDecoderException(message: String) : RuntimeException(message)
+internal class InvalidFrameException(message: String) : VideoDecoderException(message)
 
 private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
   BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()

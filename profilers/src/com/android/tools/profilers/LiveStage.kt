@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
+import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskFinished
 import com.android.tools.profilers.tasks.TaskFinishedState
@@ -25,7 +27,8 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.jetbrains.annotations.NotNull
 import java.util.Optional
 
-class LiveStage(@NotNull private val profilers : StudioProfilers) : StreamingStage(profilers) {
+class LiveStage(@NotNull private val profilers : StudioProfilers, val stopTask: () -> Unit) : StreamingStage(profilers) {
+  constructor(profilers : StudioProfilers) : this(profilers, {})
 
   @NotNull
   val liveModels = mutableListOf<LiveDataModel>()
@@ -79,9 +82,14 @@ class LiveStage(@NotNull private val profilers : StudioProfilers) : StreamingSta
   }
 
   private fun getEventMonitorInstance() =
-    if (profilers.selectedSessionSupportLevel == SupportLevel.DEBUGGABLE) EventMonitor(profilers) else null
+    if (profilers.selectedSessionSupportLevel == SupportLevel.DEBUGGABLE && isOPlus()) EventMonitor(profilers) else null
 
   override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.LIVE_STAGE
+
+  private fun isOPlus(): Boolean {
+    val device = MemoryDataProvider.getDeviceForSelectedSession(profilers)
+    return device != null && device.featureLevel >= AndroidVersion.VersionCodes.O
+  }
 }
 
 

@@ -29,14 +29,13 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -182,7 +181,7 @@ public final class SystemImageDescription {
     return mySystemImage.getRevision();
   }
 
-  public Path[] getSkins() {
+  public List<Path> getSkins() {
     return mySystemImage.getSkins();
   }
 
@@ -199,32 +198,25 @@ public final class SystemImageDescription {
     private final AndroidVersion myAndroidVersion;
 
     public RemoteSystemImage(RemotePackage p) {
-      myRemotePackage = p;
-
-      TypeDetails details = myRemotePackage.getTypeDetails();
-      assert details instanceof DetailsTypes.ApiDetailsType;
-      myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
+      var details = p.getTypeDetails();
+      assert details instanceof ApiDetailsType;
 
       IdDisplay vendor = null;
-      List<String> abis = Collections.singletonList("armeabi");
-      List<String> translatedAbis = Collections.emptyList();
-
-      myTags = SystemImageTags.getTags(p);
+      var apiDetailsType = (ApiDetailsType)details;
 
       if (details instanceof DetailsTypes.AddonDetailsType) {
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
-        if (myTags.contains(SystemImageTags.GOOGLE_APIS_X86_TAG)) {
-          abis = Collections.singletonList("x86");
-        }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        abis = ((DetailsTypes.SysImgDetailsType)details).getAbis();
-        translatedAbis = ((DetailsTypes.SysImgDetailsType)details).getTranslatedAbis();
       }
+
+      myRemotePackage = p;
+      myTags = SystemImageTags.getTags(p);
       myVendor = vendor;
-      myAbis = abis;
-      myTranslatedAbis = translatedAbis;
+      myAbis = apiDetailsType.getAbis();
+      myTranslatedAbis = apiDetailsType.getTranslatedAbis();
+      myAndroidVersion = apiDetailsType.getAndroidVersion();
     }
 
     @NonNull
@@ -266,8 +258,8 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public Path[] getSkins() {
-      return new Path[0];
+    public List<Path> getSkins() {
+      return ImmutableList.of();
     }
 
     @NonNull

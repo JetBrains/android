@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
-import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
@@ -35,7 +34,7 @@ import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.DisableBitmapScreenshotCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.EnableBitmapScreenshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
@@ -51,8 +50,10 @@ import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.progress.ProgressManager
-import kotlinx.coroutines.CancellationException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -62,13 +63,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.snapshots.Metadata
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.concurrent.ConcurrentHashMap
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
 private val JAR =
@@ -255,10 +252,10 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  suspend fun disableBitmapScreenshots(disable: Boolean) {
+  suspend fun enableBitmapScreenshots(enable: Boolean) {
     messenger.sendCommand {
-      disableBitmapScreenshotCommand =
-        DisableBitmapScreenshotCommand.newBuilder().apply { this.disable = disable }.build()
+      enableBitmapScreenshotCommand =
+        EnableBitmapScreenshotCommand.newBuilder().apply { this.enable = enable }.build()
     }
   }
 
@@ -357,8 +354,7 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  @Slow
-  fun saveSnapshot(path: Path): SnapshotMetadata {
+  suspend fun saveSnapshot(path: Path): SnapshotMetadata {
     val snapshotMetadata =
       SnapshotMetadata(
         snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
@@ -372,29 +368,33 @@ class ViewLayoutInspectorClient(
         screenDimension = model.resourceLookup.screenDimension,
       )
 
-    if (isFetchingContinuously) {
-      fetchAndSaveSnapshot(path, snapshotMetadata)
-    } else {
-      saveNonLiveSnapshot(path, snapshotMetadata)
+    try {
+      if (isFetchingContinuously) {
+        fetchAndSaveSnapshot(path, snapshotMetadata)
+      } else {
+        saveNonLiveSnapshot(path, snapshotMetadata)
+      }
+    } catch (e: CancellationException) {
+      LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
+        .logEvent(
+          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
+          stats,
+        )
+      // Delete the file in case we wrote out partial data
+      Files.delete(path)
     }
     return snapshotMetadata
   }
 
-  private fun saveNonLiveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
+  private suspend fun saveNonLiveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
     // If we just switched to snapshot mode we may not have received data from the device yet. Wait
     // until we have.
-    try {
-      launchWithProgress {
-        while (
-          lastData.isEmpty() ||
-            lastProperties.isEmpty() ||
-            (composeInspector != null && lastComposeParameters.isEmpty())
-        ) {
-          delay(200)
-        }
-      }
-    } catch (ignore: CancellationException) {
-      return
+    while (
+      lastData.isEmpty() ||
+        lastProperties.isEmpty() ||
+        (composeInspector != null && lastComposeParameters.isEmpty())
+    ) {
+      delay(200)
     }
     // There could be a synchronization issue here, if we get an update just as these maps are being
     // copied. However, since we only get
@@ -412,44 +412,9 @@ class ViewLayoutInspectorClient(
     )
   }
 
-  private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
-    val start = System.currentTimeMillis()
-    try {
-      launchWithProgress { fetchAndSaveSnapshotAsync(path, snapshotMetadata) }
-    } catch (cancellationException: CancellationException) {
-      snapshotMetadata.saveDuration = System.currentTimeMillis() - start
-      LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
-        .logEvent(
-          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
-          stats,
-        )
-      // Delete the file in case we wrote out partial data
-      Files.delete(path)
-    }
-  }
-
-  private fun launchWithProgress(runnable: suspend CoroutineScope.() -> Unit) {
-    val job = scope.launch(block = runnable) // TODO: error handling
-    // Watch for the progress indicator to be canceled and cancel the job if so.
-    val progress = ProgressManager.getInstance().progressIndicator
-    scope.launch {
-      while (true) {
-        delay(300)
-        if (progress?.isCanceled == true) {
-          job.cancel()
-          break
-        }
-        if (!job.isActive) {
-          break
-        }
-      }
-    }
-    job.asCompletableFuture().get()
-  }
-
-  private suspend fun fetchAndSaveSnapshotAsync(path: Path, snapshotMetadata: SnapshotMetadata) {
-    messenger
-      .sendCommand {
+  private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
+    val response =
+      messenger.sendCommand {
         captureSnapshotCommand =
           CaptureSnapshotCommand.newBuilder()
             .apply {
@@ -458,27 +423,24 @@ class ViewLayoutInspectorClient(
             }
             .build()
       }
-      .captureSnapshotResponse
-      ?.let { snapshotResponse ->
-        val composeInfo =
-          composeInspector?.let { composeInspector ->
-            generation++
-            snapshotResponse.windowRoots.idsList.associateWith { id ->
-              Pair(
-                composeInspector.getComposeables(id, generation, forSnapshot = true),
-                composeInspector.getAllParameters(id),
-              )
-            }
-          } ?: mapOf()
 
-        saveAppInspectorSnapshot(
-          path,
-          snapshotResponse,
-          composeInfo,
-          snapshotMetadata,
-          model.foldInfo,
-        )
-      } ?: throw Exception()
+    val snapshotResponse =
+      response.captureSnapshotResponse ?: throw Exception("Failed to receive snapshot from agent.")
+
+    val composeInfo =
+      if (composeInspector != null) {
+        generation++
+        snapshotResponse.windowRoots.idsList.associateWith { rootViewId ->
+          Pair(
+            composeInspector.getComposeables(rootViewId, generation, forSnapshot = true),
+            composeInspector.getAllParameters(rootViewId),
+          )
+        }
+      } else {
+        emptyMap()
+      }
+
+    saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
   }
 }
 

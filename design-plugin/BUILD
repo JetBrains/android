@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
         "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
         "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
+        "//tools/adt/idea/motion-editor:intellij.android.motion-editor",
     ],
     # do not sort: must match IML order
     deps = ["//tools/adt/idea/.idea/libraries:layoutlib"],

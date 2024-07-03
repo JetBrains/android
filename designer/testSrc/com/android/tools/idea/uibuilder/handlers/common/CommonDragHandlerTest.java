@@ -50,7 +50,7 @@ public class CommonDragHandlerTest extends LayoutTestCase {
                                         .id("@+id/textView2")
                                     )
                                 )).build();
-    NlComponent button = model.find("button");
+    NlComponent button = model.getTreeReader().find("button");
     DesignSurface<?> surface = LayoutTestUtilities.createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -59,8 +59,8 @@ public class CommonDragHandlerTest extends LayoutTestCase {
     GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 20, 0, transferable, DnDConstants.ACTION_MOVE);
-    assertEquals(3, model.find("inner").getChildCount());
-    assertEquals("button", model.find("inner").getChild(2).getId());
-    assertEquals(1, model.find("outer").getChildCount());
+    assertEquals(3, model.getTreeReader().find("inner").getChildCount());
+    assertEquals("button", model.getTreeReader().find("inner").getChild(2).getId());
+    assertEquals(1, model.getTreeReader().find("outer").getChildCount());
   }
 }

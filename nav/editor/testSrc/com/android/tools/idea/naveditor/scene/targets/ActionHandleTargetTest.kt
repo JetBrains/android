@@ -71,8 +71,8 @@ class ActionHandleTargetTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "fragment2")
 
-      val action = model.find("fragment1")!!.children.first { it.isAction }
-      assertEquals(model.find("fragment2")!!, action.actionDestination)
+      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction }
+      assertEquals(model.treeReader.find("fragment2")!!, action.actionDestination)
       assertEquals("action_fragment1_to_fragment2", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
@@ -89,8 +89,8 @@ class ActionHandleTargetTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "fragment3")
 
-      val action = model.find("fragment1")!!.children.first { it.isAction && it.id == "action_fragment1_to_fragment3" }
-      assertEquals(model.find("fragment3")!!, action.actionDestination)
+      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction && it.id == "action_fragment1_to_fragment3" }
+      assertEquals(model.treeReader.find("fragment3")!!, action.actionDestination)
       assertSameElements(surface.selectionModel.selection, action)
 
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
@@ -117,8 +117,8 @@ class ActionHandleTargetTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "nav")
 
-      val action = model.find("fragment1")!!.children.first { it.isAction }
-      assertEquals(model.find("nav")!!, action.actionDestination)
+      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction }
+      assertEquals(model.treeReader.find("nav")!!, action.actionDestination)
       assertEquals("action_fragment1_to_nav", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
@@ -145,8 +145,8 @@ class ActionHandleTargetTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "fragment1")
 
-      val action = model.find("fragment1")!!.children.first { it.isAction }
-      assertEquals(model.find("fragment1")!!, action.actionDestination)
+      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction }
+      assertEquals(model.treeReader.find("fragment1")!!, action.actionDestination)
       assertEquals("action_fragment1_self", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
@@ -176,7 +176,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
       // drag release to a point over the root and verify no action is created
       dragAndRelease(p1.x, p1.y, p1.x + 50, p1.y)
-      assertNull(model.find { it.isAction })
+      assertNull(model.treeReader.find { it.isAction })
       verifyNoMoreInteractions(tracker)
     }
   }
@@ -195,11 +195,11 @@ class ActionHandleTargetTest : NavTestCase() {
       val sourceComponent = scene.getSceneComponent("fragment1")!!
       val p1 = sourceComponent.handlePoint()
 
-      val destinationComponent = scene.getSceneComponent(model.find { it.id == null })!!
+      val destinationComponent = scene.getSceneComponent(model.treeReader.find { it.id == null })!!
       val p2 = destinationComponent.centerPoint()
 
       dragAndRelease(p1.x, p1.y, p2.x, p2.y)
-      assertNull(model.find { it.isAction })
+      assertNull(model.treeReader.find { it.isAction })
       verifyNoMoreInteractions(tracker)
     }
   }

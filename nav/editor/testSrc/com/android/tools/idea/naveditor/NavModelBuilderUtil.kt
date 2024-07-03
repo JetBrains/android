@@ -43,8 +43,8 @@ import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.android.tools.idea.naveditor.surface.NavInteractionHandler
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
@@ -82,7 +82,7 @@ object NavModelBuilderUtil {
         throw RuntimeException(e)
       }
 
-      whenever(surface.currentNavigation).then { model.components[0] }
+      whenever(surface.currentNavigation).then { model.treeReader.components[0] }
       whenever(surface.extentSize).thenReturn(extentSize)
       whenever(surface.scrollPosition).thenAnswer { Point(0, 0) }
       whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
@@ -100,8 +100,17 @@ object NavModelBuilderUtil {
       manager
     }
 
-    return ModelBuilder(facet, fixture, name, f(), managerFactory, { model -> updateHierarchy(model, model) }, path,
-                        NavDesignSurface::class.java, { NavInteractionHandler(it as NavDesignSurface) }, NavComponentRegistrar )
+    return ModelBuilder(BuildTargetReference.gradleOnly(facet),
+                        fixture,
+                        name,
+                        f(),
+                        managerFactory,
+                        { model -> updateHierarchy(model, model) },
+                        path,
+                        NavDesignSurface::class.java,
+                        { NavInteractionHandler(it as NavDesignSurface) },
+                        NavComponentRegistrar
+    )
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

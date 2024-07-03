@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.tools.idea.insights.AppInsightsIssue
-import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
+import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.plugins.PluginManagerConfigurable
 import com.intellij.ide.plugins.PluginManagerCore
@@ -29,6 +29,7 @@ import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.UIManager
 
 private val CRASHLYTICS_GEMINI_PROMPT_FORMAT =
   """
@@ -70,6 +71,7 @@ object InsightAction :
     return super.createCustomComponent(presentation, place).apply {
       // Reset the property set by JButtonAction. It makes the button appear squished.
       putClientProperty("ActionToolbar.smallVariant", false)
+      setFont(UIManager.getFont("Button.font"))
     }
   }
 
@@ -83,35 +85,35 @@ object InsightAction :
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val source = e.getData(REQUEST_SOURCE_KEY) ?: return
-    val issue = e.getData(CURRENT_ISSUE_KEY) ?: return
+    val selectedEvent = e.getData(SELECTED_EVENT_KEY) ?: return
     val pluginId = geminiPluginId ?: return
 
     // TODO(b/338142913): Remove once Gemini opens plugin window
     if (PluginManagerCore.isDisabled(pluginId)) {
       PluginManagerConfigurable.showPluginConfigurable(project, listOf(pluginId))
     } else {
-      StudioBot.getInstance().chat(project).stageChatQuery(createPrompt(issue), source)
+      StudioBot.getInstance().chat(project).stageChatQuery(createPrompt(selectedEvent), source)
     }
   }
 
-  private fun createPrompt(issue: AppInsightsIssue) =
+  private fun createPrompt(event: Event) =
     String.format(
         CRASHLYTICS_GEMINI_PROMPT_FORMAT,
-        issue.deviceName,
-        issue.apiLevel,
-        issue.stackTrace(),
+        event.deviceName,
+        event.apiLevel,
+        event.stackTrace(),
       )
       .trim()
 
-  private val AppInsightsIssue.deviceName: String
-    get() = sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
+  private val Event.deviceName: String
+    get() = eventData.device.let { "${it.manufacturer} ${it.model}" }
 
-  private val AppInsightsIssue.apiLevel: String
-    get() = sampleEvent.eventData.operatingSystemInfo.displayVersion
+  private val Event.apiLevel: String
+    get() = eventData.operatingSystemInfo.displayVersion
 
-  private fun AppInsightsIssue.stackTrace() =
+  private fun Event.stackTrace() =
     buildString {
-        sampleEvent.stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
+        stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
           if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
             appendLine(exception.rawExceptionMessage)
             append(

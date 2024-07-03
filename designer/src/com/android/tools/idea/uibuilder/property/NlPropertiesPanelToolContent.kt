@@ -19,12 +19,11 @@ import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel
-import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesView
 import com.android.tools.idea.uibuilder.property.inspector.neleDesignPropertySections
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
+import com.android.tools.property.panel.api.PropertiesView
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
@@ -60,8 +59,10 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
     )
   private val componentModel = NlPropertiesModel(this, facet, queue)
   private val componentView = NlPropertiesView(componentModel)
-  private val motionModel = MotionLayoutAttributesModel(this, facet, queue)
-  private val motionEditorView = MotionLayoutAttributesView(motionModel)
+  private val motionModel: NlPropertiesModel? =
+    NlPropertiesModel.EP_NAME.extensionList.singleOrNull()?.create(this, facet, queue)
+  private val motionEditorView: PropertiesView<NlPropertyItem>? =
+    motionModel?.let { NlPropertiesView.EP_NAME.extensionList.singleOrNull()?.create(it) }
   private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
@@ -73,7 +74,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
     Disposer.register(parentDisposable, this)
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
-    properties.addView(motionEditorView)
+    motionEditorView?.let { properties.addView(it) }
     DataManager.registerDataProvider(properties.component) { dataId ->
       if (DOCUMENTATION_TARGETS.`is`(dataId)) listOf(documentationTarget) else null
     }
@@ -87,7 +88,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
 
   override fun setToolContext(toolContext: DesignSurface<*>?) {
     componentModel.surface = toolContext as? NlDesignSurface
-    motionModel.surface = toolContext as? NlDesignSurface
+    motionModel?.surface = toolContext as? NlDesignSurface
   }
 
   override fun registerCallbacks(callback: ToolWindowCallback) {

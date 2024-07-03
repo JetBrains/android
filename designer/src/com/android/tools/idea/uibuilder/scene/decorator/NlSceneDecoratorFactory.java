@@ -23,9 +23,9 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.relative.draw.RelativeLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,8 +46,6 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
     try {
       ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(AndroidXConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(AndroidXConstants.CLASS_MOTION_LAYOUT.newName(), MotionLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.TOGGLE_BUTTON, ToggleButtonDecorator.class.getConstructor());
@@ -62,6 +60,8 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(AndroidXConstants.CLASS_GRID_LAYOUT_V7.oldName(), GridLayoutV7Decorator.class.getConstructor());
       ourConstructorMap.put(AndroidXConstants.CLASS_GRID_LAYOUT_V7.newName(), GridLayoutV7Decorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.RELATIVE_LAYOUT, RelativeLayoutDecorator.class.getConstructor());
+
+      Provider.EP_NAME.getExtensionList().forEach((extension) -> ourConstructorMap.putAll(extension.provide()));
     }
     catch (NoSuchMethodException e) {
       // ignore invalid component
@@ -105,5 +105,11 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       return Optional.of(ourSceneMap.get(key));
     }
     return Optional.empty();
+  }
+
+  public interface Provider {
+    ExtensionPointName<Provider> EP_NAME = new ExtensionPointName<>("com.android.tools.idea.uibuilder.scene.decorator.nlDecoratorProvider");
+
+    Map<String, Constructor<? extends SceneDecorator>> provide();
   }
 }

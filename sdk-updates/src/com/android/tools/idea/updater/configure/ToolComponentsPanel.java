@@ -22,7 +22,6 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.Haxm;
@@ -85,7 +84,6 @@ public class ToolComponentsPanel {
       .result();
   });
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
-  private final Multimap<String, UpdatablePackage> myMavenPackages = HashMultimap.create();
 
   @VisibleForTesting
   UpdaterTreeNode myToolsDetailsRootNode;
@@ -132,13 +130,6 @@ public class ToolComponentsPanel {
                         .thenComparing(node -> node.getPackage().getPath().endsWith("latest"))
                         .reversed());
       for (UpdatablePackage info : versions) {
-        RepoPackage representative = info.getRepresentative();
-        if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
-          // Maven repository in the SDK manager is deprecated. So we should not visualise it here.
-          // TODO: Mark the packages as deprecated on the server side.
-          continue;
-        }
-
         PackageNodeModel model = new PackageNodeModel(info);
         if (model.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
@@ -157,11 +148,6 @@ public class ToolComponentsPanel {
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
-      boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
-      if (isMaven) {
-        continue;
-      }
-
       PackageNodeModel holder = new PackageNodeModel(info);
       if (holder.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
         continue;
@@ -193,7 +179,7 @@ public class ToolComponentsPanel {
 
       boolean found = false;
       String prefix = getRepoPackagePrefix(path);
-      if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
+      if (MULTI_VERSION_PREFIXES.contains(prefix)) {
         myMultiVersionPackages.put(prefix, p);
         found = true;
       }
@@ -214,7 +200,6 @@ public class ToolComponentsPanel {
   public void startLoading() {
     myToolsPackages.clear();
     myMultiVersionPackages.clear();
-    myMavenPackages.clear();
     myToolsLoadingPanel.setVisible(true);
   }
 

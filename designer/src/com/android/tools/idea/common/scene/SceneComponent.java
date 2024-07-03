@@ -63,7 +63,6 @@ public class SceneComponent {
   private final CopyOnWriteArrayList<SceneComponent> myChildren = new CopyOnWriteArrayList<>();
   private SceneComponent myParent = null;
 
-  private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
   private boolean myIsHighlighted = false;
   protected boolean myDragging = false;
@@ -476,14 +475,6 @@ public class SceneComponent {
     return myChildren.get(i);
   }
 
-  public void setToolLocked(boolean locked) {
-    myIsToolLocked = locked;
-  }
-
-  public boolean isToolLocked() {
-    return myIsToolLocked;
-  }
-
   public void setDrawState(@NotNull DrawState drawState) {
     DrawState oldState = myDrawState;
     myDrawState = drawState;
@@ -726,10 +717,6 @@ public class SceneComponent {
   }
 
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @InputEventMask int modifiersEx) {
-    if (myIsToolLocked) {
-      return; // skip this if hidden
-    }
-
     myHitProvider.addHit(this, sceneTransform, picker);
 
     ImmutableList<Target> targets = getTargets();

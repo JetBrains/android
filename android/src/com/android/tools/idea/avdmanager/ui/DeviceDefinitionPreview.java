@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
+import static com.android.sdklib.devices.Device.isRollable;
 import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.FIGURE_FONT;
 import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.STANDARD_FONT;
 import static com.android.tools.idea.avdmanager.ui.AvdWizardUtils.TITLE_FONT;

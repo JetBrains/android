@@ -19,17 +19,17 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
 
 internal object EmptyModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> = emptyList()
 }
 

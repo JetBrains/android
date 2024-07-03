@@ -82,9 +82,10 @@ object ComponentUtil {
     when (resourceFolder) {
       SdkConstants.FD_RES_XML ->
         descriptors.mapNotNullTo(result) { descriptor ->
-          nlModel.find { it.tagName == descriptor.tagName }
+          nlModel.treeReader.find { it.tagName == descriptor.tagName }
         }
-      else -> descriptors.mapNotNullTo(result) { nlModel.find(stripPrefixFromId(it.id!!)) }
+      else ->
+        descriptors.mapNotNullTo(result) { nlModel.treeReader.find(stripPrefixFromId(it.id!!)) }
     }
     return result
   }
@@ -116,7 +117,7 @@ object ComponentUtil {
         runBlocking {
           // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
           // asynchronously.
-          delayUntilCondition(10) { it.resolver != null }
+          delayUntilCondition(10) { it.model.resolver != null }
         }
       }
   }

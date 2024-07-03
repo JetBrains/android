@@ -28,16 +28,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutRenderPullParser;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.res.ResourceRepositoryManager;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RenderProblem;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -75,9 +75,10 @@ public class DrawableRenderer implements Disposable {
    * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
    *
    * @param facet the Android facet
+   * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet) {
-    this(facet, ConfigurationManager.getConfigurationForModule(facet.getModule()));
+  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile) {
+    this(facet, targetFile, ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(targetFile));
   }
 
   /**
@@ -85,9 +86,10 @@ public class DrawableRenderer implements Disposable {
    * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
    *
    * @param facet the Android facet
+   * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    * @param configuration the configuration to use for rendering
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
+  private DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
                                            () -> HtmlLinkManager.NOOP_LINK_MANAGER);
@@ -95,7 +97,9 @@ public class DrawableRenderer implements Disposable {
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
     RenderService service = StudioRenderService.getInstance(module.getProject());
-    myRenderTaskFuture = taskBuilder(service, facet, configuration, logger)
+    myRenderTaskFuture = taskBuilder(
+      service, BuildTargetReference.gradleOnly(facet),
+      configuration, logger)
       .withParserFactory(myParserFactory)
       .build()
       .whenComplete((task, ex) -> {

@@ -122,8 +122,8 @@ public class GuiInputHandlerTest extends LayoutTestCase {
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
                       "    NlComponent{tag=<TextView>, instance=1}";
-    assertEquals(expected, myTreeDumper.toTree(model.getComponents()));
-    assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
+    assertEquals(expected, myTreeDumper.toTree(model.getTreeReader().getComponents()));
+    assertEquals("Hello World", model.getTreeReader().find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
   }
 
   public void testDragAndDropWithOnCreate() throws Exception {
@@ -152,7 +152,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
                       "    NlComponent{tag=<ImageView>, instance=1}";
-    assertEquals(expected, myTreeDumper.toTree(model.getComponents()));
+    assertEquals(expected, myTreeDumper.toTree(model.getTreeReader().getComponents()));
     SceneComponent sceneComponent = screenView.getScene().getRoot().getChild(0);
     assertEquals("@android:drawable/selected_image", sceneComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_SRC));
   }
@@ -491,7 +491,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                                         .id("@+id/textView2")
                                     )
                                 )).build();
-    NlComponent button = model.find("button");
+    NlComponent button = model.getTreeReader().find("button");
     DesignSurface<?> surface = createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));

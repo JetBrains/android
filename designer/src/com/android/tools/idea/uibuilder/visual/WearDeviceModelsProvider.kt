@@ -21,6 +21,7 @@ import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
@@ -28,7 +29,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import java.util.ArrayList
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Recommended wear device configs. */
 @VisibleForTesting
@@ -53,7 +53,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -61,7 +61,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     val wearDevices =
       deviceCaches.getOrElse(configurationManager) {
         val deviceList = ArrayList<Device>()
@@ -88,11 +88,11 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model =
-        NlModel.builder(parentDisposable, facet, virtualFile, config)
-          .withModelTooltip(config.toHtmlTooltip())
+        NlModel.Builder(parentDisposable, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.modelDisplayName = device.displayName
+      model.setTooltip(config.toHtmlTooltip())
+      model.setDisplayName(device.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

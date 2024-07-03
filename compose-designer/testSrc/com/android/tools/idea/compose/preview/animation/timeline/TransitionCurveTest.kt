@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.preview.animation.TooltipInfo
@@ -58,7 +59,7 @@ class TransitionCurveTest {
     val transitionCurveOne =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
@@ -67,7 +68,7 @@ class TransitionCurveTest {
     val transitionCurveTwo =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled() + transitionCurveOne.height,
           positionProxy = slider.sliderUI.positionProxy,
@@ -108,7 +109,7 @@ class TransitionCurveTest {
     val transitionCurve =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
@@ -132,7 +133,7 @@ class TransitionCurveTest {
     val transitionCurve =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
@@ -161,7 +162,7 @@ class TransitionCurveTest {
     val transitionCurve =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
@@ -193,7 +194,7 @@ class TransitionCurveTest {
     val transitionCurve =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,
@@ -231,7 +232,7 @@ class TransitionCurveTest {
     val transitionCurve =
       TransitionCurve.create(
           0,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           transition = Transition(emptyMap()),
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
           positionProxy = slider.sliderUI.positionProxy,

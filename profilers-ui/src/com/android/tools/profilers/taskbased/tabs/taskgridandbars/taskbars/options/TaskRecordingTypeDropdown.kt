@@ -21,12 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dropdowns.DropdownOptionText
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import org.jetbrains.jewel.ui.component.Dropdown
-import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingType,
@@ -34,7 +34,7 @@ fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingT
 
   Row(verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
-    Text(TaskBasedUxStrings.RECORDING_TYPE_DROPDOWN_TITLE)
+    EllipsisText(text = TaskBasedUxStrings.RECORDING_TYPE_DROPDOWN_TITLE)
     Dropdown(modifier = Modifier.testTag("TaskRecordingTypeDropdown"), menuContent = {
       TaskHomeTabModel.TaskRecordingType.values().forEach {
         selectableItem(selected = it == taskRecordingType,
@@ -50,10 +50,14 @@ fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingT
 
 @Composable
 private fun TaskRecordingTypeOption(taskRecordingType: TaskHomeTabModel.TaskRecordingType, modifier: Modifier = Modifier) {
-  val optionText = when (taskRecordingType) {
-    TaskHomeTabModel.TaskRecordingType.SAMPLED -> TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION
-    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION
-  }
+  when (taskRecordingType) {
+    TaskHomeTabModel.TaskRecordingType.SAMPLED -> DropdownOptionText(modifier,
+                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT,
+                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT,
+                                                                     true)
 
-  DropdownOptionText(optionText)
+    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> DropdownOptionText(modifier,
+                                                                          TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION, null,
+                                                                          true)
+  }
 }

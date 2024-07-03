@@ -78,10 +78,8 @@ import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
@@ -521,7 +519,7 @@ private fun RenderResources.resolveAsColorIcon(
 }
 
 private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color {
-  return colors.maxByOrNull { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
+  return colors.maxByOrNull { ColorUtil.getColorDistance(it, color) } ?: colors.first()
 }
 
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, facet: AndroidFacet): Icon? {
@@ -1534,7 +1532,7 @@ private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
 
   val sourceProviders = SourceProviders.getInstance(facet)
   val namedIdeaSourceProviders =
-    if (module.isLinkedAndroidModule() && module.isAndroidTestModule())
+    if (module.isAndroidTestModule())
       sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]
     else sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
 

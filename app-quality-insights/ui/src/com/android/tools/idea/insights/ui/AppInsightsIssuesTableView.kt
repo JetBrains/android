@@ -32,6 +32,7 @@ import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.observable.util.addMouseListener
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TableSpeedSearch
@@ -43,6 +44,7 @@ import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
+import java.awt.event.MouseListener
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 import javax.swing.UIManager
@@ -57,6 +59,7 @@ class AppInsightsIssuesTableView(
   model: AppInsightsIssuesTableModel,
   private val controller: AppInsightsProjectLevelController,
   private val renderer: AppInsightsTableCellRenderer,
+  tableMouseListener: MouseListener?,
 ) : Disposable {
   val component: JComponent
   private val speedSearch: TableSpeedSearch
@@ -70,6 +73,9 @@ class AppInsightsIssuesTableView(
   init {
     loadingPanel = JBLoadingPanel(TabularLayout("*", "Fit,*"), this)
     table = IssuesTableView(model)
+
+    tableMouseListener?.let { table.addMouseListener(tableMouseListener) }
+
     speedSearch =
       TableSpeedSearch(
         table,

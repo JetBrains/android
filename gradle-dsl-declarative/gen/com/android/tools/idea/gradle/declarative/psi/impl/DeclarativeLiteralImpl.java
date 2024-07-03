@@ -24,14 +24,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeLiteralImpl extends ASTWrapperPsiElement implements DeclarativeLiteral {
+public class DeclarativeLiteralImpl extends CompositePsiElement implements DeclarativeLiteral {
 
-  public DeclarativeLiteralImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeLiteralImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
@@ -47,19 +48,19 @@ public class DeclarativeLiteralImpl extends ASTWrapperPsiElement implements Decl
   @Override
   @Nullable
   public PsiElement getBoolean() {
-    return findChildByType(BOOLEAN);
+    return findPsiChildByType(BOOLEAN);
   }
 
   @Override
   @Nullable
   public PsiElement getNumber() {
-    return findChildByType(NUMBER);
+    return findPsiChildByType(NUMBER);
   }
 
   @Override
   @Nullable
   public PsiElement getString() {
-    return findChildByType(STRING);
+    return findPsiChildByType(STRING);
   }
 
   @Override

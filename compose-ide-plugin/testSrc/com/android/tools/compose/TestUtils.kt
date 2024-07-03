@@ -16,11 +16,29 @@
 package com.android.tools.compose
 
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.openapi.application.ex.PathManagerEx
+import com.intellij.psi.PsiFile
+import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.nio.file.Files
 
 fun getComposePluginTestDataPath(): String {
   val adtPath = resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData")
   return if (Files.exists(adtPath)) adtPath.toString()
   else PathManagerEx.findFileUnderCommunityHome("plugins/android-compose-ide-plugin").path
+}
+
+fun maskKotlinProblemHighlightFilter(fixture: JavaCodeInsightTestFixture) {
+  val extension =
+    object : ProblemHighlightFilter() {
+      override fun shouldHighlight(file: PsiFile): Boolean = true
+
+      override fun shouldProcessInBatch(file: PsiFile) = true
+    }
+  ExtensionTestUtil.maskExtensions(
+    ProblemHighlightFilter.EP_NAME,
+    listOf(extension),
+    fixture.testRootDisposable,
+  )
 }

@@ -86,7 +86,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null,
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null,
                                            myClassLoaderReference.getClassLoader());
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
@@ -94,7 +94,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
 
     try {
       viewLoader.loadView("broken.brokenclass", null, null);
@@ -104,14 +104,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     }
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
     ResourceIdManager idManager = StudioResourceIdManager.get(myModule);
     assertNotNull(idManager);
 

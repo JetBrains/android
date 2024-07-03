@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
@@ -117,9 +116,9 @@ public class ScoutRelativeConvertTest01 extends SceneTest {
                  "    android:layout_height=\"wrap_content\"/>\n" +
                  "\n" +
                  "</RelativeLayout>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), () -> {
-      ScoutDirectConvert.directProcess(myModel.getComponents().get(0));
+      ScoutDirectConvert.directProcess(myModel.getTreeReader().getComponents().get(0));
     });
     myScreen.get("@+id/content_main")
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

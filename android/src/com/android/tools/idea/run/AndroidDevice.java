@@ -45,6 +45,13 @@ public interface AndroidDevice {
   boolean isVirtual();
 
   /**
+   * Returns whether this is a remote device.
+   */
+  default boolean isRemote() {
+    return false;
+  }
+
+  /**
    * Returns the API level of the device.
    */
   @NotNull
@@ -78,7 +85,7 @@ public interface AndroidDevice {
 
   /**
    * Returns a unique, opaque, identifier for the device, which should be constant even when starting and stopping the underlying device.
-   *
+   * <p>
    * Note this may not be equal to the adb serial for devices that can be started.
    */
   @NotNull

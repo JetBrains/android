@@ -45,12 +45,12 @@ interface SourceProviders {
   /**
    * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
    */
-  val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
+  val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
 
   /**
    * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
    */
-  val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+  val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
 
   /**
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
@@ -65,12 +65,12 @@ interface SourceProviders {
   /**
    * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
    */
-  val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
+  val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
 
   /**
    * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
    */
-  val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+  val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
 
   /**
    * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
@@ -104,12 +104,12 @@ interface SourceProviders {
   val currentSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of source providers for Host test artifacts (e.g. for unit test arifact: `test/`source sets), in increasing
+   * Returns a list of source providers for Host test artifacts (e.g. for unit test artifact: `test/`source sets), in increasing
    * precedence order.
    *
    * @see currentSourceProviders
    */
-  val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+  val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
 
   /**
    * Returns a list of source providers for Device test artifacts (e.g. for Android test artifact `androidTest/` source sets), in increasing
@@ -117,7 +117,7 @@ interface SourceProviders {
    *
    * @see currentSourceProviders
    */
-  val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+  val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
 
   /**
    * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing
@@ -166,25 +166,25 @@ interface SourceProviders {
       facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = sourceSet
-        override val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val generatedSources: IdeaSourceProvider =
           createMergedSourceProvider(ScopeType.MAIN, emptyList())
-        override val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val generatedTestFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
-        override val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+        override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
-        override val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+        override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -211,25 +211,25 @@ interface SourceProviders {
       facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
-        override val hostTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val deviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val testFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val generatedSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
-        override val generatedHostTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val generatedDeviceTestSources: Map<TestComponentType, IdeaSourceProvider>
+        override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val generatedTestFixturesSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentHostTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+        override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
-        override val currentDeviceTestSourceProviders: Map<TestComponentType, List<NamedIdeaSourceProvider>>
+        override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()

@@ -6652,5 +6652,3 @@
 05-16 07:39:48.855: I/ActivityManager(1495): Force stopping com.alonalbert.firebase.test appid=10259 user=-1: deletePackageX
 05-16 07:39:48.865: D/AOC(1054): A3:MSG: window_orientation.c, 697: [WO] Proposed rotation: 1, flat angle threshold: 40
 05-16 07:39:48.865: D/AOC(1054): A3:MSG: window_orientation.c, 1105: [WO] orientation angle 89, orientation 1
-05-16 07:39:48.866: D/AOC(1054): A3:MSG: window_orientation.c, 430: [WO] Gyro angle integrated: 0.070971
-05-16 07:39:48.866: D/AOC(1054): A3:MSG: window_orientation.c, 430: [WO] Gyro angle integrated: 0.070971

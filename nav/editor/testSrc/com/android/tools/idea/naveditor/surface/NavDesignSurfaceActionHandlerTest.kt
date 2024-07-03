@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
@@ -57,20 +57,20 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val context = DataManager.getInstance().getDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
 
-    surface.selectionModel.setSelection(listOf(model.find("fragment2")!!))
+    surface.selectionModel.setSelection(listOf(model.treeReader.find("fragment2")!!))
     assertTrue(handler.canDeleteElement(context))
 
     handler.deleteElement(context)
 
-    assertSameElements(model.flattenComponents().toArray(),
-                       model.components[0], model.find("fragment1"), model.find("fragment3"), model.find("a3"))
-    assertEquals(surface.selectionModel.selection, listOf(model.find("fragment3")))
-    val root = model.find("root")!!
+    assertSameElements(model.treeReader.flattenComponents().toArray(),
+                       model.treeReader.components[0], model.treeReader.find("fragment1"), model.treeReader.find("fragment3"), model.treeReader.find("a3"))
+    assertEquals(surface.selectionModel.selection, listOf(model.treeReader.find("fragment3")))
+    val root = model.treeReader.find("root")!!
     assertNull(root.startDestination)
 
-    surface.selectionModel.setSelection(listOf(model.find("a3")!!))
+    surface.selectionModel.setSelection(listOf(model.treeReader.find("a3")!!))
     handler.deleteElement(context)
-    assertEquals(surface.selectionModel.selection, model.components)
+    assertEquals(surface.selectionModel.selection, model.treeReader.components)
   }
 
   fun testUndoRedoDelete() {
@@ -85,7 +85,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
-    var nlComponent = model.find("fragment")!!
+    var nlComponent = model.treeReader.find("fragment")!!
     val scene = surface.scene!!
     var sceneComponent = scene.getSceneComponent(nlComponent)!!
     sceneComponent.setPosition(123, 456)
@@ -96,7 +96,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(nlComponent))
     handler.deleteElement(context)
 
-    assertNull(model.find("fragment"))
+    assertNull(model.treeReader.find("fragment"))
     assertNull(scene.getSceneComponent("fragment"))
 
     // move something so ManualLayoutAlgorithm doesn't have stale info
@@ -104,23 +104,23 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     fragment2.setPosition(987, 654)
     sceneManager.save(listOf(fragment2))
 
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     sceneManager.update()
 
     // undo the move
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
-    assertNull(model.find("fragment"))
+    assertNull(model.treeReader.find("fragment"))
     assertNull(scene.getSceneComponent("fragment"))
 
     // undo the delete
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
-    nlComponent = model.find("fragment")!!
+    nlComponent = model.treeReader.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!
 
     assertNotNull(nlComponent)
@@ -130,17 +130,17 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     // redo the delete
     UndoManager.getInstance(project).redo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
-    assertNull(model.find("fragment"))
+    assertNull(model.treeReader.find("fragment"))
     assertNull(scene.getSceneComponent("fragment"))
 
     // undo again
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
-    nlComponent = model.find("fragment")!!
+    nlComponent = model.treeReader.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!
 
     assertNotNull(nlComponent)
@@ -163,13 +163,13 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val handler = NavDesignSurfaceActionHandler(surface)
 
-    val root = model.components[0]
-    val subnav = model.find("subnav")!!
+    val root = model.treeReader.components[0]
+    val subnav = model.treeReader.find("subnav")!!
 
     assertEquals(root, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf())
     assertEquals(root, handler.pasteTarget)
-    val a1 = model.find("a1")!!
+    val a1 = model.treeReader.find("a1")!!
     surface.selectionModel.setSelection(listOf(a1))
     assertEquals(a1, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf(subnav))
@@ -180,7 +180,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     assertEquals(subnav, handler.pasteTarget)
     surface.selectionModel.setSelection(listOf(subnav))
     assertEquals(subnav, handler.pasteTarget)
-    val fragment3 = model.find("fragment3")!!
+    val fragment3 = model.treeReader.find("fragment3")!!
     surface.selectionModel.setSelection(listOf(fragment3))
     assertEquals(fragment3, handler.pasteTarget)
   }
@@ -202,11 +202,11 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val handler = NavDesignSurfaceActionHandler(surface)
 
-    val root = model.components[0]
-    val subnav = model.find("subnav")!!
-    val fragment1 = model.find("fragment1")!!
-    val action1 = model.find("a1")!!
-    val action2 = model.find("a2")!!
+    val root = model.treeReader.components[0]
+    val subnav = model.treeReader.find("subnav")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val action1 = model.treeReader.find("a1")!!
+    val action2 = model.treeReader.find("a2")!!
 
     assertTrue(handler.canHandleChildren(root, listOf(fragment1)))
     assertTrue(handler.canHandleChildren(root, listOf(action1, fragment1)))
@@ -234,10 +234,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
       }
     }
 
-    val root = model.components[0]
-    val subnav = model.find("subnav")!!
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
+    val root = model.treeReader.components[0]
+    val subnav = model.treeReader.find("subnav")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val fragment2 = model.treeReader.find("fragment2")!!
 
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
@@ -268,11 +268,11 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
       }
     }
 
-    val subnav = model.find("subnav")!!
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val action1 = model.find("a1")!!
-    val action2 = model.find("a2")!!
+    val subnav = model.treeReader.find("subnav")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val fragment2 = model.treeReader.find("fragment2")!!
+    val action1 = model.treeReader.find("a1")!!
+    val action2 = model.treeReader.find("a2")!!
 
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
@@ -296,8 +296,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
       }
     }
 
-    val root = model.find("root")!!
-    val fragment1 = model.find("fragment1")!!
+    val root = model.treeReader.find("root")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
@@ -308,7 +308,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     handler.performPaste(mock(DataContext::class.java))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    val fragment = model.find("fragment")
+    val fragment = model.treeReader.find("fragment")
     assertNotNull(fragment)
     assertSameElements(root.children, fragment, fragment1)
   }

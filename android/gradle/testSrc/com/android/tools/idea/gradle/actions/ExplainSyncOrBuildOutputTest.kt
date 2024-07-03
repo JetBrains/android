@@ -392,7 +392,7 @@ Explain this error and how to fix it.
           .trimIndent(),
         file,
       ),
-      getErrorFileLocationContext(navigatable, project, AiExcludeService.FakeAiExcludeService()),
+      getErrorFileLocationContext(navigatable, AiExcludeService.FakeAiExcludeService(project)),
     )
   }
 
@@ -415,11 +415,11 @@ Explain this error and how to fix it.
 
     // An AiExcludeService that excludes all files
     val aiExcludeService =
-      AiExcludeService.FakeAiExcludeService().apply {
+      AiExcludeService.FakeAiExcludeService(project).apply {
         defaultStatus = AiExcludeService.ExclusionStatus.EXCLUDED
       }
 
-    val result = getErrorFileLocationContext(navigatable, project, aiExcludeService)
+    val result = getErrorFileLocationContext(navigatable, aiExcludeService)
 
     assertEquals(null, result)
   }

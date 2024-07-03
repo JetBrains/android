@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -42,12 +43,12 @@ const val MAX_RENDER_HEIGHT = 1024
 
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
-private fun createRenderTask(facet: AndroidFacet,
+private fun createRenderTask(buildTarget: BuildTargetReference,
                              xmlFile: XmlFile,
                              configuration: Configuration
 ): CompletableFuture<RenderTask?> {
-  return StudioRenderService.getInstance(facet.module.project)
-    .taskBuilder(facet, configuration)
+  return StudioRenderService.getInstance(buildTarget.project)
+    .taskBuilder(buildTarget, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
@@ -62,7 +63,7 @@ class LayoutRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: (AndroidFacet, XmlFile, Configuration) -> CompletableFuture<RenderTask?>,
+  private val renderTaskProvider: (BuildTargetReference, XmlFile, Configuration) -> CompletableFuture<RenderTask?>,
   private val futuresManager: ImageFuturesManager<VirtualFile>
 ) : AndroidFacetScopedService(facet) {
 
@@ -78,7 +79,7 @@ constructor(
   }
 
   private fun getImage(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    val renderTaskFuture = renderTaskProvider(facet, xmlFile, configuration)
+    val renderTaskFuture = renderTaskProvider(BuildTargetReference.gradleOnly(facet), xmlFile, configuration)
     return renderTaskFuture.thenCompose { it?.render() }
       .thenApplyAsync(Function<RenderResult?, BufferedImage?> {
         if (it == null) {

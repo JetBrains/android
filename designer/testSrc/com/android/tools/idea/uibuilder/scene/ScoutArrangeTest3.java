@@ -64,7 +64,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "    android:id=\"@+id/textview2\"\n" +
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
     NlWriteCommandActionUtil
@@ -97,7 +97,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "    android:id=\"@+id/textview2\"\n" +
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
     NlWriteCommandActionUtil
@@ -130,7 +130,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "    android:id=\"@+id/textview2\"\n" +
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
     NlWriteCommandActionUtil
@@ -163,7 +163,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "    android:id=\"@+id/textview2\"\n" +
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
     NlWriteCommandActionUtil

@@ -130,31 +130,5 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ToggleRenderModeAction());
-  }
-
-  static class ToggleRenderModeAction extends ToggleViewAction {
-    ToggleRenderModeAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.VIEWPORT_RENDER, StudioIcons.LayoutEditor.Toolbar.NORMAL_RENDER, "Toggle Viewport Render Mode", null);
-    }
-
-    @Override
-    public boolean isSelected(@NotNull ViewEditor editor,
-                              @NotNull ViewHandler handler,
-                              @NotNull NlComponent parent,
-                              @NotNull List<NlComponent> selectedChildren) {
-      return LayoutlibSceneManager.isRenderViewPort();
-    }
-
-    @Override
-    public void setSelected(@NotNull ViewEditor editor,
-                            @NotNull ViewHandler handler,
-                            @NotNull NlComponent parent,
-                            @NotNull List<NlComponent> selectedChildren,
-                            boolean selected) {
-      LayoutlibSceneManager.setRenderViewPort(selected);
-      editor.getSceneBuilder().requestRenderAsync();
-    }
-  }
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {}
 }

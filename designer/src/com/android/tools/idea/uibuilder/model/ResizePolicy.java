@@ -211,16 +211,4 @@ public class ResizePolicy {
 
     return null;
   }
-
-  /**
-   * Returns the {@link ResizePolicy} for the given component
-   *
-   * @param component the component to look up a resize policy for
-   * @return a suitable {@linkplain ResizePolicy}
-   */
-  @NotNull
-  public static ResizePolicy getResizePolicy(@NotNull NlComponent component) {
-    // TODO: Look up from metadata
-    return ourAny;
-  }
 }

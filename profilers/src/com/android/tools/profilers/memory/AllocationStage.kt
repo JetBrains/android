@@ -28,7 +28,11 @@ import kotlin.random.Random
 /**
  * This class implements a stage tracking allocations, either live or finished
  */
-class AllocationStage private constructor(profilers: StudioProfilers, loader: CaptureObjectLoader, initMinUs: Double, initMaxUs: Double)
+class AllocationStage private constructor(profilers: StudioProfilers,
+                                          loader: CaptureObjectLoader,
+                                          initMinUs: Double,
+                                          initMaxUs: Double,
+                                          val stopTask: () -> Unit = {})
   : BaseStreamingMemoryProfilerStage(profilers, loader) {
 
   // The boundaries of the allocation tracking period.
@@ -99,7 +103,9 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       timeline.selectionRange.set(minTrackingTimeUs, maxTrackingTimeUs)
       // Entering a static allocation stage indicates the opening of a task recorded in the past.
-      trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
+      if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        trackTaskFinished(studioProfilers, false, TaskFinishedState.COMPLETED)
+      }
     } else {
       startTracking()
     }
@@ -130,12 +136,11 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   fun stopTrackingDueToUnattachableAgent() {
     stopTracking()
     hasAgentError = true
-    TaskEventTrackerUtils.trackStartTaskFailed(
-      studioProfilers,
-      studioProfilers.sessionsManager.isSessionAlive,
-      TaskStartFailedMetadata(
-        allocationTrackStatus = TrackStatus.newBuilder().setStatus(
-          TrackStatus.Status.AGENT_UNATTACHABLE).build(), traceStartStatus = null, heapDumpStatus = null))
+    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      TaskEventTrackerUtils.trackStartTaskFailed(studioProfilers, studioProfilers.sessionsManager.isSessionAlive, TaskStartFailedMetadata(
+        allocationTrackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.AGENT_UNATTACHABLE).build(), traceStartStatus = null,
+        heapDumpStatus = null))
+    }
     aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
   }
 
@@ -182,29 +187,44 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     ) { status ->
       when (status?.status) {
         TrackStatus.Status.SUCCESS -> {
+          if (enable) {
+            logger.info("PROFILER: Java/Kotlin Allocations capture start succeeded")
+          }
           // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
-          if (!enable) trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+          else {
+            if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+              trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+            }
+            logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
+          }
         }
         TrackStatus.Status.IN_PROGRESS, TrackStatus.Status.NOT_ENABLED -> {
           // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
         }
         else -> {
+          val isTaskBasedUxEnabled = studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
           // TrackStatus.Status.UNSPECIFIED, TrackStatus.Status.NOT_PROFILING,
           // TrackStatus.Status.FAILURE_UNKNOWN, TrackStatus.Status.UNRECOGNIZED, status is null
           // All these cases denotes there is failure.
           if (enable) {
             // start task failure
-            TaskEventTrackerUtils.trackStartTaskFailed(
-              studioProfilers,
-              studioProfilers.sessionsManager.isSessionAlive,
-              TaskStartFailedMetadata(allocationTrackStatus = status, traceStartStatus = null, heapDumpStatus = null))
+            if (isTaskBasedUxEnabled) {
+              TaskEventTrackerUtils.trackStartTaskFailed(
+                studioProfilers,
+                studioProfilers.sessionsManager.isSessionAlive,
+                TaskStartFailedMetadata(allocationTrackStatus = status, traceStartStatus = null, heapDumpStatus = null))
+            }
+            logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
           }
           else {
             // stop task failure
-            TaskEventTrackerUtils.trackStopTaskFailed(
-              studioProfilers,
-              studioProfilers.sessionsManager.isSessionAlive,
-              TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+            if (isTaskBasedUxEnabled) {
+              TaskEventTrackerUtils.trackStopTaskFailed(
+                studioProfilers,
+                studioProfilers.sessionsManager.isSessionAlive,
+                TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+            }
+            logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }
         }
       }
@@ -212,6 +232,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
 
   fun stopTracking() {
+    logger.info("PROFILER: Java/Kotlin Allocations capture stop attempted")
     if (!hasEndedTracking) {
       aspect.removeDependencies(this)
       timeline.dataRange.removeDependencies(this)
@@ -244,6 +265,13 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     @JvmStatic @JvmOverloads
     fun makeLiveStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader()) =
       AllocationStage(profilers, loader, NEGATIVE_INFINITY, POSITIVE_INFINITY)
+
+    /**
+     * Constructor for live AllocationStage utilized for the Java/Kotlin Allocations task.
+     */
+    @JvmStatic
+    fun makeLiveStage(profilers: StudioProfilers, stopTask: Runnable) =
+      AllocationStage(profilers, CaptureObjectLoader(), NEGATIVE_INFINITY, POSITIVE_INFINITY) { stopTask.run() }
 
     @JvmStatic @JvmOverloads
     fun makeStaticStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader(),

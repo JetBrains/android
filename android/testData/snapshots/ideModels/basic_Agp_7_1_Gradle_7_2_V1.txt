@@ -23,8 +23,6 @@ MODULE                        : project
         GenFolderRelativePathAidl     : /gen
         ManifestFileRelativePath      : /src/main/AndroidManifest.xml
         ResFolderRelativePath         : /src/main/res
-        - ResFoldersRelativePath      :  [-]
-        - TestResFoldersRelativePath  :  [-]
         AssetsFolderRelativePath      : /src/main/assets
         LibsFolderRelativePath        : /libs
         ProjectType                   : 0

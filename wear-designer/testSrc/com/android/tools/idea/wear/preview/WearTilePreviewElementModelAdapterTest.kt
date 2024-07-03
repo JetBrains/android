@@ -37,16 +37,15 @@ private fun wearTilePreviewElement(
     previewElementDefinition = previewElementDefinitionPsi,
     previewBody = previewBodyPsi,
     methodFqn = methodFqn,
-    configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
+    configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
   )
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
 }
 
-private fun simplestDisplaySettings(
-  name: String = ""
-) = PreviewDisplaySettings(name, null, false, false, null)
+private fun simplestDisplaySettings(name: String = "") =
+  PreviewDisplaySettings(name, null, false, false, null)
 
 class WearTilePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
@@ -102,9 +101,9 @@ class WearTilePreviewElementModelAdapterTest {
             previewElementDefinition = null,
             previewBody = null,
             methodFqn = "foo",
-            configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round")
+            configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
           )
-        )
+        ),
     )
   }
 

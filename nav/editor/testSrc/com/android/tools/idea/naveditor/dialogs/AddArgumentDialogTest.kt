@@ -66,7 +66,7 @@ class AddArgumentDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    AddArgumentDialog(null, model.find("fragment1")!!, testClassChooserFactory).runAndClose { dialog ->
+    AddArgumentDialog(null, model.treeReader.find("fragment1")!!, testClassChooserFactory).runAndClose { dialog ->
       assertNotNull(dialog.doValidate())
 
       dialog.name = "myArgument"
@@ -117,7 +117,7 @@ class AddArgumentDialogTest : NavTestCase() {
         }
       }
     }
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     AddArgumentDialog(fragment1.getChild(0), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument", dialog.name)
       assertEquals("integer", dialog.type)
@@ -148,7 +148,7 @@ class AddArgumentDialogTest : NavTestCase() {
         }
       }
     }
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose { dialog ->
 
       assertTrue(dialog.dialogUI.myDefaultValueComboBox.isVisible)
@@ -189,7 +189,7 @@ class AddArgumentDialogTest : NavTestCase() {
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     fragment1.children.forEach {
       AddArgumentDialog(it, fragment1, testClassChooserFactory).runAndClose { dialog ->
         assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
@@ -226,7 +226,7 @@ class AddArgumentDialogTest : NavTestCase() {
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       for (t in listOf(
@@ -282,7 +282,7 @@ class AddArgumentDialogTest : NavTestCase() {
   }
 
   private fun testParcelable(model: SyncNlModel, classChooser: TreeClassChooser, jvmName: String) {
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     val psiClass = ClassUtil.findPsiClass(PsiManager.getInstance(project), jvmName)
 
     classChooser.select(psiClass)
@@ -305,7 +305,7 @@ class AddArgumentDialogTest : NavTestCase() {
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
@@ -330,7 +330,7 @@ class AddArgumentDialogTest : NavTestCase() {
     whenever(classChooser.selected).thenReturn(innerClass)
     testClassChooser.select(innerClass)
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
@@ -358,7 +358,7 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1, factory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
@@ -379,7 +379,7 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val f1 = model.find("f1")!!
+    val f1 = model.treeReader.find("f1")!!
 
     AddArgumentDialog(null, f1, testClassChooserFactory).runAndClose { dialog ->
       dialog.name = "myArgument"

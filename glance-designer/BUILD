@@ -41,6 +41,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -57,5 +58,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/intellij.android.compose-common[module, test]",
     ],
 )

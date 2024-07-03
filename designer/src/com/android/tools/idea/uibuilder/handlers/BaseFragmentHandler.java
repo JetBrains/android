@@ -123,7 +123,6 @@ class BaseFragmentHandler extends ViewHandler {
     return ViewEditor.displayClassInput(model,
                                         "Fragments",
                                         Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName()),
-                                        null,
                                         existingValue);
   }
 

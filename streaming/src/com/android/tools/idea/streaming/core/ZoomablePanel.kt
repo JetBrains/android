@@ -97,16 +97,14 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return true
   }
 
-  override fun canZoomIn(): Boolean {
-    return canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
-  }
+  override fun canZoomIn(): Boolean =
+      canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
 
-  override fun canZoomOut(): Boolean {
-    return canZoom() && (computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
-  }
+  override fun canZoomOut(): Boolean =
+      canZoom() && (computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
 
   override fun canZoomToActual(): Boolean =
-    canZoom() && (computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
+      canZoom() && (computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
 
   override fun canZoomToFit(): Boolean {
     if (!canZoom()) {
@@ -123,6 +121,12 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return roundedScale < scaleToFit
   }
 
+  fun resetZoom() {
+    preferredSize = null
+    fractionalScaleRange = 0.0
+    revalidate()
+  }
+
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
     super.setBounds(x, y, width, height)
     if (fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(computeMaxImageSize()))) {
@@ -134,7 +138,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
    * Computes the maximum allowed size of the device display image in physical pixels.
    */
   protected fun computeMaxImageSize(): Dimension =
-    (explicitlySetPreferredSize ?: size).scaled(screenScale)
+      (explicitlySetPreferredSize ?: size).scaled(screenScale)
 
   /**
    * Computes the preferred size in virtual pixels after the given zoom operation.
@@ -203,10 +207,10 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   }
 
   private fun computeScaleToFitInParent() =
-    computeScaleToFit(computeAvailableSize())
+      computeScaleToFit(computeAvailableSize())
 
   private fun computeScaleToFit(availableSize: Dimension): Double =
-    computeScaleToFit(computeActualSize(), availableSize)
+      computeScaleToFit(computeActualSize(), availableSize)
 
   private fun computeScaleToFit(actualSize: Dimension, availableSize: Dimension): Double {
     if (actualSize.width == 0 || actualSize.height == 0) {
@@ -216,11 +220,11 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   }
 
   private fun roundDownIfGreaterThanOne(scale: Double): Double =
-    if (scale <= 1.0) scale else floor(scale)
+      if (scale <= 1.0) scale else floor(scale)
 
   private fun isFractionalGreaterThanOne(scale: Double): Boolean =
-    scale > 1.0 && floor(scale) != scale
+      scale > 1.0 && floor(scale) != scale
 
   private fun computeAvailableSize(): Dimension =
-    parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
+      parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
 }

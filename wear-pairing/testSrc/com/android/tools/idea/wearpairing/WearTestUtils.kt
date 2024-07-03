@@ -25,7 +25,8 @@ import com.google.common.util.concurrent.Futures
 import org.mockito.Mockito
 
 private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
-  MockitoKt.whenever(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
+  MockitoKt.whenever(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer {
+    invocation ->
     val request = invocation.arguments[0] as String
     val receiver = invocation.arguments[1] as IShellOutputReceiver
     val reply = requestHandler(request)
@@ -39,7 +40,9 @@ internal fun PairingDevice.buildIDevice(
   avdInfo: AvdInfo? = null,
   systemProperties: Map<String, String> = emptyMap(),
   properties: Map<String, String> = emptyMap(),
-  shellCommandHandler: (String) -> (String) = { throw IllegalStateException("Unknown ADB request $it") }
+  shellCommandHandler: (String) -> (String) = {
+    throw IllegalStateException("Unknown ADB request $it")
+  },
 ): IDevice {
   return Mockito.mock(IDevice::class.java).apply {
     MockitoKt.whenever(arePropertiesSet()).thenReturn(true)
@@ -55,11 +58,13 @@ internal fun PairingDevice.buildIDevice(
     MockitoKt.whenever(this.avdData).thenAnswer {
       if (avdInfo != null) {
         Futures.immediateFuture(
-          AvdData(avdInfo.name,
+          AvdData(
+            avdInfo.name,
             // The path is formatted in this way as a regression test for b/275128556
-                  avdInfo.dataFolderPath.resolve("..").resolve(avdInfo.dataFolderPath)))
-      }
-      else {
+            avdInfo.dataFolderPath.resolve("..").resolve(avdInfo.dataFolderPath),
+          )
+        )
+      } else {
         Futures.immediateFuture(null)
       }
     }
@@ -71,26 +76,24 @@ internal fun PairingDevice.buildIDevice(
   }
 }
 
-/**
- * Method that simulates the handling of ADB requests by a phone device.
- */
+/** Method that simulates the handling of ADB requests by a phone device. */
 internal fun handlePhoneAdbRequest(request: String): String? =
   when {
     request == "cat /proc/uptime" -> "500"
-    request.contains("grep versionCode") -> "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
+    request.contains("grep versionCode") ->
+      "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
     request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null
   }
 
-/**
- * Method that simulates the handling of ADB requests by a Wear device.
- */
+/** Method that simulates the handling of ADB requests by a Wear device. */
 internal fun handleWearAdbRequest(request: String): String? =
   when {
     request == "cat /proc/uptime" -> "500"
     request == "am force-stop com.google.android.gms" -> "OK"
-    request.contains("grep versionCode") -> "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
+    request.contains("grep versionCode") ->
+      "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
     request == "am broadcast -a com.google.android.gms.INITIALIZE" -> "OK"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null

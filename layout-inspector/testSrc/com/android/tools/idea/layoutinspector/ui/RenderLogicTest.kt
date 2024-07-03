@@ -96,7 +96,7 @@ class RenderLogicTest {
 
   @Before
   fun setUp() {
-    treeSettings = FakeTreeSettings()
+    treeSettings = FakeTreeSettings(showRecompositions = false)
     renderSettings = FakeRenderSettings()
   }
 

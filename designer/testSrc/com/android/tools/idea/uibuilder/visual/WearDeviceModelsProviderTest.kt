@@ -42,7 +42,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = WearDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
@@ -54,7 +54,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     // Round and Circle device must be portrait, and Chin device must be landscape
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = WearDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     assertNotEmpty(nlModels)
 
@@ -71,7 +71,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/drawable/test.xml", DRAWABLE_FILE_CONTENT)
 
     val modelsProvider = WearDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertEmpty(nlModels)
   }
 
@@ -79,7 +79,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = WearDeviceModelsProvider
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
-    modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
     Disposer.dispose(manager)
     TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
@@ -95,7 +95,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = WearDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, false)

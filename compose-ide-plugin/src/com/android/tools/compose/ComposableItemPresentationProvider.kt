@@ -48,9 +48,9 @@ class ComposableItemPresentationProvider : ItemPresentationProvider<KtFunction> 
         append("@Composable")
         function.name?.let { append(" $it") }
 
-        function.getComposableFunctionRenderParts()?.let { (parameters, tail) ->
-          parameters?.let { append(it) }
-          tail?.let { append(" $it") }
+        function.getComposableFunctionRenderParts()?.let { parts ->
+          parts.parameters?.let { append(it) }
+          parts.tail?.let { append(" $it") }
         }
       }
     }

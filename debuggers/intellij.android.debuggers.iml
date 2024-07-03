@@ -51,5 +51,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.coroutines" />
+    <orderEntry type="module" module-name="intellij.java" />
   </component>
 </module>

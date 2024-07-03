@@ -42,31 +42,29 @@ constructor(
     super.deleteElement(dataContext)
   }
 
-  override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
+  override val flavor: DataFlavor = ItemTransferable.DESIGNER_FLAVOR
 
-  override fun getPasteTarget(): NlComponent? {
-    val sceneView = mySurface.focusedSceneView ?: return null
+  override val pasteTarget: NlComponent?
+    get() {
+      val sceneView = mySurface.focusedSceneView ?: return null
 
-    val selection = mySurface.selectionModel.selection
-    if (selection.size > 1) {
-      return null
-    }
-    var receiver: NlComponent? = if (!selection.isEmpty()) selection[0] else null
-
-    if (receiver == null) {
-      // In the case where there is no selection but we only have a root component, use that one
-      val components = sceneView.sceneManager.model.components
-      if (components.size == 1) {
-        receiver = components[0]
+      val selection = mySurface.selectionModel.selection
+      if (selection.size > 1) {
+        return null
       }
-    }
-    return receiver
-  }
+      var receiver: NlComponent? = if (selection.isNotEmpty()) selection[0] else null
 
-  override fun canHandleChildren(
-    component: NlComponent,
-    pasted: MutableList<NlComponent>,
-  ): Boolean {
+      if (receiver == null) {
+        // In the case where there is no selection but we only have a root component, use that one
+        val components = sceneView.sceneManager.model.treeReader.components
+        if (components.size == 1) {
+          receiver = components[0]
+        }
+      }
+      return receiver
+    }
+
+  override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean {
     val handlerManager = ViewHandlerManager.get(component.model.project)
     val handler = handlerManager.getHandler(component) {}
     return handler is ViewGroupHandler

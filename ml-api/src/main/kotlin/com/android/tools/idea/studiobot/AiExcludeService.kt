@@ -36,7 +36,9 @@ import org.jetbrains.annotations.TestOnly
  * See
  * [aiexclude Documentation](https://developer.android.com/studio/preview/gemini/data-and-privacy#aiexclude).
  */
-abstract class AiExcludeService {
+interface AiExcludeService {
+  val project: Project
+
   /**
    * Returns `true` if one or more `.aiexclude` files in [project] block [file], if [file] is not
    * part of [project], or if the file's exclusion cannot currently be ruled out.
@@ -44,11 +46,10 @@ abstract class AiExcludeService {
    * If you need to know _why_ the file is excluded, consider calling [getFileExclusionStatus]
    * instead.
    */
-  fun isFileExcluded(project: Project, file: VirtualFile) =
-    getFileExclusionStatus(project, file) != ExclusionStatus.ALLOWED
+  fun isFileExcluded(file: VirtualFile) = getFileExclusionStatus(file) != ExclusionStatus.ALLOWED
 
   /** Returns the status of [file], with respect to [project]'s `.aiexclude` configuration. */
-  abstract fun getFileExclusionStatus(project: Project, file: VirtualFile): ExclusionStatus
+  fun getFileExclusionStatus(file: VirtualFile): ExclusionStatus
 
   /**
    * Returns the [List] of `.aiexclude` files in [project] that block [file]. This can only be
@@ -59,20 +60,19 @@ abstract class AiExcludeService {
    * The [List] may be empty if [file] is blocked because it is outside the project, instead of
    * because of an aiexclude rule.
    */
-  @RequiresReadLock
-  abstract fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile>
+  @RequiresReadLock fun getBlockingFiles(file: VirtualFile): List<VirtualFile>
 
   @TestOnly
-  class FakeAiExcludeService : AiExcludeService() {
+  class FakeAiExcludeService(override val project: Project) : AiExcludeService {
     var defaultStatus: ExclusionStatus = ExclusionStatus.ALLOWED
     var defaultBlockingFiles: List<VirtualFile> = listOf()
     val fileStatus: MutableMap<VirtualFile, ExclusionStatus> = mutableMapOf()
     val blockingFiles: MutableMap<VirtualFile, List<VirtualFile>> = mutableMapOf()
 
-    override fun getBlockingFiles(project: Project, file: VirtualFile): List<VirtualFile> =
+    override fun getBlockingFiles(file: VirtualFile): List<VirtualFile> =
       blockingFiles[file] ?: defaultBlockingFiles
 
-    override fun getFileExclusionStatus(project: Project, file: VirtualFile): ExclusionStatus =
+    override fun getFileExclusionStatus(file: VirtualFile): ExclusionStatus =
       fileStatus[file] ?: defaultStatus
   }
 

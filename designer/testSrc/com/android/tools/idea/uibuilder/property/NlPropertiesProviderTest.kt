@@ -308,6 +308,6 @@ class NlPropertiesProviderTest {
     val builder =
       NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "view.xml", component(VIEW))
     val nlModel = builder.build()
-    return nlModel.components
+    return nlModel.treeReader.components
   }
 }

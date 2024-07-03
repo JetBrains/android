@@ -151,8 +151,6 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       Disposer.register(project, view)
       toolWindow.contentManager.addContent(content)
 
-      Disposer.register(content) { PROJECT_PROFILER_MAP.remove(project) }
-
       // Forcibly synchronize the Tool Window to a visible state. Otherwise, the Tool Window may not auto-hide correctly.
       toolWindow.show(null)
     }
@@ -170,6 +168,9 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       }
       toolWindow.setIcon(icon)
       PROJECT_PROFILER_MAP[project] = profilerToolWindow
+      Disposer.register(profilerToolWindow) {
+        PROJECT_PROFILER_MAP.remove(project)
+      }
       return profilerToolWindow
     }
 

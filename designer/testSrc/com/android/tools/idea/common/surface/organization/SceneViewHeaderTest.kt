@@ -18,12 +18,14 @@ package com.android.tools.idea.common.surface.organization
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI.scale
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,7 +81,8 @@ class SceneViewHeaderTest {
   @Test
   fun organizationGroupIsSet() {
     val (_, header) = setupHeaderAndParent()
-    assertEquals("Organization", header.positionableAdapter.organizationGroup)
+    assertNotNull(header.positionableAdapter.organizationGroup)
+    assertInstanceOf<OrganizationGroup>(header.positionableAdapter.organizationGroup)
   }
 
   @Test
@@ -93,7 +96,7 @@ class SceneViewHeaderTest {
 
     header.positionableAdapter.setLocation(22, 33)
 
-    // Updated location location
+    // Updated location
     assertEquals(22, header.x)
     assertEquals(33, header.y)
     assertEquals(22, header.positionableAdapter.x)
@@ -107,7 +110,10 @@ class SceneViewHeaderTest {
         size = Dimension(300, 300)
         layout = null
       }
-    val header = SceneViewHeader(parent, "Organization", "Name") { JBLabel(it.displayName.value) }
+    val header =
+      SceneViewHeader(parent, OrganizationGroup("Organization", "Name")) {
+        JBLabel(it.displayName.value)
+      }
     parent.add(header)
     return parent to header
   }

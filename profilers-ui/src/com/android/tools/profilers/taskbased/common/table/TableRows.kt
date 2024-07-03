@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.common.table
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -26,20 +27,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EllipsesText(text: String) {
-  Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-}
-
-@Composable
-fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
+fun LeftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
   with(rowScope) {
     Box(
       modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 5.dp),
@@ -47,23 +45,24 @@ fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: 
     ) {
       Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         iconPainter?.let {
-          Icon(
-            painter = it,
-            contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
-          )
+          Tooltip(
+            { Text(TaskBasedUxStrings.PREFERRED_PROCESS_TOOLTIP) }
+          ) {
+            Icon(painter = it, contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC)
+          }
         }
-        EllipsesText(text = text)
+        EllipsisText(text = text)
       }
     }
   }
 }
 
 @Composable
-fun rightAlignedColumnText(text: String, colWidth: Dp) {
+fun RightAlignedColumnText(text: String, colWidth: Dp) {
   Box(
     modifier = Modifier.width(colWidth).fillMaxHeight().padding(horizontal = 5.dp),
     contentAlignment = Alignment.CenterEnd
   ) {
-    EllipsesText(text = text)
+    EllipsisText(text = text)
   }
 }

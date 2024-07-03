@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -55,7 +55,7 @@ class ComposeShowFilterAction :
 class ComposeHideFilterAction :
   AnAction(null, null, AllIcons.Actions.Close), CustomComponentAction, RightAlignedToolbarAction {
   init {
-    templatePresentation.putClientProperty(ComposeStatus.TEXT_POSITION, SwingConstants.LEADING)
+    templatePresentation.putClientProperty(IdeStatus.TEXT_POSITION, SwingConstants.LEADING)
   }
 
   @Suppress("DialogTitleCapitalization")

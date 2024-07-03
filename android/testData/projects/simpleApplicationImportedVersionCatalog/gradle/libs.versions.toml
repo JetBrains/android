@@ -1,0 +1,12 @@
+[versions]
+constraint-layout = "1.0.2"
+guava = "19.0"
+junit = "4.12"
+
+[libraries]
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+junit = { module = "junit:junit", version.ref = "junit" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version = "2.5.0" }
+
+# TODO: plugin declaration of AGP

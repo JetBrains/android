@@ -15,37 +15,52 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.actions.PasteWithIdOptionAction;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RuleChain;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+@RunsInEdt
+public class NlDesignSurfaceActionHandlerTest {
+  private final AndroidProjectRule myProjectRule = AndroidProjectRule.withSdk();
 
-import static com.android.SdkConstants.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotEquals;
-
-public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
+  @Rule
+  public RuleChain chain = new RuleChain(myProjectRule, new EdtRule());
 
   private NlDesignSurface mySurface;
   private Disposable myDisposable;
@@ -58,14 +73,12 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
 
   private final DataContext context = DataContext.EMPTY_CONTEXT;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     myModel = createModel();
     // If using a lambda, it can be reused by the JVM and causing a Exception because the Disposable is already disposed.
     myDisposable = Disposer.newDisposable();
-    mySurface = NlDesignSurface.builder(getProject(), myDisposable)
-      .setSceneManagerProvider((surface, model) -> {
+    mySurface = NlDesignSurface.builder(myProjectRule.getProject(), myDisposable, (surface, model) -> {
         SyncLayoutlibSceneManager manager = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel((SyncNlModel)model);
         manager.setIgnoreRenderRequests(true);
         return manager;
@@ -79,71 +92,73 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     myTextView = findFirst(TEXT_VIEW);
   }
 
-  @Override
+  @After
   public void tearDown() throws Exception {
-    try {
-      Disposer.dispose(myModel);
-      Disposer.dispose(myDisposable);
-      myButton = null;
-      myTextView = null;
-      mySurfaceActionHandler = null;
-    }
-    finally {
-      super.tearDown();
-    }
+    Disposer.dispose(myModel);
+    Disposer.dispose(myDisposable);
+    myButton = null;
+    myTextView = null;
+    mySurfaceActionHandler = null;
   }
 
+  @Test
   public void testCopyIsNotAvailableWhenNothingIsSelected() {
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isFalse();
     mySurfaceActionHandler.performCopy(context);
   }
 
+  @Test
   public void testCopyIsWhenNothingIsSelected() {
-    assertNoException(NullPointerException.class, () -> new NlDesignSurfaceActionHandler(mySurface).performCopy(context));
+    // Check that there are no exceptions creating a handler:
+    new NlDesignSurfaceActionHandler(mySurface).performCopy(context);
   }
 
+  @Test
   public void testCopyMultiple() {
     mySurface.getSelectionModel().toggle(myTextView);
     mySurface.getSelectionModel().toggle(myButton);
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isTrue();
-    assertNull(myCopyPasteManager.getContents());
+    assertThat(myCopyPasteManager.getContents()).isNull();
     mySurfaceActionHandler.performCopy(context);
-    assertNotNull(myCopyPasteManager.getContents());
+    assertThat(myCopyPasteManager.getContents()).isNotNull();
   }
 
+  @Test
   public void testCopyWithOneComponentSelected() {
     mySurface.getSelectionModel().toggle(myTextView);
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isTrue();
-    assertNull(myCopyPasteManager.getContents());
+    assertThat(myCopyPasteManager.getContents()).isNull();
     mySurfaceActionHandler.performCopy(context);
-    assertNotNull(myCopyPasteManager.getContents());
+    assertThat(myCopyPasteManager.getContents()).isNotNull();
   }
 
-  // Disabled because it is flaky: b/157650498
-  public void ignore_testPasteWillChangeSelectionToPastedComponent() {
+  @Test
+  public void testPasteWillChangeSelectionToPastedComponent() {
     // Need to use the real copyPasteManager for checking the result of selection model.
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 
-    assertEquals(3, myModel.getComponents().get(0).getChildCount());
+    assertThat(myModel.getTreeReader().getComponents().get(0).getChildCount()).isEqualTo(3);
 
     mySurface.getSelectionModel().toggle(myTextView);
-    assertEquals(1, mySurface.getSelectionModel().getSelection().size());
-    assertEquals(myTextView, mySurface.getSelectionModel().getSelection().get(0));
+    assertThat(mySurface.getSelectionModel().getSelection().size()).isEqualTo(1);
+    assertThat(mySurface.getSelectionModel().getSelection().get(0)).isSameAs(myTextView);
 
     mySurfaceActionHandler.performCopy(context);
     mySurfaceActionHandler.performPaste(context);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-    assertEquals(4, myModel.getComponents().get(0).getChildCount());
-    assertEquals(1, mySurface.getSelectionModel().getSelection().size());
+    assertThat(myModel.getTreeReader().getComponents().get(0).getChildCount()).isEqualTo(4);
+    assertThat(mySurface.getSelectionModel().getSelection().size()).isEqualTo(1);
     // Paste will put the item before the original one
-    assertEquals(myModel.getComponents().get(0).getChild(1), myTextView);
-    assertEquals(myModel.getComponents().get(0).getChild(2), mySurface.getSelectionModel().getSelection().get(0));
-    assertNotEquals(myModel.getComponents().get(0).getChild(2), myTextView);
+    assertThat(myModel.getTreeReader().getComponents().get(0).getChild(1)).isSameAs(myTextView);
+    assertThat(myModel.getTreeReader().getComponents().get(0).getChild(2)).isSameAs(mySurface.getSelectionModel().getSelection().get(0));
+    assertThat(myModel.getTreeReader().getComponents().get(0).getChild(2)).isNotSameAs(myTextView);
   }
 
+  @Test
   public void testPasteResourceUrl() {
     Transferable content = new Transferable() {
 
@@ -166,72 +181,95 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     myCopyPasteManager.setContents(content);
     mySurfaceActionHandler.performPaste(context);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    assertNotNull(findFirst("ImageView"));
+    assertThat(findFirst("ImageView")).isNotNull();
+  }
+
+  @Test
+  public void testPasteGenerateNewIdsWithContext() {
+    DataContext newContext = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? true : null;
+      }
+    };
+    copyTextViewAndPaste(newContext);
+    List<NlComponent> textComponents = findAll(TEXT_VIEW);
+    assertThat(textComponents).hasSize(2);
+    assertThat(textComponents.stream().map(NlComponent::getId).toList()).containsExactly("myText", "myText2");
+  }
+
+  @Test
+  public void testPasteUsingOldIdsWithContext() {
+    DataContext newContext = new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? false : null;
+      }
+    };
+    copyTextViewAndPaste(newContext);
+    List<NlComponent> textComponents = findAll(TEXT_VIEW);
+    assertThat(textComponents).hasSize(2);
+    assertThat(textComponents.stream().map(NlComponent::getId).toList()).containsExactly("myText", "myText");
+  }
+
+  private void copyTextViewAndPaste(@NotNull DataContext context) {
+    mySurface.getSelectionModel().toggle(myTextView);
+    mySurfaceActionHandler.performCopy(context);
+    mySurface.getSelectionModel().toggle(myTextView);
+    mySurface.getSelectionModel().toggle(findFirst(LINEAR_LAYOUT));
+    mySurfaceActionHandler.performPaste(context);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
   @NotNull
   private SyncNlModel createModel() {
-    ModelBuilder builder = model("relative.xml",
-                                 component(RELATIVE_LAYOUT)
+    ModelBuilder builder = NlModelBuilderUtil.model(myProjectRule, "layout", "relative.xml",
+                                                    new ComponentDescriptor(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
                                    .children(
-                                     component(LINEAR_LAYOUT)
+                                     new ComponentDescriptor(LINEAR_LAYOUT)
                                        .withBounds(0, 0, 200, 200)
                                        .wrapContentWidth()
                                        .wrapContentHeight()
                                        .children(
-                                         component(BUTTON)
+                                         new ComponentDescriptor(BUTTON)
                                            .withBounds(0, 0, 100, 100)
                                            .id("@+id/myButton")
                                            .width("100dp")
                                            .height("100dp")),
-                                     component(TEXT_VIEW)
+                                     new ComponentDescriptor(TEXT_VIEW)
                                        .withBounds(0, 200, 100, 100)
                                        .id("@+id/myText")
                                        .width("100dp")
                                        .height("100dp"),
-                                     component(ABSOLUTE_LAYOUT)
+                                     new ComponentDescriptor(ABSOLUTE_LAYOUT)
                                        .withBounds(0, 300, 400, 500)
                                        .width("400dp")
                                        .height("500dp")));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
-    assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
-                 "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
-                 "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
-                 "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
-                 "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+    assertThat(model.getTreeReader().getComponents().size()).isEqualTo(1);
+    assertThat(NlTreeDumper.dumpTree(model.getTreeReader().getComponents())).isEqualTo("""
+          NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}
+              NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}
+                  NlComponent{tag=<Button>, bounds=[0,0:100x100}
+              NlComponent{tag=<TextView>, bounds=[0,200:100x100}
+              NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}""");
     return model;
   }
 
   @NotNull
   private NlComponent findFirst(@NotNull String tagName) {
-    NlComponent component = findFirst(tagName, myModel.getComponents());
-    assert component != null;
-    return component;
+    Optional<NlComponent> first = findAll(tagName).stream().findFirst();
+    assertThat(first.isPresent()).isTrue();
+    return first.get();
   }
 
-  @Nullable
-  private static NlComponent findFirst(@NotNull String tagName, @NotNull List<NlComponent> components) {
-    for (NlComponent component : components) {
-      if (component.getTagName().equals(tagName)) {
-        return component;
-      }
-      NlComponent child = findFirst(tagName, component.getChildren());
-      if (child != null) {
-        return child;
-      }
-    }
-    return null;
-  }
-
-  public void testFoo1() {
-    ImmutableList<Integer> l1 = ImmutableList.of(1);
-    List<Integer> l2 = new ArrayList<>();
-    l2.add(1);
-    l2.equals(l1);
+  private List<NlComponent> findAll(@NotNull String tagName) {
+    return myModel.getTreeReader().getComponents().stream()
+      .flatMap(NlComponent::flatten)
+      .filter(component -> component.getTagName().equals(tagName))
+      .toList();
   }
 }

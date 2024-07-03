@@ -365,7 +365,7 @@ internal class AudioDecoder(
 
     override fun run() {
       val audioFormat = AudioFormat(sampleRate.toFloat(), 16, numChannels, true, false)
-      val sourceLine = ApplicationManager.getApplication().service<AudioSystemService>().getSourceDataLine(audioFormat)
+      val sourceLine = service<AudioSystemService>().getSourceDataLine(audioFormat)
       sourceLine.open(audioFormat)
       sourceLine.start()
 

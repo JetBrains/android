@@ -16,10 +16,12 @@
 package org.jetbrains.kotlin.android.models
 
 import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags
+import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags.BooleanFlag as ProtoBooleanFlag
 import com.android.builder.model.proto.ide.AndroidVersion
 import com.android.builder.model.proto.ide.Library
 import com.android.builder.model.proto.ide.SigningConfig
 import com.android.builder.model.proto.ide.TestInfo
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
@@ -169,30 +171,37 @@ class KotlinModelConverter {
   }
 
   private fun AndroidGradlePluginProjectFlags.convert() = IdeAndroidGradlePluginProjectFlagsImpl(
-    applicationRClassConstantIds = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS
-    }.value,
-    testRClassConstantIds = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS
-    }.value,
-    transitiveRClasses = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS
-    }.value,
-    usesCompose = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE
-    }.value,
-    mlModelBindingEnabled = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
-    }.value,
-    androidResourcesEnabled = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
-    }.value,
-    unifiedTestPlatformEnabled = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM
-    }.value,
-    useAndroidX = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X
-    }.value,
+    applicationRClassConstantIds = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS
+    }?.value ?: BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.legacyDefault,
+
+    testRClassConstantIds = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.TEST_R_CLASS_CONSTANT_IDS
+    }?.value ?: BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.legacyDefault,
+
+    transitiveRClasses = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.TRANSITIVE_R_CLASS
+    }?.value ?: BooleanFlag.TRANSITIVE_R_CLASS.legacyDefault,
+
+    usesCompose = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.JETPACK_COMPOSE
+    }?.value ?: BooleanFlag.JETPACK_COMPOSE.legacyDefault,
+
+    mlModelBindingEnabled = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.ML_MODEL_BINDING
+    }?.value ?: BooleanFlag.ML_MODEL_BINDING.legacyDefault,
+
+    androidResourcesEnabled = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES
+    }?.value ?: BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES.legacyDefault,
+
+    unifiedTestPlatformEnabled = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.UNIFIED_TEST_PLATFORM
+    }?.value ?: BooleanFlag.UNIFIED_TEST_PLATFORM.legacyDefault,
+
+    useAndroidX = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.USE_ANDROID_X
+    }?.value ?: BooleanFlag.USE_ANDROID_X.legacyDefault,
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(
@@ -594,7 +603,8 @@ class KotlinModelConverter {
       runTestInSeparateProcess = false,
       deprecatedPreMergedApplicationId = null,
       deprecatedPreMergedTestApplicationId = null,
-      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate()
+      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
+      experimentalProperties = emptyMap()
     )
 
     return GradleAndroidModelDataImpl(

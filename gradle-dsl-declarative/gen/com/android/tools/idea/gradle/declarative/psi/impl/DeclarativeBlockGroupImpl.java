@@ -27,11 +27,12 @@ import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElemen
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockMixin;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
 public class DeclarativeBlockGroupImpl extends DeclarativeBlockMixin implements DeclarativeBlockGroup {
 
-  public DeclarativeBlockGroupImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeBlockGroupImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {

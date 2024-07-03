@@ -34,15 +34,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProcessUtils.isProfileable
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
-import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
-import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
+import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
@@ -83,14 +83,14 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
     // The android head icon to indicate the preferred process
     if (isPreferredProcess) {
       val androidHeadIconPainter by StudioIconsCompose.Common.AndroidHead().getPainter()
-      leftAlignedColumnText(processName, androidHeadIconPainter, rowScope = this)
+      LeftAlignedColumnText(processName, androidHeadIconPainter, rowScope = this)
     }
     else {
-      leftAlignedColumnText(processName, rowScope = this)
+      LeftAlignedColumnText(processName, rowScope = this)
     }
 
-    rightAlignedColumnText(text = pidText, colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
-    rightAlignedColumnText(text = configurationText, colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
+    RightAlignedColumnText(text = pidText, colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
+    RightAlignedColumnText(text = configurationText, colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
   }
 }
 
@@ -103,11 +103,11 @@ private fun ProcessListHeader() {
       .background(TABLE_HEADER_BACKGROUND_COLOR)
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
-    leftAlignedColumnText(text = "Process name", rowScope = this)
+    LeftAlignedColumnText(text = "Process name", rowScope = this)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "PID", colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
+    RightAlignedColumnText(text = "PID", colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "Manifest Configuration", colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
+    RightAlignedColumnText(text = "Manifest Configuration", colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
   }
 }
 

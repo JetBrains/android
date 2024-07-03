@@ -115,11 +115,11 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
                                        .withAttribute("android:layout_weight", "1.0")
                                    ));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     format(model.getFile());
     return model;
   }
@@ -150,7 +150,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
     handler.addToolbarActions(actions);
     ViewEditor editor = editor(screen(model).getScreen());
     DelegatingViewGroupHandler delegatingViewGroupHandler = new DelegatingViewGroupHandler(handler);
-    NlComponent component = model.find("root");
+    NlComponent component = model.getTreeReader().find("root");
     assertNotNull(component);
     assertNoException(EmptyStackException.class, () -> {
         actions.stream()

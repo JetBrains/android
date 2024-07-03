@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -35,8 +36,8 @@ import com.intellij.psi.PsiFile
 internal class WearTileAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?,
-) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
+  originFile: VirtualFile,
+) : InMemoryLayoutVirtualFile(name, content, originFile)
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
@@ -54,6 +55,7 @@ class WearTilePreviewRepresentationProvider(
   init {
     DesignerTypeRegistrar.register(WearTileEditorFileType)
   }
+
   /**
    * Checks if the input [psiFile] contains wear tile previews and therefore can be provided with
    * the [PreviewRepresentation] of them.
@@ -70,7 +72,7 @@ class WearTilePreviewRepresentationProvider(
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     return WearTilePreviewRepresentation(
-      TILE_SERVICE_VIEW_ADAPTER,
+      SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER,
       psiFile,
       { psiFilePointer -> FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder) },
       WearTilePreviewElementModelAdapter(),

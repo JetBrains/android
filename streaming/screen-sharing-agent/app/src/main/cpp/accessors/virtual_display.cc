@@ -37,7 +37,7 @@ VirtualDisplay::~VirtualDisplay() {
   ReleaseDisplay();
 }
 
-VirtualDisplay& VirtualDisplay::operator=(VirtualDisplay&& other) {
+VirtualDisplay& VirtualDisplay::operator=(VirtualDisplay&& other) noexcept {
   ReleaseDisplay();
   JObject::operator=(static_cast<JObject&&>(other));
   return *this;

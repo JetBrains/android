@@ -34,7 +34,7 @@ class InspectionsTest {
   @Test
   fun testNeedsComposableInspection() {
     fixture.enableInspections(
-      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+      ComposePreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
     )
 
     @Suppress("TestFunctionName")
@@ -211,7 +211,7 @@ class InspectionsTest {
 
   @Test
   fun testPreviewMustBeTopLevel() {
-    fixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
@@ -320,7 +320,7 @@ class InspectionsTest {
 
   @Test
   fun testWidthShouldntExceedApiLimit() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -341,7 +341,7 @@ class InspectionsTest {
 
       @Composable
       @GoodAnnotation
-      @Preview(name = "Preview 1", widthDp = 2001) // warning
+      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001) // Only one warning
       fun Preview1() {
       }
 
@@ -361,8 +361,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
-        |15: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
+      """7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+        |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
@@ -371,7 +371,7 @@ class InspectionsTest {
 
   @Test
   fun testHeightShouldntExceedApiLimit() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -392,7 +392,7 @@ class InspectionsTest {
 
       @Composable
       @GoodAnnotation
-      @Preview(name = "Preview 1", heightDp = 2001) // Warning
+      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001) // Only one warning
       fun Preview1() {
       }
 
@@ -412,8 +412,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
-        |15: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
+      """7: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
+        |15: Preview width and height are limited to be between 1 and 2,000, setting a lower or higher number will not change the preview dimension
       """
         .trimMargin(),
       inspections,
@@ -422,7 +422,7 @@ class InspectionsTest {
 
   @Test
   fun testOnlyParametersAndValuesAreHighlighted() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -450,12 +450,6 @@ class InspectionsTest {
     val heightInspection = inspections[0]
     var highlightLength = heightInspection.actualEndOffset - heightInspection.actualStartOffset
     assertEquals("heightDp = 2001".length, highlightLength)
-
-    // Verify the width inspection only highlights the width parameter and value, i.e. "widthDp =
-    // 2001"
-    val widthInspection = inspections[1]
-    highlightLength = widthInspection.actualEndOffset - widthInspection.actualStartOffset
-    assertEquals("widthDp = 2001".length, highlightLength)
   }
 
   @Test
@@ -572,7 +566,7 @@ class InspectionsTest {
   @Test
   fun testInspectionsWithNoImport() {
     fixture.enableInspections(
-      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+      ComposePreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
     )
 
     @Suppress("TestFunctionName")

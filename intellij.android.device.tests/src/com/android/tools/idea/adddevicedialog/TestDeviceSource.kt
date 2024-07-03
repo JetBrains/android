@@ -25,13 +25,13 @@ import kotlin.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.jewel.ui.component.Icon
 
-class TestDeviceSource : DeviceSource {
+open class TestDeviceSource : DeviceSource {
   override val profiles = mutableListOf<DeviceProfile>()
 
   val selectedProfile = MutableStateFlow<DeviceProfile?>(null)
 
   fun add(device: TestDevice) {
-    profiles.add(device)
+    profiles.add(device.toBuilder().apply { source = this@TestDeviceSource.javaClass }.build())
   }
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
@@ -53,9 +53,8 @@ data class TestDevice(
   override val formFactor: String = FormFactors.PHONE,
   override val isAlreadyPresent: Boolean = false,
   override val availabilityEstimate: Duration = Duration.ZERO,
+  override val source: Class<out DeviceSource> = TestDeviceSource::class.java,
 ) : DeviceProfile {
-  override val source: Class<out DeviceSource>
-    get() = TestDeviceSource::class.java
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
 
@@ -77,6 +76,13 @@ data class TestDevice(
   }
 
   class Builder : DeviceProfile.Builder() {
+    lateinit var source: Class<out DeviceSource>
+
+    fun copyFrom(profile: TestDevice) {
+      super.copyFrom(profile)
+      source = profile.source
+    }
+
     override fun build(): TestDevice =
       TestDevice(
         apiRange = apiRange,
@@ -92,6 +98,7 @@ data class TestDevice(
         formFactor = formFactor,
         isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
+        source = source,
       )
   }
 }

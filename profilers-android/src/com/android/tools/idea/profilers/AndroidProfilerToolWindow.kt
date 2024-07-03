@@ -34,6 +34,8 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.sessions.SessionAspect
+import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
@@ -88,7 +90,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
                                 { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
-                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) })
+                                { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) }, ::getCurrentTaskHandler)
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -139,7 +141,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
     try {
       val selections = devices.map {
-        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning,
+        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning, it.isDebuggable,
                                if (it.isRunning) it.launchedDevice.get().serialNumber else "", it.icon)
       }
       return selections
@@ -190,7 +192,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeProfilerTab() {
-    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, ideProfilerComponents)
+    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window,
+                                                                                                      ideProfilerComponents, project)
     else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 
@@ -226,21 +229,53 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
    */
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
-    val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType)
+
     val taskIcon = TaskIconUtils.getTaskIcon(taskType)
     if (taskTab != null) {
-      taskTab.displayName = taskName
+      taskTab.displayName = taskTabTitle
       window.getContentManager().setSelectedContent(taskTab)
       window.getContentManager().selectedContent!!.icon = taskIcon
     }
     else {
-      createNewTab(profilersPanel, taskName, true, taskIcon)
+      createNewTab(profilersPanel, taskTabTitle, true, taskIcon)
     }
     currentTaskHandler?.exit()
     currentTaskHandler = taskHandlers[taskType]
     currentTaskHandler?.let { taskHandler ->
       val enterSuccessful = taskHandler.enter(taskArgs)
     }
+
+    val createdTaskTab = window.getContentManager().selectedContent!!
+
+    createdTaskTab.setDisposer {
+      onTaskTabClose()
+    }
+  }
+
+  private fun onTaskTabClose() {
+    // On close of the task tab, end the current session/task if its ongoing and reset the current session selection.
+    // If the current task/session is ongoing/alive, terminate it and reset the selected session to reflect that the closed task is
+    // no longer selected.
+    val sessionsManager = profilers.sessionsManager
+    if (sessionsManager.isSessionAlive) {
+      // Reset the session selection when the ongoing task's session is ended and processed by the SessionsManager.
+      sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
+        // Remove this aspect listener to prevent repetitive/future calls.
+        sessionsManager.removeDependencies(this)
+        // Reflect the selected task being removed by resetting the session selection.
+        sessionsManager.resetSessionSelection()
+      }
+      // Stop the task which will also stop the underlying session.
+      currentTaskHandler!!.stopTask()
+    }
+    // If the task is already terminated on close, there is no need to end ongoing session.
+    else {
+      // Reflect the selected task being removed by resetting the session selection.
+      sessionsManager.resetSessionSelection()
+    }
+    currentTaskHandler!!.exit()
+    currentTaskHandler = null
   }
 
   /**
@@ -285,6 +320,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     if (profilers.isStopped) {
       window.removeContent()
     }
+  }
+
+  private fun getCurrentTaskHandler(): ProfilerTaskHandler? {
+    return currentTaskHandler;
   }
 
   companion object {

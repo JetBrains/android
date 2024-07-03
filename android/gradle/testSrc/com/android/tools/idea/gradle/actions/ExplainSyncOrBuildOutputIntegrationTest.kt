@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.SdkConstants
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
@@ -35,6 +36,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import com.android.SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 
@@ -72,11 +74,16 @@ class ExplainSyncOrBuildOutputIntegrationTest {
         .replace("\r\n", "\n")
         .replace("\\", "/")
     val absolutePath = buildFile.absolutePath.replace("\\", "/")
+    val maxCompileSdk = if (MAX_SUPPORTED_ANDROID_PLATFORM_VERSION.isPreview) {
+      """compileSdkPreview = "${MAX_SUPPORTED_ANDROID_PLATFORM_VERSION.codename}""""
+    } else {
+      "compileSdk = ${MAX_SUPPORTED_ANDROID_PLATFORM_VERSION.apiLevel}"
+    }
     assertEquals(
       """
                 We recommend using a newer Android Gradle plugin to use compileSdk = 341123
                 
-                This Android Gradle plugin ($ANDROID_GRADLE_PLUGIN_VERSION) was tested up to compileSdk = 34.
+                This Android Gradle plugin ($ANDROID_GRADLE_PLUGIN_VERSION) was tested up to $maxCompileSdk.
                 
                 You are strongly encouraged to update your project to use a newer
                 Android Gradle plugin that has been tested with compileSdk = 341123.
@@ -103,7 +110,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     val preparedProject: PreparedTestProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val (contextString, files) =
-      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService()) }!!
+      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService(project)) }!!
 
     assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
     assertEquals(3, files.size)

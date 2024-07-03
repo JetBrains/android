@@ -26,11 +26,11 @@ namespace screensharing {
 class VirtualDisplay : private JObject {
 public:
   using JObject::JObject;
-  VirtualDisplay(JObject&& virtual_display);
+  explicit VirtualDisplay(JObject&& virtual_display);
 
   ~VirtualDisplay();
 
-  VirtualDisplay& operator=(VirtualDisplay&& other);
+  VirtualDisplay& operator=(VirtualDisplay&& other) noexcept;
 
   void Resize(int32_t width, int32_t height, int32_t density_dpi);
   void SetSurface(ANativeWindow* surface);

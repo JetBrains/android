@@ -1,0 +1,36 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.example",
+    "module": "app",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.7"
+    }
+  },
+  "variants": [
+    {
+      "name": "versionCatalogElements",
+      "attributes": {
+        "org.gradle.category": "platform",
+        "org.gradle.usage": "version-catalog"
+      },
+      "files": [
+        {
+          "name": "app-1.0.toml",
+          "url": "app-1.0.toml",
+          "size": 197,
+          "sha512": "17cccbba309c5ecdcdfa1137816c1551fb3abcbf69d405748c250c38f785e89e30f490da03a0ff1c8e2481a6de9aa61fc7bd6e323a4d52dee41f03b3b6e35df5",
+          "sha256": "1eea4ca68085998a44134d7b14d74b987720d8dc0abddc3ea67ca619411b7134",
+          "sha1": "700322a90dc8a87d7e37d4bd9e6cc11f98aff088",
+          "md5": "1e8a7199cc4949189fba7806c2f37fde"
+        }
+      ]
+    }
+  ]
+}

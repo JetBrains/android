@@ -19,7 +19,6 @@ import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
-import com.android.flags.junit.FlagRule
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
@@ -45,7 +44,6 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -84,6 +82,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
@@ -101,7 +100,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.doReturn
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -127,7 +125,7 @@ class StreamingToolWindowManagerTest {
   private val provisionerRule = DeviceProvisionerRule()
   @get:Rule
   val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
-                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule, FlagRule(StudioFlags.DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS, true))
+                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: TestToolWindow by lazy { createToolWindow() }
@@ -158,7 +156,7 @@ class StreamingToolWindowManagerTest {
     Disposer.dispose(toolWindow.disposable)
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
-    ApplicationManager.getApplication().service<DeviceClientRegistry>().clear()
+    service<DeviceClientRegistry>().clear()
   }
 
   @Test
@@ -178,7 +176,7 @@ class StreamingToolWindowManagerTest {
     emulator2.start(standalone = true)
 
     // Send notification that the emulator has been launched.
-    val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null, null)
+    val avdInfo = AvdInfo(emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null, null)
     val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId, "-qt-hide-window")
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.INDIRECT, project)
     dispatchAllInvocationEvents()
@@ -197,28 +195,26 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2.seconds) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].description).isEqualTo(
-        "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
+      "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
 
     // Start the third emulator.
     emulator3.start(standalone = false)
 
     waitForCondition(3.seconds) { contentManager.contents.size == 2 }
 
-    val emulator1Index = if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) 0 else 1
-    val emulator3Index = 1 - emulator1Index
-    assertThat(contentManager.contents[emulator1Index].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[emulator1Index].description).isEqualTo(
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[0].description).isEqualTo(
         "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
     // The panel for emulator3 is added but the emulator1 is still selected.
-    assertThat(contentManager.contents[emulator1Index].isSelected).isTrue()
-    assertThat(contentManager.contents[emulator3Index].displayName).isEqualTo(emulator3.avdName)
-    assertThat(contentManager.contents[emulator3Index].description).isEqualTo(
+    assertThat(contentManager.contents[0].isSelected).isTrue()
+    assertThat(contentManager.contents[1].displayName).isEqualTo(emulator3.avdName)
+    assertThat(contentManager.contents[1].description).isEqualTo(
         "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
     // Deploying an app activates the corresponding emulator panel.
     for (emulator in listOf(emulator2, emulator3)) {
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
-    waitForCondition(2.seconds) { contentManager.contents[emulator3Index].isSelected }
+    waitForCondition(2.seconds) { contentManager.contents[1].isSelected }
 
     assertThat(contentManager.contents).hasLength(2)
 
@@ -525,12 +521,7 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
     waitForCondition(15.seconds) { contentManager.contents.size == 2 }
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
-    }
-    else {
-      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     deviceMirroringSettings.activateOnAppLaunch = false
@@ -594,12 +585,7 @@ class StreamingToolWindowManagerTest {
     // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2.seconds) { contentManager.contents.size == 2 }
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
-    }
-    else {
-      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
@@ -884,7 +870,7 @@ class StreamingToolWindowManagerTest {
       if (!visible) {
         windowFactory.createToolWindowContent(project, this)
         visible = true
-        notifyStateChanged()
+        notifyStateChanged(ToolWindowManagerEventType.ActivateToolWindow)
         runnable?.run()
       }
     }
@@ -892,7 +878,7 @@ class StreamingToolWindowManagerTest {
     override fun hide(runnable: Runnable?) {
       if (visible) {
         visible = false
-        notifyStateChanged()
+        notifyStateChanged(ToolWindowManagerEventType.HideToolWindow)
         runnable?.run()
       }
     }
@@ -931,8 +917,8 @@ class StreamingToolWindowManagerTest {
       this.icon = icon
     }
 
-    private fun notifyStateChanged() {
-      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager)
+    private fun notifyStateChanged(changeType: ToolWindowManagerEventType) {
+      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, changeType)
     }
   }
 }

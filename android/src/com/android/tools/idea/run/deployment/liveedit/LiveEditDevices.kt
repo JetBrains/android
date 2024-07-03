@@ -46,6 +46,10 @@ class LiveEditDevices {
     return devices.values.any { it.status.unrecoverable() }
   }
 
+  fun hasUnsupportedApi(): Boolean {
+    return devices.values.any { it.status == LiveEditStatus.UnsupportedVersion }
+  }
+
   fun isDisabled(): Boolean {
     return devices.values.all { it.status == LiveEditStatus.Disabled }
   }
@@ -114,8 +118,7 @@ class LiveEditDevices {
         update(device) { _, status -> if (status !== LiveEditStatus.Loading) LiveEditStatus.Disabled else status }
 
       DeviceEvent.DEBUGGER_CONNECT -> update(device, LiveEditStatus.DebuggerAttached)
-      DeviceEvent.DEBUGGER_DISCONNECT ->  // Don't return to up-to-date state if another state transition has taken place since.
-        update( device) { _, status -> if (status === LiveEditStatus.DebuggerAttached) LiveEditStatus.UpToDate else status }
+      DeviceEvent.DEBUGGER_DISCONNECT -> update(device, LiveEditStatus.DebuggerAttached)
     }
   }
 }

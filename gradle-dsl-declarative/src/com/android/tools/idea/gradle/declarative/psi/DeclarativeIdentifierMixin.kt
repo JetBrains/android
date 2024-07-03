@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.declarative.psi
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement
-import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.CompositePsiElement
+import com.intellij.psi.tree.IElementType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.annotations.NonNls
 
-abstract class DeclarativeIdentifierMixin(node: ASTNode): ASTWrapperPsiElement(node), DeclarativeIdentifier {
+abstract class DeclarativeIdentifierMixin(type: IElementType): CompositePsiElement(type), DeclarativeIdentifier {
 
   @Throws(IncorrectOperationException::class)
   override fun setName(@NonNls name: String): PsiElement {

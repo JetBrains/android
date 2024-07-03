@@ -33,11 +33,11 @@ public:
 
   [[nodiscard]] bool IsEndOfStream() const { return (info_.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) != 0; }
   [[nodiscard]] bool IsConfig() const { return (info_.flags & AMEDIACODEC_BUFFER_FLAG_CODEC_CONFIG) != 0; }
-  uint8_t* buffer() const { return buffer_; }
-  int32_t offset() const { return info_.offset; }
-  int32_t size() const { return info_.size; }
-  int64_t presentation_time_us() const { return info_.presentationTimeUs; }
-  uint32_t flags() const { return info_.flags; }
+  [[nodiscard]] uint8_t* buffer() const { return buffer_; }
+  [[nodiscard]] int32_t offset() const { return info_.offset; }
+  [[nodiscard]] int32_t size() const { return info_.size; }
+  [[nodiscard]] int64_t presentation_time_us() const { return info_.presentationTimeUs; }
+  [[nodiscard]] uint32_t flags() const { return info_.flags; }
 
 private:
   AMediaCodec* codec_;

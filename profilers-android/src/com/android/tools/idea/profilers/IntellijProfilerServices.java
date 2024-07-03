@@ -43,6 +43,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.TaskRecordingType;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -245,6 +246,24 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  public boolean openOkCancelDialog(@NotNull String message, @NotNull String title, @NotNull Consumer<Boolean> doNotShowSettingSaver) {
+    return Messages.OK ==
+           Messages.showOkCancelDialog(message, title, "OK", "Cancel", Messages.getInformationIcon(),
+                                       new DialogWrapper.DoNotAskOption.Adapter() {
+                                         @Override
+                                         public void rememberChoice(boolean isSelected, int exitCode) {
+                                           doNotShowSettingSaver.accept(isSelected);
+                                         }
+
+                                         @NotNull
+                                         @Override
+                                         public String getDoNotShowMessage() {
+                                           return "Do not show again";
+                                         }
+                                       });
+  }
+
+  @Override
   @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,
@@ -279,11 +298,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
     }
     return selectedValue.get();
-  }
-
-  @Override
-  public void openErrorDialog(@NotNull String message, @NotNull String title) {
-    Messages.showErrorDialog(message, title);
   }
 
   /**
@@ -342,7 +356,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void disableStartupTasks() {
+  public void clearStartupTaskConfigs() {
     RunManager runManager = RunManager.getInstance(myProject);
     if (runManager != null) {
       RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
@@ -431,8 +445,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode) {
-    ProfilerBuildAndLaunch.buildAndLaunchAction(profileableMode);
+  public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
   }
 
   /**

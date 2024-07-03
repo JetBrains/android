@@ -58,15 +58,15 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 private val PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -99,7 +99,7 @@ class AppInspectionSnapshotSupportTest {
   private val savePath = createInMemoryFileSystemAndFolder("snapshot").resolve("snapshot.li")
 
   @Test
-  fun saveAndLoadLiveSnapshot() {
+  fun saveAndLoadLiveSnapshot() = runBlocking {
     inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
@@ -137,7 +137,7 @@ class AppInspectionSnapshotSupportTest {
   }
 
   @Test
-  fun saveAndLoadLiveSnapshotWithDeepComposeNesting() {
+  fun saveAndLoadLiveSnapshotWithDeepComposeNesting() = runBlocking {
     inspectorClientSettings.inLiveMode = true
     val inspectorState =
       FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
@@ -173,7 +173,7 @@ class AppInspectionSnapshotSupportTest {
   }
 
   @Test
-  fun saveAndLoadNonLiveSnapshot() {
+  fun saveAndLoadNonLiveSnapshot() = runBlocking {
     inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
@@ -212,7 +212,7 @@ class AppInspectionSnapshotSupportTest {
   }
 
   @Test
-  fun saveNonLiveSnapshotImmediately() {
+  fun saveNonLiveSnapshotImmediately() = runBlocking {
     // Connect initially in live mode
     inspectorClientSettings.inLiveMode = true
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
@@ -257,17 +257,17 @@ class AppInspectionSnapshotSupportTest {
 
     // Now switch to non-live
     inspectorClientSettings.inLiveMode = false
-    runBlocking { inspectorRule.inspectorClient.stopFetching() }
+    inspectorRule.inspectorClient.stopFetching()
 
-    val startedLatch = CountDownLatch(1)
+    val deferred = CompletableDeferred<Unit>()
     // Try to save the snapshot right away, before we've gotten any events
-    val snapshotThread = thread {
-      startedLatch.countDown()
+    val snapshotJob = launch {
+      deferred.complete(Unit)
       inspectorRule.inspectorClient.saveSnapshot(savePath)
     }
 
     // Now send the events
-    startedLatch.await()
+    deferred.await()
     appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
 
     appInspectorRule.viewInspector.connection.sendEvent { createLayoutEvent(layoutEventBuilder) }
@@ -276,7 +276,7 @@ class AppInspectionSnapshotSupportTest {
     }
 
     // Wait for saving to complete
-    snapshotThread.join()
+    snapshotJob.join()
 
     // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!

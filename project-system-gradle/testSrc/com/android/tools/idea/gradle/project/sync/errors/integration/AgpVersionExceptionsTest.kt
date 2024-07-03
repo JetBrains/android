@@ -56,7 +56,8 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         )
         expect.that(buildIssue.quickFixes).hasSize(0)
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS,
+      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
     )
   }
 
@@ -78,7 +79,8 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN,
+      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
     )
   }
 
@@ -100,7 +102,8 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
+      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
     )
   }
 
@@ -122,7 +125,8 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         expect.that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE,
+      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
     )
   }
 

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.studiobot.prompts.extensions
 
+import com.android.tools.idea.studiobot.MimeType
+import com.android.tools.idea.studiobot.mimetype.fromLanguage
 import com.android.tools.idea.studiobot.prompts.PromptBuilder.UserMessageBuilder
-import com.intellij.lang.Language
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
@@ -41,10 +42,11 @@ private fun VirtualFile.projectRelativePath(project: Project) =
  * and evaluate for your use case, potentially using the lower-level APIs in
  * [com.android.tools.idea.studiobot.prompts.PromptBuilder.MessageBuilder] directly instead.
  */
-fun UserMessageBuilder.fileContents(file: VirtualFile, lang: Language? = null) {
+fun UserMessageBuilder.fileContents(file: VirtualFile, lang: MimeType? = null) {
   val usedFiles = listOf(file)
   text("The contents of the file \"${file.projectRelativePath(project)}\" are:", usedFiles)
-  val language = lang ?: (file.fileType as? LanguageFileType)?.language
+  val language =
+    lang ?: (file.fileType as? LanguageFileType)?.language?.let { MimeType.fromLanguage(it) }
   code(file.readText(), language, usedFiles)
 }
 
@@ -58,7 +60,7 @@ fun UserMessageBuilder.fileContents(file: VirtualFile, lang: Language? = null) {
  * [com.android.tools.idea.studiobot.prompts.PromptBuilder.MessageBuilder] directly instead.
  */
 fun UserMessageBuilder.fileContents(file: PsiFile) {
-  fileContents(file.viewProvider.virtualFile, file.language)
+  fileContents(file.viewProvider.virtualFile, file.language?.let { MimeType.fromLanguage(it) })
 }
 
 /** Starts a read action allowing further query elements that require read access. */
@@ -92,7 +94,10 @@ private class ReadActionUserMessageBuilderImpl(userMessageBuilder: UserMessageBu
     val filename = openFile.projectRelativePath(project)
     text("The file \"$filename\" is open.", usedFiles)
     val contents = FileDocumentManager.getInstance().getDocument(openFile)?.text ?: return
-    val language = PsiManager.getInstance(project).findFile(openFile)?.language
+    val language =
+      PsiManager.getInstance(project).findFile(openFile)?.language?.let {
+        MimeType.fromLanguage(it)
+      }
 
     val before = contents.subSequence(0, caret.selectionStart).toString()
     val after = contents.subSequence(caret.selectionEnd, contents.length).toString()

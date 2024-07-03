@@ -17,4 +17,4 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.intellij.psi.PsiFile
 
-data class LiveEditCompilerInput(val file: PsiFile, val oldState: PsiState)
+data class LiveEditCompilerInput(val file: PsiFile, val oldState: PsiState?)

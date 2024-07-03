@@ -232,7 +232,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     val algorithm = createAlgorithm(model, rootPositions)
     algorithm.layout(scene.root!!.flatten())
 
-    WriteCommandAction.runWriteCommandAction(project) { model.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }
+    WriteCommandAction.runWriteCommandAction(project) { model.treeReader.find("fragment1")!!.setAttribute(ANDROID_URI, ATTR_ID, "@+id/renamed") }
 
     scene.root!!.flatten().forEach { it.setPosition(0, 0) }
     algorithm.layout(scene.root!!.flatten())
@@ -281,7 +281,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    model.find("fragment2")!!.putClientProperty(SKIP_PERSISTED_LAYOUT, true)
+    model.treeReader.find("fragment2")!!.putClientProperty(SKIP_PERSISTED_LAYOUT, true)
     val scene = model.surface.scene!!
     val fragment1 = scene.getSceneComponent("fragment1")!!
     fragment1.setPosition(10, 20)

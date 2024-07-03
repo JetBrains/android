@@ -1,6 +1,6 @@
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -8,69 +8,123 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.sync-memory-tests.iml"],
     split_test_targets = {
-        "Benchmark100Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
-        },
-        "Benchmark200Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
-        },
-        "Benchmark200Repeated20TimesMemory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
-        },
-        "Benchmark500Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
-        },
-        "Benchmark1000Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
-        },
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
-        },
-        "Benchmark4200Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
-            "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
-        },
-        "BenchmarkMultiApp100Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
-        },
-        "BenchmarkMultiApp190Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
-            "exec_properties": LARGE_MACHINE,
-        },
-        "Benchmark200Cpu": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
-        },
-        "Benchmark500Cpu": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
+            "tags": [
+                "perfgate",
+                "perfgate-release",
+            ],
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": [
+                "perfgate",
+            ],
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "perfgate",
+                "perfgate-release",
+            ],
         },
+        # Release branch tests with comparison to main branch
+        # 2000 subset is not included here because it doesn't have enough runs per test to make a meaningful analysis
+        # TODO: We should add the 1000 memory test as well but U-test requires at least 3 samples to be useful,
+        # so it won't work out of the box since memory tests don't have multiple runs.
+        "Benchmark1000CpuReleaseBranch": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": [
+                "perfgate-release",
+            ],
+            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
+        },
+        # Comparison tests
+        "Benchmark1000CpuLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
+            "tags": [
+                "perfgate",
+            ],
+        },
+        # Presubmit tests
+        "SyncBenchmarkVersionTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.SyncBenchmarkVersionTest",
+            "timeout": "long",
+        },
+        # Tests without regression analyzers, to reduce noise
+        "Benchmark200Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
+            "tags": ["perfgate"],
+        },
+        "Benchmark500Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
+            "tags": ["perfgate"],
+        },
+        "Benchmark200Repeated20TimesMemory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
+            "tags": ["perfgate"],
+        },
+        "Benchmark1000Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+            "tags": ["perfgate"],
+        },
+        "Benchmark1000MemoryRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+            "tags": ["perfgate"],
+        },
+        "Benchmark1000CpuRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+            "tags": ["perfgate"],
+        },
+        # Disabled tests
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp190Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
-        "Benchmark1000MemoryRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+        "Benchmark4200Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
-        "Benchmark1000CpuRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+        "BenchmarkMultiApp100Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
+        },
+        "BenchmarkMultiApp190Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
     },
     test_data = [
@@ -85,6 +139,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/data-binding:data_binding_runtime.zip",
     ],
@@ -98,7 +153,6 @@ iml_module(
         "cpu:3",
         "no_test_mac",
         "no_test_windows",
-        "perfgate",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -119,6 +173,7 @@ iml_module(
         "//tools/adt/idea/memory-usage[module, test]",
         "//tools/adt/idea/.idea/libraries:javax-inject[test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 

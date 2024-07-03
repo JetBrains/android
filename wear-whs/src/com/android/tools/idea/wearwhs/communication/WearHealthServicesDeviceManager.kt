@@ -19,13 +19,9 @@ import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 
-/**
- * Interface for the Wear Health Services Device Manager.
- */
+/** Interface for the Wear Health Services Device Manager. */
 internal interface WearHealthServicesDeviceManager {
-  /**
-   * @return Capabilities of WHS.
-   */
+  /** @return Capabilities of WHS. */
   fun getCapabilities(): List<WhsCapability>
 
   /**
@@ -35,45 +31,29 @@ internal interface WearHealthServicesDeviceManager {
    */
   suspend fun loadActiveExercise(): Result<Boolean>
 
-  /**
-   * Set multiple WHS capabilities on the device.
-   */
+  /** Set multiple WHS capabilities on the device. */
   suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>): Result<Unit>
 
-  /**
-   * Overrides the sensor value for the given capabilities.
-   */
+  /** Overrides the sensor value for the given capabilities. */
   suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>): Result<Unit>
 
-  /**
-   * Loads the current state from WHS to compare with the current UI.
-   */
+  /** Loads the current state from WHS to compare with the current UI. */
   suspend fun loadCurrentCapabilityStates(): Result<Map<WhsDataType, CapabilityState>>
 
-  /**
-   * Deletes all data from the WHS content provider
-   */
+  /** Deletes all data from the WHS content provider */
   suspend fun clearContentProvider(): Result<Unit>
 
-  /**
-   * Returns if the WHS version is supported.
-   */
+  /** Returns if the WHS version is supported. */
   suspend fun isWhsVersionSupported(): Result<Boolean>
 
-  /**
-   * Sets the serial number of the emulator to connect.
-   */
+  /** Sets the serial number of the emulator to connect. */
   fun setSerialNumber(serialNumber: String)
 
-  /**
-   * Sends an event trigger to the device.
-   */
+  /** Sends an event trigger to the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 }
 
-internal data class CapabilityState(
-  val enabled: Boolean,
-  val overrideValue: Float?,
-)
+internal data class CapabilityState(val enabled: Boolean, val overrideValue: Float?)
 
-internal class ConnectionLostException(message: String, cause: Throwable? = null) : Exception(message, cause)
+internal class ConnectionLostException(message: String, cause: Throwable? = null) :
+  Exception(message, cause)

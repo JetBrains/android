@@ -24,8 +24,9 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiElement
-import org.gradle.internal.declarativedsl.analysis.DataClass
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 
 class DeclarativeAnnotator : Annotator {
 
@@ -38,6 +39,7 @@ class DeclarativeAnnotator : Annotator {
       val service = DeclarativeService.getInstance(element.project)
       val module = ModuleUtil.findModuleForPsiElement(element.containingFile) ?: return
       val schema = service.getSchema(module) ?: return
+      if (schema.failureHappened) return
       verifyPath(path, schema, holder)
     }
   }
@@ -74,7 +76,7 @@ class DeclarativeAnnotator : Annotator {
   }
 
   private fun isNDOC(parentDataClass:DataClass?) =
-    parentDataClass?.supertypes?.contains(FqName("org.gradle.api", "NamedDomainObjectContainer")) == true
+    parentDataClass?.supertypes?.contains(DefaultFqName("org.gradle.api", "NamedDomainObjectContainer")) == true
 
 
   private fun showUnknownName(holder: AnnotationHolder) {

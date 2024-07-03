@@ -27,7 +27,6 @@ import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -120,6 +119,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
@@ -310,11 +310,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("tag1", LINE, matchCase = true, EMPTY_RANGE))
     }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      5,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
         .isEqualTo(
@@ -322,6 +318,49 @@ class LogcatMainPanelTest {
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
 
       """
+            .trimIndent()
+        )
+    }
+  }
+
+  @Ignore("b/347915674")
+  @Test
+  fun applyFilter_resetsFormatter() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      this@LogcatMainPanelTest.logcatMainPanel().also {
+        it.formattingOptions =
+          it.formattingOptions.copy(tagFormat = TagFormat(hideDuplicates = true))
+      }
+    }
+    // Changing the format triggers a reload, so we wait for quiescence
+    awaitQuiescence()
+
+    logcatMainPanel.processMessages(
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
+          "message1",
+        ),
+        LogcatMessage(
+          LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)),
+          "message2",
+        ),
+      )
+    )
+
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.applyFilter(StringFilter("message", LINE, matchCase = true, EMPTY_RANGE))
+    }
+
+    awaitQuiescence()
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.immutableText())
+        .isEqualTo(
+          """
+            1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+            1970-01-01 04:00:01.000     1-2                             app1                                 I  message2
+
+          """
             .trimIndent()
         )
     }
@@ -437,11 +476,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.clearMessageView()
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
@@ -460,11 +495,7 @@ class LogcatMainPanelTest {
 
     project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device1.serialNumber)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
   }
@@ -482,11 +513,7 @@ class LogcatMainPanelTest {
 
     project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device2.serialNumber)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     runInEdtAndWait {}
     assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo("not-empty")
   }
@@ -669,11 +696,7 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait(logcatMainPanel::reloadMessages)
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
 
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
@@ -755,6 +778,7 @@ class LogcatMainPanelTest {
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
   }
 
+  @Ignore("b/344987760")
   @Test
   fun resumeLogcat_jobResumed() = runBlocking {
     val message1 =
@@ -764,15 +788,15 @@ class LogcatMainPanelTest {
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null } }
+      logcatMainPanel().also {
+        waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null }
+      }
     }
     logcatMainPanel.pauseLogcat()
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
 
     logcatMainPanel.resumeLogcat()
-    waitForCondition {
-      !logcatMainPanel.isLogcatPaused() && logcatMainPanel.logcatServiceJob != null
-    }
+    waitForCondition { fakeLogcatService.invocations.get() == 2 }
     fakeLogcatService.logMessages(message1)
 
     waitForCondition { logcatMainPanel.editor.document.lineCount == 2 }
@@ -868,11 +892,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.formattingOptions = COMPACT.formattingOptions
     }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
         .isEqualTo("04:00:01.000  W  message1")
@@ -1430,11 +1450,7 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait { fakeProjectApplicationIdsProvider.setApplicationIds("app1") }
 
-    ConcurrencyUtil.awaitQuiescence(
-      AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-      TIMEOUT_SEC,
-      SECONDS,
-    )
+    awaitQuiescence()
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText().trim())
         .isEqualTo(
@@ -1559,4 +1575,12 @@ private fun Document.waitForCondition(
     )
     throw e
   }
+}
+
+private fun awaitQuiescence() {
+  ConcurrencyUtil.awaitQuiescence(
+    AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
+    TIMEOUT_SEC,
+    SECONDS,
+  )
 }

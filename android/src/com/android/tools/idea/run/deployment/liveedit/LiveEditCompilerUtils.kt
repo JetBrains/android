@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.descendantsOfType
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -150,9 +151,16 @@ internal fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageV
     put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
   }
 
-  // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
-  put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-  put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
+  when(StudioFlags.CLOSURE_SCHEME.get()!!) {
+    StudioFlags.ClosureScheme.CLASS -> {
+      put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+      put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
+    }
+    StudioFlags.ClosureScheme.INDY -> {
+      put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.INDY)
+      put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.INDY)
+    }
+  }
 
   // Link via signatures and not descriptors.
   //

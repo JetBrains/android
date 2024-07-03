@@ -57,10 +57,10 @@ class FragmentHandlerTest : LayoutTestCase() {
     waitForFuture(surface.addModelWithoutRender(model))
     val editorManager = FileEditorManager.getInstance(project)
 
-    surface.notifyComponentActivate(model.find("regular")!!, 10, 60)
+    surface.notifyComponentActivate(model.treeReader.find("regular")!!, 10, 60)
     AndroidTestCase.assertEmpty(editorManager.openFiles)
 
-    surface.notifyComponentActivate(model.find("navhost")!!, 10, 10)
+    surface.notifyComponentActivate(model.treeReader.find("navhost")!!, 10, 10)
     AndroidTestCase.assertEquals("nav.xml", editorManager.openFiles[0].name)
   }
 
@@ -91,10 +91,17 @@ class FragmentHandlerTest : LayoutTestCase() {
       model.project,
       null,
       null,
-      { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) },
+      {
+        model.treeWriter.createComponent(
+          tag,
+          model.treeReader.find("outer"),
+          null,
+          InsertType.CREATE,
+        )
+      },
       model.file,
     )
-    val newFragment = model.find("fragment")!!
+    val newFragment = model.treeReader.find("fragment")!!
     assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))
     assertEquals("true", newFragment.getAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST))
   }

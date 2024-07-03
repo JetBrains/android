@@ -43,7 +43,6 @@ import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
-import com.intellij.ui.TableUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.util.preferredHeight
 import com.intellij.util.ui.UIUtil
@@ -65,6 +64,7 @@ import java.awt.event.MouseMotionAdapter
 import java.util.EventObject
 import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.JViewport
 import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
@@ -76,9 +76,11 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 import javax.swing.text.JTextComponent
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.properties.Delegates
 
 const val EXPANSION_RIGHT_PADDING = 4
@@ -126,6 +128,10 @@ open class PTableImpl(
     get() = gridColor
 
   override var wrap = false
+
+  override var previousTable: PTable? = null
+
+  override var nextTable: PTable? = null
 
   init {
     setShowColumns(false)
@@ -450,10 +456,10 @@ open class PTableImpl(
     actionMap.put(TableActions.PageDown.ID, MyKeyAction { nextPage(moveUp = false) })
     actionMap.put(TableActions.ShiftPageUp.ID, MyKeyAction { nextPage(moveUp = true) })
     actionMap.put(TableActions.ShiftPageDown.ID, MyKeyAction { nextPage(moveUp = false) })
-    actionMap.put(TableActions.CtrlHome.ID, MyKeyAction { moveToFirstRow() })
-    actionMap.put(TableActions.CtrlEnd.ID, MyKeyAction { moveToLastRow() })
-    actionMap.put(TableActions.CtrlShiftHome.ID, MyKeyAction { moveToFirstRow() })
-    actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction { moveToLastRow() })
+    actionMap.put(TableActions.CtrlHome.ID, MyKeyAction { moveToAbsoluteFirst() })
+    actionMap.put(TableActions.CtrlEnd.ID, MyKeyAction { moveToAbsoluteEnd() })
+    actionMap.put(TableActions.CtrlShiftHome.ID, MyKeyAction { moveToAbsoluteFirst() })
+    actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction { moveToAbsoluteEnd() })
 
     // Setup additional actions for the table
     registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
@@ -479,8 +485,7 @@ open class PTableImpl(
   }
 
   private fun selectRow(row: Int) {
-    getSelectionModel().setSelectionInterval(row, row)
-    TableUtil.scrollSelectionToVisible(this)
+    changeSelection(row, selectedColumn.coerceIn(0, 1), false, false)
   }
 
   private fun selectColumn(column: Int) {
@@ -606,6 +611,11 @@ open class PTableImpl(
 
   /** Expand/Collapse items after right/left key press */
   private fun modifyGroup(expand: Boolean) {
+    if (editingColumn == 1) {
+      // If the value column is being edited: we should not expand/collapse the table row.
+      // Then the editor will disappear unexpectedly.
+      return
+    }
     val row = selectedRow
     if (row == -1) {
       return
@@ -627,39 +637,89 @@ open class PTableImpl(
       removeEditor()
       requestFocus()
     }
-    if (moveUp) {
-      selectRow(max(0, selectedRow - 1))
-    } else {
-      selectRow(min(selectedRow + 1, rowCount - 1))
-    }
-    if (selectedColumn < 0) {
-      selectColumn(0)
+    when {
+      moveUp && selectedRow == 0 && previousNonEmptyTable != null ->
+        previousNonEmptyTable!!.moveToLastRow()
+      !moveUp && selectedRow == rowCount - 1 && nextNonEmptyTable != null ->
+        nextNonEmptyTable!!.moveToFirstRow()
+      moveUp -> selectRow(max(0, selectedRow - 1))
+      else -> selectRow(min(selectedRow + 1, rowCount - 1))
     }
   }
 
   /** Scroll the selected row up/down. */
   private fun nextPage(moveUp: Boolean) {
-    val selectedRow = selectedRow
     if (isEditing) {
       removeEditor()
       requestFocus()
     }
 
-    // PTable may be in a scrollable component, so we need to use visible height instead of
-    // getHeight()
-    val visibleHeight = visibleRect.getHeight().toInt()
-    val rowHeight = getRowHeight()
-    if (visibleHeight <= 0 || rowHeight <= 0) {
+    // PTable is expected to be inside a JScrollPane: use the height of the viewport.
+    // If no viewport is found fall back to the visible height of the table.
+    val viewport = parent.parent as? JViewport
+    val visibleHeight = viewport?.height ?: visibleRect.getHeight().toInt()
+    if (visibleHeight <= 0) {
       return
     }
-    val movement = visibleHeight / rowHeight
+    val selectedRow = selectedRow.coerceIn(0, rowCount - 1)
     if (moveUp) {
-      selectRow(max(0, selectedRow - movement))
+      moveToOffset(forward = false, offsetOfRow(selectedRow) - visibleHeight)
     } else {
-      selectRow(min(selectedRow + movement, rowCount - 1))
+      moveToOffset(forward = true, offsetOfRow(selectedRow) + visibleHeight)
     }
-    if (selectedColumn < 0) {
-      selectColumn(0)
+  }
+
+  private val previousNonEmptyTable: PTableImpl?
+    get() {
+      var prev = previousTable as? PTableImpl ?: return null
+      while (prev.rowCount == 0 || !prev.isShowing) {
+        prev = prev.previousTable as? PTableImpl ?: return null
+      }
+      return prev
+    }
+
+  private val nextNonEmptyTable: PTableImpl?
+    get() {
+      var next = nextTable as? PTableImpl ?: return null
+      while (next.rowCount == 0 || !next.isShowing) {
+        next = next.nextTable as? PTableImpl ?: return null
+      }
+      return next
+    }
+
+  private fun offsetOfRow(row: Int): Int {
+    val rect = getCellRect(row, 0, false)
+    return y + rect.y + rect.height / 2
+  }
+
+  private fun moveToOffset(forward: Boolean, offset: Int) {
+    when {
+      !forward && offset < y && previousNonEmptyTable != null ->
+        previousNonEmptyTable?.moveToOffset(false, offset)
+      forward && offset > y + height && nextNonEmptyTable != null ->
+        nextNonEmptyTable?.moveToOffset(true, offset)
+      else -> {
+        val rowHeight = getRowHeight()
+        val range = 0 until rowCount
+        var estimatedRowIndex1 = ((offset - y) / rowHeight).coerceIn(range)
+        var estimatedRowIndex2 = estimatedRowIndex1
+        var diff1 = offsetOfRow(estimatedRowIndex1) - offset
+        var diff2 = diff1
+        while (
+          diff1.sign == diff2.sign && diff2 != 0 && range.contains(estimatedRowIndex2 - diff2.sign)
+        ) {
+          estimatedRowIndex1 = estimatedRowIndex2
+          diff1 = diff2
+          estimatedRowIndex2 -= diff2.sign
+          diff2 = offsetOfRow(estimatedRowIndex2) - offset
+        }
+        val rowIndex =
+          if (diff1.absoluteValue < diff2.absoluteValue) estimatedRowIndex1 else estimatedRowIndex2
+        if (!hasFocus()) {
+          requestFocus()
+        }
+        selectRow(rowIndex)
+      }
     }
   }
 
@@ -668,7 +728,9 @@ open class PTableImpl(
       removeEditor()
       requestFocus()
     }
-
+    if (!hasFocus()) {
+      requestFocus()
+    }
     selectRow(0)
   }
 
@@ -677,8 +739,30 @@ open class PTableImpl(
       removeEditor()
       requestFocus()
     }
-
+    if (!hasFocus()) {
+      requestFocus()
+    }
     selectRow(rowCount - 1)
+  }
+
+  private fun moveToAbsoluteFirst() {
+    var firstTable = this
+    var previous = previousNonEmptyTable
+    while (previous != null) {
+      firstTable = previous
+      previous = previous.previousNonEmptyTable
+    }
+    firstTable.moveToFirstRow()
+  }
+
+  private fun moveToAbsoluteEnd() {
+    var lastTable = this
+    var next = nextNonEmptyTable
+    while (next != null) {
+      lastTable = next
+      next = next.nextNonEmptyTable
+    }
+    lastTable.moveToLastRow()
   }
 
   // TODO: Change this from MouseMoveListener to TableHoverListener when the latter is a stable API

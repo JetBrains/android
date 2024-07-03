@@ -44,10 +44,6 @@ public class ThemeSelectionDialog extends DialogWrapper {
     init();
   }
 
-  public void setThemeChangedListener(@NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
-    myPanel.setThemeChangedListener(themeChangedListener);
-  }
-
   @Nullable
   @Override
   protected JComponent createCenterPanel() {

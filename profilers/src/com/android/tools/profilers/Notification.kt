@@ -25,5 +25,31 @@ data class Notification(val severity: Severity, val title: String, val text: Str
   enum class Severity { INFO, WARNING, ERROR }
 
   data class UrlData(val url: String, val text: String)
+
+  companion object {
+    @JvmStatic
+    fun createNotification(severity: Severity,
+                           title: String,
+                           text: String,
+                           reportBug: Boolean): Notification {
+      if (reportBug) {
+        val url = UrlData("https://issuetracker.google.com/issues/new?component=192708", "report a bug")
+        return Notification(severity, title, text, url)
+      }
+      else {
+        return Notification(severity, title, text, null)
+      }
+    }
+
+    @JvmStatic
+    fun createWarning(title: String, text: String): Notification {
+      return createNotification(Severity.WARNING, title, text, false)
+    }
+
+    @JvmStatic
+    fun createError(title: String, text: String): Notification {
+      return createNotification(Severity.ERROR, title, text, true)
+    }
+  }
 }
 

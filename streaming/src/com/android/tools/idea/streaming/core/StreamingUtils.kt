@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.actions.AbstractStreamingAction
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.ShowLogAction
 import com.intellij.openapi.actionSystem.ActionButtonComponent
@@ -108,7 +109,7 @@ private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId:
  * an [AnActionHolder] and holds the given action.
  */
 private fun Component.findComponentForAction(action: AnAction): Component? {
-  if (this.isComponentForAction(action)) {
+  if (isComponentForAction(action)) {
     return this
   }
   if (this is Container) {
@@ -128,7 +129,10 @@ private fun Component.findComponentForAction(action: AnAction): Component? {
 }
 
 private fun Component.isComponentForAction(action: AnAction): Boolean =
-    this is AnActionHolder && this.action === action
+    this is AnActionHolder && this.action.isEquivalentTo(action)
+
+private fun AnAction.isEquivalentTo(action: AnAction): Boolean =
+    this === action || (this is AbstractStreamingAction<*, *> && isDelegatingTo(action))
 
 internal inline fun <reified T : Component> Component.findContainingComponent(): T? {
   var component = parent

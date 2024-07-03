@@ -38,7 +38,7 @@ enum class PairingFeature(val minVersion: Int) {
 
   // Application to phone.
   // This is to help the user with post-pairing actions needed on some older companions.
-  COMPANION_SKIP_AND_FINISH_FIXED(773393865)
+  COMPANION_SKIP_AND_FINISH_FIXED(773393865),
 }
 
 private const val GMSCORE_APP_ID = "com.google.android.gms"
@@ -50,12 +50,12 @@ const val PIXEL_COMPANION_APP_ID = "com.google.android.apps.wear.companion"
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
 private suspend fun IDevice.getAppVersionCode(appId: String) =
-  VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
+  VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))
+    ?.groupValues
+    ?.get(1)
+    ?.toInt()
 
-private val availableCompanionAppIds = setOf(
-  PIXEL_COMPANION_APP_ID,
-  OEM_COMPANION_FALLBACK_APP_ID
-)
+private val availableCompanionAppIds = setOf(PIXEL_COMPANION_APP_ID, OEM_COMPANION_FALLBACK_APP_ID)
 
 suspend fun IDevice.getCompanionAppIdForWatch(): String {
   val settingValue = getSecureSetting(OEM_COMPANION_SETTING_KEY)
@@ -79,20 +79,26 @@ enum class CompanionSupport {
 }
 
 fun IDevice.supportsCompanionAppId(companionAppId: String): CompanionSupport {
-  if (!availableCompanionAppIds.contains(companionAppId)) return CompanionSupport.INCOMPATIBLE_COMPANION_ID
+  if (!availableCompanionAppIds.contains(companionAppId))
+    return CompanionSupport.INCOMPATIBLE_COMPANION_ID
 
   if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID && abis.singleOrNull() == "x86_64") {
-    Logger.getInstance(PairingFeature::class.java).warn("$OEM_COMPANION_FALLBACK_APP_ID does not support x86_64 abi.")
+    Logger.getInstance(PairingFeature::class.java)
+      .warn("$OEM_COMPANION_FALLBACK_APP_ID does not support x86_64 abi.")
     return CompanionSupport.INCOMPATIBLE_ABI
   }
   return CompanionSupport.SUPPORTED
 }
 
-suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String? = null): Boolean {
+suspend fun IDevice.hasPairingFeature(
+  pairingFeature: PairingFeature,
+  companionAppId: String? = null,
+): Boolean {
   return when (pairingFeature) {
     PairingFeature.COMPANION_EMULATOR_ACTIVITY ->
       companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
-        (getAppVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
+        (getAppVersionCode(companionAppId) ?: 0) >=
+          PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
     PairingFeature.REFRESH_EMULATOR_CONNECTION,
     PairingFeature.GET_PAIRING_STATUS,
     PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING,
@@ -100,7 +106,8 @@ suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionA
       (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
     PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED ->
       companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
-      (getAppVersionCode(OEM_COMPANION_FALLBACK_APP_ID) ?: 0) >= PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED.minVersion
+        (getAppVersionCode(OEM_COMPANION_FALLBACK_APP_ID) ?: 0) >=
+          PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED.minVersion
   }
 }
 

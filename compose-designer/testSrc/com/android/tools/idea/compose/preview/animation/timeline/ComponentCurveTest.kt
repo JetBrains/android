@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.preview.animation.timeline.ComponentCurve
@@ -49,7 +50,7 @@ class ComponentCurveTest {
     var componentCurve =
       ComponentCurve.create(
         offsetPx = 0,
-        null,
+        SupportedAnimationManager.FrozenState(false),
         property = property,
         componentId = 0,
         rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -64,7 +65,7 @@ class ComponentCurveTest {
       componentCurve =
         ComponentCurve.create(
           offsetPx = componentCurve.offsetPx + deltaPx,
-          null,
+          SupportedAnimationManager.FrozenState(false),
           property = property,
           componentId = 0,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),

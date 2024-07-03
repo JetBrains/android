@@ -83,6 +83,7 @@ class VisualizationActionManager(
                 (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
                   sceneView.sceneManager.model
                 ) ?: false
+              (issue as? VisualLintHighlightingIssue)?.let { toolTipText = issue.summary }
             }
           }
 

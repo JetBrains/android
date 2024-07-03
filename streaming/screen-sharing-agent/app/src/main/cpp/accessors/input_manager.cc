@@ -16,6 +16,10 @@
 
 #include "input_manager.h"
 
+#include <mutex>
+
+#include "agent.h"
+#include "flags.h"
 #include "jvm.h"
 #include "log.h"
 #include "service_manager.h"
@@ -24,29 +28,40 @@ namespace screensharing {
 
 using namespace std;
 
-InputManager::InputManager(Jni jni)
-    : input_manager_(ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager")) {
-  JClass input_manager_class = input_manager_.GetClass();
-  inject_input_event_method_ = input_manager_class.GetMethod("injectInputEvent", "(Landroid/view/InputEvent;I)Z");
-  input_manager_.MakeGlobal();
-}
+static mutex static_initialization_mutex; // Protects initialization of static fields.
 
-InputManager::~InputManager() = default;
-
-InputManager& InputManager::GetInstance(Jni jni) {
-  static InputManager instance(jni);
-  return instance;
-}
-
-void InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
-  InputManager& instance = GetInstance(jni);
-  if (!instance.input_manager_.CallBooleanMethod(jni, instance.inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
-    string eventText = input_event.ToString();
-    if (eventText.empty()) {
-      eventText = input_event.GetClass(jni).GetName(jni);
+void InputManager::InitializeStatics(Jni jni) {
+  unique_lock lock(static_initialization_mutex);
+  if (input_manager_.IsNull()) {
+    input_manager_ = ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager");
+    JClass input_manager_class = input_manager_.GetClass();
+    inject_input_event_method_ = input_manager_class.GetMethod("injectInputEvent", "(Landroid/view/InputEvent;I)Z");
+    if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 30) {
+      add_port_association_method_ = input_manager_class.GetMethod("addPortAssociation", "(Ljava/lang/String;I)V");
+      remove_port_association_method_ = input_manager_class.GetMethod("removePortAssociation", "(Ljava/lang/String;)V");
     }
-    Log::E("Unable to inject an input event %s", eventText.c_str());
+    input_manager_.MakeGlobal();
   }
 }
+
+bool InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
+  InitializeStatics(jni);
+  return input_manager_.CallBooleanMethod(jni, inject_input_event_method_, input_event.ref(), static_cast<jint>(mode));
+}
+
+void InputManager::AddPortAssociation(Jni jni, const string& input_port, int32_t display_id) {
+  InitializeStatics(jni);
+  input_manager_.CallVoidMethod(jni, add_port_association_method_, JString(jni, input_port).ref(), display_id);
+}
+
+void InputManager::RemovePortAssociation(Jni jni, const string& input_port) {
+  InitializeStatics(jni);
+  input_manager_.CallVoidMethod(jni, remove_port_association_method_, JString(jni, input_port).ref());
+}
+
+JObject InputManager::input_manager_;
+jmethodID InputManager::inject_input_event_method_;
+jmethodID InputManager::add_port_association_method_;
+jmethodID InputManager::remove_port_association_method_;
 
 }  // namespace screensharing

@@ -24,6 +24,7 @@ import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
@@ -43,7 +44,7 @@ import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
@@ -54,10 +55,12 @@ import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
+import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -70,7 +73,6 @@ import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
-import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
@@ -157,13 +159,13 @@ const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
  * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
  * render result, using the [View] hierarchy.
  */
-private val defaultModelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+private val defaultModelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 
 /**
  * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
  * render result, using the [AccessibilityNodeInfo] hierarchy.
  */
-private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = AccessibilityModelUpdater()
+private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityModelUpdater()
 
 /**
  * [NlModel] associated preview data
@@ -193,6 +195,7 @@ private class PreviewElementDataContext(
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
       FastPreviewSurface.KEY.name -> fastPreviewSurface
+      PreviewInvalidationManager.KEY.name -> composePreviewManager
       else -> null
     }
 }
@@ -623,6 +626,7 @@ class ComposePreviewRepresentation(
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
       FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
+      PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
       else -> null
     }
   }
@@ -724,8 +728,8 @@ class ComposePreviewRepresentation(
    */
   private var onRestoreState: (() -> Unit)? = null
 
-  private val psiCodeFileChangeDetectorService =
-    PsiCodeFileChangeDetectorService.getInstance(project)
+  private val myPsiCodeFileOutOfDateStatusReporter =
+    PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
@@ -838,7 +842,7 @@ class ComposePreviewRepresentation(
       this@activate.initializeFlows(
         this@ComposePreviewRepresentation,
         previewModeManager,
-        psiCodeFileChangeDetectorService,
+        myPsiCodeFileOutOfDateStatusReporter,
         psiFilePointer,
         ::invalidate,
         ::requestRefresh,
@@ -868,8 +872,9 @@ class ComposePreviewRepresentation(
     //   enabled, and then a full refresh will happen.
     // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
     //   a full refresh will happen
-    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
-    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()) invalidate()
+    val anyKtFilesOutOfDate =
+      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable(project) && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
@@ -1405,7 +1410,7 @@ class ComposePreviewRepresentation(
    * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = psiFilePointer.element?.virtualFile ?: return false
+    val vFile = readAction { psiFilePointer.element?.virtualFile } ?: return false
     findAnnotatedMethodsValues(
         project,
         vFile,

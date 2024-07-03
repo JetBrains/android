@@ -51,7 +51,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
     super.setUp()
     myPanel = NlVisibilityGutterPanel()
     myModel = generateModelWithFlow()
-    myModel!!.getUpdateQueue().setPassThrough(true)
+    myModel!!.updateQueue.isPassThrough = true
     // If using a lambda, it can be reused by the JVM and causing an exception because the
     // Disposable is already disposed.
     myDisposable =
@@ -59,8 +59,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
         override fun dispose() {}
       }
     mySurface =
-      NlDesignSurface.builder(project, myDisposable!!)
-        .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+      NlDesignSurface.builder(project, myDisposable!!) { surface: NlDesignSurface, model: NlModel ->
           object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
             override fun renderAsync(
               trigger: LayoutEditorRenderResult.Trigger?,

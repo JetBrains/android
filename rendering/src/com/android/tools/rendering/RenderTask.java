@@ -20,6 +20,7 @@ import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TA
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
 import static com.android.tools.rendering.RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS;
+import static com.intellij.openapi.application.ActionsKt.runReadAction;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -683,6 +684,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_GESTURE_NAV, configuration.isGestureNav());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_EDGE_TO_EDGE, configuration.isEdgeToEdge());
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     params.setImageTransformation(configuration.getImageTransformation());
@@ -713,7 +716,7 @@ public class RenderTask {
 
     // Don't show navigation buttons on older platforms.
     Device device = configuration.getDevice();
-    if (!myShowDecorations || HardwareConfigHelper.isWear(device)) {
+    if (!myShowDecorations || Device.isWear(device)) {
       params.setForceNoDecor();
     }
     else {
@@ -953,7 +956,7 @@ public class RenderTask {
               myModuleClassLoaderReference.getClassLoader().getStats()));
         }
         else {
-          if (xmlFile.isValid()) {
+          if (runReadAction(xmlFile::isValid)) {
             return RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, myContext.getModule(), xmlFile, ex, myLogger);
           }
           else {

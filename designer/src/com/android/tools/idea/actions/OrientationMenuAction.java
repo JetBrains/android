@@ -17,10 +17,6 @@ package com.android.tools.idea.actions;
 
 import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -71,7 +67,7 @@ public class OrientationMenuAction extends DropDownAction {
 
         // Do not allow to change the orientation of the wear devices.
         //noinspection SimplifiableConditionalExpression
-        boolean showSetOrientationOptions = !HardwareConfigHelper.isWear(device);
+        boolean showSetOrientationOptions = !Device.isWear(device);
 
         if (showSetOrientationOptions) {
           List<State> states = device.getAllStates();
@@ -105,21 +101,6 @@ public class OrientationMenuAction extends DropDownAction {
     return true;
   }
 
-  @NotNull
-  public static ScreenOrientation getOrientation(@NotNull State state) {
-    FolderConfiguration config = DeviceConfigHelper.getFolderConfig(state);
-    ScreenOrientation orientation = null;
-    if (config != null && config.getScreenOrientationQualifier() != null) {
-      orientation = config.getScreenOrientationQualifier().getValue();
-    }
-
-    if (orientation == null) {
-      orientation = ScreenOrientation.PORTRAIT;
-    }
-
-    return orientation;
-  }
-
   @VisibleForTesting
   static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
@@ -135,7 +116,7 @@ public class OrientationMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setDeviceState(myState);
-      if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
+      if (!Device.isWear(configuration.getDevice())) {
         // Save the last orientation if device is not a wear device.
         ConfigurationManager configManager = ConfigurationManager.getFromConfiguration(configuration);
         ConfigurationProjectState projectState = configManager.getStateManager().getProjectState();

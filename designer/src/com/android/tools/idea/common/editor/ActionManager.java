@@ -18,8 +18,7 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.LabelPanel;
-import com.android.tools.idea.common.surface.LayoutData;
+import com.android.tools.idea.common.surface.sceneview.LabelPanel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel;
 import com.android.tools.idea.flags.StudioFlags;
@@ -32,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,8 +136,10 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
    */
   @NotNull
-  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView) {
-    return new LabelPanel(LayoutData.Companion.fromSceneView(sceneView));
+  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView, CoroutineScope scope) {
+    return new LabelPanel(sceneView.getSceneManager().getModel().getModelDisplayName(),
+                          sceneView.getSceneManager().getModel().getTooltip(),
+                          scope);
   }
 
   /**
@@ -152,15 +154,6 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
       if (LayoutlibSceneManagerUtilsKt.hasRenderErrors(sceneView)) return SceneViewErrorsPanel.Style.SOLID;
       return SceneViewErrorsPanel.Style.HIDDEN;
     });
-  }
-
-  /**
-   * Returns the bottom bar for a {@link SceneView}. This bar is at
-   * the bottom of the {@link SceneView} while context toolbar is at the top.
-   */
-  @Nullable
-  public JComponent getSceneViewBottomBar(@NotNull SceneView sceneView) {
-    return null;
   }
 
   /**

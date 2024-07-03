@@ -47,7 +47,6 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -540,16 +539,7 @@ class ProjectEnvironmentRuleImpl(
     applyAndroidCodeStyleSettings(settings)
     CodeStyleSettingsManager.getInstance(project()).setTemporarySettings(settings)
 
-    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
-    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor")
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor")
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "fake-adb-server-connection-pool")
-    // AdbService is application-level and so executor threads are reported as leaked
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor")
-    // MonitorThread from ddmlib is often created during unrelated tests
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor")
+    AndroidTestCase.registerLongRunningThreads()
   }
 
   override fun after(description: Description) {

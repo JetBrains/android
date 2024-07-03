@@ -161,8 +161,9 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
-    // a run line marker should be created since the function is a valid preview.
-    assertNotNull(contributor.getSlowInfo(functionIdentifier))
+    // a run line marker should not be created since the function is a valid preview,
+    // but not deployable since it's a multipreview.
+    assertNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoEmptyMultipreview() {

@@ -150,7 +150,6 @@ class DebugViewAttributes(
 private const val ACTIVITY_RESTART_KEY = "activity.restart"
 private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION =
   "failed.to.enable.view.attributes.inspection"
-// TODO(b/330406958): update documentation
 private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
   "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
 

@@ -115,6 +115,11 @@ interface IdeVariantCore : IdeVariantHeader {
    * Files listing any D8 backported desugared methods or core library desugared methods.
    */
   val desugaredMethodsFiles: Collection<File>
+
+  /**
+   * The experimental flags set on the variant.
+   */
+  val experimentalProperties: Map<String, String>
 }
 
 interface IdeVariant : IdeVariantCore {

@@ -24,14 +24,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeArgumentsListImpl extends ASTWrapperPsiElement implements DeclarativeArgumentsList {
+public class DeclarativeArgumentsListImpl extends CompositePsiElement implements DeclarativeArgumentsList {
 
-  public DeclarativeArgumentsListImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeArgumentsListImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {

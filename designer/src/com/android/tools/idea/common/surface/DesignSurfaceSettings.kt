@@ -32,7 +32,7 @@ import java.io.File
 
 @Service(Service.Level.PROJECT)
 @State(
-  name = "DesignSurface",
+  name = "DesignSurfaceV2",
   storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE, roamingType = RoamingType.DISABLED)],
 )
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {

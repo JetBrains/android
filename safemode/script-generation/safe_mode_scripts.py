@@ -261,7 +261,7 @@ FOR /F "delims=" %%i in ("%IDE_BIN_DIR%\\..") DO SET IDE_HOME=%%~fi
 
 :: ---------------------------------------------------------------------
 :: Locate a JRE installation directory which will be used to run the IDE.
-:: Try (in order): STUDIO_JDK, studio%BITS%.exe.jdk, ..\\jbr[-x86], JDK_HOME, JAVA_HOME.
+:: Try (in order): STUDIO_JDK, studio64.exe.jdk, ..\\jbr[-x86], JDK_HOME, JAVA_HOME.
 :: ---------------------------------------------------------------------
 SET JRE=%IDE_HOME%\\jbr
 SET JAVA_HOME=
@@ -282,33 +282,31 @@ IF NOT "%STUDIO_PROPERTIES%" == "" SET IDE_PROPERTIES_PROPERTY="-Didea.propertie
 SET VM_OPTIONS_FILE=
 SET USER_VM_OPTIONS_FILE=
 
-SET STUDIO_VERSION=FOR /F "tokens=2 delims= " %%x in ('FINDSTR AndroidStudio "%IDE_HOME%\\product-info.json"') do set STUDIO_VERSION=%%x
-
-SET BITS=64
-REG Query "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0" | FIND /i "x86" > NUL && SET BITS=
-SET STUDIO_EXE=%IDE_HOME%\\bin\\studio%BITS%.exe
+FOR /F "tokens=2 delims=: " %%x in ('FINDSTR AndroidStudio "%IDE_HOME%\\product-info.json"') do SET STUDIO_VERSION=%%x
+SET STUDIO_VERSION=%STUDIO_VERSION: =%
+SET STUDIO_VERSION=%STUDIO_VERSION:"=%
+SET STUDIO_VERSION=%STUDIO_VERSION:,=%
 
 SET STUDIO_CONFIG_DIR="%APPDATA%\\Google\\%STUDIO_VERSION%\\"
 IF NOT EXIST %STUDIO_CONFIG_DIR% (
   @REM Android Studio config is not set up
   ECHO Android Studio config doesn't exist %STUDIO_CONFIG_DIR%
-  "%STUDIO_EXE%" disableNonBundledPlugins dontReopenProjects
+  "%IDE_HOME%\\bin\\studio64.exe" disableNonBundledPlugins dontReopenProjects
   EXIT /B
 )
 
-SET STUDIO_SAFE_CONFIG_DIR="%APPDATA%\\Google\\%STUDIO_VERSION%.safe\\"
+SET STUDIO_SAFE_CONFIG_PATH=%APPDATA%\\Google\\%STUDIO_VERSION%.safe\\
+SET STUDIO_SAFE_CONFIG_DIR="%STUDIO_SAFE_CONFIG_PATH%"
 IF NOT EXIST %STUDIO_SAFE_CONFIG_DIR% (
   mkdir %STUDIO_SAFE_CONFIG_DIR%
-  EXIT /B
 )
 
 xcopy /YS %STUDIO_CONFIG_DIR%* %STUDIO_SAFE_CONFIG_DIR%
 del %STUDIO_SAFE_CONFIG_DIR%idea.properties
 del %STUDIO_SAFE_CONFIG_DIR%studio64.exe.vmoptions
 
-USER_VM_OPTIONS_FILE=%APPDATA%\\Google\\%STUDIO_VERSION%.safe\\studio64.exe.vmoptions
-SET ACC="-Djb.vmOptionsFile=%USER_VM_OPTIONS_FILE%"
-FINDSTR /R /C:"-XX:\\+.*GC" "%USER_VM_OPTIONS_FILE%" > NUL
+SET VM_OPTIONS_FILE="%IDE_HOME%\\bin\\studio64.exe.vmoptions"
+SET ACC="-Djb.vmOptionsFile=%VM_OPTIONS_FILE%"
 
 """,
 """

@@ -54,6 +54,9 @@ abstract class SceneView(
   var y: Int = 0
     private set
 
+  val isFocusedScene: Boolean
+    get() = surface.focusedSceneView == this
+
   var isVisible: Boolean = true
 
   /** A [SceneContext] which offers the rendering and/or picking information for this [SceneView] */

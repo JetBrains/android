@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
@@ -55,6 +56,10 @@ open class GroupedGridSurfaceLayoutManager(
   private val padding: GroupPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
+
+  private var currentAvailableWidth: Int? = null
+
+  private var currentLayoutGroup: GridLayoutGroup? = null
 
   /** Get the total required size to layout the [content] with the given conditions. */
   override fun getSize(
@@ -228,13 +233,34 @@ open class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): GridLayoutGroup {
+    val isSameWidth = currentAvailableWidth == availableWidth
+    currentAvailableWidth = availableWidth
+
     val content = group.content
     if (content.isEmpty()) {
       return GridLayoutGroup(group.header, emptyList())
     }
+
+    // If the content in the windows hasn't changed and there is no additional content to add in the
+    // layout group, we want to keep the layout as it is
+    currentLayoutGroup?.let { layoutGroup ->
+      if (SCROLLABLE_ZOOM_ON_GRID.get() && isSameWidth && content == layoutGroup.content()) {
+        return layoutGroup
+      }
+    }
+
+    return reLayout(scaleFunc, widthFunc, availableWidth, group).apply { currentLayoutGroup = this }
+  }
+
+  private fun reLayout(
+    scaleFunc: PositionableContent.() -> Double,
+    widthFunc: PositionableContent.() -> Int,
+    availableWidth: Int,
+    group: PositionableGroup,
+  ): GridLayoutGroup {
     val gridList = mutableListOf<List<PositionableContent>>()
-    val firstView = content.first()
-    val firstPreviewFramePadding = padding.previewPaddingProvider(scaleFunc(firstView))
+    val firstView = group.content.first()
+    val firstPreviewFramePadding = padding.previewPaddingProvider(firstView.scaleFunc())
     var nextX =
       firstPreviewFramePadding +
         firstView.widthFunc() +
@@ -242,8 +268,8 @@ open class GroupedGridSurfaceLayoutManager(
         firstPreviewFramePadding
 
     var columnList = mutableListOf(firstView)
-    for (view in content.drop(1)) {
-      val framePadding = padding.previewPaddingProvider(scaleFunc(view))
+    for (view in group.content.drop(1)) {
+      val framePadding = padding.previewPaddingProvider(view.scaleFunc())
       val nextViewWidth =
         framePadding + view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal + framePadding
       if (nextX + nextViewWidth > availableWidth) {

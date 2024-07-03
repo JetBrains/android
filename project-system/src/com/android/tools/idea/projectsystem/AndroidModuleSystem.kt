@@ -184,7 +184,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /**
    * Returns the resolved libraries that this module depends on.
    * <p>
-   * **Note**: This function will not acquire read/write locks during it's operation.
+   * **Note**: This function will not acquire read/write locks during its operation.
    */
   fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary>
 

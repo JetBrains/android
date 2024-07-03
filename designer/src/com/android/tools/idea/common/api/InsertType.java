@@ -74,6 +74,10 @@ public enum InsertType {
     return this == CREATE || this == CREATE_PREVIEW;
   }
 
+  public boolean isPasteOperation() {
+    return this == PASTE || this == PASTE_GENERATE_NEW_IDS;
+  }
+
   /**
    * Return the {@link DragType} this insert type correspond to.
    * The drag type will normally be used as the command name for a write transaction.

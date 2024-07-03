@@ -235,15 +235,13 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
       }
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
-      .map { startOffset ->
-        startOffset to PsiTreeUtil.findElementOfClassAtOffset(
+      .mapNotNull { startOffset ->
+        val attribute = PsiTreeUtil.findElementOfClassAtOffset(
           psiFile,
           startOffset,
           XmlAttribute::class.java,
           false
         )
-      }
-      .mapNotNull { (startOffset, attribute) ->
         when {
           attribute == null ->
             PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)

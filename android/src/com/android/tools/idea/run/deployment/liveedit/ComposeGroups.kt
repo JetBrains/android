@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
-import com.android.tools.idea.run.deployment.liveedit.analysis.parseKeyMeta
+import com.android.tools.idea.run.deployment.liveedit.analysis.parseComposeGroups
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.math.max
 import kotlin.math.min
 
+// While we have the old group selection logic coexisting with the new bytecode analysis logic, use this type
+// alias to keep things slightly more legible
+typealias FunctionKeyMeta = com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroup
 private val debug = LiveEditLogger("ComposeGroups")
 
 class ComposeGroup(keyMeta: FunctionKeyMeta, val lines: IntRange) {
@@ -33,7 +35,7 @@ class ComposeGroup(keyMeta: FunctionKeyMeta, val lines: IntRange) {
 
 fun extractComposeGroups(sourceFile: KtFile, keyMetaClass: IrClass): List<ComposeGroup> {
   debug.log("parsing key meta file:")
-  return parseKeyMeta(keyMetaClass).map { group ->
+  return parseComposeGroups(keyMetaClass).map { group ->
     val doc = PsiDocumentManager.getInstance(sourceFile.project).getDocument(sourceFile)!!
     val startLine = doc.getLineNumber(group.range.startOffset)
     val endLine = doc.getLineNumber(group.range.endOffset)

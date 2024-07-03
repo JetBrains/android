@@ -40,5 +40,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/avd:intellij.android.avd[module]",
     ],
 )

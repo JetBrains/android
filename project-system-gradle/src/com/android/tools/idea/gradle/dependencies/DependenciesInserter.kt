@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
+import com.android.tools.idea.gradle.dsl.api.PluginsModel
 import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.utils.addIfNotNull

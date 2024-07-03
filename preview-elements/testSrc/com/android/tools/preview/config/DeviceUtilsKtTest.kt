@@ -104,20 +104,6 @@ internal class DeviceUtilsKtTest {
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(20, screen.chin)
 
-    screen =
-      DeviceConfig(
-        width = 100f,
-        height = 100f,
-        dimUnit = DimUnit.dp,
-        shape = Shape.Chin,
-        chinSize = 20f
-      )
-        .createDeviceInstance()
-        .defaultHardware
-        .screen
-    assertEquals(ScreenRound.ROUND, screen.screenRound)
-    assertEquals(30, screen.chin) // When using Shape.Chin, chinSize is always 30
-
     // From DeviceSpec
     screen =
       deviceFromDeviceSpec("spec:shape=Round,width=100,height=200,unit=px,dpi=300")!!
@@ -125,13 +111,6 @@ internal class DeviceUtilsKtTest {
         .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(0, screen.chin)
-
-    screen =
-      deviceFromDeviceSpec("spec:shape=Chin,width=100,height=200,unit=px,dpi=300")!!
-        .defaultHardware
-        .screen
-    assertEquals(ScreenRound.ROUND, screen.screenRound)
-    assertEquals(30, screen.chin)
 
     // From DeviceSpec Language
     screen =

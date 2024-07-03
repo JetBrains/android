@@ -104,27 +104,6 @@ public class PluginsBlockModelImpl extends GradleDslBlockModel implements Plugin
   }
 
   @Override
-  public @NotNull PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply) {
-    // note: reparented if apply is non-null
-    GradleDslMethodCall alias = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), ALIAS);
-    GradleDslLiteral target = new GradleDslLiteral(alias.getArgumentsElement(), GradleNameElement.empty());
-    target.setValue(reference);
-    alias.addNewArgument(target);
-    if (apply != null) {
-      GradleDslInfixExpression expression = new GradleDslInfixExpression(myDslElement, null);
-      alias.setParent(expression);
-      expression.setNewElement(alias);
-      expression.setNewLiteral(APPLY, apply);
-      myDslElement.setNewElement(expression);
-      return new PluginModelImpl(expression);
-    }
-    else {
-      myDslElement.setNewElement(alias);
-      return new PluginModelImpl(alias);
-    }
-  }
-
-  @Override
   public void removePlugin(@NotNull String plugin) {
     PluginModelImpl.removePlugins(PluginModelImpl.create(myDslElement), plugin);
   }

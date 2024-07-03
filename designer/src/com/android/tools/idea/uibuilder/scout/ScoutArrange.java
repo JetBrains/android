@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpBaseline;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpHeight;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpWidth;
@@ -41,8 +40,6 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintCom
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,8 +51,6 @@ import java.util.List;
  * This implements the standard arrange functions
  */
 public class ScoutArrange {
-  static Comparator<NlComponent> sSortY = (w1, w2) -> ConstraintComponentUtilities.getDpY(w1) - ConstraintComponentUtilities.getDpY(w2);
-  static Comparator<NlComponent> sSortX = (w1, w2) -> getDpX(w1) - getDpX(w2);
 
   static Comparator<ScoutWidget> sSortRecY = (w1, w2) -> w1.getDpY() - w2.getDpY();
   static Comparator<ScoutWidget> sSortRecX = (w1, w2) -> w1.getDpX() - w2.getDpX();
@@ -74,15 +69,6 @@ public class ScoutArrange {
     }
     if (widgetList.get(0).getParent() == null) {
       return;
-    }
-    NlComponent layout = widgetList.get(0).getParent();
-    boolean useConstraintSet = false;
-    if (NlComponentHelperKt.isOrHasSuperclass(layout, CLASS_MOTION_LAYOUT)) {
-      System.out.println("align MotionLayout");
-      if (MotionSceneUtils.isUnderConstraintSet(widgetList.get(0))) {
-        useConstraintSet = true;
-      }
-
     }
 
     ScoutWidget parentScoutWidget = new ScoutWidget(widgetList.get(0).getParent(), null);
@@ -698,7 +684,7 @@ public class ScoutArrange {
 
   /**
    * Expands widgets vertically in an evenly spaced manner
-   *  @param widgetList
+   * @param list
    * @param margin
    * @param apply
    */
@@ -754,7 +740,7 @@ public class ScoutArrange {
 
   /**
    * Expands widgets horizontally in an evenly spaced manner
-   *  @param widgetList
+   * @param list
    * @param margin
    * @param apply
    */
@@ -806,30 +792,6 @@ public class ScoutArrange {
         constraintWidget.setWidth(xend - x);
       }
     }
-  }
-
-  /**
-   * are the two widgets in the same horizontal area
-   *
-   * @param a
-   * @param b
-   * @return true if aligned
-   */
-  static boolean isSameRow(NlComponent a, NlComponent b) {
-    return Math.max(getDpY(a), getDpY(b)) <
-           Math.min(getDpY(a) + getDpHeight(a), getDpY(b) + getDpHeight(b));
-  }
-
-  /**
-   * are the two widgets in the same vertical area
-   *
-   * @param a
-   * @param b
-   * @return true if aligned
-   */
-  static boolean isSameColumn(NlComponent a, NlComponent b) {
-    return Math.max(getDpX(a), getDpX(b)) <
-           Math.min(getDpX(a) + getDpWidth(a), getDpX(b) + getDpWidth(b));
   }
 
   /**
@@ -1002,8 +964,6 @@ public class ScoutArrange {
    * @return the distance on that side
    */
   public static int gap(Direction direction, Rectangle region, ScoutWidget[] list, ScoutWidget root) {
-    int rootX = root.getDpWidth();
-    int rootY = root.getDpHeight();
     int rootWidth = root.getDpWidth();
     int rootHeight = root.getDpHeight();
     Rectangle rect = new Rectangle();
@@ -1161,46 +1121,6 @@ public class ScoutArrange {
   }
 
   /**
-   * Get the bounding box around a list of widgets
-   *
-   * @param widgets
-   * @return
-   */
-  static Rectangle getBoundingBox(List<NlComponent> widgets) {
-    Rectangle all = null;
-    Rectangle tmp = new Rectangle();
-    for (NlComponent widget : widgets) {
-      if (isLine(widget)) {
-        continue;
-      }
-      tmp.x = getDpX(widget);
-      tmp.y = getDpY(widget);
-      tmp.width = getDpWidth(widget);
-      tmp.height = getDpHeight(widget);
-      if (all == null) {
-        all = new Rectangle(tmp);
-      }
-      else {
-        all = all.union(tmp);
-      }
-    }
-    return all;
-  }
-
-  /**
-   * in place Reverses the order of the widgets
-   *
-   * @param widgets to reverse
-   */
-  private static void reverse(NlComponent[] widgets) {
-    for (int i = 0; i < widgets.length / 2; i++) {
-      NlComponent widget = widgets[i];
-      widgets[i] = widgets[widgets.length - 1 - i];
-      widgets[widgets.length - 1 - i] = widget;
-    }
-  }
-
-  /**
    * in place Reverses the order of the widgets
    *
    * @param widgets to reverse
@@ -1251,38 +1171,6 @@ public class ScoutArrange {
   }
 
   /**
-   * find the nearest widget in a list of widgets only considering the horizontal location
-   *
-   * @param nextTo find nearest to this widget
-   * @param list   list to search
-   * @return the nearest in the list
-   */
-  private static NlComponent nearestHorizontal(NlComponent nextTo,
-                                               ArrayList<NlComponent> list) {
-    int min = Integer.MAX_VALUE;
-    NlComponent ret = null;
-    int nextToLeft = getDpX(nextTo);
-    int nextToRight = nextToLeft + getDpWidth(nextTo);
-    for (NlComponent widget : list) {
-      if (widget == nextTo) {
-        continue;
-      }
-
-      int left = getDpX(widget);
-      int right = left + getDpWidth(widget);
-      int dist = Math.abs(left - nextToLeft);
-      dist = Math.min(dist, Math.abs(left - nextToRight));
-      dist = Math.min(dist, Math.abs(right - nextToRight));
-      dist = Math.min(dist, Math.abs(right - nextToLeft));
-      if (dist < min) {
-        min = dist;
-        ret = widget;
-      }
-    }
-    return ret;
-  }
-
-  /**
    * Wrapper for concept of anchor the "connector" on sides of a widget
    */
   class Anchor {
@@ -1306,21 +1194,9 @@ public class ScoutArrange {
       return false;
     }
 
-    NlComponent getOwner() {
-      return mNlComponent;
-    }
-
-    public boolean isConnectionAllowed(ScoutWidget component) {
-      return false;
-    }
-
     public Direction getType() {
       return myDirection;
     }
-  }
-
-  public Anchor getAnchor(NlComponent component, Direction direction) {
-    return new Anchor(component, direction);
   }
 
   /**

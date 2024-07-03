@@ -18,6 +18,8 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.intellij.codeInsight.lookup.impl.LookupCellRenderer
+import com.intellij.openapi.ui.popup.JBPopup
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
@@ -25,7 +27,9 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
+import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBList
+import com.intellij.ui.popup.AbstractPopup
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
 import com.intellij.util.ui.UIUtil
@@ -61,16 +65,16 @@ private fun Int.modulo(other: Int): Int {
 /**
  * A popup menu used to display completions while editing a [CommonTextField].
  */
-class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI(editor)) {
+class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
   private val listModel = DefaultListModel<String>()
-  private val filteredModel = FilteringListModel<String>(listModel)
+  private val filteredModel = FilteringListModel(listModel)
   private var matcher = Matcher()
   private val condition = { element: String -> matcher.matches(element) }
   private var showBelow = true
   private var dataLoading = false
   private var dataLoaded = false
   private var lookupCancelled = false
-  private var lastCompletionText = AtomicReference<String>("")
+  private var lastCompletionText = AtomicReference("")
 
   /**
    * Is the current value included in the top of the completion popup.
@@ -326,15 +330,16 @@ interface LookupUI {
 /**
  * Implementation of the popup using a [JPopupMenu].
  */
-class DefaultLookupUI(private val component: Component) : LookupUI {
-  private val popup = JPopupMenu().apply { isFocusable = false }
+class DefaultLookupUI : LookupUI {
   private val renderer = MyLookupCellRenderer()
   private val list = JBList<String>()
+  private val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
+  private var popup: JBPopup? = null
 
   override var clickAction: () -> Unit = {}
 
   override val visible: Boolean
-    get() = popup.isVisible
+    get() = popup?.isVisible == true
 
   override var visibleRowCount: Int
     get() = list.visibleRowCount
@@ -363,11 +368,9 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
     }
 
   override val popupSize: Dimension
-    get() = popup.preferredSize
+    get() = list.preferredSize
 
   override fun createList(listModel: ListModel<String>, matcher: Matcher, editor: JComponent) {
-    val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
-    popup.add(scrollPane)
     renderer.matcher = matcher
     list.model = listModel
     list.isFocusable = false
@@ -392,7 +395,15 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
   }
 
   override fun updateLocation(location: Point, editor: JComponent) {
-    popup.show(editor, location.x, location.y)
+    val currentPopup = popup
+    if (currentPopup == null || currentPopup.isDisposed) {
+      popup = JBPopupFactory.getInstance().createComponentPopupBuilder(scrollPane, list).createPopup()
+      popup?.show(RelativePoint(editor, location))
+    } else {
+      currentPopup.setLocation(RelativePoint(editor, location).screenPoint)
+      (currentPopup as? AbstractPopup)?.getPopupWindow()?.size = currentPopup.content.preferredSize
+      currentPopup.setUiVisible(true)
+    }
   }
 
   override fun screenBounds(editor: JComponent): Rectangle {
@@ -414,7 +425,7 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
   }
 
   override fun hide() {
-    popup.isVisible = false
+    popup?.setUiVisible(false)
   }
 
   /**

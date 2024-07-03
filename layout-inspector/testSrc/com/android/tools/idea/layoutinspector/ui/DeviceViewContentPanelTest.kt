@@ -163,7 +163,7 @@ class DeviceViewContentPanelTest {
           view(VIEW2, 60, 160, 10, 20)
         }
       }
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 30
@@ -199,7 +199,7 @@ class DeviceViewContentPanelTest {
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -370,7 +370,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = EditorRenderSettings(scalePercent = 100)
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
     val client = mock<InspectorClient>()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
@@ -471,7 +471,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
 
     val panel =
       createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
@@ -522,7 +522,7 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val renderSettings = InspectorRenderSettings()
@@ -553,7 +553,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -597,7 +597,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
     val client: InspectorClient = mock()
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
@@ -659,7 +659,7 @@ class DeviceViewContentPanelTest {
       }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -727,7 +727,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -767,7 +767,7 @@ class DeviceViewContentPanelTest {
       }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -807,7 +807,7 @@ class DeviceViewContentPanelTest {
       }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -846,7 +846,7 @@ class DeviceViewContentPanelTest {
     val client = mock<InspectorClient>()
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
     whenever(launcher.activeClient).thenReturn(client)
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
     val selectProcessAction = mock<SelectProcessAction>()
     whenever(selectProcessAction.templatePresentation).thenReturn(mock())
@@ -908,7 +908,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -963,7 +963,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1009,7 +1009,7 @@ class DeviceViewContentPanelTest {
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 50
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1109,7 +1109,7 @@ class DeviceViewContentPanelTest {
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(120, 140, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val renderSettings = InspectorRenderSettings()
@@ -1167,7 +1167,7 @@ class DeviceViewContentPanelTest {
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 50
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1233,7 +1233,7 @@ class DeviceViewContentPanelTest {
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 50
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1321,7 +1321,7 @@ class DeviceViewContentPanelTest {
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 75
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1358,7 +1358,7 @@ class DeviceViewContentPanelTest {
         }
       }
     val view1 = model[VIEW1]
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val renderSettings = InspectorRenderSettings()
@@ -1456,7 +1456,7 @@ class DeviceViewContentPanelTest {
     val renderSettings = FakeRenderSettings()
     renderSettings.scalePercent = 50
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1488,7 +1488,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1528,7 +1528,7 @@ class DeviceViewContentPanelTest {
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
 
     val panel =
@@ -1569,7 +1569,7 @@ class DeviceViewContentPanelWithScaledFontTest {
   fun testPaintEmpty() {
     ApplicationManager.getApplication()
       .replaceService(ActionManager::class.java, mock(), disposable.disposable)
-    val treeSettings = FakeTreeSettings()
+    val treeSettings = FakeTreeSettings(showRecompositions = false)
     treeSettings.hideSystemNodes = false
     val model = model(disposable.disposable) {}
 

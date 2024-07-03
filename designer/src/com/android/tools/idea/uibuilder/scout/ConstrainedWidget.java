@@ -27,7 +27,6 @@ public class ConstrainedWidget {
   public Connection east;
   public Connection west;
   public Connection baseline;
-  private double myCost;
   private double errorCenterFactor = 8;
 
   /**
@@ -56,20 +55,10 @@ public class ConstrainedWidget {
     ScoutWidget sWidget) {
     myScoutWidget = sWidget;
     this.north = north;
-    this.north.setOriginWidget(this);
     this.south = south;
-    this.south.setOriginWidget(this);
     this.east = east;
-    this.east.setOriginWidget(this);
     this.west = west;
-    this.west.setOriginWidget(this);
     this.baseline = baseline;
-    this.baseline.setOriginWidget(this);
-    myCost = north.getCost() +
-             south.getCost() +
-             east.getCost() +
-             west.getCost() +
-             baseline.getCost();
   }
 
   @Override
@@ -83,24 +72,14 @@ public class ConstrainedWidget {
       res = "H GUIDELINE";
     }
     else {
-      res = String.format("%s %s %s %s %s %f",
+      res = String.format("%s %s %s %s %s",
                           north.toString(),
                           south.toString(),
                           east.toString(),
                           west.toString(),
-                          baseline.toString(),
-                          myCost);
+                          baseline.toString());
     }
     return res;
-  }
-
-  public double getCost() {
-    return myCost;
-  }
-
-  int compareTo(ConstrainedWidget other) {
-    int val = myCost < other.getCost() ? 1 : myCost == other.getCost() ? 0 : -1;
-    return val;
   }
 
   public ScoutWidget getScoutWidget() {

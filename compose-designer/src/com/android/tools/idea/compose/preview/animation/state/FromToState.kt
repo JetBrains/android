@@ -16,21 +16,40 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
-import com.android.tools.idea.compose.preview.animation.actions.SwapAction
-import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
+import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.state.SwapAction
+import com.android.tools.idea.preview.animation.state.ToolbarLabel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
- * [AnimationState] to control comboBoxes for animations like updateTransition.
+ * [ComposeAnimationState] to control comboBoxes for animations like updateTransition.
  *
- * @param tracker usage tracker for animation tooling
- * @param callback when state has changed
+ * @param tracker The [AnimationTracker] for tracking animation usage.
+ * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing
+ *   coroutine operations within the state.
  */
-class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+class FromToState(tracker: ComposeAnimationTracker, scope: CoroutineScope) : ComposeAnimationState {
 
-  private val fromState = EnumStateAction(stateCallback)
-  private val toState = EnumStateAction(stateCallback)
+  private val fromState = EnumStateAction()
+  private val toState = EnumStateAction()
+
+  init {
+    scope.launch { fromState.currentState.collect { tracker.changeStartState() } }
+    scope.launch { fromState.currentState.collect { tracker.changeEndState() } }
+  }
+
+  override val stateHashCode: StateFlow<Int> =
+    combine(fromState.currentState, toState.currentState) { from, to -> Pair(from, to).hashCode() }
+      .stateIn(
+        scope,
+        SharingStarted.Eagerly,
+        Pair(fromState.currentState.value, toState.currentState.value).hashCode(),
+      )
 
   /**
    * Contains
@@ -39,20 +58,17 @@ class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
    * * `to` [ToolbarLabel]
    * * [EnumStateAction] for `to` state.
    */
-  override val extraActions =
+  override val changeStateActions =
     listOf(
       SwapAction(tracker) {
-        val start = fromState.currentState
-        fromState.currentState = toState.currentState
-        toState.currentState = start
-        stateCallback()
+        val start = fromState.currentState.value
+        fromState.currentState.value = toState.currentState.value
+        toState.currentState.value = start
       },
       fromState,
       ToolbarLabel("to"),
       toState,
     )
-
-  override fun stateHashCode() = Pair(fromState.stateHashCode, toState.stateHashCode).hashCode()
 
   override fun updateStates(states: Set<Any>) {
     fromState.states = states
@@ -62,15 +78,14 @@ class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
 
   override fun getState(index: Int): Any? {
     return when (index) {
-      0 -> fromState.currentState
-      1 -> toState.currentState
+      0 -> fromState.currentState.value
+      1 -> toState.currentState.value
       else -> null
     }
   }
 
   override fun setStartState(state: Any?) {
-    fromState.currentState = state
-    toState.currentState = toState.states.firstOrNull { it != state } ?: state
-    stateCallback()
+    fromState.currentState.value = state
+    toState.currentState.value = toState.states.firstOrNull { it != state } ?: state
   }
 }

@@ -17,34 +17,24 @@ package com.android.tools.idea.fileTypes;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.IconProvider;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
-import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isModuleContentRoot;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
-import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
-import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
-import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 
 public class AndroidIconProvider extends IconProvider {
   @Nullable
@@ -73,59 +63,15 @@ public class AndroidIconProvider extends IconProvider {
       }
     }
 
-    if (element instanceof PsiDirectory) {
-      PsiDirectory psiDirectory = (PsiDirectory)element;
-      VirtualFile virtualDirectory = psiDirectory.getVirtualFile();
-      Project project = psiDirectory.getProject();
-      if (isModuleContentRoot(virtualDirectory, project)) {
-        ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-        Module module = projectFileIndex.getModuleForFile(virtualDirectory);
-        // Only provide icons for modules that are setup by the Android plugin - other modules may be provided for
-        // by later providers, we don't assume getModuleIcon returns the correct icon in these cases.
-        if (module != null && !module.isDisposed() && ModuleSystemUtil.isLinkedAndroidModule(module)) {
-          return getModuleIcon(module);
-        }
-      }
+    Project project = element.getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    AndroidIconProviderProjectToken<AndroidProjectSystem> token =
+      Arrays.stream(AndroidIconProviderProjectToken.getEP_NAME().getExtensions(project))
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst().orElse(null);
+    if (token != null) {
+      return token.getIcon(projectSystem, element);
     }
-
     return null;
-  }
-
-  @NotNull
-  public static Icon getModuleIcon(@NotNull Module module) {
-    if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
-      return getAndroidModuleIcon(getModuleSystem(module));
-    } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
-      return ANDROID_MODULE;
-    }
-
-
-    return AllIcons.Nodes.Module;
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem androidModuleSystem) {
-    return getAndroidModuleIcon(androidModuleSystem.getType());
-  }
-
-  @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem.Type androidProjectType) {
-    switch (androidProjectType) {
-      case TYPE_NON_ANDROID:
-        return AllIcons.Nodes.Module;
-      case TYPE_APP:
-        return ANDROID_MODULE;
-      case TYPE_FEATURE:
-      case TYPE_DYNAMIC_FEATURE:
-        return FEATURE_MODULE;
-      case TYPE_INSTANTAPP:
-        return INSTANT_APPS;
-      case TYPE_LIBRARY:
-        return LIBRARY_MODULE;
-      case TYPE_TEST:
-        return ANDROID_TEST_ROOT;
-      default:
-        return ANDROID_MODULE;
-    }
   }
 }

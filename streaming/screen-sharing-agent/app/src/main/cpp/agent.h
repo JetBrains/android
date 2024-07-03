@@ -47,7 +47,7 @@ public:
   // Calls DisplayStreamer::SetMaxVideoResolution.
   static void SetMaxVideoResolution(int32_t display_id, Size max_video_resolution);
   // Calls DisplayStreamer::GetDisplayInfo.
-  static DisplayInfo GetDisplayInfo(int32_t display_id);
+  [[nodiscard]] static DisplayInfo GetDisplayInfo(int32_t display_id);
 
   // Modifies system settings for the screen sharing session. May be called on any thread.
   static void InitializeSessionEnvironment();
@@ -56,21 +56,21 @@ public:
   static void RestoreEnvironment();
 
   // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
-  static int64_t GetLastTouchEventTime();
+  [[nodiscard]] static int64_t GetLastTouchEventTime();
   // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
   static void RecordTouchEvent();
 
-  static bool IsShuttingDown() { return shutting_down_; }
+  [[nodiscard]] static bool IsShuttingDown() { return shutting_down_; }
 
-  static bool is_watch() { return is_watch_; };
+  [[nodiscard]] static bool is_watch() { return is_watch_; };
 
-  static const std::string& device_manufacturer();
+  [[nodiscard]] static const std::string& device_manufacturer();
 
-  static int32_t flags() { return flags_; }
+  [[nodiscard]] static int32_t flags() { return flags_; }
 
-  inline static int32_t feature_level() { return feature_level_; }
+  [[nodiscard]] inline static int32_t feature_level() { return feature_level_; }
 
-  static SessionEnvironment& session_environment() { return *session_environment_; }
+  [[nodiscard]] static SessionEnvironment& session_environment() { return *session_environment_; }
 
   Agent() = delete;
 

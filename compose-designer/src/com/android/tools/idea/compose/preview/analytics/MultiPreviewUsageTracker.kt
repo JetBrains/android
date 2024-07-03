@@ -85,13 +85,17 @@ private class InternalMultiPreviewUsageTracker(
 /**
  * Represents a [ComposeMultiPreviewEvent] to be tracked, and uses the builder pattern to create it.
  */
-class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqName: String) {
+class MultiPreviewEvent(nodeSequence: Sequence<MultiPreviewNode>, val fileFqName: String) {
+
+  private val nodes: List<MultiPreviewNode> = nodeSequence.toList()
+
   private val eventBuilder =
     ComposeMultiPreviewEvent.newBuilder()
       .addAllMultiPreviewNodes( // Don't log useless nor Preview nodes
         nodes
           .filter { !it.nodeInfo.isUseless() && !it.nodeInfo.isPreviewType() }
           .map { it.nodeInfo.build() }
+          .toList()
       )
       .setIsComposePreviewLiteMode(PreviewEssentialsModeManager.isEssentialsModeEnabled)
 

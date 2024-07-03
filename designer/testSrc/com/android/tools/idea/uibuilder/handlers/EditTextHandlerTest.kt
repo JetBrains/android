@@ -39,7 +39,7 @@ class EditTextHandlerTest : LayoutTestCase() {
             ),
         )
         .build()
-    val editText = model.components.get(0).getChild(0)!!
+    val editText = model.treeReader.components.get(0).getChild(0)!!
     val existIds = HashSet<String>()
 
     val baseId = StringUtil.decapitalize(editText.tagName)

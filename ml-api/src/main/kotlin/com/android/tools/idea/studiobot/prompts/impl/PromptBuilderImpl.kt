@@ -16,20 +16,28 @@
 package com.android.tools.idea.studiobot.prompts.impl
 
 import com.android.tools.idea.studiobot.AiExcludeException
+import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.MalformedPromptException
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
-import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting data class PromptImpl(override val messages: List<Prompt.Message>) : Prompt
+@VisibleForTesting
+data class PromptImpl(
+  override val messages: List<Prompt.Message>,
+  override val functions: List<Prompt.Function> = emptyList(),
+  override val functionCallingMode: Prompt.FunctionCallingMode = Prompt.FunctionCallingMode.AUTO,
+) : Prompt
 
 class PromptBuilderImpl(private val project: Project) : PromptBuilder {
-  override val messages = mutableListOf<Prompt.Message>()
+  private val messages = mutableListOf<Prompt.Message>()
+  private val functions = mutableListOf<Prompt.Function>()
+  private var functionCallingMode = Prompt.FunctionCallingMode.AUTO
 
   open class MessageBuilderImpl(val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
     PromptBuilder.MessageBuilder {
@@ -41,7 +49,7 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     }
 
     /** Adds [code] as a formatted code block in the message, with optional [language] specified. */
-    override fun code(code: String, language: Language?, filesUsed: Collection<VirtualFile>) {
+    override fun code(code: String, language: MimeType?, filesUsed: Collection<VirtualFile>) {
       myChunks.add(Prompt.Message.CodeChunk(code, language, filesUsed))
     }
 
@@ -54,7 +62,37 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   inner class UserMessageBuilderImpl(makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
     MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
-    override val project: Project = this@PromptBuilderImpl.project
+    override val project = this@PromptBuilderImpl.project
+  }
+
+  inner class ContextBuilderImpl(val makeMessage: (ContextBuilderImpl) -> Prompt.Message) :
+    PromptBuilder.ContextBuilder {
+    val files = mutableListOf<Prompt.ContextFile>()
+    val chunks = mutableListOf<Prompt.Message.Chunk>()
+
+    override fun virtualFile(file: VirtualFile, isCurrentFile: Boolean, selection: TextRange?) {
+      files.add(Prompt.ContextFile(file, isCurrentFile, selection))
+    }
+
+    override fun file(file: Prompt.ContextFile) {
+      files.add(file)
+    }
+
+    fun build() = makeMessage(this)
+  }
+
+  inner class FunctionsBuilderImpl : PromptBuilder.FunctionsBuilder {
+    override fun function(function: Prompt.Function) {
+      functions.add(function)
+    }
+
+    override fun functions(functions: List<Prompt.Function>) {
+      this@PromptBuilderImpl.functions.addAll(functions)
+    }
+
+    override fun setMode(mode: Prompt.FunctionCallingMode) {
+      this@PromptBuilderImpl.functionCallingMode = mode
+    }
   }
 
   override fun systemMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
@@ -74,6 +112,22 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     messages.add(MessageBuilderImpl { Prompt.ModelMessage(it) }.apply(builderAction).build())
   }
 
+  override fun context(builderAction: PromptBuilder.ContextBuilder.() -> Unit) {
+    messages.add(ContextBuilderImpl { Prompt.Context(it.files) }.apply(builderAction).build())
+  }
+
+  override fun functions(builderAction: PromptBuilder.FunctionsBuilder.() -> Unit) {
+    FunctionsBuilderImpl().apply(builderAction)
+  }
+
+  override fun functionCall(call: Content.FunctionCall) {
+    messages.add(Prompt.FunctionCallMessage(call))
+  }
+
+  override fun functionResponse(name: String, response: String) {
+    messages.add(Prompt.FunctionResponseMessage(name, response))
+  }
+
   fun addAll(prompt: Prompt): PromptBuilderImpl {
     messages.addAll(prompt.messages)
     return this
@@ -85,8 +139,13 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   private fun excludedFiles(): Set<VirtualFile> =
     messages
-      .flatMap { msg -> msg.chunks.flatMap { chunk -> chunk.filesUsed } }
-      .filter { StudioBot.getInstance().aiExcludeService().isFileExcluded(project, it) }
+      .flatMap { msg ->
+        when (msg) {
+          is Prompt.Context -> msg.files.map { it.virtualFile }
+          else -> msg.chunks.flatMap { chunk -> chunk.filesUsed }
+        }
+      }
+      .filter { StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it) }
       .toSet()
 
   fun build(): Prompt {
@@ -98,6 +157,6 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
     }
-    return PromptImpl(messages)
+    return PromptImpl(messages, functions, functionCallingMode)
   }
 }

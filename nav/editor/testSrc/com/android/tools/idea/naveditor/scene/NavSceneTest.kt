@@ -18,9 +18,9 @@ package com.android.tools.idea.naveditor.scene
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -43,7 +43,6 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.createChild
@@ -58,7 +57,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
-import java.awt.Dimension
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
@@ -228,7 +226,7 @@ class NavSceneTest {
 
     root.fragment("fragment3")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     val component1 = scene.getSceneComponent("fragment1")!!
     moveComponentTo(component1, 200, 20)
     val component2 = scene.getSceneComponent("fragment2")!!
@@ -263,7 +261,7 @@ class NavSceneTest {
     moveComponentTo(component2, 20, 20)
     scene.sceneManager.layout(false)
 
-    model.delete(listOf(model.find("fragment2")!!))
+    model.treeWriter.delete(listOf(model.treeReader.find("fragment2")!!))
 
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
@@ -274,7 +272,7 @@ class NavSceneTest {
     val undoManager = UndoManager.getInstance(projectRule.project)
     undoManager.undo(editor)
     PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     model.surface.sceneManager!!.update()
     scene.layout(0, sceneView.context)
 
@@ -321,7 +319,7 @@ class NavSceneTest {
     assertDrawRectEquals(sceneView, component2, 580f, 400f, 76.5f, 128f)
     assertDrawRectEquals(sceneView, nested, 400f, 400f, 70f, 19f)
 
-    whenever<NlComponent>(surface.currentNavigation).then { model.find("nested")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.treeReader.find("nested")!! }
     scene.sceneManager.update()
     val component3 = scene.getSceneComponent("fragment3")!!
     moveComponentTo(component3, 200, 20)
@@ -363,7 +361,7 @@ class NavSceneTest {
       }
     }
     val surface = model.surface
-    val rootComponent = model.components[0]
+    val rootComponent = model.treeReader.components[0]
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       surface.model!!
       val newComponent = rootComponent.createChild("fragment", true, null, null)!!
@@ -440,7 +438,7 @@ class NavSceneTest {
     val scene = model.surface.scene!!
 
     // Selecting global nav brings it to the front
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("a1")!!))
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("a1")!!))
 
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
@@ -459,7 +457,7 @@ class NavSceneTest {
     }
 
     // now "nested" is in the front
-    val nested = model.find("nested")!!
+    val nested = model.treeReader.find("nested")!!
     model.surface.selectionModel.setSelection(ImmutableList.of(nested))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
@@ -475,7 +473,7 @@ class NavSceneTest {
     }
 
     // test multi select
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!, nested))
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!, nested))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
@@ -748,7 +746,7 @@ class NavSceneTest {
     }
 
     val surface = model.surface as NavDesignSurface
-    whenever<NlComponent>(surface.currentNavigation).then { model.find("nav1")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.treeReader.find("nav1")!! }
 
     val scene = surface.scene!!
     scene.sceneManager.update()
@@ -916,7 +914,7 @@ class NavSceneTest {
     root?.fragment("fragment1")
 
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
@@ -925,7 +923,7 @@ class NavSceneTest {
     }
     assertThat(sceneManager.isEmpty).isFalse()
 
-    model.delete(listOf(model.find("fragment1")!!))
+    model.treeWriter.delete(listOf(model.treeReader.find("fragment1")!!))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->

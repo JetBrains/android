@@ -176,7 +176,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     if (!isAtLeast(device, AndroidVersion.VersionCodes.Q)) {
       AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
                                                            "Starting a native memory sampling trace recording on startup is only " +
-                                                           "supported on devices with API levels 28 and higher.",
+                                                           "supported on devices with API levels 29 and higher.",
                                                            NotificationType.WARNING);
       return;
     }
@@ -187,12 +187,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return;
     }
 
-    if (device.getAbis().contains("x86") || device.getAbis().contains("x86_64")) {
-      AndroidNotification.getInstance(project).showBalloon("Startup Native Memory Profiling",
-                                                           "Native memory profiling not supported on x86 and x86_64 devices.",
-                                                           NotificationType.WARNING);
-      return;
-    }
     String abi = device.getAbis().get(0);
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRecordAllocations();

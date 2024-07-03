@@ -24,10 +24,10 @@ import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -46,10 +46,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAllLinkedModules
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -75,10 +72,8 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -103,14 +98,14 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toImport: Collection<DataNode<GradleAndroidModelData>>,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
-    modelsByModuleName: Map<String, DataNode<GradleAndroidModelData>>
+    modelsByModuleName: Map<String, DataNode<GradleAndroidModelData>>,
   ) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
     fun importAndroidModel(
       nodeToImport: DataNode<GradleAndroidModelData>,
       mainModuleDataNode: DataNode<ModuleData>,
-      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel
+      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel,
     ) {
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
@@ -124,7 +119,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
-          ?: createAndroidFacet(module, facetModel)
+                           ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
         val gradleAndroidModel = modelFactory(androidModel)
         configureFacet(androidFacet, module, gradleAndroidModel)
@@ -164,7 +159,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   private fun Module.setupSdkAndLanguageLevel(
     modelsProvider: IdeModifiableModelsProvider,
     languageLevel: LanguageLevel?,
-    sdkToUse: Sdk?
+    sdkToUse: Sdk?,
   ) {
     val rootModel = modelsProvider.getModifiableRootModel(this)
     if (languageLevel != null) {
@@ -182,7 +177,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toIgnore: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     for (module in toRemoveComputable.get()) {
       val facetModel = modelsProvider.getModifiableFacetModel(module)
@@ -198,7 +193,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     imported: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
-    modelsProvider: IdeModelsProvider
+    modelsProvider: IdeModelsProvider,
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
 
@@ -246,7 +241,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toImport: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     super.postProcess(toImport, projectData, project, modelsProvider)
     // We need to set the SDK in postProcess since we need to ensure that this is run after the code in
@@ -327,28 +322,6 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
   androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider.manifestFile)
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
-
-  androidFacet.properties.RES_FOLDERS_RELATIVE_PATH = when {
-    module.isMainModule() ->
-      (gradleAndroidModel.activeSourceProviders.flatMap { provider ->
-        provider.resDirectories
-      } + gradleAndroidModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-        VfsUtilCore.pathToUrl(file.absolutePath)
-      }
-    else -> ""
-  }
-
-  val testGenResources = gradleAndroidModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
-  // Why don't we include the standard unit tests source providers here?
-  androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = when {
-    module.isAndroidTestModule() ->
-      ((gradleAndroidModel.deviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { provider ->
-        provider.resDirectories
-      } ?: listOf()) + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-        VfsUtilCore.pathToUrl(file.absolutePath)
-      }
-    else -> ""
-  }
 
   AndroidModel.set(androidFacet, gradleAndroidModel)
   syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -32,7 +33,8 @@ const val KEY_SUPPORT_LINES = "live.layout.inspector.tree.lines"
 const val DEFAULT_SUPPORT_LINES = true
 
 const val KEY_RECOMPOSITIONS = "live.layout.inspector.tree.recompositions"
-const val DEFAULT_RECOMPOSITIONS = false
+val DEFAULT_RECOMPOSITIONS: Boolean =
+  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_COUNTS_DEFAULT.get()
 
 /** Miscellaneous tree settings. */
 interface TreeSettings {

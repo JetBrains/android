@@ -24,4 +24,3 @@ import androidx.compose.ui.tooling.preview.Preview
 fun AppPreviewAndroidTest() {
   Text(text = "Preview app android test")
 }
-

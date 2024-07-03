@@ -16,6 +16,8 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.maskKotlinProblemHighlightFilter
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -732,5 +734,23 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() 
     """
         .trimIndent(),
     )
+  }
+
+  fun testSurroundWithWidgetInGradleKtsNotAvailable() {
+    maskKotlinProblemHighlightFilter(myFixture)
+
+    val file =
+      myFixture.addFileToProject(
+        "app/build.gradle.kts",
+        """
+        ${caret}dependencies { }
+      """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertWithMessage("'Surround with widget' intention not expected for build.gradle.kts file.")
+      .that(myFixture.availableIntentions.map { it.text })
+      .doesNotContain("Surround with widget")
   }
 }

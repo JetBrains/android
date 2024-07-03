@@ -51,7 +51,7 @@ class ProjectLightResourceClassServiceTest {
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
       .buildCompleted(
         ProjectSystemBuildManager.BuildResult(
-          ProjectSystemBuildManager.BuildMode.COMPILE,
+          ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE,
           ProjectSystemBuildManager.BuildStatus.SUCCESS,
           0,
         )

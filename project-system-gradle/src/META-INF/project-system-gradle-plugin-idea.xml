@@ -27,5 +27,6 @@
                          bundle="messages.AndroidBundle"
                          key="configurable.AndroidProjectStructureConfigurableForIdea.display.name"
     />
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
   </extensions>
 </idea-plugin>

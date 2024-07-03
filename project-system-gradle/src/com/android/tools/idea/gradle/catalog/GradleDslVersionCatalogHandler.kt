@@ -2,6 +2,7 @@
 package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -31,4 +32,12 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     val versionCatalogModel = ProjectBuildModel.get(project).versionCatalogsModel
     return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
   }
+
+  fun getDefaultCatalogName(project: Project): String {
+    return runReadAction {
+      val settingsModel = ProjectBuildModel.get(project).projectSettingsModel
+      settingsModel?.dependencyResolutionManagement()?.catalogDefaultName() ?: DEFAULT_CATALOG_NAME
+    }
+  }
+
 }

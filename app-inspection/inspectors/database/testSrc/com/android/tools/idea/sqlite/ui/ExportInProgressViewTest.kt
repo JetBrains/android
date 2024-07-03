@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.LightPlatformTestCase
 import java.util.concurrent.CountDownLatch
@@ -36,7 +36,7 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
   fun test_job_completes() {
     // Set up a job that finishes when jobDone=true
     val jobDone = AtomicBoolean(false)
-    val job: Job = (project as ComponentManagerEx).getCoroutineScope().launch { while (!jobDone.get()) delay(50) }
+    val job: Job = project.coroutineScope().launch { while (!jobDone.get()) delay(50) }
     val dialog = ExportInProgressViewImpl(project, job, taskDispatcher)
 
     // Set up a callback called when the dialog disappears
@@ -44,7 +44,7 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
     dialog.onClosedListener = { dialogClosedLatch.countDown() }
 
     // Show the dialog, release the latch, wait for dialog to disappear
-    (project as ComponentManagerEx).getCoroutineScope().launch { dialog.show() }
+    project.coroutineScope().launch { dialog.show() }
     jobDone.set(true)
     assertThat(dialogClosedLatch.await(5, SECONDS)).isTrue()
     assertThat(job.isCompleted).isTrue()
@@ -53,7 +53,7 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
 
   fun test_job_cancelled() {
     // Set up a job that never finishes
-    val job: Job = (project as ComponentManagerEx).getCoroutineScope().launch { while (true) delay(50) }
+    val job: Job = project.coroutineScope().launch { while (true) delay(50) }
     var cancellationException: Throwable? = null
     job.invokeOnCompletion { t: Throwable? -> cancellationException = t }
     val dialog = ExportInProgressViewImpl(project, job, taskDispatcher)
@@ -71,13 +71,13 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
     dialog.onClosedListener = { dialogClosedLatch.countDown() }
 
     // Show the dialog
-    (project as ComponentManagerEx).getCoroutineScope().launch { dialog.show() }
+    project.coroutineScope().launch { dialog.show() }
     assertThat(dialogShownLatch.await(5, SECONDS)).isTrue()
 
     // Simulate cancel click
     assertThat(job.isActive).isTrue()
     assertThat(job.isCancelled).isFalse()
-    (project as ComponentManagerEx).getCoroutineScope().launch { progressIndicator.cancel() }
+    project.coroutineScope().launch { progressIndicator.cancel() }
     assertThat(dialogClosedLatch.await(5, SECONDS)).isTrue()
     assertThat(job.isCancelled).isTrue()
     assertThat(job.isActive).isFalse()

@@ -110,7 +110,9 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
   protected abstract fun startCapture(stage: T)
 
   /**
-   * Utilizing the parametrized InterimStage, implementations invoke the stop of a capture for their respective tasks.
+   * Utilizing the parametrized InterimStage, implementations invoke the stop of a capture for their respective tasks. The default
+   * implementation is empty to accommodate some tasks that do not have an implementation to stop the capture,
+   * or some might directly override the stopTask method.
    */
-  protected abstract fun stopCapture(stage: T)
+  protected open fun stopCapture(stage: T) {}
 }

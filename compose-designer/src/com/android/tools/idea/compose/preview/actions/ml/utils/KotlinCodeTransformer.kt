@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.GenerationConfig
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
@@ -56,11 +57,15 @@ internal fun transformAndShowDiff(
 
   // Send the prompt + code directly to the model, with a progress indicator
   return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
-    withBackgroundProgress(project, message("circle.to.fix.sending.query"), true) {
+    withBackgroundProgress(project, message("ml.actions.sending.query"), true) {
       val botResponse =
         studioBot
           .model(project, modelType)
-          .generateContent(prompt, GenerationConfig(candidateCount = 1))
+          .generateCode(
+            prompt = prompt,
+            language = MimeType.KOTLIN,
+            config = GenerationConfig(candidateCount = 1),
+          )
           .first()
           .text
 
@@ -117,9 +122,32 @@ private fun generateKotlinCodeBlock(
   botResponse: String,
 ): KotlinCodeBlock {
   val codeParser = KotlinParser(project, psiFile)
-  // Remove markdown Kotlin code formatting
-  val codeResponse = botResponse.substringAfter("```kotlin").substringBeforeLast("```").trim()
   // TODO: handle errors
-  val parsedBlock = codeParser.parse(codeResponse)
+  val parsedBlock = codeParser.parse(botResponse.formatResponse())
   return parsedBlock
+}
+
+/**
+ * Formats a code response from a model and returns the formatted string.
+ *
+ * Supported formats:
+ * * Code
+ * * Code wrapped into a Kotlin code markdown block, i.e. ```kotlin <Code>```
+ * * Code wrapped into a generic code markdown block, i.e. ```<Code>```
+ */
+private fun String.formatResponse(): String {
+  // First, remove all trailing/leading whitespaces or blank lines
+  val trimmedString = this.trim()
+  val codeMarkdownTag = "```"
+  if (startsWith(codeMarkdownTag)) {
+    val kotlinCodeMarkdownTag = "```kotlin"
+    // Start after ```kotlin if the Kotlin tag is present, or after ``` otherwise
+    val startIndex =
+      if (startsWith(kotlinCodeMarkdownTag)) kotlinCodeMarkdownTag.length
+      else codeMarkdownTag.length
+    return trimmedString.substring(startIndex).substringBeforeLast("```")
+  } else {
+    // There is no markdown formatting. Return the code directly.
+    return trimmedString
+  }
 }

@@ -116,7 +116,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
 
     var result: ValidatorResult? = null
     try {
-      val components = model.components
+      val components = model.treeReader.components
       if (components.isEmpty()) {
         // Result not available.
         return

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface.layout
 
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.util.ui.JBInsets
@@ -35,7 +36,7 @@ class TestPositionableContent(
 
   private val dimension = Dimension(width, height)
 
-  override val organizationGroup: String? = null
+  override val organizationGroup: OrganizationGroup? = null
 
   override fun setLocation(x: Int, y: Int) {
     this.x = x
@@ -45,6 +46,9 @@ class TestPositionableContent(
   override fun getMargin(scale: Double): Insets = marginFunc(scale)
 
   override fun getContentSize(dimension: Dimension?): Dimension = Dimension(this.dimension)
+
+  override val isFocusedContent: Boolean
+    get() = true
 }
 
 class ScanlineUtilsTest {

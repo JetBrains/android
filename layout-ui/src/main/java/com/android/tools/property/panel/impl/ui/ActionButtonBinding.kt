@@ -82,7 +82,8 @@ class ActionButtonBinding(
     }
   }
 
-  private inner class ButtonWithCustomTooltip(action: AnAction?) : IconWithFocusBorder({ action }) {
+  private inner class ButtonWithCustomTooltip(action: AnAction?) :
+    IconWithFocusBorder(activateAction = { action }) {
 
     override fun getToolTipText(event: MouseEvent): String? {
       // Trick: Use the component from the event.source for tooltip in tables. See

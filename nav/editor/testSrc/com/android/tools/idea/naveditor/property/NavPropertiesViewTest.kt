@@ -123,7 +123,7 @@ class NavPropertiesViewTest : NavTestCase() {
       }
     }
 
-    val root = model.find("root")!!
+    val root = model.treeReader.find("root")!!
     val include = root.children.first { it.tagName == TAG_INCLUDE }
     val panel = setupPanel(include, model.facet)
 
@@ -150,7 +150,7 @@ class NavPropertiesViewTest : NavTestCase() {
       }
     }
 
-    val root = model.find("action1")!!
+    val root = model.treeReader.find("action1")!!
     val include = root.children.first { it.tagName == TAG_ARGUMENT }
     val panel = setupPanel(include, model.facet)
 
@@ -172,7 +172,7 @@ class NavPropertiesViewTest : NavTestCase() {
       }
     }
 
-    val component = model.find(name)!!
+    val component = model.treeReader.find(name)!!
     return setupPanel(component, model.facet)
   }
 

@@ -368,7 +368,7 @@ UNClip
 """
     val model = builder.build()
     SceneContext.get().setShowOnlySelection(true)
-    model.surface.selectionModel.setSelection(listOf(model.find("h")!!))
+    model.surface.selectionModel.setSelection(listOf(model.treeReader.find("h")!!))
     checkModelDrawCommand(model, expectedDrawCommand)
   }
 

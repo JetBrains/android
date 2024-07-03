@@ -105,7 +105,7 @@ public class ProblemsPanelTest {
     }
     // Check if the tab is present.
     for (String tabName : tabs) {
-      if (!problemsPaneFixture.isTabExist(tabName)) {
+      if (!problemsPaneFixture.doesTabExist(tabName)) {
         return false;
       }
     }

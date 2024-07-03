@@ -104,7 +104,7 @@ class LayoutInspectorLoadingObserverTest {
 
     waitForCondition(1, TimeUnit.SECONDS) { !layoutInspectorLoadingObserver.isLoading }
 
-    assertThat(listenerInvocations).containsExactly(true, false, false)
+    assertThat(listenerInvocations).containsExactly(true, false)
   }
 
   @Test

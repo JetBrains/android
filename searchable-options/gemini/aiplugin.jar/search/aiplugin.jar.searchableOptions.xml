@@ -46,7 +46,9 @@
     <option name="message" path="ActionManager" hit="Suggest commit message by summarizing changes" />
     <option name="suggest" path="ActionManager" hit="Suggest commit message by summarizing changes" />
     <option name="summarizing" path="ActionManager" hit="Suggest commit message by summarizing changes" />
-    <option name="transform" path="ActionManager" hit="Transform..." />
+    <option name="code" path="ActionManager" hit="Transform Selected Code..." />
+    <option name="selected" path="ActionManager" hit="Transform Selected Code..." />
+    <option name="transform" path="ActionManager" hit="Transform Selected Code..." />
   </configurable>
   <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Gemini">
     <option name="" hit=" Ask to decide per project" />

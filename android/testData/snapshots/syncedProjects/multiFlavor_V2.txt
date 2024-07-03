@@ -46,8 +46,6 @@ PROJECT                       : MultiFlavor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -104,14 +102,6 @@ PROJECT                       : MultiFlavor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbc/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestSecondAbc/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -298,14 +288,6 @@ PROJECT                       : MultiFlavor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbc/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/secondAbc/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbcSecondAbc/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -442,8 +424,6 @@ PROJECT                       : MultiFlavor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0

@@ -34,7 +34,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
@@ -130,13 +129,7 @@ private fun createDimensionLine(
 
       addExpand(editorProvider.createEditor(heightProperty, editors), gbc)
 
-      addShrink(
-        editorProvider.createEditor(unitProperty, editors).also { component ->
-          component.preferredSize = Dimension(JBUI.scale(52), preferredSize.height)
-          component.minimumSize = Dimension(JBUI.scale(52), minimumSize.height)
-        },
-        gbc,
-      )
+      addShrink(editorProvider.createEditor(unitProperty, editors), gbc)
     }
   return dimensionLine
 }

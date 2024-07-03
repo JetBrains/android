@@ -47,7 +47,7 @@ private:
   static void SetDisplayProjection(
       Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect);
 
-  static JObject ToJava(Jni jni, const ARect& rect);
+  [[nodiscard]] static JObject ToJava(Jni jni, const ARect& rect);
 
 public:
   static JObject GetInternalDisplayToken(Jni jni);

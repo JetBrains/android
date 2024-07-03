@@ -53,9 +53,11 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.taskbased.TaskNotifications;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection;
+import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
@@ -170,6 +172,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private final Function0<String> myPreferredProcessNameFetcher;
 
   @Nullable
+  private Function0<ProfilerTaskHandler> myCurrentTaskHandlerFetcher;
+
+  @Nullable
   private ToolbarDeviceSelection myLastToolbarDeviceSelection = null;
 
   /**
@@ -189,6 +194,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   @NotNull
   private final TaskHomeTabModel myTaskHomeTabModel;
+
+  /**
+   * Data model for the Task-Based UX's past recordings tab.
+   */
+  @NotNull
+  private final PastRecordingsTabModel myPastRecordingsTabModel;
 
   @NotNull
   private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
@@ -250,7 +261,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null);
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null, null);
   }
 
   /**
@@ -266,9 +277,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                          @NotNull Runnable openTaskTab,
                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                         @Nullable Function0<String> preferredProcessNameFetcher) {
+                         @Nullable Function0<String> preferredProcessNameFetcher,
+                         @Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
-         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher);
+         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher, currentTaskHandlerFetcher);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
@@ -278,7 +290,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                           @NotNull Runnable openTaskTab,
                           @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                          @Nullable Function0<String> preferredProcessNameFetcher) {
+                          @Nullable Function0<String> preferredProcessNameFetcher,
+                          @Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -286,15 +299,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
-    myTaskHomeTabModel = new TaskHomeTabModel(this);
     myTaskHandlers = taskHandlers;
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
     myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
     myPreferredProcessNameFetcher = preferredProcessNameFetcher;
+    myCurrentTaskHandlerFetcher = currentTaskHandlerFetcher;
     myStage.enter();
 
     myUpdater = new Updater(timer);
+
+    myTaskHomeTabModel = new TaskHomeTabModel(this);
+    myPastRecordingsTabModel = new PastRecordingsTabModel(this);
 
     // Order in which events are added to profilersBuilder will be order they appear in monitor stage
     ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
@@ -339,7 +355,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           if (startupProfilingStarted()) {
-            getTaskHomeTabModel().resetSelectionStateOnTaskEnter();
+            getTaskHomeTabModel().resetSelectionStateAndClearStartupTaskConfigs();
           }
         }
         else {
@@ -415,6 +431,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public TaskHomeTabModel getTaskHomeTabModel() {
     return myTaskHomeTabModel;
+  }
+
+  @NotNull
+  public PastRecordingsTabModel getPastRecordingsTabModel() {
+    return myPastRecordingsTabModel;
   }
 
   /**
@@ -856,7 +877,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
+
       boolean isStartupTask = mySessionsManager.isCurrentTaskStartup();
+
+      // Regardless if the startup task is launched successfully, all state related to performing a startup task is reset to prevent usage
+      // of this outdated state by external deployment methods (anything besides clicking the "Start profiler task" button).
+      if (isStartupTask) {
+        myTaskHomeTabModel.resetSelectionStateAndClearStartupTaskConfigs();
+      }
+
+      if (isStartupTask && !startupProfilingStarted() && mySessionsManager.isSessionAlive()) {
+        mySessionsManager.endSelectedSession();
+        myIdeServices.showNotification(TaskNotifications.STARTUP_TASK_FAILURE);
+        return;
+      }
+
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
                                               myCreateTaskTab, myIdeServices);
     }
@@ -1026,6 +1061,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myTaskHandlers;
   }
 
+  @Nullable
+  public ProfilerTaskHandler getCurrentTaskHandler() {
+    assert myCurrentTaskHandlerFetcher != null;
+    return myCurrentTaskHandlerFetcher.invoke();
+  }
+
   /**
    * Return the selected app's package name if present, otherwise returns empty string.
    * <p>
@@ -1169,6 +1210,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @VisibleForTesting
   public void addTaskHandler(ProfilerTaskType taskType, ProfilerTaskHandler taskHandler) {
     myTaskHandlers.putIfAbsent(taskType, taskHandler);
+  }
+
+  @VisibleForTesting
+  public void setCurrentTaskHandlerFetcher(@Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
+    myCurrentTaskHandlerFetcher = currentTaskHandlerFetcher;
   }
 
   // TODO: Unify with how monitors expand.

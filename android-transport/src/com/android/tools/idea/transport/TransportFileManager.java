@@ -44,6 +44,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -140,7 +142,9 @@ public final class TransportFileManager implements TransportFileCopier {
 
   public void copyFilesToDevice()
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
-    myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
+    if (!StudioFlags.TRANSPORT_CONSERVATIVE_COPY.get()) {
+      myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
+    }
     if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
@@ -300,12 +304,33 @@ public final class TransportFileManager implements TransportFileCopier {
         throw new TransportNonExistingFileException(String.format("File %s could not be found for device: %s", localPath, myDevice),
                                                     localPath.toString());
       }
+
+      String fileHash = "";
+      String hashFilePath = "";
+
+      if (StudioFlags.TRANSPORT_CONSERVATIVE_COPY.get()) {
+        // Calculate the hash for the file we are trying to push.
+        fileHash = generateHash(localPath.toFile());
+        // The path of the file containing the hash.
+        hashFilePath = deviceFilePath + "_hash";
+        boolean hasSameHash = compareOnDeviceTextFile(hashFilePath, fileHash);
+
+        boolean isFileOnDevice = isFileOnDevice(deviceFilePath);
+
+        if (hasSameHash && isFileOnDevice) {
+          getLogger().info(String.format("Identical copy of %s is already on the device, no need to push it", deviceFilePath));
+          // The hash stored on the device is the same as the hash of the new file - we don't need to push it again.
+          return deviceFilePath;
+        }
+      }
+
       /*
        * If copying the agent fails, we will attach the previous version of the agent
        * Hence we first delete old agent before copying new one
        */
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
-      myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
+      // Delete both binary and hash files. It's harmless to include the hash file in the command even if it doesn't exist.
+      myDevice.executeShellCommand("rm -f " + deviceFilePath + " " + deviceFilePath + "_hash", new NullOutputReceiver());
       // Make the directory not writable for the group or the world. Otherwise, any unprivileged app running on device can replace the
       // content of file in this directory and archive escalation of privileges when Android Studio will decide to launch the
       // corresponding functionality.
@@ -314,6 +339,15 @@ public final class TransportFileManager implements TransportFileCopier {
       myDevice.executeShellCommand("mkdir -p -m 755 " + folder + "; chown shell:shell " + folder, new NullOutputReceiver());
       myDevice.pushFile(localPath.toString(), deviceFilePath);
       myDevice.executeShellCommand("chown shell:shell " + deviceFilePath, new NullOutputReceiver());
+
+      if (StudioFlags.TRANSPORT_CONSERVATIVE_COPY.get()) {
+        // Create the hash file on the device, do this after pushing the file,
+        // to make sure we don't end up in situations where we have the hash file but not the file itself.
+
+        // Throughout the codebase there are assumptions on how the transport files are called, which means we can't easily
+        // append the hash to the name of a file. This is why a separate hash file is used.
+        myDevice.executeShellCommand("echo " + fileHash + " > " + hashFilePath, new NullOutputReceiver());
+      }
 
       if (executable) {
         /*
@@ -337,10 +371,76 @@ public final class TransportFileManager implements TransportFileCopier {
       }
       getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
     }
-    catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
+    catch (TimeoutException | SyncException | ShellCommandUnresponsiveException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
     return deviceFilePath;
+  }
+
+  /**
+   * Returns true if the file exists on the device.
+   * @param filePath the on device path to check for the file.
+   */
+  private boolean isFileOnDevice(String filePath)
+    throws ShellCommandUnresponsiveException, AdbCommandRejectedException, IOException, TimeoutException {
+    final boolean[] fileFound = {false};
+    myDevice.executeShellCommand("ls " + filePath, new MultiLineReceiver() {
+      @Override
+      public void processNewLines(@NotNull String[] lines) {
+        for (String line : lines) {
+          if (line.equals(filePath)) {
+            fileFound[0] = true;
+            break;
+          }
+        }
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+    });
+
+    return fileFound[0];
+  }
+
+  /**
+   * Reads the content of the file provided as input and compares it with the provided expected content.
+   * @param filePath the path of the on-device file that we want to read.
+   * @param expectedContent content we expect to read from the file.
+   * @return true if the actual content of the file is identical to the expected content.
+   */
+  private boolean compareOnDeviceTextFile(String filePath, String expectedContent)
+    throws IOException, NoSuchAlgorithmException, ShellCommandUnresponsiveException, AdbCommandRejectedException, TimeoutException {
+
+    StringBuilder fileContent = new StringBuilder();
+    myDevice.executeShellCommand("cat " + filePath, new MultiLineReceiver() {
+      @Override
+      public void processNewLines(@NotNull String[] lines) {
+        for (String line : lines) {
+          fileContent.append(line);
+        }
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+    });
+
+    return fileContent.toString().trim().equals(expectedContent);
+  }
+
+  private static String generateHash(File file) throws IOException, NoSuchAlgorithmException {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    byte[] bytes = Files.readAllBytes(file.toPath());
+    byte[] hashBytes = digest.digest(bytes);
+    StringBuilder hashString = new StringBuilder();
+    for (byte b : hashBytes) {
+      // Append each byte as a two-character hexadecimal string.
+      hashString.append(String.format("%02x", b));
+    }
+    return hashString.toString();
   }
 
   /**

@@ -1,3 +1,20 @@
+@file:Suppress("ComposableNaming")
+
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package icons
 
 import androidx.compose.runtime.Composable
@@ -66,6 +83,7 @@ object StudioIconsCompose {
     @Composable fun DeviceWearLarge() = artworkPainterProvider("/studio/icons/avd/device-wear-large.svg") // 32x32
     @Composable fun DeviceWear() = artworkPainterProvider("/studio/icons/avd/device-wear.svg") // 16x16
     @Composable fun Edit() = artworkPainterProvider("/studio/icons/avd/edit.svg") // 16x16
+    @Composable fun FirebaseDeviceManager() = artworkPainterProvider("/studio/icons/avd/firebase-device-manager.svg") // 16x16
     @Composable fun Landscape() = artworkPainterProvider("/studio/icons/avd/landscape.svg") // 48x48
     @Composable fun PairOverWifi() = artworkPainterProvider("/studio/icons/avd/pair-over-wifi.svg") // 16x16
     @Composable fun Portrait() = artworkPainterProvider("/studio/icons/avd/portrait.svg") // 48x48

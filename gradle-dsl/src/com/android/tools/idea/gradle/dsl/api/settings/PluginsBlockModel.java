@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api.settings;
 
+import com.android.tools.idea.gradle.dsl.api.BasePluginsModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 
-public interface PluginsBlockModel extends PluginsModel, GradleBlockModel {
+public interface PluginsBlockModel extends BasePluginsModel, GradleBlockModel {
 }

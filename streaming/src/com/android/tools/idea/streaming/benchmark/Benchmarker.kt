@@ -16,14 +16,14 @@
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.idea.util.fsm.StateMachine
-import com.android.utils.time.TimeSource
-import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.math.Quantiles
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Timer
 import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.math.roundToLong
 import kotlin.time.Duration
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /** Class that conducts a generic benchmarking operation. */
 class Benchmarker<InputType>(
@@ -44,46 +44,45 @@ class Benchmarker<InputType>(
   //     │          │          │          │       ┌───────┐
   //     └──────────┴──────────┴──────────┴──────►│STOPPED│
   //                                              └───────┘
-  private val stateMachine = StateMachine.stateMachine(
-    State.INITIALIZED, StateMachine.Config(logger = LOG, timeSource = timeSource)) {
-    State.INITIALIZED.transitionsTo(State.GETTING_READY, State.STOPPED)
-    State.GETTING_READY {
-      transitionsTo(State.SENDING_INPUTS, State.STOPPED)
-      onEnter {
-        adapter.ready()
+  private val stateMachine =
+    StateMachine.stateMachine(
+      State.INITIALIZED,
+      StateMachine.Config(logger = LOG, timeSource = timeSource),
+    ) {
+      State.INITIALIZED.transitionsTo(State.GETTING_READY, State.STOPPED)
+      State.GETTING_READY {
+        transitionsTo(State.SENDING_INPUTS, State.STOPPED)
+        onEnter { adapter.ready() }
       }
-    }
-    State.SENDING_INPUTS {
-      transitionsTo(State.WAITING_FOR_OUTSTANDING_INPUTS, State.STOPPED)
-      onEnter {
-        timer.scheduleAtFixedRate(delay = 0, period = frameDurationMillis) {
-          dispatchNextInput()
+      State.SENDING_INPUTS {
+        transitionsTo(State.WAITING_FOR_OUTSTANDING_INPUTS, State.STOPPED)
+        onEnter {
+          timer.scheduleAtFixedRate(delay = 0, period = frameDurationMillis) { dispatchNextInput() }
+        }
+        onExit {
+          adapter.finalizeInputs()
+          timer.cancel()
         }
       }
-      onExit {
-        adapter.finalizeInputs()
-        timer.cancel()
+      State.WAITING_FOR_OUTSTANDING_INPUTS.transitionsTo(State.STOPPED, State.COMPLETE)
+      State.STOPPED.onEnter {
+        adapter.cleanUp()
+        callbacks.forEach {
+          it.onStopped()
+          it.onFailure(failureMsg)
+        }
+      }
+      State.COMPLETE.onEnter {
+        adapter.cleanUp()
+        val results = Results(inputRoundTrips)
+        callbacks.forEach {
+          it.onStopped()
+          it.onComplete(results)
+        }
       }
     }
-    State.WAITING_FOR_OUTSTANDING_INPUTS.transitionsTo(State.STOPPED, State.COMPLETE)
-    State.STOPPED.onEnter {
-      adapter.cleanUp()
-      callbacks.forEach {
-        it.onStopped()
-        it.onFailure(failureMsg)
-      }
-    }
-    State.COMPLETE.onEnter {
-      adapter.cleanUp()
-      val results = Results(inputRoundTrips)
-      callbacks.forEach {
-        it.onStopped()
-        it.onComplete(results)
-      }
-    }
-  }
 
-  private var state : State by stateMachine::state
+  private var state: State by stateMachine::state
 
   private val callbacks: MutableList<Callbacks<InputType>> = mutableListOf()
 
@@ -91,22 +90,23 @@ class Benchmarker<InputType>(
   private val inputRoundTrips: MutableMap<InputType, Duration> = mutableMapOf()
 
   init {
-    val callbacks = object : Adapter.Callbacks<InputType> {
-      override fun inputReturned(input: InputType, effectiveDispatchTime: TimeMark) {
-        this@Benchmarker.inputReturned(input, effectiveDispatchTime)
-      }
+    val callbacks =
+      object : Adapter.Callbacks<InputType> {
+        override fun inputReturned(input: InputType, effectiveDispatchTime: TimeMark) {
+          this@Benchmarker.inputReturned(input, effectiveDispatchTime)
+        }
 
-      override fun onReady() {
-        callbacks.forEach { it.onProgress(/* dispatched = */ 0.0, /* returned = */0.0) }
-        state = State.SENDING_INPUTS
-      }
+        override fun onReady() {
+          callbacks.forEach { it.onProgress(/* dispatched= */ 0.0, /* returned= */ 0.0) }
+          state = State.SENDING_INPUTS
+        }
 
-      override fun onFailedToBecomeReady(msg: String) {
-        LOG.warn(msg)
-        failureMsg = msg
-        state = State.STOPPED
+        override fun onFailedToBecomeReady(msg: String) {
+          LOG.warn(msg)
+          failureMsg = msg
+          state = State.STOPPED
+        }
       }
-    }
     adapter.setCallbacks(callbacks)
   }
 
@@ -149,8 +149,7 @@ class Benchmarker<InputType>(
     state = State.STOPPED
   }
 
-  @Synchronized
-  fun isDone(): Boolean = state == State.COMPLETE
+  @Synchronized fun isDone(): Boolean = state == State.COMPLETE
 
   @Synchronized
   private fun dispatchNextInput() {
@@ -167,17 +166,22 @@ class Benchmarker<InputType>(
   class Results<InputType>(val raw: Map<InputType, Duration>) {
     @Suppress("UnstableApiUsage")
     val percentiles: Map<Int, Double> =
-      Quantiles.percentiles().indexes(IntRange(1, 100).toList()).compute(raw.values.map { it.inWholeMilliseconds })
+      Quantiles.percentiles()
+        .indexes(IntRange(1, 100).toList())
+        .compute(raw.values.map { it.inWholeMilliseconds })
   }
 
   /** Callbacks for various stages of benchmarking. */
   interface Callbacks<InputType> {
     /** Indicates what fractions of events have been [dispatched] and [returned] so far. */
     fun onProgress(dispatched: Double, returned: Double)
+
     /** Indicates that benchmarking has stopped. */
     fun onStopped()
+
     /** Indicates that benchmarking failed. */
     fun onFailure(failureMessage: String)
+
     /** Indicates that benchmarking has completed successfully. */
     fun onComplete(results: Results<InputType>)
   }
@@ -212,16 +216,19 @@ class Benchmarker<InputType>(
     /** Callbacks to return data to the [Benchmarker] during benchmarking. */
     interface Callbacks<InputType> {
       /**
-       * Indicates that the given [input] was returned from the object being benchmarked, along with an
-       * [effectiveDispatchTime] that can be used to compute the round-trip from dispatch to return,
-       * minus any processing time.
+       * Indicates that the given [input] was returned from the object being benchmarked, along with
+       * an [effectiveDispatchTime] that can be used to compute the round-trip from dispatch to
+       * return, minus any processing time.
        */
       fun inputReturned(input: InputType, effectiveDispatchTime: TimeMark)
 
       /** Indicates that the [Benchmarker] can begin dispatching inputs. */
       fun onReady()
 
-      /** Indicates that the object failed to become ready to receive inputs and benchmarking cannot proceed. */
+      /**
+       * Indicates that the object failed to become ready to receive inputs and benchmarking cannot
+       * proceed.
+       */
       fun onFailedToBecomeReady(msg: String)
     }
   }

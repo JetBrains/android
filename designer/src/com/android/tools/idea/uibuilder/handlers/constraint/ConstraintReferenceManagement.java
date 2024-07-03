@@ -72,7 +72,7 @@ class ConstraintReferenceManagement {
         }
         NlModel model = constraints.getModel();
         NlComponent c = model.createComponent(childTag);
-        model.addTags(Collections.singletonList(c), constraints, null, InsertType.CREATE);
+        model.getTreeWriter().addTags(Collections.singletonList(c), constraints, null, InsertType.CREATE);
       }
     );
   }
@@ -171,6 +171,6 @@ class ConstraintReferenceManagement {
     if (toRemove == null) {
       return;
     }
-    constraints.getModel().delete(toRemove);
+    constraints.getModel().getTreeWriter().delete(toRemove);
   }
 }

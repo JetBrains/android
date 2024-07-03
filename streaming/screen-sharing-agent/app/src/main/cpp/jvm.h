@@ -48,6 +48,12 @@ public:
       ref_(other.ref_) {
     other.ref_ = nullptr;
   }
+  JObject(JNIEnv* jni_env, JObject&& other)
+      : jni_env_(jni_env),
+        ref_(other.Release()) {
+  }
+  JObject(JNIEnv* jni_env, JObject& other) = delete;
+
   ~JObject() {
     DeleteRef();
   }
@@ -81,7 +87,7 @@ public:
 
   // Converts a local reference to a global one and deletes the local reference.
   JObject& MakeGlobal();
-  JObject&& ToGlobal()&& {
+  [[nodiscard]] JObject&& ToGlobal()&& {
     return std::move(MakeGlobal());
   }
 
@@ -119,6 +125,9 @@ public:
     SetFloatField(GetJni(), field, value);
   }
   void SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const;
+  // Returns a std::string value of this JObject if it represents a java.lang.String. It is illegal to call
+  // this method on an object that is not a java.lang.String.
+  [[nodiscard]] std::string GetStringValue() const;
   // Calls the toString() method on the Java object. Intended for debugging only and may be slow.
   [[nodiscard]] std::string ToString() const;
 
@@ -262,11 +271,19 @@ public:
   JString& MakeGlobal() {
     return down_cast<JString&>(JRef::MakeGlobal());
   };
-  JString&& ToGlobal()&& {
+  [[nodiscard]] JString&& ToGlobal()&& {
     return std::move(MakeGlobal());
   };
 
   [[nodiscard]] std::string GetValue() const;
+  // Returns the result of calling String.valueOf(obj).
+  [[nodiscard]] static std::string ValueOf(jobject obj);
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static JClass string_class_;
+  static jmethodID value_of_method_;
 };
 
 class JCharArray : public JRef<JCharArray, jcharArray> {
@@ -354,7 +371,7 @@ public:
 
   [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
   bool CheckAndClearException() const;
-  JThrowable GetAndClearException() const;
+  [[nodiscard]] JThrowable GetAndClearException() const;
 
 private:
   JNIEnv* jni_env_;

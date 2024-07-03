@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
+import com.android.tools.idea.gradle.structure.model.android.ReverseDependency.Declared
+import com.android.tools.idea.gradle.structure.model.android.ReverseDependency.Transitive
 import com.android.tools.idea.gradle.structure.model.android.findModuleDependency
 import com.android.tools.idea.gradle.structure.model.android.findVariant
 import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
@@ -39,9 +41,8 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
-import org.hamcrest.MatcherAssert
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -101,11 +102,11 @@ class DependencyManagementTest {
 
       val dependency = appModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1")
       val scope = dependency!![0].versionScope()
-      MatcherAssert.assertThat(scope.getVariable("coreVersion")?.value, equalTo("0.9.1".asParsed<Any>()))
-      MatcherAssert.assertThat(scope.getVariable("anotherVersion")?.value, equalTo("0.9.2".asParsed<Any>()))
-      MatcherAssert.assertThat(scope.getVariable("wrongVersion")?.value, equalTo("wrongVersion".asParsed<Any>()))
+      assertThat(scope.getVariable("coreVersion")?.value, equalTo("0.9.1".asParsed<Any>()))
+      assertThat(scope.getVariable("anotherVersion")?.value, equalTo("0.9.2".asParsed<Any>()))
+      assertThat(scope.getVariable("wrongVersion")?.value, equalTo("wrongVersion".asParsed<Any>()))
 
-      MatcherAssert.assertThat(
+      assertThat(
         scope.map { it.name }.toSet(),
         equalTo(
           setOf("coreVersion", "anotherVersion", "wrongVersion")))
@@ -113,7 +114,7 @@ class DependencyManagementTest {
       val dependency2 = appModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.6")
       val scope2 = dependency2!![0].versionScope()
       // expecting variables for compact notation as well as we can do literal to map transformation on the fly
-      MatcherAssert.assertThat(
+      assertThat(
         scope2.map { it.name }.toSet(),
         equalTo(
           setOf("coreVersion", "anotherVersion", "wrongVersion")))
@@ -127,11 +128,11 @@ class DependencyManagementTest {
       val appModule = project.findModuleByName("moduleCatalog") as PsAndroidModule
       val dependency = appModule.dependencies.findLibraryDependency("com.android.support:appcompat-v7:+")
       val scope = dependency!![0].versionScope()
-      MatcherAssert.assertThat(scope.getVariable("var06")?.value, equalTo("0.6".asParsed<Any>()))
-      MatcherAssert.assertThat(scope.getVariable("var10")?.value, equalTo("1.0".asParsed<Any>()))
+      assertThat(scope.getVariable("var06")?.value, equalTo("0.6".asParsed<Any>()))
+      assertThat(scope.getVariable("var10")?.value, equalTo("1.0".asParsed<Any>()))
       // this will be filtered out as value is not in set of all possible library versions
-      MatcherAssert.assertThat(scope.getVariable("varLib")?.value, equalTo("com.android.support:appcompat-v7:+".asParsed<Any>()))
-      MatcherAssert.assertThat(
+      assertThat(scope.getVariable("varLib")?.value, equalTo("com.android.support:appcompat-v7:+".asParsed<Any>()))
+      assertThat(
         scope.map { it.name }.toSet(),
         equalTo(
           setOf("var06", "var10", "varLib")))
@@ -1113,8 +1114,8 @@ class DependencyManagementTest {
   private fun ReverseDependency.toTest() =
     TestReverseDependency(
       when (this) {
-        is ReverseDependency.Declared -> dependency.configurationName
-        is ReverseDependency.Transitive -> requestingResolvedDependency.spec.toString()
+        is Declared -> dependency.configurationName
+        is Transitive -> requestingResolvedDependency.spec.toString()
       },
       spec.toString(), resolvedSpec.toString(), javaClass.simpleName, isPromoted)
 
@@ -1238,63 +1239,92 @@ class DependencyManagementTest {
       val libspd = flavorModule.dependencies.findJarDependencies("libspd").firstOrNull()
       assertThat(libspd, notNullValue())
 
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidDebugImplementation" }, notNullValue())
       flavorModule.modifyDependencyConfiguration(libspd!!, "implementation")
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, nullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidDebugImplementation" }, nullValue())
 
       project.applyChanges()
       requestSyncAndWait()
       reparse()
 
       flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidDebugImplementation") }, nullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidDebugImplementation" }, nullValue())
 
       val libspr = flavorModule.dependencies.findJarDependencies("libspr").firstOrNull()
       assertThat(libspr, notNullValue())
 
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidReleaseImplementation" }, notNullValue())
       flavorModule.modifyDependencyConfiguration(libspr!!, "implementation")
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, nullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidReleaseImplementation" }, nullValue())
 
       project.applyChanges()
       requestSyncAndWait()
       reparse()
 
       flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("paidReleaseImplementation") }, nullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "paidReleaseImplementation" }, nullValue())
 
       val libsfd = flavorModule.dependencies.findJarDependencies("libsfd").firstOrNull()
       assertThat(libsfd, notNullValue())
 
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeDebugImplementation" }, notNullValue())
       flavorModule.modifyDependencyConfiguration(libsfd!!, "implementation")
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeDebugImplementation" }, notNullValue())
 
       project.applyChanges()
       requestSyncAndWait()
       reparse()
 
       flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeDebugImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeDebugImplementation" }, notNullValue())
 
       val libsfr = flavorModule.dependencies.findJarDependencies("libsfr").firstOrNull()
       assertThat(libsfr, notNullValue())
 
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeReleaseImplementation" }, notNullValue())
       flavorModule.modifyDependencyConfiguration(libsfr!!, "implementation")
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeReleaseImplementation" }, notNullValue())
 
       project.applyChanges()
       requestSyncAndWait()
       reparse()
 
       flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("freeReleaseImplementation") }, notNullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeReleaseImplementation" }, notNullValue())
 
       //TODO(b/134372808): test for not removing a configuration with a user-provided comment (and nothing else) in the block
 
       // Basic configurations don't require an entry in the configurations block
-      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name().equals("implementation") }, nullValue())
+      assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "implementation" }, nullValue())
+    }
+  }
+
+  @Test
+  fun testRemoveModule() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      run {
+        assertThat(project.findModuleByGradlePath(":jModuleL"), notNullValue())
+        val jModuleK = project.findModuleByGradlePath(":jModuleK")!!
+        val jModuleZ = project.findModuleByGradlePath(":jModuleZ")!!
+        val moduleB = project.findModuleByGradlePath(":moduleB")!!
+        assertTrue(jModuleK.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertTrue(jModuleZ.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertTrue(moduleB.dependencies.modules.map { it.name }.contains("jModuleL"))
+      }
+      project.removeModule(":jModuleL")
+      project.applyChanges()
+      requestSyncAndWait()
+      reparse()
+      run {
+        assertThat(project.findModuleByGradlePath(":jModuleL"), nullValue())
+        val jModuleK = project.findModuleByGradlePath(":jModuleK")!!
+        val jModuleZ = project.findModuleByGradlePath(":jModuleZ")!!
+        val moduleB = project.findModuleByGradlePath(":moduleB")!!
+        assertFalse(jModuleK.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertFalse(jModuleZ.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertFalse(moduleB.dependencies.modules.map { it.name }.contains("jModuleL"))
+      }
     }
   }
 }
@@ -1311,7 +1341,7 @@ private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency
       spec.name
     )
       .filter { it.spec.version == spec.version && it.configurationName == (configuration ?: it.configurationName) }
-      .let { if (it.isEmpty()) null else it }
+      .let { it.ifEmpty { null } }
   }
 
 private fun <T> PsResolvedDependencyCollection<*, *, T, *, *>.findLibraryDependency(compactNotation: String): List<T>?
@@ -1323,7 +1353,7 @@ private fun <T> PsResolvedDependencyCollection<*, *, T, *, *>.findLibraryDepende
       spec.name
     )
       .filter { it.spec.version == spec.version }
-      .let { if (it.isEmpty()) null else it }
+      .let { it.ifEmpty { null } }
   }
 
 private fun List<PsResolvedDependency>?.testMatchingScopes(): List<String> =

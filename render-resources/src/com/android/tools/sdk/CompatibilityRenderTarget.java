@@ -182,7 +182,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   @NonNull
-  public Path[] getSkins() {
+  public List<Path> getSkins() {
     return myDelegate.getSkins();
   }
 

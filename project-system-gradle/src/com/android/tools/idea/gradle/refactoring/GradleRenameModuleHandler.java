@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.refactoring;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isHolderModule;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -63,6 +65,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -102,8 +105,26 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     Module module = getGradleModule(dataContext);
     assert module != null;
     String currentName = ModuleGrouper.instanceFor(project).getShortenedName(module);
-    Messages.showInputDialog(project, IdeBundle.message("prompt.enter.new.module.name"), IdeBundle.message("title.rename.module"),
-                             Messages.getQuestionIcon(), currentName, new MyInputValidator(module));
+    if (isHolderModule(module)) {
+      Messages.showInputDialog(project, IdeBundle.message("prompt.enter.new.module.name"), IdeBundle.message("title.rename.module"),
+                               Messages.getQuestionIcon(), currentName, new MyInputValidator(module));
+    }
+    else {
+      // Why allow a user to try to rename the sourceSet module, then fail with an error here, rather than disclaim the ability to rename
+      // in isAvailableOnDataContext() above?
+      //
+      // I'm glad you asked.
+      //
+      // The platform also provides a RenameModuleHandler, claiming the ability to rename all modules.  The user of the extension point,
+      // RenameHandlerRegistry, iterates over all the registered RenameHandlers, generating a table of candidate rename actions indexed
+      // by their actionTitle.  So by having this handler claim to be able to rename modules, even though it can't, and registering it
+      // to be at the end of the extension point list, we ensure that the user does not shoot themselves in the foot by trying to rename
+      // a sourceSet module.
+      //
+      // The behaviour of this GradleRenameModuleHandler, absent this check, is to attempt to rename the holder module anyway, which is
+      // confusing if not necessarily harmful.  Probably better to show this dialog.
+      Messages.showErrorDialog(project, "Cannot rename an Android Gradle sourceSet", IdeBundle.message("title.rename.module"));
+    }
   }
 
   @Nullable
@@ -161,7 +182,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
       // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = new ArrayList<>();
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
+      for (Module module : Arrays.stream(ModuleManager.getInstance(project).getModules()).filter(ModuleSystemUtil::isHolderModule).toList()) {
         GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
           DependenciesModel dependenciesModel = buildModel.dependencies();

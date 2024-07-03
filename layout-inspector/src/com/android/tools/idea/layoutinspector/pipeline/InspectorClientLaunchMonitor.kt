@@ -109,13 +109,18 @@ class InspectorClientLaunchMonitor(
         notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
       } else {
         currentClient.stats.debuggerInUse(isPaused = true)
-        val resumeDebuggerAction = createResumeDebuggerAction()
-        val disconnectAction = createDisconnectAction(attemptDumpViews = false)
+        val actions = mutableListOf<StatusNotificationAction>()
+        actions.add(createResumeDebuggerAction())
+        if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+          // Do not offer disconnect action in embedded Layout Inspector. Since disconnecting is not
+          // possible, we would have to un-toggle [ToggleLayoutInspectorAction].
+          actions.add(createDisconnectAction(attemptDumpViews = false))
+        }
         notificationModel.addNotification(
           DEBUGGER_CHECK_MESSAGE_KEY,
           LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
           Status.Error,
-          listOf(resumeDebuggerAction, disconnectAction),
+          actions,
         )
         notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
       }

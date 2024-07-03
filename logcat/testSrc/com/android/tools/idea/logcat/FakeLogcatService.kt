@@ -21,9 +21,12 @@ import java.time.Duration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class FakeLogcatService : LogcatService {
   private var channel: Channel<List<LogcatMessage>>? = null
+
+  var invocations = AtomicInteger()
 
   val clearRequests = mutableListOf<String>()
 
@@ -38,7 +41,12 @@ internal class FakeLogcatService : LogcatService {
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
-    return Channel<List<LogcatMessage>>(1).also { channel = it }.consumeAsFlow()
+    return Channel<List<LogcatMessage>>(1)
+      .also {
+        channel = it
+        invocations.incrementAndGet()
+      }
+      .consumeAsFlow()
   }
 
   override suspend fun clearLogcat(serialNumber: String) {

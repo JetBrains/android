@@ -523,7 +523,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_levelColors() {
     val messages = mutableListOf<LogcatMessage>()
-    for (level in LogLevel.values()) {
+    for (level in LogLevel.entries) {
       messages.add(LogcatMessage(LogcatHeader(level, 1, 2, "app", "", "tag", TIMESTAMP), "message"))
     }
     val textAccumulator = TextAccumulator()
@@ -556,7 +556,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_messageColors() {
     val messages = mutableListOf<LogcatMessage>()
-    for (level in LogLevel.values()) {
+    for (level in LogLevel.entries) {
       messages.add(
         LogcatMessage(
           LogcatHeader(level, 1, 2, "app", "", "tag", TIMESTAMP),

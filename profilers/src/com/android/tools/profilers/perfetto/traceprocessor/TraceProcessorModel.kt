@@ -34,7 +34,6 @@ import java.util.Deque
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
-import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelUtils.findValueNearKey
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
@@ -367,7 +366,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     fun addPowerCounters(counters: PowerCounterTracksResult) {
       // powerCounters include both power rail counter and battery drain counter data
       powerCounters.addAll(counters.counterList.map { counter ->
-        CounterModel(powerRailDisplayNameMappings.getOrDefault(counter.name, counter.name), counter.valueList.associate {
+        CounterModel(counter.name, counter.valueList.associate {
           convertToUs(it.timestampNanoseconds) to it.value
         }.toSortedMap())
       })

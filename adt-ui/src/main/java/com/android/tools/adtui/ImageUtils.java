@@ -750,34 +750,6 @@ public class ImageUtils {
   }
 
   /**
-   * Clips the image by a circle. The circle has the diameter equal to the largest dimension of
-   * the image and is positioned so that it is touching the top and the left edges of the image.
-   * The area outside the circle is filled with backgroundColor, or left transparent if
-   * backgroundColor is null.
-   */
-  public static @NotNull BufferedImage circularClip(@NotNull BufferedImage image, @Nullable Color backgroundColor) {
-    BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = mask.createGraphics();
-    applyQualityRenderingHints(g2);
-    double diameter = max(image.getWidth(), image.getHeight());
-    g2.fill(new Area(new Ellipse2D.Double(0, 0, diameter, diameter)));
-    g2.dispose();
-    BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    g2 = shapedImage.createGraphics();
-    applyQualityRenderingHints(g2);
-    g2.drawImage(image, 0, 0, null);
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
-    g2.drawImage(mask, 0, 0, null);
-    if (backgroundColor != null) {
-      g2.setColor(backgroundColor);
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_OVER));
-      g2.fillRect(0, 0, image.getWidth(), image.getHeight());
-    }
-    g2.dispose();
-    return shapedImage;
-  }
-
-  /**
    * Clips the image by the ellipse inscribed into the image. The area outside the ellipse is filled
    * with backgroundColor, or left transparent if backgroundColor is null.
    */

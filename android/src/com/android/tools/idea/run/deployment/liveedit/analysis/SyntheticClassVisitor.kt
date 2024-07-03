@@ -16,16 +16,26 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
+import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodVisitor
+import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ParameterDiff
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrParameter
 
 class SyntheticClassVisitor(val className: String) : ClassVisitor {
+  var requiresReinit = false
+    private set
   var modifiedMethods: List<MethodDiff> = emptyList()
     private set
 
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
+    // This will catch changes to constructor signatures due to capture changes and invoke() calls due to interface changes
+    if (added.isNotEmpty() || removed.isNotEmpty()) {
+      requiresReinit = true
+    }
     val methods = mutableListOf<MethodDiff>()
     for (method in modified) {
       val visitor = SupportMethodVisitor()

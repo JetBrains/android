@@ -25,6 +25,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -110,7 +111,11 @@ class ComposeCompletionWeigherTest {
     Truth.assertThat(myFixture.renderedLookupElements)
       .containsExactly(
         "MaterialTheme ($materialThemePackage)",
-        "MaterialTheme {...}",
+        if (KotlinPluginModeProvider.isK2Mode()) {
+          "MaterialTheme {...} (children: @Composable (() -> Unit)) ($materialThemePackage)"
+        } else {
+          "MaterialTheme {...} (children: () -> Unit) ($materialThemePackage)"
+        },
         "MaterialTheme (com.example)",
       )
       .inOrder()
@@ -198,7 +203,11 @@ class ComposeCompletionWeigherTest {
       .containsExactly(
         "MaterialTheme ($materialThemePackage)",
         "MaterialTheme (com.example)",
-        "MaterialTheme {...}",
+        if (KotlinPluginModeProvider.isK2Mode()) {
+          "MaterialTheme {...} (children: @Composable (() -> Unit)) ($materialThemePackage)"
+        } else {
+          "MaterialTheme {...} (children: () -> Unit) ($materialThemePackage)"
+        },
       )
       .inOrder()
   }

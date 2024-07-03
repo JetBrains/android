@@ -121,6 +121,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
+import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel

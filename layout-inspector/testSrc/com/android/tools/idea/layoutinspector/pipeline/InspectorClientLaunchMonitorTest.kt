@@ -305,52 +305,103 @@ class InspectorClientLaunchMonitorTest {
   }
 
   @Test
-  fun debuggerPausedInJava() {
-    val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
-    val project = projectRule.project
-    val model = NotificationModel(projectRule.project)
-    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
-    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
-    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
-    run {
-      val monitor =
-        InspectorClientLaunchMonitor(
-          project,
-          model,
-          ListenerCollection.createWithDirectExecutor(),
-          stats,
-          unused,
-          timeoutScope,
-          debuggerScope,
-        )
-      monitor.start(client)
-      debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
-      debuggerScope.testScheduler.runCurrent()
-      assertThat(model.notifications.single().message)
-        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+  fun debuggerPausedInJava() =
+    withEmbeddedLayoutInspector(false) {
+      val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
+      val project = projectRule.project
+      val model = NotificationModel(projectRule.project)
+      val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+      val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      run {
+        val monitor =
+          InspectorClientLaunchMonitor(
+            project,
+            model,
+            ListenerCollection.createWithDirectExecutor(),
+            stats,
+            unused,
+            timeoutScope,
+            debuggerScope,
+          )
+        monitor.start(client)
+        debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
+        debuggerScope.testScheduler.runCurrent()
+        assertThat(model.notifications.single().message)
+          .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
-      // Check that the timeout warning is not shown when the debugger warning is shown
-      timeoutScope.advanceUntilIdle()
-      timeoutScope.testScheduler.runCurrent()
-      assertThat(model.notifications.single().message)
-        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
-      assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
-      assertThat(model.notifications.single().actions.last().name).isEqualTo("Disconnect")
+        // Check that the timeout warning is not shown when the debugger warning is shown
+        timeoutScope.advanceUntilIdle()
+        timeoutScope.testScheduler.runCurrent()
+        assertThat(model.notifications.single().message)
+          .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+        assertThat(model.notifications.single().actions.size).isEqualTo(2)
+        assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
+        assertThat(model.notifications.single().actions.last().name).isEqualTo("Disconnect")
 
-      // Resume the debugger:
-      model.notifications.single().actions.first().invoke(mock())
-      val manager = XDebuggerManager.getInstance(projectRule.project)
-      verify(manager.debugSessions.single()).resume()
-      verify(client, never()).disconnect()
+        // Resume the debugger:
+        model.notifications.single().actions.first().invoke(mock())
+        val manager = XDebuggerManager.getInstance(projectRule.project)
+        verify(manager.debugSessions.single()).resume()
+        verify(client, never()).disconnect()
 
-      val data = DynamicLayoutInspectorSession.newBuilder()
-      client.stats.save(data)
-      val savedStats = data.build()
-      assertThat(savedStats.attach.debuggerAttached).isTrue()
-      assertThat(savedStats.attach.debuggerPausedDuringAttach).isTrue()
+        val data = DynamicLayoutInspectorSession.newBuilder()
+        client.stats.save(data)
+        val savedStats = data.build()
+        assertThat(savedStats.attach.debuggerAttached).isTrue()
+        assertThat(savedStats.attach.debuggerPausedDuringAttach).isTrue()
+      }
     }
-  }
+
+  @Test
+  fun debuggerPausedInJavaEmbeddedLi() =
+    withEmbeddedLayoutInspector(true) {
+      val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
+      val project = projectRule.project
+      val model = NotificationModel(projectRule.project)
+      val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+      val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+      run {
+        val monitor =
+          InspectorClientLaunchMonitor(
+            project,
+            model,
+            ListenerCollection.createWithDirectExecutor(),
+            stats,
+            unused,
+            timeoutScope,
+            debuggerScope,
+          )
+        monitor.start(client)
+        debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
+        debuggerScope.testScheduler.runCurrent()
+        assertThat(model.notifications.single().message)
+          .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+
+        // Check that the timeout warning is not shown when the debugger warning is shown
+        timeoutScope.advanceUntilIdle()
+        timeoutScope.testScheduler.runCurrent()
+        assertThat(model.notifications.single().message)
+          .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+        assertThat(model.notifications.single().actions.size).isEqualTo(1)
+        assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
+
+        // Resume the debugger:
+        model.notifications.single().actions.first().invoke(mock())
+        val manager = XDebuggerManager.getInstance(projectRule.project)
+        verify(manager.debugSessions.single()).resume()
+        verify(client, never()).disconnect()
+
+        val data = DynamicLayoutInspectorSession.newBuilder()
+        client.stats.save(data)
+        val savedStats = data.build()
+        assertThat(savedStats.attach.debuggerAttached).isTrue()
+        assertThat(savedStats.attach.debuggerPausedDuringAttach).isTrue()
+      }
+    }
 
   @Test
   fun debuggerPausedInNative() {

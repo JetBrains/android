@@ -36,6 +36,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
@@ -51,7 +52,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ScenesOwner;
 import com.android.tools.idea.common.surface.ZoomChange;
 import com.android.tools.idea.common.surface.ZoomListener;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
@@ -181,9 +181,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
-      (ScenesOwner) this
+      this
     );
     myZoomController.setZoomListener(this);
+    myZoomController.setOnScaleListener(this);
   }
 
   @NotNull
@@ -439,7 +440,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       getSelectionModel().getSelection().stream()
         .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
         .collect(toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getTreeWriter().getId() : 0, components));
   }
 
   @NotNull
@@ -465,7 +466,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       current = parent;
     }
 
-    List<NlComponent> components = getModel().getComponents();
+    List<NlComponent> components = getModel().getTreeReader().getComponents();
     assert (components.size() == 1);
 
     return (current == components.get(0));
@@ -477,7 +478,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     getSceneManager().update();
     getSceneManager().layout(false);
     myZoomController.zoomToFit();
-    currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
+    currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
 
@@ -663,12 +664,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     if (model == null) {
       return;
     }
-    NlComponent match = model.getComponents().get(0);
+    NlComponent match = model.getTreeReader().getComponents().get(0);
     if (myCurrentNavigation != null) {
       boolean includingParent = false;
       TagSnapshot currentSnapshot = myCurrentNavigation.getSnapshot();
       NlComponent currentParent = myCurrentNavigation.getParent();
-      for (NlComponent component : (Iterable<NlComponent>)model.flattenComponents()::iterator) {
+      for (NlComponent component : (Iterable<NlComponent>)model.getTreeReader().flattenComponents()::iterator) {
         if (!NavComponentHelperKt.isNavigation(component)) {
           continue;
         }
@@ -703,12 +704,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-  }
-
-  @Override
-  protected boolean getSupportPinchAndZoom() {
-    // TODO: Enable pinch and zoom for navigation editor
-    return false;
   }
 
   /**

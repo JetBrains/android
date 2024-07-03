@@ -31,6 +31,7 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
@@ -107,8 +108,10 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
 
     val positions = storage.state[file.name] ?: return
     filePositionMap[file] = positions
-    val component = file.rootTag ?: return
-    reload(positions, component)
+    ApplicationManager.getApplication().runReadAction {
+      val component = file.rootTag ?: return@runReadAction
+      reload(positions, component)
+    }
   }
 
   private fun reload(positions: LayoutPositions, tag: XmlTag) {
@@ -118,9 +121,9 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     setPosition(tag, positions)
     for ((id, position) in positions.myPositions) {
       for (subtag in tag.subTags) {
-        var subtagId = subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
+        var subtagId = runReadAction { subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
         if (subtagId == null && subtag.name == TAG_INCLUDE) {
-          subtagId = subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length)
+          subtagId = runReadAction { subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length) }
         }
         if (subtagId == id) {
           reload(position, subtag)
@@ -168,7 +171,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       tagPositionMap.inverse().remove(newPositions)
       setPosition(runReadAction { component.nlComponent.tag }, newPositions)
       val fileName = component.nlComponent.model.virtualFile.name
-      rectifyIds(model.components.flatMap { it.children }, storage.state[fileName]!!)
+      rectifyIds(model.treeReader.components.flatMap { it.children }, storage.state[fileName]!!)
     }
   }
 

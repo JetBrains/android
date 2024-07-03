@@ -40,5 +40,10 @@ class CommonPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surf
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
+    DefaultActionGroup(
+      listOf(
+        CommonIssueNotificationAction(),
+        ForceCompileAndRefreshActionForNotification.getInstance(),
+      )
+    )
 }

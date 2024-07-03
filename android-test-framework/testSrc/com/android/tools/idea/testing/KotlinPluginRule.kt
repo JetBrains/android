@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing
 
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
-//import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.rules.ExternalResource
 
 class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResource() {
@@ -27,7 +27,7 @@ class KotlinPluginRule(private val pluginKind: KotlinPluginMode) : ExternalResou
   }
 
   override fun after() {
-    //checkKotlinPluginMode(pluginKind)
+    check(KotlinPluginModeProvider.currentPluginMode == pluginKind)
 
     val value = oldPropertyValue
     if (value != null) {

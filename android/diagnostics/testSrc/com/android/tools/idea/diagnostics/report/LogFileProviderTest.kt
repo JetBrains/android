@@ -56,7 +56,7 @@ class LogFileProviderTest : TestCase() {
 
     val homeDir = testDirectoryPath.resolve("homeDir")
     homeDir.createDirectory()
-    val jvmCrashFile = homeDir.resolve("java_error_in_STUDIO_123.log")
+    val jvmCrashFile = homeDir.resolve("java_error_in_studio_123.log")
     jvmCrashFile.createParentDirectories().createFile()
 
     val pathProvider = PathProvider(logDir.toString(), vmOptionsFile, customOptionsDir.toString(), homeDir.toString())

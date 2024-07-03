@@ -69,7 +69,7 @@ public class OpenExistingProjectTest {
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testOpenExistingProject() {
+  public void testOpenExistingProject() throws InterruptedException {
     //Create a new project
     WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -88,6 +88,8 @@ public class OpenExistingProjectTest {
 
     EditorFixture editorFixture = ideFrame.getEditor();
     editorFixture.waitForFileToActivate(90);
+
+    Thread.sleep(10_000); // TODO(b/332920584): temporary workaround for IJPL-149431 (DumbService deadlock).
 
     ideFrame.invokeMenuPath("Code", "Inspect Code...");
     InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);

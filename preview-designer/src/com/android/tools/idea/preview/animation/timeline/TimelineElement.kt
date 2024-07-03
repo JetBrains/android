@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.animation.timeline
 
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TooltipInfo
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI
@@ -46,12 +47,12 @@ enum class TimelineElementStatus {
 /** Group of [TimelineElement] for timeline. Group elements are moved and frozen together. */
 open class ParentTimelineElement(
   valueOffset: Int,
-  frozenValue: Int?,
+  frozenState: SupportedAnimationManager.FrozenState,
   private val children: List<TimelineElement>,
 ) :
   TimelineElement(
     offsetPx = valueOffset,
-    frozenValue,
+    frozenState,
     minX = children.minOfOrNull { it.minX } ?: 0,
     maxX = children.maxOfOrNull { it.maxX } ?: 0,
   ) {
@@ -78,7 +79,7 @@ open class ParentTimelineElement(
 /** Drawable element for timeline. Each element could be moved and frozen. */
 abstract class TimelineElement(
   val offsetPx: Int,
-  val frozenValue: Int?,
+  val frozenState: SupportedAnimationManager.FrozenState,
   val minX: Int,
   val maxX: Int,
 ) : Disposable {

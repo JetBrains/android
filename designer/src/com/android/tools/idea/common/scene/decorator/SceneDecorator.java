@@ -96,9 +96,6 @@ public class SceneDecorator {
         (sceneContext.getColorSet().drawBackground() || (wantToConnect && state == SceneComponent.DrawState.HOVER))) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect); // get the rectangle from the component
-      if (component.isToolLocked()) {
-        state = SceneComponent.DrawState.SUBDUED;
-      }
       DrawComponentBackground.add(list, sceneContext, rect, state.ordinal()); // add to the list
     }
   }

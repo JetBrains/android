@@ -33,20 +33,23 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import kotlin.time.Duration.Companion.seconds
 
-const val DEFAULT_FONT_SIZE = 100
-const val CUSTOM_FONT_SIZE = 130
+const val DEFAULT_FONT_SCALE = 100
+const val CUSTOM_FONT_SCALE = 130
 const val DEFAULT_DENSITY = 480
 const val CUSTOM_DENSITY = 560
-const val APPLICATION_ID1 = "com.example.test.process1"
-const val APPLICATION_ID2 = "com.example.test.process2"
+const val APPLICATION_ID1 = "com.example.test.app1"
+const val APPLICATION_ID2 = "com.example.test.app2"
 
 /**
  * Supplies fakes for UI settings tests
  */
 class UiSettingsRule : ExternalResource() {
-  private val appLanguageServices = AppLanguageService { listOf(
-    AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
-    AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
+  private val appLanguageServices = AppLanguageService { context ->
+    when (context.applicationId) {
+      APPLICATION_ID1 -> AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru")))
+      APPLICATION_ID2 -> AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es")))
+      else -> null
+    }
   }
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
@@ -79,15 +82,16 @@ class UiSettingsRule : ExternalResource() {
   fun configureUiSettings(
     darkMode: Boolean = false,
     gestureOverlayInstalled: Boolean = true,
-    gestureNavigation: Boolean = false,
+    gestureNavigation: Boolean = true,
     applicationId: String = APPLICATION_ID1,
     appLocales: String = "",
     talkBackInstalled: Boolean = false,
     talkBackOn: Boolean = false,
     selectToSpeakOn: Boolean = false,
-    fontSize: Int = DEFAULT_FONT_SIZE,
+    fontScale: Int = DEFAULT_FONT_SCALE,
     physicalDensity: Int = DEFAULT_DENSITY,
     overrideDensity: Int = DEFAULT_DENSITY,
+    debugLayout: Boolean = false,
     deviceSelector: DeviceSelector = emulatorDeviceSelector
   ) {
     val overrideLine = if (physicalDensity != overrideDensity) "\n      Override density: $overrideDensity" else ""
@@ -98,20 +102,19 @@ class UiSettingsRule : ExternalResource() {
       -- Gestures --
       ${if (gestureOverlayInstalled) "[${if (gestureNavigation) "x" else " "}] com.android.internal.systemui.navbar.gestural" else ""}
       -- List Packages --
-      package:com.google.some.package1
-      ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else "package:com.google.some.package2"}
-      package:com.google.some.package3
+      ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else ""}
       -- Accessibility Services --
       ${formatAccessibilityServices(talkBackOn, selectToSpeakOn)}
       -- Accessibility Button Targets --
       ${formatAccessibilityServices(talkBackOn = false, selectToSpeakOn)}
-      -- Font Size --
-      ${(fontSize.toFloat() / 100f)}
+      -- Font Scale --
+      ${(fontScale.toFloat() / 100f)}
       -- Density --
       Physical density: $physicalDensity$overrideLine
+      -- Debug Layout --
+      $debugLayout
       -- Foreground Application --
-         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
-         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
+        mFocusedApp=ActivityRecord{64d5519 u0 $applicationId/com.example.test.MainActivity t8}
     """.trimIndent().replace("\n\n", "\n") // trim spaces and remove all empty lines
     adb.configureShellCommand(deviceSelector, command, response)
 

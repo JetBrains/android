@@ -42,8 +42,8 @@ class ViewVisualLintSuppressTaskTest {
   @Test
   fun testSuppressSingeAnalyzerToSingleModel() {
     val model = createModel("test.xml")
-    ViewVisualLintSuppressTask(BoundsAnalyzer.type, model.components).run()
-    val attr = model.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
+    ViewVisualLintSuppressTask(BoundsAnalyzer.type, model.treeReader.components).run()
+    val attr = model.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(BoundsAnalyzer.type.ignoredAttributeValue, attr)
   }
 
@@ -52,7 +52,7 @@ class ViewVisualLintSuppressTaskTest {
   fun testSuppressionTaskDescriptionInUndoManager() {
     val model = createModel("test.xml")
     rule.fixture.openFileInEditor(model.virtualFile)
-    ViewVisualLintSuppressTask(BoundsAnalyzer.type, model.components).run()
+    ViewVisualLintSuppressTask(BoundsAnalyzer.type, model.treeReader.components).run()
 
     val editor = FileEditorManager.getInstance(rule.project).selectedEditor
     assertEquals(
@@ -67,12 +67,13 @@ class ViewVisualLintSuppressTaskTest {
     val type = BoundsAnalyzer.type
     val model1 = createModel("test1.xml")
     val model2 = createModel("test2.xml")
-    ViewVisualLintSuppressTask(type, model1.components + model2.components).run()
+    ViewVisualLintSuppressTask(type, model1.treeReader.components + model2.treeReader.components)
+      .run()
 
-    val attrOfModel1 = model1.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
+    val attrOfModel1 = model1.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(type.ignoredAttributeValue, attrOfModel1)
 
-    val attrOfModel2 = model1.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
+    val attrOfModel2 = model1.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(type.ignoredAttributeValue, attrOfModel2)
   }
 
@@ -84,15 +85,15 @@ class ViewVisualLintSuppressTaskTest {
     val model = createModel("test.xml")
     runWriteAction {
       rule.project.executeCommand("") {
-        model.components
+        model.treeReader.components
           .first()
           .startAttributeTransaction()
           .apply { setAttribute(TOOLS_URI, ATTR_IGNORE, type.ignoredAttributeValue) }
           .commit()
       }
     }
-    ViewVisualLintSuppressTask(type, model.components).run()
-    val attr = model.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
+    ViewVisualLintSuppressTask(type, model.treeReader.components).run()
+    val attr = model.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(type.ignoredAttributeValue, attr)
   }
 
@@ -103,10 +104,10 @@ class ViewVisualLintSuppressTaskTest {
     val type2 = LongTextAnalyzer.type
     val model = createModel("test.xml")
 
-    ViewVisualLintSuppressTask(type1, model.components).run()
-    ViewVisualLintSuppressTask(type2, model.components).run()
+    ViewVisualLintSuppressTask(type1, model.treeReader.components).run()
+    ViewVisualLintSuppressTask(type2, model.treeReader.components).run()
 
-    val attr = model.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
+    val attr = model.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     val ignored = attr!!.split(",")
     assertEquals(2, ignored.size)
     ignored.contains(type1.ignoredAttributeValue)

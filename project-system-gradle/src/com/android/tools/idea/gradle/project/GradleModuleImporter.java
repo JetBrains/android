@@ -267,10 +267,12 @@ public final class GradleModuleImporter extends ModuleImporter {
                                             @NotNull Project project,
                                             @Nullable GradleSyncListener listener) throws IOException {
     VirtualFile projectRoot = Objects.requireNonNull(ProjectUtil.guessProjectDir(project));
-    if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
-      projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
-    }
     GradleSettingsModel gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
+    if (gradleSettingsModel == null) {
+      projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
+      gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
+    }
+
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
       File targetFile = GradleProjectSystemUtil.getModuleDefaultPath(projectRoot, name);

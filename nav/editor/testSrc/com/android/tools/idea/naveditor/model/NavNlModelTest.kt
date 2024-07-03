@@ -42,7 +42,7 @@ class NavNlModelTest : NavTestCase() {
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
         "    NlComponent{tag=<fragment>, instance=1}\n" +
         "    NlComponent{tag=<fragment>, instance=2}",
-        treeDumper.toTree(model.components))
+        treeDumper.toTree(model.treeReader.components))
 
     // Add child
     val parent = modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!! as NavModelBuilderUtil.NavigationComponentDescriptor
@@ -54,7 +54,7 @@ class NavNlModelTest : NavTestCase() {
         "    NlComponent{tag=<fragment>, instance=1}\n" +
         "    NlComponent{tag=<fragment>, instance=2}\n" +
         "    NlComponent{tag=<action>, instance=3}",
-        treeDumper.toTree(model.components))
+        treeDumper.toTree(model.treeReader.components))
   }
 
   fun testDeleteChild() {
@@ -67,7 +67,7 @@ class NavNlModelTest : NavTestCase() {
       }
     }
 
-    model.delete(listOf(model.find("a1")))
+    model.treeWriter.delete(listOf(model.treeReader.find("a1")))
     FileDocumentManager.getInstance().saveAllDocuments()
     val result = String(model.virtualFile.contentsToByteArray())
     // ensure that we end up with a self-closing tag
@@ -84,8 +84,8 @@ class NavNlModelTest : NavTestCase() {
       }
     }
 
-    assertEquals("global", model.find("global")?.tooltipText)
-    assertEquals("exit", model.find("exit")?.tooltipText)
+    assertEquals("global", model.treeReader.find("global")?.tooltipText)
+    assertEquals("exit", model.treeReader.find("exit")?.tooltipText)
   }
 
   fun testIsOrHasSuperclass() {
@@ -93,7 +93,7 @@ class NavNlModelTest : NavTestCase() {
       navigation("root")
     }.build()
 
-    val root = model.find("root")!!
+    val root = model.treeReader.find("root")!!
     assertFalse(root.isOrHasSuperclass("foo"))
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.IntProperty
@@ -51,7 +52,7 @@ class HaxmInstallSettingsStep(
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
-  private val fullMemorySize = AvdManagerConnection.getMemorySize()
+  private val fullMemorySize = MemorySettingsUtil.getMachineMemoryBytes() ?: (32L shl 30)
   private val maxMemory = getMaxHaxmMemory(fullMemorySize)
   private val recommendedMemorySize = getRecommendedHaxmMemory(fullMemorySize)
   private val ticks = MINOR_TICKS.coerceAtMost(maxMemory / MAX_TICK_RESOLUTION)

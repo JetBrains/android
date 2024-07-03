@@ -28,11 +28,12 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.psi.tree.IElementType;
 
 public class DeclarativeIdentifierImpl extends DeclarativeIdentifierMixin implements DeclarativeIdentifier {
 
-  public DeclarativeIdentifierImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeIdentifierImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
@@ -48,7 +49,7 @@ public class DeclarativeIdentifierImpl extends DeclarativeIdentifierMixin implem
   @Override
   @NotNull
   public PsiElement getToken() {
-    return findNotNullChildByType(TOKEN);
+    return findPsiChildByType(TOKEN);
   }
 
   @Override

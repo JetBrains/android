@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
@@ -118,7 +119,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       // Persist the text editor state
       (state.editorState as? TextEditorState)?.let {
         val editorElement = Element(EDITOR_STATE_TAG)
-        TextEditorProvider().writeState(it, project, editorElement)
+        PsiAwareTextEditorProvider().writeState(it, project, editorElement)
         targetElement.addContent(editorElement)
       }
 
@@ -151,7 +152,8 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       sourceElement.children.forEach {
         when (it.name) {
           EDITOR_STATE_TAG -> {
-            editorState = TextEditorProvider().readState(it, project, file) as? TextEditorState
+            editorState =
+              PsiAwareTextEditorProvider().readState(it, project, file) as? TextEditorState
           }
           MULTI_PREVIEW_STATE_TAG -> {
             multiPreviewState =

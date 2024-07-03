@@ -71,7 +71,17 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       """.trimIndent())
     }
 
-    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = ::verifyBuildIssue,
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND,
+      expectedPhasesReported = """
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
+    )
   }
 
   //TODO(b/292231180): also add a separate test for 'cannot cast' in groovy code, it produces a different error and is not caught by any checker.
@@ -81,7 +91,17 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
 
     preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply( "Date a = (Date) (Object)\"123\";")
 
-    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = ::verifyBuildIssue,
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO,
+      expectedPhasesReported = """
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
+    )
   }
 
   @Test
@@ -92,7 +112,17 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       "try { Class.forName(\"not.existing.MyClass\"); } catch (ClassNotFoundException e) { throw new RuntimeException(e); }"
     )
 
-    runSyncAndCheckBuildIssueFailure(preparedProject, ::verifyBuildIssue, AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND)
+    runSyncAndCheckBuildIssueFailure(
+      preparedProject = preparedProject,
+      verifyBuildIssue = ::verifyBuildIssue,
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND,
+      expectedPhasesReported = """
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+        SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+      """.trimIndent()
+    )
   }
 
   private fun verifyBuildIssue(buildIssue: BuildIssue) {

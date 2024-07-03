@@ -18,4 +18,15 @@
             message="First usage here"/>
     </issue>
 
+    <issue
+        id="SetTextI18n"
+        message="Number formatting does not take into account locale settings. Consider using `String.format` instead."
+        errorLine1="            holder.text.text = position.toString()"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            line="74"
+            column="32"/>
+    </issue>
+
 </issues>

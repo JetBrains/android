@@ -17,8 +17,6 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.preview.animation.actions.FreezeAction
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,9 +37,7 @@ import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class AnimationCard(
-  timelinePanel: TimelinePanel,
   rootComponent: JComponent,
-  val state: MutableStateFlow<ElementState>,
   override val title: String,
   extraActions: List<AnAction> = emptyList(),
   private val tracker: AnimationTracker,
@@ -82,8 +78,10 @@ class AnimationCard(
 
   override fun getCurrentHeight() =
     // Card has a minimum height of TIMELINE_LINE_ROW_HEIGHT.
-    if (state.value.expanded) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT)
+    if (expanded.value) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT)
     else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
+
+  override val expanded = MutableStateFlow(false)
 
   private var durationLabel: Component? = null
 
@@ -109,12 +107,7 @@ class AnimationCard(
     firstRow.add(expandButton.component, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(title), TabularLayout.Constraint(0, 1))
 
-    val secondRowToolbar =
-      createToolbarWithNavigation(
-        rootComponent,
-        "AnimationCard",
-        listOf(FreezeAction(timelinePanel, state, tracker)) + extraActions,
-      )
+    val secondRowToolbar = createToolbarWithNavigation(rootComponent, "AnimationCard", extraActions)
     secondRow.add(secondRowToolbar.component, BorderLayout.CENTER)
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
@@ -139,8 +132,8 @@ class AnimationCard(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-      state.value = state.value.copy(expanded = !state.value.expanded)
-      if (state.value.expanded) {
+      expanded.value = !expanded.value
+      if (expanded.value) {
         tracker.expandAnimationCard()
       } else {
         tracker.collapseAnimationCard()
@@ -150,7 +143,7 @@ class AnimationCard(
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = true
       e.presentation.apply {
-        if (state.value.expanded) {
+        if (expanded.value) {
           icon = UIUtil.getTreeExpandedIcon()
           text = message("animation.inspector.action.collapse")
         } else {

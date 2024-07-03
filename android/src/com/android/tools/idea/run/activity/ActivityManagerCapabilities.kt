@@ -17,7 +17,8 @@ package com.android.tools.idea.run.activity
 
 import com.android.adblib.CoroutineScopeCache
 import com.android.adblib.DeviceSelector
-import com.android.adblib.deviceCache
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.device
 import com.android.adblib.shellCommand
 import com.android.adblib.utils.ByteArrayShellCollector
 import com.android.annotations.concurrency.WorkerThread
@@ -28,7 +29,6 @@ import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
 
@@ -55,8 +55,11 @@ class ActivityManagerCapabilities(val project: Project) {
   private suspend fun checkCapability(device: IDevice, capability: String): Boolean {
     val caps = kotlin.runCatching {
       val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
-      val deviceCache = AdbLibService.getSession(project).deviceCache(deviceSelector)
-      deviceCache.getOrPutSuspending(activityManagerCapabilitiesKey) { retrieveCapabilities(deviceSelector) }
+      val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
+
+      // Use device cache if available
+      connectedDevice?.cache?.getOrPutSuspending(activityManagerCapabilitiesKey) { retrieveCapabilities(deviceSelector) }
+      ?: retrieveCapabilities(deviceSelector)
     }.getOrElse { throwable ->
       throw Exception("Error retrieving capabilities from the device ${device.serialNumber}", throwable)
     }

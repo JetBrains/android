@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.sdklib.AndroidCoordinate;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.NlComponent;
@@ -47,7 +48,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -202,7 +202,7 @@ public class DragDropInteraction implements Interaction {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         setType(dragType);
         NlModel model = sceneView.getSceneManager().getModel();
-        InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */, true /* generateIds */);
+        InsertType insertType = model.getTreeWriter().determineInsertType(dragType, getTransferItem(), true /* preview */, true /* generateIds */);
 
         // This determines the icon presented to the user while dragging.
         // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
@@ -245,7 +245,7 @@ public class DragDropInteraction implements Interaction {
       boolean hasDragHandler = myDragHandler != null;
       mySceneView = myDesignSurface.getSceneViewAtOrPrimary(dropEvent.getLocation().x, dropEvent.getLocation().y);
       if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
-        mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
+        mySceneView.getSceneManager().getModel().notifyModified(ChangeType.DND_END);
 
         // We need to clear the selection otherwise the targets for the newly component are not added until
         // another component is selected and then this one reselected
@@ -352,7 +352,7 @@ public class DragDropInteraction implements Interaction {
             AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
           boolean acceptableHandler =
               (myCurrentHandler instanceof ConstraintLayoutHandler) ||
-              (myCurrentHandler instanceof MotionLayoutHandler);
+              (myCurrentHandler instanceof ConstraintLayoutHandler.ConstraintLayoutSupported);
           if (constraintHelper && !acceptableHandler) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
@@ -395,11 +395,11 @@ public class DragDropInteraction implements Interaction {
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getSceneManager().getModel();
-        InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */, true /* generateIds */);
+        InsertType insertType = model.getTreeWriter().determineInsertType(myType, myTransferItem, false /* not for preview */, true /* generateIds */);
 
         // TODO: Run this *after* making a copy
         myDragHandler.commit(ax, ay, modifiers, insertType);
-        model.notifyModified(NlModel.ChangeType.DND_COMMIT);
+        model.notifyModified(ChangeType.DND_COMMIT);
 
         // Do not select the created component at this point see b/124231532.
         // The commit above is executed asynchronously and may not have completed yet.
@@ -524,7 +524,7 @@ public class DragDropInteraction implements Interaction {
 
     NlModel model = sceneView.getSceneManager().getModel();
     DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-    InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */, true /* generateIds */);
+    InsertType insertType = model.getTreeWriter().determineInsertType(dragType, item, false /* not for preview */, true /* generateIds */);
 
     setType(dragType);
     setTransferItem(item);
@@ -535,7 +535,7 @@ public class DragDropInteraction implements Interaction {
       components = myDesignSurface.getSelectionModel().getSelection();
     }
     else {
-      components = model.createComponents(item, insertType);
+      components = model.getTreeWriter().createComponents(item, insertType);
 
       if (components.isEmpty()) {
         return null;  // User cancelled

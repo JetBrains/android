@@ -144,6 +144,13 @@ class VersionCatalogGoToDeclarationHandlerTest {
       "testImplementation(libsTest.j|unit)",
       "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
     )
+
+    // Navigate special case when first letter after delimiter is capital case
+    checkUsage(
+      "app/build.gradle.kts",
+      "api(libs.guava.co|mmon)",
+      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
+    )
   }
 
   @Test
@@ -210,6 +217,13 @@ class VersionCatalogGoToDeclarationHandlerTest {
       "app/build.gradle",
       "testImplementation libsTest.bund|les.junit",
       "junit = [\"junit\"]"
+    )
+
+    // Navigate special case when first letter after delimiter is capital case
+    checkUsage(
+      "app/build.gradle",
+      "api libs.guava.co|mmon",
+      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
     )
   }
 

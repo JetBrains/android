@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.intellij.openapi.Disposable
@@ -44,7 +46,7 @@ class PsSdkIndexCheckerDaemon(
 
   private inner class RefreshSdkIndexIssues : Update(project) {
     override fun run() {
-      IdeGooglePlaySdkIndex.initializeAndSetFlags();
+      IdeGooglePlaySdkIndex.initializeAndSetFlags(IdeGoogleMavenRepository);
       resultsUpdaterQueue.queue(SdkIndexAvailable())
     }
   }

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.InformationPopupImpl
-import com.android.tools.adtui.compose.IssueNotificationAction
-import com.android.tools.adtui.compose.actionLink
+import com.android.tools.adtui.status.InformationPopup
+import com.android.tools.adtui.status.InformationPopupImpl
+import com.android.tools.adtui.status.IssueNotificationAction
+import com.android.tools.adtui.status.actionLink
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut

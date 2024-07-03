@@ -115,11 +115,20 @@ class LibraryResourceClassLoader(
   private val moduleRef = WeakReference(module)
 
   init {
-    moduleRef.get()?.let { registerResources(it) }
+    getModule()?.let { registerResources(it) }
+  }
+
+  /**
+   * Returns the [Module] to be used for the library class loading if it still exists and is not disposed.
+   */
+  private fun getModule(): Module? {
+    val module = moduleRef.get() ?: return null
+    if (module.isDisposed) return null
+    return module
   }
 
   private fun findResourceClass(name: String): Class<*> {
-    val module = moduleRef.get() ?: throw ClassNotFoundException(name)
+    val module = getModule() ?: throw ClassNotFoundException(name)
     if (!isResourceClassName(name)) {
       throw ClassNotFoundException(name)
     }

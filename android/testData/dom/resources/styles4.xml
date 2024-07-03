@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="<error><error>TextAppearance</error>.Theme</error>.PlainText">
+  <style name="TextAppearance.Theme.PlainText">
     <item name="android:textStyle">normal|bold</item>
     <item name="<error>android:unknown</error>">normal|bold</item>
     <item name="<error>unknown</error>">normal|bold</item>

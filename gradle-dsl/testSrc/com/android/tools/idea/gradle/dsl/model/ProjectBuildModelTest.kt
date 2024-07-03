@@ -826,6 +826,35 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testCatalogWithNonStandardName() {
+    writeToSettingsFile("""
+        dependencyResolutionManagement {
+          defaultLibrariesExtensionName = "dep"
+        }
+      """.trimIndent())
+    writeToVersionCatalogFile("")
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    assertContainsElements(vcModel.catalogNames(), "dep")
+    assertNotNull(vcModel.versions("dep"))
+  }
+
+  @Test
+  fun testCatalogWithNonStandardNameAndMultiCatalog() {
+    val gradlePath = myProjectBasePath.findChild("gradle")!!
+    var myVersionCatalogFile: VirtualFile? = null
+    runWriteAction<Unit, IOException> { myVersionCatalogFile = gradlePath.createChildData(this, "testLibs.versions.toml") }
+    saveFileUnderWrite(myVersionCatalogFile!!, "")
+    writeToSettingsFile(TestFile.SETTINGS_FILE_ADDITIONAL_CATALOG_WITH_EXTENSION);
+    writeToVersionCatalogFile("")
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    assertContainsElements(vcModel.catalogNames(), "dep", "testLibs")
+  }
+
+  @Test
   fun testVersionCatalogCreateVersionProperty() {
     writeToBuildFile("")
     writeToVersionCatalogFile("")
@@ -1077,15 +1106,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       [libraries]
         fooTest = { version = "2.3.4", group = "com.example", name = "fooTest" }
       """.trimIndent())
-    writeToSettingsFile("""
-        dependencyResolutionManagement {
-          versionCatalogs {
-             testLibs {
-              from(files("gradle/testLibs.versions.toml"))
-            }
-          }
-        }
-      """.trimIndent())
+    writeToSettingsFile(TestFile.SETTINGS_FILE_ADDITIONAL_CATALOG)
     writeToBuildFile("")
     writeToVersionCatalogFile("""
         [libraries]
@@ -1845,6 +1866,9 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     SETTINGS_FILE_UPDATES_CORRECTLY_SUB("settingsFileUpdatesCorrectly_sub"),
     SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB("settingsFileUpdatesCorrectlyOther_sub"),
     SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED("settingsFileUpdatesCorrectlySettingsExpected"),
+    SETTINGS_FILE_ADDITIONAL_CATALOG("settingsFileAdditionalCatalog"),
+    SETTINGS_FILE_ADDITIONAL_CATALOG_WITH_EXTENSION("settingsFileAdditionalCatalogWithExtension"),
+
     PROJECT_MODELS_SAVES_FILES("projectModelSavesFiles"),
     PROJECT_MODELS_SAVES_FILES_SUB("projectModelSavesFiles_sub"),
     PROJECT_MODELS_SAVES_FILES_EXPECTED("projectModelSavesFilesExpected"),

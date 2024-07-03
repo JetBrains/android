@@ -298,6 +298,10 @@ interface IdeSyncIssue {
     /** Indicates that the namespace is missing  */
     const val TYPE_NAMESPACE_NOT_SET = 54
 
+    // Inconsistent usage of build feature setting with regards to other DSL Settings or plugins
+    // applied
+    const val TYPE_INCONSISTENT_BUILD_FEATURE_SETTING = 55
+
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).

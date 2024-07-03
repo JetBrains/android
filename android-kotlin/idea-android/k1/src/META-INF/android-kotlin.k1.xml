@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/android-kotlin-extensions.xml" xpointer="xpointer(/idea-plugin/*)" />
+  <xi:include href="/META-INF/android-kotlin-extensions.xml" />
   <extensions defaultExtensionNs="com.intellij">
     <intentionAction>
       <language>kotlin</language>

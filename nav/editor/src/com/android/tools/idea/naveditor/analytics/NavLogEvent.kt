@@ -231,7 +231,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     var nestedGraphs = 0
     var placeholders = 0
 
-    for (component in model.flattenComponents()) {
+    for (component in model.treeReader.flattenComponents()) {
       if (component.isDestination) {
         if (component.isFragment) {
           fragments++

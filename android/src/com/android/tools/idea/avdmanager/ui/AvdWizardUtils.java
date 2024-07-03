@@ -74,12 +74,6 @@ public class AvdWizardUtils {
   public static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
   public static final String EXISTING_SD_LOCATION = AvdManager.AVD_INI_SDCARD_PATH;
 
-  // Keys used for display properties within the wizard. The values are derived from (and used to derive) the values for
-  // SD_CARD_STORAGE_KEY and EXISTING_SD_LOCATION
-  public static final String DISPLAY_SD_SIZE_KEY = WIZARD_ONLY + "displaySdCardSize";
-  public static final String DISPLAY_SD_LOCATION_KEY = WIZARD_ONLY + "displaySdLocation";
-  public static final String DISPLAY_USE_EXTERNAL_SD_KEY = WIZARD_ONLY + "displayUseExistingSd";
-
   public static final String DEFAULT_ORIENTATION_KEY = WIZARD_ONLY + "DefaultOrientation";
 
   public static final String AVD_INI_NETWORK_SPEED = "runtime.network.speed";
@@ -109,6 +103,7 @@ public class AvdWizardUtils {
 
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
 
+  public static final String EMULATOR_BINARY_KEY = "emulatorBinary";
   public static final String COMMAND_LINE_OPTIONS_KEY = "commandLineOptions";
 
   // Device definition keys

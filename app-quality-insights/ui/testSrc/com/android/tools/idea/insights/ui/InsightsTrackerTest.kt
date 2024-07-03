@@ -31,6 +31,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.EditorMouseFixture
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
@@ -52,6 +53,9 @@ class InsightsTrackerTest {
       .around(vcsInsightsRule)
       .around(controllerRule)
 
+  private val scope: CoroutineScope
+    get() = controllerRule.controller.coroutineScope
+
   private lateinit var console: ConsoleViewImpl
   private lateinit var tracker: AppInsightsTracker
 
@@ -71,7 +75,8 @@ class InsightsTrackerTest {
       MutableStateFlow(
         StackTraceConsoleState(null, ConnectionMode.ONLINE, ISSUE1, ISSUE1.sampleEvent)
       )
-    val listenerForTracking = ListenerForTracking(console, tracker, projectRule.project, state)
+    val listenerForTracking =
+      ListenerForTracking(console, tracker, projectRule.project, state, scope)
     editor.addEditorMouseListener(listenerForTracking, projectRule.testRootDisposable)
 
     projectRule.fixture.addClass(

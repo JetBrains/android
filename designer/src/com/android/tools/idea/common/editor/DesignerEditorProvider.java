@@ -114,9 +114,9 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
         }
 
         NlModel model = sceneView.getSceneManager().getModel();
-        ImmutableList<NlComponent> views = model.findByOffset(offset);
+        ImmutableList<NlComponent> views = model.getTreeReader().findByOffset(offset);
         if (views.isEmpty()) {
-          views = model.getComponents();
+          views = model.getTreeReader().getComponents();
         }
         handleCaretChanged(sceneView, views);
         updateQueue.queue(new Update("Design editor update") {

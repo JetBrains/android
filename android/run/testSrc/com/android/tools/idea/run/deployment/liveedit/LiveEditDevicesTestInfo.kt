@@ -160,4 +160,14 @@ class LiveEditDevicesTestInfo {
     assertTrue(map.isDisabled())
   }
 
+  @Test
+  fun debugger() {
+    val map = LiveEditDevices()
+    map.addDevice(device1, LiveEditStatus.UpToDate)
+    map.handleDeviceLifecycleEvents(device1, DeviceEvent.DEBUGGER_CONNECT)
+    assertEquals(LiveEditStatus.DebuggerAttached, map.getInfo(device1)!!.status)
+    map.handleDeviceLifecycleEvents(device1, DeviceEvent.DEBUGGER_DISCONNECT)
+    assertEquals(LiveEditStatus.DebuggerAttached, map.getInfo(device1)!!.status)
+  }
+
 }

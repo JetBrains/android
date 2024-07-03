@@ -10,7 +10,6 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
@@ -91,7 +90,6 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
             val sourceElementModule = sourceElement.module
             val gotoContext =
               if (sourceElementModule != null &&
-                  sourceElementModule.isLinkedAndroidModule() &&
                   sourceElementModule.isAndroidTestModule() &&
                   sourceElementModule.getMainModule() == containingClass.module) {
                 // The context PsiElement passed to `getGotoDeclarationTargets` is used to get a `StudioResourceRepositoryManager`. In most

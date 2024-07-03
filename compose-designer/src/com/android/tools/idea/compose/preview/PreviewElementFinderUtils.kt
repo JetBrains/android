@@ -28,6 +28,8 @@ import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.annotations.getUAnnotations
 import com.android.tools.idea.preview.annotations.isAnnotatedWith
+import com.android.tools.idea.preview.buildPreviewName
+import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -39,12 +41,10 @@ import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.psi.PsiClass
 import com.intellij.util.SlowOperations
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.tryResolve
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =
@@ -176,50 +176,6 @@ private fun UAnnotation.getPreviewNodes(
 }
 
 /**
- * Returns the number of preview annotations attached to this element. This method does not count
- * preview annotations that are indirectly referenced through the annotation graph.
- */
-private fun UElement.directPreviewChildrenCount() =
-  runReadAction { getUAnnotations() }.count { it.isPreviewAnnotation() }
-
-private fun buildParentAnnotationInfo(parent: NodeInfo<UAnnotationSubtreeInfo>?): String? {
-  val parentAnnotation = parent?.element as? UAnnotation ?: return null
-  val name = runReadAction { (parent.element.tryResolve() as PsiClass).name }
-  val traversedPreviewChildrenCount =
-    parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0
-  val parentPreviewChildrenCount = parentAnnotation.directPreviewChildrenCount()
-
-  return "$name ${traversedPreviewChildrenCount.toString().padStart(parentPreviewChildrenCount.toString().length, '0')}"
-}
-
-/**
- * Converts the [UAnnotation] to a [ComposePreviewElement] if the annotation is a `@Preview`
- * annotation or returns null if it's not.
- */
-internal fun UAnnotation.toPreviewElement(
-  uMethod: UMethod? = getContainingComposableUMethod(),
-  rootAnnotation: UAnnotation = this,
-  overrideGroupName: String? = null,
-  parentAnnotationInfo: String? = null,
-) = runReadAction {
-  if (this.isPreviewAnnotation()) {
-    val defaultValues = this.findPreviewDefaultValues()
-    val attributesProvider = UastAnnotationAttributesProvider(this, defaultValues)
-    val previewElementDefinitionPsi = rootAnnotation.toSmartPsiPointer()
-    uMethod?.let {
-      previewAnnotationToPreviewElement(
-        attributesProvider,
-        UastAnnotatedMethod(it),
-        previewElementDefinitionPsi,
-        ::StudioParametrizedComposePreviewElementTemplate,
-        overrideGroupName,
-        parentAnnotationInfo,
-      )
-    }
-  } else null
-}
-
-/**
  * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating a
  * method, or if the method is not also annotated with @Composable
  */
@@ -235,12 +191,27 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   overrideGroupName: String?,
 ): ComposePreviewElement<*>? {
   val annotation = element as UAnnotation
-  return annotation.toPreviewElement(
-    uMethod = composableMethod,
-    rootAnnotation = subtreeInfo?.topLevelAnnotation ?: annotation,
-    overrideGroupName = overrideGroupName,
-    parentAnnotationInfo = buildParentAnnotationInfo(parent),
-  )
+  if (!annotation.isPreviewAnnotation()) return null
+
+  val rootAnnotation = subtreeInfo?.topLevelAnnotation ?: annotation
+  val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
+  val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
+  val previewElementDefinitionPsi = runReadAction { rootAnnotation.toSmartPsiPointer() }
+  val annotatedMethod = UastAnnotatedMethod(composableMethod)
+  // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
+  // read lock
+  return runReadAction {
+    previewAnnotationToPreviewElement(
+      attributesProvider,
+      annotatedMethod,
+      previewElementDefinitionPsi,
+      ::StudioParametrizedComposePreviewElementTemplate,
+      overrideGroupName,
+      buildPreviewName = { nameParameter ->
+        this.buildPreviewName(annotatedMethod.name, nameParameter, UElement?::isPreviewAnnotation)
+      },
+    )
+  }
 }
 
 /**
@@ -260,7 +231,10 @@ private fun UMethod.toMultiPreviewNode(
     MultiPreviewNodeInfo(
         ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
       )
-      .withChildNodes(nonPreviewChildNodes, directPreviewChildrenCount())
+      .withChildNodes(
+        nonPreviewChildNodes,
+        directPreviewChildrenCount(UElement?::isPreviewAnnotation),
+      )
       .withDepthLevel(0)
       .withComposableFqn(runReadAction { qualifiedName })
   )
@@ -291,7 +265,10 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
     MultiPreviewNodeInfo(
         ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
       )
-      .withChildNodes(nonPreviewChildNodes, element.directPreviewChildrenCount())
+      .withChildNodes(
+        nonPreviewChildNodes,
+        element.directPreviewChildrenCount(UElement?::isPreviewAnnotation),
+      )
       .withDepthLevel(subtreeInfo?.depth ?: -1)
       .withComposableFqn(composableFqn)
   )

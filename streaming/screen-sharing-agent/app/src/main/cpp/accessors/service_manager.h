@@ -30,7 +30,7 @@ public:
   }
 
 private:
-  ServiceManager(Jni jni);
+  explicit ServiceManager(Jni jni);
   static ServiceManager& GetInstance(Jni jni);
   JObject WaitForService(Jni jni, const char* name, bool allow_null);
 
