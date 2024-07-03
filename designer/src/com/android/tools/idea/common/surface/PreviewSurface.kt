@@ -42,8 +42,11 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.google.common.base.Predicate
+import com.google.common.collect.Collections2
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.fileEditor.FileEditor
@@ -64,6 +67,7 @@ import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
@@ -77,6 +81,9 @@ import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
+/** Filter got [PreviewSurface.models] to avoid returning disposed elements */
+val FILTER_DISPOSED_MODELS =
+  Predicate<NlModel> { input: NlModel? -> input != null && !input.module.isDisposed }
 
 /**
  * TODO Once [DesignSurface] is converted to kt, rename [PreviewSurface] back to [DesignSurface].
@@ -165,6 +172,8 @@ abstract class PreviewSurface<T : SceneManager>(
       }
     }
   }
+
+  protected abstract val isActive: Boolean
 
   init {
     isOpaque = true
@@ -492,6 +501,16 @@ abstract class PreviewSurface<T : SceneManager>(
     return true
   }
 
+  private val modelToSceneManagersLock = ReentrantReadWriteLock()
+
+  @GuardedBy("modelToSceneManagersLock")
+  // TODO Make private
+  protected val modelToSceneManagers = LinkedHashMap<NlModel, T>()
+
+  /** Filter got [sceneManagers] to avoid returning disposed elements */
+  private val filterDisposedSceneManagers =
+    Predicate<T> { input: T? -> input != null && FILTER_DISPOSED_MODELS.apply(input.model) }
+
   @Slow
   /** Some implementations might be slow */
   protected abstract fun createSceneManager(model: NlModel): T
@@ -510,10 +529,116 @@ abstract class PreviewSurface<T : SceneManager>(
   open val sceneManager: T?
     get() = model?.let { getSceneManager(it) }
 
-  abstract val models: ImmutableList<NlModel>
-  abstract val sceneManagers: ImmutableList<T>
+  /** @return the list of added non-disposed [NlModel]s. */
+  val models: ImmutableList<NlModel>
+    get() {
+      modelToSceneManagersLock.readLock().withLock {
+        return ImmutableList.copyOf(Sets.filter(modelToSceneManagers.keys, FILTER_DISPOSED_MODELS))
+      }
+    }
 
-  abstract fun getSceneManager(model: NlModel): T?
+  /** @return the list of all non-disposed [SceneManager]s */
+  val sceneManagers: ImmutableList<T>
+    get() {
+      modelToSceneManagersLock.readLock().withLock {
+        return ImmutableList.copyOf(
+          Collections2.filter(modelToSceneManagers.values, filterDisposedSceneManagers)
+        )
+      }
+    }
+
+  /** @return The [SceneManager] associated to the given [NlModel]. */
+  fun getSceneManager(model: NlModel): T? {
+    if (model.module.isDisposed) {
+      return null
+    }
+    modelToSceneManagersLock.readLock().withLock {
+      return modelToSceneManagers.get(model)
+    }
+  }
+
+  /**
+   * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
+   * then it just returns the associated [SceneManager] which was created before. The [NlModel] will
+   * be moved to the last position which might affect rendering. TODO Make private
+   *
+   * @param model the added [NlModel]
+   * @see [addAndRenderModel]
+   */
+  @Slow
+  protected fun addModel(model: NlModel): T {
+    var manager = getSceneManager(model)
+    manager?.let {
+      modelToSceneManagersLock.writeLock().withLock {
+        // No need to add same model twice. We just move it to the bottom of the model list since
+        // order is important.
+        val managerToMove: T? = modelToSceneManagers.remove(model)
+        if (managerToMove != null) {
+          modelToSceneManagers[model] = managerToMove
+        }
+        return it
+      }
+    }
+
+    model.addListener(modelListener)
+    // SceneManager creation is a slow operation. Multiple can happen in parallel.
+    // We optimistically create a new scene manager for the given model and then, with the mapping
+    // locked we checked if a different one has been added.
+    val newManager = createSceneManager(model)
+
+    modelToSceneManagersLock.writeLock().withLock {
+      manager = modelToSceneManagers.putIfAbsent(model, newManager)
+      if (manager == null) {
+        // The new SceneManager was correctly added
+        manager = newManager
+      }
+    }
+
+    if (manager !== newManager) {
+      // There was already a manager assigned to the model so discard this one.
+      Disposer.dispose(newManager)
+    }
+    if (isActive) {
+      manager?.activate(this)
+    }
+    return manager!!
+  }
+
+  /**
+   * Remove an [NlModel] from DesignSurface. If it isn't added before then nothing happens.
+   *
+   * @param model the [NlModel] to remove
+   */
+  fun removeModel(model: NlModel) {
+    if (!removeModelImpl(model)) {
+      return
+    }
+
+    reactivateGuiInputHandler()
+  }
+
+  /**
+   * Remove an [NlModel] from DesignSurface. If it had not been added before then nothing happens.
+   *
+   * @param model the [NlModel] to remove
+   * @return true if the model existed and was removed TODO Make private
+   */
+  protected fun removeModelImpl(model: NlModel): Boolean {
+    val manager: SceneManager?
+    modelToSceneManagersLock.writeLock().withLock { manager = modelToSceneManagers.remove(model) }
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    sceneViewPanel.removeSceneViewForModel(model)
+
+    if (manager == null) {
+      return false
+    }
+
+    model.deactivate(this)
+    model.removeListener(modelListener)
+    Disposer.dispose(manager)
+    UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
+    return true
+  }
 
   override val focusedSceneView: SceneView?
     get() {

@@ -21,8 +21,6 @@ import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.annotations.concurrency.GuardedBy;
-import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
@@ -41,11 +39,7 @@ import com.android.tools.idea.common.layout.manager.MatchParentLayoutManager;
 import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -71,11 +65,9 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -91,16 +83,6 @@ import org.jetbrains.annotations.TestOnly;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T> {
-
-  /**
-   * Filter got {@link #getModels()} to avoid returning disposed elements
-   **/
-  private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
-  /**
-   * Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements
-   **/
-  private final Predicate<T> FILTER_DISPOSED_SCENE_MANAGERS =
-    input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
@@ -121,11 +103,13 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   private final GuiInputHandler myGuiInputHandler;
 
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
-  private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
-  @GuardedBy("myModelToSceneManagersLock")
-  private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
   private boolean myIsActive = false;
+
+  @Override
+  protected boolean isActive() {
+    return myIsActive;
+  }
 
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
@@ -284,91 +268,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   /**
-   * @return the list of added {@link NlModel}s.
-   * @see #getModel()
-   */
-  @NotNull
-  @Override
-  public ImmutableList<NlModel> getModels() {
-    myModelToSceneManagersLock.readLock().lock();
-    try {
-      return ImmutableList.copyOf(Sets.filter(myModelToSceneManagers.keySet(), FILTER_DISPOSED_MODELS));
-    }
-    finally {
-      myModelToSceneManagersLock.readLock().unlock();
-    }
-  }
-
-  /**
-   * Returns the list of all the {@link SceneManager} part of this surface
-   */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
-  @NotNull
-  @Override
-  public ImmutableList<T> getSceneManagers() {
-    myModelToSceneManagersLock.readLock().lock();
-    try {
-      return ImmutableList.copyOf(Collections2.filter(myModelToSceneManagers.values(), FILTER_DISPOSED_SCENE_MANAGERS));
-    }
-    finally {
-      myModelToSceneManagersLock.readLock().unlock();
-    }
-  }
-
-  /**
-   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
-   * If it is added before then it just returns the associated {@link SceneManager} which was created before. The {@link NlModel} will be
-   * moved to the last position which might affect rendering.
-   *
-   * @param model the added {@link NlModel}
-   * @see #addAndRenderModel(NlModel)
-   */
-  @Slow
-  @NotNull
-  private T addModel(@NotNull NlModel model) {
-    T manager = getSceneManager(model);
-    if (manager != null) {
-      myModelToSceneManagersLock.writeLock().lock();
-      try {
-        // No need to add same model twice. We just move it to the bottom of the model list since order is important.
-        T managerToMove = myModelToSceneManagers.remove(model);
-        if (managerToMove != null) {
-          myModelToSceneManagers.put(model, managerToMove);
-        }
-        return manager;
-      }
-      finally {
-        myModelToSceneManagersLock.writeLock().unlock();
-      }
-    }
-
-    model.addListener(getModelListener());
-    // SceneManager creation is a slow operation. Multiple can happen in parallel.
-    // We optimistically create a new scene manager for the given model and then, with the mapping
-    // locked we checked if a different one has been added.
-    T newManager = createSceneManager(model);
-    myModelToSceneManagersLock.writeLock().lock();
-    try {
-      manager = myModelToSceneManagers.putIfAbsent(model, newManager);
-      if (manager == null) {
-        // The new SceneManager was correctly added
-        manager = newManager;
-      }
-    }
-    finally {
-      myModelToSceneManagersLock.writeLock().unlock();
-    }
-    if (manager != newManager) {
-      // There was already a manager assigned to the model so discard this one.
-      Disposer.dispose(newManager);
-    }
-    if (myIsActive) {
-      manager.activate(this);
-    }
-    return manager;
-  }
-
-  /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
    * be moved to the bottom of the list and a refresh will be triggered.
    * The scene views are updated before starting to render and the callback
@@ -433,51 +332,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
           }
           reactivateGuiInputHandler();
       }, EdtExecutorService.getInstance());
-  }
-
-  /**
-   * Remove an {@link NlModel} from DesignSurface. If it had not been added before then nothing happens.
-   *
-   * @param model the {@link NlModel} to remove
-   * @return true if the model existed and was removed
-   */
-  private boolean removeModelImpl(@NotNull NlModel model) {
-    SceneManager manager;
-    myModelToSceneManagersLock.writeLock().lock();
-    try {
-      manager = myModelToSceneManagers.remove(model);
-    }
-    finally {
-      myModelToSceneManagersLock.writeLock().unlock();
-    }
-
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.removeSceneViewForModel(model);
-
-    if (manager == null) {
-      return false;
-    }
-
-    model.deactivate(this);
-
-    model.removeListener(getModelListener());
-
-    Disposer.dispose(manager);
-    UIUtil.invokeLaterIfNeeded(this::revalidateScrollArea);
-    return true;
-  }
-
-  /**
-   * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
-   *
-   * @param model the {@link NlModel} to remove
-   */
-  public void removeModel(@NotNull NlModel model) {
-    if (!removeModelImpl(model)) {
-      return;
-    }
-
-    reactivateGuiInputHandler();
   }
 
   /**
@@ -679,25 +533,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return view;
   }
 
-  /**
-   * @return The {@link SceneManager} associated to the given {@link NlModel}.
-   */
-  @Nullable
-  @Override
-  public T getSceneManager(@NotNull NlModel model) {
-    if (model.getModule().isDisposed()) {
-      return null;
-    }
-
-    myModelToSceneManagersLock.readLock().lock();
-    try {
-      return myModelToSceneManagers.get(model);
-    }
-    finally {
-      myModelToSceneManagersLock.readLock().unlock();
-    }
-  }
-
   @NotNull
   @Override
   public GuiInputHandler getGuiInputHandler() {
@@ -798,7 +633,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   public void updateUI() {
     super.updateUI();
     //noinspection FieldAccessNotGuarded We are only accessing the reference so we do not need to guard the access
-    if (myModelToSceneManagers != null) {
+    if (getModelToSceneManagers() != null) {
       // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
       for (SceneManager manager : getSceneManagers()) {
         manager.getSceneViews().forEach(SceneView::updateUI);
