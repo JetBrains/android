@@ -17,75 +17,8 @@ package com.android.tools.idea.preview.util.device.check
 
 import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.idea.preview.util.device.check.ParameterRule.Companion.simpleParameterRule
-import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.Preview.DeviceSpec
-import com.android.tools.preview.config.Shape
-
-/**
- * Parameter rules for the legacy format of the DeviceSpec.
- *
- * For example: `spec:shape=Normal,width=1080,height=1920,unit=px,dpi=480`
- */
-internal object LegacyParameterRule {
-  val shape =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_SHAPE,
-      expectedType = ExpectedShape,
-      defaultValue = DeviceSpec.DEFAULT_SHAPE.name,
-    ) {
-      enumValueOfOrNull<Shape>(it) != null
-    }
-
-  val width =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_WIDTH,
-      expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_WIDTH_DP.toString(),
-    ) {
-      it.toIntOrNull() != null
-    }
-
-  val height =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_HEIGHT,
-      expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_HEIGHT_DP.toString(),
-    ) {
-      it.toIntOrNull() != null
-    }
-
-  val unit =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_UNIT,
-      expectedType = ExpectedDimUnit,
-      defaultValue = DeviceSpec.DEFAULT_UNIT.name,
-    ) {
-      enumValueOfOrNull<DimUnit>(it) != null
-    }
-
-  val dpi =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_DPI,
-      expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_DPI.toString(),
-    ) {
-      it.toIntOrNull() != null
-    }
-
-  /**
-   * Unused in the picker, so this rule is just to cover the possibility of the parameter,
-   * regardless of value, see b/234620152.
-   */
-  val id =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_ID,
-      expectedType = OpenEndedValueType("String"),
-      defaultValue = "",
-    ) {
-      true
-    }
-}
 
 /**
  * Parameter rules for the language based DeviceSpec.

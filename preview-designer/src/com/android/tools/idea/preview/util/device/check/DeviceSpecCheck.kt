@@ -251,10 +251,6 @@ object DeviceSpecCheck {
 
         val rule =
           when {
-            deviceParameterValue.contains(DeviceSpec.PARAMETER_SHAPE) -> {
-              // The Legacy format is the only one with a `shape` parameter
-              DeviceSpecRule.Legacy
-            }
             deviceParameterValue.contains(DeviceSpec.PARAMETER_PARENT + DeviceSpec.OPERATOR) -> {
               // The `parent` parameter requires a specific rule
               DeviceSpecRule.LanguageWithParentId
