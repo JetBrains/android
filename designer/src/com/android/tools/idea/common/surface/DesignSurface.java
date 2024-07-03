@@ -501,9 +501,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     getIssueModel().activate();
   }
 
-  public void deactivateIssueModel() {
-    getIssueModel().deactivate();
-  }
+
 
   public void deactivate() {
     if (myIsActive) {
@@ -518,20 +516,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myGuiInputHandler.cancelInteraction();
   }
 
-  @Override
-  @Deprecated
-  @Nullable
-  public SceneView getSceneViewAtOrPrimary(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getSceneViewAt(x, y);
-    if (view == null) {
-      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
-      SceneManager manager = getSceneManager();
-      if (manager != null) {
-        view = manager.getSceneView();
-      }
-    }
-    return view;
-  }
+
 
   @NotNull
   @Override
@@ -595,37 +580,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
 
-    return null;
-  }
-
-  /**
-   * The data which should be obtained from the background thread.
-   * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
-   */
-  @Nullable
-  private Object getSlowData(@NotNull String dataId) {
-    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        NlComponent primary = selectionModel.getPrimary();
-        if (primary != null) {
-          return primary.getTagDeprecated();
-        }
-      }
-    }
-    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        List<NlComponent> selection = selectionModel.getSelection();
-        List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
-        for (NlComponent component : selection) {
-          list.add(component.getTagDeprecated());
-        }
-        return list.toArray(XmlTag.EMPTY);
-      }
-    }
     return null;
   }
 
