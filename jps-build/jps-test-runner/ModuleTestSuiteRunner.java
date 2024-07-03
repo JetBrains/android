@@ -40,17 +40,8 @@ public class ModuleTestSuiteRunner extends Suite {
         super(new ModuleRunnerBuilder(builder), getTestClasses(suiteClass));
     }
 
-
-
     private static Class<?>[] getTestClasses(Class<?> suiteClass) throws IOException {
         String toolsIdea = System.getProperty("idea.root");
-
-        Set<String> ignore = new HashSet();
-        String env = System.getenv("IGNORE_SUITES");
-        if (env != null) {
-            ignore.addAll(Arrays.asList(env.split(":")));
-        }
-
         String module = System.getenv("TEST_MODULE");
         Path dir = Paths.get(toolsIdea + "/out/studio/classes/test/" + module);
         List<Path> classes = Files.walk(dir)
@@ -62,9 +53,6 @@ public class ModuleTestSuiteRunner extends Suite {
             String name = dir.relativize(cl).toString();
             name = name.replaceAll("/", ".");
             name = name.replaceFirst("\\.class$", "");
-            if (ignore.contains(name)) {
-                continue;
-            }
             try {
                 Class<?> aClass = Class.forName(name);
                 if (aClass.getAnnotation(RunWith.class) != null) {

@@ -26,12 +26,13 @@ jps_library(
 jps_test(
     name = "jps_test",
     download_cache = "tools/adt/idea/jps-build/tests/test_cache",
-    ignore_suites = [
-        "com.android.tools.test.Test2",
-    ],
     module = "module.to.test",
     shard_count = 2,
     target_compatible_with = ["@platforms//os:linux"],
+    test_exclude_filter = [
+        "com.android.tools.test.Test2",
+        "com.android.tools.test.Test1#testFilterIndividualTest",
+    ],
     test_suite = "com.android.tools.test.ModuleTestSuite",
     deps = [
         ":jps_lib",
