@@ -410,50 +410,6 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="          interactionPane.addMouseListener("
-        errorLine2="          ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="107"
-            column="11"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="          interactionPane.addMouseListener("
-        errorLine2="          ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="107"
-            column="11"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="                interactionPane.requestFocus()"
-        errorLine2="                ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="110"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="                interactionPane.requestFocus()"
-        errorLine2="                ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="110"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
         errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
