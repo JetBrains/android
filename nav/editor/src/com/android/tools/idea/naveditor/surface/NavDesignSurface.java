@@ -262,7 +262,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
    * Try to create it, adding the nav library dependency if necessary.
    */
   @Override
-  public CompletableFuture<?> goingToSetModel(NlModel model) {
+  public @NotNull CompletableFuture<?> goingToSetModel(NlModel model) {
     // So it's cached in the future
     model.getConfiguration().getResourceResolver();
 
@@ -484,6 +484,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
+  @NotNull
   protected Dimension getScrollToVisibleOffset() {
     return new Dimension(0, 0);
   }
