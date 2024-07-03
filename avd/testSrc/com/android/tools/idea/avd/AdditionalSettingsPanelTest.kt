@@ -92,7 +92,8 @@ class AdditionalSettingsPanelTest {
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )
 
-    val state = ConfigureDevicePanelState(emptyList<Skin>().toImmutableList(), device)
+    val state =
+      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), MockitoKt.mock())
 
     rule.setContent {
       IntUiTheme {

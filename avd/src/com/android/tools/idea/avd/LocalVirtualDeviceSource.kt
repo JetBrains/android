@@ -29,7 +29,6 @@ import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
-import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
@@ -87,18 +86,17 @@ internal class LocalVirtualDeviceSource(
 
   @Composable
   internal fun WizardPageScope.ConfigurationPage(device: VirtualDevice) {
-    val configureDevicePanelState = remember(device) { ConfigureDevicePanelState(skins, device) }
     val images = systemImages.filter { it.matches(device) }.toImmutableList()
 
     // TODO: http://b/342003916
-    val systemImageTableSelectionState = remember { TableSelectionState(images.first()) }
+    val configureDevicePanelState =
+      remember(device) { ConfigureDevicePanelState(device, skins, images.first()) }
 
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
     ConfigureDevicePanel(
       configureDevicePanelState,
       images,
-      systemImageTableSelectionState,
       onDownloadButtonClick = { downloadSystemImage(parent, it) },
       onImportButtonClick = {
         // TODO Validate the skin
@@ -119,7 +117,11 @@ internal class LocalVirtualDeviceSource(
     nextAction = WizardAction.Disabled
 
     finishAction =
-      add(configureDevicePanelState.device, systemImageTableSelectionState.selection!!, parent)
+      add(
+        configureDevicePanelState.device,
+        configureDevicePanelState.systemImageTableSelectionState.selection!!,
+        parent,
+      )
   }
 
   private fun add(device: VirtualDevice, image: SystemImage, parent: Component) = WizardAction {
