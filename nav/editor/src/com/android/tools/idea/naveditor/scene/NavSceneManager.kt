@@ -295,10 +295,6 @@ open class NavSceneManager(
     return CompletableFuture.completedFuture(null)
   }
 
-  override fun layout(animate: Boolean) {
-    requestLayoutAsync(animate)
-  }
-
   override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
 
   private inner class ModelChangeListener : ModelListener {

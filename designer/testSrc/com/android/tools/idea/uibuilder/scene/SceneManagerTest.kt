@@ -64,8 +64,6 @@ class TestSceneManager(
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
 
-  override fun layout(animate: Boolean) {}
-
   override fun getSceneDecoratorFactory(): SceneDecoratorFactory =
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR

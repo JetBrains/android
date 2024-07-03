@@ -240,8 +240,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @NotNull
   public abstract CompletableFuture<Void> requestLayoutAsync(boolean animate);
 
-  public abstract void layout(boolean animate);
-
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 

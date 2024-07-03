@@ -90,6 +90,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -332,7 +335,12 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     public void layout() {
       LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
       assert manager != null;
-      manager.layout(false);
+      try {
+        manager.requestLayoutAsync(false).get(2, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException | ExecutionException | TimeoutException e) {
+        Logger.getInstance(ConvertToConstraintLayoutAction.class).warn("Unable to run layout()", e);
+      }
     }
 
     public void postLayoutRun() {
