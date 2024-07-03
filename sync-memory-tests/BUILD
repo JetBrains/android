@@ -15,7 +15,6 @@ iml_module(
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
-                "perfgate-release",
             ],
         },
         "Benchmark1000Cpu": {
