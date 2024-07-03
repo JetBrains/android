@@ -39,7 +39,7 @@ internal class SplitPanel(splitType: SplitType, proportion: Double) : JPanel(Bor
     get() = splitter.secondComponent
     set(value) { splitter.secondComponent = value }
 
-  private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat())
+  private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat(), 0.1f, 0.9f)
 
   constructor(layoutNode: SplitNode) : this(layoutNode.splitType, layoutNode.splitRatio)
 
