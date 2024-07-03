@@ -56,10 +56,10 @@ import kotlin.reflect.KProperty
  */
 val referenceDeviceIds =
   mapOf(
-    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to DEVICE_CLASS_PHONE_ID,
-    "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420" to DEVICE_CLASS_FOLDABLE_ID,
-    "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240" to DEVICE_CLASS_TABLET_ID,
-    "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160" to DEVICE_CLASS_DESKTOP_ID
+    "spec:width=411dp,height=891dp" to DEVICE_CLASS_PHONE_ID,
+    "spec:width=673dp,height=841dp" to DEVICE_CLASS_FOLDABLE_ID,
+    "spec:width=1280dp,height=800dp,dpi=240" to DEVICE_CLASS_TABLET_ID,
+    "spec:width=1920dp,height=1080dp,dpi=160" to DEVICE_CLASS_DESKTOP_ID
   )
 
 /**
@@ -68,8 +68,8 @@ val referenceDeviceIds =
  */
 private val referenceDeviceRealDensities =
   mapOf(
-    DEVICE_CLASS_PHONE_ID to 420,
-    DEVICE_CLASS_FOLDABLE_ID to 420,
+    DEVICE_CLASS_PHONE_ID to DEFAULT_DPI,
+    DEVICE_CLASS_FOLDABLE_ID to DEFAULT_DPI,
     DEVICE_CLASS_TABLET_ID to 240,
     DEVICE_CLASS_DESKTOP_ID to 160
   )
