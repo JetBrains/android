@@ -241,7 +241,7 @@ public abstract class BaseAction extends AnAction {
     }
 
 
-    if (isExecutorStarting(project, selectedRunConfig)) {
+    if (isExecutorStarting(project, configSettings)) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "building and/or launching",
                                 "the selected configuration is currently building and/or launching");
     }
@@ -278,14 +278,16 @@ public abstract class BaseAction extends AnAction {
   /**
    * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
    */
-  private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
+  private static boolean isExecutorStarting(@NotNull Project project,
+                                            @NotNull RunnerAndConfigurationSettings settings) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
-      ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
+      ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), settings.getConfiguration());
       if (programRunner == null) {
         continue;
       }
-      if (ExecutionManager.getInstance(project).isStarting(executor.getId(), programRunner.getRunnerId())) {
+      if (ExecutionManager.getInstance(project).isStarting(
+        settings.getUniqueID(), executor.getId(), programRunner.getRunnerId())) {
         return true;
       }
     }
