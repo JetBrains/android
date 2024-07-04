@@ -466,12 +466,7 @@ class WearPairingManager(
   private fun getConnectedDevices(): Map<String, IDevice> {
     ThreadingAssertions.assertBackgroundThread()
 
-    return connectedDevicesProvider()
-      .filter {
-        it.isEmulator || it.arePropertiesSet()
-      } // Ignore un-populated physical devices (still loading properties)
-      .filter { it.isOnline }
-      .associateBy { it.getDeviceID() }
+    return connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
   }
 
   private suspend fun updateForwardState(
