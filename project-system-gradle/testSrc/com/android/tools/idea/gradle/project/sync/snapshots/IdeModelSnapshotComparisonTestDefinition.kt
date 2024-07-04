@@ -53,7 +53,7 @@ import java.io.File
  * Snapshot test definitions for 'Ide Models' (To run tests see [SyncedProjectTest])
  *
  * These tests convert Ide models to a stable text format which does not depend on local
- * environment (and ideally should not depend on the versions of irrelev ant libraries) and compare them to pre-recorded golden
+ * environment (and ideally should not depend on the versions of irrelevant libraries) and compare them to pre-recorded golden
  * results.
  *
  * The pre-recorded sync results can be found in *.txt files under testData/snapshots/{ideModels,v2IdeModels}.
@@ -100,6 +100,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         isCompatibleWith = { it >= AGP_35 }
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
       IdeModelSnapshotComparisonTestDefinition(TestProject.WITH_GRADLE_METADATA),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
