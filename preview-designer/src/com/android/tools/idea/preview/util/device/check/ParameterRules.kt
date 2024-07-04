@@ -17,6 +17,8 @@ package com.android.tools.idea.preview.util.device.check
 
 import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.idea.preview.util.device.check.ParameterRule.Companion.simpleParameterRule
+import com.android.tools.preview.config.Cutout
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.Preview.DeviceSpec
 
@@ -24,8 +26,8 @@ import com.android.tools.preview.config.Preview.DeviceSpec
  * Parameter rules for the language based DeviceSpec.
  *
  * For example:
- * * `spec:parent=<device_id>,orientation=landscape`
- * * `spec:width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp`
+ * * `spec:parent=<device_id>,orientation=landscape,navigation=gesture`
+ * * `spec:width=1080px,orientation=portrait,height=1920px,isRound=true,chinSize=30dp,cutout=corner`
  *
  * @see com.android.tools.idea.preview.util.device.DeviceSpecLanguage
  */
@@ -77,4 +79,22 @@ internal object LanguageParameterRule {
     }
 
   val parent = DeviceIdParameterRule(name = DeviceSpec.PARAMETER_PARENT)
+
+  val cutout =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_CUTOUT,
+      expectedType = ExpectedCutout,
+      defaultValue = DeviceSpec.DEFAULT_CUTOUT.name,
+    ) {
+      enumValueOfOrNull<Cutout>(it) != null
+    }
+
+  val navigation =
+    simpleParameterRule(
+      name = DeviceSpec.PARAMETER_NAVIGATION,
+      expectedType = ExpectedNavigation,
+      defaultValue = DeviceSpec.DEFAULT_NAVIGATION.name,
+    ) {
+      enumValueOfOrNull<Navigation>(it) != null
+    }
 }
