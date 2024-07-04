@@ -58,7 +58,7 @@ private const val NOTIFICATION_GROUP = "Backup"
 /** Implementation of [BackupManager] */
 internal class BackupManagerImpl(private val project: Project) : BackupManager {
   private val adbSession = AdbLibService.getSession(project)
-  private val logger: Logger = Logger.getInstance(this::class.java)
+  private val logger: Logger = Logger.getInstance(BackupManager::class.java)
 
   @UiThread
   override fun backupModal(
