@@ -32,7 +32,6 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import javax.swing.JComponent
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface ColorPicker {
   fun show(initialColor: Color, restoreFocusComponent: Component?, onColorPicked: (Color) -> Unit)
@@ -62,9 +61,16 @@ private object ColorPickerImpl : ColorPicker {
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
 class ColorPickerAction(
   val tracker: AnimationTracker,
-  private val flow: MutableStateFlow<Color>,
+  initialValue: Color,
   private val colorPicker: ColorPicker = ColorPickerImpl,
+  private val callback: (Color) -> Unit,
 ) : CustomComponentAction, AnAction() {
+
+  var currentValue = initialValue
+    set(value) {
+      field = value
+      callback(value)
+    }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
 
@@ -78,7 +84,7 @@ class ColorPickerAction(
 
       override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        g.color = flow.value
+        g.color = currentValue
         g.fillRect(
           InspectorLayout.colorButtonOffset,
           InspectorLayout.colorButtonOffset,
@@ -90,15 +96,15 @@ class ColorPickerAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    colorPicker.show(flow.value, e.componentToRestoreFocusTo()) { pickedColor ->
-      flow.value = pickedColor
+    colorPicker.show(currentValue, e.componentToRestoreFocusTo()) { pickedColor ->
+      currentValue = pickedColor
       tracker.openPicker()
     }
   }
 
   fun swapWith(other: ColorPickerAction) {
-    val saveState = flow.value
-    flow.value = other.flow.value
-    other.flow.value = saveState
+    val saveState = currentValue
+    currentValue = other.currentValue
+    other.currentValue = saveState
   }
 }

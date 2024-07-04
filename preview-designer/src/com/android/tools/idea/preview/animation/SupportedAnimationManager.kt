@@ -85,7 +85,7 @@ abstract class SupportedAnimationManager(
   private val freezeAction = FreezeAction(timelinePanel, frozenState, tracker)
 
   /** Abstract property representing the state manager for this animation type. */
-  abstract val animationState: AnimationState
+  abstract val animationState: AnimationState<*>
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   private var currentTransition = Transition()
@@ -182,7 +182,7 @@ abstract class SupportedAnimationManager(
    * is used.
    */
   suspend fun loadTransition(longTimeout: Boolean = false) {
-    val stateHash = animationState.stateHashCode.value
+    val stateHash = animationState.state.value.hashCode()
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
         cachedTransitions[stateHash] = loadTransitionFromLibrary()

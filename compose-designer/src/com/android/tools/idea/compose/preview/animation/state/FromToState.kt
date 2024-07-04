@@ -16,40 +16,47 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
-import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.state.FromToState
 import com.android.tools.idea.preview.animation.state.SwapAction
 import com.android.tools.idea.preview.animation.state.ToolbarLabel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
- * [ComposeAnimationState] to control comboBoxes for animations like updateTransition.
+ * [AnimationState] to control comboBoxes for animations like updateTransition.
  *
- * @param tracker The [AnimationTracker] for tracking animation usage.
- * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing
- *   coroutine operations within the state.
+ * @param tracker The [ComposeAnimationTracker] for tracking animation usage.
  */
-class FromToState(tracker: ComposeAnimationTracker, scope: CoroutineScope) : ComposeAnimationState {
+open class FromToStateComboBox<T>(
+  tracker: ComposeAnimationTracker,
+  states: Set<T>,
+  initialState: T,
+) : FromToState<T> {
+  final override val state =
+    MutableStateFlow(initialState to (states.firstOrNull { initialState != it } ?: initialState))
 
-  private val fromState = EnumStateAction()
-  private val toState = EnumStateAction()
-
-  init {
-    scope.launch { fromState.currentState.collect { tracker.changeStartState() } }
-    scope.launch { fromState.currentState.collect { tracker.changeEndState() } }
-  }
-
-  override val stateHashCode: StateFlow<Int> =
-    combine(fromState.currentState, toState.currentState) { from, to -> Pair(from, to).hashCode() }
-      .stateIn(
-        scope,
-        SharingStarted.Eagerly,
-        Pair(fromState.currentState.value, toState.currentState.value).hashCode(),
-      )
+  private val fromState =
+    EnumStateAction(
+      states,
+      {
+        state.update { (_, target) ->
+          tracker.changeStartState()
+          it to target
+        }
+      },
+      state.value.first,
+    )
+  private val toState =
+    EnumStateAction(
+      states,
+      {
+        state.update { (initial, _) ->
+          tracker.changeEndState()
+          initial to it
+        }
+      },
+      state.value.second,
+    )
 
   /**
    * Contains
@@ -61,31 +68,27 @@ class FromToState(tracker: ComposeAnimationTracker, scope: CoroutineScope) : Com
   override val changeStateActions =
     listOf(
       SwapAction(tracker) {
-        val start = fromState.currentState.value
-        fromState.currentState.value = toState.currentState.value
-        toState.currentState.value = start
+        val start = fromState.currentState
+        fromState.currentState = toState.currentState
+        toState.currentState = start
       },
       fromState,
       ToolbarLabel("to"),
       toState,
     )
+}
 
-  override fun updateStates(states: Set<Any>) {
-    fromState.states = states
-    toState.states = states
-    setStartState(states.firstOrNull())
-  }
+class BooleanFromToState(tracker: ComposeAnimationTracker, initialState: Boolean) :
+  FromToStateComboBox<Boolean>(tracker, setOf(true, false), initialState)
 
-  override fun getState(index: Int): Any? {
-    return when (index) {
-      0 -> fromState.currentState.value
-      1 -> toState.currentState.value
-      else -> null
+class EnumFromToState(
+  tracker: ComposeAnimationTracker,
+  states: Set<Enum<*>>,
+  initialState: Enum<*>,
+) : FromToStateComboBox<Enum<*>>(tracker, states, initialState) {
+  init {
+    if (!states.contains(initialState)) {
+      throw IllegalArgumentException("Initial state $initialState is not present in $states")
     }
-  }
-
-  override fun setStartState(state: Any?) {
-    fromState.currentState.value = state
-    toState.currentState.value = toState.states.firstOrNull { it != state } ?: state
   }
 }

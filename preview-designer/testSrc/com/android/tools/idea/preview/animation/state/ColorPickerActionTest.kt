@@ -25,25 +25,32 @@ import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
 import java.awt.Color
 import java.awt.Component
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 
 class ColorPickerActionTest {
   @get:Rule val projectRule = ApplicationRule()
 
   private lateinit var tracker: AnimationTracker
-  private lateinit var flow: MutableStateFlow<Color>
+  private var callbackInvoked = false
+  private var callbackValue: Color? = null
   private lateinit var action: ColorPickerAction
 
   @Before
   fun setUp() {
     tracker = mock<AnimationTracker>()
-    flow = MutableStateFlow(Color.RED)
-    action = ColorPickerAction(tracker, flow)
+    callbackInvoked = false
+    callbackValue = null
+
+    // Initialize the action with the callback
+    action =
+      ColorPickerAction(tracker, Color.RED) { color ->
+        callbackInvoked = true
+        callbackValue = color
+      }
   }
 
   @Test
@@ -57,20 +64,28 @@ class ColorPickerActionTest {
   }
 
   @Test
-  fun `test swapWith swaps colors between actions`() {
-    val otherFlow = MutableStateFlow(Color.BLUE)
-    val otherAction = ColorPickerAction(tracker, otherFlow)
+  fun `test swapWith swaps colors and invokes callbacks`() {
+    var otherCallbackInvoked = false
+    var otherCallbackValue: Color? = null
+    val otherAction =
+      ColorPickerAction(tracker, Color.BLUE) { color ->
+        otherCallbackInvoked = true
+        otherCallbackValue = color
+      }
 
     action.swapWith(otherAction)
 
-    assertEquals(flow.value, Color.BLUE)
-    assertEquals(otherFlow.value, Color.RED)
+    // Verify colors were swapped and callbacks were called
+    assertEquals(Color.BLUE, action.currentValue)
+    assertEquals(Color.RED, otherAction.currentValue)
+    assertTrue(callbackInvoked)
+    assertTrue(otherCallbackInvoked)
+    assertEquals(Color.BLUE, callbackValue)
+    assertEquals(Color.RED, otherCallbackValue)
   }
 
   @Test
-  fun `test on color picked callback should update flow and notify tracker`() {
-    var capturedCallback: ((Color) -> Unit)? = null
-
+  fun `test actionPerformed calls callback`() {
     val colorPicker =
       object : ColorPicker {
         override fun show(
@@ -78,23 +93,21 @@ class ColorPickerActionTest {
           restoreFocusComponent: Component?,
           onColorPicked: (Color) -> Unit,
         ) {
-          capturedCallback = onColorPicked
+          onColorPicked(Color.GREEN) // Simulate picking a color
         }
       }
 
-    val action = ColorPickerAction(tracker, flow, colorPicker)
+    // Create action with the mock ColorPicker
+    val action =
+      ColorPickerAction(tracker, Color.RED, colorPicker) { color ->
+        callbackInvoked = true
+        callbackValue = color
+      }
+
     action.actionPerformed(createTestEvent())
 
-    // Verify initial flow value
-    assertEquals(Color.RED, flow.value)
-
-    // Simulate picking a new color
-    capturedCallback?.invoke(Color.GREEN) // Invoke the captured lambda
-
-    // Verify flow value has been updated
-    assertEquals(Color.GREEN, flow.value)
-
-    // Verify that the color picker was opened and the flow value was updated
-    verify(tracker).openPicker()
+    // Verify callback was invoked
+    assertTrue(callbackInvoked)
+    assertEquals(Color.GREEN, callbackValue)
   }
 }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.state.AnimationState
 import com.android.tools.idea.preview.animation.state.SwapAction
-import com.intellij.platform.util.coroutines.flow.mapStateIn
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * [ComposeAnimationState] to control animations like AnimatedVisibility.
@@ -28,34 +28,26 @@ import kotlinx.coroutines.flow.StateFlow
  * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing
  *   coroutine operations within the state.
  */
-class SingleState(private val tracker: AnimationTracker, scope: CoroutineScope) :
-  ComposeAnimationState {
+class SingleState<T>(private val tracker: AnimationTracker, val states: Set<T>, initialState: T) :
+  AnimationState<T> {
 
-  private val enumState = EnumStateAction()
+  override val state = MutableStateFlow(initialState)
 
-  override val stateHashCode: StateFlow<Int> =
-    enumState.currentState.mapStateIn(scope) { it?.hashCode() ?: 0 }
+  private val enumState = EnumStateAction(states, { state.value = it }, initialState)
+
+  fun setState(state: T) {
+    enumState.currentState = state
+  }
 
   /** Contains [SwapAction] and [EnumStateAction] for Enter/Exit state. */
   override val changeStateActions =
     listOf(
       SwapAction(tracker) {
         val nextState =
-          enumState.states.firstOrNull { state -> state != enumState.currentState.value }
+          enumState.states.firstOrNull { state -> state != enumState.currentState }
             ?: return@SwapAction
-        enumState.currentState.value = nextState
+        enumState.currentState = nextState
       },
       enumState,
     )
-
-  override fun updateStates(states: Set<Any>) {
-    enumState.states = states.toTypedArray().toSet()
-    setStartState(states.firstOrNull())
-  }
-
-  override fun getState(index: Int): Any? = enumState.currentState.value
-
-  override fun setStartState(state: Any?) {
-    enumState.currentState.value = state
-  }
 }
