@@ -195,7 +195,9 @@ void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
 }
 
 void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
-  if (display_id == display_id_) {
+  if (display_id == display_id_ &&
+      // Ignore primary display changes on non-foldable phones. See b/348562991.
+      (display_id != PRIMARY_DISPLAY_ID || !DeviceStateManager::GetSupportedDeviceStates(Jvm::GetJni()).empty())) {
     Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
     StopCodec();
   }
@@ -204,7 +206,10 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
-  DisplayManager::AddDisplayListener(jni, this);
+  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::Agent::device_manufacturer() != XIAOMI) {
+    // Some Xiaomi phones, e.g. HONOR 90, produce bogus display change events. See b/348562991.
+    DisplayManager::AddDisplayListener(jni, this);
+  }
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
