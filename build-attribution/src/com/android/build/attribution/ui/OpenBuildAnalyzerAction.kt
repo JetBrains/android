@@ -17,6 +17,7 @@
 package com.android.build.attribution.ui
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,7 +31,7 @@ class OpenBuildAnalyzerAction : AnAction() {
 
   override fun update(e: AnActionEvent) {
     val project = e.project
-    if (project == null || !AndroidUtils.hasAndroidFacets(project)) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       e.presentation.isEnabledAndVisible = false
     }
     else {
