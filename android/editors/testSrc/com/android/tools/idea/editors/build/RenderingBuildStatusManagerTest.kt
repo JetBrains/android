@@ -154,7 +154,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
           buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()
@@ -182,7 +182,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
           buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
 
       statusManager.awaitNeedsBuild()
@@ -210,7 +210,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
           buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()

@@ -46,7 +46,7 @@ class RenderingBuildStatusManagerResourcesTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     // Simulate a successful build
-    (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+    (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
       buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
@@ -58,14 +58,14 @@ class RenderingBuildStatusManagerResourcesTest {
     }
 
     // Simulate a resources change
-    (statusManager as ProjectBuildStatusManagerForTests).simulateResourcesChange()
+    (statusManager as RenderingBuildStatusManagerForTests).simulateResourcesChange()
     statusManager.statusFlow.awaitStatus(
       "OutOfDate expected after a resource change",
       5.seconds
     ) { it is RenderingBuildStatus.OutOfDate }
 
     // A build should restore the ready state
-    (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
+    (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
       buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
