@@ -64,12 +64,15 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
+import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.Toolkit
+import java.awt.event.AWTEventListener
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -160,6 +163,9 @@ abstract class PreviewSurface<T : SceneManager>(
   val preferredFocusedComponent: JComponent
     get() = interactionPane
 
+  // TODO make private
+  abstract val onHoverListener: AWTEventListener
+
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
    * surface.
@@ -218,7 +224,40 @@ abstract class PreviewSurface<T : SceneManager>(
     }
   }
 
-  protected abstract val isActive: Boolean
+  var isActive: Boolean = false
+    private set
+
+  /** The editor has been activated */
+  open fun activate() {
+    if (Disposer.isDisposed(this)) {
+      // Prevent activating a disposed surface.
+      return
+    }
+
+    if (!isActive) {
+      for (manager in sceneManagers) {
+        manager.activate(this)
+      }
+      if (zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+        Toolkit.getDefaultToolkit().addAWTEventListener(onHoverListener, AWTEvent.MOUSE_EVENT_MASK)
+      }
+    }
+    isActive = true
+    issueModel.activate()
+  }
+
+  open fun deactivate() {
+    if (isActive) {
+      Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
+      for (manager in sceneManagers) {
+        manager.deactivate(this)
+      }
+    }
+    isActive = false
+    issueModel.deactivate()
+
+    guiInputHandler.cancelInteraction()
+  }
 
   init {
     isOpaque = true

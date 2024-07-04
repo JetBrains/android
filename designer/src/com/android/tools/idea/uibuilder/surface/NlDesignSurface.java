@@ -86,6 +86,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.AWTEventListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
