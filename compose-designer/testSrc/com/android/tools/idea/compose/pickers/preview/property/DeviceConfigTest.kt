@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.tools.preview.config.Cutout
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.MutableDeviceConfig
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.toMutableConfig
@@ -65,7 +67,7 @@ internal class DeviceConfigTest {
   fun parseTestDeviceSpecLanguage() {
     var config =
       parseDeviceSpec(
-        "spec:width=1080.1px,height=1920.2px,dpi=320,isRound=true,chinSize=50.3px,orientation=landscape"
+        "spec:width=1080.1px,height=1920.2px,dpi=320,isRound=true,chinSize=50.3px,orientation=landscape,cutout=corner,navigation=buttons"
       )
     assertNotNull(config)
     assertEquals(1080.1f, config.width)
@@ -75,6 +77,8 @@ internal class DeviceConfigTest {
     assertEquals(50.3f, config.chinSize)
     assertEquals(DimUnit.px, config.dimUnit)
     assertEquals(Orientation.landscape, config.orientation)
+    assertEquals(Cutout.corner, config.cutout)
+    assertEquals(Navigation.buttons, config.navigation)
 
     config = parseDeviceSpec("spec:width=200.4dp,height=300.5dp,chinSize=10.6dp")
     assertNotNull(config)
@@ -92,6 +96,8 @@ internal class DeviceConfigTest {
     assertFalse(config.isRound)
     assertEquals(0f, config.chinSize)
     assertEquals(Orientation.landscape, config.orientation) // orientation implied
+    assertEquals(Cutout.none, config.cutout)
+    assertEquals(Navigation.gesture, config.navigation)
     config = parseDeviceSpec("spec:width=100dp,height=200dp")
     assertNotNull(config)
     assertEquals(Orientation.portrait, config.orientation) // orientation implied
@@ -153,15 +159,17 @@ internal class DeviceConfigTest {
         dpi = 300,
         shape = Shape.Round,
         chinSize = 40f,
+        cutout = Cutout.double,
+        navigation = Navigation.buttons,
       )
     assertEquals(
-      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp",
+      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,cutout=double,navigation=buttons",
       config.deviceSpec(),
     )
 
     // Orientation change is reflected as a parameter with the DeviceSpec Language
     assertEquals(
-      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,orientation=landscape",
+      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,orientation=landscape,cutout=double,navigation=buttons",
       config.toMutableConfig().apply { orientation = Orientation.landscape }.deviceSpec(),
     )
 
@@ -181,8 +189,13 @@ internal class DeviceConfigTest {
         dpi = 420,
         shape = Shape.Round,
         chinSize = 40f,
+        cutout = Cutout.double,
+        navigation = Navigation.buttons,
       )
-    assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp", config.deviceSpec())
+    assertEquals(
+      "spec:width=100dp,height=200dp,isRound=true,chinSize=40dp,cutout=double,navigation=buttons",
+      config.deviceSpec(),
+    )
 
     // Default chinSize not shown
     config =
@@ -193,8 +206,13 @@ internal class DeviceConfigTest {
         dpi = 420,
         shape = Shape.Round,
         chinSize = 0f,
+        cutout = Cutout.double,
+        navigation = Navigation.buttons,
       )
-    assertEquals("spec:width=100dp,height=200dp,isRound=true", config.deviceSpec())
+    assertEquals(
+      "spec:width=100dp,height=200dp,isRound=true,cutout=double,navigation=buttons",
+      config.deviceSpec(),
+    )
 
     // Default isRound not shown, chinSize is dependent on device being round
     config =
@@ -205,6 +223,39 @@ internal class DeviceConfigTest {
         dpi = 420,
         shape = Shape.Normal,
         chinSize = 40f,
+        cutout = Cutout.double,
+        navigation = Navigation.buttons,
+      )
+    assertEquals(
+      "spec:width=100dp,height=200dp,cutout=double,navigation=buttons",
+      config.deviceSpec(),
+    )
+
+    // Default cutout not shown
+    config =
+      DeviceConfig(
+        width = 100f,
+        height = 200f,
+        dimUnit = DimUnit.dp,
+        dpi = 420,
+        shape = Shape.Normal,
+        chinSize = 40f,
+        cutout = Cutout.none,
+        navigation = Navigation.buttons,
+      )
+    assertEquals("spec:width=100dp,height=200dp,navigation=buttons", config.deviceSpec())
+
+    // Default navigation not shown
+    config =
+      DeviceConfig(
+        width = 100f,
+        height = 200f,
+        dimUnit = DimUnit.dp,
+        dpi = 420,
+        shape = Shape.Normal,
+        chinSize = 40f,
+        cutout = Cutout.none,
+        navigation = Navigation.gesture,
       )
     assertEquals("spec:width=100dp,height=200dp", config.deviceSpec())
 
