@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.annotations.concurrency.UiThread;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleBuildListener {
+  @UiThread
   void buildStarted(@NotNull BuildContext context);
 
+  @UiThread
   void buildFinished(@NotNull BuildStatus status, @NotNull BuildContext context);
 
   abstract class Adapter implements GradleBuildListener {
     @Override
+    @UiThread
     public void buildStarted(@NotNull BuildContext context) {
     }
 
     @Override
+    @UiThread
     public void buildFinished(@NotNull BuildStatus status, @NotNull BuildContext context) {
     }
   }
