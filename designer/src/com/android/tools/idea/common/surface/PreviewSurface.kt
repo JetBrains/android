@@ -148,6 +148,12 @@ abstract class PreviewSurface<T : SceneManager>(
 
   abstract val viewport: DesignSurfaceViewport
 
+  /**
+   * Component that wraps the displayed content. If this is a scrollable surface, that will be the
+   * Scroll Pane. Otherwise, it will be the ScreenViewPanel container.
+   */
+  protected abstract val contentContainerPane: JComponent
+
   /** Returns the size of the surface scroll viewport. */
   @get:SwingCoordinate
   val extentSize: Dimension
@@ -189,10 +195,27 @@ abstract class PreviewSurface<T : SceneManager>(
    * Asks the [ScreenView]s contained in this [DesignSurface] for a re-layouts. The re-layout will
    * not happen immediately in this call.
    */
-  @UiThread abstract fun revalidateScrollArea()
+  @UiThread
+  fun revalidateScrollArea() {
+    // Mark the scene view panel as invalid to force a revalidation when the scroll pane is
+    // revalidated.
+    sceneViewPanel.invalidate()
+    // Schedule a layout for later.
+    contentContainerPane.revalidate()
+    // Also schedule a repaint.
+    sceneViewPanel.repaint()
+  }
 
   /** Re-layouts the ScreenViews contained in this design surface immediately. */
-  @UiThread abstract fun validateScrollArea()
+  @UiThread
+  fun validateScrollArea() {
+    // Mark both the sceneview panel and the scroll pane as invalid to force a relayout.
+    sceneViewPanel.invalidate()
+    contentContainerPane.invalidate()
+    // Validate the scroll pane immediately and layout components.
+    contentContainerPane.validate()
+    sceneViewPanel.repaint()
+  }
 
   /** Converts a given point that is in view coordinates to viewport coordinates. */
   @TestOnly

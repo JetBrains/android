@@ -59,7 +59,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -84,11 +83,9 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myScrollPane;
   }
 
-  /**
-   * Component that wraps the displayed content. If this is a scrollable surface, that will be the Scroll Pane.
-   * Otherwise, it will be the ScreenViewPanel container.
-   */
   @NotNull private final JComponent myContentContainerPane;
+  protected @NotNull JComponent getContentContainerPane() { return myContentContainerPane; }
+
   @NotNull protected final DesignSurfaceViewport myViewport;
   @NotNull protected final SceneViewPanel mySceneViewPanel;
 
@@ -325,28 +322,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
         }
       }, EdtExecutorService.getInstance())
       .thenRun(() -> {});
-  }
-
-  @UiThread
-  @Override
-  public void validateScrollArea() {
-    // Mark both the sceneview panel and the scroll pane as invalid to force a relayout.
-    mySceneViewPanel.invalidate();
-    myContentContainerPane.invalidate();
-    // Validate the scroll pane immediately and layout components.
-    myContentContainerPane.validate();
-    mySceneViewPanel.repaint();
-  }
-
-  @UiThread
-  @Override
-  public void revalidateScrollArea() {
-    // Mark the scene view panel as invalid to force a revalidation when the scroll pane is revalidated.
-    mySceneViewPanel.invalidate();
-    // Schedule a layout for later.
-    myContentContainerPane.revalidate();
-    // Also schedule a repaint.
-    mySceneViewPanel.repaint();
   }
 
   @NotNull
