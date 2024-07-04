@@ -194,12 +194,12 @@ public final class ConfigureAvdOptionsStepTest {
     var ini = Paths.get("ini");
     var folder = Paths.get("folder");
 
-    myQAvdInfo = new AvdInfo("name", ini, folder, QImage, myPropertiesMap, null);
-    myMarshmallowAvdInfo = new AvdInfo("name", ini, folder, marshmallowImage, myPropertiesMap, null);
-    myPreviewAvdInfo = new AvdInfo("name", ini, folder, NPreviewImage, myPropertiesMap, null);
-    myZuluAvdInfo = new AvdInfo("name", ini, folder, ZuluImage, myPropertiesMap, null);
-    myExtensionsAvdInfo = new AvdInfo("name", ini, folder, extensionsImage, myPropertiesMap, null);
-    myNoSystemImageAvdInfo = new AvdInfo("No Sysimg", ini, folder, null, myPropertiesMap, null, AvdInfo.AvdStatus.ERROR_IMAGE_MISSING);
+    myQAvdInfo = new AvdInfo(ini, folder, QImage, myPropertiesMap, null);
+    myMarshmallowAvdInfo = new AvdInfo(ini, folder, marshmallowImage, myPropertiesMap, null);
+    myPreviewAvdInfo = new AvdInfo(ini, folder, NPreviewImage, myPropertiesMap, null);
+    myZuluAvdInfo = new AvdInfo(ini, folder, ZuluImage, myPropertiesMap, null);
+    myExtensionsAvdInfo = new AvdInfo(ini, folder, extensionsImage, myPropertiesMap, null);
+    myNoSystemImageAvdInfo = new AvdInfo(ini, folder, null, myPropertiesMap, null, AvdInfo.AvdStatus.ERROR_IMAGE_MISSING);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -427,7 +427,7 @@ public final class ConfigureAvdOptionsStepTest {
   public void populateSnapshotList() throws Exception {
     Path snapAvdDir = InMemoryFileSystems.createInMemoryFileSystemAndFolder("proto_avd");
     AvdInfo snapshotAvdInfo =
-      new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap, null);
+      new AvdInfo(Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap, null);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
     var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());

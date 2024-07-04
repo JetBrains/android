@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts.BatchContext
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.PsiManager
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
@@ -57,14 +54,8 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
-    val element = (file as PsiJavaFile).classes[0].methods[0].nameIdentifier!!
-
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     assertEquals(
       // language=Java
@@ -86,7 +77,6 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
     )
 
     // Try importing again and make sure we don't double-import
-    val vFile = file.virtualFile
     val afterFirst = file.text
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(
@@ -98,13 +88,9 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
           val end = start + "newName".length
           document.replaceString(start, end, "oldName")
           manager.commitAllDocuments()
-
-          val sameFile = PsiManager.getInstance(project).findFile(vFile)!!
-          assertTrue(fix.isApplicable(sameFile, sameFile, context.type))
-          fix.apply(sameFile, sameFile, context)
         }
       )
-
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
     assertEquals(afterFirst, file.text)
   }
 
@@ -175,11 +161,8 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
-    assertTrue(fix.isApplicable(file, file, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(file, file, context) })
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     assertEquals(
       // language=kt
@@ -216,12 +199,9 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
           val end = start + "newName".length
           document.replaceString(start, end, "oldName")
           manager.commitAllDocuments()
-
-          assertTrue(fix.isApplicable(file, file, context.type))
-          fix.apply(file, file, context)
         }
       )
-
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
     assertEquals(afterFirst, file.text)
   }
 
@@ -256,15 +236,12 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+
     val element = file.findElementAt(file.text.indexOf("println()"))?.parent?.parent!!
     assertEquals("println()", element.text)
 
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -314,15 +291,12 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+
     val element = file.findElementAt(file.text.indexOf("new String"))?.parent!!
     assertEquals("new String()", element.text)
 
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -371,15 +345,12 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+
     val element = file.findElementAt(file.text.indexOf("String"))?.parent!!
     assertEquals("String", element.text)
 
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -442,15 +413,12 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)
 
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     assertEquals(
       // language=Java
@@ -512,15 +480,12 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
-    val context = BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file) as ModCommandLintQuickFix
+
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)
 
-    assertTrue(fix.isApplicable(element, element, context.type))
-
-    WriteCommandAction.writeCommandAction(myFixture.project)
-      .run(ThrowableRunnable { fix.apply(element, element, context) })
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     assertEquals(
       // language=KT

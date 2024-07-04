@@ -34,11 +34,7 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    NlModel model = mySurface.getModel();
-    if (model != null) {
-      group.add(new DensityMenuAction(model));
-    }
-    // TODO(b/136258816): Update to support multi-model
+    group.add(new DensityMenuAction());
     group.add(new ShapeMenuAction());
     group.add(new ThemeMenuAction());
     group.add(new SystemUiModeAction());

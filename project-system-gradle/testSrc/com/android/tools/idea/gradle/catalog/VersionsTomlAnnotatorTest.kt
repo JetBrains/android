@@ -239,6 +239,35 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
+  fun checkNonDefaultTomlNaming_MixedNotation() {
+    val file = fixture.addFileToProject("gradle/dep.versions.toml","""
+      [plugins]
+      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationWithBrokenToml() {
+    val file = fixture.addFileToProject("gradle/lib.versions.toml","""
+      [plugins]
+      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      [${"]" highlightedAs HighlightSeverity.ERROR}
+      ${"=" highlightedAs HighlightSeverity.ERROR}
+      "sfdfsdfsf<EOLError descr="'.' or '=' expected, got '\"'"></EOLError>
+      "<EOLError descr="'.' or '=' expected"></EOLError>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+
+  @Test
   fun checkDuplicationNames_MixedNotation2() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
@@ -305,6 +334,27 @@ class VersionsTomlAnnotatorTest {
 
       [libraries]
       some_alias = "some:group:1.0"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDuplicationNames_InsideAllTables() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [versions]
+      ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
+      ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
+      [plugins]
+      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      [libraries]
+      ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
+      ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
+      [bundles]
+      ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
+      ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -441,6 +491,20 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
+  fun checkAliasDuplicationSpecialCase3() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      alias.id = "id"
+      alias.version = "1.0"
+      ${"alias_A" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"alias_a" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkDoubleUnderscore() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
@@ -473,6 +537,30 @@ class VersionsTomlAnnotatorTest {
       [plugins]
       ${"alias_" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
       ${"alias-" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDigitAfterDelimiter() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"first_4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"second-4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDigitAfterDelimiterForVersions() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [versions]
+      ${"first_4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
+      ${"second-4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 

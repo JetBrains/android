@@ -28,6 +28,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.util.IconLoader
 import icons.StudioIcons
+import org.junit.Ignore
 import org.junit.Test
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -71,6 +72,7 @@ class DefaultNameTableCellRendererTest {
     HelpTooltip.dispose(jTable)
   }
 
+  @Ignore // AS Koala 2024.1.2 Canary 7 Merge: https://youtrack.jetbrains.com/issue/IDEA-355833
   @Test
   fun testNamespaceIcon() {
     IconLoader.activate()

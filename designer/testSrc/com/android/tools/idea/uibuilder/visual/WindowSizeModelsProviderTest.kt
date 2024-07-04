@@ -39,7 +39,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = WindowSizeModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     assertNotEmpty(nlModels)
 
@@ -59,7 +59,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/drawable/test.xml", DRAWABLE_FILE_CONTENT)
 
     val modelsProvider = WindowSizeModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertEmpty(nlModels)
   }
 
@@ -73,7 +73,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = WindowSizeModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, false)

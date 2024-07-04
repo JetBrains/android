@@ -67,7 +67,7 @@ class NavComponentTreeTest : NavTestCase() {
 
   fun testNodes() {
     val root = (treeModel.treeRoot as? NlComponent)!!
-    assertEquals(model.find("root")!!, root)
+    assertEquals(model.treeReader.find("root")!!, root)
 
     testChildren("root", "fragment1", "fragment2", "subnav")
     testChildren("fragment1", "action1")
@@ -76,9 +76,9 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   private fun testChildren(id: String, vararg ids: String) {
-    val component = model.find(id)!!
+    val component = model.treeReader.find(id)!!
     val children = TreePanel.NlComponentNodeType().childrenOf(component)
-    val expected = ids.map { model.find(it)!! }
+    val expected = ids.map { model.treeReader.find(it)!! }
     assertThat(children).containsExactlyElementsIn(expected).inOrder()
   }
 
@@ -94,12 +94,12 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   private fun testSelection(expectedRoot: String, vararg id: String) {
-    val component = id.map { model.find(it)!! }
+    val component = id.map { model.treeReader.find(it)!! }
     surface.selectionModel.setSelection(component.toList())
 
     assertThat(component).containsExactlyElementsIn(selectionModel.currentSelection)
 
-    val expectedNavigation = model.find(expectedRoot)!!
+    val expectedNavigation = model.treeReader.find(expectedRoot)!!
     assertEquals(surface.currentNavigation, expectedNavigation)
   }
 
@@ -113,7 +113,7 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   private fun testText(model: NlModel, id: String) {
-    val component = model.find(id)!!
+    val component = model.treeReader.find(id)!!
     val nodeType = TreePanel.NlComponentNodeType()
     assertEquals(id, nodeType.idOf(component))
     assertNull(nodeType.textValueOf(component))
@@ -132,11 +132,11 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   private fun testScrolling(selection: Array<String>, expected: Array<String>) {
-    val components = selection.map { model.find(it)!! }
+    val components = selection.map { model.treeReader.find(it)!! }
     val spy = spy(surface)
     panel.setToolContext(spy)
     spy.selectionModel.setSelection(components)
     panel.updateSelection()
-    verify(spy).scrollToCenter(expected.map { model.find(it)!! })
+    verify(spy).scrollToCenter(expected.map { model.treeReader.find(it)!! })
   }
 }

@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import java.io.File
 import java.io.FileOutputStream
@@ -132,12 +133,14 @@ interface IdeProfilerServices {
   fun openYesNoDialog(message: String, title: String, yesCallback: Runnable, noCallback: Runnable)
 
   /**
-   * Displays a dialog describing an error that just occurred to the user.
+   * Displays an ok/cancel dialog, warning the user and asking them if they want to proceed.
    *
    * @param message the message content
    * @param title the title
+   * @param doNotShowSettingSaver callback to save users preference on showing the dialog again
+   * @return true if the user selects OK, false otherwise
    */
-  fun openErrorDialog(message: String, title: String)
+  fun openOkCancelDialog(message: String, title: String, doNotShowSettingSaver: Consumer<Boolean>): Boolean
 
   /**
    * Opens a dialog asking the user to select items from the listbox.
@@ -188,9 +191,9 @@ interface IdeProfilerServices {
   fun enableStartupTask(taskType: ProfilerTaskType, recordingType: TaskHomeTabModel.TaskRecordingType)
 
   /**
-   * Disables startup profiling.
+   * Disables startup profiling and clears the startup profiling configuration.
    */
-  fun disableStartupTasks()
+  fun clearStartupTaskConfigs()
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
@@ -223,5 +226,5 @@ interface IdeProfilerServices {
   /**
    * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
    */
-  fun buildAndLaunchAction(profileableMode: Boolean)
+  fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
 }

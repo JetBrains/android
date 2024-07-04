@@ -18,13 +18,10 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TOOLS_URI
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts.BatchContext
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts.EditorContext
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.Incident
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Location
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
@@ -119,15 +116,10 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     assertTrue(offset != -1)
     val startElement = file.findElementAt(offset)!!
     assertNotNull(startElement)
-    // noinspection UnnecessaryVariable
-    val endElement = startElement
-    val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0] as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
-    assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
-    WriteCommandAction.runWriteCommandAction(startElement.project) {
-      fix.apply(startElement, endElement, context)
-    }
+
+    val fix = fixes[0] as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
     assertEquals(
       """
       package test.pkg
@@ -192,15 +184,10 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     assertTrue(offset != -1)
     val startElement = file.findElementAt(offset)!!
     assertNotNull(startElement)
-    // noinspection UnnecessaryVariable
-    val endElement = startElement
-    val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0] as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
-    assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
-    WriteCommandAction.runWriteCommandAction(startElement.project) {
-      fix.apply(startElement, endElement, context)
-    }
+
+    val fix = fixes[0] as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
     assertEquals(
       // language=xml
       """
@@ -273,15 +260,10 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     assertTrue(offset != -1)
     val startElement = file.findElementAt(offset)!!
     assertNotNull(startElement)
-    // noinspection UnnecessaryVariable
-    val endElement = startElement
-    val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0] as DefaultLintQuickFix
-    assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
-    assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
-    WriteCommandAction.runWriteCommandAction(startElement.project) {
-      fix.apply(startElement, endElement, context)
-    }
+
+    val fix = fixes[0] as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
     assertEquals(
       // language=Kt
       """

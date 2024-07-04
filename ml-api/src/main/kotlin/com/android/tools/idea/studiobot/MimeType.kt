@@ -105,7 +105,29 @@ value class MimeType(val mimeType: String) {
     val HEIF = MimeType("image/heif")
     val WEBP = MimeType("image/webp")
     val MARKDOWN = MimeType("text/markdown")
-
+    val CSHARP = MimeType("text/x-csharp")
+    val BATCH = MimeType("application/x-batch")
+    val CLOJURE = MimeType("text/x-clojure")
+    val COFFEESCRIPT = MimeType("text/coffeescript")
+    val CSS = MimeType("text/css")
+    val FSHARP = MimeType("text/x-fsharp")
+    val HANDLEBARS = MimeType("text/x-handlebars-template")
+    val HAML = MimeType("text/x-haml")
+    val HTML = MimeType("text/html")
+    val INI = MimeType("text/x-ini")
+    val TEX = MimeType("application/x-tex")
+    val LESS = MimeType("text/less")
+    val MAKEFILE = MimeType("text/x-makefile")
+    val POWERSHELL = MimeType("application/x-powershell")
+    val JADE = MimeType("text/jade")
+    val SLIM = MimeType("text/x-slim")
+    val SCSS = MimeType("text/scss")
+    val SASS = MimeType("text/sass")
+    val STYLUS = MimeType("text/stylus")
+    val SWIFT = MimeType("text/x-swift")
+    val TSX = MimeType("text/tsx")
+    val XSL = MimeType("application/xml")
+    val TERRAFORM = MimeType("text/x-ruby")
     /**
      * Attribute used to indicate the role this source file plays; for example, an XML file may be a
      * "manifest" or a "resource".
@@ -125,7 +147,7 @@ value class MimeType(val mimeType: String) {
      * mime type
      */
     val RESOURCE = MimeType("$XML; $ATTR_ROLE=resource")
-    val MANIFEST = MimeType("$XML;$ATTR_ROLE=manifest; $ATTR_ROOT_TAG=manifest")
+    val MANIFEST = MimeType("$XML; $ATTR_ROLE=manifest; $ATTR_ROOT_TAG=manifest")
     val GRADLE = MimeType("$GROOVY; $ATTR_ROLE=gradle")
     val GRADLE_KTS = MimeType("$KOTLIN; $ATTR_ROLE=gradle")
     val VERSION_CATALOG = MimeType("$TOML; $ATTR_ROLE=version-catalog")

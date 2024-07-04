@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property
 
+import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +44,13 @@ internal class LazyCachedValue<T>(
   private val cachedValueLock = Mutex()
   @GuardedBy("cachedValueLock") private var cachedValue: T = beforeLoadValue
   private val loading = Mutex()
+
+  @TestOnly
+  fun setValue(value: T) {
+    if (!loaded.getAndSet(true)) {
+      cachedValue = value
+    }
+  }
 
   private suspend fun loadAndCacheValue(): T =
     loading.withLock {

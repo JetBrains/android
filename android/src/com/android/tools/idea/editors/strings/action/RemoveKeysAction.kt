@@ -15,30 +15,15 @@
  */
 package com.android.tools.idea.editors.strings.action
 
-import com.android.tools.idea.editors.strings.table.StringResourceTable
-import com.android.tools.idea.res.StringResourceWriter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.annotations.TestOnly
 
 /** Action to remove string resource keys. */
-class RemoveKeysAction
-@TestOnly
-internal constructor(private val stringResourceWriter: StringResourceWriter) :
-    PanelAction(text = "Remove Keys", description = null, icon = AllIcons.General.Remove) {
-
-  constructor() : this(StringResourceWriter.INSTANCE)
+class RemoveKeysAction : PanelAction(text = "Remove Keys", description = null, icon = AllIcons.General.Remove) {
 
   override fun doUpdate(event: AnActionEvent) = event.panel.table.hasSelectedCell()
 
   override fun actionPerformed(event: AnActionEvent) {
-    val table: StringResourceTable = event.panel.table
-    val model = table.model
-    val repository = model.repository
-    val index = table.selectedModelRowIndex
-    if (index >= 0) {
-      val items = repository.getItems(model.getKey(index))
-      stringResourceWriter.safeDelete(event.requiredProject, items, event.panel::reloadData)
-    }
+    event.panel.deleteSelectedKeys();
   }
 }

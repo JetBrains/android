@@ -27,13 +27,13 @@ import com.intellij.testFramework.PlatformTestUtil
 class SceneComponentOrderTest : SceneTest() {
 
   fun testInsertComponentToHead() {
-    val constraintLayout = myModel.find("root")!!
-    val textView = myModel.find("textView")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
+    val textView = myModel.treeReader.find("textView")!!
 
     val editTextTag =
       XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
-    myModel.createAndSelectComponents(
+    val editText = myModel.treeWriter.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.treeWriter.createAndSelectComponents(
       listOf(editText),
       constraintLayout,
       textView,
@@ -50,13 +50,18 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   fun testInsertComponentToMiddle() {
-    val constraintLayout = myModel.find("root")!!
-    val button = myModel.find("button")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
+    val button = myModel.treeReader.find("button")!!
 
     val editTextTag =
       XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
-    myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE) {
+    val editText = myModel.treeWriter.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.treeWriter.addComponents(
+      listOf(editText),
+      constraintLayout,
+      button,
+      InsertType.CREATE,
+    ) {
       myModel.surface.selectionModel.setSelection(listOf(editText))
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -70,12 +75,12 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   fun testAppendComponent() {
-    val constraintLayout = myModel.find("root")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
 
     val editTextTag =
       XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
-    myModel.createAndSelectComponents(
+    val editText = myModel.treeWriter.createComponent(editTextTag, null, null, InsertType.CREATE)!!
+    myModel.treeWriter.createAndSelectComponents(
       listOf(editText),
       constraintLayout,
       null,
@@ -92,11 +97,17 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   fun testMoveItemDown() {
-    val constraintLayout = myModel.find("root")!!
-    val textView = myModel.find("textView")!!
-    val button = myModel.find("button")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
+    val textView = myModel.treeReader.find("textView")!!
+    val button = myModel.treeReader.find("button")!!
 
-    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE, null)
+    myModel.treeWriter.addComponents(
+      listOf(textView),
+      constraintLayout,
+      null,
+      InsertType.MOVE,
+      null,
+    )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -107,11 +118,17 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   fun testMoveItemUp() {
-    val constraintLayout = myModel.find("root")!!
-    val textView = myModel.find("textView")!!
-    val button = myModel.find("button")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
+    val textView = myModel.treeReader.find("textView")!!
+    val button = myModel.treeReader.find("button")!!
 
-    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE, null)
+    myModel.treeWriter.addComponents(
+      listOf(button),
+      constraintLayout,
+      textView,
+      InsertType.MOVE,
+      null,
+    )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -122,9 +139,9 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   fun testRemoveComponent() {
-    val constraintLayout = myModel.find("root")!!
-    val textView = myModel.find("textView")!!
-    val button = myModel.find("button")!!
+    val constraintLayout = myModel.treeReader.find("root")!!
+    val textView = myModel.treeReader.find("textView")!!
+    val button = myModel.treeReader.find("button")!!
 
     constraintLayout.removeChild(textView)
 

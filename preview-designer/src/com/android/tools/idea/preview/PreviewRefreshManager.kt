@@ -251,12 +251,9 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
               }
             currentRequest.onRefreshCompleted(result, it)
             currentRequest.refreshEventBuilder?.onRefreshCompleted(result)
-            if (
-              result == RefreshResult.USER_CANCELLED ||
-                result == PreviewRefreshEvent.RefreshResult.AUTOMATICALLY_CANCELLED
-            ) {
-              // Force stop any running and pending renders so that everything is ready
-              // for a new refresh that may start right away.
+            if (result != RefreshResult.SUCCESS) {
+              // Force stop any running and pending renders when a cancellation or failure happens
+              // so that everything is ready for a new refresh that may start right away.
               RenderService.getRenderAsyncActionExecutor().cancelActionsByTopic(listOf(topic), true)
             }
             // Log unexpected failures

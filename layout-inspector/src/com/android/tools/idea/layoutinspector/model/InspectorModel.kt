@@ -422,10 +422,7 @@ class InspectorModel(
 
   private fun decreaseHighlights() {
     ViewNode.writeAccess {
-      val max =
-        root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull {
-          it.recompositions.decreaseHighlights()
-        } ?: 0f
+      val max = root.flatten().maxOfOrNull { it.recompositions.decreaseHighlights() } ?: 0f
       if (max != 0f) {
         scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
       } else {

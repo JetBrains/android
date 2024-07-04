@@ -72,7 +72,7 @@ DONE.
       .trim()
 
   @Test
-  fun saveAndLoadSnapshot() {
+  fun saveAndLoadSnapshot() = runBlocking {
     val imageFile = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png")
     val legacyClient = legacyRule.client
 

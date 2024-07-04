@@ -385,14 +385,11 @@ class TestLayoutManager(private val surface: DesignSurface<*>) :
 }
 
 class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
-  override fun getPasteTarget(): NlComponent? = null
+  override val pasteTarget: NlComponent? = null
 
-  override fun canHandleChildren(
-    component: NlComponent,
-    pasted: MutableList<NlComponent>,
-  ): Boolean = false
+  override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean = false
 
-  override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
+  override val flavor: DataFlavor = ItemTransferable.DESIGNER_FLAVOR
 
   override fun canDeleteElement(dataContext: DataContext): Boolean = false
 

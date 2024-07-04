@@ -15,26 +15,35 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.google.common.annotations.VisibleForTesting
 
-class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(sessionsManager) {
-  override fun getCpuRecordingConfig(): ProfilingConfiguration =
-    PerfettoSystemTraceConfiguration(getTaskName(), isTraceboxEnabled)
-      .takeIf {
-        val selectedDevice = sessionsManager.studioProfilers.taskHomeTabModel.selectedDevice
-        selectedDevice != null && isDeviceSupported(selectedDevice.device, it)
-      }
-    ?: AtraceConfiguration(getTaskName())
+class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(
+  sessionsManager) {
+  override fun getCpuRecordingConfig(): ProfilingConfiguration? {
+    val selectedDevice = sessionsManager.studioProfilers.taskHomeTabModel.selectedDevice
+    // Attempt to return Perfetto configuration if the device supports it. If it fails, attempt to return the Atrace configuration if the
+    // device supports it. If the device does not support either of the configs, return null indicating the config could not be retrieved.
+    return PerfettoSystemTraceConfiguration(getTaskName(), isTraceboxEnabled).takeIf {
+      selectedDevice != null && isDeviceSupported(selectedDevice.device, it)
+    } ?: AtraceConfiguration(getTaskName()).takeIf { selectedDevice != null && isDeviceSupported(selectedDevice.device, it) }
+  }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
     artifact is CpuCaptureSessionArtifact
     && artifact.artifactProto.hasConfiguration()
     && (artifact.artifactProto.configuration.hasPerfettoOptions() || artifact.artifactProto.configuration.hasAtraceOptions())
+
+  override fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration?) =
+    super.isDeviceSupported(device, config) && device != null &&
+    (!device.isEmulator || config !is AtraceConfiguration || (device.featureLevel != 24 && device.featureLevel != 25) ||
+     !device.cpuAbi.contains("arm", ignoreCase = true))
 
   override fun getTaskName() = "System Trace"
 }

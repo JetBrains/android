@@ -35,7 +35,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       dialog.myUriField.text = "http://example.com/foo"
       assertNull(dialog.doValidate())
 
@@ -56,7 +56,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       dialog.myMimeTypeField.text = "*/*"
       assertNull(dialog.doValidate())
 
@@ -86,7 +86,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertNotNull(dialog.doValidate())
     }
   }
@@ -99,7 +99,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         }
       }
     }
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     AddDeeplinkDialog(fragment1.getChild(0), fragment1).runAndClose { dialog ->
       assertEquals("http://example.com", dialog.uri)
       assertTrue(dialog.autoVerify)
@@ -115,7 +115,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     AddDeeplinkDialog(null, fragment1).runAndClose { dialog ->
       assertEquals("", dialog.uri)
       assertFalse(dialog.autoVerify)
@@ -131,7 +131,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
       }
     }
 
-    val f1 = model.find("f1")!!
+    val f1 = model.treeReader.find("f1")!!
     AddDeeplinkDialog(null, f1).runAndClose { dialog ->
       dialog.myUriField.text = "http://example.com"
       dialog.myAutoVerify.isSelected = true

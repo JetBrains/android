@@ -20,6 +20,7 @@ import com.android.tools.compile.fast.OutOfProcessCompilerDaemonClient
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.IJLogger
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -30,6 +31,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
+import java.util.EnumSet
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
@@ -39,7 +41,10 @@ import org.jetbrains.android.uipreview.getLibraryDependenciesJars
  * dependencies).
  */
 private fun defaultModuleCompileClassPathLocator(module: Module): List<String> =
-  GradleClassFinderUtil.getModuleCompileOutputs(module, true)
+  GradleClassFinderUtil.getModuleCompileOutputs(
+      module,
+      EnumSet.of(ScopeType.MAIN, ScopeType.ANDROID_TEST, ScopeType.SCREENSHOT_TEST),
+    )
     .filter { it.exists() }
     .map { it.absolutePath.toString() }
     .toList()

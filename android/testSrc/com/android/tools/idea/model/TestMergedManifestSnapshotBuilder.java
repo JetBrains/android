@@ -17,7 +17,6 @@ package com.android.tools.idea.model;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.manifmerger.Actions;
-import com.android.manifmerger.MergingReport;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.google.common.collect.ImmutableList;
@@ -44,17 +43,15 @@ public class TestMergedManifestSnapshotBuilder {
   @Nullable private ResourceValue myLabel;
   private boolean myRtl;
   @Nullable private Boolean myDebuggable;
-  private boolean myHasAppCode;
   @Nullable private Document myDocument;
   @Nullable private ImmutableList<VirtualFile> myFiles;
   @Nullable private ImmutablePermissionHolder myPermissions;
   @Nullable private ImmutableList<Element> myActivities;
-  @Nullable private ImmutableList<Element> myAliases;
   @Nullable private ImmutableList<Element> myServices;
   @Nullable private Actions myActions;
-  @Nullable private ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private AndroidVersion myMinSdk;
   private boolean myIsValid;
+  private Exception myException;
 
 
   private TestMergedManifestSnapshotBuilder(@NotNull Module module) {
@@ -64,12 +61,6 @@ public class TestMergedManifestSnapshotBuilder {
   @NotNull
   public TestMergedManifestSnapshotBuilder setActions(@NotNull Actions actions) {
     myActions = actions;
-    return this;
-  }
-
-  @NotNull
-  public TestMergedManifestSnapshotBuilder setLoggingRecords(@NotNull List<MergingReport.Record> loggingRecords) {
-    myLoggingRecords = ImmutableList.copyOf(loggingRecords);
     return this;
   }
 
@@ -163,20 +154,8 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
-  public TestMergedManifestSnapshotBuilder setAppHasCode(boolean code) {
-    myHasAppCode = code;
-    return this;
-  }
-
-  @NotNull
   public TestMergedManifestSnapshotBuilder setActivities(@NotNull List<Element> activities) {
     myActivities = ImmutableList.copyOf(activities);
-    return this;
-  }
-
-  @NotNull
-  public TestMergedManifestSnapshotBuilder setActivityAliases(@NotNull List<Element> aliases) {
-    myAliases = ImmutableList.copyOf(aliases);
     return this;
   }
 
@@ -193,6 +172,12 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
+  public TestMergedManifestSnapshotBuilder setIsValid(Exception exception) {
+    myException = exception;
+    return this;
+  }
+
+  @NotNull
   public MergedManifestSnapshot build() {
     return new MergedManifestSnapshot(myModule,
                                       myName, myVersionCode, myTheme,
@@ -205,12 +190,10 @@ public class TestMergedManifestSnapshotBuilder {
                                       myDocument,
                                       myFiles != null ? myFiles : ImmutableList.of(),
                                       myPermissions != null ? myPermissions : ImmutablePermissionHolder.EMPTY,
-                                      myHasAppCode,
                                       myActivities != null ? myActivities : ImmutableList.of(),
-                                      myAliases != null ? myAliases : ImmutableList.of(),
                                       myServices != null ? myServices : ImmutableList.of(),
                                       myActions,
-                                      myLoggingRecords != null ? myLoggingRecords : ImmutableList.of(),
-                                      myIsValid);
+                                      myIsValid,
+                                      myException);
   }
 }

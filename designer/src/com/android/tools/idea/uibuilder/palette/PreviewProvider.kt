@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
@@ -152,8 +153,9 @@ class PreviewProvider(
         return null
       }
     val component =
-      runWriteAction { model.createComponent(tag, null, null, InsertType.CREATE_PREVIEW) }
-        ?: return null
+      runWriteAction {
+        model.treeWriter.createComponent(tag, null, null, InsertType.CREATE_PREVIEW)
+      } ?: return null
 
     // Some components require a parent to render correctly.
     val componentTag = component.tag ?: return null
@@ -164,7 +166,9 @@ class PreviewProvider(
     val module = ConfigurationManager.getFromConfiguration(configuration).module
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
-    return renderService.taskBuilderWithHtmlLogger(facet, configuration).build()
+    return renderService
+      .taskBuilderWithHtmlLogger(BuildTargetReference.gradleOnly(facet), configuration)
+      .build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {

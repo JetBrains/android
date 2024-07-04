@@ -20,12 +20,15 @@ import static org.junit.Assert.assertEquals;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.Arrays;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +54,16 @@ public final class EmulatorCommandBuilderTest {
     Mockito.when(myAvd.getName()).thenReturn("Pixel_4_API_30");
   }
 
+  @After
+  public void tearDown() {
+    try {
+      myFileSystem.close();
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Test
   public void build() {
     // Arrange
@@ -64,18 +77,19 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildOnWindows() {
+  public void buildOnWindows() throws Exception {
     // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.windows());
-    Path emulator = fileSystem.getPath("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe");
-    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(emulator, myAvd);
+    try (FileSystem fileSystem = Jimfs.newFileSystem(Configuration.windows())) {
+      Path emulator = fileSystem.getPath("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe");
+      EmulatorCommandBuilder builder = new EmulatorCommandBuilder(emulator, myAvd);
 
-    // Act
-    GeneralCommandLine command = builder.build();
+      // Act
+      GeneralCommandLine command = builder.build();
 
-    // Assert
-    assertEquals("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe -avd Pixel_4_API_30",
-                 command.getCommandLineString());
+      // Assert
+      assertEquals("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe -avd Pixel_4_API_30",
+                   command.getCommandLineString());
+    }
   }
 
   @Test
@@ -159,7 +173,35 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildAvdCommandLineOptions_Disabled() {
+  public void buildAvdCommandLineEmulatorBinary() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
+    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(AvdWizardUtils.EMULATOR_BINARY_KEY, "../my-package/my-emulator"));
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/my-package/my-emulator -avd Pixel_4_API_30", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptionsInUserSettings() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
+    Mockito.when(myAvd.getUserSettings()).thenReturn(ImmutableMap.of(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY, "   -custom options"));
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -custom options", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptionsInCongig_Disabled() {
     // Arrange
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
     Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("-some random -options");

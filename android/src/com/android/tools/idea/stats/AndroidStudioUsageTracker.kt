@@ -62,6 +62,7 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.ui.JBColor
 import com.intellij.ui.NewUiValue
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -430,27 +431,21 @@ object AndroidStudioUsageTracker {
    * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings
    */
   private fun currentIdeTheme(): ProductDetails.IdeTheme {
+    val theme = LafManager.getInstance().getCurrentUIThemeLookAndFeel()?.name?.lowercase(Locale.US)
+                ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
+    val author = LafManager.getInstance().currentUIThemeLookAndFeel.author?.lowercase(Locale.US)
+                 ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
     return when {
-      UIUtil.isUnderDarcula() ->
-        // IJ's custom theme are based off of Darcula. We look at the LafManager to determine whether the actual selected theme is
-        // darcular, high contrast, or some other custom theme
-        when (LafManager.getInstance().currentLookAndFeel?.name?.lowercase(Locale.US)) {
-          "darcula" -> ProductDetails.IdeTheme.DARCULA
-          "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
-          else -> ProductDetails.IdeTheme.CUSTOM
-        }
-
-      UIUtil.isUnderIntelliJLaF() ->
-        // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native
-        // themes, or the newer, platform-agnostic Light theme. UIUtil.isUnderWin10LookAndFeel() and UIUtil.isUnderDefaultMacTheme() take
-        // care of these checks for us.
+      author == "jetbrains" ->
         when {
-          UIUtil.isUnderWin10LookAndFeel() -> ProductDetails.IdeTheme.LIGHT_WIN_NATIVE
-          UIUtil.isUnderDefaultMacTheme() -> ProductDetails.IdeTheme.LIGHT_MAC_NATIVE
-          else -> ProductDetails.IdeTheme.LIGHT
+          theme == "darcula" -> ProductDetails.IdeTheme.DARCULA
+          theme == "dark" -> ProductDetails.IdeTheme.DARK
+          theme == "light" -> ProductDetails.IdeTheme.LIGHT
+          theme == "light with light header" -> ProductDetails.IdeTheme.LIGHT_WITH_LIGHT_HEADER
+          theme == "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
+          else -> ProductDetails.IdeTheme.UNKNOWN_THEME
         }
-
-      else -> ProductDetails.IdeTheme.UNKNOWN_THEME
+      else -> ProductDetails.IdeTheme.CUSTOM
     }
   }
 

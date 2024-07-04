@@ -24,4 +24,3 @@ import androidx.compose.ui.tooling.preview.Preview
 fun AppPreviewUnitTest() {
   Text(text = "Preview app unit test")
 }
-

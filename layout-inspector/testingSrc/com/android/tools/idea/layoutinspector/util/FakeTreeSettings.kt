@@ -22,10 +22,10 @@ import com.android.tools.idea.layoutinspector.tree.DEFAULT_RECOMPOSITIONS
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_SUPPORT_LINES
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 
-class FakeTreeSettings : TreeSettings {
-  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES
-  override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
-  override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
-  override var supportLines: Boolean = DEFAULT_SUPPORT_LINES
-  override var showRecompositions: Boolean = DEFAULT_RECOMPOSITIONS
-}
+class FakeTreeSettings(
+  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES,
+  override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK,
+  override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS,
+  override var supportLines: Boolean = DEFAULT_SUPPORT_LINES,
+  override var showRecompositions: Boolean = DEFAULT_RECOMPOSITIONS,
+) : TreeSettings

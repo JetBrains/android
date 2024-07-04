@@ -306,11 +306,10 @@ class AvdOptionsModelTest : AndroidTestCase() {
   }
 
   private fun anAvdInfo(
-    name: String = "name",
     iniFile: Path = Paths.get("ini"),
     folderPath: Path = Paths.get("folder"),
     systemImage: ISystemImage = Mockito.mock(ISystemImage::class.java),
     properties: Map<String, String>,
     userSettings: Map<String, String?>? = null,
-  ) = AvdInfo(name, iniFile, folderPath, systemImage, properties, userSettings)
+  ) = AvdInfo(iniFile, folderPath, systemImage, properties, userSettings)
 }

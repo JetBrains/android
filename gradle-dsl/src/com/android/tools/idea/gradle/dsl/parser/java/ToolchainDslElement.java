@@ -35,12 +35,10 @@ public class ToolchainDslElement extends GradleDslBlockElement {
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"languageVersion", property, LANGUAGE_VERSION, VAR},
-    {"languageVersion", exactly(1), LANGUAGE_VERSION, SET},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     {"languageVersion", property, LANGUAGE_VERSION, VAR},
-    {"languageVersion", exactly(1), LANGUAGE_VERSION, SET},
   }).collect(toModelMap());
 
   public static final PropertiesElementDescription<ToolchainDslElement> TOOLCHAIN =

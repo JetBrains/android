@@ -56,13 +56,13 @@ class VitalsDetailsStateTest {
           OperatingSystemInfo("os2", "os2"),
           OperatingSystemInfo("os3", "os3"),
         ),
-        setOf(Device("Google", "Google/Pixel 5"), Device("Samsung", "Samsung/A32")),
+        setOf(Device("Google", "Pixel 5"), Device("Samsung", "A32")),
         VisibilityType.USER_PERCEIVED,
       )
 
     assertThat(state.toConsoleUrl())
       .isEqualTo(
-        "https://url.for-crash.com?days=1&versionCode=version1,version2&osVersion=os1,os2,os3&deviceName=Google/Pixel 5,Samsung/A32&appProcessState=Foreground"
+        "https://url.for-crash.com?days=1&versionCode=version1,version2&osVersion=os1,os2,os3&device=Google/Pixel 5,Samsung/A32&appProcessState=Foreground"
       )
   }
 }

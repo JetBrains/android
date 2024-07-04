@@ -143,18 +143,29 @@ class TreeSettingsActionsTest {
   }
 
   @Test
-  fun testRecomposeCounts() {
+  fun testRecompositionCounts() {
     val event = createEvent()
-    assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
+    assertThat(RecompositionCounts.isSelected(event)).isEqualTo(DEFAULT_RECOMPOSITIONS)
 
     RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE)
+    capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
+    RecompositionCounts.update(event)
 
-    // Check enabled enabled state:
+    // Check recomposition not supported in compose inspector:
     assertThat(event.presentation.isEnabled).isFalse()
     assertThat(event.presentation.text)
       .isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
-    capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
 
+    capabilities.remove(Capability.HAS_LINE_NUMBER_INFORMATION)
+    capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    RecompositionCounts.update(event)
+
+    // Check recomposition no source information:
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text)
+      .isEqualTo("Show Recomposition Counts (No Source Information Found)")
+
+    capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
     inLiveMode = false
     RecompositionCounts.update(event)
     assertThat(event.presentation.isVisible).isFalse()

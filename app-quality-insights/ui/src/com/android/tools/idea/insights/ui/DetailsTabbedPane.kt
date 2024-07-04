@@ -69,7 +69,7 @@ class DetailsTabbedPane(
     component =
       transparentPanel(GridBagLayout()).apply {
         add(
-          createToolbar(stackTraceConsole.consoleView.editor, this, name),
+          createToolbar(stackTraceConsole.consoleView.editor, this, name, tabbedPane),
           GridBagConstraints().apply {
             gridx = 1
             gridy = 0
@@ -128,11 +128,18 @@ class DetailsTabbedPane(
     editor: Editor,
     targetComponent: JComponent,
     place: String,
+    tabbedPane: JBTabbedPane,
   ): JComponent {
     val wrapAction =
       object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {
         init {
           ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
+        }
+
+        override fun update(e: AnActionEvent) {
+          super.update(e)
+          // Enable and show action when the stack trace panel is visible
+          e.presentation.isEnabledAndVisible = tabbedPane.selectedIndex == 0
         }
 
         override fun getEditor(e: AnActionEvent) = editor

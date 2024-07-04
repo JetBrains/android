@@ -34,6 +34,9 @@ import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -42,15 +45,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidSdkData;
-import com.android.tools.sdk.AndroidTargetData;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -109,45 +108,6 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return configurationManager;
   }
 
-  /**
-   * In some tests the project might not have a project file. We use this to create a per-project canonical file that can be used to
-   * associate the default project configuration to.
-   */
-  @NotNull
-  private static VirtualFile getFakeProjectFile(@NotNull Project project) {
-    VirtualFile projectFile = CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.get(project);
-    if (projectFile == null) {
-      VirtualFile parent = new LightVirtualFile("layout");
-      projectFile = new LightVirtualFile("no-project-file") {
-        @Override
-        public VirtualFile getParent() {
-          return parent;
-        }
-      };
-      CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.set(project, projectFile);
-    }
-
-    return projectFile;
-  }
-
-  /**
-   * Gets the {@link Configuration} associated with the given module.
-   *
-   * @return the {@link Configuration} for the given module.
-   */
-  @Slow
-  @NotNull
-  public static ConfigurationForFile getConfigurationForModule(@NotNull Module module) {
-    Project project = module.getProject();
-    ConfigurationManager configurationManager = getOrCreateInstance(module);
-
-    VirtualFile projectFile = project.getProjectFile();
-    if (projectFile == null) {
-      projectFile = getFakeProjectFile(project);
-    }
-
-    return configurationManager.getConfiguration(projectFile);
-  }
   protected ConfigurationManager(@NotNull Module module, StudioConfigurationModelModule config) {
     myConfigurationModule = config;
     myModule = module;

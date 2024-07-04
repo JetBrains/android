@@ -33,8 +33,14 @@ class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : 
   val isUserStoppable = taskType != ProfilerTaskType.HEAP_DUMP
   val taskName = taskType.description
 
-  private val _isStopRecordingButtonEnabled = MutableStateFlow(false)
-  val isStopRecordingButtonEnabled = _isStopRecordingButtonEnabled.asStateFlow()
+  private val _canRecordingStop = MutableStateFlow(false)
+  val canRecordingStop = _canRecordingStop.asStateFlow()
+
+  // canRecordingStop can be set back to true by the RECORDING_CHANGED aspect listener in the little time in between clicking the button
+  // and the profiler waiting on the success response event for the stop command. Thus, by tracking this button click, even if
+  // canRecordingStop is set back to true after clicking the stop button, the button can be disabled as long as isStopButtonClicked is true.
+  private val _isStopButtonClicked = MutableStateFlow(false)
+  val isStopButtonClicked = _isStopButtonClicked.asStateFlow()
 
   private val _elapsedNs = MutableStateFlow(0L)
   val elapsedNs = _elapsedNs.asStateFlow()
@@ -47,15 +53,20 @@ class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : 
         else -> null
       }
     recordingModel?.addDependency(this)?.onChange(RecordingOptionsModel.Aspect.RECORDING_CHANGED) {
-      enableStopRecordingButton(recordingModel.canStop())
+      setCanRecordingStop(recordingModel.canStop())
     }
   }
 
-  private fun enableStopRecordingButton(enable: Boolean) {
-    _isStopRecordingButtonEnabled.value = enable
+  fun onStopRecordingButtonClick() {
+    _isStopButtonClicked.value = true
+    stopRecordingAction.run()
   }
 
-  val stopRecordingAction = Runnable { stage.stop() }
+  private fun setCanRecordingStop(canStop: Boolean) {
+    _canRecordingStop.value = canStop
+  }
+
+  private val stopRecordingAction = Runnable { stage.stop() }
 
   fun formatElapsedTime(elapsedNs: Long): String {
     val minutes = TimeUnit.NANOSECONDS.toMinutes(elapsedNs)

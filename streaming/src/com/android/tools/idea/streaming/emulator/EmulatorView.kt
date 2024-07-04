@@ -33,12 +33,12 @@ import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.io.grpc.stub.StreamObserver
@@ -430,7 +430,7 @@ class EmulatorView(
   override fun canZoom(): Boolean = isConnected
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(screenshotShape.orientation)
+      computeActualSize(screenshotShape.orientation)
 
   private fun computeActualSize(orientationQuadrants: Int): Dimension {
     val skin = emulator.getSkin(currentPosture?.posture)
@@ -559,8 +559,7 @@ class EmulatorView(
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
-      Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale),
-                w, h)
+      Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
     else {
       val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
@@ -601,11 +600,11 @@ class EmulatorView(
 
       cancelScreenshotFeed()
       val imageFormat = ImageFormat.newBuilder()
-        .setDisplay(displayId)
-        .setFormat(ImageFormat.ImgFormat.RGB888)
-        .setWidth(maxImageSize.width)
-        .setHeight(maxImageSize.height)
-        .build()
+          .setDisplay(displayId)
+          .setFormat(ImageFormat.ImgFormat.RGB888)
+          .setWidth(maxImageSize.width)
+          .setHeight(maxImageSize.height)
+          .build()
       val receiver = ScreenshotReceiver(maxImageSize, orientationQuadrants)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
@@ -885,10 +884,10 @@ class EmulatorView(
 
     private fun buildKeyStrokeMap(): Map<KeyStroke, EmulatorKeyStroke> {
       return mutableMapOf<KeyStroke, EmulatorKeyStroke>().apply {
-        addKeyStrokesForAction(ACTION_COPY, EmulatorKeyStroke("Copy"))
-        addKeyStrokesForAction(ACTION_CUT, EmulatorKeyStroke("Cut"))
+        addKeyStrokesForAction(ACTION_COPY, EmulatorKeyStroke("c", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_CUT, EmulatorKeyStroke("x", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_DELETE, EmulatorKeyStroke("Delete"))
-        addKeyStrokesForAction(ACTION_PASTE, EmulatorKeyStroke("Paste"))
+        addKeyStrokesForAction(ACTION_PASTE, EmulatorKeyStroke("v", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("a", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_EDITOR_ENTER, EmulatorKeyStroke("Enter"))
         addKeyStrokesForAction(ACTION_EDITOR_ESCAPE, EmulatorKeyStroke("Escape"))
@@ -988,7 +987,11 @@ class EmulatorView(
         return
       }
       // Multiplying wheelRotation by -1 because AWT assigns the opposite sign to Qt/Android.
-      getOrCreateMouseWheelSender().onNext(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build())
+      val wheelEvent = WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build()
+      if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
+        LOG.info("injectWheel: sending ${shortDebugString(wheelEvent)}")
+      }
+      getOrCreateMouseWheelSender().onNext(wheelEvent)
     }
 
     private fun getOrCreateMouseWheelSender(): StreamObserver<WheelEvent> {
@@ -1279,7 +1282,7 @@ class EmulatorView(
           alarm.addRequest({ recycledImage.set(null) }, CACHED_IMAGE_LIVE_TIME_MILLIS, ModalityState.any())
         }
         else if (!isSameAspectRatio(it.width, it.height, screenshot.displayShape.width, screenshot.displayShape.height, 0.01)) {
-          zoom(ZoomType.FIT) // Display dimensions changed - reset zoom level.
+          resetZoom() // Display dimensions changed - reset zoom level.
         }
       }
 

@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.model.isSystemComposeNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
@@ -28,10 +27,6 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComp
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
 import java.awt.Rectangle
 import java.util.EnumSet
-
-private val composeSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE)
-private val semanticsSupport =
-  EnumSet.of(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
 
 /**
  * Helper class which handles the logic of using data from a
@@ -44,17 +39,22 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   private val roots = response.rootsList.map { it.viewId to it.nodesList }.toMap()
   private var composeFlags = 0
   private var nodesCreated = false
+  private var nodesCreatedWithLineNumberInfo = false
+  private val capabilities = EnumSet.noneOf(Capability::class.java)
 
   /** The dynamic capabilities based on the loaded data for compose. */
   val dynamicCapabilities: Set<Capability>
     get() {
-      val hasSemantics =
-        (composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0
-      return when {
-        nodesCreated && hasSemantics -> semanticsSupport
-        nodesCreated -> composeSupport
-        else -> emptySet()
+      if (capabilities.isEmpty() && nodesCreated) {
+        capabilities.add(Capability.SUPPORTS_COMPOSE)
+        if ((composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0) {
+          capabilities.add(Capability.SUPPORTS_SEMANTICS)
+        }
+        if (nodesCreatedWithLineNumberInfo) {
+          capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
+        }
       }
+      return capabilities
     }
 
   /**
@@ -99,9 +99,12 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
     val renderBounds =
       bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val actualFlags =
+      if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
+    val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
     val ignoreRecompositions =
       pendingRecompositionCountReset ||
-        (isSystemComposeNode(packageHash) &&
+        (isSystemNode &&
           StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
     val node =
       ComposeViewNode(
@@ -119,30 +122,47 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
         packageHash,
         offset,
         lineNumber,
-        flags,
+        actualFlags,
         anchorHash,
       )
 
-    composeFlags = composeFlags or flags
-    if ((flags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
+    composeFlags = composeFlags or actualFlags
+    if ((actualFlags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
       access.apply {
         childrenList.mapTo(node.children) {
-          it.convert(shouldInterrupt, access).apply { parent = node }
+          val child = it.convert(shouldInterrupt, access).apply { parent = node }
+          node.recompositions.addChildCount(child.recompositions)
+          child
         }
       }
     } else {
-      var nested = node
-      childrenList.forEach { child ->
-        access.apply {
-          val next = child.convert(shouldInterrupt, access).apply { parent = nested }
-          nested.children.add(next)
-          nested = next
+      access.apply {
+        var last: ComposeViewNode? = null
+        childrenList.asReversed().forEach { child ->
+          val next = child.convert(shouldInterrupt, access)
+          addSingleChild(next, last)
+          last = next
         }
+        addSingleChild(node, last)
       }
     }
     if (viewId != 0L) {
       androidViews[viewId] = node
     }
+    if (!nodesCreatedWithLineNumberInfo && packageHash != -1 && lineNumber > 0 && !isSystemNode) {
+      nodesCreatedWithLineNumberInfo = true
+    }
     return node
+  }
+
+  private fun ViewNode.WriteAccess.addSingleChild(
+    parent: ComposeViewNode,
+    child: ComposeViewNode?,
+  ) {
+    if (child != null) {
+      child.parent = parent
+      parent.children.add(child)
+      parent.recompositions.addChildCount(child.recompositions)
+    }
   }
 }

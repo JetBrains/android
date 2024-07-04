@@ -26,7 +26,7 @@ import org.junit.runners.JUnit4
 class OrganizationGroupTest {
   @Test
   fun changeOpened() {
-    val group = OrganizationGroup("Name")
+    val group = OrganizationGroup("method", "Name")
     assertTrue(group.isOpened.value)
     group.setOpened(false)
     assertFalse(group.isOpened.value)
@@ -36,7 +36,7 @@ class OrganizationGroupTest {
 
   @Test
   fun checkName() {
-    val group = OrganizationGroup("Name")
+    val group = OrganizationGroup("method", "Name")
     assertEquals("Name", group.displayName.value)
   }
 }

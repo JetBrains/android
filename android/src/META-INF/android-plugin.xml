@@ -30,7 +30,7 @@
   <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
   <depends optional="true" config-file="android-smali.xml">com.android.tools.idea.smali</depends>
 
-  <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
@@ -159,12 +159,6 @@
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
-    <action
-      id="LayoutEditor.AddSampleData"
-      class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
-      text="Add Sample Data File"
-      description="Adds a new data sample file">
-    </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
 
     <action id="RenderLaggingMode" internal="true" class="com.android.tools.idea.rendering.actions.RenderLaggingMode">
@@ -209,7 +203,6 @@
                        descriptionKey="configurable.group.tools.android.settings.description"/>
 
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidPsiTreeChangeListener$MyStartupActivity"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
     <applicationInitializedListener implementation="com.android.tools.idea.progress.StudioProgressManagerAdapter$Installer" />
@@ -627,13 +620,13 @@
     <!-- Default settings should match with the values specified in ProjectUpgradeNotification.kt -->
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
-    <notificationGroup id="Logcat" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="DeviceMirrorBenchmarking" displayType="STICKY_BALLOON" key="android.emulator" />
     <notificationGroup id="Font Downloading Problems" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="Create Diagnostic Report" displayType="BALLOON" isLogByDefault="true" />
     <notificationGroup id="Feature Survey" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Essentials Mode" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Import Android Test Results" displayType="BALLOON" />
+    <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
@@ -742,14 +735,13 @@
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
   </extensions>
 
-  <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="new-deployment-target-selection.xml"/>
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
-    <deviceProvisioner implementation="com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory"/>
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.project.DefaultApplicationProjectContextProvider"/>
   </extensions>
 
@@ -768,7 +760,7 @@
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
 
-  <xi:include href="/META-INF/android-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-common.xml"/>
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
-  <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml"/>
 </idea-plugin>

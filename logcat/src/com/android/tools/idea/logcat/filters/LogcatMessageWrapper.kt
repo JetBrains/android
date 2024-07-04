@@ -37,7 +37,7 @@ private val DATE_TIME_FORMATTER =
     .toFormatter(Locale.ROOT)
 
 /**
- * A wrapper around LogcatMessage that holds the complete log lne as a lazy property so it doesn't
+ * A wrapper around LogcatMessage that holds the complete log line as a lazy property, so it doesn't
  * have to be computed for each filter evaluation.
  */
 internal class LogcatMessageWrapper(

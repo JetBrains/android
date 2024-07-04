@@ -91,9 +91,9 @@ public class ScoutChainTest07 extends SceneTest {
                  "    android:layout_height=\"wrap_content\"/>\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), () -> {
-      Scout.inferConstraintsAndCommit(myModel.getComponents());
+      Scout.inferConstraintsAndCommit(myModel.getTreeReader().getComponents());
     });
     myScreen.get("@+id/content_main")
       .expectXml("<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

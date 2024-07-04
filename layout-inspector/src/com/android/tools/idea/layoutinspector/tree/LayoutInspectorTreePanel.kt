@@ -23,6 +23,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuildResult
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.componenttree.api.createIntColumn
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -178,17 +179,34 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val recompositionCountsColumn =
       createIntColumn<TreeViewNode>(
         "Counts",
-        { (it.view as? ComposeViewNode)?.recompositions?.count },
+        { it.view.recompositions.count },
         leftDivider = true,
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
         headerRenderer = createCountsHeader(),
       )
 
+    val recompositionChildCountColumn =
+      createIntColumn<TreeViewNode>(
+        "Child Counts",
+        { node ->
+          // Hide the child counts if this node was collapsed because of 'composeAsCallstack'.
+          // Note that a single call node may have multiple tree children as a result of hidden
+          // system nodes in which case we do want to show the child counts.
+          val singleCall =
+            layoutInspector?.treeSettings?.let { node.view.isSingleCall(it) } ?: false
+          if (!singleCall || node.children.size > 1) node.view.recompositions.childCount else 0
+        },
+        foreground = JBColor(Gray._192, Gray._128),
+        maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
+        minInt = { 0 },
+        headerRenderer = createChildCountsHeader(),
+      )
+
     val recompositionSkipsColumn =
       createIntColumn<TreeViewNode>(
         "Skips",
-        { (it.view as? ComposeViewNode)?.recompositions?.skips },
+        { it.view.recompositions.skips },
         foreground = JBColor(Gray._192, Gray._128),
         maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
         minInt = { 0 },
@@ -205,6 +223,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withoutTreeSearch()
       .withHeaderRenderer(createTreeHeaderRenderer())
       .withColumn(recompositionCountsColumn)
+      .withColumn(recompositionChildCountColumn)
       .withColumn(recompositionSkipsColumn)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
@@ -241,6 +260,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     return createIconHeader(
       StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
       toolTipText = "Number of times this composable has been recomposed",
+    )
+  }
+
+  private fun createChildCountsHeader(): TableCellRenderer {
+    return createIconHeader(
+      // TODO(b/343503792) Add a separate icon
+      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
+      toolTipText = "Number of times children of this composable has been recomposed",
     )
   }
 
@@ -295,10 +322,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     invokeLater {
       val show =
         layoutInspector?.treeSettings?.showRecompositions ?: false &&
-          layoutInspector?.currentClient?.isConnected ?: false
+          layoutInspector?.currentClient?.isConnected ?: false &&
+          layoutInspector
+            ?.currentClient
+            ?.capabilities
+            ?.contains(InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION) ?: false
+      val showChildCounts =
+        show && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.get()
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
-      interactions.setColumnVisibility(2, show)
+      interactions.setColumnVisibility(2, showChildCounts)
+      interactions.setColumnVisibility(3, show)
     }
   }
 

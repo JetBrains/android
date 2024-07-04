@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -30,6 +31,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
@@ -49,11 +52,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -62,6 +68,8 @@ import java.util.concurrent.Callable
 import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -139,6 +147,15 @@ open class NlPropertiesModel(
       firePropertyValueChangeIfNeeded()
     }
 
+  private var cachedResolver: LazyCachedValue<ResourceResolver?> = createResolverCache(null)
+  val resolver: ResourceResolver?
+    get() = cachedResolver.getCachedValueOrUpdate()
+
+  @TestOnly
+  fun setResolver(resolver: ResourceResolver) {
+    cachedResolver.setValue(resolver)
+  }
+
   @VisibleForTesting
   var updateCount = 0
     protected set
@@ -180,6 +197,22 @@ open class NlPropertiesModel(
     NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
+  private fun createResolverCache(surface: DesignSurface<*>?): LazyCachedValue<ResourceResolver?> {
+    return LazyCachedValue(
+      supervisorScope,
+      loader = {
+        runInterruptible(workerThread) { surface?.model?.configuration?.resourceResolver }
+      },
+      onValueLoaded = { _ ->
+        withContext(uiThread) {
+          // Trigger refresh of all properties due to the resolver being available
+          firePropertyValueChanged()
+        }
+      },
+      null,
+    )
+  }
+
   fun provideDefaultValue(property: NlPropertyItem): String? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
@@ -216,38 +249,43 @@ open class NlPropertiesModel(
     ApplicationManager.getApplication()
       .invokeLater(
         {
-          NlWriteCommandActionUtil.run(
-            property.components,
-            "Set $componentName.${property.name} to $newValue",
-          ) {
-            property.components.forEach {
-              it.setAttribute(property.namespace, property.name, newValue)
-            }
-            val compatibleAttribute = compatibleMarginAttribute(property)
-            if (compatibleAttribute != null) {
-              property.components.forEach {
-                it.setAttribute(property.namespace, compatibleAttribute, newValue)
-              }
-            }
-            logPropertyValueChanged(property)
-            if (property.namespace == TOOLS_URI) {
-              if (newValue != null) {
-                // A tools property may not be in the current set of possible properties. So add it
-                // now:
-                if (properties.isEmpty) {
-                  properties = provider.createEmptyTable()
+          SlowOperations.allowSlowOperations(
+            ThrowableComputable {
+              NlWriteCommandActionUtil.run(
+                property.components,
+                "Set $componentName.${property.name} to $newValue",
+              ) {
+                property.components.forEach {
+                  it.setAttribute(property.namespace, property.name, newValue)
                 }
-                properties.put(property)
-              }
+                val compatibleAttribute = compatibleMarginAttribute(property)
+                if (compatibleAttribute != null) {
+                  property.components.forEach {
+                    it.setAttribute(property.namespace, compatibleAttribute, newValue)
+                  }
+                }
+                logPropertyValueChanged(property)
+                if (property.namespace == TOOLS_URI) {
+                  if (newValue != null) {
+                    // A tools property may not be in the current set of possible properties. So add
+                    // it
+                    // now:
+                    if (properties.isEmpty) {
+                      properties = provider.createEmptyTable()
+                    }
+                    properties.put(property)
+                  }
 
-              if (property.name == ATTR_PARENT_TAG) {
-                // When the "parentTag" attribute is set on a <merge> tag,
-                // we may have a different set of available properties available,
-                // since the attributes of the "parentTag" are included if set.
-                firePropertiesGenerated()
+                  if (property.name == ATTR_PARENT_TAG) {
+                    // When the "parentTag" attribute is set on a <merge> tag,
+                    // we may have a different set of available properties available,
+                    // since the attributes of the "parentTag" are included if set.
+                    firePropertiesGenerated()
+                  }
+                }
               }
             }
-          }
+          )
         },
         { Disposer.isDisposed(this) },
       )
@@ -299,6 +337,7 @@ open class NlPropertiesModel(
     }
     (old as? NlDesignSurface)?.accessoryPanel?.removeAccessoryPanelListener(accessoryPanelListener)
     (new as? NlDesignSurface)?.accessoryPanel?.addAccessoryPanelListener(accessoryPanelListener)
+    cachedResolver = createResolverCache(new)
     useCurrentPanel(new)
   }
 
@@ -339,8 +378,9 @@ open class NlPropertiesModel(
   }
 
   private fun getRootComponent(surface: DesignSurface<*>?): List<NlComponent> {
-    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let { listOf(it) }
-      ?: return emptyList()
+    return surface?.models?.singleOrNull()?.treeReader?.components?.singleOrNull()?.let {
+      listOf(it)
+    } ?: return emptyList()
   }
 
   protected open fun wantSelectionUpdate(
@@ -523,4 +563,19 @@ open class NlPropertiesModel(
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
   }
+
+  companion object {
+    internal val EP_NAME =
+      ExtensionPointName<NlPropertiesModelProvider>(
+        "com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider"
+      )
+  }
+}
+
+interface NlPropertiesModelProvider {
+  fun create(
+    content: NlPropertiesPanelToolContent,
+    facet: AndroidFacet,
+    updateQueue: MergingUpdateQueue,
+  ): NlPropertiesModel
 }

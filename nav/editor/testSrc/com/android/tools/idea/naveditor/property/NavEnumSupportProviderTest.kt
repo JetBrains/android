@@ -49,7 +49,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
       }
     }
 
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
     val property = getProperty(AUTO_URI, ATTR_DESTINATION, NlPropertyType.DESTINATION, action1)
     val support = getSupport(property)
     val values = support.values
@@ -70,7 +70,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
       }
     }
 
-    val root = model.find("root")!!
+    val root = model.treeReader.find("root")!!
     val property = getProperty(AUTO_URI, ATTR_START_DESTINATION, NlPropertyType.DESTINATION, root)
     val values = getValues(property)
 
@@ -94,7 +94,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     val support = getSupport(property)
     val values = support.values
@@ -131,14 +131,14 @@ class NavEnumSupportProviderTest : NavTestCase() {
     }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
-    enumValue.select(property)
+    enumValue.select(property) {}
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     testSelectName(fragment1, "mytest.navtest.BlankFragment",  null)
@@ -150,7 +150,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val enumValue = ClassEnumValue(value, "display", moduleName, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    enumValue.select(property)
+    enumValue.select(property) {}
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertEquals(value, component.getAttribute(ANDROID_URI, ATTR_NAME))

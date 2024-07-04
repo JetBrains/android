@@ -35,8 +35,6 @@ import org.jetbrains.annotations.NonNls;
  */
 public class AndroidFacetProperties {
 
-  public static final String PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION = ";";
-
   public String SELECTED_BUILD_VARIANT = "";
 
   /**
@@ -59,21 +57,6 @@ public class AndroidFacetProperties {
   public String MANIFEST_FILE_RELATIVE_PATH = "/" + SdkConstants.FN_ANDROID_MANIFEST_XML;
 
   public String RES_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_RES;
-
-  /**
-   * Urls of the res folders provided by the current source providers and of the generated res folders from the main artifact
-   * separated by {@link PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION} (";").
-   */
-  // TODO(b/141909881): Consider renaming and breaking it up into smaller properties.
-  public String RES_FOLDERS_RELATIVE_PATH;
-
-  /**
-   * Urls of the res folders provided by the current test source providers and of the generated res folders from the androidTest artifact
-   * separated by {@link PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION} (";").
-   */
-  // TODO(b/141909881): Consider renaming and breaking it up into smaller properties.
-  public String TEST_RES_FOLDERS_RELATIVE_PATH;
-
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 

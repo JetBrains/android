@@ -274,6 +274,7 @@ class LayoutInspectorRule(
         notificationModel,
         layoutInspectorCoroutineScope,
         launcherDisposable,
+        metrics = LayoutInspectorSessionMetrics(project),
         executor = launcherExecutor,
       )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)

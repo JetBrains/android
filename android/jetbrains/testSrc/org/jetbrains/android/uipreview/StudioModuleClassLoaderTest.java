@@ -31,6 +31,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
@@ -65,6 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
@@ -218,6 +220,18 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
+  public void testNotUsedLoaderCouldBeOutOfDate() throws Exception {
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
+    StudioModuleClassLoader loader = loaderReference.getClassLoader();
+    Path overlayTestDir = Files.createDirectories(Files.createTempDirectory("overlayTest"));
+    assertTrue(loader.isUserCodeUpToDate());
+    // New overlay will make the code out-of-date, even if the class loader hasn't been used to load any class
+    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayTestDir);
+    assertFalse(loader.isUserCodeUpToDate());
+    StudioModuleClassLoaderManager.get().release(loaderReference);
+  }
+
   private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
     testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
 
@@ -264,7 +278,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     // Make sure there is a compiled R class in the output directory, to be used when final IDs are used.
     Path moduleCompileOutputPath =
-      GradleClassFinderUtil.getModuleCompileOutputs(myModule, false).collect(Collectors.toList()).get(0).toPath();
+      GradleClassFinderUtil.getModuleCompileOutputs(myModule, EnumSet.of(ScopeType.MAIN)).collect(Collectors.toList()).get(0).toPath();
     Files.createDirectories(moduleCompileOutputPath);
     Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
     Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
@@ -421,6 +435,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     JavaCompiler javac = getJavac();
     javac.run(null, System.out, System.err, javaFilePath);
     project.getMessageBus().syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(new ProjectSystemBuildManager.BuildResult(
-      ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
+      ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
   }
 }

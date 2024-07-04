@@ -33,7 +33,6 @@ import com.android.AndroidXConstants.DETAILS_FRAGMENT
 import com.android.AndroidXConstants.DRAWER_LAYOUT
 import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.AndroidXConstants.GRID_LAYOUT_V7
-import com.android.AndroidXConstants.MOTION_LAYOUT
 import com.android.AndroidXConstants.NAVIGATION_VIEW
 import com.android.AndroidXConstants.NESTED_SCROLL_VIEW
 import com.android.AndroidXConstants.PLAYBACK_OVERLAY_FRAGMENT
@@ -142,7 +141,6 @@ import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.preference.CheckBoxPreferenceHandler
 import com.android.tools.idea.uibuilder.handlers.preference.EditTextPreferenceHandler
 import com.android.tools.idea.uibuilder.handlers.preference.ListPreferenceHandler
@@ -275,7 +273,6 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       DRAWER_LAYOUT.isEquals(viewTag) -> DrawerLayoutHandler()
       FLOATING_ACTION_BUTTON.isEquals(viewTag) -> FloatingActionButtonHandler()
       GRID_LAYOUT_V7.isEquals(viewTag) -> GridLayoutV7Handler()
-      MOTION_LAYOUT.isEquals(viewTag) -> MotionLayoutHandler()
       NAVIGATION_VIEW.isEquals(viewTag) -> NavigationViewHandler()
       NESTED_SCROLL_VIEW.isEquals(viewTag) -> NestedScrollViewHandler()
       PLAYBACK_OVERLAY_FRAGMENT.isEquals(viewTag) -> PlaybackOverlayFragmentHandler()

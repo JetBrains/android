@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.isValidComposePreview
+import com.android.tools.idea.compose.preview.util.isValidComposePreviewForRunConfiguration
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
@@ -47,7 +47,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
 
     (element.parent as? KtNamedFunction)
-      ?.takeIf { it.isValidComposePreview() }
+      ?.takeIf { it.isValidComposePreviewForRunConfiguration() }
       ?.let {
         return Info(StudioIcons.GutterIcons.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
           message("run.line.marker.text", it.name!!)

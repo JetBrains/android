@@ -610,12 +610,12 @@ public class _DeclarativeLexer implements FlexLexer {
           // fall through
           case 31: break;
           case 13:
-            { return BLOCK_COMMENT_CONTENTS;
+            { 
             }
           // fall through
           case 32: break;
           case 14:
-            { startBlockComment(); return BLOCK_COMMENT_START;
+            { startBlockComment();
             }
           // fall through
           case 33: break;
@@ -625,12 +625,12 @@ public class _DeclarativeLexer implements FlexLexer {
           // fall through
           case 34: break;
           case 16:
-            { if (--commentLevel == 0) yybegin(YYINITIAL); return BLOCK_COMMENT_END;
+            { if (--commentLevel == 0) { yybegin(YYINITIAL); return BLOCK_COMMENT; }
             }
           // fall through
           case 35: break;
           case 17:
-            { commentLevel++; return BLOCK_COMMENT_START;
+            { commentLevel++;
             }
           // fall through
           case 36: break;

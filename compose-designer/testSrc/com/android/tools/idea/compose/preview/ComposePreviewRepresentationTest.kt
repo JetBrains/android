@@ -41,6 +41,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
@@ -676,6 +677,7 @@ class ComposePreviewRepresentationTest {
     assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
     assertTrue(getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
     assertTrue(getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
+    assertTrue(getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
   }
 
   @Test
@@ -734,7 +736,7 @@ class ComposePreviewRepresentationTest {
     project.putUserData(FileEditorManagerImpl.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope),
+      FileEditorManagerImpl(project, project.coroutineScope()),
       projectRule.fixture.testRootDisposable,
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)

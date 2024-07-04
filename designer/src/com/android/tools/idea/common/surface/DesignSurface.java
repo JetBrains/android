@@ -656,12 +656,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return CompletableFuture
       .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
       .whenCompleteAsync((model, ex) -> {
-        for (DesignSurfaceListener listener : getListeners()) {
-          // TODO: The listeners have the expectation of the call happening in the EDT. We need
-          //       to address that.
-          listener.modelChanged(this, modelToAdd);
-        }
-        reactivateGuiInputHandler();
+          if (getProject().isDisposed() || modelToAdd.isDisposed()) return;
+          for (DesignSurfaceListener listener : getListeners()) {
+            // TODO: The listeners have the expectation of the call happening in the EDT. We need
+            //       to address that.
+            listener.modelChanged(this, modelToAdd);
+          }
+          reactivateGuiInputHandler();
       }, EdtExecutorService.getInstance());
   }
 
@@ -870,10 +871,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @Nullable
   @Override
   public Magnificator getMagnificator() {
-    if (!getSupportPinchAndZoom()) {
-      return null;
-    }
-
     return (scale, at) -> null;
   }
 
@@ -1327,10 +1324,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public GuiInputHandler getGuiInputHandler() {
     return myGuiInputHandler;
-  }
-
-  protected boolean getSupportPinchAndZoom() {
-    return true;
   }
 
   /**

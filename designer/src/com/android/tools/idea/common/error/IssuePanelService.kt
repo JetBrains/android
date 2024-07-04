@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.fileEditor.FileEditor
@@ -138,7 +139,14 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
           if (
             ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) == null
           ) {
-            ProblemsView.addPanel(project, SharedIssuePanelProvider(project))
+            if (ProblemsView.getToolWindow(project) != null) {
+              ProblemsView.addPanel(project, SharedIssuePanelProvider(project))
+            } else {
+              // In unit tests, the ProblemView might be missing
+              assert(ApplicationManager.getApplication().isUnitTestMode) {
+                "ProblemsView must be available"
+              }
+            }
           }
         }
         updateSharedIssuePanelTabName()

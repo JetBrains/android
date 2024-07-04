@@ -26,6 +26,8 @@
 #include "accessors/device_state_manager.h"
 #include "accessors/display_manager.h"
 #include "accessors/key_character_map.h"
+#include "accessors/key_event.h"
+#include "accessors/motion_event.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
 #include "common.h"
@@ -33,6 +35,7 @@
 #include "geom.h"
 #include "jvm.h"
 #include "ui_settings.h"
+#include "virtual_input_device.h"
 
 namespace screensharing {
 
@@ -83,20 +86,27 @@ private:
   };
 
   void Initialize();
+  void InitializeVirtualKeyboard();
+  [[nodiscard]] VirtualMouse& GetVirtualMouse(int32_t display_id);
+  [[nodiscard]] VirtualTouchscreen& GetVirtualTouchscreen(int32_t display_id, int32_t width, int32_t height);
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message) {
     ProcessKeyboardEvent(jni_, message);
   }
-  static void ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message);
+  void ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
+  void InjectMotionEvent(const MotionEvent& input_event);
+  void InjectKeyEvent(const KeyEvent& input_event);
+  void InjectInputEvent(const JObject& input_event);
+
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
-  static void StartVideoStream(const StartVideoStreamMessage& message);
+  void StartVideoStream(const StartVideoStreamMessage& message);
   static void StopVideoStream(const StopVideoStreamMessage& message);
   static void StartAudioStream(const StartAudioStreamMessage& message);
   static void StopAudioStream(const StopAudioStreamMessage& message);
-  static void WakeUpDevice();
+  void WakeUpDevice();
 
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
@@ -114,13 +124,8 @@ private:
   void SendPendingDisplayEvents();
 
   void SendUiSettings(const UiSettingsRequest& request);
-  void SetDarkMode(const SetDarkModeMessage& message);
-  void SetGestureNavigation(const SetGestureNavigationMessage& message);
-  void SetAppLanguage(const SetAppLanguageMessage& message);
-  void SetTalkBack(const SetTalkBackMessage& message);
-  void SetSelectToSpeak(const SetSelectToSpeakMessage& message);
-  void SetFontSize(const SetFontSizeMessage& message);
-  void SetScreenDensity(const SetScreenDensityMessage& message);
+  void ChangeUiSetting(const UiSettingsChangeRequest& request);
+  void ResetUiSettings(const ResetUiSettingsRequest& request);
 
   void StartDisplayPolling();
   void StopDisplayPolling();
@@ -135,6 +140,12 @@ private:
   PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
+  bool input_event_injection_disabled_ = false;
+  VirtualKeyboard* virtual_keyboard_ = nullptr;
+  VirtualMouse* virtual_mouse_ = nullptr;
+  int32_t virtual_mouse_display_id_ = -1;
+  // Virtual touchscreens keyed by display IDs.
+  std::map<int32_t, std::unique_ptr<VirtualTouchscreen>> virtual_touchscreens_;
   int64_t motion_event_start_time_ = 0;
   KeyCharacterMap* key_character_map_ = nullptr;  // Owned.
 

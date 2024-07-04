@@ -23,6 +23,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
+import java.util.EnumSet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,7 +38,12 @@ import static com.android.sdklib.devices.Storage.Unit;
 public class StorageField extends JPanel {
 
   private final Unit DEFAULT_UNIT = Unit.MiB;
-  private final ComboBoxModel unitModel = new EnumComboBoxModel<Unit>(Unit.class);
+  private final ComboBoxModel unitModel = new EnumComboBoxModel<>(Unit.class) {
+    @Override
+    protected @NotNull EnumSet<Unit> createEnumSet(@NotNull Class<Unit> en) {
+      return EnumSet.of(Unit.KiB, Unit.MiB, Unit.GiB);
+    }
+  };
 
   private final ComboBox myUnitsCombo = new ComboBox(unitModel);
   private final JTextField myValueField = new JTextField();

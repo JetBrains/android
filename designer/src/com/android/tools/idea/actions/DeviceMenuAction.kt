@@ -674,7 +674,6 @@ private class SetCustomDeviceAction(
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     baseDevice?.let {
       val customBuilder = Device.Builder(it)
-      customBuilder.setTagId(it.tagId)
       customBuilder.setName(CUSTOM_DEVICE_NAME)
       customBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
       customDevice = customBuilder.build()

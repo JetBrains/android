@@ -17,26 +17,34 @@ package com.android.tools.idea.gradle.declarative.parser
 
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeASTFactory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
 
 class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", DeclarativeParserDefinition()) {
+
+  override fun setUp() {
+    super.setUp()
+    addExplicitExtension(LanguageASTFactory.INSTANCE, myLanguage, DeclarativeASTFactory())
+  }
+
   fun testAssignment() {
     assertThat(
-        """
+      """
           foo = 3
         """.toParseTreeText())
       .isEqualTo(
         """
           FILE
-            DeclarativeAssignmentImpl(ASSIGNMENT)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.=)('=')
-              DeclarativeLiteralImpl(LITERAL)
+              PsiElement(LITERAL)
                 PsiElement(DeclarativeTokenType.number)('3')
         """.trimIndent()
-    )
+      )
   }
 
   fun testBlock() {
@@ -49,10 +57,10 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeBlockImpl(BLOCK)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(BLOCK)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('dependencies')
-              DeclarativeBlockGroupImpl(BLOCK_GROUP)
+              PsiElement(BLOCK_GROUP)
                 PsiElement(DeclarativeTokenType.{)('{')
                 PsiElement(DeclarativeTokenType.})('}')
         """.trimIndent()
@@ -68,12 +76,12 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeFactoryImpl(FACTORY)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(FACTORY)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.()('(')
-              DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
-                DeclarativeLiteralImpl(LITERAL)
+              PsiElement(ARGUMENTS_LIST)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.string)('"abc/def"')
               PsiElement(DeclarativeTokenType.))(')')
         """.trimIndent()
@@ -90,16 +98,16 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeBlockImpl(BLOCK)
-              DeclarativeFactoryImpl(FACTORY)
-                DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(BLOCK)
+              PsiElement(FACTORY)
+                PsiElement(IDENTIFIER)
                   PsiElement(DeclarativeTokenType.token)('create')
                 PsiElement(DeclarativeTokenType.()('(')
-                DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
-                  DeclarativeLiteralImpl(LITERAL)
+                PsiElement(ARGUMENTS_LIST)
+                  PsiElement(LITERAL)
                     PsiElement(DeclarativeTokenType.string)('"foo"')
                 PsiElement(DeclarativeTokenType.))(')')
-              DeclarativeBlockGroupImpl(BLOCK_GROUP)
+              PsiElement(BLOCK_GROUP)
                 PsiElement(DeclarativeTokenType.{)('{')
                 PsiElement(DeclarativeTokenType.})('}')
         """.trimIndent()
@@ -115,19 +123,19 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeAssignmentImpl(ASSIGNMENT)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.=)('=')
-              DeclarativeLiteralImpl(LITERAL)
+              PsiElement(LITERAL)
                 PsiElement(DeclarativeTokenType.string)('"some\nstring')
-            DeclarativeAssignmentImpl(ASSIGNMENT)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('bar')
               PsiElement(DeclarativeTokenType.=)('=')
-              DeclarativeLiteralImpl(LITERAL)
+              PsiElement(LITERAL)
                 PsiElement(DeclarativeTokenType.number)('3')
-          """.trimIndent()
+              """.trimIndent()
       )
   }
 
@@ -139,11 +147,11 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeAssignmentImpl(ASSIGNMENT)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.=)('=')
-              DeclarativeLiteralImpl(LITERAL)
+              PsiElement(LITERAL)
                 PsiElement(DeclarativeTokenType.string)('"some\"string\""')
           """.trimIndent()
       )
@@ -158,13 +166,122 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeFactoryImpl(FACTORY)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(FACTORY)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.()('(')
-              DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
+              PsiElement(ARGUMENTS_LIST)
                 <empty list>
               PsiElement(DeclarativeTokenType.))(')')
+        """.trimIndent()
+      )
+  }
+
+  fun testOnlyComments() {
+    assertThat(
+      """
+        // comment
+        /* Some comment
+         foo()
+        */
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+          FILE
+            PsiComment(DeclarativeTokenType.line_comment)('// comment')
+            PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+        """.trimIndent()
+      )
+  }
+
+  fun testCommentsAfterEntity() {
+    assertThat(
+      """
+        dependencies {
+        }
+        /* Some comment
+         foo()
+        */
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          PsiElement(BLOCK)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('dependencies')
+            PsiElement(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiElement(DeclarativeTokenType.})('}')
+          PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+            """.trimIndent()
+      )
+  }
+
+
+  fun testCommentInsideBlock() {
+    assertThat(
+      """
+        // comment
+        dependencies {
+        /* Some comment
+         foo()
+        */
+        }
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          PsiComment(DeclarativeTokenType.line_comment)('// comment')
+          PsiElement(BLOCK)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('dependencies')
+            PsiElement(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+              PsiElement(DeclarativeTokenType.})('}')
+        """.trimIndent()
+      )
+  }
+
+  fun testCommentInsideBlock2() {
+    assertThat(
+      """
+        plugins{
+         /*apply(libs.plugins.app)*/
+         apply(libs.plugins.lib)
+        }
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          PsiElement(BLOCK)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('plugins')
+            PsiElement(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/*apply(libs.plugins.app)*/')
+              PsiElement(FACTORY)
+                PsiElement(IDENTIFIER)
+                  PsiElement(DeclarativeTokenType.token)('apply')
+                PsiElement(DeclarativeTokenType.()('(')
+                PsiElement(ARGUMENTS_LIST)
+                  PsiElement(QUALIFIED)
+                    PsiElement(QUALIFIED)
+                      PsiElement(BARE)
+                        PsiElement(IDENTIFIER)
+                          PsiElement(DeclarativeTokenType.token)('libs')
+                      PsiElement(DeclarativeTokenType..)('.')
+                      PsiElement(IDENTIFIER)
+                        PsiElement(DeclarativeTokenType.token)('plugins')
+                    PsiElement(DeclarativeTokenType..)('.')
+                    PsiElement(IDENTIFIER)
+                      PsiElement(DeclarativeTokenType.token)('lib')
+                PsiElement(DeclarativeTokenType.))(')')
+              PsiElement(DeclarativeTokenType.})('}')
         """.trimIndent()
       )
   }
@@ -178,31 +295,31 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       .isEqualTo(
         """
           FILE
-            DeclarativeFactoryImpl(FACTORY)
-              DeclarativeIdentifierImpl(IDENTIFIER)
+            PsiElement(FACTORY)
+              PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.()('(')
-              DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
-                DeclarativeLiteralImpl(LITERAL)
+              PsiElement(ARGUMENTS_LIST)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.string)('"hello, world!"')
                 PsiElement(DeclarativeTokenType.,)(',')
-                DeclarativeLiteralImpl(LITERAL)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.string)('"foo"')
                 PsiElement(DeclarativeTokenType.,)(',')
-                DeclarativeLiteralImpl(LITERAL)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.number)('123')
                 PsiElement(DeclarativeTokenType.,)(',')
-                DeclarativeLiteralImpl(LITERAL)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.number)('456')
                 PsiElement(DeclarativeTokenType.,)(',')
-                DeclarativeLiteralImpl(LITERAL)
+                PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.boolean)('true')
                 PsiElement(DeclarativeTokenType.,)(',')
-                DeclarativeFactoryImpl(FACTORY)
-                  DeclarativeIdentifierImpl(IDENTIFIER)
+                PsiElement(FACTORY)
+                  PsiElement(IDENTIFIER)
                     PsiElement(DeclarativeTokenType.token)('bar')
                   PsiElement(DeclarativeTokenType.()('(')
-                  DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
+                  PsiElement(ARGUMENTS_LIST)
                     <empty list>
                   PsiElement(DeclarativeTokenType.))(')')
               PsiElement(DeclarativeTokenType.))(')')

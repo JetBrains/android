@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
@@ -129,7 +129,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     }
   }
 
-  fun configurationTypeIsSupported(runConfiguration: RunConfiguration): Boolean {
+  private fun configurationTypeIsSupported(runConfiguration: RunConfiguration): Boolean {
     if (runConfiguration is PreferGradleMake) return true
 
     return (ApplicationManager.getApplication().isUnitTestMode || IdeInfo.getInstance().isAndroidStudio)
@@ -137,7 +137,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
            && runConfiguration.project.getProjectSystem() is GradleProjectSystem
   }
 
-  fun configurationTypeIsEnabledByDefault(runConfiguration: RunConfiguration): Boolean = runConfiguration is PreferGradleMake
+  private fun configurationTypeIsEnabledByDefault(runConfiguration: RunConfiguration): Boolean = runConfiguration is PreferGradleMake
 
   override fun configureTask(runConfiguration: RunConfiguration, task: MakeBeforeRunTask): Boolean {
     val dialog = GradleEditTaskDialog(runConfiguration.project)
@@ -203,9 +203,9 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   fun isSyncNeeded(project: Project, abis: Collection<String>): SyncNeeded {
     // Only trigger sync if both
     //   The project have native modules, synced with v1 (needsAbiSyncBeforeRun)
-    //   The ABI is avaliable, but it hasn't been synced yet
+    //   The ABI is available, but it hasn't been synced yet
     for (module in ModuleManager.getInstance(project).modules) {
-      val ndkModel = get(module!!)
+      val ndkModel = NdkModuleModel.get(module)
       val androidModel = GradleAndroidModel.get(module)
       if (ndkModel != null && androidModel != null) {
         if (ndkModel.ndkModel.needsAbiSyncBeforeRun) {
@@ -493,7 +493,7 @@ private fun build(
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
     // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
-    // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
+    // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidRunConfigurationBase run configurations only. Therefore,
     //       since this is not about unit tests compilation it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
     // Um, except that AndroidWearConfiguration now exists.

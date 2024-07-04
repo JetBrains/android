@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.adtui.compose.REFRESH_BUTTON
+import com.android.tools.adtui.status.REFRESH_BUTTON
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut

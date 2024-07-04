@@ -68,10 +68,10 @@ public class ScoutTest6 extends SceneTest {
                  "    android:id=\"@+id/textview1\"\n" +
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"40dp\"/>");
-    List<NlComponent> list = myModel.getComponents().get(0).getChildren();
+    List<NlComponent> list = myModel.getTreeReader().getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.CreateVerticalChain, list,true);
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
-    Scout.inferConstraintsAndCommit (myModel.getComponents());
+    Scout.inferConstraintsAndCommit (myModel.getTreeReader().getComponents());
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +

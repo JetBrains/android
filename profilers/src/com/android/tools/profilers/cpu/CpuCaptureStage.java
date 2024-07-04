@@ -234,15 +234,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
       return null;
     }
 
-    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
-      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
-      if (traceType == TraceType.PERFETTO) {
-        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile, traceId);
-        return null; // prevent Profiler UI from opening the trace
-      }
-    }
-
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
     return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
                                profilers.getSession().getPid());
@@ -359,6 +350,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
     logEnterStage();
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
+
+    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
+      File captureFile = myCpuCaptureHandler.getCaptureFile();
+      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
+      if (traceType == TraceType.PERFETTO) {
+        // Pass the trace to the Perfetto Web UI
+        getStudioProfilers().getIdeServices().getMainExecutor().execute(
+          () -> PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile)
+        );
+        // Update the UI notifying the user that the trace is being loaded by the Perfetto Web UI
+        getStudioProfilers().getIdeServices().getMainExecutor().execute(
+          () -> {
+            getStudioProfilers().getSessionsManager().resetSessionSelection();
+            getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION));
+            setState(State.ANALYZING);
+          });
+        return; // prevent Profiler UI from opening the trace
+      }
+    }
+
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
@@ -373,7 +385,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
             getStudioProfilers().getIdeServices().getMainExecutor().execute(
               () -> {
                 // Deselect the imported session so user may import it again to retry.
-                getStudioProfilers().getSessionsManager().setSession(Common.Session.getDefaultInstance());
+                getStudioProfilers().getSessionsManager().resetSessionSelection();
                 getStudioProfilers().setStage(new NullMonitorStage(
                   getStudioProfilers(),
                   "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace."));
@@ -385,14 +397,21 @@ public class CpuCaptureStage extends Stage<Timeline> {
           myCapture = capture;
           onCaptureParsed(capture);
           setState(State.ANALYZING);
-          trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), TaskFinishedState.COMPLETED);
+          if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+            trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                              TaskFinishedState.COMPLETED);
+          }
         }
       }
       catch (Exception ex) {
         // Logging if an exception happens since setState may trigger various callbacks.
         Logger.getInstance(CpuCaptureStage.class).error(ex);
       }
-    }, finishedState -> trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), finishedState));
+    }, finishedState -> {
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), finishedState);
+      }
+    });
   }
 
   @Override

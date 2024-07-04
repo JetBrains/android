@@ -42,6 +42,8 @@ public class SupportNewAnnotationsTest {
                                                   "import android.content.Context\n" +
                                                   "import android.location.LocationManager\n" +
                                                   "\n";
+  private static final String MAIN_ACITVITY = "/app/src/main/java/com/google/myapplication/MainActivity.kt";
+  private static final String MANIFEST_FILE = "app/src/main/AndroidManifest.xml";
 
   /**
    * Support for new Annotations (Permissions)
@@ -89,7 +91,7 @@ public class SupportNewAnnotationsTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editorFixture = ideFrame.getEditor();
 
-    editorFixture.open("/app/src/main/java/com/google/myapplication/MainActivity.kt")
+    editorFixture.open(MAIN_ACITVITY)
       .moveBetween("", "import android")
       .enterText(IMPORT_STATEMENTS)
       .moveBetween("activity_main)", "")
@@ -104,6 +106,28 @@ public class SupportNewAnnotationsTest {
 
     GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
 
+    // Add ACCESS_FINE_LOCATION permissions
+    // Verify the permissions are updated in Android Manifest file.
+    Wait.seconds(10)
+      .expecting("Wait for access for fine location is added")
+      .until(()-> {
+        selectMenuFromQuickFixAction(editorFixture, "Add Permission ACCESS_FINE_LOCATION");
+        GuiTests.refreshFiles();
+        return editorFixture.open(MANIFEST_FILE).getCurrentFileContents().contains("ACCESS_FINE_LOCATION");
+      });
+
+    // Update permission checks
+    selectMenuFromQuickFixAction(editorFixture, "Add permission check");
+    GuiTests.refreshFiles();
+
+    //Verify permissions are updated in the file.
+    String fileContents = editorFixture.getCurrentFileContents();
+    assertThat(fileContents).contains("ActivityCompat#requestPermissions");
+    assertThat(fileContents).contains("ActivityCompat.checkSelfPermission");
+  }
+
+  private void selectMenuFromQuickFixAction(EditorFixture editorFixture, String label){
+    editorFixture.open(MAIN_ACITVITY);
     editorFixture.moveBetween("getSystem", "Service");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -113,27 +137,14 @@ public class SupportNewAnnotationsTest {
     editorFixture.invokeAction(EditorFixture.EditorAction.ESCAPE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    GuiTests.refreshFiles();
     Wait.seconds(5)
       .expecting("Wait needed to reduce flakiness.");
 
     editorFixture.moveBetween("getSystem", "Service");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    editorFixture.invokeQuickfixAction("Add Permission ACCESS_FINE_LOCATION");
+    editorFixture.invokeQuickfixAction(label);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    Wait.seconds(5)
-      .expecting("Wait needed to reduce flakiness.");
-
-    editorFixture.moveBetween("getSys", "temService");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    editorFixture.invokeQuickfixAction("Add permission check");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    String fileContents = editorFixture.getCurrentFileContents();
-    assertThat(fileContents).contains("ActivityCompat#requestPermissions");
-    assertThat(fileContents).contains("ActivityCompat.checkSelfPermission");
   }
 }
 

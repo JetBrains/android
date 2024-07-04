@@ -241,6 +241,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   protected void validateBeforeRun(@NotNull Executor executor, @NotNull DataContext dataContext) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
+    AndroidDebugger<?> debugger = getAndroidDebuggerContext().getAndroidDebugger();
+    if (executor instanceof DefaultDebugExecutor && debugger != null) {
+      DeployTarget deployTarget = getDeployTarget();
+      if (deployTarget != null) {
+        List<AndroidDevice> devices = deployTarget.getDevices(getProject()).getDevices();
+        NativeDebugOnRemoteDeviceChecker deviceChecker = new NativeDebugOnRemoteDeviceChecker(getProject());
+        boolean ok = deviceChecker.showWarningIfNeeded(debugger, devices);
+        if (!ok) {
+          throw new ExecutionException("Native debug session on a remote device was aborted");
+        }
+      }
+    }
+
     ValidationUtil.promptAndQuickFixErrors(getProject(), dataContext, errors);
   }
 

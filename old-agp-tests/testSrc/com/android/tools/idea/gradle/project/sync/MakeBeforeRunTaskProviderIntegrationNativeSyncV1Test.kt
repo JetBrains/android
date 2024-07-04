@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
@@ -55,7 +55,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 
@@ -88,7 +88,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
 
       fun runOn(abi: Abi) {
         val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-        runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
+        runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
       }
 
       runOn(Abi.ARMEABI_V7A)
@@ -101,7 +101,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 

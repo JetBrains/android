@@ -22,8 +22,8 @@ import com.android.tools.idea.naveditor.property.ui.DefaultValueModel
 
 class DefaultValueModelTest : NavTestCase() {
   fun testDefaultValueModelInherit() {
-    val fragment1 = model.find("fragment1")!!
-    val action1 = model.find("action1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val action1 = model.treeReader.find("action1")!!
     val argument1 = fragment1.children.first { it.argumentName == "argument1" }
 
     val defaultValueModel = DefaultValueModel(argument1, action1)
@@ -37,8 +37,8 @@ class DefaultValueModelTest : NavTestCase() {
   }
 
   fun testDefaultValueModelOverride() {
-    val fragment1 = model.find("fragment1")!!
-    val action1 = model.find("action1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val action1 = model.treeReader.find("action1")!!
     val argument2 = fragment1.children.first { it.argumentName == "argument2" }
 
     val defaultValueModel = DefaultValueModel(argument2, action1)

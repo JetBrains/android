@@ -21,7 +21,7 @@ import com.android.tools.idea.concurrency.SyntaxErrorUpdate
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.syntaxErrorFlow
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -150,7 +150,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
   fun <K : PsiPreviewElement> CoroutineScope.initializeFlows(
     disposable: Disposable,
     previewModeManager: PreviewModeManager,
-    psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService,
+    psiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     invalidate: () -> Unit,
     requestRefresh: () -> Unit,
@@ -232,11 +232,15 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
               is FlowableCollection.Uninitialized -> false
               is FlowableCollection.Present ->
                 if (
-                  it.collection.isEmpty() && previewModeManager.mode.value is PreviewMode.UiCheck
+                  it.collection.isEmpty() &&
+                    (previewModeManager.mode.value is PreviewMode.AnimationInspection ||
+                      previewModeManager.mode.value is PreviewMode.Interactive ||
+                      previewModeManager.mode.value is PreviewMode.UiCheck)
                 ) {
-                  // If there are no previews for UI Check mode, then the original composable
-                  // was renamed or removed. We should quit UI Check mode and filter out this
-                  // value from the flow
+                  // If there are no previews for UI Check mode, Interactive Preview or Animation
+                  // Preview, then the original composable was renamed or removed, or some of the
+                  // corresponding @Preview annotation parameter was changed. We should quit the
+                  // current mode and restore the former value of the flow.
                   restorePreviousMode()
                   false
                 } else true
@@ -306,11 +310,11 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
               // problems removed.
               .filter {
                 isFastPreviewAvailable() &&
-                  psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
+                  psiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()
               }
               .filter { file ->
                 // We only care about this in Kotlin files when they are out of date.
-                psiCodeFileChangeDetectorService.outOfDateKtFiles
+                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles
                   .map { it.virtualFile }
                   .any { it == file }
               },
@@ -321,7 +325,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             // trigger a compilation. Otherwise, we will just refresh normally.
             if (
               isFastPreviewAvailable() &&
-                psiCodeFileChangeDetectorService.outOfDateKtFiles.isNotEmpty()
+                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles.isNotEmpty()
             ) {
               try {
                 requestFastPreviewRefresh()

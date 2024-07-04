@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.ddmlib.Client
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -87,8 +86,8 @@ class TestProjectSystem @JvmOverloads constructor(
     val provider = object : ApplicationProjectContextProvider, TestToken {
       override val expectedInstance: TestProjectSystem = this@TestProjectSystem
 
-      override fun getApplicationProjectContext(client: Client): ApplicationProjectContext {
-        return TestApplicationProjectContext(client.clientData.packageName ?: error("packagename must not be empty"))
+      override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext {
+        return TestApplicationProjectContext(info.applicationId ?: error("applicationId must not be empty"))
       }
     }
     project.extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
@@ -380,11 +379,11 @@ class TestProjectSystemBuildManager(
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
 
   override fun compileProject() {
-    simulateBuild(BuildMode.ASSEMBLE)
+    simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    simulateBuild(BuildMode.COMPILE)
+    simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {

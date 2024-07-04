@@ -99,9 +99,7 @@ public class CodecInfo {
         result.append("encoder: ").append(codecInfo.getName());
         result.append("\nmime type: ").append(mimeType);
         if (VERSION.SDK_INT >= 29) {
-          if (codecInfo.isHardwareAccelerated()) {
-            result.append(codecInfo.isHardwareAccelerated() ? " hardware accelerated" : " not hardware accelerated");
-          }
+          result.append(codecInfo.isHardwareAccelerated() ? " hardware accelerated" : " not hardware accelerated");
         }
         result.append("\nmax resolution: ").append(maxWidth).append("x").append(maxHeight);
         result.append("\nmin resolution: ").append(widths.getLower()).append("x").append(heights.getLower());

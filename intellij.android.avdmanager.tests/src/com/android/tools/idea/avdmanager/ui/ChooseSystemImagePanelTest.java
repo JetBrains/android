@@ -585,7 +585,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myFoldable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myFoldable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myFoldable));
-    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myFoldable));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi34ImageDescription, myFoldable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myResizable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi32ImageDescription, myResizable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi33ImageDescription, myResizable));
@@ -593,7 +594,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myRollable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myRollable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myRollable));
-    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myRollable));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi34ImageDescription, myRollable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myFreeform));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myFreeform));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myFreeform));

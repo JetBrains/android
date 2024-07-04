@@ -16,11 +16,12 @@ import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.io.EOFException
+import java.time.Duration
+import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.jetbrains.annotations.VisibleForTesting
-import java.time.Duration
-import java.util.concurrent.TimeoutException
 
 /**
  * Last message in batch will be posted after a delay, to allow for more log lines if another batch
@@ -151,6 +152,10 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
           .withCollector(LogcatProtoShellCollector(serialNumber, processNameMonitor))
           .execute()
           .collect { send(it) }
+      } catch (e: EOFException) {
+        LOGGER.debug { "Done collecting Logcat from device $serialNumber" }
+        channel.close()
+        return@channelFlow
       } catch (e: TimeoutException) {
         LOGGER.debug { "Done collecting Logcat from device $serialNumber after $duration" }
         channel.close()

@@ -19,6 +19,8 @@ import com.android.test.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -130,9 +132,15 @@ class PerfgateVisualLintAnalyzerTest {
     deviceIds.forEach { deviceId ->
       val configuration = RenderTestUtil.getConfiguration(module, activityLayout, deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
       filesToAnalyze.forEach { file ->
-        val nlModel = SyncNlModel.create(projectRule.fixture.projectDisposable, NlComponentRegistrar, facet, file, configuration)
+        val nlModel = SyncNlModel.create(
+          projectRule.fixture.projectDisposable,
+          NlComponentRegistrar,
+          BuildTargetReference.gradleOnly(facet),
+          file,
+          configuration
+        )
         val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
-        nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<NlModel.TagSnapshotTreeNode>())
+        nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<TagSnapshotTreeNode>())
         RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
           task.setDecorations(false)
           try {

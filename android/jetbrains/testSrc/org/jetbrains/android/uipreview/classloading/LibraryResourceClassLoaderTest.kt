@@ -19,10 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.idea.res.TestResourceIdManager
+import com.intellij.openapi.module.Module
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -150,5 +151,16 @@ class LibraryResourceClassLoaderTest {
     // load them from light classes created by this class loader
     classLoader.loadClass("com.example.mylibrary.R")
     classLoader.loadClass("com.example.mylibrary.R${'$'}layout")
+  }
+
+  @Test
+  fun `disposed module throws ClassNotFoundException`() {
+    val disposedModule = object: Module by androidProjectRule.module {
+      override fun isDisposed(): Boolean = true
+    }
+
+    val classLoader = LibraryResourceClassLoader(null, disposedModule, nullDelegatingClassLoader)
+    assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R") }
+    assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R${'$'}layout") }
   }
 }

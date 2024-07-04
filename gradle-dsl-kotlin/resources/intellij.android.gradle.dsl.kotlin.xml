@@ -1,5 +1,5 @@
 <!-- Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
-<idea-plugin package="com.android.tools.idea.gradle.dsl.parser.kotlin">
+<idea-plugin>
   <dependencies>
     <plugin id="org.jetbrains.kotlin"/>
   </dependencies>

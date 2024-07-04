@@ -16,11 +16,15 @@ import com.intellij.testGuiFramework.impl.GuiTestStarter
 import com.intellij.util.lang.JavaVersion
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import kotlin.io.path.absolute
+import kotlin.io.path.toPath
 
 /**
  * [GuiTestLauncher] handles the mechanics of preparing to launch the client IDE and forking the process. It can do this two ways:
@@ -205,34 +209,34 @@ object GuiTestLauncher {
     return File(binDir, javaName).path
   }
 
-  private fun getTestClasspath(): List<File> {
-    val classPath = System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
+  private fun getTestClasspath(): List<URL> {
+    val classPath = System.getProperty("java.class.path").split(File.pathSeparator).map(Path::of)
 
     if (TestUtils.runningFromBazel() && SystemInfo.isWindows && classPath.size == 1) {
       // We already got a classpath jar from Bazel, but we can't simply reuse it because:
       // a) PathClassLoader only handles files named "classpath.jar"
       // b) the Class-Path provided by Bazel is full of relative paths.
       // Our classpathJar is in a different location under TEST_TMPDIR, so we need to recompute the paths.
-      val prefix = classPath[0].parent
+      val prefix = classPath[0].parent.toUri().toURL()
 
-      JarFile(classPath[0]).use { jar ->
+      JarFile(classPath[0].toFile()).use { jar ->
         return jar.manifest.mainAttributes.getValue("Class-Path")
           .split(" ")
-          .map { File(prefix, it).normalize() }
+          .map { URL(prefix, it).toURI().toPath().normalize().toUri().toURL() }
       }
     }
     else {
-      return classPath
+      return classPath.map { it.toUri().toURL() }
     }
   }
 
   private fun buildClasspathJar() {
-    val files = getTestClasspath()
-    val prefix = if (SystemInfo.isWindows) "file:/" else "file:"
+    val testClasspath = getTestClasspath()
     val classpath = StringBuilder().apply {
-      for (file in files) {
-        assertThat(file).exists()
-        append(prefix + file.absolutePath.replace(" ", "%20").replace("\\", "/") + if (file.isDirectory) "/ " else " ")
+      for (url in testClasspath) {
+        assertThat(url.toURI().toPath()).exists()
+        append(url.toExternalForm())
+        append(" ")
       }
     }
 

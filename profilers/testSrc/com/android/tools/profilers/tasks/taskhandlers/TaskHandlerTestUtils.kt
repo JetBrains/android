@@ -64,7 +64,8 @@ object TaskHandlerTestUtils {
     }
   }
 
-  fun createDevice(versionCode: Int): Common.Device = Common.Device.newBuilder().setFeatureLevel(versionCode).build()
+  fun createDevice(versionCode: Int, cpuAbi: String? = "", isVirtual: Boolean = false): Common.Device =
+    Common.Device.newBuilder().setFeatureLevel(versionCode).setCpuAbi(cpuAbi).setIsEmulator(isVirtual).build()
 
   fun createProcess(isProfileable: Boolean): Common.Process = Common.Process.newBuilder().setExposureLevel(
     if (isProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE).build()

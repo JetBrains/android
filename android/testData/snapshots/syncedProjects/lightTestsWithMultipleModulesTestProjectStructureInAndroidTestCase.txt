@@ -40,8 +40,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -95,10 +93,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -168,10 +162,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<TEMP>/app/src/main/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -240,8 +230,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -307,8 +295,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -362,10 +348,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/lib/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -433,10 +415,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<TEMP>/lib/src/main/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -504,8 +482,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0

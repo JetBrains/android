@@ -28,10 +28,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import java.nio.file.Paths
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Paths
 
 class OpenWearHealthServicesPanelActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

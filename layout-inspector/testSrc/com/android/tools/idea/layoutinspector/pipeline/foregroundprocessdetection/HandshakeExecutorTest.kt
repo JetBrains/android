@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.profiler.proto.Commands
@@ -28,8 +29,8 @@ import com.android.tools.profiler.proto.Transport.ExecuteResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlockingStub
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.testFramework.ProjectRule
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -44,7 +45,6 @@ import org.junit.Test
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
-import kotlin.test.fail
 
 class HandshakeExecutorTest {
 
@@ -77,7 +77,7 @@ class HandshakeExecutorTest {
   fun setUp() {
     syncChannel = Channel()
 
-    scope = (projectRule.project as ComponentManagerEx).getCoroutineScope()
+    scope = projectRule.project.coroutineScope()
     workDispatcher = AndroidDispatchers.workerThread
     mockClient = mock()
     val mockStub = mock<TransportServiceBlockingStub>()

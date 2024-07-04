@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.client.api.LintClient
@@ -27,20 +29,21 @@ import com.android.tools.lint.detector.api.LintFix.LintFixGroup
 import com.android.tools.lint.detector.api.LintFix.ShowUrl
 import com.android.tools.lint.detector.api.Location
 import com.android.tools.lint.detector.api.Severity
-import com.android.utils.SdkUtils
+import com.android.tools.lint.detector.api.copySafe
+import com.android.utils.PositionXmlParser
 import com.intellij.codeInsight.intention.PriorityAction
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.codeInspection.util.IntentionFamilyName
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModCommandAction
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.Presentation
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -53,18 +56,22 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.toArray
-import java.io.File
+import java.io.IOException
 import java.util.Collections
+import javax.xml.parsers.ParserConfigurationException
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.core.util.toPsiDirectory
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
-import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportList
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.ImportPath
+import org.w3c.dom.Document
+import org.xml.sax.SAXException
 
 /**
  * IDE-side fix performer; delegates most work to the lint performer to create all the editing
@@ -75,10 +82,6 @@ import org.jetbrains.kotlin.resolve.ImportPath
 class LintIdeFixPerformer(client: LintClient, private val project: Project) :
   LintFixPerformer(client) {
 
-  override fun getSourceText(file: File): CharSequence {
-    return file.toVirtualFile()?.toPsiFile(project)?.text ?: ""
-  }
-
   override fun log(severity: Severity, message: String) {
     val log = LintIdeClient.LOG
     when {
@@ -86,31 +89,6 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
       severity == Severity.WARNING -> log.warn(message)
       else -> log.info(message)
     }
-  }
-
-  override fun createBinaryFile(fileData: PendingEditFile, contents: ByteArray) {
-    val file = fileData.file
-    if (!canReplaceExistingFileIfExists(project, file)) {
-      return
-    }
-    val parent = VfsUtil.createDirectoryIfMissing(file.parentFile.path) ?: return
-    val newFile = parent.createChildData(this, file.name)
-    newFile.setBinaryContent(contents)
-    // No formatting or selection, but let's open it if it's an image
-    if (fileData.open && SdkUtils.hasImageExtension(file.path)) {
-      val manager = FileEditorManager.getInstance(project)
-      manager.openFile(newFile, true, true)
-    }
-  }
-
-  override fun deleteFile(fileData: PendingEditFile) {
-    val virtualFile =
-      VfsUtil.findFileByIoFile(fileData.file, false)
-        ?: run {
-          fileData.file.delete()
-          return
-        }
-    virtualFile.delete(this)
   }
 
   override fun applyEdits(
@@ -191,7 +169,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
             return fixes
           }
 
-          return arrayOf(LintIdeFixPerformerFix(project, incident, fix))
+          return arrayOf(ModCommandLintQuickFix(LintIdeFixPerformerFix(project, incident, fix)))
         }
         is ShowUrl -> {
           return arrayOf(ShowUrlQuickFix(fix))
@@ -203,39 +181,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
         }
       }
 
-      return arrayOf(LintIdeFixPerformerFix(project, incident, fix))
-    }
-
-    /**
-     * Make sure the file doesn't already exist; if so, returns true. Else, asks the user whether
-     * they really want to replace it. If they say yes, returns true, otherwise returns false.
-     *
-     * In other words, if this method returns true, it's okay to proceed to create the file.
-     */
-    fun canReplaceExistingFileIfExists(project: Project, file: File): Boolean {
-      return canReplaceExistingFileIfExists(
-        project,
-        LocalFileSystem.getInstance().findFileByIoFile(file),
-      )
-    }
-
-    /**
-     * Make sure the file doesn't already exist; if so, returns true. Else, asks the user whether
-     * they really want to replace it. If they say yes, returns true, otherwise returns false.
-     *
-     * In other words, if this method returns true, it's okay to proceed to create the file.
-     */
-    fun canReplaceExistingFileIfExists(project: Project, file: VirtualFile?): Boolean {
-      if (file != null && !isUnitTestMode()) {
-        return Messages.showYesNoDialog(
-          project,
-          "${file.name} already exists; do you want to replace it?",
-          "Replace File",
-          null,
-        ) == Messages.YES
-      }
-
-      return true
+      return arrayOf(ModCommandLintQuickFix(LintIdeFixPerformerFix(project, incident, fix)))
     }
 
     fun addJavaImports(javaFile: PsiJavaFile, imports: List<String>) {
@@ -330,38 +276,6 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
       }
     }
 
-    private fun getEditor(
-      context: AndroidQuickfixContexts.Context,
-      file: PsiFile,
-      forceOpen: Boolean,
-    ): Editor? {
-      val editor = context.getEditor(file)
-      if (editor != null || !forceOpen) {
-        return editor
-      }
-      val manager = FileEditorManager.getInstance(file.project)
-      val editors = manager.openFile(file.virtualFile, true, true)
-      val textEditor = editors.firstOrNull { it is TextEditor } as? TextEditor
-      return textEditor?.editor
-    }
-
-    fun handleSelection(
-      selectionStartOffset: Int,
-      selectionEndOffset: Int,
-      context: AndroidQuickfixContexts.Context,
-      file: PsiFile,
-      forceOpen: Boolean = false,
-    ) {
-      if (context is AndroidQuickfixContexts.EditorContext && file.isPhysical) {
-        val editor = getEditor(context, file, forceOpen) ?: return
-        assert(selectionStartOffset <= selectionEndOffset)
-        if (selectionEndOffset <= editor.document.textLength) {
-          editor.caretModel.moveToOffset(selectionStartOffset)
-          editor.selectionModel.setSelection(selectionStartOffset, selectionEndOffset)
-        }
-      }
-    }
-
     fun getRangePointer(project: Project, range: Location?): SmartPsiFileRange? {
       if (range != null) {
         val start = range.start
@@ -380,6 +294,65 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
   }
 }
 
+open class LintIdeReadOnlyFileProvider(private val project: Project) :
+  LintFixPerformer.FileProvider {
+  @RequiresReadLock
+  override fun getFileContents(file: PendingEditFile): String {
+    return file.file.toPsiFile(project)?.text ?: ""
+  }
+
+  override fun getXmlDocument(file: PendingEditFile): Document? {
+    try {
+      return PositionXmlParser.parse(getFileContents(file))
+    } catch (e: Exception) {
+      when (e) {
+        is ParserConfigurationException,
+        is SAXException,
+        is IOException -> logger<LintIdeClient>().warn("Ignoring $file: Failed to parse XML: $e", e)
+        else -> throw e
+      }
+    }
+    return null
+  }
+
+  override fun createBinaryFile(fileData: PendingEditFile, contents: ByteArray) {
+    throw UnsupportedOperationException()
+  }
+
+  override fun deleteFile(fileData: PendingEditFile) {
+    throw UnsupportedOperationException()
+  }
+}
+
+@Suppress("UnstableApiUsage")
+class LintIdeReadWriteFileProvider(
+  private val project: Project,
+  private val updater: ModPsiUpdater,
+) : LintIdeReadOnlyFileProvider(project) {
+
+  override fun createBinaryFile(fileData: PendingEditFile, contents: ByteArray) {
+    val file = fileData.file
+
+    // TODO(b/319287252): find a better way when PsiBinaryFiles are supported by ModCreateFile, e.g.
+    // this should work:
+    //     val psiFile =
+    // updater.getWritable(file.parentFile.toPsiDirectory(project))?.createFile(file.name)!!
+    //     psiFile.parent?.virtualFile?.findChild(file.name)?.setBinaryContent(contents)
+    //     // No formatting or selection, but let's open it if it's an image
+    //     if (fileData.open && SdkUtils.hasImageExtension(file.path)) {
+    //       updater.moveCaretTo(psiFile)
+    //     }
+    if (!IntentionPreviewUtils.isIntentionPreviewActive()) {
+      file.parentFile?.mkdirs()
+      file.writeBytes(contents)
+    }
+  }
+
+  override fun deleteFile(fileData: PendingEditFile) {
+    updater.getWritable(fileData.file.toPsiFile(project))?.delete()
+  }
+}
+
 /**
  * A [LintIdeQuickFix] implementation which uses the [LintFixPerformer] behind the scenes. When
  * first constructed, it creates a list of [edits], tracking an affected range with a smart element
@@ -391,28 +364,25 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
  * While [LintFixPerformer] operates on plain files, here we map to VirtualFiles, PsiFiles and
  * Documents first.
  */
+@Suppress("UnstableApiUsage")
 private class LintIdeFixPerformerFix(
   private val project: Project,
-  val incident: Incident,
+  incident: Incident,
   val fix: LintFix,
-  name: String? = fix.getDisplayName(),
-  familyName: String? = fix.getFamilyName(),
+  private val name: String = fix.getDisplayName() ?: "Fix",
+  private val familyName: String = fix.getFamilyName() ?: "LintIdeFix",
   private val valueOverride: ((PendingEditFile, PendingEdit) -> String?)? = null,
-) : DefaultLintQuickFix(name ?: fix.getDisplayName() ?: "Fix", familyName ?: fix.getFamilyName()) {
+) : ModCommandAction {
+
   private val performer = LintIdeFixPerformer(LintIdeSupport.get().createClient(project), project)
   private val edits = LinkedHashMap<PendingEditFile, Pair<SmartPsiFileRange, CharSequence>?>()
 
-  init {
-    // Clear out some incident data not needed in the IDE so it's not unnecessarily hanging on
-    // to larger data structures
-    with(incident) {
-      project = null
-      scope = null
-      clientProperties = null
-    }
+  val incident = incident.copySafe()
 
+  init {
     // Collect edits
-    val affectedFiles = performer.registerFixes(incident, listOf(fix))
+    val affectedFiles =
+      performer.registerFixes(incident, listOf(fix), LintIdeReadOnlyFileProvider(project))
     val manager = SmartPointerManager.getInstance(project)
     for (file in affectedFiles) {
       val psiFile = file.file.toVirtualFile()?.toPsiFile(project)
@@ -434,21 +404,19 @@ private class LintIdeFixPerformerFix(
     }
   }
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean {
+  override fun getFamilyName(): @IntentionFamilyName String = familyName
+
+  override fun getPresentation(context: ActionContext): Presentation? {
     if (edits.isEmpty()) {
-      return false
+      return null
     }
     performer.deltas?.clear()
     for (entry in edits.entries) {
       val file = entry.key
       val pair: Pair<SmartPsiFileRange, CharSequence>? = entry.value
       val (pointer, contents) = pair ?: continue
-      val psiFile = pointer.containingFile ?: return false
-      val range = pointer.range ?: return false
+      val psiFile = pointer.containingFile ?: return null
+      val range = pointer.range ?: return null
       val start = range.startOffset
       val end = range.endOffset
 
@@ -465,23 +433,19 @@ private class LintIdeFixPerformerFix(
           ?.charsSequence
           ?.subSequence(start, end) ?: psiFile.text.substring(start, end)
       if (currentContents != contents) {
-        return false
+        return null
       }
     }
 
-    return true
+    return Presentation.of(name)
   }
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
-    // side effect: updates performer.deltas map
-    val applicable = isApplicable(startElement, endElement, context.type)
-    if (applicable) {
-      performer.applyEdits(performer.createFileProvider(), edits.keys.toList()) { fileData, edits ->
-        applyEdits(fileData, edits, context, startElement)
+  @Suppress("UnstableApiUsage")
+  override fun perform(context: ActionContext): ModCommand {
+    return ModCommand.psiUpdate(context) { updater ->
+      val fileProvider = LintIdeReadWriteFileProvider(project, updater)
+      performer.applyEdits(fileProvider, edits.keys.toList()) { fileData, edits ->
+        applyEdits(fileData, edits, updater)
       }
     }
   }
@@ -489,53 +453,30 @@ private class LintIdeFixPerformerFix(
   private fun applyEdits(
     fileData: PendingEditFile,
     edits: List<PendingEdit>,
-    context: AndroidQuickfixContexts.Context,
-    startElement: PsiElement,
+    updater: ModPsiUpdater,
   ) {
     if (edits.isEmpty()) {
       return
     }
 
-    if (fileData.createText && IntentionPreviewUtils.isIntentionPreviewActive()) {
-      return
-    }
+    val originalFile = fileData.file
 
-    var virtualFile = fileData.file.toVirtualFile()
-    if (virtualFile == null) {
+    var psiFile = originalFile.toPsiFile(project)
+    if (psiFile == null) {
       if (fileData.createText) {
-        val file = fileData.file
-        val parent = VfsUtil.createDirectoryIfMissing(file.parentFile.path) ?: return
-        val newFile = parent.createChildData(this, file.name)
-        virtualFile = newFile
+        psiFile =
+          updater
+            .getWritable(originalFile.parentFile.toPsiDirectory(project))
+            ?.createFile(originalFile.name)
       }
     } else {
-      // Null out the file, but it already exists, so ask the user
+      psiFile = updater.getWritable(psiFile)
       if (fileData.createText) {
-        if (!LintIdeFixPerformer.canReplaceExistingFileIfExists(project, virtualFile)) {
-          return
-        }
-        virtualFile.setBinaryContent("".toByteArray())
+        psiFile.fileDocument.setText("")
       }
     }
 
-    var file = virtualFile!!.toPsiFile(project) ?: return
-
-    // When previewing, only generate diffs for the preview file itself; for
-    // other fixes, ignore the element
-    if (
-      IntentionPreviewUtils.isIntentionPreviewActive() &&
-        startElement.containingFile.originalFile != file
-    ) {
-      return
-    }
-
-    // Handle the case where the fix is in a different file than the one
-    // being edited, while also considering that the current file may
-    // be a non-physical file synthesized during an intention preview.
-    val elementFile = startElement.containingFile
-    if (elementFile.originalFile == file) {
-      file = elementFile
-    }
+    val file = psiFile!!
 
     val delta = performer.deltas?.get(fileData) ?: 0
     val project = file.project
@@ -545,107 +486,84 @@ private class LintIdeFixPerformerFix(
 
     // First selection in the source (edits are sorted in reverse order so pick the last one)
     val firstSelection = edits.lastOrNull { it.selectStart != -1 }
+    var selectedRange: RangeMarker? = null
 
-    val document = context.getDocument(file)
-    if (document != null) {
-      documentManager.doPostponedOperationsAndUnblockDocument(document)
-      val originalLength = document.textLength
-      for (edit in edits) {
-        val replacement = valueOverride?.invoke(fileData, edit) ?: edit.replacement
-        val start = edit.startOffset + delta
-        val end = edit.endOffset + delta
-        document.replaceString(start, end, replacement)
-        modifiedRanges.add(
-          pointerManager.createSmartPsiFileRangePointer(
-            file,
-            TextRange.create(start, start + replacement.length),
-          )
+    val document = file.fileDocument
+    documentManager.doPostponedOperationsAndUnblockDocument(document)
+    val originalLength = document.textLength
+    for (edit in edits) {
+      val replacement = valueOverride?.invoke(fileData, edit) ?: edit.replacement
+      val start = edit.startOffset + delta
+      val end = edit.endOffset + delta
+      document.replaceString(start, end, replacement)
+      modifiedRanges.add(
+        pointerManager.createSmartPsiFileRangePointer(
+          file,
+          TextRange.create(start, start + replacement.length),
         )
+      )
 
-        if (firstSelection == edit) {
-          val selectionStart = start + firstSelection.selectStart
-          val selectionEnd = start + firstSelection.selectEnd
-          // Note: the selection model uses smart ranges (RangeMarker), so it will
-          // correctly adapt to any subsequent post-processing edits.
-          LintIdeFixPerformer.handleSelection(
-            selectionStart,
-            selectionEnd,
-            context,
-            file,
-            fileData.createText,
+      if (firstSelection == edit) {
+        // Use a smart RangeMarker to survive document changes such as reformatting etc. The
+        // ModCommand machinery will batch all edits and apply navigation (opening a file,
+        // selecting or highlighting text) after them, e.g. there will be a ModCompositeCommand
+        // consisting of a ModCreateFile (or Mod UpdateFileText), then a ModNavigate.
+        assert(firstSelection.selectStart <= firstSelection.selectEnd)
+        selectedRange =
+          document.createRangeMarker(
+            start + firstSelection.selectStart,
+            start + firstSelection.selectEnd,
           )
-        }
       }
-      documentManager.commitDocument(document)
+    }
+    documentManager.commitDocument(document)
 
-      val replaceStart = edits.last().startOffset
-      val replaceEnd = document.textLength - (originalLength - edits.first().endOffset)
-      // In order to apply multiple transformations in sequence, we use a smart range to keep
-      // track of where we are in the file.
-      val resultTextRange = TextRange.from(replaceStart, replaceEnd - replaceStart)
-      val resultSmartRange = pointerManager.createSmartPsiFileRangePointer(file, resultTextRange)
+    val replaceStart = edits.last().startOffset
+    val replaceEnd = document.textLength - (originalLength - edits.first().endOffset)
+    // In order to apply multiple transformations in sequence, we use a smart range to keep
+    // track of where we are in the file.
+    val resultTextRange = TextRange.from(replaceStart, replaceEnd - replaceStart)
+    val resultSmartRange = pointerManager.createSmartPsiFileRangePointer(file, resultTextRange)
 
-      val imports = fileData.imports
-      if (!imports.isNullOrEmpty()) {
+    val imports = fileData.imports
+    if (!imports.isNullOrEmpty()) {
+      when (file) {
+        is PsiJavaFile -> LintIdeFixPerformer.addJavaImports(file, imports)
+        is KtFile -> LintIdeFixPerformer.addKotlinImports(file, imports)
+      }
+    }
+
+    if (fileData.shortenReferences) {
+      val range = resultSmartRange.psiRange
+      if (range != null) {
+        val textRange = TextRange(range.startOffset, range.endOffset)
         when (file) {
-          is PsiJavaFile -> LintIdeFixPerformer.addJavaImports(file, imports)
-          is KtFile -> LintIdeFixPerformer.addKotlinImports(file, imports)
+          is PsiJavaFile -> LintIdeFixPerformer.shortenJavaReferencesInRange(file, textRange)
+          is KtFile -> ShortenReferencesFacility.getInstance().shorten(file, textRange)
         }
-      }
-
-      if (fileData.shortenReferences) {
-        val range = resultSmartRange.psiRange
-        if (range != null) {
-          val textRange = TextRange(range.startOffset, range.endOffset)
-          when (file) {
-            is PsiJavaFile -> LintIdeFixPerformer.shortenJavaReferencesInRange(file, textRange)
-            is KtFile -> ShortenReferencesFacility.getInstance().shorten(file, textRange)
-          }
-        }
-      }
-
-      if (fileData.reformat) {
-        val codeStyleManager = CodeStyleManager.getInstance(project)
-        val range = resultSmartRange.psiRange
-        if (range != null) {
-          codeStyleManager.reformatRange(file, range.startOffset, range.endOffset)
-        }
-      }
-
-      // Open editor as well. (If creating a new file with a selection, we've already
-      // forced the file to open above as part of handleSelection; in that case, don't
-      // call openFile again (because this will as a side effect clear the selection.)
-      if (
-        context is AndroidQuickfixContexts.EditorContext &&
-          (fileData.open && !(firstSelection != null && fileData.createText))
-      ) {
-        val manager = FileEditorManager.getInstance(project)
-        manager.openFile(virtualFile, true, true)
       }
     }
-  }
 
-  override fun generatePreview(
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-  ): IntentionPreviewInfo? {
-    // Disable intention preview if the replacement range is in a different
-    // file than the one being edited.
-    if (edits.size == 1) {
-      val edit = edits.values.first()?.first
-      if (edit == null || edit.containingFile != file.originalFile) {
-        return IntentionPreviewInfo.EMPTY
+    if (fileData.reformat) {
+      val codeStyleManager = CodeStyleManager.getInstance(project)
+      val range = resultSmartRange.psiRange
+      if (range != null) {
+        codeStyleManager.reformatRange(file, range.startOffset, range.endOffset)
       }
-    } else if (edits.size == 0) {
-      // Typically a file to be created. The newly created file is never the
-      // current preview one we're looking at
-      return IntentionPreviewInfo.EMPTY
     }
-    // If there's more than one file in the edit set, we might have one preview
-    // file (which should work) and other edits to other files. In applyEdits
-    // we'll do the right filtering.
-    return super.generatePreview(project, editor, file)
+
+    // Finish with navigation actions: open the file in the current editor, and apply the selection,
+    // if available.
+    if (fileData.open || (fileData.createText && firstSelection != null)) {
+      updater.moveCaretTo(psiFile)
+    }
+    if (selectedRange != null) {
+      val selectionStartOffset = selectedRange.startOffset
+      val selectionEndOffset = selectedRange.endOffset
+      if (selectionEndOffset <= file.viewProvider.document.textLength) {
+        updater.select(TextRange.create(selectionStartOffset, selectionEndOffset))
+      }
+    }
   }
 }
 
@@ -672,5 +590,7 @@ fun LintFix.toIdeFix(
   if (this !is LintFix.ReplaceString) {
     error("Cannot only override values on string replacements")
   }
-  return LintIdeFixPerformerFix(project, incident, this, valueOverride = valueOverride)
+  return ModCommandLintQuickFix(
+    LintIdeFixPerformerFix(project, incident, this, valueOverride = valueOverride)
+  )
 }

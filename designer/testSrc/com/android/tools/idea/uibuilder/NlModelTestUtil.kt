@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.runWriteAction
@@ -51,9 +54,9 @@ fun createNlModelFromTagName(
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
   val model =
-    NlModel.builder(
+    NlModel.Builder(
         androidFacet.module,
-        androidFacet,
+        BuildTargetReference.gradleOnly(androidFacet),
         file,
         configurationManager.getConfiguration(file),
       )
@@ -66,7 +69,7 @@ fun createNlModelFromTagName(
 }
 
 /** Returns the root component (aka, the first child of the model). */
-fun NlModel.getRoot() = this.components[0]!!
+fun NlModel.getRoot() = this.treeReader.components[0]!!
 
 /** Creates a new component from the provided String. */
 fun NlComponent.addChild(xmlTag: String): NlComponent {
@@ -86,12 +89,13 @@ private fun createComponent(xmlTag: String, nlModel: NlModel): NlComponent {
   return nlComponent
 }
 
-private class StubTagSnapshotTreeNode(private val component: NlComponent) :
-  NlModel.TagSnapshotTreeNode {
-  override fun getTagSnapshot(): TagSnapshot? = component.snapshot
+private class StubTagSnapshotTreeNode(private val component: NlComponent) : TagSnapshotTreeNode {
 
-  override fun getChildren(): MutableList<NlModel.TagSnapshotTreeNode> =
-    component.children.map { StubTagSnapshotTreeNode(it) }.toMutableList()
+  override val children: List<TagSnapshotTreeNode>
+    get() = component.children.map { StubTagSnapshotTreeNode(it) }.toMutableList()
+
+  override val tagSnapshot: TagSnapshot?
+    get() = component.snapshot
 }
 
 private class LightLayoutFile(xmlContent: String) :

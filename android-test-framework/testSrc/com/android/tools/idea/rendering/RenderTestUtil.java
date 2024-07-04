@@ -71,7 +71,9 @@ import org.jetbrains.annotations.Nullable;
 public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   public static final String HOLO_THEME = "@android:style/Theme.Holo";
-  private static final float MAX_PERCENT_DIFFERENT = 1.0f;
+
+  // AS Koala 2024.1.2 Canary 7 Merge: Increased rendering margin for IntelliJ
+  private static final float MAX_PERCENT_DIFFERENT = 2.0f;
 
   /**
    * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTestRule} instead.
@@ -177,12 +179,13 @@ public class RenderTestUtil {
     XmlFile xmlFile = (XmlFile)ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(xmlFile);
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
-      .withPsiFile(new PsiXmlFile(xmlFile))
-      .disableSecurityManager()
-      .withTopic(topic)
-      .setTestEventListener(testEventListener)
-      .build();
+    final CompletableFuture<RenderTask> taskFuture =
+      taskBuilder(renderService, BuildTargetReference.gradleOnly(facet), configuration, logger)
+        .withPsiFile(new PsiXmlFile(xmlFile))
+        .disableSecurityManager()
+        .withTopic(topic)
+        .setTestEventListener(testEventListener)
+        .build();
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
     return task;

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_CONTENTS
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_END
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_START
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeLexer
@@ -44,12 +41,14 @@ class DeclarativeParserDefinition : ParserDefinition {
 
   override fun getStringLiteralElements(): TokenSet = STRING_LITERAL_TOKENS
 
-  override fun createElement(node: ASTNode?): PsiElement = DeclarativeElementTypeHolder.Factory.createElement(node)
+  override fun createElement(node: ASTNode?): PsiElement =
+    throw UnsupportedOperationException(node?.elementType.toString()) // See DeclarativeASTFactory
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = DeclarativeFile(viewProvider)
 
   companion object {
     val FILE_ELEMENT_TYPE = IFileElementType(DeclarativeLanguage.INSTANCE)
-    val COMMENT_TOKENS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT_START, BLOCK_COMMENT_CONTENTS, BLOCK_COMMENT_END)
+    val COMMENT_TOKENS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT)
     val STRING_LITERAL_TOKENS = TokenSet.create(STRING)
   }
 }

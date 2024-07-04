@@ -21,7 +21,6 @@ import static com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent;
 import static com.android.tools.profilers.cpu.CpuCaptureParserUtil.getFileTraceType;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
@@ -81,14 +80,6 @@ public class CpuProfiler implements StudioProfiler {
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
-        }
-        else if (captureStage == null && Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
-                 PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
-          // special case when [PerfettoTraceWebLoader] had intercepted [captureStage] creation and opened the trace in the browser
-          // TODO(297379481): add verification that the trace was successfully loaded by [PerfettoTraceWebLoader]
-          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(
-            new NullMonitorStage(profilers, PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
-          );
         }
         else {
           profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);

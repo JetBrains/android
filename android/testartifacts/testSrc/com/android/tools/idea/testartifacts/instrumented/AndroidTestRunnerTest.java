@@ -28,7 +28,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DefaultStudioProgramRunner;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.FakeAndroidDevice;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.ExecutionException;
@@ -111,7 +111,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     AndroidTestApplicationLaunchTask androidTestTask = null;
     try {
       androidTestTask = ((AndroidTestRunConfigurationExecutor)config.getExecutor(env, myAndroidFacet,
-                                                                                 DeviceFutures.forDevices(
+                                                                                 FakeAndroidDevice.forDevices(
                                                                                    Arrays.asList(mockDevice)))).getApplicationLaunchTask(
         applicationIdProvider.getTestPackageName());
     }

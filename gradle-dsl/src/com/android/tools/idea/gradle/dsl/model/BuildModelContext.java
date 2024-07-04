@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
+import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -49,13 +51,17 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -76,10 +82,12 @@ public final class BuildModelContext {
     VirtualFile getGradleBuildFile(@NotNull Module module);
 
     @Nullable
-    @SystemIndependent String getGradleProjectRootPath(@NotNull Module module);
+    @SystemIndependent
+    String getGradleProjectRootPath(@NotNull Module module);
 
     @Nullable
-    @SystemIndependent String getGradleProjectRootPath(@NotNull Project project);
+    @SystemIndependent
+    String getGradleProjectRootPath(@NotNull Project project);
   }
 
   @NotNull
@@ -282,17 +290,36 @@ public final class BuildModelContext {
     for (VersionCatalogModel versionCatalogModel : gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
       String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
       if (from == null) continue;
-      checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      if (versionCatalogModel.from().getType() == FILES) {
+        checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      }
+      else {
+        checkImportedVersionCatalog(versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      }
     }
   }
 
   private Optional<GradleVersionCatalogFile> checkVersionCatalog(String filePath, String name) {
     @SystemIndependent String fromPath = toSystemIndependentName(filePath);
-    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
+    // based on getBaseDir - same as GradleModelSource
+    @SystemIndependent String rootPath = getBaseDirPath(getProject()).getPath();
     @SystemIndependent String path = String.join("/", rootPath, fromPath);
     VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
+  }
+
+  private Optional<GradleVersionCatalogFile> checkImportedVersionCatalog(String name) {
+    Map<String, String> map = getGradleVersionCatalogFiles(myProject);
+    String catalogPath = map.get(name);
+    if (catalogPath != null) {
+      VirtualFileSystem fileSystem = StandardFileSystems.local();
+      VirtualFile versionCatalogFile = fileSystem.findFileByPath(catalogPath);
+      if (versionCatalogFile == null) return Optional.empty();
+      return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
+    }
+
+    return Optional.empty();
   }
 
   private void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile) {
@@ -450,4 +477,18 @@ public final class BuildModelContext {
     return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
   }
 
+  // TODO AS Koala 2024.1.2 Canary 7 Merge
+  /*
+  This function was copied from
+  com.android.tools.idea.Projects, which lives in android-common.
+  Depending from gradle-dsl to android-common might not be desirable becasue this dependency will
+  bring in a lot of transitive dependencies (e.g. K1 and K2)
+   */
+  @NotNull
+  private static File getBaseDirPath(@NotNull Project project) {
+    if (project.isDefault()) {
+      return new File("");
+    }
+    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
+  }
 }

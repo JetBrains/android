@@ -29,8 +29,8 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.selections.recordings.RecordingListModelTest
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
@@ -125,13 +125,13 @@ class PastRecordingsTabModelTest {
 
   @Test
   fun `test task type and recording selection resets after recording deletion`() {
-    pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
-    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+    pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.LIVE_VIEW)
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.LIVE_VIEW)
 
-    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    myProfilers.addTaskHandler(ProfilerTaskType.LIVE_VIEW, LiveTaskHandler(myManager))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
-    RecordingListModelTest.startAndStopSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
+    RecordingListModelTest.startAndStopSession(device, process, Common.ProfilerTaskType.LIVE_VIEW, myManager)
     val recordingListModel = pastRecordingsTabModel.recordingListModel
     // Select the recording.
     val recording = recordingListModel.recordingList.value.first()

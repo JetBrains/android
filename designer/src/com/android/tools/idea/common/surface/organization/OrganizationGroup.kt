@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /** Information required for each organization group. */
-class OrganizationGroup(displayName: String) {
+class OrganizationGroup(val methodFqn: String, displayName: String) {
 
   private val _isOpened = MutableStateFlow(true)
 

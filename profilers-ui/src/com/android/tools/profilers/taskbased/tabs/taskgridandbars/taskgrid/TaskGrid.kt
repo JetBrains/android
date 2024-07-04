@@ -18,6 +18,7 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,13 +34,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.sessions.SessionItem
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.MAX_NUM_TASKS_IN_ROW
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_SPACE_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_VERTICAL_SPACE_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.MAX_NUM_TASKS_IN_ROW
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_GRID_VERTICAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_WIDTH_DP
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
@@ -62,7 +63,8 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
                  (TASK_GRID_HORIZONTAL_PADDING_DP * 2)))
         .padding(horizontal = TASK_GRID_HORIZONTAL_PADDING_DP),
       horizontalArrangement = Arrangement.spacedBy(TASK_GRID_HORIZONTAL_SPACE_DP),
-      verticalArrangement = Arrangement.spacedBy(TASK_GRID_VERTICAL_SPACE_DP)
+      verticalArrangement = Arrangement.spacedBy(TASK_GRID_VERTICAL_SPACE_DP),
+      contentPadding = PaddingValues(vertical = TASK_GRID_VERTICAL_PADDING_DP)
     ) {
       taskGridContent(selectedTask, this)
     }

@@ -64,10 +64,13 @@ interface EnumValue {
    * The default operation simply updates the value on the property. This method could be overridden
    * to do something different like as opening a dialog.
    *
+   * Use [newEnumValue] to let the UI controls see the new value before changing the property value.
+   *
    * A return value of true means the value of the [EnumValue] was assigned. A return value of false
    * means the property was updated with other means e.g. from a dialog or an action.
    */
-  fun select(property: PropertyItem): Boolean {
+  fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
+    newEnumValue.newValue(value)
     property.value = value
     return true
   }
@@ -101,7 +104,9 @@ interface EnumValue {
       object : EnumValue, CommonElementSelectability {
         override val display = "Loading..."
       }
-    val PROPERTY_ITEM_KEY: DataKey<PropertyItem> = DataKey.create("PROPERTY_ITEM_KEY")
+    val PROPERTY_ITEM_KEY = DataKey.create<PropertyItem>("PROPERTY_ITEM")
+    val NEW_ENUM_VALUE_CALLBACK_KEY =
+      DataKey.create<NewEnumValueCallback>("NEW_ENUM_VALUE_CALLBACK")
   }
 }
 
@@ -119,3 +124,8 @@ interface ActionEnumValue : EnumValue {
  */
 class HeaderEnumValue(val header: String, val headerIcon: Icon? = null) :
   EnumValue, CommonElementSelectability
+
+/** A callback for notifying the UI controls about a new selected enum value. */
+fun interface NewEnumValueCallback {
+  fun newValue(value: String?)
+}

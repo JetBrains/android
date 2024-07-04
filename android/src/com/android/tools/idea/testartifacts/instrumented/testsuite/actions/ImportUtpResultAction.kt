@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
@@ -29,7 +30,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -128,7 +128,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
-      (project as ComponentManagerEx).getCoroutineScope().launch {
+      project.coroutineScope().launch {
         testAdapter.forwardResults(testSuiteView)
       }
       toolWindow.activate(null)

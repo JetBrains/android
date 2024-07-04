@@ -22,12 +22,13 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
@@ -57,7 +58,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import javax.swing.Icon
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(device: IDevice) =
-  executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(device)))
+  executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(device)))
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures? = null) {
   val project = project
@@ -160,7 +161,7 @@ private fun createRunConfigurationFromPsiElement(
 
 @JvmOverloads
 fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int? = null): IDevice {
-  val device = mock<IDevice>()
+  val device = MockitoKt.mock<IDevice>()
   whenever(device.abis).thenReturn(abis.map { it.toString() })
   whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")

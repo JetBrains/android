@@ -41,7 +41,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = PixelDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
@@ -53,7 +53,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/drawable/test.xml", DRAWABLE_FILE_CONTENT)
 
     val modelsProvider = PixelDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertEmpty(nlModels)
   }
 
@@ -61,7 +61,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = PixelDeviceModelsProvider
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
-    modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
     Disposer.dispose(manager)
     TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
@@ -72,7 +72,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val bigFile = myFixture.addFileToProject("/res/layout-sw600dp/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = PixelDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myBuildTarget)
 
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
@@ -95,7 +95,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = PixelDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, false)

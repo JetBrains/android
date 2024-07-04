@@ -22,7 +22,7 @@ import com.intellij.ui.ScrollingUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.application.invokeLater
 import java.awt.Color
 import java.awt.Container
 import java.awt.Dimension

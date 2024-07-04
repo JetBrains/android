@@ -17,11 +17,14 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.tools.idea.streaming.device.DeviceState.Property
+import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.AppLocale
+import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -34,6 +37,7 @@ import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -53,7 +57,7 @@ import kotlin.coroutines.resumeWithException
  */
 internal class DeviceController(
   disposableParent: Disposable,
-  controlChannel: SuspendingSocketChannel
+  private val controlChannel: SuspendingSocketChannel
 ) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(javaClass.simpleName, 1)
@@ -109,6 +113,69 @@ internal class DeviceController(
            ?: throw RuntimeException("Unexpected response")
   }
 
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setDarkMode(darkMode: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DARK_MODE, darkMode)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setFontScale(fontScale: Int): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.FONT_SCALE, fontScale)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setScreenDensity(density: Int): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DENSITY, density)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setTalkBack(talkback: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.TALKBACK, talkback)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setSelectToSpeak(selectToSpeak: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.SELECT_TO_SPEAK, selectToSpeak)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setGestureNavigation(gestureNavigation: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.GESTURE_NAVIGATION, gestureNavigation)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setDebugLayout(debugLayout: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DEBUG_LAYOUT, debugLayout)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setAppLanguage(applicationId: String, locale: String): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.APP_LOCALE, AppLocale(applicationId, locale))
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun resetUiSettings(): UiSettingsResponse {
+    val request = ResetUiSettingsRequest(requestIdGenerator)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
   /**
    * Sends a request message to the device and returns the received response.
    * The [request] has to implement the [CorrelatedMessage] interface.
@@ -150,6 +217,7 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
+    applicationCoroutineScope(Dispatchers.IO).launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }

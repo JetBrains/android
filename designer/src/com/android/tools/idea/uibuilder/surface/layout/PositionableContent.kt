@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import java.awt.Dimension
 import java.awt.Insets
 
@@ -29,7 +30,7 @@ import java.awt.Insets
 interface PositionableContent {
 
   /** [PositionableContent] are grouped by [organizationGroup]. */
-  val organizationGroup: String?
+  val organizationGroup: OrganizationGroup?
 
   /** The current scale value of this [PositionableContent]. */
   @SurfaceScale val scale: Double
@@ -40,6 +41,12 @@ interface PositionableContent {
   @get:SwingCoordinate val x: Int
 
   @get:SwingCoordinate val y: Int
+
+  /**
+   * This value is true if this [PositionableContent] has got the focus in the surface (eg: is
+   * selected), false otherwise.
+   */
+  val isFocusedContent: Boolean
 
   /**
    * Returns the current size of the view content, excluding margins. This doesn't account the

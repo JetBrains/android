@@ -28,8 +28,17 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.lang.ref.WeakReference
 
+/** Provides the name and basic state properties of the Android module for logging. */
+interface RenderModelModuleLoggingId {
+
+  val name: String
+
+  val isDisposed: Boolean
+}
+
 /** Provides all the module-specific Android resources information required for rendering. */
-interface RenderModelModule : Disposable, IdeaModuleProvider {
+interface RenderModelModule : Disposable, IdeaModuleProvider, RenderModelModuleLoggingId {
+
   val assetRepository: AssetRepository?
 
   val manifest: RenderModelManifest?
@@ -52,10 +61,6 @@ interface RenderModelModule : Disposable, IdeaModuleProvider {
 
   /** The project current module belongs to. */
   val project: Project
-
-  val isDisposed: Boolean
-
-  val name: String
 
   val environment: EnvironmentContext
 

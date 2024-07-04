@@ -18,8 +18,8 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.base.Strings;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.openapi.util.text.Strings;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,12 +35,10 @@ import org.jetbrains.annotations.Nullable;
  * boot, etc.
  */
 public class EmulatorCommandBuilder {
-  /**
-   * The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on Linux
-   */
+  /** The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on Linux. */
   private final @NotNull Path myEmulator;
 
-  final @NotNull AvdInfo myAvd;
+  private final @NotNull AvdInfo myAvd;
 
   private @Nullable Path myAvdHome;
   private boolean myEmulatorSupportsSnapshots;
@@ -50,7 +48,8 @@ public class EmulatorCommandBuilder {
   private final @NotNull List<String> myStudioEmuParams;
 
   public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
-    myEmulator = emulator;
+    String emulatorBinary = avd.getUserSettings().get(AvdWizardUtils.EMULATOR_BINARY_KEY);
+    myEmulator = emulatorBinary == null ? emulator : emulator.resolveSibling(emulatorBinary).normalize();
     myAvd = avd;
 
     myStudioEmuParams = new ArrayList<>();
@@ -107,9 +106,12 @@ public class EmulatorCommandBuilder {
     }
 
     command.addParameters(myStudioEmuParams);
+    String avdCommandLineOptions = myAvd.getUserSettings().get(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
+    command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
+
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
-      String avdCommandLineOptions = myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
-      command.addParameters(sanitizeCommandLineOptions(avdCommandLineOptions));
+      avdCommandLineOptions = myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
+      command.addParameters(parseCommandLineOptions(avdCommandLineOptions));
     }
     return command;
   }
@@ -127,12 +129,11 @@ public class EmulatorCommandBuilder {
   void addSnapshotParameters(@NotNull GeneralCommandLine command) {
   }
 
-  private List<String> sanitizeCommandLineOptions(@Nullable String raw) {
-    String trimmed = Strings.nullToEmpty(raw).trim();
-    if (Strings.isNullOrEmpty(trimmed)) {
+  private List<String> parseCommandLineOptions(@Nullable String options) {
+    if (Strings.isEmptyOrSpaces(options)) {
       return Collections.emptyList();
     }
-    String withoutReturnLines = trimmed.replaceAll("\\n", " ");
-    return Arrays.asList(withoutReturnLines.split("\\s+"));
+    String withoutLineBreaks = options.trim().replaceAll("\\n", " ");
+    return Arrays.asList(withoutLineBreaks.split("\\s+"));
   }
 }

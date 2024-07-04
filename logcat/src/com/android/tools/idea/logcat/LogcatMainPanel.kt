@@ -45,12 +45,12 @@ import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarActi
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
-import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.RestartOrReloadLogcatAction
 import com.android.tools.idea.logcat.actions.SaveLogcatAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.devices.DeviceComboBox
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.files.LogcatFileData
@@ -142,17 +142,6 @@ import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Cursor
 import java.awt.Point
 import java.awt.event.ComponentAdapter
@@ -172,6 +161,17 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.io.path.pathString
 import kotlin.math.max
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
 private const val MAX_TAGS = 1000
@@ -200,6 +200,12 @@ class LogcatMainPanelFactory {
       override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {}
     }
 
+    class GameToolsAndroidProjectDetector : AndroidProjectDetector {
+      // Treat Game Tools projects as if they are not Android projects, because
+      // Game Tools does not use a real project, but uses the default project.
+      override fun isAndroidProject(project: Project): Boolean = false
+    }
+
     fun create(project: Project): JComponent {
       if (!IdeInfo.isGameTool()) {
         throw IllegalAccessException(
@@ -213,7 +219,7 @@ class LogcatMainPanelFactory {
         logcatColors = LogcatColors(),
         state = null,
         AndroidLogcatSettings.getInstance(),
-        AndroidProjectDetectorImpl(),
+        GameToolsAndroidProjectDetector(),
         hyperlinkDetector = NoopHyperlinkDetector(),
         foldingDetector = null,
       )
@@ -329,7 +335,7 @@ constructor(
   private val projectAppMonitor =
     ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
 
-  @VisibleForTesting internal var logcatServiceJob: Job? = null
+  @Volatile @VisibleForTesting internal var logcatServiceJob: Job? = null
   private var editorWidth = 0
 
   init {
@@ -337,7 +343,9 @@ constructor(
       installPopupHandler(
         object : ContextMenuPopupHandler() {
           override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
-            getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
+            getPopupActionGroup(
+              splitterPopupActionGroup.getChildren(null, ActionManager.getInstance())
+            )
         }
       )
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
@@ -491,7 +499,7 @@ constructor(
           } else {
             logcatServiceChannel.send(StopLogcat)
             withContext(uiThread) {
-              document.setText("")
+              clearDocument()
               noLogsBanner.isVisible = false
             }
           }
@@ -525,7 +533,7 @@ constructor(
             is StartLogcat -> startLogcat(it.device).also { isLogcatPaused = false }
             StopLogcat -> connectedDevice.set(null).let { null }
             PauseLogcat -> null.also { isLogcatPaused = true }
-            is LoadLogcatFile -> loadLogcatFile(it.logcatFileData).let { null }
+            is LoadLogcatFile -> loadLogcatFile(it.logcatFileData, loadFilter = true).let { null }
           }
       }
     }
@@ -712,7 +720,7 @@ constructor(
   @UiThread
   override fun reloadMessages() {
     editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
-    document.setText("")
+    clearDocument()
     coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(uiThread) { noLogsBanner.isVisible = isLogsMissing() }
@@ -722,6 +730,8 @@ constructor(
   override fun getConnectedDevice() = connectedDevice.get()
 
   override fun getSelectedDevice() = deviceComboBox.getSelectedDevice()
+
+  override fun getSelectedItem(): DeviceComboItem? = deviceComboBox.item
 
   override fun countFilterMatches(filter: LogcatFilter?): Int {
     return LogcatMasterFilter(filter)
@@ -740,7 +750,7 @@ constructor(
     return DefaultActionGroup().apply {
       add(ClearLogcatAction())
       add(PauseLogcatAction())
-      add(RestartLogcatAction())
+      add(RestartOrReloadLogcatAction())
       add(ScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
@@ -794,7 +804,7 @@ constructor(
     packages.clear()
     processNames.clear()
     documentAppender.reset()
-    withContext(uiThread) { document.setText("") }
+    withContext(uiThread) { clearDocument() }
   }
 
   override fun clearMessageView() {
@@ -830,7 +840,7 @@ constructor(
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
-        document.setText("")
+        clearDocument()
         noLogsBanner.isVisible = isLogsMissing()
         processMessages(systemMessages)
       }
@@ -842,6 +852,11 @@ constructor(
     pausedBanner.isVisible = false
     val device = connectedDevice.get() ?: return
     coroutineScope.launch { logcatServiceChannel.send(StartLogcat(device)) }
+  }
+
+  override fun reloadFile() {
+    val path = deviceComboBox.getSelectedFile() ?: return
+    coroutineScope.launch { loadLogcatFile(LogcatFileIo().readLogcat(path), loadFilter = false) }
   }
 
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
@@ -886,7 +901,7 @@ constructor(
   }
 
   private suspend fun startLogcat(device: Device): Job {
-    withContext(uiThread) { document.setText("") }
+    withContext(uiThread) { clearDocument() }
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
@@ -908,17 +923,25 @@ constructor(
     }
   }
 
-  private suspend fun loadLogcatFile(data: LogcatFileData?) {
-    val filter = data.safeGetFilter()
+  private suspend fun loadLogcatFile(data: LogcatFileData?, loadFilter: Boolean) {
     withContext(uiThread) {
-      document.setText("")
-      setFilter(filter)
+      clearDocument()
       messageBacklog.get().clear()
-      applyFilter(logcatFilterParser.parse(filter, headerPanel.filterMatchCase))
+      if (loadFilter) {
+        val filter = data.safeGetFilter()
+        if (filter != null) {
+          setFilter(filter)
+          applyFilter(logcatFilterParser.parse(filter, headerPanel.filterMatchCase))
+        }
+      }
     }
-    if (data != null) {
-      processMessages(data.logcatMessages)
-    }
+    data?.logcatMessages?.chunked(500)?.forEach { processMessages(it) }
+  }
+
+  @UiThread
+  private fun clearDocument() {
+    document.setText("")
+    messageFormatter.reset()
   }
 
   private fun scrollToEnd() {
@@ -996,9 +1019,9 @@ constructor(
   private sealed class LogcatServiceEvent {
     class StartLogcat(val device: Device) : LogcatServiceEvent()
 
-    object StopLogcat : LogcatServiceEvent()
+    data object StopLogcat : LogcatServiceEvent()
 
-    object PauseLogcat : LogcatServiceEvent()
+    data object PauseLogcat : LogcatServiceEvent()
 
     class LoadLogcatFile(val logcatFileData: LogcatFileData?) : LogcatServiceEvent()
   }
@@ -1021,7 +1044,7 @@ constructor(
   }
 }
 
-private fun LogcatPanelConfig.getInitialItem(): DeviceComboBox.DeviceComboItem? {
+private fun LogcatPanelConfig.getInitialItem(): DeviceComboItem? {
   return when {
     device != null -> DeviceItem(device)
     file != null -> FileItem(Path.of(file))

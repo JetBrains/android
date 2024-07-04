@@ -19,10 +19,12 @@ import static com.android.tools.idea.gradle.dsl.model.settings.VersionCatalogMod
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsDslElement.calculateDefaultCatalogName;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
@@ -52,7 +54,9 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
 
   @Override
   public boolean isInsignificantIfEmpty() {
-    return getName().equals("libs");
+    GradleDslElement grandParent = getParent()!=null ? getParent().getParent() : null;
+    String name = calculateDefaultCatalogName(grandParent);
+    return getName().equals(name);
   }
 
   @Override
@@ -63,5 +67,14 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
   @Override
   public void setMethodName(@Nullable String value) {
     this.methodName = value;
+  }
+
+  public boolean isFile() {
+    GradleDslElement element = getPropertyElement(FROM);
+    if(element == null) return true; // default catalog
+    if (element instanceof GradleDslMethodCall call) {
+      return "files".equals(call.getMethodName());
+    }
+    return false;
   }
 }

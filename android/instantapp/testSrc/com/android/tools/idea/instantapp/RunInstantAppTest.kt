@@ -28,8 +28,8 @@ import com.android.tools.idea.projectsystem.applicationProjectContextForTests
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationExecutor
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.createApp
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
@@ -99,7 +99,7 @@ class RunInstantAppTest {
       projectRule.project.getProjectSystem().getApplicationIdProvider(configSettings.configuration)!!,
       (configSettings.configuration as ModuleBasedConfiguration<*, *>).applicationProjectContextForTests,
       env,
-      DeviceFutures.forDevices(listOf(device)),
+      FakeAndroidDevice.forDevices(listOf(device)),
       projectRule.project.getProjectSystem().getApkProvider(configSettings.configuration)!!,
       applicationDeployer = applicationDeployer
     )

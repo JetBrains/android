@@ -289,8 +289,13 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         else {
           type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
           // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
+          // TODO(b/336569520): Remove "Profiler: End session .*" logs once the issue is fixed.
+          logger.info("Profiler: End session " + sessionId.toString() + " track allocations log, if allocation stop tracking requested; " +
+                      "isSessionAlive = " + profilers.sessionsManager.isSessionAlive.toString())
           if (endSession) {
             sessionId = session.sessionId
+            logger.info("Profiler: End session " + sessionId + " track allocations log, if end session is true; isSessionAlive = " +
+                        profilers.sessionsManager.isSessionAlive.toString())
           }
           setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
         }

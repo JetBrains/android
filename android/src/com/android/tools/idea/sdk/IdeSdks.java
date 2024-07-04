@@ -157,10 +157,10 @@ public class IdeSdks {
    * Returns the directory that the IDE is using as the home path for the Android SDK for new projects.
    */
   @Nullable
-  public File getAndroidSdkPath() {
-    Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+  public final File getAndroidSdkPath() {
+    File sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
     if (sdkPath != null) {
-      File candidate = sdkPath.toFile();
+      File candidate = sdkPath;
       if (AndroidSdkPath.isValid(candidate)) {
         return candidate;
       }

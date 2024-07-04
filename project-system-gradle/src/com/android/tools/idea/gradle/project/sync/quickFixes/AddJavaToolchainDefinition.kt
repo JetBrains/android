@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.quickFixes
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaLanguageVersionPropertyModel
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.module.Module
@@ -42,28 +42,45 @@ class AddJavaToolchainDefinition(
   override fun findUsages(): Array<UsageInfo> {
 
     val usages = ArrayList<UsageInfo>()
-    usages.addAll(modules.mapNotNull { projectBuildModel.getModuleBuildModel(it)?.findJavaToolchainVersionUsage() })
+    usages.addAll(modules.flatMap { projectBuildModel.getModuleBuildModel(it)?.findJavaToolchainVersionUsages() ?: emptyList() })
 
     usages.addIfNotNull(projectBuildModel.findFooJayPluginDefinitionUsageInfo())
 
     return usages.toTypedArray()
   }
 
-  private fun GradleBuildModel.findJavaToolchainVersionUsage(): UsageInfo? {
-    val languageVersionModel = java().toolchain().languageVersion()
-    val definedVersion = languageVersionModel.version()
-    if (definedVersion == null || definedVersion != versionToSet) {
-      val languageVersionOrHigherPsiElement = listOf(
-        languageVersionModel,
-        java().toolchain(),
-        java(),
-        this
-      ).firstNotNullOfOrNull { it.psiElement }
-      if (languageVersionOrHigherPsiElement != null) {
-        return SetToolchainUsageInfo(languageVersionOrHigherPsiElement, languageVersionModel, versionToSet)
+  private fun GradleBuildModel.findJavaToolchainVersionUsages(): List<UsageInfo> {
+    val foundUsages = mutableListOf<UsageInfo>()
+    kotlin().jvmToolchain().let { kotlinJvmToolchainModel ->
+      val definedVersion = kotlinJvmToolchainModel.toInt()
+      val jvmToolchainPsiElement = kotlinJvmToolchainModel.psiElement
+      if (jvmToolchainPsiElement != null && definedVersion != versionToSet) {
+        // It is correctly defined in kotlin block, not matching desired version.
+        foundUsages.add(SetKotlinJvmToolchainUsageInfo(jvmToolchainPsiElement, kotlinJvmToolchainModel, versionToSet))
       }
     }
-    return null
+    java().toolchain().languageVersion().let { languageVersionModel ->
+      val definedVersion = languageVersionModel.version()
+      val languageVersionPsiElement = languageVersionModel.psiElement
+      if (languageVersionPsiElement == null) {
+        // java.toolchain.languageVersion not found, need to add it only if kotlin.jvmToolchain was also not found.
+        if (foundUsages.isEmpty()) {
+          val languageVersionParentPsiElement = listOf(
+            java().toolchain(),
+            java(),
+            this
+          ).firstNotNullOfOrNull { it.psiElement }
+          if (languageVersionParentPsiElement != null) {
+            foundUsages.add(SetToolchainLanguageLevelUsageInfo(languageVersionParentPsiElement, languageVersionModel, versionToSet))
+          }
+        }
+      }
+      else if (definedVersion != versionToSet) {
+        // java.toolchain.languageVersion found, it needs to be updated.
+        foundUsages.add(SetToolchainLanguageLevelUsageInfo(languageVersionPsiElement, languageVersionModel, versionToSet))
+      }
+    }
+    return foundUsages
   }
 
   private fun ProjectBuildModel.findFooJayPluginDefinitionUsageInfo(): UsageInfo? {
@@ -86,7 +103,8 @@ class AddJavaToolchainDefinition(
   override fun performRefactoring(usages: Array<out UsageInfo>) {
     usages.forEach { usage ->
       when (usage) {
-        is SetToolchainUsageInfo -> usage.perform()
+        is SetToolchainLanguageLevelUsageInfo -> usage.perform()
+        is SetKotlinJvmToolchainUsageInfo -> usage.perform()
         is AddPluginUsageInfo -> usage.perform()
       }
     }
@@ -106,7 +124,7 @@ class AddJavaToolchainDefinition(
     }
   }
 
-  private class SetToolchainUsageInfo(
+  private class SetToolchainLanguageLevelUsageInfo(
     psiElement: PsiElement,
     val modelToSet: JavaLanguageVersionPropertyModel,
     val versionToSet: Int
@@ -115,6 +133,17 @@ class AddJavaToolchainDefinition(
       modelToSet.setVersion(versionToSet)
     }
   }
+
+  private class SetKotlinJvmToolchainUsageInfo(
+    psiElement: PsiElement,
+    val modelToSet: ResolvedPropertyModel,
+    val versionToSet: Int
+  ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+    fun perform() {
+      modelToSet.setValue(versionToSet)
+    }
+  }
+
   private class AddPluginUsageInfo(
     psiElement: PsiElement,
     val projectBuildModel: ProjectBuildModel

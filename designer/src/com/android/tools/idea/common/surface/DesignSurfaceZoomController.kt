@@ -31,7 +31,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-@SurfaceScale private const val MIN_SCALE: Double = 0.0
+@SurfaceScale private const val MIN_SCALE: Double = 0.03
 
 @SurfaceScale private const val MAX_SCALE: Double = 10.0
 

@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.logcat.message
 
+import com.android.tools.idea.logcat.message.LogLevel.ASSERT
+import com.android.tools.idea.logcat.message.LogLevel.DEBUG
+import com.android.tools.idea.logcat.message.LogLevel.ERROR
+import com.android.tools.idea.logcat.message.LogLevel.INFO
+import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
+import com.android.tools.idea.logcat.message.LogLevel.WARN
+
+private val LEVEL_BY_LETTER =
+  mapOf(
+    "V" to VERBOSE,
+    "D" to DEBUG,
+    "I" to INFO,
+    "W" to WARN,
+    "E" to ERROR,
+    "F" to ASSERT,
+    "A" to ASSERT,
+  )
+
 /** Log Level enum. */
 enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
   VERBOSE("verbose", 'V'),
@@ -32,7 +50,7 @@ enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
      * @return a `LogLevel` object or `null` if no match were found.
      */
     fun getByString(value: String): LogLevel? {
-      for (mode in LogLevel.values()) {
+      for (mode in entries) {
         if (mode.stringValue == value) {
           return mode
         }
@@ -46,13 +64,6 @@ enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
      * @param letter the letter matching a `LogLevel` enum
      * @return a `LogLevel` object or `null` if no match were found.
      */
-    fun getByLetter(letter: String): LogLevel? {
-      for (mode in LogLevel.values()) {
-        if (mode.priorityLetter == letter[0]) {
-          return mode
-        }
-      }
-      return null
-    }
+    fun getByLetter(letter: String): LogLevel? = LEVEL_BY_LETTER[letter]
   }
 }

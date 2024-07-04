@@ -25,7 +25,6 @@ import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsuppor
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
@@ -42,7 +41,7 @@ import kotlinx.coroutines.withContext
 class ComposeAnimationPreview(
   project: Project,
   val tracker: ComposeAnimationTracker,
-  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) :
@@ -69,18 +68,16 @@ class ComposeAnimationPreview(
       val clockTimeMs = newValue.toLong()
       val animationsToUpdate = animations.filterIsInstance<ComposeSupportedAnimationManager>()
 
-      sceneManagerProvider()?.executeInRenderSession(longTimeout) {
+      executeInRenderSession(longTimeout) {
         setClockTimes(
           animationsToUpdate.associate {
             val newTime =
-              (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
-              else clockTimeMs) - it.elementState.value.valueOffset
+              (if (it.frozenState.value.isFrozen) it.frozenState.value.frozenAt.toLong()
+              else clockTimeMs) - it.offset.value
             it.animation to newTime
           }
         )
       }
-
-      animationsToUpdate.forEach { it.loadProperties() }
     }
   }
 
@@ -102,7 +99,7 @@ class ComposeAnimationPreview(
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
     val clock = animationClock ?: return
 
-    sceneManagerProvider()?.executeInRenderSession(longTimeout) {
+    executeInRenderSession(longTimeout) {
       maxDurationPerIteration.value = clock.getMaxDurationMsPerIteration()
     }
   }
@@ -122,11 +119,10 @@ class ComposeAnimationPreview(
           animationClock!!,
           maxDurationPerIteration,
           timeline,
-          sceneManagerProvider(),
+          ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
           { updateTimelineElements() },
           scope,
         )
@@ -141,11 +137,10 @@ class ComposeAnimationPreview(
           animationClock!!,
           maxDurationPerIteration,
           timeline,
-          sceneManagerProvider(),
+          ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { longTimeout -> resetTimelineAndUpdateWindowSize(longTimeout) },
           { updateTimelineElements() },
           scope,
         )

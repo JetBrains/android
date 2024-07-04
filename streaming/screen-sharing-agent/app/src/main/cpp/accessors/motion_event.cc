@@ -37,6 +37,14 @@ JObject MotionEvent::ToJava() const {
       motion_event_class_.CallStaticObjectMethod(
           jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
           meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, flags);
+  if (obj.IsNull()) {
+    Log::E("MotionEvent.obtain(%lld, %lld, %d, %d, %s, %s, %d, %d, %.3g, %.3g, %d, %d, %d, %d, %d) returned null",
+           down_time_millis, event_time_millis, action, pointer_count,
+           JString::ValueOf(pointer_properties).c_str(), JString::ValueOf(pointer_coordinates).c_str(),
+           meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, display_id, flags);
+    jni_.CheckAndClearException();
+    return obj;
+  }
   if (action_button && set_action_button_method_) {
     obj.CallVoidMethod(set_action_button_method_, action_button);
   }

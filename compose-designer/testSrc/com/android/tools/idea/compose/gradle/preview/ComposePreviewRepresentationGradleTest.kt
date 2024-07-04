@@ -30,7 +30,8 @@ import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.PsiCodeFileUpToDateStatusRecorder
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -178,8 +179,7 @@ class ComposePreviewRepresentationGradleTest {
         "${fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withPanel.png"
       ),
       defaultPreviewRender,
-      // TODO(b/329653376): Update golden image and reduce threshold after IntelliJ 2024.1 merge
-      15.0,
+      10.0,
       20,
     )
   }
@@ -433,7 +433,8 @@ class ComposePreviewRepresentationGradleTest {
     runAndWaitForFastRefresh {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
       // disappear
-      PsiCodeFileChangeDetectorService.getInstance(project).markFileAsOutOfDate(psiMainFile)
+      PsiCodeFileUpToDateStatusRecorder.getInstance(project)
+        .markFileAsOutOfDateForTests(psiMainFile)
       project.messageBus
         .syncPublisher(ProblemListener.TOPIC)
         .problemsDisappeared(psiMainFile.virtualFile)
@@ -492,7 +493,7 @@ class ComposePreviewRepresentationGradleTest {
 
       // Change above should have marked that file as outdated
       delayUntilCondition(delayPerIterationMs = 500, timeout = 5.seconds) {
-        PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
+        PsiCodeFileOutOfDateStatusReporter.getInstance(project).outOfDateFiles.isNotEmpty()
       }
 
       // When reactivating, a full refresh should happen due to the modification of

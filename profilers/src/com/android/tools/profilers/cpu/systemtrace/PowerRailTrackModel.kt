@@ -73,14 +73,6 @@ class PowerRailTrackModel(dataSeries: PowerCounterData,
     // unit of a power rail is microwatt-seconds (µWs).
     const val POWER_RAIL_UNIT = "µWs"
 
-    // There are some naming discrepancies perfetto has between recorded
-    // power rail data names and the displayable name. For those
-    // exceptions we do a quick translation.
-    val powerRailDisplayNameMappings = mapOf(
-      "power.S10M_VDD_TPU_uws" to "power.rails.tpu",
-      "power.VSYS_PWR_DISPLAY_uws" to "power.rails.display"
-    )
-
     // This map defines the power rail groupings. Rails that map to the
     // same group will have their series data aggregated into one counter.
     val powerRailGroupMap = mapOf(

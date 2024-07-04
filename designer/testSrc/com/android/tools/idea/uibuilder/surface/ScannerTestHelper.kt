@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlTreeReader
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
@@ -31,6 +32,7 @@ import com.android.tools.rendering.RenderResultStats
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.mockito.Mockito
 
 /**
@@ -60,10 +62,12 @@ class ScannerTestHelper {
     val mixin = NlComponentMixin(nlComponent)
     whenever(nlComponent.mixin).thenReturn(mixin)
 
+    val displayName = MutableStateFlow("displayName")
+
     val nlModel =
       model
         ?: Mockito.mock(NlModel::class.java).apply {
-          whenever(modelDisplayName).thenReturn("displayName")
+          whenever(modelDisplayName).thenReturn(displayName)
           val mockFile = Mockito.mock(VirtualFile::class.java)
           whenever(virtualFile).thenReturn(mockFile)
         }
@@ -91,14 +95,14 @@ class ScannerTestHelper {
    * Generate the [RenderResult] with appropriate [ViewInfo] as well as matching [ValidatorResult]
    * based on [NlModel].
    *
-   * It creates a [ValidatorData.Issue] per [NlModel.flattenComponents]
+   * It creates a [ValidatorData.Issue] per [NlModel.treeReader.flattenComponents]
    */
   fun mockRenderResult(model: NlModel, injectedResult: ValidatorResult? = null): RenderResult {
     val result = Mockito.mock(RenderResult::class.java)
     val validatorResult = ValidatorResult.Builder()
     val viewInfos = ImmutableList.Builder<ViewInfo>()
 
-    model.components.forEach {
+    model.treeReader.components.forEach {
       generateResult(it, validatorResult)
       validatorResult.mIssues.add(createTestIssueBuilder().setSrcId(lastUsedIssueId).build())
 
@@ -127,7 +131,9 @@ class ScannerTestHelper {
     val model = Mockito.mock(NlModel::class.java)
     val builder = ImmutableList.Builder<NlComponent>()
     if (size == 0) {
-      whenever(model.components).thenReturn(builder.build())
+      val treeReader = Mockito.mock(NlTreeReader::class.java)
+      whenever(treeReader.components).thenReturn(builder.build())
+      whenever(model.treeReader).thenReturn(treeReader)
       return model
     }
 
@@ -141,11 +147,16 @@ class ScannerTestHelper {
       children.add(component)
     }
     whenever(root.children).thenReturn(children)
-    whenever(model.components).thenReturn(builder.build())
+    val treeReader = Mockito.mock(NlTreeReader::class.java)
+    whenever(treeReader.components).thenReturn(builder.build())
+    whenever(model.treeReader).thenReturn(treeReader)
 
     val module = Mockito.mock(Module::class.java)
     whenever(module.isDisposed).thenReturn(false)
     whenever(model.module).thenReturn(module)
+
+    val modelName = MutableStateFlow("")
+    whenever(model.modelDisplayName).thenReturn(modelName)
 
     val configuration = Mockito.mock(Configuration::class.java)
     whenever(model.configuration).thenReturn(configuration)

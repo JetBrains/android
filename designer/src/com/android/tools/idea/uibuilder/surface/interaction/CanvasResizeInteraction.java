@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface.interaction;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
@@ -142,11 +141,11 @@ public class CanvasResizeInteraction implements Interaction {
 
     boolean addSmallScreen = false;
     List<Device> devicesToShow;
-    if (HardwareConfigHelper.isWear(myOriginalDevice)) {
+    if (Device.isWear(myOriginalDevice)) {
       devicesToShow = configSettings.getDevices().stream().filter(
-        d -> HardwareConfigHelper.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
+        d -> Device.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
     }
-    else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
+    else if (Device.isTv(myOriginalDevice)) {
       // There are only two devices and they have the same dip sizes, so just use one of them
       devicesToShow = Collections.singletonList(configSettings.getDeviceById("tv_1080p"));
     }
@@ -310,7 +309,7 @@ public class CanvasResizeInteraction implements Interaction {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
 
     // Only show size buckets for mobile, not wear, tv, etc.
-    if (HardwareConfigHelper.isMobile(myOriginalDevice)) {
+    if (Device.isMobile(myOriginalDevice)) {
       layers.add(mySizeBucketLayer);
     }
 

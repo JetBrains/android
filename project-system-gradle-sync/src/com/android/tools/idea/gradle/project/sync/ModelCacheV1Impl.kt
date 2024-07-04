@@ -1013,7 +1013,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
       deprecatedPreMergedApplicationId = mergedFlavor.applicationId,
       deprecatedPreMergedTestApplicationId = mergedFlavor.testApplicationId,
-      desugaredMethodsFiles = listOf()
+      desugaredMethodsFiles = listOf(),
+      experimentalProperties = mapOf()
     )
     return ModelResult.create {
       IdeVariantWithPostProcessor(

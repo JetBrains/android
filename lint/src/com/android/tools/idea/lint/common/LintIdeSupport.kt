@@ -161,9 +161,6 @@ abstract class LintIdeSupport {
     return LintIdeClient(lintResult.getModule().project, lintResult)
   }
 
-  // Gradle
-  open fun updateToLatestStable(module: Module, externalModule: ExternalModule) {}
-
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
 
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false

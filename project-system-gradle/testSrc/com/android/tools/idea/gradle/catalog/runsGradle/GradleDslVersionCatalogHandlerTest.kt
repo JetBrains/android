@@ -22,6 +22,8 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -29,6 +31,8 @@ import com.intellij.psi.impl.light.LightClass
 import com.intellij.psi.util.PropertyUtilBase.getPropertyName
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.findReferenceByText
+import com.intellij.testFramework.utils.editor.commitToPsi
+import com.intellij.testFramework.utils.editor.reloadFromDisk
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
@@ -99,7 +103,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
-    assertThat(dependencies).containsExactly("constraint.layout", "guava", "androidx.room.ktx",
+    assertThat(dependencies).containsExactly("constraint.layout", "guava", "guava.common",
                                              "plugins.android.application", "plugins.kotlinAndroid",
                                              "versions.constraint.layout", "versions.guava", "versions.gradlePlugins.agp",
                                              "bundles.both")
@@ -188,13 +192,33 @@ class GradleDslVersionCatalogHandlerTest  {
 
   }
 
+  @Test
+  fun testDefaultCatalogName() {
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
+    val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
+    val settings = root.findFileByRelativePath("settings.gradle")!!
+    ApplicationManager.getApplication().runWriteAction {
+      settings.writeTextAndCommit("dependencyResolutionManagement {\n" +
+                         "          defaultLibrariesExtensionName = \"dep\"\n" +
+                         "        }")
+    }
+    val handler = GradleDslVersionCatalogHandler()
+    assertThat(handler.getDefaultCatalogName(project)).contains("dep")
+  }
+
+  private fun VirtualFile.writeTextAndCommit(text: String) {
+    findDocument()?.reloadFromDisk()
+    writeText(text)
+    findDocument()?.commitToPsi(projectRule.project)
+  }
+
   private fun testWithCustomCatalogFile(catalogContent:String, dependencies:Set<String>){
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val catalog = root.findFileByRelativePath("gradle/libs.versions.toml")!!
     ApplicationManager.getApplication().runWriteAction {
-      catalog.writeText(catalogContent)
+      catalog.writeTextAndCommit(catalogContent)
     }
     val source = root.findFileByRelativePath("app/build.gradle")!!
     val psiFile = PsiManager.getInstance(project).findFile(source)!!

@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.DynamicAppFeatureOnFeatureToken;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,14 +58,17 @@ public class DynamicAppUtils {
    */
   @NotNull
   public static List<Module> getFeatureModulesDependingOnFeature(@NotNull Module featureModule) {
-    if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
+    Project project = featureModule.getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+
+    DynamicAppFeatureOnFeatureToken<AndroidProjectSystem> token =
+      Arrays.stream(DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensions(project)).filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
+    if (token == null) {
       return ImmutableList.of();
     }
-
-    // We need to remove modules that belong to the same Gradle project as the feature module e.g the  androidTest and unitTest modules
-    return selectFeatureModules(removeModulesIntheSameGradleProject(
-      ModuleManager.getInstance(featureModule.getProject()).getModuleDependentModules(ModuleSystemUtil.getMainModule(featureModule))
-        .stream(), featureModule));
+    else {
+      return token.getFeatureModulesDependingOnFeature(projectSystem, featureModule);
+    }
   }
 
   /**
@@ -79,18 +81,17 @@ public class DynamicAppUtils {
    */
   @NotNull
   public static List<Module> getFeatureModuleDependenciesForFeature(@NotNull Module featureModule) {
-    if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
+    Project project = featureModule.getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+
+    DynamicAppFeatureOnFeatureToken<AndroidProjectSystem> token =
+      Arrays.stream(DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensions(project)).filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
+    if (token == null) {
       return ImmutableList.of();
     }
-
-    // We need to remove modules that belong to the same Gradle project as the feature module e.g the  androidTest and unitTest modules
-    return selectFeatureModules(removeModulesIntheSameGradleProject(
-      Stream.of(ModuleRootManager.getInstance(ModuleSystemUtil.getMainModule(featureModule)).getDependencies()), featureModule));
-  }
-
-  @NotNull
-  public static Stream<Module> removeModulesIntheSameGradleProject(@NotNull Stream<Module> modules, @NotNull Module moduleOfProjectToRemove) {
-    return modules.filter(m -> getHolderModule(m) != getHolderModule(moduleOfProjectToRemove));
+    else {
+      return token.getFeatureModuleDependenciesForFeature(projectSystem, featureModule);
+    }
   }
 
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
@@ -139,19 +140,5 @@ public class DynamicAppUtils {
 
   public static boolean featureNameEquals(@NotNull ApkFileUnit apkFileUnit, @NotNull String featureName) {
     return StringUtil.equals(featureName.replace('-', '_'), apkFileUnit.getModuleName());
-  }
-
-  /**
-   * Finds the modules in a stream that are either legacy or dynamic features. If there are multiple modules belonging to the same
-   * dynamic feature (i.e Gradle Project) this method will only return the holder modules.
-   */
-  @NotNull
-  private static List<Module> selectFeatureModules(Stream<Module> moduleStream) {
-    return moduleStream.map(ModuleSystemUtil::getHolderModule).distinct().filter(module -> {
-      AndroidModuleSystem moduleSystem = getModuleSystem(module);
-      AndroidModuleSystem.Type type = moduleSystem.getType();
-      return type == AndroidModuleSystem.Type.TYPE_FEATURE || // Legacy
-             type == AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE;
-    }).collect(Collectors.toList());
   }
 }

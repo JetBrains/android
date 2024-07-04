@@ -22,6 +22,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeElementType;
 import com.android.tools.idea.gradle.declarative.psi.impl.*;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 
 public interface DeclarativeElementTypeHolder {
 
@@ -36,9 +37,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
 
-  IElementType BLOCK_COMMENT_CONTENTS = new DeclarativeTokenType("BLOCK_COMMENT_CONTENTS");
-  IElementType BLOCK_COMMENT_END = new DeclarativeTokenType("*/");
-  IElementType BLOCK_COMMENT_START = new DeclarativeTokenType("/*");
+  IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
   IElementType LINE_COMMENT = new DeclarativeTokenType("line_comment");
   IElementType NULL = new DeclarativeTokenType("null");
@@ -54,34 +53,33 @@ public interface DeclarativeElementTypeHolder {
   IElementType TOKEN = new DeclarativeTokenType("token");
 
   class Factory {
-    public static PsiElement createElement(ASTNode node) {
-      IElementType type = node.getElementType();
-      if (type == ARGUMENTS_LIST) {
-        return new DeclarativeArgumentsListImpl(node);
+    public static CompositePsiElement createElement(IElementType type) {
+       if (type == ARGUMENTS_LIST) {
+        return new DeclarativeArgumentsListImpl(type);
       }
       else if (type == ASSIGNMENT) {
-        return new DeclarativeAssignmentImpl(node);
+        return new DeclarativeAssignmentImpl(type);
       }
       else if (type == BARE) {
-        return new DeclarativeBareImpl(node);
+        return new DeclarativeBareImpl(type);
       }
       else if (type == BLOCK) {
-        return new DeclarativeBlockImpl(node);
+        return new DeclarativeBlockImpl(type);
       }
       else if (type == BLOCK_GROUP) {
-        return new DeclarativeBlockGroupImpl(node);
+        return new DeclarativeBlockGroupImpl(type);
       }
       else if (type == FACTORY) {
-        return new DeclarativeFactoryImpl(node);
+        return new DeclarativeFactoryImpl(type);
       }
       else if (type == IDENTIFIER) {
-        return new DeclarativeIdentifierImpl(node);
+        return new DeclarativeIdentifierImpl(type);
       }
       else if (type == LITERAL) {
-        return new DeclarativeLiteralImpl(node);
+        return new DeclarativeLiteralImpl(type);
       }
       else if (type == QUALIFIED) {
-        return new DeclarativeQualifiedImpl(node);
+        return new DeclarativeQualifiedImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

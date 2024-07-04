@@ -52,7 +52,8 @@ private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
  *
  * Note: This is flaky by definition but given the Logcat ambiguous format, it's the best we can do.
  *
- * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
+ * This class is derived from the old `com.android.tools.idea.logcat.AndroidLogcatReceiver` which
+ * has since then been deleted.
  */
 internal class LogcatMessageAssembler(
   private val serialNumber: String,

@@ -76,7 +76,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     final NlModel model = target().getModel();
     final List<NlComponent> components = new ArrayList<>();
 
-    model.getComponents().forEach(component -> addComponents(tag, component, components));
+    model.getTreeReader().getComponents().forEach(component -> addComponents(tag, component, components));
     // Sort by visual order
     components.sort((component1, component2) -> {
       int delta = NlComponentHelperKt.getY(component1) - NlComponentHelperKt.getY(component2);

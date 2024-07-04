@@ -144,24 +144,22 @@ void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const 
   jni_env->SetFloatField(ref_, field, value);
 }
 
+string JObject::GetStringValue() const {
+  if (IsNull()) {
+    Log::Fatal(NULL_POINTER, "JObject::GetStringValue is called on a null object");
+  }
+  jstring jstr = static_cast<jstring>(ref_);
+  const char* localName = jni_env_->GetStringUTFChars(jstr, nullptr);
+  string result(localName);
+  jni_env_->ReleaseStringUTFChars(jstr, localName);
+  return result;
+}
+
 string JObject::ToString() const {
   if (ref_ == nullptr) {
     Log::Fatal(NULL_POINTER, "ToString is called on a null object");
   }
-  Jni jni = GetJni();
-  JClass clazz = GetClass(jni);
-  jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
-  JString str = JString(jni, jni->CallObjectMethod(ref_, method));
-  if (str.IsNull()) {
-    JThrowable exception = jni.GetAndClearException();
-    if (exception.IsNull()) {
-      Log::W("%s.toString returned null", clazz.GetName(jni).c_str());
-    } else {
-      Log::W("%s in %s.toString", exception.GetClass().GetName(jni).c_str(), clazz.GetName(jni).c_str());
-    }
-    return "";
-  }
-  return str.GetValue();
+  return JString::ValueOf(ref_);
 }
 
 void JObject::DeleteRef() noexcept {
@@ -354,6 +352,36 @@ string JString::GetValue() const {
   GetJni()->ReleaseStringUTFChars(ref(), localName);
   return result;
 }
+
+string JString::ValueOf(jobject obj) {
+  if (obj == nullptr) {
+    return "null";
+  }
+  Jni jni = Jvm::GetJni();
+  InitializeStatics(jni);
+  JObject str = string_class_.CallStaticObjectMethod(jni, value_of_method_, obj);
+  if (str.IsNull()) {
+    JThrowable exception = jni.GetAndClearException();
+    if (exception.IsNull()) {
+      Log::E("String.valueOf returned null");
+    } else {
+      Log::E("%s in String.valueOf", exception.GetClass().GetName(jni).c_str());
+    }
+    return "null";
+  }
+  return str.GetStringValue();
+}
+
+void JString::InitializeStatics(Jni jni) {
+  unique_lock lock(static_initialization_mutex_);
+  if (value_of_method_ == nullptr) {
+    string_class_ = jni.GetClass("java/lang/String").ToGlobal();
+    value_of_method_ = string_class_.GetStaticMethod(jni, "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;");
+  }
+}
+
+JClass JString::string_class_;
+jmethodID JString::value_of_method_ = nullptr;
 
 JObject JObjectArray::GetElement(JNIEnv* jni_env, int32_t index) const {
   return JObject(jni_env, jni_env->GetObjectArrayElement(ref(), index));

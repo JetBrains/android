@@ -19,9 +19,6 @@ import static com.android.tools.idea.uibuilder.NlModelBuilderUtil.getSyncLayoutl
 
 import com.android.SdkConstants.PreferenceTags;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -49,7 +46,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
-    NlComponent screen = model.getComponents().get(0);
+    NlComponent screen = model.getTreeReader().getComponents().get(0);
     List<NlComponent> actualCategoryChildren = screen.getChildren().get(1).getChildren();
     NlComponent preference = model.createComponent(XmlTagUtil.createTag(myModule.getProject(), "<CheckBoxPreference />"));
 

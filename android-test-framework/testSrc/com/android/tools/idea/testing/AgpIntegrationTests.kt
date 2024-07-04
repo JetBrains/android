@@ -23,6 +23,8 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
+const val GRADLE_SNAPSHOT_VERSION="8.10-20240613003017+0000"
+
 /**
  * An AGP Version definition to be used in AGP integration tests.
  */
@@ -82,6 +84,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
   AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
 
+  AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION),
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null);
   override fun toString(): String {
@@ -154,7 +157,8 @@ fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpInt
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST,
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT-> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_82 -> "_Agp_8.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_Agp_8.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_Agp_8.0_"

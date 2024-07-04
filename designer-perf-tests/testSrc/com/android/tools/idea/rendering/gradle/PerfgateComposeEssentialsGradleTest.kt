@@ -175,7 +175,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           .onOptionsChanged()
       }
       delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
-      previewView.galleryMode!!.triggerTabChange(
+      previewView.galleryMode!!.triggerSelectionChange(
         MapDataContext().also {
           it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
         },

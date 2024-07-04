@@ -145,7 +145,7 @@ public final class NlComponentTest extends LayoutTestCase {
   }
 
   public void testBasic() {
-    NlComponent linearLayout = myModel.find("linear");
+    NlComponent linearLayout = myModel.getTreeReader().find("linear");
     NlComponent textView = createComponent(TEXT_VIEW, "textView2");
     NlComponent button = createComponent(BUTTON, "button2");
 
@@ -176,7 +176,7 @@ public final class NlComponentTest extends LayoutTestCase {
   public void testEnsureNamespaceWithInvalidXmlTag() {
     myModel = createModel();
 
-    NlComponent textView = myModel.find("textView1");
+    NlComponent textView = myModel.getTreeReader().find("textView1");
     deleteXmlTag(textView);
     String prefix = textView.ensureNamespace("app", AUTO_URI);
     assertNull(prefix);
@@ -202,8 +202,8 @@ public final class NlComponentTest extends LayoutTestCase {
                                   .wrapContentWidth()
                                   .text("Initial"))).build();
 
-    NlComponent linearLayout = myModel.find("linear");
-    NlComponent textView = myModel.find("textView");
+    NlComponent linearLayout = myModel.getTreeReader().find("linear");
+    NlComponent textView = myModel.getTreeReader().find("textView");
     XmlTag textViewXmlTag = textView.getTag();
 
     AttributesTransaction transaction = textView.startAttributeTransaction();
@@ -274,7 +274,7 @@ public final class NlComponentTest extends LayoutTestCase {
       " android:layout_width=\"wrap_content\"" +
       " android:layout_height=\"wrap_content\" />");
 
-    NlComponent linearLayout = myModel.find("linear");
+    NlComponent linearLayout = myModel.getTreeReader().find("linear");
     NlComponent textView = createComponent(textViewXmlTag);
 
     linearLayout.addChild(textView);
@@ -317,8 +317,8 @@ public final class NlComponentTest extends LayoutTestCase {
                                   .withAttribute(TAG_LAYOUT, "@layout/test"))
                     ).build();
 
-    NlComponent button = myModel.find("button");
-    NlComponent include = myModel.find((component) -> component.getTagName().equals(TAG_INCLUDE));
+    NlComponent button = myModel.getTreeReader().find("button");
+    NlComponent include = myModel.getTreeReader().find((component) -> component.getTagName().equals(TAG_INCLUDE));
     assertNotNull(button);
     assertNotNull(include);
     NlWriteCommandActionUtil.run(button, "Remove obsolete attrs", button::removeObsoleteAttributes);
@@ -362,10 +362,10 @@ public final class NlComponentTest extends LayoutTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
 
-    NlComponent component = myModel.find("button");
+    NlComponent component = myModel.getTreeReader().find("button");
     NlWriteCommandActionUtil.run(component, "set myAttr", () -> component.setAttribute(AUTO_URI, "myAttr", "5"));
 
     @Language("XML")
@@ -431,9 +431,9 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n" +
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
-    NlComponent relativeLayout = myModel.getComponents().get(0).getChild(0);
+    NlComponent relativeLayout = myModel.getTreeReader().getComponents().get(0).getChild(0);
 
     XmlTag textViewXmlTag = createTagFromXml(
       "<TextView" +
@@ -491,9 +491,9 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
-    NlComponent relativeLayout = myModel.getComponents().get(0);
+    NlComponent relativeLayout = myModel.getTreeReader().getComponents().get(0);
 
     NlWriteCommandActionUtil.run(relativeLayout, "set attr", () -> relativeLayout.setAttribute(AUTO_URI, "something", "1"));
     UIUtil.dispatchAllInvocationEvents();
@@ -605,7 +605,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
   public void testAddTagsWithInvalidXmlTag() {
     myModel = createModel();
-    NlComponent frameLayout = myModel.find("frameLayout1");
+    NlComponent frameLayout = myModel.getTreeReader().find("frameLayout1");
     deleteXmlTag(frameLayout);
 
     NlComponent newTextView = createComponent(TEXT_VIEW, "textView2");
@@ -618,7 +618,7 @@ public final class NlComponentTest extends LayoutTestCase {
    */
   public void testDetachedNlComponentIsRoot() {
     myModel = createModel();
-    NlComponent textView = myModel.find("textView1");
+    NlComponent textView = myModel.getTreeReader().find("textView1");
     assertNotEquals(textView, textView.getRoot());
 
     // Detach from the mode
@@ -629,7 +629,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
   public void testSyntheticIdIsHidden() {
     myModel = createModelWithListView();
-    NlComponent listView = myModel.find(component -> component.getTagName().equals(LIST_VIEW));
+    NlComponent listView = myModel.getTreeReader().find(component -> component.getTagName().equals(LIST_VIEW));
     TagSnapshot snapshot = listView.getSnapshot();
     snapshot.setAttribute(ATTR_ID, ANDROID_URI, ANDROID_NS_NAME, NlComponent.ID_DYNAMIC);
     assertThat(listView.getAttribute(ANDROID_URI, ATTR_ID)).isNull();

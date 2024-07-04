@@ -18,15 +18,29 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
+import com.android.tools.idea.common.surface.sceneview.LabelPanel
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
+import kotlinx.coroutines.CoroutineScope
 
 /** Common preview [ActionManager] for the [DesignSurface]. */
-class CommonPreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
-  ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+class CommonPreviewActionManager(
+  surface: DesignSurface<LayoutlibSceneManager>,
+  private val navigationHandler: NavigationHandler,
+  supportAnimationPreview: Boolean = true,
+  supportInteractivePreview: Boolean = true,
+) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+  private val animationPreviewAction =
+    if (supportAnimationPreview) AnimationInspectorAction() else null
+  private val interactivePreviewAction =
+    if (supportInteractivePreview) EnableInteractiveAction() else null
+
   override fun registerActionsShortcuts(component: JComponent) {}
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
@@ -35,10 +49,19 @@ class CommonPreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) 
 
   override fun getSceneViewStatusIconAction(): AnAction = PreviewStatusIcon()
 
+  override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
+    return InteractiveLabelPanel(
+      sceneView.sceneManager.model.modelDisplayName,
+      sceneView.sceneManager.model.tooltip,
+      scope,
+      suspend { navigationHandler.handleNavigate(sceneView, false) },
+    )
+  }
+
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
-      listOfNotNull(AnimationInspectorAction(), EnableInteractiveAction())
-        .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
+      listOfNotNull(animationPreviewAction, interactivePreviewAction)
+        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
 }

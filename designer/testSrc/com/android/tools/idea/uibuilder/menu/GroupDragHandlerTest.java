@@ -105,7 +105,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         overflowItem(366, 162, 392, 96),
         overflowItem(366, 258, 392, 96))).build();
 
-    NlComponent group = model.find("group");
+    NlComponent group = model.getTreeReader().find("group");
     NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 
@@ -143,7 +143,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         group(368, 164, 1, 1).id("@+id/group"),
         overflowItem(366, 258, 392, 96))).build();
 
-    NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
+    NlComponent group = model.getTreeReader().flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
     NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 
@@ -181,7 +181,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         overflowItem(366, 258, 392, 96),
         group(368, 164, 1, 1).id("@+id/group"))).build();
 
-    NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
+    NlComponent group = model.getTreeReader().flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
     NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 

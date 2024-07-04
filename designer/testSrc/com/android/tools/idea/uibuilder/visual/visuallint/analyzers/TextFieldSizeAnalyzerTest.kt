@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -63,7 +64,12 @@ class TextFieldSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        BuildTargetReference.gradleOnly(facet),
+        file,
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -96,7 +102,12 @@ class TextFieldSizeAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        BuildTargetReference.gradleOnly(facet),
+        file,
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)

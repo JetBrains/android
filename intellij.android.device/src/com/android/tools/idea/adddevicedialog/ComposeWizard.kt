@@ -19,10 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.application.ModalityState
@@ -36,7 +38,6 @@ import java.nio.file.FileSystems
 import javax.swing.Action
 import javax.swing.JComponent
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
@@ -82,7 +83,7 @@ internal class ComposeWizard(
   private val finishButton = WizardButton("Finish")
 
   private val wizardPageScope =
-    object : WizardPageScope {
+    object : WizardPageScope() {
       override var nextActionName by nextButton::name
       override var finishActionName by finishButton::name
       override var nextAction by nextButton::action
@@ -114,7 +115,7 @@ internal class ComposeWizard(
 
   override fun createCenterPanel(): JComponent {
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
-    val component = JewelComposePanel {
+    val component = StudioComposePanel {
       CompositionLocalProvider(LocalProject provides project) {
         prevButton.action =
           if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
@@ -151,15 +152,28 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
  * Scope providing access to wizard buttons, allowing pages to enable / disable buttons and define
  * their behavior.
  */
-interface WizardPageScope {
-  var nextActionName: String
-  var finishActionName: String
-  var nextAction: WizardAction
-  var finishAction: WizardAction
+abstract class WizardPageScope {
+  abstract var nextActionName: String
+  abstract var finishActionName: String
+  abstract var nextAction: WizardAction
+  abstract var finishAction: WizardAction
+
+  private val state = mutableStateMapOf<Any, Any>()
+
+  @Suppress("UNCHECKED_CAST")
+  fun <T : Any> getOrCreateState(key: Class<T>, defaultState: () -> T): T =
+    state.computeIfAbsent(key) { defaultState() } as T
+
+  /**
+   * Retrieves wizard-scoped state of the given type, or creates it if it has not yet been created
+   * in this wizard.
+   */
+  inline fun <reified T : Any> getOrCreateState(noinline defaultState: () -> T): T =
+    getOrCreateState(T::class.java, defaultState)
 }
 
-internal val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
-internal val LocalProject = staticCompositionLocalOf<Project?> { throw AssertionError() }
+val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
+val LocalProject = staticCompositionLocalOf<Project?> { throw AssertionError() }
 
 private val DEFAULT_PREFERRED_SIZE: Dimension = JBUI.size(900, 650)
 private val DEFAULT_MIN_SIZE: Dimension = JBUI.size(600, 350)

@@ -93,7 +93,7 @@ JObject SurfaceControl::CreateDisplay(Jni jni, const char* name, bool secure) {
 
 void SurfaceControl::DestroyDisplay(Jni jni, jobject display_token) {
   InitializeStatics(jni);
-  surface_control_class_.CallStaticObjectMethod(jni, destroy_display_method_, display_token);
+  surface_control_class_.CallStaticVoidMethod(jni, destroy_display_method_, display_token);
 }
 
 void SurfaceControl::SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface) {
@@ -144,7 +144,7 @@ void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, Display
       set_display_power_mode_method_ = surface_control_class_.GetStaticMethod(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }
   }
-  Log::D("Calling setDisplayPowerMode(..., %d)", mode);
+  Log::D("Calling setDisplayPowerMode(..., %d)", static_cast<int>(mode));
   surface_control_class_.CallStaticVoidMethod(jni, set_display_power_mode_method_, display_token, mode);
 }
 

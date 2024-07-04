@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.lint;
 
+import static com.android.tools.idea.common.model.NlTreeReaderKt.findAttributeByPsi;
+
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -132,12 +134,12 @@ public class ModelLintIssueAnnotator {
         continue;
       }
 
-      NlComponent component = model.findViewByPsi(startElement);
+      NlComponent component = model.getTreeReader().findViewByPsi(startElement);
       if (component == null) {
         continue;
       }
 
-      ResourceReference attribute = model.findAttributeByPsi(startElement);
+      ResourceReference attribute = findAttributeByPsi(startElement);
       AttributeKey attributeKey =
         attribute != null ? new AttributeKey(component, attribute.getNamespace().getXmlNamespaceUri(), attribute.getName()) : null;
 

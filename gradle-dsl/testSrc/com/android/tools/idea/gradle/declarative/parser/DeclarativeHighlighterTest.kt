@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.declarative.parser
 
 import com.android.tools.idea.gradle.declarative.DeclarativeHighlighter
-import com.android.tools.idea.gradle.declarative.DeclarativeTextAttributes
+import com.android.tools.idea.gradle.declarative.color.DeclarativeColor
 import com.google.common.truth.Truth
-import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.tree.IElementType
 import org.junit.Assert
 import org.junit.Test
@@ -34,17 +33,14 @@ class DeclarativeHighlighterTest {
 
   @Test
   fun getTokenHighlights() {
-    checkMapping(DeclarativeElementTypeHolder.STRING, DeclarativeTextAttributes.STRING.keys)
-    checkMapping(DeclarativeElementTypeHolder.NUMBER, DeclarativeTextAttributes.NUMBER.keys)
-    checkMapping(DeclarativeElementTypeHolder.LINE_COMMENT, DeclarativeTextAttributes.LINE_COMMENT.keys)
-    checkMapping(DeclarativeElementTypeHolder.NULL, DeclarativeTextAttributes.KEYWORD.keys)
-    checkMapping(DeclarativeElementTypeHolder.BOOLEAN, DeclarativeTextAttributes.KEYWORD.keys)
+    checkMapping(DeclarativeElementTypeHolder.STRING, DeclarativeColor.STRING)
+    checkMapping(DeclarativeElementTypeHolder.NUMBER, DeclarativeColor.NUMBER)
+    checkMapping(DeclarativeElementTypeHolder.LINE_COMMENT, DeclarativeColor.COMMENT)
+    checkMapping(DeclarativeElementTypeHolder.NULL, DeclarativeColor.NULL)
+    checkMapping(DeclarativeElementTypeHolder.BOOLEAN, DeclarativeColor.BOOLEAN)
   }
 
-
-  private fun checkMapping(tokenType: IElementType, keys: Array<TextAttributesKey>){
-    for (key: TextAttributesKey in keys) {
-      Assert.assertSame(key, myHighlighter.getTokenHighlights(tokenType).first())
-    }
+  private fun checkMapping(tokenType: IElementType, color: DeclarativeColor) {
+    Assert.assertSame(color.textAttributesKey, myHighlighter.getTokenHighlights(tokenType).first())
   }
 }

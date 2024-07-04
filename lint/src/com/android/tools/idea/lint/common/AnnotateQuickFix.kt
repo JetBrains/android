@@ -74,18 +74,18 @@ class AnnotateQuickFix(
   override fun perform(context: ActionContext): ModCommand {
     val element = findPsiTarget(context) ?: return ModCommand.nop()
 
-    @Suppress("UnstableApiUsage")
-    return ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
+    @Suppress("UnstableApiUsage") return ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
   }
 
   fun findPsiTarget(context: ActionContext): PsiElement? {
     val rangeFile = rangePointer?.element?.containingFile
-    var element: PsiElement = context.file.findElementAt(context.offset)!!
+    var element: PsiElement = context.findLeaf()!!
 
     if (
       rangeFile != null &&
-      !(rangeFile.containingFile != context.file &&
-        context.file.originalFile == rangeFile.containingFile)) {
+        !(rangeFile.containingFile != context.file &&
+          context.file.originalFile == rangeFile.containingFile)
+    ) {
       val range = rangePointer?.range
       val newStartElement = rangeFile.findElementAt(range!!.startOffset)
       if (newStartElement != null) {

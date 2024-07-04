@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -53,17 +54,18 @@ public class NlModelBuilderUtil {
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
-    return model(AndroidFacet.getInstance(rule.getModule()), rule.getFixture(), resourceFolder, name, root);
+    return model(BuildTargetReference.gradleOnly(AndroidFacet.getInstance(rule.getModule())), rule.getFixture(), resourceFolder, name,
+                 root);
   }
 
   @NotNull
-  public static ModelBuilder model(@NotNull AndroidFacet facet,
+  public static ModelBuilder model(@NotNull BuildTargetReference buildTarget,
                                    @NotNull CodeInsightTestFixture fixture,
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
     return new ModelBuilder(
-      facet,
+      buildTarget,
       fixture,
       name,
       root,

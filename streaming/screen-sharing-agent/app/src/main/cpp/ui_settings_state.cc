@@ -24,12 +24,12 @@ UiSettingsState::UiSettingsState()
   : response_(-1) {
 }
 
-string UiSettingsState::app_locale_of(const string application_id) {
+string UiSettingsState::app_locale_of(const string application_id) const {
   auto it = app_locales_.find(application_id);
   return (it != app_locales_.end()) ? it->second : "";
 }
 
-vector<string> UiSettingsState::get_application_ids() {
+vector<string> UiSettingsState::get_application_ids() const {
   vector<string> application_ids;
   for (map<string, string>::const_iterator it = app_locales_.begin(); it != app_locales_.end(); it++) {
     application_ids.push_back(it->first);

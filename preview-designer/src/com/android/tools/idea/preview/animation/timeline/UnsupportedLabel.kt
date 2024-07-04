@@ -20,6 +20,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.DispatchToTargetAdapter
 import com.android.tools.idea.preview.animation.InspectorColors
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
@@ -42,7 +43,7 @@ private const val LEARN_MORE_LINK =
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
 class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
-  TimelineElement(0, null, minX, maxX) {
+  TimelineElement(0, SupportedAnimationManager.FrozenState(false), minX, maxX) {
 
   init {
     JBUIScale.addUserScaleChangeListener { resize() }

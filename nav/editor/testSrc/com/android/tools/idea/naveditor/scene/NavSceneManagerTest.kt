@@ -101,7 +101,7 @@ class NavSceneManagerTest : NavTestCase() {
     }
 
     val configuration = Mockito.mock(Configuration::class.java)
-    model.configuration = configuration
+    model.setConfiguration(configuration)
 
     val state = Mockito.mock(State::class.java)
     whenever(configuration.deviceState).thenReturn(state)

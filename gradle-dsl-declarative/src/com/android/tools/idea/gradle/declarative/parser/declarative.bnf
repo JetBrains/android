@@ -27,6 +27,7 @@
   psiImplClassSuffix="Impl"
 
   implements = "com.android.tools.idea.gradle.declarative.psi.DeclarativeElement"
+  extends="com.intellij.psi.impl.source.tree.CompositePsiElement"
   classHeader='generatedFilesHeader.txt'
 
   tokens = [
@@ -41,10 +42,7 @@
     OP_LPAREN = "("
     OP_RPAREN = ")"
     OP_COMMA = ","
-
-    BLOCK_COMMENT_START = "/*"
-    BLOCK_COMMENT_END = "*/"
-    BLOCK_COMMENT_CONTENTS = "BLOCK_COMMENT_CONTENTS"
+    BLOCK_COMMENT = "BLOCK_COMMENT"
 
     line_comment = "regexp://.*"
     number = "regexp:\d(\d|_+\d)*[Ll]?"
@@ -101,7 +99,6 @@ block ::= block_head block_group {
      factory=""
    ]
 }
-
 block_group ::= OP_LBRACE block_entry* OP_RBRACE {
    pin=1
    methods=[

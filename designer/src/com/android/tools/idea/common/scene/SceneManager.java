@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
-import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,41 +45,6 @@ import org.jetbrains.annotations.Nullable;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable, ResourceNotificationManager.ResourceChangeListener {
-  /**
-   * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
-   */
-  public interface SceneComponentHierarchyProvider {
-    /**
-     * Called by the {@link SceneManager} to create the initially {@link SceneComponent} hierarchy from the given
-     * {@link NlComponent}.
-     */
-    @NotNull
-    List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
-
-    /**
-     * Call by the {@link SceneManager} to trigger a sync of the {@link NlComponent} to the given {@link SceneComponent}.
-     * This allows for the SceneComponent to sync the latest data from the {@link NlModel} and update the UI
-     * representation. The method will be called when the {@link SceneManager} detects that there is the need to sync.
-     * This could be after a render or after a model change, for example.
-     */
-    void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
-  }
-
-  /**
-   * Listener that allows performing additional operations affected by the scene root component when updating the scene.
-   */
-  public interface SceneUpdateListener {
-    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface);
-  }
-
-  public static class DefaultSceneUpdateListener implements SceneUpdateListener {
-    @Override
-    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface<?> designSurface) {
-      // By default, don't do anything extra when updating the scene.
-    }
-  }
-
-  public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
   @NotNull private final DesignSurface<?> myDesignSurface;
@@ -90,7 +53,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
-  @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
+  @NotNull private final SceneUpdateListener mySceneUpdateListener;
 
   @NotNull private final Object myActivationLock = new Object();
   @GuardedBy("myActivationLock")
@@ -109,7 +72,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     @NotNull NlModel model,
     @NotNull DesignSurface<?> surface,
     @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
-    @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
+    @Nullable SceneUpdateListener sceneUpdateListener) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
@@ -171,7 +134,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * This includes marking the display list as dirty.
    */
   public void update() {
-    List<NlComponent> components = getModel().getComponents();
+    List<NlComponent> components = getModel().getTreeReader().getComponents();
     Scene scene = getScene();
     if (components.isEmpty()) {
       scene.removeAllComponents();
@@ -186,7 +149,13 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
       scene.removeAllComponents();
       scene.setRoot(null);
     }
-    mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
+
+    try {
+      mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
+    } catch (Throwable t) {
+      // The listener throwing should not prevent the rest of the code from working
+      Logger.getInstance(SceneManager.class).error(t);
+    }
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root;
@@ -226,25 +195,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @NotNull
   protected NlComponent getRoot() {
-    return getModel().getComponents().get(0).getRoot();
-  }
-
-  /**
-   * Returns false if the value of the tools:visible attribute is false, true otherwise.
-   * When a component is not tool visible, it will not be rendered by the Scene mechanism (though it might be by others, e.g. layoutlib),
-   * and no interaction will be possible with it from the design surface.
-   *
-   * @param component component to look at
-   * @return tool visibility status
-   */
-  public static boolean isComponentLocked(@NotNull NlComponent component) {
-    if (SUPPORTS_LOCKING) {
-      String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
-      if (attribute != null) {
-        return attribute.equals(SdkConstants.VALUE_TRUE);
-      }
-    }
-    return false;
+    return getModel().getTreeReader().getComponents().get(0).getRoot();
   }
 
   /**
@@ -256,24 +207,11 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
-    syncFromNlComponent(component);
+    mySceneComponentProvider.syncFromNlComponent(component);
 
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
-  }
-
-  /**
-   * Creates a {@link TemporarySceneComponent} in our Scene.
-   */
-  @NotNull
-  abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
-
-  /**
-   * Updates a single SceneComponent from its corresponding NlComponent.
-   */
-  protected final void syncFromNlComponent(SceneComponent sceneComponent) {
-    mySceneComponentProvider.syncFromNlComponent(sceneComponent);
   }
 
   @NotNull
@@ -306,10 +244,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
-
-  public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
-
-  public abstract Map<Object, ResourceReference> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {
@@ -376,24 +310,24 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     for (ResourceNotificationManager.Reason reason : reasons) {
       switch (reason) {
         case RESOURCE_EDIT:
-          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.RESOURCE_EDIT);
+          myModel.notifyModifiedViaUpdateQueue(ChangeType.RESOURCE_EDIT);
           break;
         case EDIT:
-          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.EDIT);
+          myModel.notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
           RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+          myModel.notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
           RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(NlModel.ChangeType.BUILD);
+          myModel.notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:
-          myModel.notifyModified(NlModel.ChangeType.CONFIGURATION_CHANGE);
+          myModel.notifyModified(ChangeType.CONFIGURATION_CHANGE);
           break;
       }
     }

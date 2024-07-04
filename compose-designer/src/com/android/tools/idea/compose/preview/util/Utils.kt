@@ -17,24 +17,21 @@ package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.compose.isValidPreviewLocation
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
-import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.allConstructors
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.toUElement
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
@@ -44,7 +41,7 @@ fun Segment?.containsOffset(offset: Int) =
  * ComposeViewAdapter.
  */
 fun SceneView.getRootComponent(): NlComponent? {
-  val root = sceneManager.model.components.firstOrNull()
+  val root = sceneManager.model.treeReader.components.firstOrNull()
   assert(root == null || root.tagName == COMPOSE_VIEW_ADAPTER_FQN) {
     "Expected the root component of a Compose Preview to be a $COMPOSE_VIEW_ADAPTER_FQN, but found ${root!!.tagName}"
   }
@@ -69,44 +66,16 @@ fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
 
 /**
  * Whether this function is not in a test file and is properly annotated with
- * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
- * enabled, and validating the location of Previews
+ * [COMPOSE_PREVIEW_ANNOTATION_FQN], and validating the location of Previews.
  *
  * @see [isValidPreviewLocation]
  */
-internal fun KtNamedFunction.isValidComposePreview() =
+internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isValidPreviewLocation() &&
-    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
-
-/**
- * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
- * which can be either:
- * 1. Top-level functions
- * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- *    constructor
- */
-internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
-  if (isTopLevel) {
-    return true
-  }
-
-  if (parentOfType<KtNamedFunction>() == null) {
-    // This is not a nested method
-    val containingClass = containingClass()
-    if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default
-      // (no parameter) constructor.
-      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-        return true
-      }
+    annotationEntries.any { annotation ->
+      (annotation.toUElement() as? UAnnotation)?.isPreviewAnnotation() == true
     }
-  }
-  return false
-}
-
-private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
 
 private fun KtNamedFunction.isInTestFile() =
   isTestFile(this.project, this.containingFile.virtualFile)

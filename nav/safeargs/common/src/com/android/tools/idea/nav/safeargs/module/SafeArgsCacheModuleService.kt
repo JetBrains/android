@@ -18,10 +18,20 @@ package com.android.tools.idea.nav.safeargs.module
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.psi.java.SafeArgsLightBaseClass
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
+
+/**
+ * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they
+ * can be recognized elsewhere and included in the search scope when necessary.
+ */
+private val BACKING_FILE_MARKER: Key<Any> = Key("SAFE_ARGS_CLASS_BACKING_FILE_MARKER")
 
 /**
  * A module service which keeps track of navigation XML file changes and generates safe args light
@@ -32,6 +42,17 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(module: Module) : Disposable.Default {
+
+  /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
+  private val moduleBindingClassMarker = Any()
+
+  /**
+   * Search scope which includes any light binding classes generated in this cache for the current
+   * module.
+   */
+  val safeArgsClassSearchScope: GlobalSearchScope =
+    SafeArgsClassSearchScope(moduleBindingClassMarker)
+
   private class Status(val directions: List<LightDirectionsClass>, val args: List<LightArgsClass>)
 
   private val currentStatus by
@@ -57,7 +78,9 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   ): Collection<LightDirectionsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
-      .map { destination -> LightDirectionsClass(navInfo, navEntry, destination) }
+      .map { destination ->
+        LightDirectionsClass(navInfo, navEntry, destination).withMarkedBackingFile()
+      }
       .toSet()
   }
 
@@ -67,7 +90,7 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   ): Collection<LightArgsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
-      .map { destination -> LightArgsClass(navInfo, navEntry, destination) }
+      .map { destination -> LightArgsClass(navInfo, navEntry, destination).withMarkedBackingFile() }
       .toSet()
   }
 
@@ -78,4 +101,22 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
       return facet.module.getService(SafeArgsCacheModuleService::class.java)!!
     }
   }
+
+  private fun <T : SafeArgsLightBaseClass> T.withMarkedBackingFile() = apply {
+    containingFile.viewProvider.virtualFile.putUserData(
+      BACKING_FILE_MARKER,
+      moduleBindingClassMarker,
+    )
+  }
+}
+
+/** Search scope which recognizes any safe args classes created with the given marker. */
+private class SafeArgsClassSearchScope(private val bindingClassMarker: Any) : GlobalSearchScope() {
+  override fun contains(file: VirtualFile): Boolean {
+    return file.getUserData(BACKING_FILE_MARKER) === bindingClassMarker
+  }
+
+  override fun isSearchInModuleContent(aModule: Module) = true
+
+  override fun isSearchInLibraries() = false
 }

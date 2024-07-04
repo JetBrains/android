@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
@@ -453,9 +453,7 @@ class VisualLintIssueNode(
     }
     val targetComponent = visualLintIssue.components.firstOrNull()
     val openLayoutValidationNavigatable =
-      if (
-        HardwareConfigHelper.isWear(visualLintIssue.models.firstOrNull()?.configuration?.device)
-      ) {
+      if (Device.isWear(visualLintIssue.models.firstOrNull()?.configuration?.device)) {
         SelectWearDevicesNavigatable(project)
       } else {
         SelectWindowSizeDevicesNavigatable(project)

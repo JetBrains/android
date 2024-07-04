@@ -19,8 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
-import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
-import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
 import com.android.tools.idea.util.toPathString
 import com.android.utils.TraceUtils.simpleId
 import com.android.utils.concurrency.getAndUnwrap
@@ -170,7 +168,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       }
     }
     ResourceUpdateTracer.logDirect {
-      "$simpleId.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
+      "$simpleId.removeStaleEntries retained ${ResourceUpdateTracer.getInstance().pathsForLogging(newResourceFolders, project)}"
     }
     cacheAsMap.keys.retainAll(newResourceFolders)
   }
@@ -185,7 +183,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     handler: BiConsumer<ResourceFolderRepository, VirtualFile>,
   ) {
     ResourceUpdateTracer.log {
-      "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) VFS change"
+      "ResourceFolderRegistry.dispatchToRepositories(${ResourceUpdateTracer.getInstance().pathForLogging(file)}, ...) VFS change"
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
@@ -199,7 +197,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
   fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener>) {
     ResourceUpdateTracer.log {
-      "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) PSI change"
+      "ResourceFolderRegistry.dispatchToRepositories(${ResourceUpdateTracer.getInstance().pathForLogging(file)}, ...) PSI change"
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     var dir = if (file.isDirectory) file else file.parent
@@ -360,7 +358,9 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
     ResourceUpdateTracer.log {
       val pathToLog =
         if (parent == null) childName
-        else pathForLogging(parent.toPathString().resolve(childName), registry.project)
+        else
+          ResourceUpdateTracer.getInstance()
+            .pathForLogging(parent.toPathString().resolve(childName), registry.project)
       "ResourceFolderVfsListener.onFileOrDirectoryCreated($pathToLog)"
     }
     val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return

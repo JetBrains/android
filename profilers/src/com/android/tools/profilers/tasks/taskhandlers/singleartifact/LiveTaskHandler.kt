@@ -40,15 +40,16 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
    */
   override fun startTask(args: TaskArgs) {
     val studioProfilers = sessionsManager.studioProfilers
-    val liveStage = LiveStage(studioProfilers)
+    val liveStage = LiveStage(studioProfilers, ::stopTask)
     studioProfilers.stage = liveStage
   }
 
   /**
-   * Task behavior on stop. This is never called in production code as the live task is self-contained (the stoppage of the task is
-   * within the live stage itself) hence its empty.
+   * Ends live view task by ending the session.
    */
-  override fun stopTask() {}
+  override fun stopTask() {
+    sessionsManager.endSelectedSession()
+  }
 
   /**
    * Reads the task arguments (@param args) for the backing task data, then uses it to load the task.

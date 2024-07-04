@@ -53,7 +53,7 @@ class NlScannerLayoutParserTest {
     val layoutParser = NlScannerLayoutParser()
     val helper = ScannerTestHelper()
     val componentSize = 4
-    val component = helper.buildModel(componentSize).components[0]
+    val component = helper.buildModel(componentSize).treeReader.components[0]
 
     layoutParser.buildViewToComponentMap(component)
 

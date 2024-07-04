@@ -33,7 +33,6 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
-import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
@@ -41,6 +40,7 @@ import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
+import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.TabbedPaneDefinition
 import com.android.tools.idea.insights.ui.createInsightToolBar
@@ -74,7 +74,6 @@ import java.awt.event.MouseEvent
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.BoxLayout.Y_AXIS
-import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -120,7 +119,7 @@ data class VitalsDetailsState(
       params.add("osVersion=${selectedOsVersion.joinToString(",") { it.displayVersion }}")
     }
     if (selectedDevices.isNotEmpty()) {
-      params.add("deviceName=${selectedDevices.joinToString(",") { it.model }}")
+      params.add("device=${selectedDevices.joinToString(",") { "${it.manufacturer}/${it.model}" }}")
     }
     if (selectedVisibility != null && selectedVisibility != VisibilityType.ALL) {
       params.add(
@@ -303,26 +302,20 @@ class VitalsIssueDetailsPanel(
     add(mainPanel, BorderLayout.CENTER)
   }
 
-  private fun createContentPanel(): JComponent {
-    val panel =
-      transparentPanel().apply {
-        border = JBUI.Borders.empty(0, 8)
-        layout = BoxLayout(this, Y_AXIS)
-        add(Box.createVerticalStrut(5))
-        add(createBodySection())
-        add(Box.createVerticalStrut(5))
-        add(
-          DetailsTabbedPane(
-              "VitalsDetails",
-              listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
-              stackTraceConsole,
-            )
-            .component
-        )
-        components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
-      }
-    return transparentPanel(BorderLayout()).apply { add(panel, BorderLayout.NORTH) }
-  }
+  private fun createContentPanel() =
+    transparentPanel(BorderLayout()).apply {
+      border = JBUI.Borders.empty(0, 8)
+      add(createBodySection(), BorderLayout.NORTH)
+      add(
+        DetailsTabbedPane(
+            "VitalsDetails",
+            listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.stackPanel)),
+            stackTraceConsole,
+          )
+          .component,
+        BorderLayout.CENTER,
+      )
+    }
 
   private fun createBodySection() =
     transparentPanel().apply {
@@ -415,7 +408,8 @@ class VitalsIssueDetailsPanel(
   override fun getData(dataId: String): Any? =
     when {
       REQUEST_SOURCE_KEY.`is`(dataId) -> PLAY_VITALS
-      CURRENT_ISSUE_KEY.`is`(dataId) -> detailsState.value.selectedIssue
+      // stack trace of sampleEvent can be used for all events
+      SELECTED_EVENT_KEY.`is`(dataId) -> detailsState.value.selectedIssue?.sampleEvent
       else -> null
     }
 }

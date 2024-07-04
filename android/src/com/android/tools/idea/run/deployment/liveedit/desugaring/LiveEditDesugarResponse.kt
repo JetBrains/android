@@ -27,13 +27,9 @@ class LiveEditDesugarResponse(val compilerOutput: LiveEditCompilerOutput) {
     apiToClasses[minApiLevel] = classes
   }
 
-  fun resetState() : Boolean {
-    return compilerOutput.resetState
-  }
-
-  fun groupIds(): List<Int> {
-    return compilerOutput.groupIds
-  }
+  val invalidateMode = compilerOutput.invalidateMode
+  val groupIds = compilerOutput.groupIds
+  val hasNonComposeChanges = compilerOutput.hasNonComposeChanges
 
   private fun getClasses(classNames : Set<String>, apiLevel: MinApiLevel): MutableMap<String, ByteArray> {
     if (!apiToClasses.containsKey(apiLevel)) {

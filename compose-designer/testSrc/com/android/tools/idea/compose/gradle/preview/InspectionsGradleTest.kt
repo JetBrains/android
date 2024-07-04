@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
-import com.android.tools.idea.compose.preview.PreviewNotSupportedInUnitTestFiles
+import com.android.tools.idea.compose.preview.ComposePreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
@@ -47,7 +47,7 @@ class InspectionsGradleTest {
 
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_unitTest() {
-    fixture.enableInspections(PreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
     val vFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
@@ -62,7 +62,7 @@ class InspectionsGradleTest {
 
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_androidTest() {
-    fixture.enableInspections(PreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
     val vFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,

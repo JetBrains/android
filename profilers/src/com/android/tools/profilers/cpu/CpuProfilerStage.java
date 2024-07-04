@@ -31,7 +31,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace.TraceInitiationType;
@@ -76,8 +75,8 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   // Clamp the property value between 5 Seconds and 5 Minutes, otherwise the user could specify arbitrarily small or large value.
-  // Default timeout value is 2 mintues (120 seconds).
-  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 120),
+  // Default timeout value is 10 seconds.
+  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 10),
                                                                           5 * 60));
 
   /**
@@ -390,8 +389,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_START_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
-      TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                 new TaskStartFailedMetadata(status, null, null));
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(status, null, null));
+      }
     }
   }
 
@@ -427,8 +428,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     }
     else if (!status.getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
       CpuCaptureMetadata captureMetadata = trackAndLogTraceStopFailures(status);
-      TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                new TaskStopFailedMetadata(null, null, captureMetadata));
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                  new TaskStopFailedMetadata(null, null, captureMetadata));
+      }
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
     }
@@ -481,14 +484,6 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
             getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
           }
         }, 10000);
-    }
-
-    // Trace ID handled by the PerfettoTraceWebLoader
-    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
-        PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
-      getStudioProfilers().getIdeServices().getMainExecutor().execute(
-        () -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
-      );
     }
   }
 

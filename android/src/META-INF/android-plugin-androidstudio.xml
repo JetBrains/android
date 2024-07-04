@@ -85,7 +85,8 @@
   </applicationListeners>
 
   <actions>
-    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+    <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"
+            icon="AllIcons.Actions.Help" text="Android Studio Help" description="Help"/>
     <reference ref="AndroidToolsGroup">
       <add-to-group group-id="ToolsMenu" anchor="first"/>
     </reference>

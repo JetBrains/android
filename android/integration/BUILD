@@ -298,21 +298,23 @@ maven_repository(
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
+        "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by CreateProjectTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
-        "@maven//:androidx.compose.compose-bom_2023.08.00",
+        "@maven//:androidx.compose.compose-bom_2024.04.01",
         "@maven//:androidx.compose.foundation.foundation-layout_1.5.0",
         "@maven//:androidx.compose.foundation.foundation_1.5.0",
         "@maven//:androidx.compose.material.material-icons-core_1.5.0",
         "@maven//:androidx.compose.material.material-ripple_1.5.0",
-        "@maven//:androidx.compose.material.material_1.5.0",
-        "@maven//:androidx.compose.material3.material3_1.1.1",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0",
+        "@maven//:androidx.compose.material.material_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material3.material3_1.2.1",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui_1.5.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.10.1",
+        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by CreateProjectTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.databinding.viewbinding_7.4.1",
         "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",

@@ -26,6 +26,8 @@ import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_P
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer
 import com.android.tools.idea.uibuilder.surface.layer.WarningLayer
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -97,7 +99,7 @@ enum class NlScreenViewProvider(
     { surface, manager, _, _ ->
       ScreenView.newBuilder(surface, manager)
         .resizeable()
-        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+        .decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }
         .build()
     },
     visibleToUser = false,
@@ -238,7 +240,7 @@ internal fun visualizationProvider(
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
     .decorateContentSizePolicy { wrappedPolicy ->
-      object : ScreenView.ContentSizePolicy {
+      object : ContentSizePolicy {
         override fun measure(screenView: ScreenView, outDimension: Dimension) =
           wrappedPolicy.measure(screenView, outDimension)
 
@@ -253,7 +255,7 @@ internal fun visualizationProvider(
 private fun findColorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
   val model: NlModel = sceneManager.model
   for (mode in ColorBlindMode.values()) {
-    if (mode.displayName == model.modelDisplayName) {
+    if (mode.displayName == model.modelDisplayName.value) {
       return mode
     }
   }

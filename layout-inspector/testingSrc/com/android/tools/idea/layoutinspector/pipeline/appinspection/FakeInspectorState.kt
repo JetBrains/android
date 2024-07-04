@@ -428,14 +428,16 @@ class FakeInspectorState(
       ComposableString(205, "MyLineClass"),
     )
 
-  // Composable tree that lives under ComposeView
-  private val composableRoot = ComposableRoot {
+  private fun createComposeRoot(
+    withoutSourceInformation: Boolean
+  ): LayoutInspectorComposeProtocol.ComposableRoot = ComposableRoot {
     viewId = 6
     ComposableNode {
       id = -2 // -1 reserved by inspectorModel
       anchorHash = 102
-      packageHash = 1
-      filename = 2
+      packageHash = if (withoutSourceInformation) -1 else 1
+      filename = if (withoutSourceInformation) 0 else 2
+      lineNumber = if (withoutSourceInformation) 0 else 45
       name = 4
       recomposeCount = 7
       recomposeSkips = 14
@@ -443,15 +445,17 @@ class FakeInspectorState(
       ComposableNode {
         id = -3
         anchorHash = 103
-        packageHash = 1
-        filename = 2
+        packageHash = if (withoutSourceInformation) -1 else 1
+        filename = if (withoutSourceInformation) 0 else 2
+        lineNumber = if (withoutSourceInformation) 0 else 46
         name = 5
 
         ComposableNode {
           id = -4
           anchorHash = 104
-          packageHash = 1
-          filename = 2
+          packageHash = if (withoutSourceInformation) -1 else 1
+          filename = if (withoutSourceInformation) 0 else 2
+          lineNumber = if (withoutSourceInformation) 0 else 57
           name = 6
           flags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS
         }
@@ -460,23 +464,26 @@ class FakeInspectorState(
       ComposableNode {
         id = -5
         anchorHash = 105
-        packageHash = 1
-        filename = 3
+        packageHash = if (withoutSourceInformation) -1 else 1
+        filename = if (withoutSourceInformation) 0 else 3
+        lineNumber = if (withoutSourceInformation) 0 else 12
         name = 7
       }
 
       ComposableNode {
         id = -6
         anchorHash = 106
-        packageHash = 1
-        filename = 3
+        packageHash = if (withoutSourceInformation) -1 else 1
+        filename = if (withoutSourceInformation) 0 else 3
+        lineNumber = if (withoutSourceInformation) 0 else 13
         name = 8
 
         ComposableNode {
           id = -7
           anchorHash = 107
-          packageHash = 1
-          filename = 3
+          packageHash = if (withoutSourceInformation) -1 else 1
+          filename = if (withoutSourceInformation) 0 else 3
+          lineNumber = if (withoutSourceInformation) 0 else 15
           name = 9
           viewId = 8
         }
@@ -484,6 +491,12 @@ class FakeInspectorState(
     }
     addViewsToSkip(9)
   }
+
+  // Composable tree that lives under ComposeView
+  private val composableRoot = createComposeRoot(withoutSourceInformation = false)
+
+  private val composableRootWithoutSourceInformation =
+    createComposeRoot(withoutSourceInformation = true)
 
   // Composable tree that lives under ComposeView
   private val composableRootWithoutSemantics = ComposableRoot {
@@ -950,7 +963,11 @@ class FakeInspectorState(
     propertyGroups[rootId]!![propertyGroupIndex] = propertyGroup.build()
   }
 
-  fun createFakeComposeTree(withSemantics: Boolean = true, latch: CommandLatch? = null) {
+  fun createFakeComposeTree(
+    withSemantics: Boolean = true,
+    withSourceInformation: Boolean = true,
+    latch: CommandLatch? = null,
+  ) {
     composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
       latch?.incomingCommand()
       LayoutInspectorComposeProtocol.Response.newBuilder()
@@ -958,7 +975,13 @@ class FakeInspectorState(
           getComposablesResponseBuilder.apply {
             if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
               addAllStrings(composeStrings)
-              addRoots(if (withSemantics) composableRoot else composableRootWithoutSemantics)
+              addRoots(
+                when {
+                  !withSemantics -> composableRootWithoutSemantics
+                  !withSourceInformation -> composableRootWithoutSourceInformation
+                  else -> composableRoot
+                }
+              )
             }
           }
         }

@@ -34,6 +34,18 @@
     <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.pseudoLocalesToken"
                     interface="com.android.tools.idea.projectsystem.PseudoLocalesToken"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.libraryDependenciesTroubleInfoCollectorToken"
+                    interface="com.android.tools.idea.projectsystem.LibraryDependenciesTroubleInfoCollectorToken"
+                    area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.dynamicAppFeatureOnFeatureToken"
+                    interface="com.android.tools.idea.projectsystem.DynamicAppFeatureOnFeatureToken"
+                    area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.findDependenciesWithResourcesToken"
+                    interface="com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken"
+                    area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.androidIconProviderProjectToken"
+                    interface="com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>

@@ -19,8 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
@@ -28,8 +26,6 @@ import java.util.*;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.pixelToDP;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutHorizontalBiasPercent;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutVerticalBiasPercent;
 
 /**
  * Main Wrapper class for Constraint Widgets
@@ -46,7 +42,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   boolean mCheckedForChain;
   private DimensionInfo mPreConvertDimension;
   private float mRootDistance;
-  private float[] mDistToRootCache = new float[]{-1, -1, -1, -1};
   NlComponent mNlComponent;
   private boolean mKeepExistingConnections = true;
   private Rectangle mRectangle;
@@ -81,9 +76,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    */
   public enum DimensionBehaviour {
     FIXED, WRAP_CONTENT, MATCH_CONSTRAINT, MATCH_PARENT
-  }
-
-  public ScoutWidget(){
   }
 
   public ScoutWidget(NlComponent component, ScoutWidget parent) {
@@ -205,16 +197,13 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       myWidth = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
       myHeight = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);
       String ww = component.getLiveAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH);
-      String wh = component.getLiveAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT);
       if (DEBUG) {
         if (ww == null) {
           System.out.println("WARNING ! why no wrap ? " + component);
         }
       }
       int wrapWidth = (ww == null) ? 0 : Integer.parseInt(ww);
-      int wrapHeight = (wh == null) ? 0 : Integer.parseInt(wh);
       wrapWidth = pixelToDP(component, wrapWidth);
-      wrapHeight = pixelToDP(component, wrapHeight);
       myWrapWidth = ConstraintComponentUtilities.getDpWidth(component);
       myWrapHeight = ConstraintComponentUtilities.getDpHeight(component);
       if (DEBUG) {
@@ -289,7 +278,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
           ret[i].mRootDistance + " : " + ret[i]);
       }
     }
-    //getWrap(root, ret);
     return ret;
   }
 
@@ -443,10 +431,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     ConstraintComponentUtilities.scoutConnect(mNlComponent, sourceDirection, target.mNlComponent, targetDirection, gap);
   }
 
-  private void connectWeak(Direction dir2, ScoutWidget to2, Direction dir21, int gap) {
-    // TODO: probably need to be removed
-  }
-
 
   static ScoutWidget[] getWidgetArray(NlComponent base) {
     ArrayList<NlComponent> list = new ArrayList<>(base.getChildren());
@@ -586,10 +570,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     return mBaseLine;
   }
 
-  public static boolean hasBaseline(@NotNull NlComponent component) {
-    return NlComponentHelperKt.getBaseline(component) > 0;
-  }
-
   /**
    * set a centered constraint if possible return true if it did
    *
@@ -675,97 +655,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         connect(c1, to1, cDir1, Math.max(0, gap1));
         connect(c2, to2, cDir2, Math.max(0, gap2));
       }
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  /**
-   * set a centered constraint if possible return true if it did
-   *
-   * @param dir   direction 0 = vertical
-   * @param to1   first widget  to connect to
-   * @param to2   second widget to connect to
-   * @param cDir1 the side of first widget to connect to
-   * @param cDir2 the side of the second widget to connect to
-   * @param bias  bias percent
-   * @return true if it was able to connect
-   */
-  boolean setCenteredWithBias(int dir, ScoutWidget to1, ScoutWidget to2, Direction cDir1, Direction cDir2,
-                      float bias) {
-    Direction ori = (dir == 0) ? Direction.TOP : Direction.LEFT;
-    Anchor anchor1 = getAnchor(ori);
-    Anchor anchor2 = getAnchor(ori.getOpposite());
-
-    if (mKeepExistingConnections && (anchor1.isConnected() || anchor2.isConnected())) {
-      if (anchor1.isConnected() ^ anchor2.isConnected()) {
-        return false;
-      }
-      if (anchor1.isConnected()
-          && (anchor1.getTarget().getOwner() != to1)) {
-        return false;
-      }
-      if (anchor2.isConnected()
-          && (anchor2.getTarget().getOwner() != to2)) {
-        return false;
-      }
-    }
-
-    if (anchor1.isConnectionAllowed(to1) &&
-        anchor2.isConnectionAllowed(to2)) {
-      // Resize
-      if (!isResizable(dir)) {
-        if (dir == 0) {
-          int height = getDpHeight();
-          if (isCandidateResizable(dir)) {
-            setVerticalDimensionBehaviour(
-              DimensionBehaviour.MATCH_CONSTRAINT);
-          }
-        }
-        else {
-          int width = getDpWidth();
-          if (isCandidateResizable(dir)) {
-            setHorizontalDimensionBehaviour(
-              DimensionBehaviour.MATCH_CONSTRAINT);
-          }
-        }
-      }
-
-      if (to1.equals(to2)) {
-        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir1, to1.mNlComponent)) {
-          return false;
-        }
-        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir2, to2.mNlComponent)) {
-          return false;
-        }
-        connect(cDir1, to1, cDir1, 0);
-        connect(cDir2, to2, cDir2, 0);
-      }
-      else {
-        float pos1 = to1.getLocation(cDir1);
-        float pos2 = to2.getLocation(cDir2);
-        Direction c1 = (pos1 < pos2) ? (ori) : (ori.getOpposite());
-        Direction c2 = (pos1 > pos2) ? (ori) : (ori.getOpposite());
-        int gap1 = gap(this, c1, to1, cDir1);
-        int gap2 = gap(this, c2, to2, cDir2);
-        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c1, to1.mNlComponent)) {
-          return false;
-        }
-        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c2, to2.mNlComponent)) {
-          return false;
-        }
-        connect(c1, to1, cDir1, Math.max(0, gap1));
-        connect(c2, to2, cDir2, Math.max(0, gap2));
-
-      }
-      if (dir == Direction.ORIENTATION_VERTICAL){
-        setScoutVerticalBiasPercent(this.mNlComponent, bias);
-      } else {
-        setScoutHorizontalBiasPercent(this.mNlComponent, bias);
-      }
-
       return true;
     }
     else {
@@ -949,39 +838,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   /**
-   * set a Weak constraint if possible return true if it did
-   *
-   * @param dir  the direction of the connection
-   * @param to   the widget to connect to
-   * @param cDir the direction of
-   * @return false if unable to apply
-   */
-  boolean setWeakConstraint(int dir, ScoutWidget to, int cDir) {
-    Direction direction = Direction.get(dir);
-    Anchor anchor = getAnchor(direction);
-    float gap = 8f;
-
-    if (mKeepExistingConnections && anchor.isConnected()) {
-      if (anchor.getTarget().getOwner() != to) {
-        return false;
-      }
-      return true;
-    }
-
-    if (anchor.isConnectionAllowed(to)) {
-      if (DEBUG) {
-        System.out.println(
-          "WEAK CONSTRAINT " + mNlComponent + " to " + to.mNlComponent);
-      }
-      connectWeak(lookupType(dir), to, lookupType(cDir), (int)gap);
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  /**
    * calculates the distance between two widgets (assumed to be rectangles)
    *
    * @param a
@@ -1048,22 +904,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return true if the widget is a good candidate for resize
    */
   public boolean isCandidateResizable(int dimension) {
-    {
-      boolean ret;
-      if (mPreConvertDimension != null) {
-        if (dimension == 0) {
-          ret =  mHeight != mPreConvertDimension.myWrapHeight;
-        } else {
-          ret = mWidth != mPreConvertDimension.myWrapWidth;
-        }
-      } else {
-        if (dimension == 0) {
-          ret = ConstraintComponentUtilities.hasUserResizedVertically(mNlComponent);
-        } else {
-          ret = ConstraintComponentUtilities.hasUserResizedHorizontally(mNlComponent);
-        }
-      }
-    }
     if (mPreConvertDimension != null) {
       if (dimension == 0) {
         return mHeight != mPreConvertDimension.myWrapHeight;
@@ -1088,113 +928,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   public boolean hasBaseline() {
     return ConstraintComponentUtilities.hasBaseline(mNlComponent);
-  }
-
-  /**
-   * Gets the neighbour in that direction or root
-   * TODO better support for large widgets with several neighbouring widgets
-   *
-   * @param dir
-   * @param list
-   * @return
-   */
-  public ScoutWidget getNeighbor(Direction dir, ScoutWidget[] list) {
-    ScoutWidget neigh = list[0];
-    float minDist = Float.MAX_VALUE;
-
-    switch (dir) {
-      case LEFT: {
-        float ay1 = this.getLocation(Direction.TOP);
-        float ay2 = this.getLocation(Direction.BOTTOM);
-        float ax = this.getLocation(Direction.LEFT);
-
-        for (int i = 1; i < list.length; i++) {
-          ScoutWidget iw = list[i];
-          if (iw == this) {
-            continue;
-          }
-          float by1 = iw.getLocation(Direction.TOP);
-          float by2 = iw.getLocation(Direction.BOTTOM);
-          if (Math.max(ay1, by1) <= Math.min(ay2, by2)) { // overlap
-            float bx = iw.getLocation(Direction.RIGHT);
-            if (bx < ax && (ax - bx) < minDist) {
-              minDist = (ax - bx);
-              neigh = iw;
-            }
-          }
-        }
-        return neigh;
-      }
-      case RIGHT: {
-        float ay1 = this.getLocation(Direction.TOP);
-        float ay2 = this.getLocation(Direction.BOTTOM);
-        float ax = this.getLocation(Direction.RIGHT);
-
-        for (int i = 1; i < list.length; i++) {
-          ScoutWidget iw = list[i];
-          if (iw == this) {
-            continue;
-          }
-          float by1 = iw.getLocation(Direction.TOP);
-          float by2 = iw.getLocation(Direction.BOTTOM);
-          if (Math.max(ay1, by1) <= Math.min(ay2, by2)) { // overlap
-            float bx = iw.getLocation(Direction.LEFT);
-            if (bx > ax && (bx - ax) < minDist) {
-              minDist = (bx - ax);
-              neigh = iw;
-            }
-          }
-        }
-        return neigh;
-      }
-      case BOTTOM: {
-        float ax1 = this.getLocation(Direction.LEFT);
-        float ax2 = this.getLocation(Direction.RIGHT);
-        float ay = this.getLocation(Direction.BOTTOM);
-
-        for (int i = 1; i < list.length; i++) {
-          ScoutWidget iw = list[i];
-          if (iw == this) {
-            continue;
-          }
-          float bx1 = iw.getLocation(Direction.LEFT);
-          float bx2 = iw.getLocation(Direction.RIGHT);
-          if (Math.max(ax1, bx1) <= Math.min(ax2, bx2)) { // overlap
-            float by = iw.getLocation(Direction.TOP);
-            if (by > ay && (by - ay) < minDist) {
-              minDist = (by - ay);
-              neigh = iw;
-            }
-          }
-        }
-        return neigh;
-      }
-      case TOP: {
-        float ax1 = this.getLocation(Direction.LEFT);
-        float ax2 = this.getLocation(Direction.RIGHT);
-        float ay = this.getLocation(Direction.TOP);
-
-        for (int i = 1; i < list.length; i++) {
-          ScoutWidget iw = list[i];
-          if (iw == this) {
-            continue;
-          }
-          float bx1 = iw.getLocation(Direction.LEFT);
-          float bx2 = iw.getLocation(Direction.RIGHT);
-          if (Math.max(ax1, bx1) <= Math.min(ax2, bx2)) { // overlap
-            float by = iw.getLocation(Direction.BOTTOM);
-            if (ay > by && (ay - by) < minDist) {
-              minDist = (ay - by);
-              neigh = iw;
-            }
-          }
-        }
-        return neigh;
-      }
-      case BASELINE:
-      default:
-        return null;
-    }
   }
 
   /**
@@ -1225,129 +958,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       return target.getOwner() == to;
     }
     return false;
-  }
-
-  /**
-   * is the distance to the Root Cached
-   *
-   * @param direction
-   * @return true if distance to root has been cached
-   */
-  private boolean isDistanceToRootCache(Direction direction) {
-    int directionOrdinal = direction.getDirection();
-    Float f = mDistToRootCache[directionOrdinal];
-    if (f < 0) {  // depends on any comparison involving Float.NaN returns false
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Get the cache distance to the root
-   *
-   * @param d
-   * @param value
-   */
-  private void cacheRootDistance(Direction d, float value) {
-    mDistToRootCache[d.getDirection()] = value;
-  }
-
-  /**
-   * get distance to the container in a direction
-   * caches the distance
-   *
-   * @param list      list of widgets (container is list[0]
-   * @param direction direction to check in
-   * @return distance root or NaN if no connection available
-   */
-  public float connectedDistanceToRoot(ScoutWidget[] list, Direction direction) {
-    float value = recursiveConnectedDistanceToRoot(list, direction);
-    cacheRootDistance(direction, value);
-    return value;
-  }
-
-  /**
-   * Walk the widget connections to get the distance to the container in a direction
-   *
-   * @param list      list of widgets (container is list[0]
-   * @param direction direction to check in
-   * @return distance root or NaN if no connection available
-   */
-  private float recursiveConnectedDistanceToRoot(ScoutWidget[] list, Direction direction) {
-
-    if (isDistanceToRootCache(direction)) {
-      return mDistToRootCache[direction.getDirection()];
-    }
-    Anchor anchor = getAnchor(direction);
-
-    if (anchor == null || !anchor.isConnected()) {
-      return Float.NaN;
-    }
-    float margin = anchor.getMargin();
-    Anchor toAnchor = anchor.getTarget();
-
-    ScoutWidget toWidget = toAnchor.getOwner();
-    if (list[0] == toWidget) { // found the base return;
-      return margin;
-    }
-
-    // if atached to the same side
-    if (toAnchor.getType() == direction) {
-      for (ScoutWidget scoutWidget : list) {
-        if (scoutWidget == toWidget) {
-          float dist = scoutWidget.recursiveConnectedDistanceToRoot(list, direction);
-          scoutWidget.cacheRootDistance(direction, dist);
-          return margin + dist;
-        }
-      }
-    }
-    // if atached to the other side (you will need to add the length of the widget
-    if (toAnchor.getType() == direction.getOpposite()) {
-      for (ScoutWidget scoutWidget : list) {
-        if (scoutWidget == toWidget) {
-          margin += scoutWidget.getLength(direction);
-          float dist = scoutWidget.recursiveConnectedDistanceToRoot(list, direction);
-          scoutWidget.cacheRootDistance(direction, dist);
-          return margin + dist;
-        }
-      }
-    }
-    return Float.NaN;
-  }
-
-  /**
-   * Get size of widget
-   *
-   * @param direction the direction north/south gets height east/west gets width
-   * @return size of widget in that dimension
-   */
-  private float getLength(Direction direction) {
-    switch (direction) {
-      case TOP:
-      case BOTTOM:
-        return mHeight;
-      case RIGHT:
-      case LEFT:
-        return mWidth;
-      default:
-        return 0;
-    }
-  }
-
-  /**
-   * is the widget centered
-   *
-   * @param orientationVertical 1 = checking if vertical
-   * @return true if centered
-   */
-  public boolean isCentered(int orientationVertical) {
-    if (isGuideline()) return false;
-    if (orientationVertical == Direction.ORIENTATION_VERTICAL) {
-      return getAnchor(Direction.TOP).isConnected() &&
-             getAnchor(Direction.BOTTOM).isConnected();
-    }
-    return getAnchor(Direction.LEFT).isConnected() &&
-           getAnchor(Direction.RIGHT).isConnected();
   }
 
   public boolean hasConnection(Direction dir) {
@@ -1462,20 +1072,5 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public void setHeight(int height) {
     setDpHeight(height);
     mHeight = height;
-  }
-
-  /**
-   * Comparator to sort widgets by y
-   */
-  static Comparator<ScoutWidget> sSortY = (w1, w2) -> w1.getDpY() - w2.getDpY();
-
-  public int rootDistanceY() {
-    if (mNlComponent == null || mNlComponent.getParent() == null) {
-      return 0;
-    }
-    int rootHeight = getParent().getDpHeight();
-    int aY = getDpY();
-    int aHeight = getDpHeight();
-    return Math.min(aY, rootHeight - (aY + aHeight));
   }
 }

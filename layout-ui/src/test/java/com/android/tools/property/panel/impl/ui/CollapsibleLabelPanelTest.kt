@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -24,15 +25,23 @@ import com.android.tools.property.ptable.ColumnFraction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.util.ui.UIUtil
-import org.junit.Test
-import org.junit.runners.model.Statement
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.event.KeyEvent
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runners.model.Statement
 
 class CollapsibleLabelPanelTest {
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val chain = RuleChain(ApplicationRule(), disposableRule)
 
   @Test
   fun testDoubleClick() {
@@ -76,6 +85,44 @@ class CollapsibleLabelPanelTest {
     ui.mouse.moveTo(300, -100)
     assertThat(label.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
     assertThat(columnFraction.value).isWithin(0.01f).of(0.6f)
+  }
+
+  @Test
+  fun testExpandByKeyboard() {
+    val model = CollapsibleLabelModel("Label", null, false, PropertiesComponentMock())
+    val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD)
+    val label = panel.label
+    panel.size = Dimension(500, 200)
+    panel.doLayout()
+    val ui = FakeUi(label, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = UIUtil.findComponentOfType(panel, IconWithFocusBorder::class.java)
+    panel.model.makeExpandable(true)
+    assertThat(panel.model.expanded).isTrue()
+
+    // Space will toggle:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
+    assertThat(panel.model.expanded).isFalse()
+    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
+    assertThat(panel.model.expanded).isTrue()
+
+    // Enter will toggle:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(panel.model.expanded).isFalse()
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(panel.model.expanded).isTrue()
+
+    // Left will close:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_LEFT)
+    assertThat(panel.model.expanded).isFalse()
+    ui.keyboard.pressAndRelease(KeyEvent.VK_LEFT)
+    assertThat(panel.model.expanded).isFalse()
+
+    // Right will open:
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT)
+    assertThat(panel.model.expanded).isTrue()
+    ui.keyboard.pressAndRelease(KeyEvent.VK_RIGHT)
+    assertThat(panel.model.expanded).isTrue()
   }
 
   @Test

@@ -28,7 +28,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
@@ -252,7 +251,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
         if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE
         else Transitivity.NON_TRANSITIVE
 
-      val isTestModule = module.isLinkedAndroidModule() && module.isAndroidTestModule()
+      val isTestModule = module.isAndroidTestModule()
 
       val useConstantIds =
         if (isTestModule) moduleSystem.testRClassConstantIds

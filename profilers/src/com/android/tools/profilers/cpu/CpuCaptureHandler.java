@@ -96,6 +96,12 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     return myConfiguration.getName();
   }
 
+  /** Internal. Returns the captured trace file. */
+  @NotNull
+  File getCaptureFile() {
+    return myCaptureFile;
+  }
+
   /**
    * {@link StatusPanelModel} interface override.
    * Aborts the capture parser.

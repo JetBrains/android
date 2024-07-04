@@ -19,26 +19,47 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.TransitionInfo
 
-enum class ClockType {
-  DEFAULT,
-  WITH_TRANSITIONS,
-  WITH_COORDINATION,
-}
+/**
+ * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't
+ * break when the test tries to call them via reflection.
+ */
+internal open class TestClock {
 
-internal fun ClockType.getClock(): TestClock =
-  when (this) {
-    ClockType.DEFAULT -> TestClock()
-    ClockType.WITH_TRANSITIONS -> TestClockWithTransitions()
-    ClockType.WITH_COORDINATION -> TestClockWithCoordination()
+  @JvmInline
+  internal value class AnimatedVisibilityState private constructor(val value: String) {
+    override fun toString() = value
+
+    companion object {
+      val Enter = AnimatedVisibilityState("Enter")
+      val Exit = AnimatedVisibilityState("Exit")
+    }
   }
 
-/** [TestClock] with available [setClockTimes] method. */
-internal open class TestClockWithCoordination : TestClockWithTransitions() {
-  fun setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {}
-}
+  open fun getAnimatedProperties(animation: Any) =
+    listOf(
+      ComposeAnimatedProperty("Int", 1),
+      ComposeAnimatedProperty("IntSnap", 1),
+      ComposeAnimatedProperty("Float", 1f),
+      ComposeAnimatedProperty("Double", 1.0),
+    )
 
-/** [TestClock] with available [getTransitions] method. */
-internal open class TestClockWithTransitions : TestClock() {
+  fun getMaxDuration() = 1000L
+
+  fun getMaxDurationPerIteration() = 1000L
+
+  fun updateAnimationStates() {}
+
+  fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
+
+  fun setClockTime(time: Long) {}
+
+  open fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
+
+  // https://kotlinlang.org/docs/inline-classes.html#mangling
+  open fun `getAnimatedVisibilityState-xga21d`(animation: Any): Any = "Enter"
+
+  open fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {}
+
   open fun getTransitions(animation: Any, clockTimeMsStep: Long) =
     listOf(
       TransitionInfo(
@@ -70,45 +91,6 @@ internal open class TestClockWithTransitions : TestClock() {
         values = mapOf(0L to 1.0, 50L to 10.0, 100L to 2.0),
       ),
     )
-}
 
-/**
- * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't
- * break when the test tries to call them via reflection.
- */
-internal open class TestClock {
-
-  @JvmInline
-  internal value class AnimatedVisibilityState private constructor(val value: String) {
-    override fun toString() = value
-
-    companion object {
-      val Enter = AnimatedVisibilityState("Enter")
-      val Exit = AnimatedVisibilityState("Exit")
-    }
-  }
-
-  open fun getAnimatedProperties(animation: Any) =
-    listOf<ComposeAnimatedProperty>(
-      ComposeAnimatedProperty("Int", 1),
-      ComposeAnimatedProperty("IntSnap", 1),
-      ComposeAnimatedProperty("Float", 1f),
-      ComposeAnimatedProperty("Double", 1.0),
-    )
-
-  fun getMaxDuration() = 1000L
-
-  fun getMaxDurationPerIteration() = 1000L
-
-  fun updateAnimationStates() {}
-
-  fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
-
-  fun setClockTime(time: Long) {}
-
-  open fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
-
-  open fun `getAnimatedVisibilityState-xga21d`(animation: Any): Any = "Enter"
-
-  open fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {}
+  fun setClockTimes(clockTimeMillis: Map<ComposeAnimation, Long>) {}
 }

@@ -17,6 +17,8 @@ package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
+import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -27,7 +29,7 @@ import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -42,11 +44,14 @@ import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.RenderQualityPolicy
 import com.android.tools.idea.preview.SimpleRenderQualityManager
+import com.android.tools.idea.preview.ZoomConstants
+import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -60,7 +65,6 @@ import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
-import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
@@ -79,6 +83,7 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
@@ -117,10 +122,32 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
 
-private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+private val modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
 
-/** A generic [PreviewElement] [PreviewRepresentation]. */
+/**
+ * A generic [PreviewElement] [PreviewRepresentation], that can be configured and adapted to the
+ * needs of a given preview tool by the constructor parameters.
+ *
+ * @param adapterViewFqcn the fully qualified name of the view adapter associated with the previews.
+ * @param psiFile the file containing the code to preview.
+ * @param previewProviderConstructor the function to get a [PreviewElementProvider] to be used for
+ *   finding the previews.
+ * @param previewElementModelAdapterDelegate the [PreviewElementModelAdapter] to be used when
+ *   rendering previews.
+ * @param viewConstructor the function to get a [CommonNlDesignSurfacePreviewView] to be used for
+ *   displaying the previews.
+ * @param viewModelConstructor the function to get a [CommonPreviewViewModel] to be used for
+ *   tracking big part of the state of the previews.
+ * @param configureDesignSurface the function to configure the [NlDesignSurface] that is used for
+ *   displaying the previews.
+ * @param renderingTopic the [RenderingTopic] under which the preview renderings will be executed.
+ * @param useCustomInflater a configuration to apply when rendering the previews.
+ * @param sceneUpdateListener the listener to be notified whenever the scene of a preview element is
+ *   updated.
+ * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
+ *   for tracking refresh metrics.
+ */
 open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
@@ -139,15 +166,18 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
       hasRenderErrors: () -> Boolean,
     ) -> CommonPreviewViewModel,
-  configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
+  configureDesignSurface: NlDesignSurface.Builder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
+  sceneUpdateListener: SceneUpdateListener? = null,
+  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
 ) :
   PreviewRepresentation,
   AndroidCoroutinesAware,
   UserDataHolderEx by UserDataHolderBase(),
   PreviewModeManager,
-  FastPreviewSurface {
+  FastPreviewSurface,
+  PreviewInvalidationManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -191,9 +221,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
         project,
-        NlDesignSurface.builder(project, this)
-          .setSceneManagerProvider { surface, model ->
-            NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+        NlDesignSurface.builder(project, this) { surface, model ->
+            NlDesignSurface.defaultSceneManagerProvider(surface, model, sceneUpdateListener).apply {
               setUseCustomInflater(useCustomInflater)
               setShrinkRendering(true)
               setRenderingTopic(renderingTopic)
@@ -213,10 +242,16 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PreviewGroupManager.KEY.name,
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+              PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
               else -> null
             }
           }
-          .apply { configureDesignSurface() },
+          .apply {
+            setMaxZoomToFitLevel(ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL)
+            setMinScale(ZoomConstants.MIN_SCALE)
+            setMaxScale(ZoomConstants.MAX_SCALE)
+            configureDesignSurface(navigationHandler)
+          },
         this,
       )
       .also {
@@ -286,8 +321,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
 
-  private val psiCodeFileChangeDetectorService =
-    PsiCodeFileChangeDetectorService.getInstance(project)
+  private val myPsiCodeFileOutOfDateStatusReporter =
+    PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
   private var renderedElementsFlow =
     MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
@@ -313,6 +348,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             PreviewGroupManager.KEY.name,
             PreviewFlowManager.KEY.name -> previewFlowManager
             FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+            PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
             else -> null
           }
         }
@@ -382,6 +418,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   override fun requestFastPreviewRefreshAsync() =
     delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
+
+  override fun invalidate() {
+    invalidated.set(true)
+  }
 
   private fun onInit() {
     LOG.debug("onInit")
@@ -575,7 +615,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       if (it is CancellationException && invalidateIfCancelled.get()) {
         invalidate()
       }
-      Disposer.dispose(refreshProgressIndicator)
+      // Progress indicators must be disposed in the ui thread
+      launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
@@ -609,6 +650,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         refreshType = type,
         delegateRefresh = { createRefreshJob(it as CommonPreviewRefreshRequest) },
         onRefreshCompleted = onRefreshCompleted,
+        refreshEventBuilder = createRefreshEventBuilder(surface),
       )
     refreshManager.requestRefresh(request)
   }
@@ -621,11 +663,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     }
   }
 
-  private fun invalidate() {
-    invalidated.set(true)
-  }
-
   private fun onAfterRender() {
+    // We need to run any callbacks that have been registered during the rendering of the preview
+    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
     previewViewModel.afterPreviewsRefreshed()
   }
 
@@ -663,8 +703,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     //   enabled, and then a full refresh will happen.
     // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
     //   a full refresh will happen
-    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
-    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()) invalidate()
+    val anyKtFilesOutOfDate =
+      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable() && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
@@ -685,7 +726,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         initializeFlows(
           disposable = this@CommonPreviewRepresentation,
           previewModeManager = previewModeManager,
-          psiCodeFileChangeDetectorService = psiCodeFileChangeDetectorService,
+          psiCodeFileOutOfDateStatusReporter = myPsiCodeFileOutOfDateStatusReporter,
           psiFilePointer = psiFilePointer,
           invalidate = ::invalidate,
           requestRefresh = ::requestRefresh,

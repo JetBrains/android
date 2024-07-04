@@ -24,12 +24,15 @@ import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
 
 class RenderATFComplexPerfgateTest {
   @get:Rule
@@ -47,10 +50,15 @@ class RenderATFComplexPerfgateTest {
 
     val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
     gradleRule.fixture.testDataPath = baseTestPath.toString()
-    gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
-    facet = gradleRule.androidFacet(":app")
     val xmlPath = baseTestPath.resolve("projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml")
-    layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath.toString())!!
+    var layoutFilePath: Path = Path.of("")
+    gradleRule.load(PERFGATE_COMPLEX_LAYOUT, preLoad = {
+      layoutFilePath = it.resolve("app/res/layout/activity_main.xml").toPath()
+      Files.createDirectories(layoutFilePath.parent)
+      Files.copy(xmlPath, layoutFilePath)
+    })
+    facet = gradleRule.androidFacet(":app")
+    layoutFile = VfsUtil.findFileByIoFile(layoutFilePath.toFile(), false)!!
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
   }
 

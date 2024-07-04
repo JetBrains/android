@@ -26,6 +26,7 @@ def main():
   parser.add_argument('--include-tests', action='store_true', help='include test sources and test-scoped dependencies')
   parser.add_argument('--exclude', metavar='GLOB', action='append', help='hide modules matching GLOB')
   parser.add_argument('--full-module-names', action='store_true', help='use fully qualified module names')
+  parser.add_argument('--print-module-sizes', action='store_true', help='print the size of the rendered modules at the end')
   args = parser.parse_args()
 
   # Build the dependency graph.
@@ -57,6 +58,15 @@ def main():
   out_file = args.out or Path(f'/tmp/iml-module-graph.{ext}')
   print(f'Rendering to file: {out_file}')
   dot_graph.write(out_file, format=dot_format)
+  if args.print_module_sizes:
+    print() # empty line to make it easier to read
+    print_module_sizes(args.count_lines, iml_modules, g)
+
+def print_module_sizes(count_lines, iml_modules, g):
+  print('Module sizes:')
+  for module in iml_modules:
+    if module.name in g:
+      print(f'{module.display_name} = {module.size} {"lines of code" if count_lines else "files"}')
 
 
 def collect_iml_files(modules_xml):

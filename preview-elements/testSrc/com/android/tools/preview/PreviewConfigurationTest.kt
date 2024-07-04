@@ -30,8 +30,8 @@ class PreviewConfigurationTest {
       PreviewConfiguration.cleanAndGet(
         9000,
         null,
-        MAX_WIDTH,
-        MAX_HEIGHT,
+        MAX_DIMENSION,
+        MAX_DIMENSION,
         null,
         null,
         null,
@@ -41,7 +41,7 @@ class PreviewConfigurationTest {
     )
 
     Assert.assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, -1f, 123, null, -1),
+      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_DIMENSION, null, -1f, 123, null, -1),
       PreviewConfiguration.cleanAndGet(12, null, 120, 500000, null, 0f, 123, null, null)
     )
   }

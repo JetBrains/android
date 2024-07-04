@@ -25,9 +25,9 @@ import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterProp
 import com.android.tools.idea.compose.pickers.common.editingsupport.BooleanValidator
 import com.android.tools.idea.compose.pickers.common.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.pickers.preview.editingsupport.DeviceSpecDimValidator
-import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
 import com.android.tools.idea.compose.pickers.preview.tracking.PickerTrackerHelper
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.MutableDeviceConfig

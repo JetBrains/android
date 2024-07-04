@@ -127,7 +127,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     )
     updateDimension()
     if (card is AnimationCard) {
-      scope.launch(uiThread) { card.state.collect { updateCardSize(card) } }
+      scope.launch(uiThread) { card.expanded.collect { updateCardSize(card) } }
     }
   }
 

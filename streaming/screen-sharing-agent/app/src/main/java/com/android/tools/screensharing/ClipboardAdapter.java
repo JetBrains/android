@@ -45,16 +45,19 @@ public class ClipboardAdapter {
   static {
     clipboard = ServiceManager.getServiceAsInterface("clipboard", "android/content/IClipboard", true);
 
-    try {
-      if (clipboard != null) {
+    if (clipboard == null) {
+      Log.w(ATTRIBUTION_TAG, "Could not find \"clipboard\" service - clipboard synchronization is not possible.");
+    }
+    else {
+      try {
         Class<?> clipboardClass = clipboard.getClass();
         Method[] methods = clipboardClass.getDeclaredMethods();
         getPrimaryClipMethod = findMethodAndMakeAccessible(methods, "getPrimaryClip");
         setPrimaryClipMethod = findMethodAndMakeAccessible(methods, "setPrimaryClip");
         addPrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "addPrimaryClipChangedListener");
         removePrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "removePrimaryClipChangedListener");
-        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 4) &&
-            checkNumberOfParameters(setPrimaryClipMethod, 1, 5) &&
+        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 5) &&
+            checkNumberOfParameters(setPrimaryClipMethod, 1, 6) &&
             checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 1, 5) &&
             checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 1, 5)) {
           clipboardListener = new ClipboardListener();
@@ -67,10 +70,10 @@ public class ClipboardAdapter {
           clipboard = null;
         }
       }
-    }
-    catch (NoSuchMethodException e) {
-      Log.e(ATTRIBUTION_TAG, e.getMessage());
-      clipboard = null;
+      catch (NoSuchMethodException e) {
+        Log.e(ATTRIBUTION_TAG, "Unable to find the IClipboard." + e.getMessage() + " method");
+        clipboard = null;
+      }
     }
   }
 
@@ -90,6 +93,9 @@ public class ClipboardAdapter {
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
                         numberOfParameters == 4 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
+                        numberOfParameters == 5 ?
+                        // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, null) :
                         null;
     if (clipData == null || clipData.getItemCount() == 0) {
       return "";
@@ -123,6 +129,10 @@ public class ClipboardAdapter {
     }
     else if (numberOfParameters == 5) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
+    }
+    else if (numberOfParameters == 6) {
+      // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true);
     }
   }
 
@@ -185,10 +195,21 @@ public class ClipboardAdapter {
 
   private static boolean checkNumberOfParameters(Method method, int minParam, int maxParam) {
     int parameterCount = method.getParameterCount();
+    Class<?>[] parameterTypes = method.getParameterTypes();
+    StringBuilder types = new StringBuilder();
+    for (Class<?> parameterType : parameterTypes) {
+      if (types.length() > 0) {
+        types.append(", ");
+      }
+      types.append(parameterType.getName());
+    }
     if (minParam <= parameterCount && parameterCount <= maxParam) {
+      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: IClipboard." + method.getName() + '(' + types + ')');
       return true;
     }
-    Log.e(ATTRIBUTION_TAG, "Unexpected number of " + method.getName() + " parameters: " + parameterCount);
+
+    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount +
+                           " types: " + types);
     return false;
   }
 }

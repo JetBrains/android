@@ -97,6 +97,8 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
 
   override fun isVirtual() = properties.isVirtual == true
 
+  override fun isRemote() = properties.isRemote == true
+
   override fun getVersion(): AndroidVersion = properties.androidVersion ?: AndroidVersion.DEFAULT
 
   override fun getDensity() = properties.density ?: -1

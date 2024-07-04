@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private val JVM_CRASH_REGEX = Regex("^java_error_in_STUDIO_[0-9]+.log$")
+private val JVM_CRASH_REGEX = Regex("^java_error_in_studio_[0-9]+.log$")
 
 /**
  * PathProvider contains various system paths used by the log file provider. It is used as a parameter in

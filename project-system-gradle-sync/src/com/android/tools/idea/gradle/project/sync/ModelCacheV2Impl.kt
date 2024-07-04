@@ -1031,6 +1031,9 @@ internal fun modelCacheV2Impl(
         deprecatedPreMergedApplicationId = null,
         deprecatedPreMergedTestApplicationId = null,
         desugaredMethodsFiles = fallbackDesugaredMethodsFiles,
+        experimentalProperties = if (modelVersions[ModelFeature.HAS_EXPERIMENTAL_PROPERTIES]) {
+          variant.experimentalProperties
+        } else { emptyMap() }
       )
     }
   }

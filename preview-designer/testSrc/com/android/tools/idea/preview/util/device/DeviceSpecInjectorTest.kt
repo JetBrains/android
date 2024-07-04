@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.preview.util.device
 
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.uast.UAnnotation
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -57,9 +61,14 @@ internal class DeviceSpecInjectorTest {
 
     val deviceSpecInjectionContributor =
       object : DeviceSpecInjectionContributor() {
-        override fun isPreviewAnnotation(annotation: UAnnotation): Boolean {
-          return annotation.qualifiedName == "test.Preview"
-        }
+        override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
+          when (psiElement.language) {
+            is KotlinLanguage ->
+              psiElement.parentOfType<KtAnnotationEntry>()?.fqNameMatches("test.Preview") ?: false
+            is JavaLanguage ->
+              psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName("test.Preview") ?: false
+            else -> false
+          }
       }
     LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
       KotlinLanguage.INSTANCE,

@@ -20,7 +20,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 inline fun MyInline(children: @Composable () -> Unit) {
-  Column {
-    children()
-  }
+  Column { children() }
 }

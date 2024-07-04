@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.pickers.common.enumsupport
 
 import com.android.tools.idea.compose.pickers.common.property.ClassPsiCallParameter
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 
@@ -50,10 +51,12 @@ internal interface BaseClassEnumValue : EnumValue {
   override val value: String?
     get() = resolvedValue
 
-  override fun select(property: PropertyItem): Boolean {
+  override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean {
     if (property is ClassPsiCallParameter) {
+      newEnumValue.newValue(valueToWrite)
       property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue, trackableValue)
     } else {
+      newEnumValue.newValue(fqFallbackValue)
       property.value = fqFallbackValue
     }
     return true

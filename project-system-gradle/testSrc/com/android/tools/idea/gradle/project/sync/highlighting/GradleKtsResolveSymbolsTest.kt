@@ -26,7 +26,9 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +37,12 @@ class GradleKtsResolveSymbolsTest {
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
+
+  @Before
+  fun setup() {
+    // skipping compiler highlighter
+    AndroidTestBase.unmaskKotlinHighlightVisitor(projectRule.fixture)
+  }
 
   @Test
   fun testSingleModuleApplication() = test(TestProjectPaths.BASIC_KOTLIN_GRADLE_DSL)

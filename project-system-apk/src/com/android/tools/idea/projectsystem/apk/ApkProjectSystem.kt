@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.apk
 
-import com.android.ddmlib.Client
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
@@ -61,7 +60,6 @@ import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.nio.file.Path
-import java.util.IdentityHashMap
 
 class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val delegate = DefaultProjectSystem(project)
@@ -150,8 +148,8 @@ interface ApkToken : ProjectSystemToken {
 }
 
 class ApkApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, ApkToken {
-  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext? {
-    val result = FacetFinder.tryFindFacetForProcess(project, client.clientData) ?: return null
+  override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(project, info) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

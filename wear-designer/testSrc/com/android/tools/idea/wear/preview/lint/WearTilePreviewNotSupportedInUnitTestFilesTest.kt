@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
-import com.intellij.codeInspection.InspectionEP
-import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.codeInspection.LocalInspectionEP
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.project.modules
-import com.intellij.openapi.roots.SourceFolder
-import com.intellij.testFramework.PsiTestUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -35,31 +27,25 @@ import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
-  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
+  @get:Rule
+  val projectRule =
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModels(
+        AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())
+      )
+    )
 
   private val fixture
     get() = projectRule.fixture
 
+  private val inspection = WearTilePreviewNotSupportedInUnitTestFiles()
+
   @Before
   fun setUp() {
-    val inspections = LocalInspectionEP.LOCAL_INSPECTION.extensions
-      .filter { e -> e.implementationClass == WearTilePreviewNotSupportedInUnitTestFiles::class.java.name }
-      .map(InspectionEP::instantiateTool)
-    fixture.enableInspections(*inspections.toTypedArray())
+    fixture.enableInspections(inspection)
 
-
-    val androidTestModule = projectRule.project.modules.single { it.isAndroidTestModule() }
-    val androidTestSourceRoot = fixture.tempDirFixture.findOrCreateDir("src/androidTest")
-    val unitTestModule = fixture.project.modules.single { it.isUnitTestModule() }
-    val unitTestRoot = fixture.tempDirFixture.findOrCreateDir("src/test")
-    runInEdt {
-      ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-        PsiTestUtil.addSourceRoot(androidTestModule, androidTestSourceRoot, true)
-        PsiTestUtil.addSourceRoot(unitTestModule, unitTestRoot, true)
-      }
-    }
     fixture.addFileToProject(
-      "src/main/test/multipreview.kt",
+      "src/main/java/test/multipreview.kt",
       // language=kotlin
       """
       package test
@@ -77,7 +63,7 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun previewAnnotationsAreNotSupportedInUnitTestFilesKotlin() {
     val unitTestFile =
       fixture.addFileToProject(
-        "src/test/Test.kt",
+        "src/test/java/Test.kt",
         // language=kotlin
         """
       import androidx.wear.tiles.tooling.preview.Preview
@@ -132,7 +118,7 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun previewAnnotationsAreNotSupportedInUnitTestFilesJava() {
     val unitTestFile =
       fixture.addFileToProject(
-        "src/test/Test.java",
+        "src/test/java/Test.java",
         // language=java
         """
       import androidx.wear.tiles.tooling.preview.Preview;
@@ -237,13 +223,13 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
 
     val mainFiles =
       listOf(
-        fixture.addFileToProject("src/main/test.kt", kotlinFileContent),
-        fixture.addFileToProject("src/main/Test.java", javaFileContent),
+        fixture.addFileToProject("src/main/java/test.kt", kotlinFileContent),
+        fixture.addFileToProject("src/main/java/Test.java", javaFileContent),
       )
     val androidTestFiles =
       listOf(
-        fixture.addFileToProject("src/androidTest/test.kt", kotlinFileContent),
-        fixture.addFileToProject("src/androidTest/Test.java", javaFileContent),
+        fixture.addFileToProject("src/androidTest/java/test.kt", kotlinFileContent),
+        fixture.addFileToProject("src/androidTest/java/Test.java", javaFileContent),
       )
 
     for (file in mainFiles + androidTestFiles) {

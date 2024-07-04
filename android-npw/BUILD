@@ -149,8 +149,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.3",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.3",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.4",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",

@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
@@ -121,6 +120,7 @@ class LayoutInspectorManagerTest {
         notificationModel,
         coroutineScope,
         displayViewRule.disposable,
+        metrics = mock(),
       )
 
     fakeForegroundProcessDetection = FakeForegroundProcessDetection()
@@ -323,7 +323,7 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.setSelectedContent(tab1)
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(4)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     fakeToolWindowManager.setSelectedContent(tab2)
@@ -333,7 +333,7 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(4)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiRemoved(tab1)
@@ -341,7 +341,7 @@ class LayoutInspectorManagerTest {
 
     fakeToolWindowManager.setSelectedContent(tab1)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(4)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiInjected(tab1)
@@ -352,7 +352,7 @@ class LayoutInspectorManagerTest {
     verifyUiRemoved(tab1)
     assertThat(layoutInspector.deviceModel?.selectedDevice).isNull()
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(4)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     verifyUiInjected(tab2)
@@ -384,7 +384,6 @@ class LayoutInspectorManagerTest {
     assertThat(refreshCount).isEqualTo(1)
   }
 
-  @Ignore("b/287075342")
   @Test
   @RunsInEdt
   fun testDeepInspectIsDisabledOnProcessChange() = withEmbeddedLayoutInspector {

@@ -33,7 +33,6 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutPlaceholder
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
@@ -420,20 +419,20 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   fun applyPlaceholder(placeholder: Placeholder) {
     val parent = placeholder.host.authoritativeNlComponent
     val primaryNlComponent = myComponent.authoritativeNlComponent
-    val model = primaryNlComponent.model
+    val treeWriter = primaryNlComponent.model.treeWriter
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
     val attributesTransactions =
       draggedComponents.map {
         val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
-        if (!isPlaceholderLiveUpdatable(placeholder) || (placeholder is MotionLayoutPlaceholder)) {
+        if (!isPlaceholderLiveUpdatable(placeholder)) {
           placeholder.updateAttribute(it, modification)
         }
         modification
       }
 
-    model.addComponentsAndSelectedIfCreated(
+    treeWriter.addComponentsAndSelectedIfCreated(
       componentsToAdd,
       parent,
       anchor,
@@ -448,8 +447,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   /** Function to check if the attribute is updated during dragging. */
   private fun isPlaceholderLiveUpdatable(placeholder: Placeholder?) =
     placeholder != null &&
-      placeholder.isLiveUpdatable &&
-      placeholder.host == myComponent.parent &&
+      placeholder.isLiveUpdatableForComponent(myComponent) &&
       myComponent !is TemporarySceneComponent
 
   /** Apply any pending transactions on mouse released. */

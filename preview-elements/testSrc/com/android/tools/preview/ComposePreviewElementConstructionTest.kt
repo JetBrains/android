@@ -55,7 +55,8 @@ class ComposePreviewElementConstructionTest {
         attributesProvider,
         annotatedMethod,
         null,
-        { instance, params -> ParametrizedComposePreviewElementTemplate(instance, params) { null } }
+        { instance, params -> ParametrizedComposePreviewElementTemplate(instance, params) { null } },
+        buildPreviewName = { annotatedMethod.name }
       )
 
       assertNotNull(previewElement)
@@ -100,7 +101,8 @@ class ComposePreviewElementConstructionTest {
       },
       annotatedMethod,
       null,
-      { instance, params -> ParametrizedComposePreviewElementTemplate(instance, params) { null } }
+      { instance, params -> ParametrizedComposePreviewElementTemplate(instance, params) { null } },
+        buildPreviewName = { annotatedMethod.name }
     )
 
     assertNotNull(previewElement)

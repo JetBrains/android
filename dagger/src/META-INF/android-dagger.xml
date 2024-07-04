@@ -28,4 +28,12 @@
         serviceImplementation="com.android.tools.idea.dagger.DaggerAnalyticsTrackerImpl"/>
     <fileBasedIndex implementation="com.android.tools.idea.dagger.index.DaggerIndex"/>
   </extensions>
+
+  <actions>
+    <action
+        id="GoToRelatedDaggerItemsAction"
+        class="com.android.tools.idea.dagger.GoToRelatedDaggerItemsAction"
+        text="Go to Related Dagger Items"
+    />
+</actions>
 </idea-plugin>

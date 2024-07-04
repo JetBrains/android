@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.ModelVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.Locale
@@ -102,6 +103,13 @@ data class GradleSyncLoggedEventsTestDef(
             )
           }.trimMargin()
         )
+        assertThat(events.dumpReportedSyncPhases()).isEqualTo("""
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
+          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
+          SUCCESS : SYNC_TOTAL/PROJECT_SETUP
+          SUCCESS : SYNC_TOTAL
+        """.trimIndent().filterExpectedPhases(agpVersion))
       },
       GradleSyncLoggedEventsTestDef(
         namePrefix = "logged_events",
@@ -169,6 +177,19 @@ data class GradleSyncLoggedEventsTestDef(
             |kotlin_multiplatform_module_count: 0
           """.trimMargin()
         )
+        assertThat(events.dumpReportedSyncPhases()).isEqualTo("""
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
+          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
+          SUCCESS : SYNC_TOTAL/PROJECT_SETUP
+          SUCCESS : SYNC_TOTAL
+        """.trimIndent().filterExpectedPhases(agpVersion))
       },
       GradleSyncLoggedEventsTestDef(
         namePrefix = "kotlin_versions",
@@ -224,6 +245,25 @@ data class GradleSyncLoggedEventsTestDef(
           }
         }
         .trim()
+    }
+
+    private fun List<LoggedUsage>.dumpReportedSyncPhases(): String {
+      return filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }.map { it.studioEvent.gradleSyncStats }
+        .joinToString("\n---\n") { stats -> stats.gradleSyncPhasesDataList.joinToString("\n") { phase ->
+          phase.phaseResult.name + " : " + phase.phaseStackList.joinToString(separator = "/") { it.name }
+        }}
+        .trim()
+    }
+
+    /** Gradle Phases are only available since Gradle 7.6 */
+    private fun String.filterExpectedPhases(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): String {
+      val gradleVersion = agpVersion.gradleVersion
+      if (gradleVersion == null || GradleVersionUtil.isGradleAtLeast(gradleVersion, "7.6")) {
+        return this
+      }
+      return lineSequence()
+        .filterNot { it.contains(" : SYNC_TOTAL/GRADLE_") }
+        .joinToString(separator = "\n")
     }
 
     private fun List<LoggedUsage>.dumpModuleCounts(): String {

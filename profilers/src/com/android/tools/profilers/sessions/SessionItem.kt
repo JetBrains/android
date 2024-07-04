@@ -24,6 +24,9 @@ import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskSupportUtils
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
@@ -96,7 +99,8 @@ class SessionItem(
       val targetStageClass =
         if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) LiveStage(profilers) else StudioMonitorStage(profilers)
 
-      if (profilers.stageClass != targetStageClass::class.java) {
+      if (profilers.stageClass != targetStageClass::class.java
+          || profilers.sessionsManager.selectedSession != profilers.sessionsManager.profilingSession) {
         profilers.stage = targetStageClass
       }
     }
@@ -157,6 +161,35 @@ class SessionItem(
   }
 
   fun containsExactlyOneArtifact() = childArtifacts.size == 1
+
+
+  /**
+   * Returns the task or viewer that can be launched for a given recording.
+   *
+   * Note: A "viewer" is essentially the same as a task, but it specifies the context in which the task is used when opening an imported or
+   * past recording. This method assumes a one-to-one mapping between each recording or artifact and each corresponding task or viewer.
+   */
+  fun getTaskType(): ProfilerTaskType {
+    // Attempt to find the supported task type.
+    val supportedTaskTypes = profilers.taskHandlers.filter { (taskType, taskHandler) ->
+      TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, this)
+    }.keys
+
+    // Assumes each SessionItem/recording only has one associated task type.
+    if (supportedTaskTypes.size != 1) {
+      return ProfilerTaskType.UNSPECIFIED
+    }
+    val supportedTaskType = supportedTaskTypes.single()
+    // If the task is newly recorded (not imported), it is verified whether the supported task type aligns with the intended task the user
+    // wants to initiate. This verification is crucial for identifying failed tasks. For instance, a startup task failing to gather an
+    // artifact shares the same structure as a live view task (both lack a child artifact). Hence, cross-checking with the intended task
+    // prevents misrepresentation of a live view recording.
+    if (!isImported() && TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType) != supportedTaskType) {
+      return ProfilerTaskType.UNSPECIFIED
+    }
+
+    return supportedTaskType
+  }
 
   /**
    * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.

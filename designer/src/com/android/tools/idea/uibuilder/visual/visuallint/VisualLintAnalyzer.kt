@@ -121,11 +121,12 @@ abstract class VisualLintAnalyzer {
   protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
     val accessibilityNodeInfo = viewInfo?.accessibilityObject
     if (accessibilityNodeInfo is AccessibilityNodeInfo) {
-      return model.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
+      return model.treeReader.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
     }
     val tag =
-      (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return model.components.firstOrNull()
-    return model.findViewByTag(tag.psiXmlTag)
+      (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag
+        ?: return model.treeReader.components.firstOrNull()
+    return model.treeReader.findViewByTag(tag.psiXmlTag)
   }
 
   protected fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {

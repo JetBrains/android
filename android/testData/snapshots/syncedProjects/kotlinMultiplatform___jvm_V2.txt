@@ -46,8 +46,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -104,10 +102,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -283,10 +277,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -419,8 +409,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -586,8 +574,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -642,12 +628,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/module2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/module2/src/androidInstrumentedTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/module2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/module2/src/androidInstrumentedTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/module2/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1036,12 +1016,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/module2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/module2/src/androidMain/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/module2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/module2/src/androidDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1163,8 +1137,6 @@ PROJECT                       : kotlinMultiPlatform
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1

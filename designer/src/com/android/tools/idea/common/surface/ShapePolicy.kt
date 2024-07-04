@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.resources.ScreenRound
+import com.android.sdklib.devices.screenShape
 import java.awt.Rectangle
 import java.awt.Shape
-import java.awt.geom.Area
-import java.awt.geom.Ellipse2D
-import java.awt.geom.Rectangle2D
 
 /** Policy for determining the [Shape] of a [SceneView]. */
 interface ShapePolicy {
@@ -33,47 +30,11 @@ val DEVICE_CONFIGURATION_SHAPE_POLICY: ShapePolicy =
   object : ShapePolicy {
     override fun getShape(sceneView: SceneView): Shape? {
       val device = sceneView.configuration.cachedDevice ?: return null
-      val screen = device.defaultHardware.screen
-      if (screen.screenRound != ScreenRound.ROUND) {
-        return null
-      }
 
       val size = sceneView.scaledContentSize
-
-      val chin = screen.chin
-      val originX = sceneView.x
-      val originY = sceneView.y
-      if (chin == 0) {
-        // Plain circle
-        return Ellipse2D.Double(
-          originX.toDouble(),
-          originY.toDouble(),
-          size.width.toDouble(),
-          size.height.toDouble(),
-        )
-      } else {
-        val height = size.height * chin / screen.yDimension
-        val a1 =
-          Area(
-            Ellipse2D.Double(
-              originX.toDouble(),
-              originY.toDouble(),
-              size.width.toDouble(),
-              (size.height + height).toDouble(),
-            )
-          )
-        val a2 =
-          Area(
-            Rectangle2D.Double(
-              originX.toDouble(),
-              (originY + 2 * (size.height + height) - height).toDouble(),
-              size.width.toDouble(),
-              height.toDouble(),
-            )
-          )
-        a1.subtract(a2)
-        return a1
-      }
+      val originX = sceneView.x.toDouble()
+      val originY = sceneView.y.toDouble()
+      return device.screenShape(originX, originY, size)
     }
   }
 

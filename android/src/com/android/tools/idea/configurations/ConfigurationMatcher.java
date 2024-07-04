@@ -19,7 +19,6 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -961,7 +960,7 @@ public class ConfigurationMatcher {
     private WearConfigComparator(@NotNull ConfigurationSettings settings, @NotNull Map<String, Integer> idRank) {
       mIdRank = idRank;
       myPreferredIds = settings.getDevices().stream()
-        .filter(HardwareConfigHelper::isWear)
+        .filter(Device::isWear)
         .map(Device::getId)
         .collect(Collectors.toList());
     }

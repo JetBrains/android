@@ -8,20 +8,12 @@
         <td width="24" height="24" style="background-color: #ffffff; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
-          <a href='<PROJECT_DIR>/lib/src/main/res/navigation/lib_nav.xml'>lib_nav.xml</a>
-          navigation file
-        </td>
-      </tr>
-      <tr>
-        <td width="24" height="24" style="background-color: #eaffe2; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
-        </td>
-        <td>
           <a href='<PROJECT_DIR>/app/src/main/AndroidManifest.xml'>navgraph.app
           main</a> manifest (this file)
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #e3e2df; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #eaffe2; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
           <a href='<PROJECT_DIR>/lib/src/main/AndroidManifest.xml'>navgraph.lib</a>
@@ -29,7 +21,7 @@
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #d9e4f9; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #e3e2df; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
           <a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.5.0/AndroidManifest.xml'>core:1.5.0</a>
@@ -37,7 +29,7 @@
         </td>
       </tr>
       <tr>
-        <td width="24" height="24" style="background-color: #f3dff3; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
+        <td width="24" height="24" style="background-color: #d9e4f9; border-top-color: #808080; border-top-style: solid; border-top-width: 1px; border-right-color: #808080; border-right-style: solid; border-right-width: 1px; border-bottom-color: #808080; border-bottom-style: solid; border-bottom-width: 1px; border-left-color: #808080; border-left-style: solid; border-left-width: 1px">
         </td>
         <td>
           <a href='<PROJECT_DIR>/app/build.gradle'>build.gradle</a>
@@ -47,7 +39,8 @@
     </table>
     <br>
     <u><b>Other Manifest Files</b></u><br>(Included in merge, but did not
-    contribute any elements)<br><a href='<PROJECT_DIR>/app/src/main/res/navigation/app_nav.xml'>main
+    contribute any elements)<br><a href='<PROJECT_DIR>/lib/src/main/res/navigation/lib_nav.xml'>lib_nav.xml</a>
+    navigation file<br><a href='<PROJECT_DIR>/app/src/main/res/navigation/app_nav.xml'>main
     app_nav.xml</a> navigation file<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml'>activity:1.2.3</a>
     manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/AndroidManifest.xml'>annotation-experimental:1.0.0</a>
     manifest<br><a href='<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/AndroidManifest.xml'>appcompat-resources:1.3.0</a>

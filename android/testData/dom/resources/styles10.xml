@@ -24,7 +24,7 @@
   <style name="Style.Style11" parent="@android:style/Theme.Holo.Light">
   </style>
 
-  <style name="<error descr="Cannot resolve symbol 'Style'">Style</error>.Style12">
+  <style name="Style.Style12">
   </style>
 
   <style name="Style13" parent="@style/Style.Style11">

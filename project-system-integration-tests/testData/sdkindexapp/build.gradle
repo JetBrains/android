@@ -1,7 +1,7 @@
 buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0-RC1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0-RC2"
      }
 }
 
@@ -26,12 +26,18 @@ android {
 
 dependencies {
     // SDK Index (real snapshot)
-    // Outdated
-    implementation 'com.mopub:mopub-sdk:4.16.0'
-    // Policy
-    implementation 'com.stripe:stripe-android:9.3.2'
-    // Critical
-    implementation 'com.snowplowanalytics:snowplow-android-tracker:1.4.1'
-    // Outdated + critical
+    // Console critical non blocking (only on PSD as info)
+    implementation 'com.google.android.gms:play-services-safetynet:10.0.0'
+    // Console outdated critical blocking (error)
+    implementation 'androidx.annotation:annotation:1.0.0'
+    // Console policy non blocking (warning)
+    implementation 'com.paypal.android.sdk:data-collector:3.20.0'
+    // Index critical blocking (error)
+    implementation 'com.google.android.gms:play-services-ads-lite:19.4.0'
+    // Index Policy + Outdated + critical blocking (3 errors)
     implementation 'com.startapp:inapp-sdk:3.9.1'
+    // Index Outdated non blocking (warning)
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.18.2'
+    // Index Critical + Outdated non blocking (only on PSD as info and 1 warning)
+    implementation 'io.objectbox:objectbox-android:2.5.1'
 }

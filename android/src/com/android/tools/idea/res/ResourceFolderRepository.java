@@ -428,7 +428,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   private void commitToRepositoryWithoutLock(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> itemsByType) {
     ResourceUpdateTracer.log(() -> getSimpleId(this) + ".commitToRepositoryWithoutLock");
     for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : itemsByType.entrySet()) {
-      if (ResourceUpdateTracer.isTracingActive()) {
+      if (ResourceUpdateTracer.getInstance().isTracingActive()) {
         for (ResourceItem item : entry.getValue().values()) {
           ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Committing " + item.getType() + '/' + item.getName());
         }
@@ -437,14 +437,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       map.putAll(entry.getValue());
       // Dump resource trace if some strings exist only in non-default locale.
       // Such situation may happen either due to use action, or due to a missed resource update.
-      if (ResourceUpdateTracer.isTracingActive() && entry.getKey() == ResourceType.STRING) {
+      if (ResourceUpdateTracer.getInstance().isTracingActive() && entry.getKey() == ResourceType.STRING) {
         for (String name : entry.getValue().keySet()) {
           List<ResourceItem> items = map.get(name);
           if (!items.isEmpty()) {
             ResourceItem item = items.get(0);
             FolderConfiguration configuration = item.getConfiguration();
             if (configuration.getLocaleQualifier() != null) {
-              ResourceUpdateTracer.dumpTrace(
+              ResourceUpdateTracer.getInstance().dumpTrace(
                   "Resource " + item.getReferenceToSelf().getResourceUrl() + " is missing in the default locale");
               break;
             }
@@ -802,7 +802,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   }
 
   private @NotNull String pathForLogging(@NotNull VirtualFile virtualFile) {
-    return ResourceUpdateTracer.pathForLogging(virtualFile, getProject());
+    return ResourceUpdateTracer.getInstance().pathForLogging(virtualFile, getProject());
   }
 
   private @Nullable String pathForLogging(@Nullable PsiFile file) {

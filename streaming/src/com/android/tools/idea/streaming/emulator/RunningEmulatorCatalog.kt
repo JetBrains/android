@@ -47,8 +47,6 @@ import java.util.regex.Pattern
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.
@@ -83,22 +81,26 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private var registrationDirectory: Path? = computeRegistrationDirectory()
 
   /**
-   * Adds a listener that will be notified when new Emulators start and running Emulators shut down.
+   * Adds a listener that will be notified when new emulators start and running emulators shut down.
    * The [updateIntervalMillis] parameter determines the level of data freshness required by the listener.
+   * When called multiple times with the same listener, updates the update interval for that listener.
    *
    * @param listener the listener to be notified
    * @param updateIntervalMillis a positive number of milliseconds
    */
   @AnyThread
-  fun addListener(listener: Listener, updateIntervalMillis: Int) {
+  fun addListener(listener: Listener, updateIntervalMillis: Long) {
     require(updateIntervalMillis > 0)
     synchronized(dataLock) {
-      listeners = listeners.plus(listener)
-      updateIntervalsByListener[listener] = updateInterval
-      if (updateIntervalMillis < updateInterval) {
-        updateInterval = updateIntervalMillis.toLong()
+      if (listener !in updateIntervalsByListener) {
+        listeners = listeners.plus(listener)
       }
-      scheduleUpdate(updateInterval)
+      updateIntervalsByListener[listener] = updateIntervalMillis
+      val newUpdateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
+      if (newUpdateInterval != updateInterval) {
+        updateInterval = newUpdateInterval
+        scheduleUpdate(updateInterval)
+      }
     }
   }
 
@@ -111,12 +113,21 @@ class RunningEmulatorCatalog : Disposable.Parent {
       listeners = listeners.minus(listener)
       val interval = updateIntervalsByListener.removeLong(listener)
       if (interval == updateInterval) {
-        updateInterval = -1
+        if (updateIntervalsByListener.isEmpty()) {
+          updateInterval = Long.MAX_VALUE
+        }
+        else {
+          updateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
+          scheduleUpdate(updateInterval)
+        }
       }
     }
   }
 
   private fun scheduleUpdate(delay: Long) {
+    if (delay == Long.MAX_VALUE) {
+      return
+    }
     synchronized(dataLock) {
       val updateTime = System.currentTimeMillis() + delay
       // Check if an update is already scheduled soon enough.
@@ -128,27 +139,6 @@ class RunningEmulatorCatalog : Disposable.Parent {
         alarm.addRequest({ updateLock.read { update() } }, delay)
       }
     }
-  }
-
-  @GuardedBy("dataLock")
-  private fun scheduleUpdate() {
-    val delay = getUpdateInterval()
-    if (delay != Long.MAX_VALUE) {
-      scheduleUpdate(max(delay, min(lastUpdateDuration * 2, 1000)))
-    }
-  }
-
-  @GuardedBy("dataLock")
-  private fun getUpdateInterval(): Long {
-    if (updateInterval < 0) {
-      var value = Long.MAX_VALUE
-      val iter = updateIntervalsByListener.values.iterator()
-      while (iter.hasNext()) {
-        value = value.coerceAtMost(iter.nextLong())
-      }
-      updateInterval = value
-    }
-    return updateInterval
   }
 
   /**
@@ -238,7 +228,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
           future.set(emulators)
         }
         if (!isDisposing) {
-          scheduleUpdate()
+          scheduleUpdate(updateInterval)
         }
       }
 
@@ -275,7 +265,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         }
         if (!isDisposing) {
           // TODO: Implement exponential backoff for retries.
-          scheduleUpdate()
+          scheduleUpdate(updateInterval)
         }
       }
     }

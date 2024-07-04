@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ddmlib.Client
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity.Companion.asRunningApplicationIdentity
 import com.intellij.openapi.extensions.ExtensionPointName
 
 /**
@@ -43,6 +45,33 @@ interface ApplicationProjectContext {
  *       the project/build system should construct the [ApplicationProjectContext] directly.
  */
 interface ApplicationProjectContextProvider: Token {
+
+  /** A best-effort identifier for a running application */
+  data class RunningApplicationIdentity(
+    /** The process name, if known */
+    val processName: String?,
+    /**
+     * The definite application ID (i.e. the package element on the application tag in the app's manifest)
+     *
+     * Note that Client.clientData.packageName returns a heuristic that may be incorrect for devices that don't support
+     * IDevice.Feature.REAL_PKG_NAME, i.e. Android Q and older.
+     */
+    val applicationId: String?,
+  ) {
+
+    /** Returns the application ID, or the heuristic (which may not be correct) for Android Q and older.) */
+    val heuristicApplicationId: String?
+      get() = applicationId ?: processName?.substringBefore(":")
+    companion object {
+      fun Client.asRunningApplicationIdentity(): RunningApplicationIdentity {
+        return RunningApplicationIdentity(
+          processName = clientData.clientDescription,
+          applicationId = clientData.packageName.takeIf { device.supportsFeature(IDevice.Feature.REAL_PKG_NAME) },
+        )
+      }
+    }
+  }
+
   companion object {
     val EP_NAME =
       ExtensionPointName<ApplicationProjectContextProvider>("com.android.tools.idea.projectsystem.ApplicationProjectContextProvider")
@@ -52,8 +81,12 @@ interface ApplicationProjectContextProvider: Token {
 
     @JvmStatic
     fun AndroidProjectSystem.getApplicationProjectContext(client: Client): ApplicationProjectContext? =
-      getApplicationProjectContextProvider().getApplicationProjectContext(client)
+      getApplicationProjectContext(client.asRunningApplicationIdentity())
+
+    @JvmStatic
+    fun AndroidProjectSystem.getApplicationProjectContext(info: RunningApplicationIdentity): ApplicationProjectContext? =
+      getApplicationProjectContextProvider().getApplicationProjectContext(info)
   }
 
-  fun getApplicationProjectContext(client: Client): ApplicationProjectContext?
+  fun getApplicationProjectContext(client: RunningApplicationIdentity): ApplicationProjectContext?
 }

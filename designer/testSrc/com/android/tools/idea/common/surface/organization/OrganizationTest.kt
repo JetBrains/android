@@ -24,6 +24,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -36,17 +37,19 @@ class OrganizationTest {
   fun createHeaders() {
     invokeAndWaitIfNeeded {
       val parent = JPanel()
+      val group1 = OrganizationGroup("method1", "1")
+      val group2 = OrganizationGroup("method2", "2")
       val sceneViews =
         listOf(
-          createSceneView("1", "name1"),
-          createSceneView("1", "name2"),
-          createSceneView("2", "name3"),
-          createSceneView("2", "name4"),
+          createSceneView(group1, "name1"),
+          createSceneView(group1, "name2"),
+          createSceneView(group2, "name3"),
+          createSceneView(group2, "name4"),
         )
       val headers = sceneViews.createOrganizationHeaders(parent)
       assertThat(headers).hasSize(2)
-      assertThat(headers["1"]).isNotNull()
-      assertThat(headers["2"]).isNotNull()
+      assertThat(headers[group1]).isNotNull()
+      assertThat(headers[group2]).isNotNull()
       sceneViews.forEach {
         Disposer.dispose(it.sceneManager)
         Disposer.dispose(it)
@@ -59,10 +62,10 @@ class OrganizationTest {
     val parent = JPanel()
     val sceneViews =
       listOf(
-        createSceneView("1", "name1"),
-        createSceneView("2", "name2"),
-        createSceneView("3", "name3"),
-        createSceneView("4", "name4"),
+        createSceneView(OrganizationGroup("method1", "1"), "name1"),
+        createSceneView(OrganizationGroup("method2", "2"), "name2"),
+        createSceneView(OrganizationGroup("method3", "3"), "name3"),
+        createSceneView(OrganizationGroup("method4", "4"), "name4"),
       )
     val headers = sceneViews.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
@@ -79,8 +82,8 @@ class OrganizationTest {
       listOf(
         createSceneView(null, "name1"),
         createSceneView(null, "name2"),
-        createSceneView("1", "name3"),
-        createSceneView("2", "name4"),
+        createSceneView(OrganizationGroup("method1", "1"), "name3"),
+        createSceneView(OrganizationGroup("method2", "2"), "name4"),
       )
     val headers = sceneViews.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
@@ -90,11 +93,13 @@ class OrganizationTest {
     }
   }
 
-  private fun createSceneView(organizationGroup: String?, modelName: String): SceneView {
+  private fun createSceneView(organizationGroup: OrganizationGroup?, modelName: String): SceneView {
+
+    val displayName = MutableStateFlow(modelName)
     val model =
       Mockito.mock(NlModel::class.java).apply {
         Mockito.`when`(this.organizationGroup).then { organizationGroup }
-        Mockito.`when`(this.modelDisplayName).then { modelName }
+        Mockito.`when`(this.modelDisplayName).then { displayName }
       }
     val sceneManager =
       Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }

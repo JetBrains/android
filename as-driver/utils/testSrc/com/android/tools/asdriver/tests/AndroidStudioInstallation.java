@@ -115,16 +115,24 @@ public class AndroidStudioInstallation {
 
     setConsentGranted(true);
     createVmOptionsFile();
+    bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
+    bundlePlugin(TestUtils.getBinPath("prebuilts/studio/intellij-sdk/performanceTesting.zip"));
 
     System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
   }
 
-  private void createVmOptionsFile() throws IOException {
-    Path agentZip = TestUtils.getBinPath("tools/adt/idea/as-driver/as_driver_deploy.jar");
-    if (!Files.exists(agentZip)) {
-      throw new IllegalStateException("agent not found at " + agentZip);
+  private void bundlePlugin(Path pluginZipPath) throws IOException {
+    if (!Files.exists(pluginZipPath)) {
+      throw new IllegalStateException("Plugin zip file wasn't found. Path: " + pluginZipPath);
     }
 
+    Path pluginsDir = workDir.resolve("android-studio/plugins");
+    Files.createDirectories(pluginsDir);
+
+    unzip(pluginZipPath, pluginsDir);
+  }
+
+  private void createVmOptionsFile() throws IOException {
     Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
     if (!Files.exists(threadingCheckerAgentZip)) {
       // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
@@ -132,7 +140,6 @@ public class AndroidStudioInstallation {
     }
 
     StringBuilder vmOptions = new StringBuilder();
-    vmOptions.append(String.format("-javaagent:%s%n", agentZip));
     vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
     // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
     vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));

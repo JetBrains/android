@@ -38,9 +38,9 @@ const val TARGET_PROPERTY: String = "target"
 
 /** A [PsiPropertiesModel] for displaying and editing an [initial] and [target] states. */
 internal class AnimatedPropertiesModel(
-  val initial: AnimationUnit.Unit<*>,
-  val target: AnimationUnit.Unit<*>,
-  val onModified: (AnimationUnit.Unit<*>?, AnimationUnit.Unit<*>?) -> Unit,
+  private val initial: AnimationUnit.Unit<*>,
+  private val target: AnimationUnit.Unit<*>,
+  private val onModified: (AnimationUnit.Unit<*>, AnimationUnit.Unit<*>) -> Unit,
 ) : PsiPropertiesModel() {
 
   override val properties: PropertiesTable<PsiPropertyItem> =
@@ -110,11 +110,11 @@ internal class AnimatedPropertiesModel(
       val resolvedInitial =
         initial.parseUnit { index ->
           properties[INITIAL_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue }
-        }
+        } ?: initial
       val resolvedTarget =
-        initial.parseUnit { index ->
+        target.parseUnit { index ->
           properties[TARGET_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue }
-        }
+        } ?: target
       onModified(resolvedInitial, resolvedTarget)
     } catch (_: Exception) {}
   }

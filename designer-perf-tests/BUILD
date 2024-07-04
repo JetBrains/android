@@ -117,10 +117,14 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.collection.collection_1.4.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
-        "@maven//:androidx.compose.foundation.foundation_1.5.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.core.core-ktx_1.10.0",
+        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",

@@ -36,7 +36,7 @@ class ReturnToSourceActionTest : NavTestCase() {
       }
     }
     TestNavUsageTracker.create(model).use { tracker ->
-      val f2 = model.find("f2")!!
+      val f2 = model.treeReader.find("f2")!!
       ReturnToSourceAction(f2).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
       val action = f2.children.first { it.isAction }
       assertEquals("f2", action.popUpTo)

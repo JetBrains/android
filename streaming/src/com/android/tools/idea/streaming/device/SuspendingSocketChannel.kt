@@ -57,7 +57,7 @@ class SuspendingSocketChannel(
         continuation.resumeWithException(exception)
       }
     }
-    suspendCancellableCoroutine<Void?> { continuation ->
+    suspendCancellableCoroutine { continuation ->
       networkChannel.connect(remote, continuation, continuationHandler)
     }
   }
@@ -74,7 +74,7 @@ class SuspendingSocketChannel(
    * @throws IOException if any I/O error occurs during the operation
    */
   suspend fun read(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
-    suspendCancellableCoroutine<Unit> { continuation ->
+    suspendCancellableCoroutine { continuation ->
       // Ensure that the asynchronous operation is stopped if the coroutine is cancelled.
       closeOnCancel(continuation)
       networkChannel.read(buffer, timeout, unit, continuation, readCompletionHandler)
@@ -121,7 +121,7 @@ class SuspendingSocketChannel(
    * @throws IOException if any I/O error occurs during the operation
    */
   suspend fun write(buffer: ByteBuffer, timeout: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
-    suspendCancellableCoroutine<Unit> { continuation ->
+    suspendCancellableCoroutine { continuation ->
       // Ensure that the asynchronous operation is stopped if the coroutine is cancelled.
       closeOnCancel(continuation)
       networkChannel.write(buffer, timeout, unit, continuation, writeCompletionHandler)

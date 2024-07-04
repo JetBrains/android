@@ -37,6 +37,7 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
 import javax.swing.tree.TreePath
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -181,6 +182,7 @@ class DesignerCommonIssuePanelTest {
 
     val composeFile = rule.fixture.addFileToProject("src/Compose.kt", "Compose file")
     val nlModel = Mockito.mock(NlModel::class.java)
+    Mockito.`when`(nlModel.modelDisplayName).thenReturn(MutableStateFlow<String>(""))
     Mockito.`when`(nlModel.virtualFile).thenReturn(composeFile.virtualFile)
     val navigatable = OpenFileDescriptor(rule.project, composeFile.virtualFile)
     val component = NlComponent(nlModel, 651L).apply { setNavigatable(navigatable) }

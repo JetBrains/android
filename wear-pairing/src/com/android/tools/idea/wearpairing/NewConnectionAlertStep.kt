@@ -32,9 +32,8 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class NewConnectionAlertStep(
-  model: WearDevicePairingModel,
-) : ModelWizardStep<WearDevicePairingModel>(model, "") {
+class NewConnectionAlertStep(model: WearDevicePairingModel) :
+  ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val mainPanel = JPanel()
   private lateinit var errorTitle: String
   private lateinit var errorBody: String
@@ -48,11 +47,17 @@ class NewConnectionAlertStep(
     val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
 
     // Check if this wear is already paired
-    val wearPhonePair = WearPairingManager.getInstance().getPairsForDevice(selectedWear.deviceID).firstOrNull()
+    val wearPhonePair =
+      WearPairingManager.getInstance().getPairsForDevice(selectedWear.deviceID).firstOrNull()
     if (wearPhonePair != null && wearPhonePair.phone.deviceID != selectedPhone.deviceID) {
       errorTitle = message("wear.assistant.connection.alert.factory.reset.title")
-      errorBody = message("wear.assistant.connection.alert.factory.reset.subtitle",
-                          selectedWear.displayName, wearPhonePair.phone.displayName, selectedPhone.displayName)
+      errorBody =
+        message(
+          "wear.assistant.connection.alert.factory.reset.subtitle",
+          selectedWear.displayName,
+          wearPhonePair.phone.displayName,
+          selectedPhone.displayName,
+        )
       return true
     }
 
@@ -66,31 +71,37 @@ class NewConnectionAlertStep(
 
   override fun getComponent(): JComponent = mainPanel
 
-  private fun showUi(header: String, description: String) = mainPanel.apply {
-    removeAll()
+  private fun showUi(header: String, description: String) =
+    mainPanel.apply {
+      removeAll()
 
-    layout = GridBagLayout()
-    border = empty(24)
+      layout = GridBagLayout()
+      border = empty(24)
 
-    add(
-      JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
-      gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER)
-    )
-    add(
-      JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)),
-      gridConstraint(x = 0, y = 1)
-    )
-    add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL)
-    )
-    add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
+      add(
+        JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
+        gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER),
+      )
+      add(
+        JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)),
+        gridConstraint(x = 0, y = 1),
+      )
+      add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL))
+      add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
 
-    revalidate()
-    repaint()
-  }
+      revalidate()
+      repaint()
+    }
 }
 
 internal fun gridConstraint(
-  x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1, anchor: Int = NORTH
+  x: Int,
+  y: Int,
+  weightx: Double = 0.0,
+  weighty: Double = 0.0,
+  fill: Int = NONE,
+  gridwidth: Int = 1,
+  anchor: Int = NORTH,
 ): GridBagConstraints =
   GridBagConstraints().apply {
     this.gridx = x

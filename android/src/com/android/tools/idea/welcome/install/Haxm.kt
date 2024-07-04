@@ -20,6 +20,7 @@ import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.CpuVendor
+import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.observable.core.IntProperty
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.sdk.install.VmType
@@ -49,7 +50,8 @@ class Haxm(
     else throw WizardException(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS.problem)
   override val filePrefix = "haxm"
 
-  private val emulatorMemoryMb: IntProperty = IntValueProperty(getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize()))
+  private val emulatorMemoryMb: IntProperty =
+    IntValueProperty(getRecommendedHaxmMemory(MemorySettingsUtil.getMachineMemoryBytes() ?: (32L shl 30)))
 
   override fun createSteps(): Collection<DynamicWizardStep> =
     setOf(if (installationIntention === VmInstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)

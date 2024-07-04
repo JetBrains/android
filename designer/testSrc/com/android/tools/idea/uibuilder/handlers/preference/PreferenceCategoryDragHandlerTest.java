@@ -48,7 +48,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
 
   public void testPaint() {
     SyncNlModel model = model("model.xml", preferenceCategory(0, 162, 768, 65).id("@+id/category")).build();
-    DragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
+    DragHandler handler = newPreferenceCategoryDragHandler(model, model.getTreeReader().find("category"));
 
     handler.update(180, 90, 0, SceneContext.get());
     handler.paint(myGraphics);
@@ -66,7 +66,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
 
   public void testDrawDropRecipientLines() {
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.getTreeReader().find("category"));
 
     handler.update(180, 175, 0, SceneContext.get());
     handler.drawDropRecipientLines(myGraphics);
@@ -81,7 +81,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
 
   public void testDrawDropZoneLinesPointerIsInSecondHalfOfFirstChild() {
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.getTreeReader().find("category"));
 
     handler.update(180, 240, 0, SceneContext.get());
     handler.drawDropZoneLines(myGraphics);
@@ -94,7 +94,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
 
   public void testDrawDropZoneLinesPointerIsInFirstHalfOfSecondChild() {
     SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.getTreeReader().find("category"));
 
     handler.update(180, 265, 0, SceneContext.get());
     handler.drawDropZoneLines(myGraphics);

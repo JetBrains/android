@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestP
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -96,7 +96,7 @@ class AndroidTestRunConfigurationExecutorTest {
     }
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device))
+      FakeAndroidDevice.forDevices(listOf(device))
     ) { NoApksProvider() }
 
     val runContentDescriptor = ProgressManager.getInstance()
@@ -144,7 +144,7 @@ class AndroidTestRunConfigurationExecutorTest {
     }
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device))) { NoApksProvider() }
+      FakeAndroidDevice.forDevices(listOf(device))) { NoApksProvider() }
 
     val runContentDescriptor = ProgressManager.getInstance()
       .runProcess(Computable { executor.debug(EmptyProgressIndicator()) }, EmptyProgressIndicator())
@@ -166,7 +166,7 @@ class AndroidTestRunConfigurationExecutorTest {
     val env = getExecutionEnvironment(listOf(device))
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device))) { ApkProvider { throw ExecutionException("Can't get apks") } }
+      FakeAndroidDevice.forDevices(listOf(device))) { ApkProvider { throw ExecutionException("Can't get apks") } }
 
     try {
       ProgressManager.getInstance()
@@ -208,7 +208,7 @@ class AndroidTestRunConfigurationExecutorTest {
     }
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device))
+      FakeAndroidDevice.forDevices(listOf(device))
     ) { NoApksProvider() }
     val historyLatch = CountDownLatch(3)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()

@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
-import com.android.resources.Density
-import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.util.text.StringUtil
@@ -28,22 +26,6 @@ import com.intellij.psi.JavaPsiFacade
  */
 
 const val CUSTOM_DENSITY_ID: String = "Custom Density"
-
-/**
- * Changes the configuration to use a custom device with the provided density. This is done only if
- * the configuration's cached device is not null, since the custom device is created from it.
- */
-fun NlModel.overrideConfigurationDensity(density: Density) {
-  val original = configuration.cachedDevice ?: return
-  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
-  deviceBuilder.setTagId(original.tagId)
-  deviceBuilder.setName("Custom")
-  deviceBuilder.setId(CUSTOM_DENSITY_ID)
-  val device = deviceBuilder.build()
-  device.allStates.map { it.hardware.screen }.forEach { it.pixelDensity = density }
-
-  configuration.setEffectiveDevice(device, device.defaultState)
-}
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
   var activityClassName: String? =

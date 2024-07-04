@@ -16,6 +16,10 @@
 package com.android.tools.idea
 
 import com.intellij.idea.customization.base.IntelliJIdeaExternalResourceUrls
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.PermanentInstallationID
+import com.intellij.openapi.application.ex.ApplicationInfoEx
+import com.intellij.openapi.updateSettings.impl.ExternalUpdateManager
 import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
@@ -31,8 +35,26 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
 
   private val jetbrainsUrls = IntelliJIdeaExternalResourceUrls()
 
+  // We add the extra parameters below when querying updateMetadataUrl. On the server-side these are used for analytics, to aggregate
+  // usage counts by build version number, operating system, etc. Do not remove any of these without checking the consuming code!
+  private val parameters = hashMapOf<String, String>()
+
+  init {
+    parameters["build"] = ApplicationInfo.getInstance().build.asString()
+    parameters["uid"] = PermanentInstallationID.get()
+    parameters["os"] = SystemInfo.OS_NAME + ' ' + SystemInfo.OS_VERSION
+    val updateManager = ExternalUpdateManager.ACTUAL
+    if (updateManager != null) {
+      val name = if (updateManager == ExternalUpdateManager.TOOLBOX) "Toolbox" else updateManager.toolName
+      parameters["manager"] = name
+    }
+    if (ApplicationInfoEx.getInstanceEx().isEAP) {
+      parameters["eap"] = ""
+    }
+  }
+
   override val updateMetadataUrl: Url
-    get() = Urls.newFromEncoded(UPDATE_BASE_URL).resolve("updates.xml")
+    get() = Urls.newFromEncoded(UPDATE_BASE_URL).resolve("updates.xml").addParameters(parameters)
 
   override fun computePatchUrl(from: BuildNumber, to: BuildNumber): Url {
     return Urls.newFromEncoded(UPDATE_BASE_URL).resolve(getPatchFileName(from, to))

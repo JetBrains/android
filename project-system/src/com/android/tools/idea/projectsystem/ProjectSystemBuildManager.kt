@@ -58,14 +58,9 @@ interface ProjectSystemBuildManager {
     UNKNOWN,
 
     /**
-     * Assemble will generate the artifacts needed to execute the code on device, like APKs. It's a superset of [COMPILE].
+     * When a build in this mode is run, all the sources are at least compiled into the class outputs.
      */
-    ASSEMBLE,
-
-    /**
-     * When a build in this mode is run, all the sources are compiled into the class outputs.
-     */
-    COMPILE,
+    COMPILE_OR_ASSEMBLE,
 
     /**
      * Clean will remove all the compiled artifacts from the project. It will remove class files and other artifacts generated

@@ -35,7 +35,7 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
 
   override val files: Set<VirtualFile> = setOf(component.model.virtualFile)
   override val displayText: String =
-    listOfNotNull(component.model.modelDisplayName, component.id, "<${component.tagName}>")
+    listOfNotNull(component.model.modelDisplayName.value, component.id, "<${component.tagName}>")
       .joinToString(" ")
 
   val component: NlComponent?
@@ -88,7 +88,7 @@ interface IssueSource {
     fun fromNlModel(model: NlModel): IssueSource =
       object : IssueSource {
         override val files: Set<VirtualFile> = setOf(model.virtualFile)
-        override val displayText: String = model.modelDisplayName.orEmpty()
+        override val displayText: String = model.modelDisplayName.value.orEmpty()
 
         override fun equals(other: Any?): Boolean =
           other is IssueSource &&

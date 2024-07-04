@@ -68,9 +68,9 @@ public class GradleBuildStateTest extends LightPlatformTestCase {
   }
 
   public void testBuildFinished() {
-    myBuildState.buildStarted(myContext);
+    GradleBuildState.BuildCompleter completer = myBuildState.buildStarted(myContext);
 
-    myBuildState.buildFinished(SUCCESS);
+    completer.buildFinished(SUCCESS);
     assertNull(myBuildState.getRunningBuildContext());
     assertFalse(myBuildState.isBuildInProgress());
     verify(myListener).buildFinished(SUCCESS, myContext);

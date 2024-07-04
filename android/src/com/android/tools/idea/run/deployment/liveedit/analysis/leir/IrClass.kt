@@ -28,9 +28,9 @@ class IrClass(node: ClassNode) {
   val superName: String? = node.superName
   val interfaces: Set<String> = node.interfaces.toSet()
   val enclosingMethod = getEnclosingMethod(node.outerClass, node.outerMethod, node.outerMethodDesc)
-  val sourceFile: String = node.sourceFile
+  val sourceFile: String? = node.sourceFile
 
-  val methods = node.methods.map { IrMethod(it, node) }
+  val methods = node.methods.map { IrMethod(this, it) }
   val fields = node.fields.map(::IrField)
   val annotations = toAnnotationList(node.visibleAnnotations, node.invisibleAnnotations)
 

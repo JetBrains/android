@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.flags.ifEnabled
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SystemUiOptionsAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -33,6 +34,7 @@ import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.actions.ForceCompileAndRefreshActionForNotification
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -86,8 +88,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
           ComposeFilterTextAction(ComposeViewSingleWordFilter())
-        },
-        // TODO(b/292057010) Enable group filtering for Gallery mode.
+        }, // TODO(b/292057010) Enable group filtering for Gallery mode.
         GroupSwitchAction(
             isEnabled = { !isPreviewRefreshing(it.dataContext) },
             isVisible = {
@@ -98,8 +99,9 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         ComposeViewControlAction(
             layoutOptions = PREVIEW_LAYOUT_OPTIONS,
             isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(it.dataContext) &&
-                // If Essentials Mode is enabled, it should not be possible to switch layout.
+              !isPreviewRefreshing(
+                it.dataContext
+              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !PreviewEssentialsModeManager.isEssentialsModeEnabled
             },
             additionalActionProvider = ColorBlindModeAction(),
@@ -110,13 +112,19 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         ComposeViewControlAction(
             layoutOptions = listOf(LIST_NO_GROUP_LAYOUT_OPTION, GRID_NO_GROUP_LAYOUT_OPTION),
             isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(it.dataContext) &&
-                // If Essentials Mode is enabled, it should not be possible to switch layout.
+              !isPreviewRefreshing(
+                it.dataContext
+              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !PreviewEssentialsModeManager.isEssentialsModeEnabled
             },
           )
           .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
+        StudioFlags.NELE_SYSTEM_UI_OPTIONS.ifEnabled {
+          SystemUiOptionsAction {
+            ForceCompileAndRefreshActionForNotification.getInstance().actionPerformed(it)
+          }
+        },
       )
     ) {
 
@@ -142,11 +150,8 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
 }
 
 /** [InMemoryLayoutVirtualFile] for composable functions. */
-class ComposeAdapterLightVirtualFile(
-  name: String,
-  content: String,
-  originFileProvider: () -> VirtualFile,
-) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
+class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: VirtualFile) :
+  InMemoryLayoutVirtualFile("compose-$name", content, originFile)
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
@@ -175,18 +180,16 @@ class ComposePreviewRepresentationProvider(
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val hasComposableMethods =
-      filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
     val hasPreviewMethods =
       filePreviewElementProvider().hasPreviewElements(psiFile.project, psiFile.virtualFile)
     thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
     val globalState = AndroidEditorSettings.getInstance().globalState
     val preferredVisibility =
-      when {
-        hasPreviewMethods -> globalState.preferredPreviewableEditorMode.getVisibility(SPLIT)
-        hasComposableMethods -> globalState.preferredComposableEditorMode.getVisibility(HIDDEN)
-        else -> globalState.preferredKotlinEditorMode.getVisibility(HIDDEN)
+      if (globalState.showSplitViewForPreviewFiles && hasPreviewMethods) {
+        SPLIT
+      } else {
+        globalState.preferredKotlinEditorMode.getVisibility(HIDDEN)
       }
 
     return ComposePreviewRepresentation(psiFile, preferredVisibility, ::ComposePreviewViewImpl)

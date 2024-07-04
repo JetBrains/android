@@ -18,6 +18,7 @@ package com.android.tools.profilers.tasks
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.taskbased.TaskNotifications
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.intellij.openapi.diagnostic.Logger
@@ -55,7 +56,7 @@ object ProfilerTaskLauncher {
       openTaskTab.accept(selectedTaskType, args)
     }
     catch (e: Exception) {
-      ideProfilerServices.openErrorDialog("There was an error launching the task.", "Task Launch Error")
+      ideProfilerServices.showNotification(TaskNotifications.LAUNCH_TASK_FAILURE)
     }
   }
 }

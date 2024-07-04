@@ -11,6 +11,7 @@ import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -43,6 +44,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
@@ -80,6 +82,7 @@ import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -94,6 +97,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected List<Module> myAdditionalModules;
 
   protected AndroidFacet myFacet;
+  protected BuildTargetReference myBuildTarget;
   protected CodeStyleSettings mySettings;
 
   protected AdtTestProjectDescriptor myProjectDescriptor;
@@ -127,6 +131,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // be initialized once, so putting in this early initialize call won't cause any harm later.
     TestApplicationManager.getInstance();
 
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(true);
+    }
+
     AdtTestProjectDescriptor descriptor;
     if (myProjectDescriptor == null) {
       LanguageLevel languageLevel = getLanguageLevel();
@@ -158,6 +167,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     createManifest();
 
     myFacet = addAndroidFacetAndSdk(myModule);
+    myBuildTarget = BuildTargetReference.gradleOnly(myFacet);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
@@ -192,15 +202,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
-    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
-    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor");
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor");
-    // AdbService is application-level and so executor threads are reported as leaked
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor");
-    // MonitorThread from ddmlib is often created during unrelated tests
-    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor");
+    registerLongRunningThreads();
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
@@ -297,6 +299,24 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     //noinspection ResultOfMethodCallIgnored
     new File(moduleRoot + "/gen/").mkdir();
     moduleFixtureBuilder.addSourceRoot("gen");
+  }
+
+  public static void registerLongRunningThreads() {
+    ThreadLeakTracker.longRunningThreadCreated(
+      ApplicationManager.getApplication(),
+      // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+      "Layoutlib",
+      // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+      "Device Client Monitor",
+      "Device List Monitor",
+      "fake-adb-server-connection-pool",
+      // AdbService is application-level and so executor threads are reported as leaked
+      "AdbService Executor",
+      // If gRPC is using NIO, long-running worker threads are created under this name.
+      // Non-NIO threads (grpc-default-worker-) are already ignored by ThreadLeakTracker.
+      "grpc-nio-worker-",
+      // MonitorThread from ddmlib is often created during unrelated tests
+      "Monitor");
   }
 
   /**

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
@@ -105,6 +105,8 @@ class VisualLintService(val project: Project) : Disposable {
 
   private val ignoredTypes: MutableList<VisualLintErrorType>
 
+  private var listenerRemovalDisposable: Disposable? = null
+
   init {
     val connection = project.messageBus.connect()
     ignoredTypes = mutableListOf()
@@ -181,7 +183,8 @@ class VisualLintService(val project: Project) : Disposable {
         val wasAdded = issueModel.addIssueProvider(issueProvider, true)
         issueModel.uiCheckInstanceId = issueProvider.uiCheckInstanceId
         if (wasAdded) {
-          Disposer.register(parentDisposable) { issueModel.removeIssueProvider(issueProvider) }
+          listenerRemovalDisposable = Disposable { issueModel.removeIssueProvider(issueProvider) }
+          Disposer.register(parentDisposable, listenerRemovalDisposable!!)
         }
 
         val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
@@ -219,10 +222,10 @@ class VisualLintService(val project: Project) : Disposable {
     baseModel.addListener(listener)
     try {
       val modelsToAnalyze =
-        if (HardwareConfigHelper.isWear(baseModel.configuration.device)) {
-          WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+        if (Device.isWear(baseModel.configuration.device)) {
+          WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.buildTarget)
         } else {
-          WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+          WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.buildTarget)
         }
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)
@@ -298,7 +301,7 @@ class VisualLintService(val project: Project) : Disposable {
     runningInBackground: Boolean = false,
   ) {
     runAnalyzers(targetIssueProvider, basicAnalyzers, result, model, runningInBackground)
-    if (HardwareConfigHelper.isWear(model.configuration.device)) {
+    if (Device.isWear(model.configuration.device)) {
       runAnalyzers(targetIssueProvider, wearAnalyzers, result, model, runningInBackground)
     } else {
       runAnalyzers(targetIssueProvider, adaptiveAnalyzers, result, model, runningInBackground)
@@ -335,11 +338,18 @@ class VisualLintService(val project: Project) : Disposable {
   }
 
   fun removeAllIssueProviders() {
+    listenerRemovalDisposable?.let {
+      // This disposable is not needed anymore, so we dispose it to avoid it hanging around in the
+      // Disposer tree
+      Disposer.dispose(it)
+      listenerRemovalDisposable = null
+    }
     issueModel.removeAllIssueProviders()
     issueModel.updateErrorsList()
   }
 
   override fun dispose() {
+    listenerRemovalDisposable = null
     issueModel.removeAllIssueProviders()
   }
 }
@@ -350,7 +360,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
   val logger = renderService.createHtmlLogger(model.project)
 
   return renderService
-    .taskBuilder(model.facet, model.configuration, logger)
+    .taskBuilder(model.buildTarget, model.configuration, logger)
     .withPsiFile(PsiXmlFile(model.file))
     .withLayoutScanner(runAtfChecks)
     .withTopic(RenderingTopic.VISUAL_LINT)

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
@@ -37,12 +39,12 @@ open class LiveEditStatus(
   override val description: String,
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  override val presentation: ComposeStatus.Presentation? = null,
+  override val presentation: IdeStatus.Presentation? = null,
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
   override val shouldSimplify: Boolean = false,
-  ) : ComposeStatus {
+  ) : IdeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.
@@ -208,11 +210,19 @@ open class LiveEditStatus(
     LiveEditStatus(
       AllIcons.General.InspectionsOK,
       message("le.status.up_to_date.title"),
-      message("le.status.up_to_date.description"),
+      message("le.status.up_to_date.description_auto"),
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
       shouldSimplify = true
-    )
+    ) {
+      override val description
+        get() = if (LiveEditApplicationConfiguration.getInstance().leTriggerMode ==
+                    LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
+          message("le.status.up_to_date.description_auto")
+        } else {
+          message("le.status.up_to_date.description_manual")
+        }
+    }
 
   object SyncNeeded :
     LiveEditStatus(
@@ -229,6 +239,14 @@ open class LiveEditStatus(
       AllIcons.General.Warning,
       message("le.status.error.unsupported_version.title"),
       message("le.status.error.unsupported_version.description"),
+      UNRECOVERABLE_ERROR
+    )
+
+  object UnsupportedVersionOtherDevice :
+    LiveEditStatus(
+      AllIcons.General.Warning,
+      message("le.status.error.unsupported_version.title"),
+      message("le.status.error.unsupported_version_other.description"),
       UNRECOVERABLE_ERROR
     )
 

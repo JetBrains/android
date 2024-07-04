@@ -114,7 +114,7 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   private val isLiveRecordingOngoing get() = stage.studioProfilers.sessionsManager.isSessionAlive
 
   private fun onStopRecordingClick() {
-    stage.studioProfilers.sessionsManager.endCurrentSession()
+    stage.stopTask.invoke()
     stopRecordingButton.isVisible = false
 
     // Live model icons in toolbar is set to invisible on stop recording button click

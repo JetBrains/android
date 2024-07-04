@@ -17,18 +17,15 @@ package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.LocaleQualifier
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
-import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
 import com.android.tools.idea.projectsystem.PseudoLocalesToken.Companion.isPseudoLocalesEnabled
 import com.android.tools.idea.projectsystem.PseudoLocalesToken.PseudoLocalesState
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.isMainModule
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Holds the [applicationId] and all supported locales [localeConfig] of an application. */
 data class AppLanguageInfo(val applicationId: String, val localeConfig: Set<LocaleQualifier>)
@@ -43,28 +40,29 @@ fun interface AppLanguageService {
     @JvmStatic fun getInstance(project: Project): AppLanguageService = project.service()
   }
 
-  /** Returns the [AppLanguageInfo] of the applications in the project. */
-  @Slow fun getAppLanguageInfo(): List<AppLanguageInfo>
+  /** Returns the [AppLanguageInfo] of the specified application. */
+  @Slow
+  fun getAppLanguageInfo(
+    runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ): AppLanguageInfo?
 }
 
 @Service(Service.Level.PROJECT)
 class AppLanguageServiceImpl(private val project: Project) : AppLanguageService {
 
-  @Slow
-  override fun getAppLanguageInfo(): List<AppLanguageInfo> {
-    val modules = ModuleManager.getInstance(project).modules
-    val apps = modules.filter { it.isMainModule() }.mapNotNull { AndroidFacet.getInstance(it) }
-    return apps.mapNotNull { facet ->
-      val applicationId = AndroidModel.get(facet)?.applicationId
-      applicationId?.let { AppLanguageInfo(it, getLocaleConfig(facet) + pseudoLocales(it, facet)) }
-    }
+  override fun getAppLanguageInfo(
+    runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ): AppLanguageInfo? {
+    val context =
+      project.getProjectSystem().getApplicationProjectContext(runningApplicationIdentity)
+        ?: return null
+    val facet = (context as? FacetBasedApplicationProjectContext)?.facet ?: return null
+    val pseudoLocalesEnabled =
+      project.getProjectSystem().isPseudoLocalesEnabled(context) in enabledStates
+    return AppLanguageInfo(
+      applicationId = context.applicationId,
+      localeConfig =
+        getLocaleConfig(facet) + if (pseudoLocalesEnabled) pseudoLocales else emptySet(),
+    )
   }
-
-  private fun pseudoLocales(applicationId: String, facet: AndroidFacet): Set<LocaleQualifier> =
-    if (pseudoLocalesEnabled(FacetBasedApplicationProjectContext(applicationId, facet)))
-      pseudoLocales
-    else setOf()
-
-  private fun pseudoLocalesEnabled(context: ApplicationProjectContext): Boolean =
-    project.getProjectSystem().isPseudoLocalesEnabled(context) in enabledStates
 }

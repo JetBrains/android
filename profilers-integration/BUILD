@@ -243,6 +243,25 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "JavaKotlinAllocationsTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinAllocationsTaskTest",
+)
+
+iml_studio_test(
     name = "SessionBasedProfilingWithApkTest",
     timeout = "long",
     data = profilers_test_common_data + [

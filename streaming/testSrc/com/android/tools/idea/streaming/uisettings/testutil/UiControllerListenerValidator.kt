@@ -17,9 +17,9 @@ package com.android.tools.idea.streaming.uisettings.testutil
 
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
-import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
+import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SCALE
 import com.android.tools.idea.streaming.emulator.DEFAULT_DENSITY
-import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SIZE
+import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SCALE
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
@@ -39,15 +39,16 @@ internal val RUSSIAN_LANGUAGE = AppLanguage(LocaleQualifier(null, "ru", null, nu
  */
 internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean, settable: Boolean) {
   val darkMode = createAndAddListener(model.inDarkMode, customValues)
-  val gestureNavigation = createAndAddListener(model.gestureNavigation, customValues)
+  val gestureNavigation = createAndAddListener(model.gestureNavigation, !customValues)
   val appLanguage = createAndAddListener(model.appLanguage.selection, if (customValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE)
   val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
   val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
   val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues)
-  val fontSizeSettable = createAndAddListener(model.fontSizeSettable, settable)
-  val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+  val fontScaleSettable = createAndAddListener(model.fontScaleSettable, settable)
+  val fontScale = createAndAddListener(model.fontScaleInPercent, if (customValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
   val densitySettable = createAndAddListener(model.screenDensitySettable, settable)
   val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
+  val debugLayout = createAndAddListener(model.inDarkMode, customValues)
 
   /**
    * Check the lastValue and number of changes for each property listener, and make sure they match the property value.
@@ -60,9 +61,9 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.inDarkMode.value).isEqualTo(expectedCustomValues)
     assertThat(darkMode.changes).isEqualTo(expectedChanges)
     assertThat(darkMode.lastValue).isEqualTo(expectedCustomValues)
-    assertThat(model.gestureNavigation.value).isEqualTo(expectedCustomValues)
+    assertThat(model.gestureNavigation.value).isEqualTo(!expectedCustomValues)
     assertThat(gestureNavigation.changes).isEqualTo(expectedChanges)
-    assertThat(gestureNavigation.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(gestureNavigation.lastValue).isEqualTo(!expectedCustomValues)
     assertThat(model.appLanguage.size).isEqualTo(3)
     assertThat(model.appLanguage.getElementAt(0)).isEqualTo(DEFAULT_LANGUAGE)
     assertThat(model.appLanguage.getElementAt(1)).isEqualTo(DANISH_LANGUAGE)
@@ -79,18 +80,21 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.selectToSpeakOn.value).isEqualTo(expectedCustomValues)
     assertThat(selectToSpeakOn.changes).isEqualTo(expectedChanges)
     assertThat(selectToSpeakOn.lastValue).isEqualTo(expectedCustomValues)
-    assertThat(model.fontSizeSettable.value).isEqualTo(expectedSettable)
-    assertThat(fontSizeSettable.changes).isEqualTo(expectedChanges)
-    assertThat(fontSizeSettable.lastValue).isEqualTo(expectedSettable)
-    assertThat(model.fontSizeInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
-    assertThat(fontSize.changes).isEqualTo(expectedChanges)
-    assertThat(fontSize.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+    assertThat(model.fontScaleSettable.value).isEqualTo(expectedSettable)
+    assertThat(fontScaleSettable.changes).isEqualTo(expectedChanges)
+    assertThat(fontScaleSettable.lastValue).isEqualTo(expectedSettable)
+    assertThat(model.fontScaleInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
+    assertThat(fontScale.changes).isEqualTo(expectedChanges)
+    assertThat(fontScale.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
     assertThat(model.screenDensitySettable.value).isEqualTo(expectedSettable)
     assertThat(densitySettable.changes).isEqualTo(expectedChanges)
     assertThat(densitySettable.lastValue).isEqualTo(expectedSettable)
     assertThat(model.screenDensity.value).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
     assertThat(density.changes).isEqualTo(expectedChanges)
     assertThat(density.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
+    assertThat(model.debugLayout.value).isEqualTo(expectedCustomValues)
+    assertThat(debugLayout.changes).isEqualTo(expectedChanges)
+    assertThat(debugLayout.lastValue).isEqualTo(expectedCustomValues)
   }
 
   private fun <T> createAndAddListener(property: ReadOnlyProperty<T>, initialValue: T): ListenerState<T> {

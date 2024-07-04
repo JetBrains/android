@@ -395,12 +395,13 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
         @Suppress("UnstableApiUsage")
         override fun perform(context: ActionContext) =
-          // This illustrates composition for our quick fixes. Because they depend on the order in which they are applied (e.g. one
-          // quick fix could add an annotation, and another would add or replace that annotation depending on context), we cannot directly
-          // compose the corresponding ModCommands via ModCompositeCommand or .andThen() chaining.
-          // We first collect all the elements to be updated (important because some of the quick fixes are non-local, they edit different
-          // files), pass them through getWritable() to make copies, and then apply each quick fix in sequence, within a single
-          // ModCommand.psiUpdate() call.
+          // This illustrates composition for our quick fixes. Because they depend on the order in
+          // which they are applied (e.g. one quick fix could add an annotation, and another would
+          // add or replace that annotation depending on context), we cannot directly compose the
+          // corresponding ModCommands via ModCompositeCommand or .andThen() chaining. We first
+          // collect all the elements to be updated (important because some of the quick fixes are
+          // non-local, they edit different files), pass them through getWritable() to make copies,
+          // and then apply each quick fix in sequence, within a single ModCommand.psiUpdate() call.
           ModCommand.psiUpdate(context) { updater ->
             val targets = myFixes.map { updater.getWritable(it.findPsiTarget(context)) }
             myFixes.zip(targets).map { (fix, target) -> fix.applyFixFun(target!!) }
@@ -500,17 +501,10 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     val element = myFixture.findElementByText(selected, PsiElement::class.java)
     val fixes = createMultipleAnnotationFixes(element, annotations, rangeFactory, useLintFix)
 
-    val context =
-      AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
     myFixture.moveCaret("|$selected")
 
     for (fix in fixes) {
-      if (fix is ModCommandLintQuickFix) {
-        myFixture.launchAction(fix.rawIntention())
-      } else if (fix is DefaultLintQuickFix) {
-        assertTrue(fix.isApplicable(element, element, context.type))
-        WriteCommandAction.runWriteCommandAction(project) { fix.apply(element, element, context) }
-      }
+      myFixture.launchAction((fix as ModCommandLintQuickFix).rawIntention())
     }
 
     assertEquals(expected.trimIndent(), file.text.removePrefix("/*prefix*/"))

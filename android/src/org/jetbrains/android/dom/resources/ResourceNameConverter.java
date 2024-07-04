@@ -28,6 +28,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.impl.GenericDomValueReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -185,11 +186,14 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
         style.getParentStyle().getStringValue() != null) {
       return PsiReference.EMPTY_ARRAY;
     }
-    final List<PsiReference> result = new ArrayList<>(ids.length - 1);
+    final List<PsiReference> result = new ArrayList<>(ids.length);
     int offset = s.length();
 
     for (int i = ids.length - 1; i >= 0; i--) {
-      if (i < ids.length - 1) {
+      if (i == ids.length - 1) {
+        // Add a reference to the entire style name, not just the parents.
+        result.add(new GenericDomValueReference<String>(value));
+      } else {
         final String parentStyleName = s.substring(0, offset);
         final ResourceValue val = ResourceValue.referenceTo((char)0, null, ResourceType.STYLE.getName(), parentStyleName);
         result.add(new MyParentStyleReference(value, new TextRange(1, 1 + offset), val, facet));

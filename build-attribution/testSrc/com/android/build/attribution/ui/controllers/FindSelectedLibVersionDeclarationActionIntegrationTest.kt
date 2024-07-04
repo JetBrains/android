@@ -39,7 +39,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.Dimension
+import java.awt.event.KeyEvent
 import java.util.UUID
+import javax.swing.JPanel
 
 /**
  * This test verifies what happens when action is triggered and how it passes request to UsageViewManager.
@@ -85,9 +87,7 @@ dependencies {
       projects = listOf(":"),
       pathToSupportLibrary = listOf() // Does not get involved here.
     )
-    val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
-    ActionManager.getInstance().tryToExecute(action, null, null, null, true)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    runFindSelectedLibVersionDeclarationAction(selectedDependency)
     Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleBuildFile)
     val caretLine = FileEditorManager.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
     Truth.assertThat(caretLine).isEqualTo(1)
@@ -129,9 +129,7 @@ include(":lib")
       projects = listOf(":app", ":lib"),
       pathToSupportLibrary = listOf() // Does not get involved here.
     )
-    val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
-    ActionManager.getInstance().tryToExecute(action, null, null, null, true)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    runFindSelectedLibVersionDeclarationAction(selectedDependency)
     Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).isEmpty()
 
     val selectedContent = UsageViewContentManager.getInstance(projectRule.project).selectedContent
@@ -179,9 +177,7 @@ include(":lib")
       pathToSupportLibrary = listOf() // Does not get involved here.
     )
 
-    val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
-    ActionManager.getInstance().tryToExecute(action, null, null, null, true)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    runFindSelectedLibVersionDeclarationAction(selectedDependency)
     Truth.assertThat(FileEditorManager.getInstance(projectRule.project).openFiles.asList()).containsExactly(gradleAppBuildFile)
     val caretLine = FileEditorManager.getInstance(projectRule.project).selectedTextEditor?.caretModel?.logicalPosition?.line
     Truth.assertThat(caretLine).isEqualTo(1)
@@ -191,5 +187,12 @@ include(":lib")
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       Truth.assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.FIND_LIBRARY_DECLARATION_CLICKED)
     }
+  }
+
+  private fun runFindSelectedLibVersionDeclarationAction(selectedDependency: JetifierWarningDetailsView.DirectDependencyDescriptor) {
+    val action = FindSelectedLibVersionDeclarationAction({ selectedDependency }, projectRule.project, analytics)
+    val event = KeyEvent(JPanel(), 1, 0, 0, 0, ' ')
+    ActionManager.getInstance().tryToExecute(action, event, null, null, true)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 }

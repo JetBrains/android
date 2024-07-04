@@ -23,77 +23,71 @@ private val METADATA_SHOT_SWING_TYPE_VALUE_PARTIAL = "partial"
 private val METADATA_SHOT_SWING_TYPE_VALUE_FULL = "full"
 
 /**
- * Data class representing WHS event triggers such as User Asleep or exercise paused. [eventKey] is the
- * key for this data type in WHS, [eventLabel] is the user displayed label of the trigger.
+ * Data class representing WHS event triggers such as User Asleep or exercise paused. [eventKey] is
+ * the key for this data type in WHS, [eventLabel] is the user displayed label of the trigger.
  */
 data class EventTrigger(
   val eventKey: String,
   val eventLabel: String,
-  val eventMetadata: Map<String, String> = emptyMap()
+  val eventMetadata: Map<String, String> = emptyMap(),
 )
 
-/**
- * Data class representing a group of WHS event triggers, as displayed in the UI.
- */
-data class EventTriggerGroup(
-  val eventGroupLabel: String,
-  val eventTriggers: List<EventTrigger>
-)
+/** Data class representing a group of WHS event triggers, as displayed in the UI. */
+data class EventTriggerGroup(val eventGroupLabel: String, val eventTriggers: List<EventTrigger>)
 
-/**
- * List of default event trigger groups, displayed in the UI.
- */
-val EVENT_TRIGGER_GROUPS = listOf(
-  EventTriggerGroup(
-    eventGroupLabel = message("wear.whs.event.trigger.auto.pause.resume.group"),
-    eventTriggers = listOf(
-      EventTrigger(
-        eventKey = "whs.AUTO_PAUSE_DETECTED",
-        eventLabel = message("wear.whs.event.trigger.auto.pause")
-      ),
-      EventTrigger(
-        eventKey = "whs.AUTO_RESUME_DETECTED",
-        eventLabel = message("wear.whs.event.trigger.auto.resume")
-      )
-    )
-  ),
-  EventTriggerGroup(
-    eventGroupLabel = message("wear.whs.event.trigger.sleep.group"),
-    eventTriggers = listOf(
-      EventTrigger(
-        eventKey = "whs.START_SLEEPING",
-        eventLabel = message("wear.whs.event.trigger.asleep")
-      ),
-      EventTrigger(
-        eventKey = "whs.STOP_SLEEPING",
-        eventLabel = message("wear.whs.event.trigger.awake")
-      ),
-    )
-  ),
-  EventTriggerGroup(
-    eventGroupLabel = message("wear.whs.event.trigger.golf.shots.group"),
-    eventTriggers = listOf(
-      EventTrigger(
-        eventKey = "whs.GOLF_SHOT",
-        eventLabel = message("wear.whs.event.trigger.golf.shot.putt"),
-        eventMetadata = mapOf(
-          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PUTT
-        )
-      ),
-      EventTrigger(
-        eventKey = "whs.GOLF_SHOT",
-        eventLabel = message("wear.whs.event.trigger.golf.shot.partial"),
-        eventMetadata = mapOf(
-          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PARTIAL
-        )
-      ),
-      EventTrigger(
-        eventKey = "whs.GOLF_SHOT",
-        eventLabel = message("wear.whs.event.trigger.golf.shot.full"),
-        eventMetadata = mapOf(
-          METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_FULL
-        )
-      ),
-    )
+/** List of default event trigger groups, displayed in the UI. */
+val EVENT_TRIGGER_GROUPS =
+  listOf(
+    EventTriggerGroup(
+      eventGroupLabel = message("wear.whs.event.trigger.auto.pause.resume.group"),
+      eventTriggers =
+        listOf(
+          EventTrigger(
+            eventKey = "whs.AUTO_PAUSE_DETECTED",
+            eventLabel = message("wear.whs.event.trigger.auto.pause"),
+          ),
+          EventTrigger(
+            eventKey = "whs.AUTO_RESUME_DETECTED",
+            eventLabel = message("wear.whs.event.trigger.auto.resume"),
+          ),
+        ),
+    ),
+    EventTriggerGroup(
+      eventGroupLabel = message("wear.whs.event.trigger.sleep.group"),
+      eventTriggers =
+        listOf(
+          EventTrigger(
+            eventKey = "whs.START_SLEEPING",
+            eventLabel = message("wear.whs.event.trigger.asleep"),
+          ),
+          EventTrigger(
+            eventKey = "whs.STOP_SLEEPING",
+            eventLabel = message("wear.whs.event.trigger.awake"),
+          ),
+        ),
+    ),
+    EventTriggerGroup(
+      eventGroupLabel = message("wear.whs.event.trigger.golf.shots.group"),
+      eventTriggers =
+        listOf(
+          EventTrigger(
+            eventKey = "whs.GOLF_SHOT",
+            eventLabel = message("wear.whs.event.trigger.golf.shot.putt"),
+            eventMetadata =
+              mapOf(METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PUTT),
+          ),
+          EventTrigger(
+            eventKey = "whs.GOLF_SHOT",
+            eventLabel = message("wear.whs.event.trigger.golf.shot.partial"),
+            eventMetadata =
+              mapOf(METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_PARTIAL),
+          ),
+          EventTrigger(
+            eventKey = "whs.GOLF_SHOT",
+            eventLabel = message("wear.whs.event.trigger.golf.shot.full"),
+            eventMetadata =
+              mapOf(METADATA_SHOT_SWING_TYPE_KEY to METADATA_SHOT_SWING_TYPE_VALUE_FULL),
+          ),
+        ),
+    ),
   )
-)

@@ -15,29 +15,30 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_END_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOP_BAR_START_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.TOP_BAR_TITLE
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOP_BAR_END_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOP_BAR_HEIGHT_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOP_BAR_START_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.TOP_BAR_TITLE
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 /**
  * The bar hosted above the task grid containing the title of the task grid ("Tasks"). Optionally includes a task config icon button,
@@ -57,25 +58,25 @@ private fun TopBarContainer(taskConfigIconButton: @Composable () -> Unit) {
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TopBar(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
   TopBarContainer {
-    IconButton(
-      onClick = {
-        val ideServices = profilers.ideServices
-        val model = CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers))
-        ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
-      }) {
-      Icon(
-        painter = StudioIconsCompose.Common.Settings().getPainter().value,
-        contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
-        modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
-      )
+    Tooltip(
+      { Text(TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC) },
+    ) {
+      IconButton(
+        onClick = {
+          val ideServices = profilers.ideServices
+          val model = CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers))
+          ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
+        }) {
+        Icon(
+          painter = StudioIconsCompose.Common.Settings().getPainter().value,
+          contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
+        )
+      }
     }
   }
-}
-
-@Composable
-fun TopBar() {
-  TopBarContainer {}
 }

@@ -19,5 +19,6 @@ import com.intellij.openapi.project.Project
 
 interface WizardAction {
   fun closeAndStartAvd(project: Project?) {}
+
   fun restart(project: Project?) {}
 }

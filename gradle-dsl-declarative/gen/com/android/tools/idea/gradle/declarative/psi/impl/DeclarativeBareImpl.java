@@ -26,11 +26,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.*;
 import com.android.tools.idea.gradle.declarative.psi.*;
 import com.android.tools.idea.gradle.declarative.parser.PsiImplUtil;
+import com.intellij.psi.tree.IElementType;
 
 public class DeclarativeBareImpl extends DeclarativePropertyImpl implements DeclarativeBare {
 
-  public DeclarativeBareImpl(@NotNull ASTNode node) {
-    super(node);
+  public DeclarativeBareImpl(@NotNull IElementType type) {
+    super(type);
   }
 
   @Override
@@ -47,7 +48,7 @@ public class DeclarativeBareImpl extends DeclarativePropertyImpl implements Decl
   @Override
   @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return findNotNullChildByClass(DeclarativeIdentifier.class);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

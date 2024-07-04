@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.test.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
-import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaLibraryDependency
@@ -25,6 +25,7 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import java.io.File
 
@@ -63,6 +64,11 @@ fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(projectRule: Andro
     PsiTestUtil.addLibrary(it, composeRuntimePath)
   }
   registerComposeCompilerPlugin(projectRule)
+
+  // Since we depend on the project system to tell us certain information such as rather the module has compose or not, we need to
+  // ask the test module system to pretend we have a compose module.
+  val testProjectSystem = TestProjectSystem(projectRule.project).apply { usesCompose = true }
+  runInEdtAndWait { testProjectSystem.useInTests() }
 }
 
 /**

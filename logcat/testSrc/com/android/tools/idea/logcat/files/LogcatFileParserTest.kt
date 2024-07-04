@@ -55,20 +55,6 @@ class LogcatFileParserTest {
       .containsExactlyElementsIn(expectedMessages.removeTimestamp())
       .inOrder()
   }
-
-  @Test
-  fun parseLogcatFile_bufferSize() {
-    androidLogcatSettings.bufferSize = 1000
-    val path = getResourcePath("/logcatFiles/logcat-threadtime-api-25.txt")
-
-    val data = LogcatFileIo(zoneId).readLogcat(path)
-
-    assertThat(data.metadata).isNull()
-    val expectedMessages = loadExpectedLogcat("/logcatFiles/logcat-threadtime-api-25-expected.txt")
-    assertThat(data.logcatMessages.removeTimestamp())
-      .containsExactlyElementsIn(expectedMessages.takeLast(3).removeTimestamp())
-      .inOrder()
-  }
 }
 
 private fun List<LogcatMessage>.removeTimestamp() = map {

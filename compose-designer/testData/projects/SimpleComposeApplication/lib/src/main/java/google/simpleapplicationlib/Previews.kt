@@ -29,4 +29,3 @@ fun LibGreeting(name: String) {
 fun LibPreview() {
   LibGreeting("Android lib")
 }
-

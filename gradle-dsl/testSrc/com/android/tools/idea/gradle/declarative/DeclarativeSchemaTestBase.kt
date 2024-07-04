@@ -34,30 +34,25 @@ abstract class DeclarativeSchemaTestBase {
   // Keep this method here for now as schema files suppose to go away soon
   @Throws(IOException::class)
   fun writeToSchemaFile(filename: TestFileName) {
-    val projectFileName = "project.dcl.schema"
-    val pluginFileName = "plugins.dcl.schema"
-
     val myTestDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").pathString
-    val projectFile = filename.toFile(myTestDataRelativePath, projectFileName)
-    val pluginFile = filename.toFile(myTestDataRelativePath, pluginFileName)
-    val virtualProjectFile = VfsUtil.findFileByIoFile(projectFile, true)
-    val virtualPluginFile = VfsUtil.findFileByIoFile(pluginFile, true)
+    val folder = filename.toFile(myTestDataRelativePath, "")
+    val children = folder.list()
     val projectDir = projectRule.project.guessProjectDir()!!
     runWriteAction {
       val gradlePath = projectDir.createChildDirectory(this, ".gradle")
       val schemaFolder = gradlePath.createChildDirectory(this, "declarative-schema")
-      val schemaProjectFile = schemaFolder.createChildData(this, projectFileName)
-      val schemaPluginFile = schemaFolder.createChildData(this, pluginFileName)
-      VfsUtil.saveText(schemaProjectFile, VfsUtilCore.loadText(
-        virtualProjectFile!!))
-      VfsUtil.saveText(schemaPluginFile, VfsUtilCore.loadText(
-        virtualPluginFile!!))
+      children.filter { it.endsWith("dcl.schema") }.forEach {
+        val newFile = schemaFolder.createChildData(this, it)
+        val file = VfsUtil.findFileByIoFile(File(folder,it), true)
+        VfsUtil.saveText(newFile, VfsUtilCore.loadText(file!!))
+      }
     }
   }
 
   internal enum class TestFile(private val path: @SystemIndependent String) : TestFileName {
-    DECLARATIVE_GENERATED_SCHEMAS("somethingDeclarative/schemas"),
-    DECLARATIVE_ADVANCED_SCHEMAS("somethingDeclarative/advancedSchemas");
+    DECLARATIVE_SETTINGS_SCHEMAS("somethingDeclarative/settingsSchemas"),
+    DECLARATIVE_NEW_FORMAT_SCHEMAS("somethingDeclarative/newFormatSchemas"),
+    ;
 
     override fun toFile(basePath: @SystemIndependent String, extension: String): File {
       return super.toFile("$basePath/$path/", extension)

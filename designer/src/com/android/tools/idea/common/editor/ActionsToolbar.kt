@@ -139,6 +139,9 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
     if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
       AdtPrimaryPanel(BorderLayout()).apply {
+        // set background to null to use the parent's background
+        northToolbarComponent.background = null
+        northEastToolbarComponent.background = null
         this.add(northToolbarComponent, BorderLayout.CENTER)
         this.add(northEastToolbarComponent, BorderLayout.EAST)
         this.border =
@@ -164,7 +167,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     if (view != null) {
       var selection = view.selectionModel.selection
       if (selection.isEmpty()) {
-        val roots = view.sceneManager.model.components
+        val roots = view.sceneManager.model.treeReader.components
         roots.singleOrNull()?.let { selection = listOf(it) }
       }
       updateActions(selection)
@@ -230,7 +233,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       if (surface.project.isDisposed) {
         return@invokeLater
       }
-      if (model.components.size == 1) {
+      if (model.treeReader.components.size == 1) {
         updateActions()
       }
     }

@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2024.1.1">
+    version="2024.1.2">
   <feature
-      name="What's New in Koala">
+      name="What's New in Koala Feature Drop">
     <tutorial
         key="whats-new"
-        label=" What's New in Koala"
+        label=" What's New in Koala Feature Drop"
         icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-1-1"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-1-2"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -97,7 +97,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 3/28/2024</em><br><br>
+              <br><em>Last updated 05/07/2024</em><br><br>
             ]]>
           </section>
         </stepElement>

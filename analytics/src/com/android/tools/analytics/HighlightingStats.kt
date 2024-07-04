@@ -17,6 +17,7 @@ package com.android.tools.analytics
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
+import com.google.wireless.android.sdk.stats.EditorFileType.CMAKE
 import com.google.wireless.android.sdk.stats.EditorFileType.GROOVY
 import com.google.wireless.android.sdk.stats.EditorFileType.JAVA
 import com.google.wireless.android.sdk.stats.EditorFileType.JSON
@@ -34,6 +35,8 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.FileName
 import org.HdrHistogram.Recorder
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -108,16 +111,22 @@ class HighlightingStats : Disposable {
   }
 
   /** Converts from file type name to proto enum value. */
-  private fun convertFileType(file: VirtualFile): EditorFileType = when (file.fileType.name) {
-    // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid unnecessary
-    // dependencies on other plugins. Fortunately, these values are extremely unlikely to change.
-    "JAVA" -> JAVA
-    "Kotlin" -> if (file.extension == "kts") KOTLIN_SCRIPT else KOTLIN
-    "XML" -> XML
-    "Groovy" -> GROOVY
-    "Properties" -> PROPERTIES
-    "JSON" -> JSON
-    "ObjectiveC" -> NATIVE
-    else -> UNKNOWN
+  private fun convertFileType(file: VirtualFile): EditorFileType {
+    if (file.fileType.name.isCMakeFileByName()) return CMAKE
+    return when (file.fileType.name) {
+      // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid unnecessary
+      // dependencies on other plugins. Fortunately, these values are extremely unlikely to change.
+      "JAVA" -> JAVA
+      "Kotlin" -> if (file.extension == "kts") KOTLIN_SCRIPT else KOTLIN
+      "XML" -> XML
+      "Groovy" -> GROOVY
+      "Properties" -> PROPERTIES
+      "JSON" -> JSON
+      "ObjectiveC" -> NATIVE
+      else -> UNKNOWN
+    }
   }
+
+  private fun String.isCMakeFileByName(): Boolean = this == "CMakeLists.txt" || StringUtil.endsWithIgnoreCase(this, ".cmake")
+
 }

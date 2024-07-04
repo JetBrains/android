@@ -597,25 +597,16 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
 
     // Reset is done separately from disposal, since reset isn't needed in all disposal scenarios. Specifically,
-    // there are ways these repositories can be disposed:
+    // there are 2 ways these repositories can be disposed:
     //  1. This reset method.
     //  2. When the owning facet is disposed.
     // In the second case, a "roots updated" notification will be sent to any dependent modules, which will cause
     // them to recalculate their children and remove any outdated references. So only the first case (this reset
     // method) requires explicitly notifying those same parent repositories that their children are out of date and
     // need to be refreshed.
-    if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
-      // Notifying parents is flagged in case this new change has any unexpected side effects.
-      DisposeAndRefreshService disposeAndRefreshService = DisposeAndRefreshService.getInstance();
-      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
-        disposeAndRefreshService.disposeAndNotifyParents(repository);
-      }
-    } else {
-      for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
-        if (repository instanceof Disposable disposable) {
-          Disposer.dispose(disposable);
-        }
-      }
+    DisposeAndRefreshService disposeAndRefreshService = DisposeAndRefreshService.getInstance();
+    for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+      disposeAndRefreshService.disposeAndNotifyParents(repository);
     }
   }
 

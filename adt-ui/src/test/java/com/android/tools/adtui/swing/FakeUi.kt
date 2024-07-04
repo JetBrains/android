@@ -303,7 +303,7 @@ class FakeUi @JvmOverloads constructor(
       }
     }
     for (future in futures) {
-      waitForCondition(1.seconds) { future.isDone }
+      waitForCondition(2.seconds) { future.isDone }
     }
   }
 

@@ -401,7 +401,7 @@ class GroupedListSurfaceLayoutManagerTest {
 
     run {
       val scale = manager.getFitIntoScale(contents, 400, 1000)
-      assertEquals(2.0, scale, 0.0)
+      assertEquals(4.0, scale, 0.0)
     }
 
     run {
@@ -416,7 +416,7 @@ class GroupedListSurfaceLayoutManagerTest {
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 50)
-      assertEquals(0.1, scale, 0.0)
+      assertEquals(1.0, scale, 0.0)
     }
   }
 
@@ -443,7 +443,7 @@ class GroupedListSurfaceLayoutManagerTest {
 
     run {
       val scale = manager.getFitIntoScale(contents, 400, 1000)
-      assertEquals(1.8, scale, 0.01)
+      assertEquals(3.8, scale, 0.01)
     }
 
     run {

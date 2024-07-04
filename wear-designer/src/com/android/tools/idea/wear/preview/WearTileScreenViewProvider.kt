@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -57,7 +58,7 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
             .build()
         }
         .withShapePolicy(DEVICE_CONFIGURATION_SHAPE_POLICY)
-        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+        .decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }
         .build()
 
     override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE

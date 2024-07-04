@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -43,6 +44,8 @@ internal interface LogcatPresenter :
 
   @UiThread fun restartLogcat()
 
+  fun reloadFile()
+
   /** Returns true if the attached logcat is empty */
   fun isLogcatEmpty(): Boolean
 
@@ -61,6 +64,8 @@ internal interface LogcatPresenter :
   fun getConnectedDevice(): Device?
 
   fun getSelectedDevice(): Device?
+
+  fun getSelectedItem(): DeviceComboItem?
 
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 

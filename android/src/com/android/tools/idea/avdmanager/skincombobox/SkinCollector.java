@@ -25,7 +25,6 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Streams;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -81,7 +80,7 @@ public final class SkinCollector {
   private Stream<Skin> platformSkins(@NotNull IAndroidTarget platform) {
     var version = platform.getVersion();
 
-    return Arrays.stream(platform.getSkins())
+    return platform.getSkins().stream()
       .map(myMap)
       .map(path -> new PlatformSkin(path, version));
   }
@@ -101,7 +100,7 @@ public final class SkinCollector {
     var version = image.getAndroidVersion();
     var abi = image.getPrimaryAbiType();
 
-    return Arrays.stream(image.getSkins())
+    return image.getSkins().stream()
       .map(myMap)
       .map(path -> new SystemImageSkin(path, version, abi));
   }

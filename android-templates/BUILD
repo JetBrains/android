@@ -117,38 +117,48 @@ maven_repository(
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
+        "@maven//:androidx.collection.collection-ktx_1.4.0",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.animation.animation-core-android_1.5.0-beta01",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.animation.animation_1.5.0-beta01",  # Necessary for Compose for TV
+        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
-        "@maven//:androidx.compose.compose-bom_2023.08.00",
+        "@maven//:androidx.compose.compose-bom_2024.04.01",
         "@maven//:androidx.compose.foundation.foundation-android_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.foundation.foundation_1.5.0",
+        "@maven//:androidx.compose.foundation.foundation-layout_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.foundation.foundation_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material.material-icons-core_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material.material-ripple_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.material.material_1.4.3",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.material.material_1.5.0",
         "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.material3.material3_1.1.1",
+        "@maven//:androidx.compose.material.material_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material3.material3_1.2.1",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.runtime.runtime_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-graphics-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-graphics_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-test-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-data-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.concurrent.concurrent-futures-ktx_1.2.0-alpha02",
         "@maven//:androidx.concurrent.concurrent-futures_1.2.0-alpha02",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
@@ -161,6 +171,7 @@ maven_repository(
         "@maven//:androidx.core.core_1.12.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.3.0",  # Compose BOM 2024.04.01; for testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta04",  # Necessary for Compose for TV.
         "@maven//:androidx.fragment.fragment-ktx_1.5.6",  # Needed for TemplateDiffTest#testNewViewModelFragmentWithKotlin (viewModelFragmentRecipe.kt)
@@ -201,6 +212,7 @@ maven_repository(
         "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
         "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
+        "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",

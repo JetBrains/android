@@ -21,16 +21,15 @@ import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.util.text.StringUtil
 import icons.StudioIcons
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)")
 
 internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   private fun getLabel(selection: String?, message: String?): String? =
     when {
@@ -53,7 +52,8 @@ internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
     val label = getLabel(selection, message) ?: return
     e.presentation.isVisible = true
-    e.presentation.text = LogcatBundle.message("logcat.studio.bot.action.label", label)
+    e.presentation.text =
+      StringUtil.toTitleCase(LogcatBundle.message("logcat.studio.bot.action.label", label))
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -77,10 +77,6 @@ internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
       studioBot.chat(project).sendChatQuery(prompt, StudioBot.RequestSource.LOGCAT)
     } else {
       studioBot.chat(project).stageChatQuery(queryText, StudioBot.RequestSource.LOGCAT)
-    }
-
-    ApplicationManager.getApplication().invokeLater {
-      ToolWindowManagerEx.getInstanceEx(project).hideToolWindow("Logcat", false)
     }
   }
 }

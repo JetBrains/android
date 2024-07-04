@@ -118,11 +118,11 @@ class NavSelectActionsTest : NavTestCase() {
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
-    val root = model.find("root")!!
-    val action1 = model.find("action1")!!
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+    val root = model.treeReader.find("root")!!
+    val action1 = model.treeReader.find("action1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val fragment2 = model.treeReader.find("fragment2")!!
+    val fragment3 = model.treeReader.find("fragment3")!!
 
     val action = SelectAllAction()
 
@@ -132,7 +132,7 @@ class NavSelectActionsTest : NavTestCase() {
 
   private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
     action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
-    val component = surface.model?.find(id)!!
+    val component = surface.model?.treeReader?.find(id)!!
     AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
   }
 }

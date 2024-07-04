@@ -209,20 +209,20 @@ private class ComponentTreePanel(
     model = surface?.model
     model?.addListener(modelChangeListener)
     facet = model?.facet
-    componentTree.model.treeRoot = model?.components?.firstOrNull()
+    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
     invokeLater { TreeUtil.expandAll(componentTree.tree) }
   }
 
   private fun setSurfaceSelection(selection: List<Any>) {
     val references = selection.filterIsInstance(NlComponentReference::class.java)
-    val highlighted = references.mapNotNull { model?.find(it.id) }
+    val highlighted = references.mapNotNull { model?.treeReader?.find(it.id) }
     val selected = selection.filterIsInstance(NlComponent::class.java)
     surface?.selectionModel?.setHighlightSelection(highlighted, selected)
     surface?.repaint()
   }
 
   private fun fireHierarchyChanged(model: NlModel?) {
-    componentTree.model.treeRoot = model?.components?.firstOrNull()
+    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
   }
 
   private fun activateComponent(component: Any) =
@@ -355,10 +355,10 @@ private class ComponentTreePanel(
       }
 
     override fun canInsert(node: NlComponent, data: Transferable): Boolean {
-      val model = model ?: return false
+      val treeWriter = model?.treeWriter ?: return false
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
       val item = DnDTransferItem.getTransferItem(data, true) ?: return false
-      val components = model.createComponents(item, InsertType.COPY)
+      val components = treeWriter.createComponents(item, InsertType.COPY)
       val refs = item.references
       if (refs.isEmpty() && components.isEmpty()) {
         // Do not allow both components and references to be dropped.
@@ -370,7 +370,7 @@ private class ComponentTreePanel(
       // be saved as references)
       return (components.isNotEmpty() &&
         node.isGroup() &&
-        model.canAddComponents(components, node, null)) ||
+        treeWriter.canAddComponents(components, node, null)) ||
         node.getViewGroupHandler {}?.holdsReferences() == true
     }
 
@@ -390,15 +390,16 @@ private class ComponentTreePanel(
           item.isFromPalette -> InsertType.CREATE
           else -> InsertType.COPY
         }
+      val treeWriter = model.treeWriter
       val components =
         if (insertType == InsertType.MOVE) draggedFromTree.filterIsInstance<NlComponent>()
-        else model.createComponents(item, insertType)
+        else treeWriter.createComponents(item, insertType)
       val refs = item.references
       when {
         node.isGroup() &&
           refs.isEmpty() &&
-          model.canAddComponents(components, node, before as? NlComponent) ->
-          model.addComponents(components, node, before as? NlComponent, insertType, null)
+          treeWriter.canAddComponents(components, node, before as? NlComponent) ->
+          treeWriter.addComponents(components, node, before as? NlComponent, insertType, null)
         node.getViewGroupHandler {}?.holdsReferences() == true ->
           updateReferences(node, components, refs, before as? NlComponentReference, insertType)
         else -> return false
@@ -421,18 +422,20 @@ private class ComponentTreePanel(
 
       // Then add/move the referenced component to the corresponding constraint layout:
       val layout = node.parent ?: return
-      val beforeComponent = before?.let { model?.find(it.id) }
-      model?.addComponents(components, layout, beforeComponent, insertType, null)
+      val beforeComponent = before?.let { model?.treeReader?.find(it.id) }
+      model?.treeWriter?.addComponents(components, layout, beforeComponent, insertType, null)
     }
 
     override fun delete(node: NlComponent) {
-      model?.delete(listOf(node))
+      model?.treeWriter?.delete(listOf(node))
     }
 
     override fun createTransferable(node: NlComponent): Transferable? {
       val text = node.tag?.text ?: return null
       val component = DnDTransferComponent(node.tagName, text, node.w, node.h)
-      return ItemTransferable(DnDTransferItem(model?.id ?: 0, ImmutableList.of(component)))
+      return ItemTransferable(
+        DnDTransferItem(model?.treeWriter?.id ?: 0, ImmutableList.of(component))
+      )
     }
 
     override fun createDragImage(node: NlComponent): Image = EMPTY_IMAGE
@@ -459,7 +462,7 @@ private class ComponentTreePanel(
 
     override fun createTransferable(node: NlComponentReference): Transferable =
       ItemTransferable(
-        DnDTransferItem(model?.id ?: 0, ImmutableList.of(), ImmutableList.of(node.id))
+        DnDTransferItem(model?.treeWriter?.id ?: 0, ImmutableList.of(), ImmutableList.of(node.id))
       )
 
     private val label = JBLabel()

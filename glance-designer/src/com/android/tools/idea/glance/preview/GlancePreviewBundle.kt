@@ -18,7 +18,7 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.localization.MessageBundleReference
 import org.jetbrains.annotations.PropertyKey
 
-private const val BUNDLE_NAME = "bundle.glance.PreviewBundle"
+private const val BUNDLE_NAME = "bundle.glance.GlancePreviewBundle"
 
 object GlancePreviewBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)

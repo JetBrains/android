@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.DeviceManagerToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
@@ -698,6 +699,20 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return AvdManagerDialogFixture.find(robot(), this);
   }
 
+  @NotNull
+  public DeviceManagerToolWindowFixture invokeDeviceManager() {
+    // The action button is prone to move during rendering so that robot.click()
+    // could miss.
+    // So, we use component's click here directly.
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager2", 30);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        actionButtonFixture.target().click();
+      }
+    });
+    return new DeviceManagerToolWindowFixture(getProject(), robot());
+  }
   @NotNull
   public IdeSettingsDialogFixture invokeSdkManager() {
     ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {

@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * [VisualizationForm] uses this interface to create [NlModel]s. Implement this interface to custom
@@ -33,6 +33,6 @@ interface VisualizationModelsProvider {
   fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel>
 }

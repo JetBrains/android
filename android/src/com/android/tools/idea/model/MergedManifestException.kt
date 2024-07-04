@@ -43,9 +43,12 @@ internal sealed class MergedManifestException(
   ) : MergedManifestException(info, "Missing element \"$element\"")
 
   class ParsingError(
-    info: MergedManifestInfo,
     cause: Throwable
-  ) : MergedManifestException(info, "Unexpected error parsing document", cause)
+  ) : MergedManifestException(null, "Parsing document error", cause)
+
+  class InfrastructureError(
+    cause: Throwable
+  ) : MergedManifestException(null, "Unexpected error during manifest merging", cause)
 }
 
 private fun MergedManifestInfo.errorMessage(reason: String): String {

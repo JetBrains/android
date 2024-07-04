@@ -27,7 +27,3 @@ import com.intellij.openapi.actionSystem.DataKey
  * @see com.android.tools.preview.config.findOrParseFromDefinition
  */
 internal val CurrentDeviceKey = DataKey.create<Device?>("preview.picker.current.device")
-
-/** Key to obtain the list of all available devices from the device manager. */
-internal val AvailableDevicesKey =
-  DataKey.create<Collection<Device>>("preview.picker.available.devices")

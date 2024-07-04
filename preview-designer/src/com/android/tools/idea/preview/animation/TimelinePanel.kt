@@ -254,7 +254,10 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   private fun paintMajorTicks(g: Graphics2D) {
     // Set background color
     g.color =
-      if (!moreThanOneTimelineElementInPanel() && elements.firstOrNull()?.frozenValue != null) {
+      if (
+        !moreThanOneTimelineElementInPanel() &&
+          elements.firstOrNull()?.frozenState?.isFrozen == true
+      ) {
         InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
       } else {
         InspectorColors.TIMELINE_BACKGROUND_COLOR
@@ -269,7 +272,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     if (moreThanOneTimelineElementInPanel()) {
       var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
       elements.forEach { element ->
-        if (element.frozenValue != null) {
+        if (element.frozenState.isFrozen) {
           g.color = InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
           g.fillRect(0, totalHeight, slider.width, element.heightScaled())
         }
@@ -297,8 +300,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     val frozenTicks = mutableListOf<VerticalTick>()
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     elements.forEach { element ->
-      if (element.frozenValue != null) {
-        val x = xPositionForValue(element.frozenValue)
+      if (element.frozenState.isFrozen) {
+        val x = xPositionForValue(element.frozenState.frozenAt)
         val y1 = totalHeight + 2
         val y2 = totalHeight + element.heightScaled() - 2
         frozenTicks.add(VerticalTick(x, y1, y2))

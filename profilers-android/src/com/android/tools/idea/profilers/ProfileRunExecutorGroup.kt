@@ -21,6 +21,8 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
@@ -43,8 +45,8 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     override val actionName: String
       get() = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
         when (profilingMode) {
-          ProfilingMode.PROFILEABLE -> "Profiler: Run as profileable (low overhead)"
-          ProfilingMode.DEBUGGABLE -> "Profiler: Run as debuggable (complete data)"
+          ProfilingMode.PROFILEABLE -> PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
+          ProfilingMode.DEBUGGABLE -> PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
           else -> "Profiler: Run"
         }
       }
@@ -65,17 +67,23 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
     override val startActionText = "Profile"
     override fun canRun(profile: RunProfile) = true
-
     override fun isApplicable(project: Project): Boolean {
       val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
       return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
     }
-
-    @Nls
-    override fun getStartActionText(configurationName: String) = when (profilingMode) {
-      ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.configuration.with.low.overhead", configurationName)
-      ProfilingMode.DEBUGGABLE -> message("android.profiler.action.profile.configuration.with.complete.data", configurationName)
-      else -> message("android.profiler.action.profile.configuration", configurationName)
+    override fun getStartActionText(configurationName: String) = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+      when (profilingMode) {
+        ProfilingMode.PROFILEABLE -> "Profiler: Run '$configurationName' as profileable (low overhead)"
+        ProfilingMode.DEBUGGABLE -> "Profiler: Run '$configurationName' as debuggable (complete data)"
+        else -> "Profiler: Run '$configurationName'"
+      }
+    }
+    else {
+      when (profilingMode) {
+        ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead (profileable)"
+        ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data (debuggable)"
+        else -> "Profile '$configurationName'"
+      }
     }
   }
 

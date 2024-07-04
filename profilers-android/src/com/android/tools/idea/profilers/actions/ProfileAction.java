@@ -23,5 +23,5 @@ import com.intellij.execution.ExecutorRegistryImpl;
  * profileable option.
  */
 public class ProfileAction extends ExecutorRegistryImpl.ExecutorAction {
-  ProfileAction() { super(ProfileRunExecutor.Companion.getInstance()); }
+  public ProfileAction() { super(ProfileRunExecutor.Companion.getInstance()); }
 }

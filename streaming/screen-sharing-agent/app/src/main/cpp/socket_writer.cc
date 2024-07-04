@@ -42,10 +42,10 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
   while (true) {
     ssize_t written;
     if (size2 == 0) {
-      written = write(socket_fd_, buf1, size1);
+      written = TEMP_FAILURE_RETRY(write(socket_fd_, buf1, size1));
     } else {
       iovec buffers[] = {{const_cast<void*>(buf1), size1}, {const_cast<void*>(buf2), size2}};
-      written = writev(socket_fd_, buffers, 2);
+      written = TEMP_FAILURE_RETRY(writev(socket_fd_, buffers, 2));
     }
     if (written < 0) {
       switch (errno) {
@@ -54,7 +54,6 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
           Log::I("Disconnected while writing to %s socket", socket_name_.c_str());
           return Result::DISCONNECTED;
 
-        case EINTR:
         case EAGAIN: {
           Log::W("Writing to %s socket failed - %s", socket_name_.c_str(), strerror(errno));
           was_blocked = true;

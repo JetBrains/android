@@ -107,11 +107,10 @@ private fun makeAvdInfo(
   model: String,
   androidVersion: AndroidVersion,
 ): AvdInfo {
-  val basePath = Path.of("/tmp/fake_avds/$avdName")
+  val basePath = Path.of("/tmp/fake_avds")
   return AvdInfo(
-    avdName,
-    basePath.resolve("config.ini"),
-    basePath,
+    basePath.resolve("${avdName}.ini"),
+    basePath.resolve("${avdName}.avd"),
     null,
     mapOf(
       AvdManager.AVD_INI_DEVICE_MANUFACTURER to manufacturer,

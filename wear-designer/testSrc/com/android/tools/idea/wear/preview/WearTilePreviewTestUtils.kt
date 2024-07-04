@@ -20,7 +20,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 fun CodeInsightTestFixture.stubWearTilePreviewAnnotation() {
   addFileToProjectAndInvalidate(
-    "src/main/androidx/wear/tiles/tooling/preview/Preview.kt",
+    "src/main/java/androidx/wear/tiles/tooling/preview/Preview.kt",
     // language=kotlin
     """
         package androidx.wear.tiles.tooling.preview
@@ -43,6 +43,7 @@ fun CodeInsightTestFixture.stubWearTilePreviewAnnotation() {
             val locale: String = "",
             @FloatRange(from = 0.01) val fontScale: Float = 1f,
         )
-        """.trimIndent(),
+        """
+      .trimIndent(),
   )
 }

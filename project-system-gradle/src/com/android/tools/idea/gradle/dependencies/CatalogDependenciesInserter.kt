@@ -92,6 +92,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
+  // We ignore setting plugin block as we cannot add reference to catalog here
   override fun addPlugin(pluginId: String,
                          version: String,
                          apply: Boolean?,
@@ -102,9 +103,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     val moduleInsertion = isSingleModuleProject() || buildModel.psiFile != projectModel.projectBuildModel?.psiFile
     return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
-      settingsPlugins.applyPlugin(reference, apply)
-      changedFiles.addIfNotNull(settingsPlugins.psiElement?.containingFile)
-
       if (moduleInsertion && !buildModel.hasPlugin(matcher)) {
         buildModel.applyPlugin(reference, null)
         changedFiles.addIfNotNull(buildModel.psiFile)
@@ -225,7 +223,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   private fun getCatalogModel(): GradleVersionCatalogModel {
     val catalogModel = DependenciesHelper.getDefaultCatalogModel(projectModel)
     // check invariant that at this point catalog must be available as algorithm chose to add dependency to catalog
-    check(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available to add dependency" }
+    check(catalogModel != null) { "Catalog ${DependenciesHelper.getDefaultCatalogName(projectModel)} must be available to add dependency" }
     return catalogModel
   }
 
@@ -272,7 +270,9 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       val plugins = catalogModel.pluginDeclarations()
       val names = plugins.getAllAliases()
 
-      val alias: Alias = pickPluginVariableName(pluginId, names)
+      val defaultName = KotlinPlugin.values().find { it.id == pluginId }?.defaultPluginName?.takeIf { it !in names }
+
+      val alias: Alias = pickPluginVariableName(defaultName ?: pluginId, names)
 
       val versionModel = getOrAddCatalogVersionForPlugin(catalogModel, pluginId, version)
       if (versionModel == null) {
@@ -328,44 +328,43 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
 
     private fun getOrAddCatalogVersionForPlugin(catalogModel: GradleVersionCatalogModel, pluginId: String, version: String): VersionDeclarationModel? {
       val agpPluginIds = AgpPlugin.values().map { it.id }.toSet()
-      return if (agpPluginIds.contains(pluginId)) {
-        getAgpVersion(catalogModel, version)
-      }
-      else {
-        // When the plugin doesn't depend on AGP, follow the regular rule to pick the name for the version
-        val defaultVersionName = if (pluginId == KotlinPlugin.KOTLIN_ANDROID.id) {
-          KotlinPlugin.KOTLIN_ANDROID.defaultVersionName
-        }
-        else {
-          pluginId
-        }
-
-        val versions = catalogModel.versionDeclarations()
-        val names = versions.getAllAliases()
-        val alias: Alias = pickPluginVersionVariableName(defaultVersionName, names)
-        versions.addDeclaration(alias, version)
+      return when {
+        agpPluginIds.contains(pluginId) -> getAgpVersion(catalogModel, version)
+        KotlinPlugin.values().find { it.id == pluginId } != null -> getKotlinVersion(catalogModel, version)
+        else -> addVersionDeclaration(catalogModel, pluginId, version)
       }
     }
 
-    private fun getAgpVersion(catalogModel: GradleVersionCatalogModel, version:String): VersionDeclarationModel?{
-      val existingAgpVersion = catalogModel.findAgpVersion()
-      return if (existingAgpVersion != null) {
-        existingAgpVersion
-      } else {
-        val versions = catalogModel.versionDeclarations()
-        val names = versions.getAllAliases()
-        val alias: Alias = pickPluginVersionVariableName(AgpPlugin.APPLICATION.defaultVersionName, names)
-        versions.addDeclaration(alias, version)
-      }
+    private fun getAgpVersion(catalogModel: GradleVersionCatalogModel, version: String): VersionDeclarationModel? =
+      getPredefinedVersion(catalogModel, version, AgpPlugin.values().map { it.id }.toSet(), AgpPlugin.defaultVersionName)
+
+    private fun getKotlinVersion(catalogModel: GradleVersionCatalogModel, version: String): VersionDeclarationModel? =
+      getPredefinedVersion(catalogModel, version, KotlinPlugin.values().map { it.id }.toSet(),
+                           KotlinPlugin.defaultVersionName)
+
+    private fun getPredefinedVersion(catalogModel: GradleVersionCatalogModel,
+                                     version: String,
+                                     ids: Set<String>,
+                                     defaultName: String): VersionDeclarationModel? {
+      return catalogModel.findVersion(ids) ?: addVersionDeclaration(catalogModel, defaultName, version)
     }
 
-    private fun GradleVersionCatalogModel.findAgpVersion(): VersionDeclarationModel? {
-      val agpPluginIds = AgpPlugin.values().map { it.id }.toSet()
+    private fun addVersionDeclaration(
+      catalogModel: GradleVersionCatalogModel,
+      pluginId: String,
+      version: String
+    ): VersionDeclarationModel? {
+      val versions = catalogModel.versionDeclarations()
+      val names = versions.getAllAliases()
+      val alias: Alias = pickPluginVersionVariableName(pluginId, names)
+      return versions.addDeclaration(alias, version)
+    }
 
+    private fun GradleVersionCatalogModel.findVersion(ids: Set<String>): VersionDeclarationModel? {
       val plugins = pluginDeclarations().getAll().values
       for (plugin in plugins) {
         if (
-          plugin.id().valueAsString() in agpPluginIds &&
+          plugin.id().valueAsString() in ids &&
           plugin.version().completeModel()?.rawElement?.parent?.name == "versions"
         ) {
           val alias = plugin.version().completeModel()?.name
@@ -387,27 +386,32 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       }
     }
 
-    enum class AgpPlugin(val id: String, val defaultPluginName: String) {
-      APPLICATION("com.android.application", "androidApplication"),
-      LIBRARY("com.android.library", "androidLibrary"),
-      TEST("com.android.test", "androidTest"),
-      ASSET_PACK("com.android.asset-pack", "androidAssetPack"),
-      ASSET_PACK_BUNDLE("com.android.asset-pack-bundle", "androidAssetPackBundle"),
-      DYNAMIC_FEATURE("com.android.dynamic-feature", "androidDynamicFeature"),
-      FUSED_LIBRARY("com.android.fused-library", "androidFusedLibrary"),
-      INTERNAL_SETTINGS("com.android.internal.settings", "androidInternalSettings"),
-      SETTINGS("com.android.settings", "androidSettings"),
-      LINT("com.android.lint", "androidLint")
+    enum class AgpPlugin(val id: String) {
+      APPLICATION("com.android.application"),
+      LIBRARY("com.android.library"),
+      TEST("com.android.test"),
+      ASSET_PACK("com.android.asset-pack"),
+      ASSET_PACK_BUNDLE("com.android.asset-pack-bundle"),
+      DYNAMIC_FEATURE("com.android.dynamic-feature"),
+      FUSED_LIBRARY("com.android.fused-library"),
+      INTERNAL_SETTINGS("com.android.internal.settings"),
+      SETTINGS("com.android.settings"),
+      LINT("com.android.lint")
       ;
 
-      val defaultVersionName = "agp"
+      companion object {
+        const val defaultVersionName = "agp"
+      }
     }
 
     enum class KotlinPlugin(val id: String, val defaultPluginName: String) {
-      KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlinAndroid")
+      KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlin-android"),
+      KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlin-compose")
       ;
 
-      val defaultVersionName = "kotlin"
+      companion object {
+        const val defaultVersionName = "kotlin"
+      }
     }
   }
 

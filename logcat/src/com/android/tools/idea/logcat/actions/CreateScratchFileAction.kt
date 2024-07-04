@@ -110,7 +110,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     @VisibleForTesting
     internal fun AnActionEvent.findEmbeddedData(): EmbeddedData? {
       val message = getLogcatMessage()?.message ?: return null
-      EmbeddedLanguage.values().forEach {
+      EmbeddedLanguage.entries.forEach {
         val data = it.findInText(message)
         if (data != null) {
           return data

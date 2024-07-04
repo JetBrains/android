@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.LoadingState.Ready
 import com.android.tools.idea.insights.LoadingState.Unauthorized
 import com.android.tools.idea.insights.LoadingState.UnknownFailure
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -73,6 +74,10 @@ sealed class LoadingState<out T> {
   /** Encountered network failure while fetching issues. */
   data class NetworkFailure(override val message: String?, override val cause: Throwable? = null) :
     Failure() {
+    init {
+      thisLogger().warn("Got network failure: $message. ($cause)")
+    }
+
     override fun <U> map(fn: (Nothing) -> U): NetworkFailure {
       return this
     }

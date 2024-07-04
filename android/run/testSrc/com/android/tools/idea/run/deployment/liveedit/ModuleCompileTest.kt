@@ -107,6 +107,9 @@ class ModuleCompileTest {
       projectRule.directApiCompile(listOf(file1 as KtFile, file2 as KtFile))
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (l : LiveEditUpdateException) {
+      // TODO: This test is wrong. We should *NOT* be getting a null pointer exception if you allow files of two different module to be
+      //  compiled at once. I suspect we are not setting up the modules correctly for it to mirror an actual Android project set up.
+      Assert.assertTrue(l.cause is NullPointerException)
     }
   }
 }

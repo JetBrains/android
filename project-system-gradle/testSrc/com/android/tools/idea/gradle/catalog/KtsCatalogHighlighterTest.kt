@@ -18,10 +18,13 @@ package com.android.tools.idea.gradle.catalog
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,9 +45,16 @@ class KtsCatalogHighlighterTest {
       override fun shouldProcessInBatch(file: PsiFile) = true
     }
 
-    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(extension), disposableRule.disposable)
-
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      Registry.get(AndroidTestBase.K2_KTS_KEY).setValue(true)
+    }
     fixture = projectRule.fixture
+
+    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(extension), disposableRule.disposable)
+    // skipping compiler highlighter
+    AndroidTestBase.unmaskKotlinHighlightVisitor(fixture)
+
     val catalog = fixture.addFileToProject("gradle/libs.versions.toml","""
       [versions]
       my_version = "1.0"

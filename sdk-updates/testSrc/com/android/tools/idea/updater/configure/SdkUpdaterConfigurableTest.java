@@ -38,24 +38,14 @@ public class SdkUpdaterConfigurableTest {
 
   private static final String DISK_USAGE_HTML_TEMPLATE =
     "Disk usage:\n" +
-    "<DL><DD>-&NBSP;Disk space that will be freed: %1$s" +
-    "<DD>-&NBSP;Estimated download size: %2$s" +
-    "<DD>-&NBSP;Estimated disk space to be additionally occupied on SDK partition after installation: %3$s" +
-    "<DD>-&NBSP;Currently available disk space in SDK root (" + SDK_ROOT_PATH + "): %4$s</DL>";
-
-  private static final String DISK_USAGE_HTML_TEMPLATE_WITHOUT_SPACE_TO_FREE_UP =
-    "Disk usage:\n" +
-    "<DL><DD>-&NBSP;Estimated download size: %1$s" +
-    "<DD>-&NBSP;Estimated disk space to be additionally occupied on SDK partition after installation: %2$s" +
-    "<DD>-&NBSP;Currently available disk space in SDK root (" + SDK_ROOT_PATH + "): %3$s</DL>";
+    "<DL><DD>-&nbsp;Disk space that will be freed: %1$s" +
+    "<DD>-&nbsp;Estimated download size: %2$s" +
+    "<DD>-&nbsp;Estimated disk space to be additionally occupied on SDK partition after installation: %3$s" +
+    "<DD>-&nbsp;Currently available disk space in SDK root (" + SDK_ROOT_PATH + "): %4$s</DL>";
 
   private static final String DISK_USAGE_HTML_TEMPLATE_WITHOUT_DOWNLOADS =
     "Disk usage:\n" +
-    "<DL><DD>-&NBSP;Disk space that will be freed: %1$s</DL>";
-
-  private static final String WARNING_HTML =
-    "<FONT color=\"#ff0000\"><B>WARNING: There might be insufficient disk space to perform this operation. " +
-    "</B><BR/><BR/>Estimated disk usage is presented below. Consider freeing up more disk space before proceeding. </FONT><BR/><BR/>";
+    "<DL><DD>-&nbsp;Disk space that will be freed: %1$s</DL>";
 
   private Path mySdkRoot;
 

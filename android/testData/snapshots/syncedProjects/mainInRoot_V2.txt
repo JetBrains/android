@@ -46,8 +46,6 @@ PROJECT                       : project
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -104,10 +102,6 @@ PROJECT                       : project
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -178,10 +172,6 @@ PROJECT                       : project
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -264,8 +254,6 @@ PROJECT                       : project
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
