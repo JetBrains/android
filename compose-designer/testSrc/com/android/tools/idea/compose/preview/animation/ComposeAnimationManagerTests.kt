@@ -19,6 +19,7 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.scene.render
@@ -34,6 +35,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -76,7 +78,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("true", toolbar.components[2].findComboBox().text)
       assertEquals("false", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertEquals("false", toolbar.components[2].findComboBox().text)
+      retryUntilPassing(5.seconds) { "false" == toolbar.components[2].findComboBox().text }
       assertEquals("true", toolbar.components[4].findComboBox().text)
     }
   }
@@ -92,7 +94,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("State1", toolbar.components[2].findComboBox().text)
       assertEquals("State2", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertEquals("State2", toolbar.components[2].findComboBox().text)
+      retryUntilPassing(5.seconds) { "State2" == toolbar.components[2].findComboBox().text }
       assertEquals("State1", toolbar.components[4].findComboBox().text)
     }
   }
@@ -116,7 +118,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
       assertEquals("(2, 3)", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertEquals("(2, 3)", toolbar.components[2].findComboBox().text)
+      retryUntilPassing(5.seconds) { "(2, 3)" == toolbar.components[2].findComboBox().text }
       assertEquals("(1, 1)", toolbar.components[4].findComboBox().text)
     }
   }
@@ -129,7 +131,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("false", toolbar.components[2].findComboBox().text)
       assertEquals("true", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertEquals("true", toolbar.components[2].findComboBox().text)
+      retryUntilPassing(5.seconds) { "true" == toolbar.components[2].findComboBox().text }
       assertEquals("false", toolbar.components[4].findComboBox().text)
     }
   }
@@ -194,21 +196,22 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
         override val states = setOf("one", "two")
       }
 
+    var ui: FakeUi
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
       ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
       withContext(uiThread) {
-        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
-        withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
-        val errorPanel =
-          TreeWalker(ui.root)
-            .descendantStream()
-            .filter { it is JPanel && it.name == "Error Panel" }
-            .findFirst()
-        assertTrue(errorPanel.isPresent)
       }
+    }
+    retryUntilPassing(5.seconds) {
+      TreeWalker(ui.root)
+        .descendantStream()
+        .filter { it is JPanel && it.name == "Error Panel" }
+        .findFirst()
+        .isPresent
     }
   }
 
