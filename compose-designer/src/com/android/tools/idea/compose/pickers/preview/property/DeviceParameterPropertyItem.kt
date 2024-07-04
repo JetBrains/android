@@ -167,8 +167,7 @@ internal class DeviceParameterPropertyItem(
         val newIsRound = newValue.toBooleanStrictOrNull()
         newIsRound?.let {
           config.shape = if (it) Shape.Round else Shape.Normal
-          PreviewPickerValue
-            .UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
+          if (it) PreviewPickerValue.SHAPE_ROUND else PreviewPickerValue.SHAPE_NORMAL
         } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
@@ -194,7 +193,7 @@ internal class DeviceParameterPropertyItem(
         val newCutout = enumValueOfOrNull<Cutout>(newValue)
         newCutout?.let {
           config.cutout = newCutout
-          PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+          newCutout.trackableValue
         } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
@@ -205,7 +204,7 @@ internal class DeviceParameterPropertyItem(
         val newNavigation = enumValueOfOrNull<Navigation>(newValue)
         newNavigation?.let {
           config.navigation = newNavigation
-          PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+          newNavigation.trackableValue
         } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
     )
@@ -267,5 +266,22 @@ internal class DeviceParameterPropertyItem(
       when (this) {
         Orientation.portrait -> PreviewPickerValue.ORIENTATION_PORTRAIT
         Orientation.landscape -> PreviewPickerValue.ORIENTATION_LANDSCAPE
+      }
+
+  private val Cutout.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        Cutout.none -> PreviewPickerValue.CUTOUT_NONE
+        Cutout.corner -> PreviewPickerValue.CUTOUT_CORNER
+        Cutout.double -> PreviewPickerValue.CUTOUT_DOUBLE
+        Cutout.punch_hole -> PreviewPickerValue.CUTOUT_HOLE
+        Cutout.tall -> PreviewPickerValue.CUTOUT_TALL
+      }
+
+  private val Navigation.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        Navigation.buttons -> PreviewPickerValue.NAVIGATION_BUTTONS
+        Navigation.gesture -> PreviewPickerValue.NAVIGATION_GESTURE
       }
 }
