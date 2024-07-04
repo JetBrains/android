@@ -16,7 +16,7 @@
 package com.android.ide.gradle.model
 
 /**
- * Gradle model builder paramter controlling what to fetch in the [LegacyAndroidGradlePluginProperties] model
+ * Gradle model builder parameter controlling what to fetch in the [LegacyAndroidGradlePluginProperties] model
  */
 interface LegacyAndroidGradlePluginPropertiesModelParameters {
   var componentToApplicationIdMap: Boolean
