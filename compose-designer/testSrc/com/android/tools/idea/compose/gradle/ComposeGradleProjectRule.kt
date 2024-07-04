@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
+import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
@@ -52,6 +53,8 @@ private class ComposeGradleProjectRuleImpl(
   private val projectRule: AndroidGradleProjectRule,
 ) : NamedExternalResource() {
   override fun before(description: Description) {
+    registerComposeCompilerPlugin(projectRule.project)
+
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())

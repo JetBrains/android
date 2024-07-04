@@ -67,6 +67,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -191,11 +192,19 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
       val stringResourceCallPatter =
         Regex(
-          "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
+          if (!KotlinPluginModeProvider.isK2Mode()) {
+            "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource"
+          } else {
+            "GETSTATIC google/simpleapplication/R.string\\.greeting : I\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource"
+          },
           RegexOption.MULTILINE,
         )
       val matches = stringResourceCallPatter.findAll(decompiledOutput)
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
+
+      // K2 does not generate `LDC (\\d+)`, so we cannot check IDs for the light R class.
+      if (KotlinPluginModeProvider.isK2Mode()) return@runBlocking
+
       // Real ids are all above 0x7f000000
       assertTrue(
         "Fake IDs are not expected for a compiled project in the light R class",
