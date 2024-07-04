@@ -63,6 +63,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.containers.toArray
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AWTEvent
 import java.awt.BorderLayout
@@ -127,6 +128,17 @@ abstract class PreviewSurface<T : SceneManager>(
     SurfaceProgressPanel(parentDisposable = this, ::useSmallProgressIcon).apply {
       name = "Layout Editor Progress Panel"
     }
+
+  protected val zoomControlsLayerPane: JPanel? =
+    if (zoomControlsPolicy != ZoomControlsPolicy.HIDDEN)
+      JPanel().apply {
+        border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
+        isOpaque = false
+        layout = BorderLayout()
+        setFocusable(false)
+        if (zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) isVisible = false
+      }
+    else null
 
   private val progressIndicators: MutableSet<ProgressIndicator> = HashSet()
 
