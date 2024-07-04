@@ -135,7 +135,7 @@ interface RenderingBuildStatusManager {
   }
 }
 
-interface ProjectBuildStatusManagerForTests {
+interface RenderingBuildStatusManagerForTests {
   /** Returns the internal [ProjectSystemBuildManager.BuildListener] to be used by tests. */
   @TestOnly fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener
 
@@ -149,7 +149,7 @@ private class RenderingBuildStatusManagerImpl(
   scope: CoroutineScope,
   private val onReady: (RenderingBuildStatus) -> Unit,
   private val dispatcher: CoroutineDispatcher,
-) : RenderingBuildStatusManager, ProjectBuildStatusManagerForTests {
+) : RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
