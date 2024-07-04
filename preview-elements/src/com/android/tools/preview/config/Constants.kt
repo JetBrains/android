@@ -70,6 +70,8 @@ object Preview {
     const val PARAMETER_CHIN_SIZE = "chinSize"
     const val PARAMETER_ORIENTATION = "orientation"
     const val PARAMETER_PARENT = "parent"
+    const val PARAMETER_CUTOUT = "cutout"
+    const val PARAMETER_NAVIGATION = "navigation"
     // endregion
 
     val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
@@ -80,6 +82,8 @@ object Preview {
     val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
     const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
     val DEFAULT_ORIENTATION = Orientation.portrait
+    val DEFAULT_CUTOUT = Cutout.none
+    val DEFAULT_NAVIGATION = Navigation.gesture
 
     /**
      * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes
