@@ -139,9 +139,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @GuardedBy("myModelToSceneManagersLock")
   private final LinkedHashMap<NlModel, T> myModelToSceneManagers = new LinkedHashMap<>();
 
-  protected final IssueModel myIssueModel;
   private boolean myIsActive = false;
-  private LintIssueProvider myLintIssueProvider;
 
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
@@ -180,7 +178,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     super(project, selectionModel, zoomControlsPolicy, new BorderLayout());
 
     Disposer.register(parentDisposable, this);
-    myIssueModel = new IssueModel(this, getProject());
 
     boolean hasZoomControls = getZoomControlsPolicy() != ZoomControlsPolicy.HIDDEN;
 
@@ -847,11 +844,11 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
     myIsActive = true;
-    myIssueModel.activate();
+    getIssueModel().activate();
   }
 
   public void deactivateIssueModel() {
-    myIssueModel.deactivate();
+    getIssueModel().deactivate();
   }
 
   public void deactivate() {
@@ -862,7 +859,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
     myIsActive = false;
-    myIssueModel.deactivate();
+    getIssueModel().deactivate();
 
     myGuiInputHandler.cancelInteraction();
   }
@@ -954,12 +951,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myGuiInputHandler;
   }
 
-  /**
-   * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
-   */
-  public boolean isEditable() {
-    return getLayoutType().isEditable();
-  }
+
 
   private final Set<ProgressIndicator> myProgressIndicators = new HashSet<>();
 
@@ -1102,21 +1094,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       }
     }
     return null;
-  }
-
-  @NotNull
-  public IssueModel getIssueModel() {
-    return myIssueModel;
-  }
-
-  public void setLintAnnotationsModel(@NotNull LintAnnotationsModel model) {
-    if (myLintIssueProvider != null) {
-      myLintIssueProvider.setLintAnnotationsModel(model);
-    }
-    else {
-      myLintIssueProvider = new LintIssueProvider(model);
-      getIssueModel().addIssueProvider(myLintIssueProvider);
-    }
   }
 
   @Override
