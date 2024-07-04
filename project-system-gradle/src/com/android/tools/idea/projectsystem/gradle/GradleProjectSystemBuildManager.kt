@@ -1,5 +1,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -45,12 +46,14 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
     GradleBuildState.subscribe(project, this, this)
   }
 
+  @UiThread
   override fun buildStarted(context: BuildContext) {
     buildCount.incrementAndGet()
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
       .buildStarted(context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN)
   }
 
+  @UiThread
   override fun buildFinished(status: BuildStatus, context: BuildContext) {
     val result = ProjectSystemBuildManager.BuildResult(
       context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
