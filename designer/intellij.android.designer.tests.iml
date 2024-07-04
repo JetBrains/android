@@ -17,7 +17,7 @@
               <args>$MODULE_DIR$/../compose-ide-plugin/lib/compiler-hosted-1.5.8.jar</args>
             </arrayArg>
             <arrayArg name="pluginOptions">
-              <args>plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24</args>
+              <args>plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.25</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
