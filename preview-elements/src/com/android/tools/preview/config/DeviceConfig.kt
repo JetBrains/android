@@ -25,22 +25,26 @@ import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CUTOUT
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_IS_ROUND
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_NAVIGATION
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_ORIENTATION
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_UNIT
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_WIDTH_DP
 import com.android.tools.preview.config.Preview.DeviceSpec.OPERATOR
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_CHIN_SIZE
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_CUTOUT
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_DPI
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ID
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_IS_ROUND
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_NAVIGATION
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ORIENTATION
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_PARENT
 import com.android.tools.preview.config.Preview.DeviceSpec.SEPARATOR
-import com.android.utils.HashCodes
+import com.google.common.base.Objects
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -82,6 +86,8 @@ open class DeviceConfig(
   open val shape: Shape = DEFAULT_SHAPE,
   open val chinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
   open val orientation: Orientation = DEFAULT_ORIENTATION,
+  open val cutout: Cutout = DEFAULT_CUTOUT,
+  open val navigation: Navigation = DEFAULT_NAVIGATION,
   open val parentDeviceId: String? = null
 ) {
   /**
@@ -129,6 +135,10 @@ open class DeviceConfig(
       // device, e.g: orientation
       builder.appendParamValue(PARAMETER_PARENT, parentDeviceId.toString())
       builder.addOrientationIfNeeded()
+      if (navigation != DEFAULT_NAVIGATION) {
+        builder.appendSeparator()
+        builder.appendParamValue(PARAMETER_NAVIGATION, navigation.name)
+      }
       return builder.toString()
     }
     builder.appendParamValue(PARAMETER_WIDTH, widthString + dimUnit.name)
@@ -149,6 +159,14 @@ open class DeviceConfig(
       }
     }
     builder.addOrientationIfNeeded()
+    if (cutout != DEFAULT_CUTOUT) {
+      builder.appendSeparator()
+      builder.appendParamValue(PARAMETER_CUTOUT, cutout.name)
+    }
+    if (navigation != DEFAULT_NAVIGATION) {
+      builder.appendSeparator()
+      builder.appendParamValue(PARAMETER_NAVIGATION, navigation.name)
+    }
     return builder.toString()
   }
 
@@ -174,16 +192,18 @@ open class DeviceConfig(
   }
 
   override fun hashCode(): Int {
-    return HashCodes.mix(
-      width.hashCode(),
-      height.hashCode(),
+    return Objects.hashCode(
+      width,
+      height,
       dpi,
-      shape.hashCode(),
-      dimUnit.hashCode(),
-      chinSize.hashCode(),
-      isRound.hashCode(),
-      orientation.hashCode(),
-      parentDeviceId.hashCode()
+      shape,
+      dimUnit,
+      chinSize,
+      isRound,
+      orientation,
+      cutout,
+      navigation,
+      parentDeviceId
     )
   }
 
@@ -266,16 +286,29 @@ open class DeviceConfig(
       params: Map<String, String>
     ): DeviceConfig? {
       val initialConfig = device.toDeviceConfig()
-      if (params[PARAMETER_ORIENTATION] != null) {
-        // Return null if parsing fails
-        val orientation =
+      val orientation =
+        if (params[PARAMETER_ORIENTATION] != null) {
           enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, ""))
           ?: return null
+        } else {
+          null
+        }
 
-        // Override orientation
+      val navigation =
+        if (params[PARAMETER_NAVIGATION] != null) {
+          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
+          ?: return null
+        } else {
+          null
+        }
+
+      if (orientation != null || navigation != null) {
         return initialConfig
           .toMutableConfig()
-          .apply { this.orientation = orientation }
+          .apply {
+            orientation?.let { this.orientation = it }
+            navigation?.let { this.navigation = it }
+          }
           .toImmutableConfig()
       }
       return initialConfig
@@ -334,6 +367,22 @@ open class DeviceConfig(
             Orientation.portrait
           }
         }
+
+      val cutout =
+        if (params[PARAMETER_CUTOUT] != null) {
+          enumValueOfOrNull<Cutout>(params.getOrDefault(PARAMETER_CUTOUT, ""))
+          ?: return null
+        } else {
+          DEFAULT_CUTOUT
+        }
+
+      val navigation =
+        if (params[PARAMETER_NAVIGATION] != null) {
+          enumValueOfOrNull<Navigation>(params.getOrDefault(PARAMETER_NAVIGATION, ""))
+          ?: return null
+        } else {
+          DEFAULT_NAVIGATION
+        }
       return DeviceConfig(
         deviceId = params[PARAMETER_ID],
         width = width.value,
@@ -343,6 +392,8 @@ open class DeviceConfig(
         shape = if (isRound || chinSizeValue > 0) Shape.Round else Shape.Normal,
         chinSize = chinSizeValue,
         orientation = orientation,
+        cutout = cutout,
+        navigation = navigation,
         parentDeviceId =
           null // Not supported when explicitly declaring width, height, dpi, chinSize
       )
@@ -365,6 +416,8 @@ class MutableDeviceConfig(
   initialShape: Shape = DEFAULT_SHAPE,
   initialChinSize: Float = DEFAULT_CHIN_SIZE_ZERO.toFloat(),
   initialOrientation: Orientation = DEFAULT_ORIENTATION,
+  initialCutout: Cutout = DEFAULT_CUTOUT,
+  initialNavigation: Navigation = DEFAULT_NAVIGATION,
   initialBackingDeviceId: String? = null
 ) : DeviceConfig(id, initialWidth, initialHeight, initialDimUnit, initialDpi, initialShape) {
 
@@ -390,6 +443,9 @@ class MutableDeviceConfig(
   /** Changes to this property nullifies [parentDeviceId]. */
   override var shape: Shape by invalidateIdOnPropertyChangeDelegate(initialShape)
 
+  /** Changes to this property nullifies [parentDeviceId]. */
+  override var cutout: Cutout by invalidateIdOnPropertyChangeDelegate(initialCutout)
+
   /**
    * Defines the unit in which [width] and [height] should be considered. Modifying this property
    * also changes [width] and [height].
@@ -411,6 +467,8 @@ class MutableDeviceConfig(
     }
 
   override var orientation: Orientation = initialOrientation
+
+  override var navigation: Navigation = initialNavigation
 
   /**
    * Returns a property delegate that nullifies the [parentDeviceId] whenever the property sees a
@@ -435,6 +493,8 @@ internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
     dimUnit = this.dimUnit,
     dpi = this.dpi,
     orientation = this.orientation,
+    cutout = this.cutout,
+    navigation = this.navigation,
     parentDeviceId = this.parentDeviceId
   )
 
@@ -448,6 +508,8 @@ fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
     initialDpi = this.dpi,
     initialChinSize = this.chinSize,
     initialOrientation = this.orientation,
+    initialCutout = this.cutout,
+    initialNavigation = this.navigation,
     initialBackingDeviceId = this.parentDeviceId
   )
 

@@ -28,20 +28,26 @@ import com.android.tools.idea.compose.pickers.preview.editingsupport.DeviceSpecD
 import com.android.tools.idea.compose.pickers.preview.tracking.PickerTrackerHelper
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.util.AvailableDevicesKey
+import com.android.tools.preview.config.Cutout
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.MutableDeviceConfig
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.PARAMETER_HARDWARE_CHIN_SIZE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CUTOUT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_IS_ROUND
+import com.android.tools.preview.config.PARAMETER_HARDWARE_NAVIGATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CUTOUT
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_NAVIGATION
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_UNIT
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_WIDTH_DP
@@ -92,6 +98,8 @@ internal class DeviceParameterPropertyItem(
         height = DEFAULT_HEIGHT_DP.toFloat(),
         dimUnit = DEFAULT_UNIT,
         dpi = DEFAULT_DPI,
+        cutout = DEFAULT_CUTOUT,
+        navigation = DEFAULT_NAVIGATION,
       )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
@@ -175,6 +183,28 @@ internal class DeviceParameterPropertyItem(
             config.shape = Shape.Round
           }
           config.chinSize = newChinSize
+          PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_CUTOUT,
+        defaultValue = defaultDeviceValues.cutout.name,
+        getter = { it.cutout.name },
+      ) { config, newValue ->
+        val newCutout = enumValueOfOrNull<Cutout>(newValue)
+        newCutout?.let {
+          config.cutout = newCutout
+          PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+      },
+      DevicePropertyItem(
+        name = PARAMETER_HARDWARE_NAVIGATION,
+        defaultValue = defaultDeviceValues.navigation.name,
+        getter = { it.navigation.name },
+      ) { config, newValue ->
+        val newNavigation = enumValueOfOrNull<Navigation>(newValue)
+        newNavigation?.let {
+          config.navigation = newNavigation
           PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
         } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },

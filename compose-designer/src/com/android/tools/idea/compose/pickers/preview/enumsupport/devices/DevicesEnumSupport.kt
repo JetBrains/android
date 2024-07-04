@@ -21,8 +21,10 @@ import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValues
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.common.enumsupport.EnumSupportWithConstantData
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Device
+import com.android.tools.preview.config.Cutout
 import com.android.tools.preview.config.Densities
 import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.preview.config.Preview
@@ -114,5 +116,25 @@ internal object DimensionUnitEnumSupport : EnumSupport {
   override fun createValue(stringValue: String): EnumValue {
     val dimUnit = enumValueOfOrDefault(stringValue, DimUnit.px)
     return EnumValue.item(dimUnit.name)
+  }
+}
+
+internal object CutoutEnumSupport : EnumSupport {
+  override val values: List<EnumValue> =
+    Cutout.values().map { cutout -> EnumValue.item(cutout.name) }
+
+  override fun createValue(stringValue: String): EnumValue {
+    val cutout = enumValueOfOrDefault(stringValue, Cutout.none)
+    return EnumValue.item(cutout.name)
+  }
+}
+
+internal object NavigationEnumSupport : EnumSupport {
+  override val values: List<EnumValue> =
+    Navigation.values().map { navigation -> EnumValue.item(navigation.name) }
+
+  override fun createValue(stringValue: String): EnumValue {
+    val navigation = enumValueOfOrDefault(stringValue, Navigation.gesture)
+    return EnumValue.item(navigation.name)
   }
 }

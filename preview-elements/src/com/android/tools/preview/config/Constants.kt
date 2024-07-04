@@ -43,6 +43,8 @@ const val PARAMETER_HARDWARE_DENSITY = "Density"
 const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
 const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
 const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
+const val PARAMETER_HARDWARE_CUTOUT = "Cutout"
+const val PARAMETER_HARDWARE_NAVIGATION = "Navigation"
 const val PARAMETER_WALLPAPER = "wallpaper"
 // endregion
 
@@ -74,16 +76,18 @@ object Preview {
     const val PARAMETER_NAVIGATION = "navigation"
     // endregion
 
-    val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
-    val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
-    val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
-    val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
+    // Set those values first as they are referenced by ReferencePhoneConfig
     const val DEFAULT_DPI: Int = 420
-    val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
     const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
     val DEFAULT_ORIENTATION = Orientation.portrait
     val DEFAULT_CUTOUT = Cutout.none
     val DEFAULT_NAVIGATION = Navigation.gesture
+
+    val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
+    val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
+    val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
+    val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
+    val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
 
     /**
      * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes

@@ -23,17 +23,21 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.UI_MODE_TYPE_M
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
+import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.CutoutEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DensityEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DimensionUnitEnumSupport
+import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.NavigationEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.OrientationEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.createDeviceEnumSupport
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
 import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CUTOUT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_NAVIGATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_UI_MODE
@@ -93,6 +97,8 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_HARDWARE_DIM_UNIT -> DimensionUnitEnumSupport
       PARAMETER_HARDWARE_DENSITY -> DensityEnumSupport
       PARAMETER_HARDWARE_ORIENTATION -> OrientationEnumSupport
+      PARAMETER_HARDWARE_CUTOUT -> CutoutEnumSupport
+      PARAMETER_HARDWARE_NAVIGATION -> NavigationEnumSupport
       PARAMETER_WALLPAPER ->
         EnumSupportWithConstantData(enumSupportValuesProvider, property.name) {
           Wallpaper.values()[Integer.parseInt(it) + 1]
