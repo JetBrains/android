@@ -36,9 +36,13 @@ public class ClipboardAdapter {
 
   private static Object clipboard;
   private static Method getPrimaryClipMethod;
+  private static int getPrimaryClipMethodVersion;
   private static Method setPrimaryClipMethod;
+  private static int setPrimaryClipMethodVersion;
   private static Method addPrimaryClipChangedListenerMethod;
+  private static int addPrimaryClipChangedListenerMethodVersion;
   private static Method removePrimaryClipChangedListenerMethod;
+  private static int removePrimaryClipChangedListenerMethodVersion;
   private static ClipboardListener clipboardListener;
   private static PersistableBundle overlaySuppressor;
 
@@ -53,13 +57,21 @@ public class ClipboardAdapter {
         Class<?> clipboardClass = clipboard.getClass();
         Method[] methods = clipboardClass.getDeclaredMethods();
         getPrimaryClipMethod = findMethodAndMakeAccessible(methods, "getPrimaryClip");
+        getPrimaryClipMethodVersion = getPrimaryClipMethod.getParameterCount();
         setPrimaryClipMethod = findMethodAndMakeAccessible(methods, "setPrimaryClip");
+        setPrimaryClipMethodVersion = setPrimaryClipMethod.getParameterCount();
         addPrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "addPrimaryClipChangedListener");
+        addPrimaryClipChangedListenerMethodVersion = addPrimaryClipChangedListenerMethod.getParameterCount();
         removePrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "removePrimaryClipChangedListener");
-        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 5) &&
-            checkNumberOfParameters(setPrimaryClipMethod, 1, 6) &&
-            checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 1, 5) &&
-            checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 1, 5)) {
+        removePrimaryClipChangedListenerMethodVersion = removePrimaryClipChangedListenerMethod.getParameterCount();
+        if (checkNumberOfParameters(getPrimaryClipMethod, getPrimaryClipMethodVersion, 0, 5) &&
+            checkNumberOfParameters(setPrimaryClipMethod, getPrimaryClipMethodVersion, 1, 6) &&
+            checkNumberOfParameters(addPrimaryClipChangedListenerMethod, getPrimaryClipMethodVersion, 1, 5) &&
+            checkNumberOfParameters(removePrimaryClipChangedListenerMethod, getPrimaryClipMethodVersion, 1, 5)) {
+          if (getPrimaryClipMethodVersion == 3 && getPrimaryClipMethod.getParameterTypes()[1] == int.class) {
+            // This non-standard method signature is used on Honor 90 API 33.
+            getPrimaryClipMethodVersion = 13;
+          }
           clipboardListener = new ClipboardListener();
           if (SDK_INT >= 33) {
             overlaySuppressor = new PersistableBundle(1);
@@ -82,21 +94,24 @@ public class ClipboardAdapter {
       return "";
     }
 
-    int numberOfParameters = getPrimaryClipMethod.getParameterCount();
-    ClipData clipData = numberOfParameters == 0 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard) :
-                        numberOfParameters == 1 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
-                        numberOfParameters == 2 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
-                        numberOfParameters == 3 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
-                        numberOfParameters == 4 ?
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
-                        numberOfParameters == 5 ?
-                        // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
-                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, null) :
-                        null;
+    ClipData clipData =
+        getPrimaryClipMethodVersion == 0 ?
+            (ClipData) getPrimaryClipMethod.invoke(clipboard) :
+        getPrimaryClipMethodVersion == 1 ?
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
+        getPrimaryClipMethodVersion == 2 ?
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
+        getPrimaryClipMethodVersion == 3 ?
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
+        getPrimaryClipMethodVersion == 4 ?
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
+        getPrimaryClipMethodVersion == 5 ?
+            // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, null) :
+        getPrimaryClipMethodVersion == 13 ?
+            // This non-standard method signature is used on Honor 90 API 33.
+            (ClipData) getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID, ATTRIBUTION_TAG) :
+            null;
     if (clipData == null || clipData.getItemCount() == 0) {
       return "";
     }
@@ -114,23 +129,17 @@ public class ClipboardAdapter {
       clipData.getDescription().setExtras(overlaySuppressor);
     }
 
-    int numberOfParameters = setPrimaryClipMethod.getParameterCount();
-    if (numberOfParameters == 1) {
+    if (setPrimaryClipMethodVersion == 1) {
       setPrimaryClipMethod.invoke(clipboard, clipData);
-    }
-    else if (numberOfParameters == 2) {
+    } else if (setPrimaryClipMethodVersion == 2) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
-    }
-    else if (numberOfParameters == 3) {
+    } else if (setPrimaryClipMethodVersion == 3) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, USER_ID);
-    }
-    else if (numberOfParameters == 4) {
+    } else if (setPrimaryClipMethodVersion == 4) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-    }
-    else if (numberOfParameters == 5) {
+    } else if (setPrimaryClipMethodVersion == 5) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
-    }
-    else if (numberOfParameters == 6) {
+    } else if (setPrimaryClipMethodVersion == 6) {
       // This non-standard method signature is used on Honor Magic4 Pro API 34 (b/342961840).
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true);
     }
@@ -141,20 +150,15 @@ public class ClipboardAdapter {
       return;
     }
 
-    int numberOfParameters = addPrimaryClipChangedListenerMethod.getParameterCount();
-    if (numberOfParameters == 1) {
+    if (addPrimaryClipChangedListenerMethodVersion == 1) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
-    }
-    else if (numberOfParameters == 2) {
+    } else if (addPrimaryClipChangedListenerMethodVersion == 2) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
-    }
-    else if (numberOfParameters == 3) {
+    } else if (addPrimaryClipChangedListenerMethodVersion == 3) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
-    }
-    else if (numberOfParameters == 4) {
+    } else if (addPrimaryClipChangedListenerMethodVersion == 4) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-    }
-    else if (numberOfParameters == 5) {
+    } else if (addPrimaryClipChangedListenerMethodVersion == 5) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
   }
@@ -164,20 +168,15 @@ public class ClipboardAdapter {
       return;
     }
 
-    int numberOfParameters = removePrimaryClipChangedListenerMethod.getParameterCount();
-    if (numberOfParameters == 1) {
+    if (removePrimaryClipChangedListenerMethodVersion == 1) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener);
-    }
-    else if (numberOfParameters == 2) {
+    } else if (removePrimaryClipChangedListenerMethodVersion == 2) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
-    }
-    else if (numberOfParameters == 3) {
+    } else if (removePrimaryClipChangedListenerMethodVersion == 3) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
-    }
-    else if (numberOfParameters == 4) {
+    } else if (removePrimaryClipChangedListenerMethodVersion == 4) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-    }
-    else if (numberOfParameters == 5) {
+    } else if (removePrimaryClipChangedListenerMethodVersion == 5) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID,
                                                     DEVICE_ID_DEFAULT);
     }
@@ -193,8 +192,7 @@ public class ClipboardAdapter {
     throw new NoSuchMethodException(name);
   }
 
-  private static boolean checkNumberOfParameters(Method method, int minParam, int maxParam) {
-    int parameterCount = method.getParameterCount();
+  private static boolean checkNumberOfParameters(Method method, int parameterCount, int minParam, int maxParam) {
     if (minParam <= parameterCount && parameterCount <= maxParam) {
       return true;
     }
