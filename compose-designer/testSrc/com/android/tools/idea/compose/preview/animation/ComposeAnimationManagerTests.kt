@@ -77,7 +77,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("true", toolbar.components[2].findComboBox().text)
       assertEquals("false", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) { "false" == toolbar.components[2].findComboBox().text }
+      retryUntilPassing(5.seconds) {
+        assertEquals("false", toolbar.components[2].findComboBox().text)
+      }
       assertEquals("true", toolbar.components[4].findComboBox().text)
     }
   }
@@ -93,7 +95,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("State1", toolbar.components[2].findComboBox().text)
       assertEquals("State2", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) { "State2" == toolbar.components[2].findComboBox().text }
+      retryUntilPassing(5.seconds) {
+        assertEquals("State2", toolbar.components[2].findComboBox().text)
+      }
       assertEquals("State1", toolbar.components[4].findComboBox().text)
     }
   }
@@ -117,7 +121,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
       assertEquals("(2, 3)", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) { "(2, 3)" == toolbar.components[2].findComboBox().text }
+      retryUntilPassing(5.seconds) {
+        assertEquals("(2, 3)", toolbar.components[2].findComboBox().text)
+      }
       assertEquals("(1, 1)", toolbar.components[4].findComboBox().text)
     }
   }
@@ -130,7 +136,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       assertEquals("false", toolbar.components[2].findComboBox().text)
       assertEquals("true", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) { "true" == toolbar.components[2].findComboBox().text }
+      retryUntilPassing(5.seconds) {
+        assertEquals("true", toolbar.components[2].findComboBox().text)
+      }
       assertEquals("false", toolbar.components[4].findComboBox().text)
     }
   }
@@ -204,12 +212,15 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
         ui.layout()
       }
     }
-    retryUntilPassing(5.seconds) {
-      TreeWalker(ui.root)
-        .descendantStream()
-        .filter { it is JPanel && it.name == "Error Panel" }
-        .findFirst()
-        .isPresent
+    retryUntilPassing(10.seconds) {
+      assertEquals(
+        true,
+        TreeWalker(ui.root)
+          .descendantStream()
+          .filter { it is JPanel && it.name == "Error Panel" }
+          .findFirst()
+          .isPresent,
+      )
     }
   }
 
