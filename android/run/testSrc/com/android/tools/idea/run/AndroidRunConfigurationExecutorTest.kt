@@ -120,7 +120,7 @@ class AndroidRunConfigurationExecutorTest {
     .around(usageTrackerRule)
     .around(projectRule)
     .around(fakeAdb)
-    .around(FlagRule(StudioFlags.BACKUP_SHOW_RESTORE_SECION_IN_RUN_CONFIG, true))
+    .around(FlagRule(StudioFlags.BACKUP_ENABLED, true))
 
   private val mockBackupManager = mock<BackupManager>()
   private val iDeviceManagerFactoryFactory: () -> IDeviceManagerFactory = {

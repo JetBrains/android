@@ -36,7 +36,7 @@ internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHe
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
     val project = e.project ?: return
-    if (!StudioFlags.BACKUP_SHOW_BACKUP_ACTION_IN_MAIN_TOOLBAR.get()) {
+    if (!StudioFlags.BACKUP_ENABLED.get()) {
       // For now, the only place this is shown is the main toolbar
       return
     }

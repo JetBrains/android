@@ -21,7 +21,7 @@ import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Invalid
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Valid
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.flags.StudioFlags.BACKUP_SHOW_RESTORE_ACTION_IN_PROJECT_VIEW
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -43,7 +43,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    if (!BACKUP_SHOW_RESTORE_ACTION_IN_PROJECT_VIEW.get()) {
+    if (!StudioFlags.BACKUP_ENABLED.get()) {
       return
     }
     val virtualFile = e.getData(VIRTUAL_FILE) ?: return

@@ -137,7 +137,7 @@ class DeviceMonitorViewImpl(
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, RunManager.getInstance(project)))
-      if (StudioFlags.BACKUP_SHOW_ACTIONS_IN_DEVICE_EXPLORER.get()) {
+      if (StudioFlags.BACKUP_ENABLED.get()) {
         addItem(BackupMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
         addItem(RestoreMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       }
