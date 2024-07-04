@@ -27,9 +27,9 @@ import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -162,7 +162,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   viewModelConstructor:
     (
       previewView: PreviewView,
-      projectBuildStatusManager: ProjectBuildStatusManager,
+      renderingBuildStatusManager: RenderingBuildStatusManager,
       refreshManager: PreviewRefreshManager,
       project: Project,
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
@@ -186,9 +186,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiFile) }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
-  private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
 
-  @TestOnly internal fun getProjectBuildStatusForTest() = projectBuildStatusManager.status
+  @TestOnly internal fun getProjectBuildStatusForTest() = renderingBuildStatusManager.status
 
   private val lifecycleManager =
     PreviewLifecycleManager(
@@ -297,7 +297,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   val previewViewModel: CommonPreviewViewModel =
     viewModelConstructor(
       previewView,
-      projectBuildStatusManager,
+      renderingBuildStatusManager,
       refreshManager,
       project,
       psiFilePointer,
@@ -506,7 +506,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         return@launchWithProgress
       }
 
-      if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+      if (renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild) {
         // Project needs to be built before being able to refresh.
         requestLogger.debug("Project has not build, not able to refresh")
         return@launchWithProgress
@@ -786,10 +786,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private fun onEnterSmartMode() {
-    when (projectBuildStatusManager.status) {
+    when (renderingBuildStatusManager.status) {
       // Do not refresh if we still need to build the project. Instead, only update the empty panel
       // and editor notifications if needed.
-      ProjectStatus.NeedsBuild -> previewViewModel.onEnterSmartMode()
+      RenderingBuildStatus.NeedsBuild -> previewViewModel.onEnterSmartMode()
       // We try to refresh even if the status is ProjectStatus.NotReady. This may not result into a
       // successful preview, since the project
       // might not have been built, but it's worth to try.

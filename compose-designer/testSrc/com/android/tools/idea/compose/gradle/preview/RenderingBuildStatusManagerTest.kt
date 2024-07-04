@@ -19,8 +19,8 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.concurrency.awaitStatus
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -47,7 +47,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class ProjectBuildStatusManagerTest {
+class RenderingBuildStatusManagerTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -78,14 +78,14 @@ class ProjectBuildStatusManagerTest {
 
     var onReadyCalled = false
     val statusManager =
-      ProjectBuildStatusManager.create(
+      RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
         scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
         onReady = { onReadyCalled = true },
       )
     statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) {
-      it == ProjectStatus.Ready
+      it == RenderingBuildStatus.Ready
     }
     assertTrue(onReadyCalled)
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
@@ -93,7 +93,7 @@ class ProjectBuildStatusManagerTest {
       "Builds status is not Ready after successful build",
       5.seconds,
     ) {
-      it == ProjectStatus.Ready
+      it == RenderingBuildStatus.Ready
     }
 
     // Status of files created after a build should be NeedsBuild until a new build happens
@@ -103,17 +103,17 @@ class ProjectBuildStatusManagerTest {
         "",
       )
     val newStatusManager =
-      ProjectBuildStatusManager.create(
+      RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         newFile,
         scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
       )
     newStatusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
     projectRule.buildAndAssertIsSuccessful()
     newStatusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) {
-      it == ProjectStatus.Ready
+      it == RenderingBuildStatus.Ready
     }
 
     // Modifying a separate file should make both status managers out of date
@@ -126,19 +126,19 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
     statusManager.statusFlow.awaitStatus("OutOfDate state expected", 5.seconds) {
-      it is ProjectStatus.OutOfDate
+      it is RenderingBuildStatus.OutOfDate
     }
     newStatusManager.statusFlow.awaitStatus("OutOfDate state expected", 5.seconds) {
-      it is ProjectStatus.OutOfDate
+      it is RenderingBuildStatus.OutOfDate
     }
 
     // Status should change to NeedsBuild for all managers after a build clean
     projectRule.clean()
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
     newStatusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
   }
 
@@ -164,17 +164,17 @@ class ProjectBuildStatusManagerTest {
     FileDocumentManager.getInstance().saveAllDocuments()
 
     val statusManager =
-      ProjectBuildStatusManager.create(
+      RenderingBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
         scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
       )
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
     assertFalse(projectRule.build().isBuildSuccessful)
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
 
     WriteCommandAction.runWriteCommandAction(project) {
@@ -186,14 +186,14 @@ class ProjectBuildStatusManagerTest {
     val facet = projectRule.androidFacet(":app")
     waitForResourceRepositoryUpdates(facet.module.getMainModule())
     statusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
-      it == ProjectStatus.NeedsBuild
+      it == RenderingBuildStatus.NeedsBuild
     }
     projectRule.buildAndAssertIsSuccessful()
     statusManager.statusFlow.awaitStatus(
       "Builds status is not Ready after successful build",
       5.seconds,
     ) {
-      it == ProjectStatus.Ready
+      it == RenderingBuildStatus.Ready
     }
   }
 }
