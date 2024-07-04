@@ -327,27 +327,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       .thenRun(() -> {});
   }
 
-  @Override
-  public void dispose() {
-    clearListeners();
-    myGuiInputHandler.stopListening();
-    Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
-    synchronized (getRenderFutures()) {
-      for (CompletableFuture<Void> future : getRenderFutures()) {
-        try {
-          future.cancel(true);
-        }
-        catch (CancellationException ignored) {
-        }
-      }
-      getRenderFutures().clear();
-    }
-    if (getRepaintTimer().isRunning()) {
-      getRepaintTimer().stop();
-    }
-    getModels().forEach(this::removeModelImpl);
-  }
-
   @UiThread
   @Override
   public void validateScrollArea() {
