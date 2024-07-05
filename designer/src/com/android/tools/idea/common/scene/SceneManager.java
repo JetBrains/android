@@ -68,12 +68,12 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   public SceneManager(
     @NotNull NlModel model,
     @NotNull DesignSurface<?> surface,
-    @Nullable SceneComponentHierarchyProvider sceneComponentProvider) {
+    @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
+    mySceneComponentProvider = sceneComponentProvider;
     myScene = new Scene(this, myDesignSurface);
   }
 
