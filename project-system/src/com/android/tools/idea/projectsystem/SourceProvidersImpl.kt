@@ -48,4 +48,36 @@ class SourceProvidersImpl(
     }.toImmutableMap()
   override val testFixturesSources: IdeaSourceProvider =
     createMergedSourceProvider(ScopeType.TEST_FIXTURES, currentTestFixturesSourceProviders)
+
+  // Restored for Rider in the 242 release branch
+  /**
+   * Secondary constructor temporarily needed for backward compatibility with the consumer call in {@link BlazeProjectSystem}
+   * This constructor can be removed once ASwB is fully migrated to repo.
+   * TODO(b/325413671)
+    */
+  constructor(
+      mainIdeaSourceProvider: NamedIdeaSourceProvider,
+      currentSourceProviders: List<NamedIdeaSourceProvider>,
+      currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>,
+      currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>,
+      currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>,
+      currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>,
+      mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>,
+      generatedSources: IdeaSourceProvider,
+      generatedUnitTestSources: IdeaSourceProvider,
+      generatedAndroidTestSources: IdeaSourceProvider,
+      generatedTestFixturesSources: IdeaSourceProvider
+    ): this(
+      mainIdeaSourceProvider,
+      currentSourceProviders,
+      mapOf(CommonTestType.UNIT_TEST to currentUnitTestSourceProviders),
+      mapOf(CommonTestType.ANDROID_TEST to currentAndroidTestSourceProviders),
+      currentTestFixturesSourceProviders,
+      currentAndSomeFrequentlyUsedInactiveSourceProviders,
+      mainAndFlavorSourceProviders,
+      generatedSources,
+      mapOf(CommonTestType.UNIT_TEST to generatedUnitTestSources),
+      mapOf(CommonTestType.ANDROID_TEST to generatedAndroidTestSources),
+      generatedTestFixturesSources
+    )
 }
