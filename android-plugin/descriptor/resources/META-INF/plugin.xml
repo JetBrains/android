@@ -6,6 +6,12 @@
     Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
     ]]>
   </description>
+
+  <change-notes><![CDATA[
+    Android Studio Koala Feature Drop
+    For detailed information, please refer to the release notes available at: Learn more in the <a href="https://androidstudio.googleblog.com/2024/06/android-studio-koala-feature-drop_20.html">Android Studio Koala Feature Drop | 2024.1.2 Canary 7</a>.]]>
+  </change-notes>
+
   <category>Android</category>
   <version>2024.1.2 Canary 7</version>
   <vendor>JetBrains, Google</vendor>
