@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.findCatalogKey
 import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceBase
+import org.jetbrains.kotlin.analysis.api.KaImplementationDetail
 import org.jetbrains.kotlin.idea.references.KotlinPsiReferenceRegistrar
 import org.jetbrains.kotlin.idea.references.KotlinReferenceProviderContributor
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.references.fe10.base.KtFe10KotlinReferenceProviderCo
 import org.toml.lang.psi.TomlFile
 
 // Wrapper for reference provider contributor to add reference provider for Kts to Catalog
+@OptIn(KaImplementationDetail::class)
 class K10KtsAndroidReferenceProviderContributor : KotlinReferenceProviderContributor {
   val contributor = KtFe10KotlinReferenceProviderContributor()
   override fun registerReferenceProviders(registrar: KotlinPsiReferenceRegistrar) {
