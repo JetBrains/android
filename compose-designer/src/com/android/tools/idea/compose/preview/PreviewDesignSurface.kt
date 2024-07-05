@@ -21,7 +21,6 @@ import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
@@ -71,9 +70,7 @@ private fun createPreviewDesignSurfaceBuilder(
   NlSurfaceBuilder.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
-          RealTimeSessionClock()
-        }
+      LayoutlibSceneManager(model, surface, sceneComponentProvider, null) { RealTimeSessionClock() }
         .also {
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation

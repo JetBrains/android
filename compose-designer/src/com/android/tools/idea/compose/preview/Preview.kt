@@ -28,9 +28,11 @@ import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationInspectorManager
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
@@ -1018,7 +1020,12 @@ class ComposePreviewRepresentation(
     // controlled by the Compose clock. For that reason, we need to call
     // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
     // and displayed in static preview.
-    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
+    surface.sceneManagers.forEach {
+      ComposeAnimationToolbarUpdater.update(this, it) {
+        AnimationToolingUsageTracker.getInstance(surface)
+      }
+      it.executeCallbacksAndRequestRender()
+    }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
     // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens
