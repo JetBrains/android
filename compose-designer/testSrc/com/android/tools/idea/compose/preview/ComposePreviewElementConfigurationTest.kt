@@ -35,8 +35,11 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.applyConfigurationForTest
+import com.android.tools.res.FrameworkOverlay
 import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -92,7 +95,16 @@ private fun buildDevice(
     .build()
 
 private val defaultDevice = buildDevice("default", "DEFAULT")
-private val pixel4Device = buildDevice("Pixel 4", "pixel_4")
+private val pixel4Device =
+  buildDevice(
+    "Pixel 4",
+    "pixel_4",
+    states =
+      listOf(
+        buildState("Portrait", 1000, 2000).apply { isDefaultState = true },
+        buildState("Landscape", 1000, 2000),
+      ),
+  )
 private val nexus7Device = buildDevice("Nexus 7", "Nexus 7")
 private val nexus10Device = buildDevice("Nexus 10", "Nexus 10")
 private val roundWearOsDevice =
@@ -284,6 +296,116 @@ class ComposePreviewElementConfigurationTest {
         defaultDeviceProvider = { defaultDevice },
       )
       assertEquals(30, it.fullConfig.versionQualifier?.version)
+    }
+  }
+
+  @Test
+  fun testParentId() {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "id:pixel_4",
+          null,
+        )
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { configManager.highestApiTarget },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice },
+      )
+      assertEquals(pixel4Device, it.device)
+      assertEquals(pixel4Device.getState("Portrait"), it.deviceState)
+      assertTrue(it.isGestureNav)
+      assertEquals(
+        listOf(FrameworkOverlay.NAV_GESTURE, FrameworkOverlay.PIXEL_4, FrameworkOverlay.NO_CUTOUT),
+        it.overlays,
+      )
+    }
+
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "spec:parent=pixel_4,orientation=landscape,navigation=buttons",
+          null,
+        )
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { configManager.highestApiTarget },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice },
+      )
+      assertFalse(it.isGestureNav)
+      assertEquals(
+        listOf(
+          FrameworkOverlay.NAV_3_BUTTONS,
+          FrameworkOverlay.PIXEL_4,
+          FrameworkOverlay.NO_CUTOUT,
+        ),
+        it.overlays,
+      )
+    }
+  }
+
+  @Test
+  fun testCutout() {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "spec:width=100dp,height=200dp,dpi=310",
+          null,
+        )
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { configManager.highestApiTarget },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice },
+      )
+      assertEquals(FrameworkOverlay.NO_CUTOUT, it.cutoutOverlay)
+    }
+
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "spec:width=100dp,height=200dp,dpi=310,cutout=corner",
+          null,
+        )
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { configManager.highestApiTarget },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice },
+      )
+      assertEquals(FrameworkOverlay.CUTOUT_CORNER, it.cutoutOverlay)
     }
   }
 

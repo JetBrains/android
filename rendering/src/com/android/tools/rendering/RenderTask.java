@@ -685,6 +685,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_GESTURE_NAV, configuration.isGestureNav());
     params.setFlag(RenderParamsFlags.FLAG_KEY_EDGE_TO_EDGE, configuration.isEdgeToEdge());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_SHOW_CUTOUT, true);
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     params.setImageTransformation(configuration.getImageTransformation());

@@ -18,13 +18,20 @@ package com.android.tools.preview
 import com.android.annotations.TestOnly
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
-import com.android.tools.preview.config.findOrParseFromDefinition
+import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.Navigation
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.createDeviceInstance
+import com.android.tools.preview.config.findByIdOrName
+import com.android.tools.res.FrameworkOverlay
 import com.android.tools.sdk.CompatibilityRenderTarget
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -168,8 +175,16 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
 
   val allDevices = devicesProvider(renderConfiguration)
-  val device =
-    allDevices.findOrParseFromDefinition(deviceSpec) ?: defaultDeviceProvider(renderConfiguration)
+  val deviceConfig = if (deviceSpec.startsWith(DEVICE_BY_SPEC_PREFIX)) {
+    DeviceConfig.toMutableDeviceConfigOrNull(deviceSpec, allDevices)
+  } else {
+    null
+  }
+  renderConfiguration.cutoutOverlay = deviceConfig?.cutout?.overlay ?: FrameworkOverlay.NO_CUTOUT
+  renderConfiguration.isGestureNav = deviceConfig == null || deviceConfig.navigation == Navigation.gesture
+
+  val deviceFromSpec = deviceConfig?.createDeviceInstance() ?: allDevices.findByIdOrName(deviceSpec)
+  val device = deviceFromSpec ?: defaultDeviceProvider(renderConfiguration)
   if (device != null) {
     // Ensure the device is reset
     renderConfiguration.setEffectiveDevice(null, null)
@@ -194,6 +209,9 @@ private fun PreviewConfiguration.applyTo(
       renderConfiguration.updateScreenSize((it.width * dpiFactor).toInt(), (it.height * dpiFactor).toInt(), device)
     }
   }
+
+  // If the configuration has a parent ID, use it to override the device cutout in the configuration.
+  deviceConfig?.parentDeviceId?.let { renderConfiguration.useDeviceForCutout(it) }
   renderConfiguration.finishBulkEditing()
 }
 
