@@ -52,6 +52,7 @@ import com.android.tools.idea.naveditor.scene.hitproviders.NavHorizontalActionHi
 import com.android.tools.idea.naveditor.scene.hitproviders.NavSelfActionHitProvider
 import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.NewDestinationLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
@@ -60,7 +61,10 @@ import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.DocumentReference
+import com.intellij.openapi.command.undo.DocumentReferenceManager
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.scale.JBUIScale
@@ -278,10 +282,6 @@ open class NavSceneManager(
 
   fun getPositionData(component: SceneComponent): Any? = savingLayoutAlgorithm?.getPositionData(component)
 
-  fun restorePositionData(path: List<String>, positionData: Any) {
-    savingLayoutAlgorithm?.restorePositionData(path, positionData)
-  }
-
   private fun isHorizontalAction(component: NlComponent): Boolean {
     val actionType = component.getActionType(root)
     return actionType == ActionType.GLOBAL || actionType == ActionType.EXIT
@@ -334,23 +334,28 @@ open class NavSceneManager(
     }
   }
 
+  /**
+   * [BasicUndoableAction] to undo a position action. This class does not keep any references to the NavSceneManager or any major
+   * data structures since the [UndoManager] might retain it for longer than the surface.
+   */
+  private class UndoPositionAction(
+    private val savingLayoutAlgorithm: NavSceneLayoutAlgorithm,
+    private val positionData: Any,
+    private val path: List<String>
+  ): BasicUndoableAction() {
+    override fun undo() {
+      savingLayoutAlgorithm.restorePositionData(path, positionData)
+    }
+
+    override fun redo() {}
+  }
+
   fun performUndoablePositionAction(component: NlComponent) {
+    if (savingLayoutAlgorithm == null) return
     val sceneComponent = scene.getSceneComponent(component) ?: return
-    val positionData = getPositionData(sceneComponent)
-    val path = component.idPath
-
-    UndoManager.getInstance(designSurface.project).undoableActionPerformed(
-      object : BasicUndoableAction(model.file.virtualFile) {
-        override fun undo() {
-          if (positionData == null) {
-            return
-          }
-          restorePositionData(path.mapNotNull { it }, positionData)
-        }
-
-        override fun redo() {
-        }
-      })
+    val positionData = getPositionData(sceneComponent) ?: return
+    val path = component.idPath.mapNotNull { it }
+    UndoManager.getInstance(designSurface.project).undoableActionPerformed(UndoPositionAction(savingLayoutAlgorithm, positionData, path))
   }
 
   /**
