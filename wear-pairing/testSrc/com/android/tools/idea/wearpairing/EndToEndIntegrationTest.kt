@@ -52,6 +52,17 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   private val invokeStrategy = TestInvokeStrategy()
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
+  private val wearPropertiesMap =
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
+  private val avdWearInfo =
+    AvdInfo(
+      Paths.get("ini"),
+      Paths.get("folder"),
+      Mockito.mock(ISystemImage::class.java),
+      wearPropertiesMap,
+      null,
+    )
+
   override fun setUp() {
     // Studio Icons must be of type CachedImageIcon for image asset
     IconLoaderRule.enableIconLoading()
@@ -73,72 +84,8 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
 
   @Test
   fun allInstalledQuickPathToSuccess() {
-    val phoneIDevice =
-      Mockito.mock(IDevice::class.java).apply {
-        whenever(arePropertiesSet()).thenReturn(true)
-        whenever(isOnline).thenReturn(true)
-        whenever(name).thenReturn("MyPhone")
-        whenever(serialNumber).thenReturn("serialNumber")
-        whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
-        whenever(version).thenReturn(AndroidVersion(28, null))
-        whenever(getProperty("dev.bootcomplete")).thenReturn("1")
-
-        addExecuteShellCommandReply { request ->
-          when {
-            request == "cat /proc/uptime" -> "500"
-            request.contains("grep versionName") -> "versionName=1.0.0"
-            request.contains("grep versionCode") ->
-              "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
-            request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
-            else -> "Unknown executeShellCommand request $request"
-          }
-        }
-      }
-
-    val wearPropertiesMap = mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
-    val avdWearInfo =
-      AvdInfo(
-        Paths.get("ini"),
-        Paths.get("folder"),
-        Mockito.mock(ISystemImage::class.java),
-        wearPropertiesMap,
-        null,
-      )
-
-    val wearIDevice =
-      Mockito.mock(IDevice::class.java).apply {
-        whenever(arePropertiesSet()).thenReturn(true)
-        whenever(isOnline).thenReturn(true)
-        whenever(isEmulator).thenReturn(true)
-        whenever(name).thenReturn(avdWearInfo.name)
-        whenever(serialNumber).thenReturn("serialNumber")
-        whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
-        whenever(version).thenReturn(AndroidVersion(28, null))
-        whenever(avdData)
-          .thenReturn(
-            Futures.immediateFuture(
-              AvdData(
-                avdWearInfo.name,
-                // The path is formatted in this way as a regression test for b/275128556
-                "${avdWearInfo.dataFolderPath}${File.separator}..${File.separator}${avdWearInfo.dataFolderPath}",
-              )
-            )
-          )
-        whenever(getProperty("dev.bootcomplete")).thenReturn("1")
-        whenever(getSystemProperty("ro.oem.companion_package"))
-          .thenReturn(Futures.immediateFuture(""))
-        addExecuteShellCommandReply { request ->
-          when {
-            request == "cat /proc/uptime" -> "500"
-            request == "am force-stop com.google.android.gms" -> "OK"
-            request.contains("grep versionCode") ->
-              "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
-            request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
-            request.contains("settings get secure") -> "null"
-            else -> "Unknown executeShellCommand request $request"
-          }
-        }
-      }
+    val phoneIDevice = mockPhoneDevice()
+    val wearIDevice = mockWearDevice(avdWearInfo)
 
     WearPairingManager.getInstance()
       .setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
@@ -165,6 +112,93 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     assertThat(phoneWearPair[0].getPeerDevice(avdWearInfo.id).displayName)
       .isEqualTo(phoneIDevice.name)
   }
+
+  // Regression test for http://b/350735240
+  @Test
+  fun pairingWithPhoneWithoutPropertiesSet() {
+    val phoneIDevice = mockPhoneDevice().apply { whenever(arePropertiesSet()).thenReturn(false) }
+    val wearIDevice = mockWearDevice(avdWearInfo)
+
+    WearPairingManager.getInstance()
+      .setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
+    assertThat(WearPairingManager.getInstance().getPairsForDevice(wearIDevice.name)).isEmpty()
+
+    createModalDialogAndInteractWithIt({ WearDevicePairingWizard().show(null, null) }) {
+      FakeUi(it.contentPane).apply {
+        waitLabelText(message("wear.assistant.device.list.title"))
+        clickButton("Next")
+        waitLabelText(message("wear.assistant.device.connection.pairing.success.title"))
+        clickButton("Finish")
+      }
+    }
+
+    waitForCondition(5, TimeUnit.SECONDS) { getWearPairingTrackingEvents().size >= 2 }
+    val usages = getWearPairingTrackingEvents()
+    assertThat(usages[0].studioEvent.wearPairingEvent.kind)
+      .isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
+    assertThat(usages[1].studioEvent.wearPairingEvent.kind)
+      .isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+    val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(avdWearInfo.id)
+    assertThat(phoneWearPair).isNotEmpty()
+    assertThat(phoneWearPair[0].pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
+    assertThat(phoneWearPair[0].getPeerDevice(avdWearInfo.id).displayName)
+      .isEqualTo(phoneIDevice.name)
+  }
+
+  private fun mockPhoneDevice() =
+    Mockito.mock(IDevice::class.java).apply {
+      whenever(isOnline).thenReturn(true)
+      whenever(name).thenReturn("MyPhone")
+      whenever(serialNumber).thenReturn("serialNumber")
+      whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
+      whenever(version).thenReturn(AndroidVersion(28, null))
+      whenever(getProperty("dev.bootcomplete")).thenReturn("1")
+
+      addExecuteShellCommandReply { request ->
+        when {
+          request == "cat /proc/uptime" -> "500"
+          request.contains("grep versionName") -> "versionName=1.0.0"
+          request.contains("grep versionCode") ->
+            "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
+          request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
+          else -> "Unknown executeShellCommand request $request"
+        }
+      }
+    }
+
+  private fun mockWearDevice(avdWearInfo: AvdInfo) =
+    Mockito.mock(IDevice::class.java).apply {
+      whenever(isOnline).thenReturn(true)
+      whenever(isEmulator).thenReturn(true)
+      whenever(name).thenReturn(avdWearInfo.name)
+      whenever(serialNumber).thenReturn("serialNumber")
+      whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
+      whenever(version).thenReturn(AndroidVersion(28, null))
+      whenever(avdData)
+        .thenReturn(
+          Futures.immediateFuture(
+            AvdData(
+              avdWearInfo.name,
+              // The path is formatted in this way as a regression test for b/275128556
+              "${avdWearInfo.dataFolderPath}${File.separator}..${File.separator}${avdWearInfo.dataFolderPath}",
+            )
+          )
+        )
+      whenever(getProperty("dev.bootcomplete")).thenReturn("1")
+      whenever(getSystemProperty("ro.oem.companion_package"))
+        .thenReturn(Futures.immediateFuture(""))
+      addExecuteShellCommandReply { request ->
+        when {
+          request == "cat /proc/uptime" -> "500"
+          request == "am force-stop com.google.android.gms" -> "OK"
+          request.contains("grep versionCode") ->
+            "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
+          request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
+          request.contains("settings get secure") -> "null"
+          else -> "Unknown executeShellCommand request $request"
+        }
+      }
+    }
 
   private fun FakeUi.clickButton(text: String) {
     waitForCondition(5, TimeUnit.SECONDS) {
