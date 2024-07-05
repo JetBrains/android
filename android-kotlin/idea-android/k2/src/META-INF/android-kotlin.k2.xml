@@ -32,8 +32,6 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.quickfix.K2AndroidViewConstructorFixRegistrar"/>
     <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.quickfix.K2CreateResourceQuickFixRegistrar"/>
-    <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
-    <!--suppress PluginXmlValidity -->
-    <supportsKotlinK2Mode/>
+    <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 </idea-plugin>
