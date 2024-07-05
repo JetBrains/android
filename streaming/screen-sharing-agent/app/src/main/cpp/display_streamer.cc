@@ -206,8 +206,8 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
-  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::Agent::device_manufacturer() != XIAOMI) {
-    // Some Xiaomi phones, e.g. HONOR 90, produce bogus display change events. See b/348562991.
+  // Don't listen to display events on non-foldable HONOR phones. HONOR 90 is producing bogus display change events (b/348562991).
+  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::Agent::device_manufacturer() != HONOR) {
     DisplayManager::AddDisplayListener(jni, this);
   }
 
