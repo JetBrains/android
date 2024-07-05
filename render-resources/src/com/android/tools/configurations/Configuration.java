@@ -28,6 +28,7 @@ import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
 import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
+import static java.util.Locale.ROOT;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -63,12 +64,15 @@ import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
+import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -205,6 +209,8 @@ public class Configuration {
   private Consumer<BufferedImage> myImageTransformation = null;
   private boolean myGestureNav = false;
   private boolean myEdgeToEdge = false;
+  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.NO_CUTOUT;
+  private FrameworkOverlay myDeviceOverlay = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -331,6 +337,7 @@ public class Configuration {
     else {
       myDevice = computeBestDevice();
     }
+    updateDeviceOverlay();
     return myDevice;
   }
 
@@ -571,6 +578,7 @@ public class Configuration {
       State prevState = myState;
 
       myDevice = mySpecificDevice = device;
+      updateDeviceOverlay();
 
       int updateFlags = CFG_DEVICE;
 
@@ -928,6 +936,17 @@ public class Configuration {
   }
 
   /**
+   * Sets the overlay to use for displaying the display cutout
+   */
+  public void setCutoutOverlay(FrameworkOverlay overlay) {
+    myCutoutOverlay = overlay;
+  }
+
+  public FrameworkOverlay getCutoutOverlay() {
+    return myCutoutOverlay;
+  }
+
+  /**
    * Sets the consumer that applies a transformation function to the rendered image.
    *
    * @param imageTransformation the consumer containing a transformation function to be applied to the rendered image
@@ -1187,6 +1206,23 @@ public class Configuration {
     }
   }
 
+  public void useDeviceForCutout(@NotNull String deviceId) {
+    Optional<FrameworkOverlay> deviceOverlay = Enums.getIfPresent(FrameworkOverlay.class, deviceId.toUpperCase(ROOT));
+    if (deviceOverlay.isPresent()) {
+      myDeviceOverlay = deviceOverlay.get();
+    } else {
+      myDeviceOverlay = null;
+    }
+  }
+
+  private void updateDeviceOverlay() {
+    if (myDevice == null) {
+      myDeviceOverlay = null;
+    } else {
+      useDeviceForCutout(myDevice.getId());
+    }
+  }
+
   // ---- Resolving resources ----
 
   @Slow
@@ -1204,7 +1240,13 @@ public class Configuration {
 
   @NonNull
   public List<FrameworkOverlay> getOverlays() {
-    return myGestureNav ? List.of(FrameworkOverlay.NAV_GESTURE) : List.of(FrameworkOverlay.NAV_3_BUTTONS);
+    List<FrameworkOverlay> overlays = new ArrayList<>(3);
+    overlays.add(myGestureNav ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
+    if (myDeviceOverlay != null) {
+      overlays.add(myDeviceOverlay);
+    }
+    overlays.add(myCutoutOverlay);
+    return overlays;
   }
 
   // For debugging only
@@ -1234,6 +1276,7 @@ public class Configuration {
     if (myDevice != device) {
       updateFlags = CFG_DEVICE;
       myDevice = device;
+      updateDeviceOverlay();
     }
 
     if (myState != state) {

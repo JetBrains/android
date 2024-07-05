@@ -97,6 +97,12 @@ public final class RenderParamsFlags {
     public static final Key<Boolean> FLAG_KEY_EDGE_TO_EDGE =
       new Key<>("edgeToEdge", Boolean.class);
 
+    /**
+     * To tell Layoutlib to display the device cutout if there is one.
+     */
+    public static final Key<Boolean> FLAG_KEY_SHOW_CUTOUT =
+      new Key<>("showCutout", Boolean.class);
+
     // Disallow instances.
     private RenderParamsFlags() {}
 }
