@@ -144,7 +144,7 @@ class UnpairTest {
       .setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
     WearPairingManager.getInstance()
       .createPairedDeviceBridge(phoneDevice, phoneIDevice, wearDevice, wearIDevice)
-    val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(wearIDevice.name)
+    val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(wearDevice.deviceID)
     WearPairingManager.getInstance().removePairedDevices(phoneWearPair.single())
     assertTrue(
       "Unexpected ADB requests\n${unexpectedAdbRequests.joinToString("\n")}",
