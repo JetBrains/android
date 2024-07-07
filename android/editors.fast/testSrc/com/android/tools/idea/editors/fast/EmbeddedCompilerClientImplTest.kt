@@ -74,7 +74,7 @@ internal class EmbeddedCompilerClientImplTest {
 
   @Before
   fun setUp() {
-    registerComposeCompilerPlugin(projectRule)
+    registerComposeCompilerPlugin(projectRule.project)
   }
 
   @Test

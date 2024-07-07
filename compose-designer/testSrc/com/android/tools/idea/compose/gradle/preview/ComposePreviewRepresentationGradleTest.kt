@@ -67,7 +67,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -466,12 +465,6 @@ class ComposePreviewRepresentationGradleTest {
   @Test
   fun `file modification don't refresh inactive representations but do refresh on reactivation`() =
     runBlocking {
-      // Fail early to not time out (and not make noises) if running in K2
-      // Otherwise, the lack of [ResolutionFacade] causes [IllegalStateException],
-      // which is not properly propagated / handled, resulting in non-recovered hanging coroutines,
-      // which make all other tests cancelled as well.
-      assertFalse(KotlinPluginModeProvider.isK2Mode())
-
       val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
       composePreviewRepresentation.onDeactivate()
