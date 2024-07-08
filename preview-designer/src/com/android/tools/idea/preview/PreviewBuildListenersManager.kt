@@ -19,8 +19,8 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.BuildListener
+import com.android.tools.idea.rendering.setupBuildListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
