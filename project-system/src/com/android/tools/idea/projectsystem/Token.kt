@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.Extensions
 
 /**
  * This interface is to be extended by concrete project systems with a suitable implementation of
@@ -43,5 +44,7 @@ inline fun <reified T : Token> AndroidProjectSystem.getToken(extensionPointName:
 
 /** Returns an instance of token [T] such that it is suitable for [this] project system. */
 inline fun <reified T : Token> AndroidProjectSystem.getTokenOrNull(extensionPointName: ExtensionPointName<T>): T? {
-  return extensionPointName.getExtensions(project).singleOrNull { it.isApplicable(this) }
+  return if (project.extensionArea.hasExtensionPoint(extensionPointName))
+    extensionPointName.getExtensions(project).singleOrNull { it.isApplicable(this) }
+  else extensionPointName.extensionList.singleOrNull { it.isApplicable(this) }
 }
