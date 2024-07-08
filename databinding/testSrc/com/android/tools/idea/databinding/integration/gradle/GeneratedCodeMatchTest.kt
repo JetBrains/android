@@ -288,10 +288,10 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    assertThat(parameters.mode)
-      .isEqualTo(
+    assertThat(
         LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
       )
+      .isEqualTo(parameters.mode)
 
     // trigger initialization
     StudioResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
