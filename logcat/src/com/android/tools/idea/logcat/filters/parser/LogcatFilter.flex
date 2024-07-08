@@ -76,10 +76,12 @@ AND = "&"
 LPAREN = "("
 RPAREN = ")"
 
-UNQUOTED_VALUE      = [^'\"\s()] ([^\s():] | "\\ ")*
+UNQUOTED_VALUE      = [^'\"\s()] ([^\s():] | "\\ " | "\\:")*
+UNQUOTED_KVALUE      = [^'\"\s()] ([^\s()] | "\\ ")*
 SINGLE_QUOTED_VALUE = ' ([^'] | \\')* '
 DOUBLE_QUOTED_VALUE = \" ([^\"] | \\\")* \"
 STRING_VALUE        = {UNQUOTED_VALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_VALUE}
+STRING_KVALUE        = {UNQUOTED_KVALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_VALUE}
 
 // Keys that accept quoted or unquoted strings.
 TEXT_KEY
@@ -118,9 +120,9 @@ KEY
 
 {WHITE_SPACE}+                         { return TokenType.WHITE_SPACE; }
 
-<STRING_KVALUE_STATE>   {STRING_VALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.STRING_KVALUE; }
+<STRING_KVALUE_STATE>   {STRING_KVALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.STRING_KVALUE; }
 
-<REGEX_KVALUE_STATE>    {STRING_VALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.REGEX_KVALUE; }
+<REGEX_KVALUE_STATE>    {STRING_KVALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.REGEX_KVALUE; }
 
 <KVALUE_STATE>  \S+                    { yybegin(YYINITIAL); return LogcatFilterTypes.KVALUE; }
 
