@@ -63,11 +63,6 @@ internal interface WearHealthServicesStateManager {
   val status: StateFlow<WhsStateManagerStatus>
 
   /**
-   * Returns if the current WHS version is supported or not, so an error can be displayed by the UI.
-   */
-  suspend fun isWhsVersionSupported(): Boolean
-
-  /**
    * State flow for the ongoing exercise status, emits a single boolean, true if there's an ongoing
    * exercise on the device, false otherwise.
    */

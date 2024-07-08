@@ -32,11 +32,8 @@ import kotlinx.coroutines.flow.take
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
 const val whsActiveExerciseUri: String = "content://$whsPackage.dev.exerciseinfo"
-const val whsDevVersionCode = 1
-const val whsMinimumVersionCode = 1447606
 private val capabilityStatePattern =
   Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*E?\\d*)")
-private val versionCodePattern = Regex("versionCode=(\\d+)")
 private val activeExerciseRegex = Regex("active_exercise=(true|false)")
 
 /**
@@ -94,15 +91,6 @@ internal class ContentProviderDeviceManager(
 
   override suspend fun clearContentProvider() =
     runAdbShellCommandIfConnected("content delete --uri $whsConfigUri").map {}
-
-  override suspend fun isWhsVersionSupported() =
-    runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1")
-      .map { output ->
-        val versionCode: Int? = versionCodePattern.find(output)?.groupValues?.get(1)?.toInt()
-
-        versionCode != null &&
-          (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
-      }
 
   override fun setSerialNumber(serialNumber: String) {
     this.serialNumber = serialNumber

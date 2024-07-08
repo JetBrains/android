@@ -120,17 +120,6 @@ class DeviceManagerTest {
     }
 
   @Test
-  fun `test isWhsVersionSupported throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
-
-      adbSession.close()
-
-      assertFailure(deviceManager.isWhsVersionSupported())
-    }
-
-  @Test
   fun `enabling capability when serial number is not set does not result in crash`() = runTest {
     val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
@@ -638,85 +627,6 @@ class DeviceManagerTest {
         )
       },
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55",
-    )
-  }
-
-  @Test
-  fun `checking is WHS version is supported without setting serial number does not result in crash`() =
-    runTest {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-
-      val job = launch { deviceManager.isWhsVersionSupported() }
-      job.join()
-    }
-
-  private fun assertWhsVersionCheckAdbResponseIsParsedCorrectly(
-    response: String,
-    expectedIsSupportedBool: Boolean,
-  ) = runTest {
-    val checkWhsVersionCommand = "dumpsys package $WHS_PACKAGE_ID | grep versionCode | head -n1"
-    adbSession.deviceServices.configureShellCommand(
-      DeviceSelector.fromSerialNumber(serialNumber),
-      checkWhsVersionCommand,
-      response,
-    )
-
-    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-    deviceManager.setSerialNumber(serialNumber)
-
-    val previousCount = adbSession.deviceServices.shellV2Requests.size
-
-    var isSupported = false
-    val job = launch { isSupported = deviceManager.isWhsVersionSupported().getOrThrow() }
-
-    job.join()
-
-    val currentCount = adbSession.deviceServices.shellV2Requests.size
-    val newRequestsCount = currentCount - previousCount
-
-    assertEquals(1, newRequestsCount)
-
-    val shellRequest = adbSession.deviceServices.shellV2Requests.last
-
-    assert(shellRequest.deviceSelector.contains(serialNumber))
-    assertEquals(checkWhsVersionCommand, shellRequest.command)
-    assertEquals(expectedIsSupportedBool, isSupported)
-  }
-
-  @Test
-  fun `unexpected ADB response results in WHS version being reported as unsupported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly("Unexpected response", false)
-  }
-
-  @Test
-  fun `dev whs version code is supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly(
-      "    versionCode=1 minSdk=30 targetSdk=33",
-      true,
-    )
-  }
-
-  @Test
-  fun `minimum whs version code is supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly(
-      "    versionCode=1447606 minSdk=30 targetSdk=33",
-      true,
-    )
-  }
-
-  @Test
-  fun `whs version codes higher than minimum are supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly(
-      "    versionCode=1448000 minSdk=30 targetSdk=33",
-      true,
-    )
-  }
-
-  @Test
-  fun `whs version codes lower than minimum are not supported`() {
-    assertWhsVersionCheckAdbResponseIsParsedCorrectly(
-      "    versionCode=1417661 minSdk=30 targetSdk=33",
-      false,
     )
   }
 

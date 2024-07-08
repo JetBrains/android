@@ -34,7 +34,6 @@ import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -433,16 +432,6 @@ class WearHealthServicesStateManagerTest {
     // Verify that the value is updated
     stateManager.ongoingExercise.waitForValue(true)
   }
-
-  @Test
-  fun `test isWhsVersionSupported fail state reports whs version as not supported`(): Unit =
-    runBlocking {
-      deviceManager.failState = true
-
-      val isSupported = stateManager.isWhsVersionSupported()
-
-      assertFalse(isSupported)
-    }
 
   @Test
   fun `test triggered events are forwarded to device manager`(): Unit = runBlocking {

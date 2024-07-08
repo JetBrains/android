@@ -162,9 +162,6 @@ internal class WearHealthServicesStateManagerImpl(
     }
   }
 
-  override suspend fun isWhsVersionSupported(): Boolean =
-    deviceManager.isWhsVersionSupported().getOrDefault(false)
-
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
     runWithStatus(WhsStateManagerStatus.Syncing) { deviceManager.triggerEvent(eventTrigger) }
 
