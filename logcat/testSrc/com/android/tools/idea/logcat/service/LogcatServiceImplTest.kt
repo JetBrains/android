@@ -27,11 +27,13 @@ import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.shellcommandhandlers.LogcatCommandHandler
 import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
+import com.android.flags.junit.FlagRule
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.flags.StudioFlags.LOGCAT_PROTOBUF_ENABLED
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
@@ -77,7 +79,15 @@ class LogcatServiceImplTest {
   private val closeables = CloseablesRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, fakeAdb, closeables, disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      fakeAdb,
+      closeables,
+      disposableRule,
+      FlagRule(LOGCAT_PROTOBUF_ENABLED, true),
+    )
 
   private val project
     get() = projectRule.project
