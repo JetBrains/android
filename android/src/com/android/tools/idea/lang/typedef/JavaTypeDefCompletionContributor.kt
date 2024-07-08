@@ -17,21 +17,21 @@ package com.android.tools.idea.lang.typedef
 
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.patterns.ElementPattern
-import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.util.parentOfType
-import com.intellij.psi.PsiCall
-import com.intellij.psi.PsiExpressionList
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.psi.PsiCall
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiExpressionList
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReference
+import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
- * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations
- * for code completion on a [PsiReferenceExpression](argument).
+ * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for
+ * code completion on a [PsiReferenceExpression](argument).
  *
  * See also [IntDef](https://developer.android.com/reference/androidx/annotation/IntDef),
  * [LongDef](https://developer.android.com/reference/androidx/annotation/LongDef), and
@@ -39,28 +39,30 @@ import org.jetbrains.kotlin.psi.KtProperty
  */
 class JavaTypeDefCompletionContributor : TypeDefCompletionContributor() {
   /** This looks for a place where we're completing an argument to a method or constructor call. */
-  override val elementPattern: ElementPattern<PsiElement> = psiElement().withParent(
-    psiElement(PsiReferenceExpression::class.java).inside(
-      psiElement(PsiExpressionList::class.java).withParent(PsiCall::class.java)
-    )
-  )
+  override val elementPattern: ElementPattern<PsiElement> =
+    psiElement()
+      .withParent(
+        psiElement(PsiReferenceExpression::class.java)
+          .inside(psiElement(PsiExpressionList::class.java).withParent(PsiCall::class.java))
+      )
 
-  override val insertHandler = object: TypeDefInsertHandler() {
-    override fun bindToTarget(context: InsertionContext, target: PsiElement) {
-      val expr = context.getParent() as? PsiReference ?: return
-      val psiField = when (target) {
-        is PsiField -> target
-        is KtProperty -> target.toLightElements().firstOrNull() ?: return
-        else -> return
-      }
-      expr.bindToElement(psiField)
-      // Get the largest containing expression and shorten references within.
-      context.getMaximalParentOfType<PsiReferenceExpression>()?.let {
-        JavaCodeStyleManager.getInstance(context.project).shortenClassReferences(it)
+  override val insertHandler =
+    object : TypeDefInsertHandler() {
+      override fun bindToTarget(context: InsertionContext, target: PsiElement) {
+        val expr = context.getParent() as? PsiReference ?: return
+        val psiField =
+          when (target) {
+            is PsiField -> target
+            is KtProperty -> target.toLightElements().firstOrNull() ?: return
+            else -> return
+          }
+        expr.bindToElement(psiField)
+        // Get the largest containing expression and shorten references within.
+        context.getMaximalParentOfType<PsiReferenceExpression>()?.let {
+          JavaCodeStyleManager.getInstance(context.project).shortenClassReferences(it)
+        }
       }
     }
-  }
-
 
   override fun computeConstrainingTypeDef(position: PsiElement): TypeDef? {
     val arg = position.parentOfType<PsiReferenceExpression>() ?: return null
