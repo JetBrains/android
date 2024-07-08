@@ -59,7 +59,7 @@ abstract class ComposeSupportedAnimationManager(
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
-  val updateTimelineElementsCallback: suspend () -> Unit,
+  updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
 ) :
   ComposeAnimationManager,

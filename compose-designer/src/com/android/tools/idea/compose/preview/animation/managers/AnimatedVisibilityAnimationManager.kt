@@ -27,7 +27,6 @@ import com.android.tools.idea.preview.animation.TimelinePanel
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 /**
  * This class handles AnimatedVisibility composable. It animates the appearance and disappearance of
@@ -68,17 +67,9 @@ class AnimatedVisibilityAnimationManager(
     SingleState(tracker, animation.states, animation.states.firstOrNull())
 
   /** Initializes the state of the Compose animation before it starts */
-  override suspend fun setupStateManager() {
+  override suspend fun setupInitialAnimationState() {
     executeInRenderSession(true) {
       animationState.setInitialState(animationClock.getAnimatedVisibilityState(animation))
-    }
-    scope.launch {
-      animationState.state.collect {
-        updateAnimatedVisibility()
-        loadTransition()
-        loadAnimatedPropertiesAtCurrentTime(false)
-        updateTimelineElementsCallback()
-      }
     }
   }
 
@@ -86,10 +77,10 @@ class AnimatedVisibilityAnimationManager(
    * Updates the actual animation in Compose to set its state based on the selected value of
    * [animationState].
    */
-  private suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
+  override suspend fun syncAnimationWithState() {
     animationClock.apply {
       val state = animationState.state.value ?: return
-      executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
+      executeInRenderSession(false) { updateAnimatedVisibilityState(animation, state) }
     }
   }
 }
