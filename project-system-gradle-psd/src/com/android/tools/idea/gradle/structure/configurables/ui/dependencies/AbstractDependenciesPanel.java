@@ -203,7 +203,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           }
 
           @Override
-          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep<?> onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 
