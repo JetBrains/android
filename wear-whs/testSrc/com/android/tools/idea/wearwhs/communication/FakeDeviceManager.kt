@@ -61,8 +61,6 @@ internal class FakeDeviceManager(
       onDeviceStates.clear()
     }
 
-  override suspend fun isWhsVersionSupported() = failOrWrapResult(true)
-
   override fun setSerialNumber(serialNumber: String) {}
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =

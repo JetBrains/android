@@ -44,9 +44,6 @@ internal interface WearHealthServicesDeviceManager {
   /** Deletes all data from the WHS content provider */
   suspend fun clearContentProvider(): Result<Unit>
 
-  /** Returns if the WHS version is supported. */
-  suspend fun isWhsVersionSupported(): Result<Boolean>
-
   /** Sets the serial number of the emulator to connect. */
   fun setSerialNumber(serialNumber: String)
 
