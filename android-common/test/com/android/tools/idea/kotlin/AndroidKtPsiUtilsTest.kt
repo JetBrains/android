@@ -119,7 +119,7 @@ class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
   fun testKtClass_className_kotlinBuiltin() {
     val file = setFileContents("""
       class <caret>Foo
-    """.trimIndent(), packageName = "kotlin.some.package")
+    """.trimIndent(), packageName = "kotlin.some.pkg")
 
     assertThat(file.getElementAtCaret<KtClass>().getQualifiedName()).isNull()
   }
