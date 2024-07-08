@@ -14,6 +14,7 @@ kotlin {
     }
 
     withAndroidTestOnDeviceBuilder {
+      sourceSetTreeName = "test"
       compilationName = "instrumentedTest"
       defaultSourceSetName = "androidInstrumentedTest"
     }
