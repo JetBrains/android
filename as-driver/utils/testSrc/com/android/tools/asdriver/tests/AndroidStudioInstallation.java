@@ -163,6 +163,15 @@ public class AndroidStudioInstallation {
       vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
     }
 
+    // Specify the folder where completion variants for all the calls of the %doComplete performanceTesting command will be stored, same
+    // file is used by the %assertCompletionCommand command to access the output of the last completion event.
+    vmOptions.append(
+      String.format("-Dcompletion.command.report.dir=%s%n", Files.createTempDirectory(TestUtils.getTestOutputDir(), "completion_report")));
+    // Specify the file where the results of the findUsages action triggered by the %findUsages command will be stored. The same file is
+    // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
+    vmOptions.append(
+      String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
+
     Files.writeString(vmOptionsPath, vmOptions.toString());
 
     // Handy utility to allow run configurations to force debugging
@@ -243,6 +252,25 @@ public class AndroidStudioInstallation {
     }
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
+  }
+
+
+  /**
+   * Accept the legal notice about showing decompiler .class files in editor.
+   */
+  public void acceptLegalDecompilerNotice() throws IOException {
+    Path filetypePaths = configDir.resolve("options/other.xml");
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      """
+        <application>
+          <component name="PropertyService"><![CDATA[{
+          "keyToString": {
+            "decompiler.legal.notice.accepted": "true"
+          }
+          }]]></component>
+        </application>""";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
   }
 
   /**
