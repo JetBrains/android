@@ -32,6 +32,7 @@ constexpr int32_t PRIMARY_DISPLAY_ID = 0;
 
 // Device manufacturers.
 constexpr char GOOGLE[] = "Google";
+constexpr char HONOR[] = "HONOR";
 constexpr char MOTOROLA[] = "motorola";
 constexpr char ONE_PLUS[] = "OnePlus";
 constexpr char OPPO[] = "OPPO";
