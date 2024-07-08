@@ -38,7 +38,6 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -1058,24 +1057,24 @@ class EmulatorView(
     }
 
     private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, buttons: Int, deviceDisplayRegion: Rectangle) {
+      val inputEvent = InputEventMessage.newBuilder()
       if (multiTouchMode) {
         val pressure = if (buttons == 0) 0 else PRESSURE_RANGE_MAX
-        val touchEvent = TouchEvent.newBuilder()
-          .setDisplay(displayId)
-          .addTouches(createTouch(displayX, displayY, 0, pressure))
-          .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
-          .build()
-        emulator.sendTouch(touchEvent)
+        inputEvent.setTouchEvent(
+            TouchEvent.newBuilder()
+                .setDisplay(displayId)
+                .addTouches(createTouch(displayX, displayY, 0, pressure))
+                .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure)))
       }
       else {
-        val mouseEvent = MouseEventMessage.newBuilder()
-          .setDisplay(displayId)
-          .setX(displayX)
-          .setY(displayY)
-          .setButtons(buttons)
-          .build()
-        emulator.sendMouse(mouseEvent)
+        inputEvent.setMouseEvent(
+            MouseEventMessage.newBuilder()
+                .setDisplay(displayId)
+                .setX(displayX)
+                .setY(displayY)
+                .setButtons(buttons))
       }
+      emulator.getOrCreateInputEventSender().onNext(inputEvent.build())
     }
 
     private fun createTouch(x: Int, y: Int, identifier: Int, pressure: Int): Touch.Builder {
