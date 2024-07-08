@@ -86,7 +86,7 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.toSet()
+    val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.mapNotNull { it.findAndroidModule() }.toSet()
     GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
   }
 
