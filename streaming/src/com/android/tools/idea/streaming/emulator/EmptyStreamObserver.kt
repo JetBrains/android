@@ -23,7 +23,7 @@ import com.android.tools.idea.io.grpc.stub.StreamObserver
  */
 open class EmptyStreamObserver<T> : StreamObserver<T> {
   @AnyThread
-  override fun onNext(response: T) {
+  override fun onNext(message: T) {
   }
 
   @AnyThread

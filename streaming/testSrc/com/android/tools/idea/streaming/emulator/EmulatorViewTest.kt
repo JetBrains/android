@@ -689,9 +689,9 @@ class EmulatorViewTest {
       fakeUi.mouse.wheel(100, 100, rotation)
       if (call == null) {
         call = fakeEmulator.getNextGrpcCall(2.seconds)
-        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/injectWheel")
+        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
       }
-      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("dy: ${-rotation * 120}")
+      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-rotation * 120} }")
     }
   }
 

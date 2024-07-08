@@ -265,9 +265,9 @@ internal class EmulatorToolWindowPanel(
 
     if (connected) {
       emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
-        override fun onNext(response: ExtendedControlsStatus) {
+        override fun onNext(message: ExtendedControlsStatus) {
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            uiState.extendedControlsShown = response.visibilityChanged
+            uiState.extendedControlsShown = message.visibilityChanged
           }
         }
       })
@@ -327,15 +327,15 @@ internal class EmulatorToolWindowPanel(
     @AnyThread
     fun refreshDisplayConfiguration() {
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
-        override fun onNext(response: DisplayConfigurations) {
+        override fun onNext(message: DisplayConfigurations) {
           if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-            LOG.info("Display configurations: " + shortDebugString(response))
+            LOG.info("Display configurations: " + shortDebugString(message))
           }
           else {
-            LOG.debug("Display configurations: " + shortDebugString(response))
+            LOG.debug("Display configurations: " + shortDebugString(message))
           }
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            displayConfigurationReceived(response.displaysList)
+            displayConfigurationReceived(message.displaysList)
           }
         }
       })

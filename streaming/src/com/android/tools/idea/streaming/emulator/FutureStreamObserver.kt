@@ -31,8 +31,8 @@ class FutureStreamObserver<T> : EmptyStreamObserver<T>() {
   private val futureResultInternal = SettableFuture.create<T>()
 
   @AnyThread
-  override fun onNext(response: T) {
-    futureResultInternal.set(response)
+  override fun onNext(message: T) {
+    futureResultInternal.set(message)
   }
 
   @AnyThread

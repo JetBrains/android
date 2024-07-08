@@ -28,6 +28,7 @@ import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
+import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
@@ -44,7 +45,6 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
-import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
@@ -127,6 +127,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val keyboardEventQueue = ArrayDeque<Pair<KeyboardEvent, StreamObserver<Empty>>>()
   @GuardedBy("keyboardEventQueue")
   private var keyboardEventInFlight = false
+  @GuardedBy("this")
+  private var inputEventSender: StreamObserver<InputEvent>? = null
 
   var emulatorConfig: EmulatorConfiguration
     get() {
@@ -428,16 +430,39 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Pushes mouse wheel events to the emulator virtio device.
+   * Streams input events to the emulator.
    *
-   * @param streamObserver a client stream observer to handle events
-   * @return a StreamObserver that can be used to trigger the push
+   * @param streamObserver a client stream observer that is used only for error handling
+   * @return a StreamObserver that can be used to supply input events
    */
-  fun injectWheel(streamObserver: StreamObserver<Empty> = getEmptyObserver()) : StreamObserver<WheelEvent>{
+  private fun streamInputEvent(streamObserver: StreamObserver<Empty> = getEmptyObserver()) : StreamObserver<InputEvent> {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("injectWheel()")
+      LOG.info("streamInputEvent()")
     }
-    return emulatorControllerStub.injectWheel(DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getInjectWheelMethod()))
+    val sender = emulatorControllerStub.streamInputEvent(
+        DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getStreamInputEventMethod()))
+    return object : EmptyStreamObserver<InputEvent>() {
+
+      override fun onNext(message: InputEvent) {
+        val loggingEnabled = when {
+          message.hasKeyEvent() || message.hasAndroidEvent() -> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
+          else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
+        }
+        if (loggingEnabled) {
+          LOG.info("streamInputEvent: sending ${shortDebugString(message)})")
+        }
+        sender?.onNext(message)
+      }
+    }
+  }
+
+  /**
+   * Returns an existing or creates a new input event sender.
+   */
+  fun getOrCreateInputEventSender(): StreamObserver<InputEvent> {
+    synchronized(this) {
+      return inputEventSender ?: streamInputEvent().also { inputEventSender = it }
+    }
   }
 
   /**
@@ -683,7 +708,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private fun sendKeepAlive() {
     val responseObserver = object : EmptyStreamObserver<VmRunState>() {
-      override fun onNext(response: VmRunState) {
+      override fun onNext(message: VmRunState) {
         connectionState = ConnectionState.CONNECTED
         if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
           sendShutdown()
@@ -713,6 +738,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   override fun dispose() {
+    inputEventSender?.onCompleted()
+    inputEventSender = null
     channel?.shutdown()
   }
 
