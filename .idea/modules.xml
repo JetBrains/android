@@ -125,8 +125,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compiler/db-compiler.iml" filepath="$PROJECT_DIR$/../../data-binding/compiler/db-compiler.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../data-binding/compilerCommon/db-compilerCommon.iml" filepath="$PROJECT_DIR$/../../data-binding/compilerCommon/db-compilerCommon.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/debugger-tests/debugger-tests.iml" filepath="$PROJECT_DIR$/../../base/debugger-tests/debugger-tests.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/declarative-gradle/model/declarative-gradle.model.iml" filepath="$PROJECT_DIR$/../../base/declarative-gradle/model/declarative-gradle.model.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/declarative-gradle/model/declarative-gradle.model-tests.iml" filepath="$PROJECT_DIR$/../../base/declarative-gradle/model/declarative-gradle.model-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-manager-v2/integration/device-manager-v2.integration.iml" filepath="$PROJECT_DIR$/device-manager-v2/integration/device-manager-v2.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/directaccess/directaccess.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" filepath="$PROJECT_DIR$/../../vendor/google/directaccess-client/directaccess-client.iml" />
