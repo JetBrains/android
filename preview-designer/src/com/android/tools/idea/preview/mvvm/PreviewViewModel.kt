@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.mvvm
 
-import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.rendering.BuildListener
 
 /**
  * Preview ViewModel interface in the MVVM pattern. Intended to be accessed by the Model
