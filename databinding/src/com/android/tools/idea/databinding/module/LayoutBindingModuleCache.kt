@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
@@ -37,8 +36,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -105,9 +104,9 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
 
   init {
     fun syncModeWithDependencies() {
-      dataBindingMode = determineDataBindingMode(module)
-      AndroidFacet.getInstance(module)?.let { facet ->
-        viewBindingEnabled = facet.isViewBindingEnabled()
+      AndroidFacet.getInstance(module).let { facet ->
+        dataBindingMode = determineDataBindingMode(facet)
+        viewBindingEnabled = facet?.isViewBindingEnabled() ?: false
       }
     }
 
@@ -120,11 +119,12 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     syncModeWithDependencies()
   }
 
-  private fun determineDataBindingMode(module: Module): DataBindingMode {
+  private fun determineDataBindingMode(facet: AndroidFacet?): DataBindingMode {
+    val moduleSystem = facet?.module?.getModuleSystem()
     return when {
-      module.dependsOn(GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB) -> DataBindingMode.ANDROIDX
-      module.dependsOn(GoogleMavenArtifactId.DATA_BINDING_LIB) -> DataBindingMode.SUPPORT
-      else -> DataBindingMode.NONE
+      moduleSystem == null || !moduleSystem.isDataBindingEnabled -> DataBindingMode.NONE
+      moduleSystem.useAndroidX -> DataBindingMode.ANDROIDX
+      else -> DataBindingMode.SUPPORT
     }
   }
 
