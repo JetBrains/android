@@ -247,7 +247,8 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     val isAlive = studioProfilers.sessionsManager.isSessionAlive
     if (isAlive) {
       val agentData = studioProfilers.agentData
-      val waitForAgent = agentData.status == AgentData.Status.UNSPECIFIED
+      // Should wait for JVMTI agent status in Session-based and not Task-based because in Session-based there is a spinner animation until agent attaches.
+      val waitForAgent = agentData.status == AgentData.Status.UNSPECIFIED && !studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
       if (waitForAgent) {
         // Disable all controls if the agent is still initialization/attaching.
         zoomOutButton.isEnabled = false
