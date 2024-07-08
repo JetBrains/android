@@ -20,6 +20,7 @@ import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.RenderingBuildStatus
@@ -31,7 +32,6 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
@@ -40,6 +40,7 @@ import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -56,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -127,7 +129,7 @@ class WearTilePreviewRepresentationTest {
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("groupA")
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
 
       val dataContext = DataContext { preview.previewView.mainSurface.getData(it) }
 
@@ -167,7 +169,7 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
       assertThat(preview.previewView.galleryMode).isNull()
 
       // go into gallery mode
@@ -187,7 +189,7 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
       assertThat(preview.previewView.galleryMode).isNull()
 
       // enable tile preview essentials mode
@@ -239,6 +241,73 @@ class WearTilePreviewRepresentationTest {
 
       preview.onDeactivate()
     }
+
+  @Test
+  fun clickingOnThePreviewNavigatesToDefinition() {
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertEquals(0, runReadAction { projectRule.fixture.caretOffset })
+
+      // Preview from simple @Preview annotation
+      run {
+        val sceneViewWithNormalPreviewAnnotation =
+          preview.previewView.mainSurface.sceneManagers
+            .first {
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+                "tilePreview3 - preview3"
+            }
+            .sceneViews
+            .first()
+        withContext(uiThread) {
+          preview.navigationHandler.handleNavigateWithCoordinates(
+            sceneViewWithNormalPreviewAnnotation,
+            sceneViewWithNormalPreviewAnnotation.x,
+            sceneViewWithNormalPreviewAnnotation.y,
+            false,
+          )
+        }
+
+        runReadAction {
+          val expectedOffset =
+            fixture
+              .findElementByText("@Preview(name = \"preview3\")", KtAnnotationEntry::class.java)
+              .textOffset
+          assertEquals(expectedOffset, projectRule.fixture.caretOffset)
+        }
+      }
+
+      // Preview from @MyMultiPreview annotation
+      run {
+        val sceneViewWithMultiPreviewAnnotation =
+          preview.previewView.mainSurface.sceneManagers
+            .first {
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+                "tilePreview3 - multipreview preview"
+            }
+            .sceneViews
+            .first()
+        withContext(uiThread) {
+          preview.navigationHandler.handleNavigateWithCoordinates(
+            sceneViewWithMultiPreviewAnnotation,
+            sceneViewWithMultiPreviewAnnotation.x,
+            sceneViewWithMultiPreviewAnnotation.y,
+            false,
+          )
+        }
+
+        runReadAction {
+          // We expect to navigate the user to where they use @MyMultiPreview and not the @Preview
+          // declared within the multi preview
+          val expectedOffset =
+            fixture.findElementByText("@MyMultiPreview\n", KtAnnotationEntry::class.java).textOffset
+          assertEquals(expectedOffset, projectRule.fixture.caretOffset)
+        }
+      }
+
+      preview.onDeactivate()
+    }
+  }
 
   private suspend fun expectGalleryModeIsSet(
     preview: WearTilePreviewRepresentation,
@@ -317,7 +386,7 @@ class WearTilePreviewRepresentationTest {
   }
 
   private fun createWearTilePreviewTestFile() = runWriteActionAndWait {
-    fixture.addFileToProjectAndInvalidate(
+    fixture.configureByText(
       "Test.kt", // language=kotlin
       """
           package com.android.test
@@ -328,6 +397,9 @@ class WearTilePreviewRepresentationTest {
         import androidx.wear.tiles.tooling.preview.TilePreviewData
         import androidx.wear.tiles.tooling.preview.WearDevices
 
+        @Preview(name = "multipreview preview")
+        annotation class MyMultiPreview
+
         @Preview
         private fun tilePreview(): TilePreviewData {
           return TilePreviewData()
@@ -335,6 +407,12 @@ class WearTilePreviewRepresentationTest {
 
         @Preview(name = "preview2", group = "groupA")
         private fun tilePreview2(): TilePreviewData {
+          return TilePreviewData()
+        }
+
+        @MyMultiPreview
+        @Preview(name = "preview3")
+        private fun tilePreview3(): TilePreviewData {
           return TilePreviewData()
         }
         """
