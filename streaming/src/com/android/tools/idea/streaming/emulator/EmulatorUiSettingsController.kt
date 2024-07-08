@@ -58,7 +58,7 @@ internal const val GESTURES_OVERLAY = "com.android.internal.systemui.navbar.gest
 internal const val THREE_BUTTON_OVERLAY = "com.android.internal.systemui.navbar.threebutton"
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
 internal const val ACCESSIBILITY_BUTTON_TARGETS = "accessibility_button_targets"
-private const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
+internal const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
 private const val TALK_BACK_SERVICE_CLASS = "com.google.android.marvin.talkback.TalkBackService"
 internal const val TALK_BACK_SERVICE_NAME = "$TALKBACK_PACKAGE_NAME/$TALK_BACK_SERVICE_CLASS"
 private const val SELECT_TO_SPEAK_SERVICE_CLASS = "com.google.android.accessibility.selecttospeak.SelectToSpeakService"
@@ -331,7 +331,14 @@ internal class EmulatorUiSettingsController(
   }
 
   override fun setTalkBack(on: Boolean) {
-    scope.launch { changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on) }
+    scope.launch {
+      if (on) {
+        // Grant POST_NOTIFICATIONS to the Talkback application.
+        // This prevents a non essential security popup on an emulator.
+        executeShellCommand("pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS")
+      }
+      changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on)
+    }
     lastTalkBack = on
     updateResetButton()
   }
