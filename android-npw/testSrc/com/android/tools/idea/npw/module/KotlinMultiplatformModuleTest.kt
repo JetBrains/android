@@ -177,7 +177,7 @@ plugins {
         kotlin {
       androidLibrary {
   namespace = "com.kmplib.packagename"
-  compileSdk = 34
+  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
   minSdk = 34
 
   withAndroidTestOnJvmBuilder {
