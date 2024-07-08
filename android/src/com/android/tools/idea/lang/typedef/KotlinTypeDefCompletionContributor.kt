@@ -16,10 +16,12 @@
 package com.android.tools.idea.lang.typedef
 
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.codeInsight.KotlinCodeInsightWorkspaceSettings
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -45,6 +47,9 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
 
   override val insertHandler =
     object : TypeDefInsertHandler() {
+      override fun shouldOptimizeImports(project: Project) =
+        KotlinCodeInsightWorkspaceSettings.getInstance(project).optimizeImportsOnTheFly
+
       override fun bindToTarget(context: InsertionContext, target: PsiElement) {
         val expr = context.getParent() as? KtReferenceExpression ?: return
         (expr.mainReference as? KtSimpleNameReference)?.bindToElement(
