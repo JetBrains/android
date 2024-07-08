@@ -38,8 +38,7 @@ interface LegacyAndroidGradlePluginProperties {
   val namespace: String?
   /** `AndroidProject.androidTestNamespace` for AGP 4.1 and below. */
   val androidTestNamespace: String?
-
-  /** For AGP < 8.7, whether Android resource data binding is enabled*/
+  /** For AGP < 8.7, whether Android resource data binding is enabled. */
   val dataBindingEnabled: Boolean?
   /**
    * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
