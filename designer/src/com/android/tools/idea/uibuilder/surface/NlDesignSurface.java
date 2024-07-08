@@ -107,7 +107,7 @@ import org.jetbrains.annotations.Nullable;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
-  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler, NlDiagnosticKey {
+  implements LayoutPreviewHandler, NlDiagnosticKey {
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
@@ -326,17 +326,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public AccessoryPanel getAccessoryPanel() {
     return myAccessoryPanel;
-  }
-
-  public void showInspectorAccessoryPanel(boolean show) {
-    for (DesignSurfaceListener listener : getSurfaceListeners()) {
-      listener.showAccessoryPanel(this, show);
-    }
-  }
-
-  @Override
-  public void show(@NotNull AccessoryPanel.Type type, boolean show) {
-    showInspectorAccessoryPanel(show);
   }
 
   @NotNull

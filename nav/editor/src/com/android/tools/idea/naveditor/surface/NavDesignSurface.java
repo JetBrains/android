@@ -508,7 +508,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     }
   }
 
-  @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
     if (myCurrentNavigation == component) {
       return;
@@ -568,7 +567,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
         }
       }
     }
-    super.notifyComponentActivate(component);
   }
 
   @Override
