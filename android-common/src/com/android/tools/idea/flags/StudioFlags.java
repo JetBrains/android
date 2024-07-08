@@ -637,12 +637,13 @@ public final class StudioFlags {
     true
   );
 
+  // Disabled due to b/351811546
   public static final Flag<Boolean> LOGCAT_PROTOBUF_ENABLED = new BooleanFlag(
     LOGCAT,
     "protobuf.enable",
     "Enable Logcat Protobuf format",
     "Enable Logcat Protobuf format",
-    true
+    false
   );
 
   public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
