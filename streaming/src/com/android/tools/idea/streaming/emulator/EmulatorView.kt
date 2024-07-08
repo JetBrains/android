@@ -41,7 +41,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -170,6 +169,7 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
+import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
 import com.android.emulator.control.Notification as EmulatorNotification
 
@@ -227,8 +227,6 @@ class EmulatorView(
   private var notificationFeed: Cancelable? = null
   @Volatile
   private var notificationReceiver: NotificationReceiver? = null
-
-  private var mouseWheelSender: StreamObserver<WheelEvent>? = null
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val postureListeners: MutableList<PostureListener> = ContainerUtil.createLockFreeCopyOnWriteList()
@@ -401,8 +399,6 @@ class EmulatorView(
   }
 
   override fun dispose() {
-    mouseWheelSender?.onCompleted()
-    mouseWheelSender = null
     cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
@@ -711,9 +707,9 @@ class EmulatorView(
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
-    override fun onNext(response: EmulatorNotification) {
+    override fun onNext(message: EmulatorNotification) {
       if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
-        LOG.info("Received notification: ${shortDebugString(response)}")
+        LOG.info("Received notification: ${shortDebugString(message)}")
       }
 
       if (notificationReceiver != this) {
@@ -722,10 +718,10 @@ class EmulatorView(
 
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         when {
-          response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
-          response.hasDisplayConfigurationsChangedNotification() ->
-              checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification)
-          response.hasPosture() -> updateCurrentPosture(response.posture.value)
+          message.hasCameraNotification() -> virtualSceneCameraActive = message.cameraNotification.active
+          message.hasDisplayConfigurationsChangedNotification() ->
+              checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(message.displayConfigurationsChangedNotification)
+          message.hasPosture() -> updateCurrentPosture(message.posture.value)
           else  -> {}
         }
       }
@@ -986,16 +982,9 @@ class EmulatorView(
       if (event.wheelRotation == 0 || event.scrollType != WHEEL_UNIT_SCROLL) {
         return
       }
-      // Multiplying wheelRotation by -1 because AWT assigns the opposite sign to Qt/Android.
-      val wheelEvent = WheelEvent.newBuilder().setDy(-event.wheelRotation * 120).build()
-      if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
-        LOG.info("injectWheel: sending ${shortDebugString(wheelEvent)}")
-      }
-      getOrCreateMouseWheelSender().onNext(wheelEvent)
-    }
-
-    private fun getOrCreateMouseWheelSender(): StreamObserver<WheelEvent> {
-      return mouseWheelSender ?: emulator.injectWheel().also { mouseWheelSender = it }
+      // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
+      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120)).build()
+      emulator.getOrCreateInputEventSender().onNext(inputEvent)
     }
 
     private fun updateMultiTouchMode(event: MouseEvent) {
@@ -1113,18 +1102,18 @@ class EmulatorView(
     private val alarm = Alarm(this)
     private var expectedFrameNumber = -1
 
-    override fun onNext(response: ImageMessage) {
+    override fun onNext(message: ImageMessage) {
       val arrivalTime = System.currentTimeMillis()
-      val imageFormat = response.format
+      val imageFormat = message.format
       val imageRotation = imageFormat.rotation.rotation.number
-      val frameOriginationTime: Long = response.timestampUs / 1000
+      val frameOriginationTime: Long = message.timestampUs / 1000
       val displayMode: DisplayMode? = emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
 
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
         val latency = arrivalTime - frameOriginationTime
         val foldedState = if (imageFormat.hasFoldedDisplay()) " foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}" else ""
         val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
-        LOG.info("Screenshot for display ${imageFormat.display}: ${response.seq} ${imageFormat.width}x${imageFormat.height}" +
+        LOG.info("Screenshot for display ${imageFormat.display}: ${message.seq} ${imageFormat.width}x${imageFormat.height}" +
                  "$mode$foldedState ${imageRotation * 90}° $latency ms latency")
       }
       if (screenshotReceiver != this) {
@@ -1139,9 +1128,9 @@ class EmulatorView(
         return // Ignore invalid screenshot.
       }
 
-      if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
+      if (message.image.size() != imageFormat.width * imageFormat.height * 3) {
         LOG.error("Inconsistent ImageMessage for display ${imageFormat.display}: ${imageFormat.width}x${imageFormat.height}" +
-                  " image contains ${response.image.size()} bytes instead of ${imageFormat.width * imageFormat.height * 3}")
+                  " image contains ${message.image.size()} bytes instead of ${imageFormat.width * imageFormat.height * 3}")
         return
       }
 
@@ -1173,12 +1162,12 @@ class EmulatorView(
       val recycledImage = recycledImage.getAndSet(null)?.get()
       val image = if (recycledImage?.width == imageFormat.width && recycledImage.height == imageFormat.height) {
         val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
-        ImageConverter.unpackRgb888(response.image, pixels)
+        ImageConverter.unpackRgb888(message.image, pixels)
         recycledImage
       }
       else {
         val pixels = IntArray(imageFormat.width * imageFormat.height)
-        ImageConverter.unpackRgb888(response.image, pixels)
+        ImageConverter.unpackRgb888(message.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
         val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, SAMPLE_MODEL_BIT_MASKS)
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
@@ -1186,9 +1175,9 @@ class EmulatorView(
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
-      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
+      val lostFrames = if (expectedFrameNumber > 0) message.seq - expectedFrameNumber else 0
       stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
-      expectedFrameNumber = response.seq + 1
+      expectedFrameNumber = message.seq + 1
 
       if (displayMode != null && !checkAspectRatioConsistency(imageFormat, displayMode)) {
         return
@@ -1201,7 +1190,7 @@ class EmulatorView(
         else -> null
       }
       val displayShape =
-          DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, response.seq.toUInt())
+          DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, message.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape, currentPosture?.posture)
       if (skinLayout == null) {
