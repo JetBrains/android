@@ -763,3 +763,8 @@ filegroup(
     name = "kmpapp",
     srcs = glob(["testData/kmpapp/**"]),
 )
+
+filegroup(
+    name = "architectureSamples",
+    srcs = glob(["testData/architecture-samples/**"]),
+)
