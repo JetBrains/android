@@ -27,7 +27,6 @@ import com.android.tools.idea.preview.animation.state.FromToState
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 /**
  * Animation manager specifically designed for Compose animations that transition between two states
@@ -82,27 +81,18 @@ class FromToSupportedAnimationManager(
   ) {
 
   /** Initializes the state manager by collecting updates from the `animationState` flow. */
-  override suspend fun setupStateManager() {
-    scope.launch {
-      animationState.state.collect {
-        updateAnimationStartAndEndStates()
-        loadTransition()
-        loadAnimatedPropertiesAtCurrentTime(false)
-        updateTimelineElementsCallback()
-      }
-    }
-  }
+  override suspend fun setupInitialAnimationState() {}
 
   /** Updates the actual animation in Compose to match the selected start and end states. */
-  private suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
+  override suspend fun syncAnimationWithState() {
     animationClock.apply {
       val (initial, target) = animationState.state.value
       if (initial is AnimationUnit.Unit<*> && target is AnimationUnit.Unit<*>) {
-        executeInRenderSession(longTimeout) {
+        executeInRenderSession(false) {
           updateFromAndToStates(animation, initial.components, target.components)
         }
       } else {
-        executeInRenderSession(longTimeout) {
+        executeInRenderSession(false) {
           updateFromAndToStates(animation, listOf(initial), listOf(target))
         }
       }
