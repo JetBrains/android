@@ -52,15 +52,7 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
   val modifiedMethods: List<MethodDiff> = changedMethods
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
-    if (added.isNotEmpty()) {
-      val msg = "added access flag(s): " + added.joinToString(", ")
-      throw unsupportedSourceModificationAddedAccess(location, msg)
-    }
-
-    if (removed.isNotEmpty()) {
-      val msg = "removed access flag(s): " + removed.joinToString(",")
-      throw unsupportedSourceModificationRemovedAccess(location, msg)
-    }
+    verifyAccess(added, removed, location)
   }
 
   override fun visitSignature(old: String?, new: String?) {
@@ -121,15 +113,7 @@ private class RegularFieldVisitor(className: String, fieldName: String) : FieldV
   private val location = "${className.replace('/', '.')}.$fieldName"
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
-    if (added.isNotEmpty()) {
-      val msg = "added access flag(s): " + added.joinToString(", ")
-      throw unsupportedSourceModificationModifiedField(location, msg)
-    }
-
-    if (removed.isNotEmpty()) {
-      val msg = "removed access flag(s): " + removed.joinToString(",")
-      throw unsupportedSourceModificationModifiedField(location, msg)
-    }
+    verifyAccess(added, removed, location)
   }
 
   override fun visitSignature(old: String?, new: String?) {
@@ -168,18 +152,23 @@ private class RegularMethodVisitor(val className: String, val methodName: String
   }
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
-   if (added.isNotEmpty()) {
-      val msg = "added access flag(s): " + added.joinToString(", ")
-      throw unsupportedSourceModificationAddedAccess(location, msg)
-    }
-
-    if (removed.isNotEmpty()) {
-      val msg = "removed access flag(s): " + removed.joinToString(",")
-      throw unsupportedSourceModificationRemovedAccess(location, msg)
-    }
+    verifyAccess(added, removed, location)
   }
 
   override fun visitSignature(old: String?, new: String?) {
     throw unsupportedSourceModificationSignature(location, "signature changed from '$old' to '$new'")
+  }
+}
+
+// Verify that no access flags have changed, ignoring the ACC_SYNTHETIC flag, as it cannot be added by the user.
+fun verifyAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>, location: String) {
+  if (added.filterNot { it == IrAccessFlag.SYNTHETIC || it == IrAccessFlag.BRIDGE }.isNotEmpty()) {
+    val msg = "added access flag(s): " + added.joinToString(", ")
+    throw unsupportedSourceModificationAddedAccess(location, msg)
+  }
+
+  if (removed.filterNot { it == IrAccessFlag.SYNTHETIC || it == IrAccessFlag.BRIDGE }.isNotEmpty()) {
+    val msg = "removed access flag(s): " + removed.joinToString(",")
+    throw unsupportedSourceModificationRemovedAccess(location, msg)
   }
 }
