@@ -24,6 +24,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
+import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.findRelativePoint
 import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManager
@@ -58,10 +59,20 @@ class OpenWearHealthServicesPanelAction :
     }
   ) {
 
+  override fun isEnabled(event: AnActionEvent): Boolean {
+    return super.isEnabled(event) && isReadyForAdbCommands(event)
+  }
+
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     showWearHealthServicesToolPopup(this@OpenWearHealthServicesPanelAction, e)
+  }
+
+  private fun isReadyForAdbCommands(event: AnActionEvent): Boolean {
+    val emulatorView = EMULATOR_VIEW_KEY.getData(event.dataContext) ?: return false
+    val project = event.project ?: return false
+    return isReadyForAdbCommands(project, emulatorView.deviceSerialNumber)
   }
 
   private fun showWearHealthServicesToolPopup(action: AnAction, event: AnActionEvent) {
