@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.SdkConstants.DOT_JAVA
 import com.android.SdkConstants.DOT_KT
+import com.android.testutils.TestUtils
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES
@@ -37,16 +38,14 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.psi.PsiElement
 import java.io.File
+import java.lang.Boolean.getBoolean
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.lang.reflect.Modifier
-import java.util.ArrayList
 import java.util.Calendar
-import java.util.Comparator
 import java.util.Locale
 import kotlin.text.Charsets.UTF_8
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
-import org.junit.Assert
 
 /**
  * Ensures that all relevant lint checks are available and registered
@@ -57,6 +56,13 @@ import org.junit.Assert
  *   com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires it to
  *   provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
  */
+
+// Set to true locally to directly rewrite sources to include registration.
+// (If you're on the lint team and do this a lot see also the system
+// property lookup near the usage of this flag below and add it to your
+// Run Configuration.)
+private const val UPDATE_IN_PLACE = false
+
 class LintInspectionRegistrationTest : AndroidTestCase() {
   init {
     LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
@@ -70,26 +76,6 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
   }
 
   companion object {
-    private fun findSourceTree(): File? {
-      val sourceTree =
-        System.getenv(ADT_SOURCE_TREE)
-          ?: System.getProperty(ADT_SOURCE_TREE)
-          // Tip: you can temporarily set your own path here:
-          // ?: "/your/path"
-          ?: return null
-
-      return if (sourceTree.isNotBlank()) {
-        File(sourceTree).apply {
-          if (!File(this, ".repo").isDirectory) {
-            Assert.fail(
-              "Invalid directory $this: should be pointing to the root of a tools checkout directory"
-            )
-          }
-        }
-      } else null
-    }
-
-    private const val ADT_SOURCE_TREE = "ADT_SOURCE_TREE"
     private var ourDone = false
 
     /** Check that all issues have been registered */
@@ -99,8 +85,6 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       }
       ourDone = true
 
-      val root = findSourceTree()
-
       val fullRegistry = LintIdeIssueRegistry.get()
       val allIssues = fullRegistry.issues
 
@@ -108,6 +92,11 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       if (missing.isEmpty()) {
         return true
       }
+
+      val root =
+        if (UPDATE_IN_PLACE || getBoolean("lint.update-in-place"))
+          TestUtils.getWorkspaceRoot().toFile()
+        else null
 
       // Spit out registration information for the missing elements
       val sb = StringBuilder(1000)
@@ -119,10 +108,8 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         .append(")")
       if (root == null) {
         sb.append(
-          "\n***If you set the environment variable " +
-            ADT_SOURCE_TREE +
-            " (or set it as a system property in the test run " +
-            "config) this test can automatically create/edit the files for you!***\n"
+          "\n***If you set LintInspectionRegistrationTest#UPDATE_IN_PLACE=true this test can " +
+            "automatically create/edit the files for you!***\n"
         )
       }
       insertMissingRegistrations(missing, root, sb, androidSpecific = false)
@@ -396,7 +383,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
           continue
         }
         val c = findInspectionClass(issue) ?: continue
-        val provider = c.newInstance() as AndroidLintInspectionBase
+        val provider = c.getDeclaredConstructor().newInstance() as AndroidLintInspectionBase
         var hasQuickFix = true
         try {
           provider.javaClass.getDeclaredMethod("getQuickFixes", String::class.java)
@@ -473,7 +460,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
           continue
         }
         val c = findInspectionClass(issue) ?: continue
-        val provider = c.newInstance() as AndroidLintInspectionBase
+        val provider = c.getDeclaredConstructor().newInstance() as AndroidLintInspectionBase
         registered.add(provider.issue.id)
       }
       val missing = ArrayList<Issue>()
@@ -511,11 +498,9 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
         missing.add(issue)
       }
 
-      missing.sortWith(
-        Comparator { issue1: Issue, issue2: Issue ->
-          CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id)
-        }
-      )
+      missing.sortWith { issue1: Issue, issue2: Issue ->
+        CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id)
+      }
 
       return missing
     }
