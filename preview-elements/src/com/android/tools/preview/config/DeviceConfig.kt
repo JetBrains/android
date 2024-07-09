@@ -548,7 +548,7 @@ enum class Orientation {
 }
 
 enum class Cutout(val overlay: FrameworkOverlay) {
-  none(FrameworkOverlay.NO_CUTOUT),
+  none(FrameworkOverlay.CUTOUT_NONE),
   corner(FrameworkOverlay.CUTOUT_CORNER),
   double(FrameworkOverlay.CUTOUT_DOUBLE),
   punch_hole(FrameworkOverlay.CUTOUT_HOLE),

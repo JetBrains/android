@@ -29,6 +29,7 @@ enum class FrameworkOverlay(val overlayName: String) {
   CUTOUT_DOUBLE("DisplayCutoutEmulationDoubleOverlay"),
   CUTOUT_HOLE("DisplayCutoutEmulationHoleOverlay"),
   CUTOUT_NARROW("DisplayCutoutEmulationNarrowOverlay"),
+  CUTOUT_NONE("NoCutoutOverlay"),
   CUTOUT_TALL("DisplayCutoutEmulationTallOverlay"),
   CUTOUT_WATERFALL("DisplayCutoutEmulationWaterfallOverlay"),
   CUTOUT_WIDE("DisplayCutoutEmulationWideOverlay"),
@@ -39,7 +40,6 @@ enum class FrameworkOverlay(val overlayName: String) {
   NAV_GESTURE_EXTRA_WIDE("NavigationBarModeGesturalOverlayExtraWideBack"),
   NAV_GESTURE_NARROW("NavigationBarModeGesturalOverlayNarrowBack"),
   NAV_GESTURE_WIDE("NavigationBarModeGesturalOverlayWideBack"),
-  NO_CUTOUT("NoCutoutOverlay"),
   NOTES_ROLE_ENABLED("NotesRoleEnabledOverlay"),
   TRANSPARENT_NAV_BAR("TransparentNavigationBarOverlay"),
 
