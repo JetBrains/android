@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.adblib.DevicePropertyNames
-import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.deviceprovisioner.DeviceAction
@@ -61,6 +60,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.emulator.sendKeyEvent
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
@@ -257,7 +257,7 @@ class StreamingToolWindowManagerTest {
 
     // Simulate an emulator crash.
     emulator.crash()
-    controllers.first().sendKey(KeyboardEvent.newBuilder().setText(" ").build())
+    controllers.first().sendKeyEvent("a")
     waitForCondition(5.seconds) { contentManager.contents[0].displayName == null }
     assertThat(contentManager.contents[0].component).isInstanceOf(EmptyStatePanel::class.java)
   }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.intellij.ide.ui.LafManager
@@ -26,17 +24,6 @@ private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
 @Suppress("UNCHECKED_CAST")
 fun <T> getEmptyObserver(): StreamObserver<T> {
   return EMPTY_OBSERVER as StreamObserver<T>
-}
-
-/**
- * Creates a [KeyboardEvent] for the given key. Key names are defined in
- * https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
- */
-internal fun createKeyboardEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
-  return KeyboardEvent.newBuilder()
-    .setKey(keyName)
-    .setEventType(eventType)
-    .build()
 }
 
 /**
