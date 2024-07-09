@@ -32,7 +32,6 @@ import com.android.tools.idea.common.layout.manager.PositionableContentLayoutMan
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -52,9 +51,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * A generic design surface for use in a graphical editor.
- */
 public abstract class DesignSurface<T extends SceneManager> extends PreviewSurface<T> {
 
   @Nullable protected final JScrollPane myScrollPane;
@@ -79,9 +75,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
 
-  /**
-   * Responsible for converting this surface state and send it for tracking (if logging is enabled).
-   */
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
@@ -119,10 +112,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     super(project, parentDisposable, actionManagerProvider, interactableProvider, interactionProviderCreator,
           positionableLayoutManagerProvider, actionHandlerProvider,  selectionModel, zoomControlsPolicy);
 
-    Disposer.register(parentDisposable, this);
-
-    boolean hasZoomControls = getZoomControlsPolicy() != ZoomControlsPolicy.HIDDEN;
-
     myAnalyticsManager = new DesignerAnalyticsManager(this);
 
     // TODO: handle the case when selection are from different NlModels.
@@ -147,25 +136,13 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       getPositionableLayoutManagerProvider().invoke(this));
     mySceneViewPanel.setBackground(getBackground());
 
-    if (hasZoomControls) {
+    if (getHasZoomControls()) {
       myScrollPane = DesignSurfaceScrollPane.createDefaultScrollPane(mySceneViewPanel, getBackground(), this::notifyPanningChanged);
     }
     else {
       myScrollPane = null;
     }
 
-    // Setup the layers for the DesignSurface
-    // If the surface is scrollable, we use four layers:
-    //
-    //  1. ScrollPane layer: Layer that contains the ScreenViews and does all the rendering, including the interaction layers.
-    //  2. Progress layer: Displays the progress icon while a rendering is happening
-    //  3. Mouse click display layer: It allows displaying clicks on the surface with a translucent bubble
-    //  4. Zoom controls layer: Used to display the zoom controls of the surface
-    //
-    //  (4) sits at the top of the stack so is the first one to receive events like clicks.
-    //
-    // If the surface is NOT scrollable, the zoom controls will not be added and the scroll pane will be replaced
-    // by the actual content.
     if (myScrollPane != null) {
       getLayeredPane().setLayout(new MatchParentLayoutManager());
       getLayeredPane().add(myScrollPane, JLayeredPane.POPUP_LAYER);
@@ -220,6 +197,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   @NotNull
+  @Override
   public ActionManager getActionManager() {
     return myActionManager;
   }
@@ -234,6 +212,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   @NotNull
+  @Override
   public DesignerAnalyticsManager getAnalyticsManager() {
     return myAnalyticsManager;
   }

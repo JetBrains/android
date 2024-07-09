@@ -27,6 +27,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.CONFIGURATIONS
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
@@ -111,6 +112,21 @@ val FILTER_DISPOSED_MODELS =
   Predicate<NlModel> { input: NlModel? -> input != null && !input.module.isDisposed }
 
 /**
+ * A generic design surface for use in a graphical editor.
+ *
+ * Setup the layers for the [DesignSurface] If the surface is scrollable, we use four layers:
+ * 1. ScrollPane layer: Layer that contains the ScreenViews and does all the rendering, including
+ *    the interaction layers.
+ * 2. Progress layer: Displays the progress icon while a rendering is happening
+ * 3. Mouse click display layer: It allows displaying clicks on the surface with a translucent
+ *    bubble
+ * 4. Zoom controls layer: Used to display the zoom controls of the surface
+ *
+ * (4) sits at the top of the stack so is the first one to receive events like clicks.
+ *
+ * If the surface is NOT scrollable, the zoom controls will not be added and the scroll pane will be
+ * replaced by the actual content.
+ *
  * TODO Once [DesignSurface] is converted to kt, rename [PreviewSurface] back to [DesignSurface].
  */
 abstract class PreviewSurface<T : SceneManager>(
@@ -129,6 +145,17 @@ abstract class PreviewSurface<T : SceneManager>(
   InteractableScenesSurface,
   ScaleListener,
   DataProvider {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
+  /**
+   * Responsible for converting this surface state and send it for tracking (if logging is enabled).
+   */
+  abstract val analyticsManager: DesignerAnalyticsManager
+
+  val hasZoomControls: Boolean = zoomControlsPolicy != ZoomControlsPolicy.HIDDEN
 
   abstract val guiInputHandler: GuiInputHandler
 
@@ -167,6 +194,8 @@ abstract class PreviewSurface<T : SceneManager>(
       add(progressPanel, LAYER_PROGRESS)
       add(mouseClickDisplayPanel, LAYER_MOUSE_CLICK)
     }
+
+  abstract val actionManager: ActionManager<out DesignSurface<T>>
 
   abstract val viewport: DesignSurfaceViewport
 
