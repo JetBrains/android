@@ -55,8 +55,8 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     val snapshotsFuture = SettableFuture.create<List<SnapshotInfo>>()
     val snapshotFilter = SnapshotFilter.newBuilder().setStatusFilter(SnapshotFilter.LoadStatus.All).build()
     emulatorController.listSnapshots(snapshotFilter, object : EmptyStreamObserver<SnapshotList>() {
-      override fun onNext(response: SnapshotList) {
-        val snapshots = response.snapshotsList.map {
+      override fun onNext(message: SnapshotList) {
+        val snapshots = message.snapshotsList.map {
           SnapshotInfo(snapshotsFolder, it)
         }
         snapshotsFuture.set(snapshots)
