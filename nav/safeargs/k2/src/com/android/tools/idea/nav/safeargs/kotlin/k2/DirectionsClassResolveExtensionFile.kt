@@ -108,7 +108,7 @@ internal class DirectionsClassResolveExtensionFile(
   private fun KaSession.getTagForValueParameterSymbol(
     symbol: KaValueParameterSymbol
   ): XmlTag? {
-    val declaringFunctionSymbol = symbol.containingSymbol as? KaNamedFunctionSymbol ?: return null
+    val declaringFunctionSymbol = symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag
 
