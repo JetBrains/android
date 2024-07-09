@@ -269,7 +269,7 @@ class NlPropertiesModelTest {
     model.addListener(listener)
 
     // Value changed should not be reported if the default values are unchanged
-    manager.fireRenderCompleted()
+    manager.requestRenderAsync()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener, never()).propertyValuesChanged(model)
 
@@ -280,7 +280,7 @@ class NlPropertiesModelTest {
       ATTR_TEXT_APPEARANCE,
       "@android:style/TextAppearance.Large",
     )
-    manager.fireRenderCompleted()
+    manager.requestRenderAsync()
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)

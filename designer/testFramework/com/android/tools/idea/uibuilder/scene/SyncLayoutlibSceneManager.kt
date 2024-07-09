@@ -144,8 +144,4 @@ open class SyncLayoutlibSceneManager(
       StyleItemResourceValueImpl(namespace, attributeName, value, null)
     map[reference] = resourceValue
   }
-
-  fun fireRenderCompleted() {
-    fireOnRenderComplete()
-  }
 }
