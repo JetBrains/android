@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.service
 
+import com.android.logcat.proto.LogcatEntryProto
+import com.android.logcat.proto.LogcatPriorityProto
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
@@ -25,7 +27,10 @@ import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.ByteString
+import io.ktor.utils.io.core.toByteArray
 import java.nio.ByteBuffer
+import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.time.Instant
 import java.time.temporal.ChronoField
 import java.util.concurrent.TimeUnit
@@ -108,6 +113,39 @@ class LogcatProtoShellCollectorTest {
     testFromFile("/logcatFiles/logcat-100.proto", expectedCount = 100, bufferSize = 1)
   }
 
+  @Test
+  fun emptyProcessName() {
+    val processName = "com.alonalbert.myapplication"
+    val appId = "app-id"
+    val pid = 6153L
+    fakeProcessNameMonitor.addProcessName("serial", pid.toInt(), appId, processName)
+    val collector = LogcatProtoShellCollector("serial", fakeProcessNameMonitor)
+    val proto =
+      LogcatEntryProto.newBuilder()
+        .setPriority(LogcatPriorityProto.INFO)
+        .setPid(pid)
+        .setTid(pid)
+        .setNullTerminatedTag("tag")
+        .setMessage(ByteString.copyFromUtf8("message"))
+        .build()
+
+    val messages = collector.loadMessageFromBuffer(proto.toByteBuffer())
+
+    assertThat(messages)
+      .containsExactly(
+        logcatMessage(
+          timestamp = Instant.EPOCH,
+          pid = pid.toInt(),
+          tid = pid.toInt(),
+          logLevel = INFO,
+          tag = "tag",
+          appId = appId,
+          processName = processName,
+          message = "message",
+        )
+      )
+  }
+
   private fun testFromFile(
     filename: String,
     expectedCount: Int,
@@ -130,15 +168,35 @@ private suspend fun Flow<List<LogcatMessage>>.countMessages(): Int {
   return count
 }
 
-private fun LogcatProtoShellCollector.loadMessageFromFile(filename: String): List<LogcatMessage> =
-  runBlocking {
-    val buffer = ByteBuffer.wrap(TestResources.getFile(filename).readBytes())
-    val messages = flow { collectStdout(this, buffer) }.toList().flatten()
-    messages.map {
-      val timestamp = it.header.timestamp
-      val millis = timestamp.getLong(ChronoField.MILLI_OF_SECOND)
-      val roundedTimestamp =
-        Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
-      it.copy(it.header.copy(timestamp = roundedTimestamp))
-    }
+private fun LogcatProtoShellCollector.loadMessageFromBuffer(
+  buffer: ByteBuffer
+): List<LogcatMessage> = runBlocking {
+  val messages = flow { collectStdout(this, buffer) }.toList().flatten()
+  messages.map {
+    val timestamp = it.header.timestamp
+    val millis = timestamp.getLong(ChronoField.MILLI_OF_SECOND)
+    val roundedTimestamp =
+      Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
+    it.copy(it.header.copy(timestamp = roundedTimestamp))
   }
+}
+
+private fun LogcatProtoShellCollector.loadMessageFromFile(filename: String): List<LogcatMessage> =
+  loadMessageFromBuffer(ByteBuffer.wrap(TestResources.getFile(filename).readBytes()))
+
+private fun LogcatEntryProto.toByteBuffer(): ByteBuffer {
+  val bytes = toByteArray()
+  return ByteBuffer.allocate(Long.SIZE_BYTES + bytes.size)
+    .order(LITTLE_ENDIAN)
+    .putLong(bytes.size.toLong())
+    .put(bytes)
+    .rewind()
+}
+
+private fun LogcatEntryProto.Builder.setNullTerminatedTag(tag: String): LogcatEntryProto.Builder {
+  val output = ByteString.newOutput()
+  output.write(tag.toByteArray())
+  output.write(0)
+  setTag(output.toByteString())
+  return this
+}
