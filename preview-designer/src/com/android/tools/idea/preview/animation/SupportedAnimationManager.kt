@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
  * timeline panel, playback controls, and a tabbed interface. It manages animation state, timeline
  * elements, and loading/caching of transitions.
  *
- * @param timelinePanel The TimelinePanel used to display the animation timeline.
+ * @param getCurrentTime Returns time in milliseconds in the current timeline.
  * @param playbackControls The PlaybackControls to control the animation playback.
  * @param tabbedPane The AnimationTabs where animation tabs can be opened.
  * @param rootComponent The root JComponent used for UI elements.
@@ -56,7 +56,7 @@ import kotlinx.coroutines.withContext
  * @param updateTimelineElementsCallback A callback function to update timeline elements.
  */
 abstract class SupportedAnimationManager(
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   playbackControls: PlaybackControls,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
@@ -82,7 +82,7 @@ abstract class SupportedAnimationManager(
   val frozenState = MutableStateFlow(FrozenState(false))
 
   /** An action to control freezing/unfreezing the animation. */
-  private val freezeAction = FreezeAction(timelinePanel, frozenState, tracker)
+  private val freezeAction = FreezeAction(getCurrentTime, frozenState, tracker)
 
   /** Abstract property representing the state manager for this animation type. */
   abstract val animationState: AnimationState<*>

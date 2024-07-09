@@ -124,12 +124,15 @@ class ComposeAnimationPreview(
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          timeline,
+          getCurrentTime = { clockControl.currentValue() },
           ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { updateTimelineElements() },
+          {
+            updateTimelineElements()
+            renderAnimation()
+          },
           scope,
         )
       ComposeAnimationType.TRANSITION_ANIMATION,
@@ -156,12 +159,15 @@ class ComposeAnimationPreview(
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          timeline,
+          getCurrentTime = { clockControl.currentValue() },
           ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { updateTimelineElements() },
+          {
+            updateTimelineElements()
+            renderAnimation()
+          },
           scope,
           state,
         )

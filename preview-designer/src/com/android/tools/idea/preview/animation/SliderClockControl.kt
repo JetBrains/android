@@ -43,6 +43,10 @@ class SliderClockControl(val slider: JSlider) {
     slider.maximum = durationMs.toInt()
   }
 
+  fun currentValue(): Int {
+    return slider.value
+  }
+
   /** Increments the clock by the given value, taking the current [speed] into account. */
   fun incrementClockBy(increment: Int) {
     slider.value += (increment * speed.speedMultiplier).toInt()

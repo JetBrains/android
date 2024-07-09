@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.PlaybackControls
-import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.state.FromToState
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
  * @param tracker The [ComposeAnimationTracker] for tracking animation events.
  * @param animationClock The [AnimationClock] for controlling animation.
  * @param maxDurationPerIteration State flow representing the maximum duration of each iteration.
- * @param timelinePanel The [TimelinePanel] for visualizing the animation timeline.
+ * @param getCurrentTime Function to get the current time in milliseconds in timeline.
  * @param executeInRenderSession Function to execute code within the render session.
  * @param tabbedPane The [AnimationTabs] component for switching between different animations.
  * @param rootComponent The root UI component for rendering the animation.
@@ -56,7 +55,7 @@ class FromToSupportedAnimationManager(
   tracker: ComposeAnimationTracker,
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
@@ -71,7 +70,7 @@ class FromToSupportedAnimationManager(
     tracker,
     animationClock,
     maxDurationPerIteration,
-    timelinePanel,
+    getCurrentTime,
     executeInRenderSession,
     tabbedPane,
     rootComponent,
