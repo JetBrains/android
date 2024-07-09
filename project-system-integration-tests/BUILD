@@ -66,6 +66,18 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "SdkIndexLintWithoutVersionsTest",
+    timeout = "long",
+    data = common_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintWithoutVersionsTest",
+)
+
+iml_studio_test(
     name = "SdkIndexPsdTest",
     timeout = "long",
     data = common_data,
@@ -87,6 +99,18 @@ iml_studio_test(
     # tags_mac = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdWithoutNotesTest",
+)
+
+iml_studio_test(
+    name = "SdkIndexPsdWithoutVersionsTest",
+    timeout = "long",
+    data = common_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdWithoutVersionsTest",
 )
 
 iml_studio_test(

@@ -129,6 +129,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   fun initializeAndSetFlags() {
     initialize()
     showNotesFromDeveloper = StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER.get()
+    showRecommendedVersions = StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS.get()
   }
 
   private fun findProject(file: File): Project? {
