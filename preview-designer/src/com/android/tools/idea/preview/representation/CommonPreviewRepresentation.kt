@@ -77,6 +77,7 @@ import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -98,7 +99,6 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
@@ -180,8 +180,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiFile) }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val buildTargetReference =
+    BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
 
   private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
 
@@ -324,7 +325,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     previewFlowManager.filteredPreviewElementsFlow.value != FlowableCollection.Uninitialized
 
   private val previewFreshnessTracker =
-    CodeOutOfDateTracker.create(module, this) { requestRefresh() }
+    CodeOutOfDateTracker.create(buildTargetReference, this) { requestRefresh() }
 
   private val myPsiCodeFileOutOfDateStatusReporter =
     PsiCodeFileOutOfDateStatusReporter.getInstance(project)
@@ -442,7 +443,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
-    setupBuildListener(project, previewViewModel, this)
+    setupBuildListener(buildTargetReference, previewViewModel, this)
     previewBuildListenersManager.setupPreviewBuildListeners(disposable = this, psiFilePointer)
 
     project.runWhenSmartAndSyncedOnEdt(this, { onEnterSmartMode() })

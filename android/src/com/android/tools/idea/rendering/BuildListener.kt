@@ -138,11 +138,12 @@ private fun Project.createBuildListener() = object : ProjectSystemBuildManager.B
  * [BuildListener.buildSucceeded] method straight away.
  */
 fun setupBuildListener(
-  project: Project,
+  buildTargetReference: BuildTargetReference,
   buildable: BuildListener,
   parentDisposable: Disposable,
-  buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(project).projectSystem.getBuildManager(),
+  buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(buildTargetReference.project).projectSystem.getBuildManager(),
 ) {
+  val project = buildTargetReference.project
   if (Disposer.isDisposed(parentDisposable)) {
     Logger.getInstance("com.android.tools.idea.common.util.ChangeManager")
       .warn("calling setupBuildListener for a disposed component $parentDisposable")
