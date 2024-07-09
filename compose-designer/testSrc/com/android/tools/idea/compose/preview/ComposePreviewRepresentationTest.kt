@@ -201,7 +201,6 @@ class ComposePreviewRepresentationTest {
   @After
   fun tearDown() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.clearOverride()
-    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
@@ -274,7 +273,6 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testUiCheckMode() = runComposePreviewRepresentationTest {
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val originalScale = 0.6
     mainSurface.zoomController.setScale(originalScale)
@@ -754,7 +752,6 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testWearUiCheckMode() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-    StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.override(true)
 
     val testPsiFile = runWriteActionAndWait {
