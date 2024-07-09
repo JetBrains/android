@@ -54,7 +54,7 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
@@ -965,7 +965,7 @@ public class NlModelTest extends LayoutTestCase {
       .matchParentWidth()
       .matchParentHeight();
     NlModel model = NlModelBuilderUtil.model(
-      BuildTargetReference.gradleOnly(secondFacet), myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root).build();
+      AndroidBuildTargetReference.gradleOnly(secondFacet), myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root).build();
     AtomicInteger modelActivations = new AtomicInteger(0);
     model.addListener(new ModelListener() {
       @Override

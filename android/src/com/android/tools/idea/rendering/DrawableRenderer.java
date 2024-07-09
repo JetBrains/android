@@ -98,7 +98,7 @@ public class DrawableRenderer implements Disposable {
     // Executing them off the UI thread.
     RenderService service = StudioRenderService.getInstance(module.getProject());
     myRenderTaskFuture = taskBuilder(
-      service, BuildTargetReference.gradleOnly(facet),
+      service, AndroidBuildTargetReference.gradleOnly(facet),
       configuration, logger)
       .withParserFactory(myParserFactory)
       .build()

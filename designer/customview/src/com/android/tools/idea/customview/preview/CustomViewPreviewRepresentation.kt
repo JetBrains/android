@@ -34,8 +34,8 @@ import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.BuildListener
-import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -402,7 +402,7 @@ class CustomViewPreviewRepresentation(
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
           NlModel.Builder(
               this@CustomViewPreviewRepresentation,
-              BuildTargetReference.from(facet, psiFile.virtualFile),
+              AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
               customPreviewXml,
               config,
             )

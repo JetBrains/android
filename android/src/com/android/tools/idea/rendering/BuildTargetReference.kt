@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 /**
  * An entity that encapsulates the notion of a build target reference.
@@ -34,25 +31,26 @@ import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
  * Instances of `BuildTargetReference` should be obtained via its companion objects, which in the future will delegate the instantiation
  * to the project system.
  *
- * Note: In the case of the Gradle project system an implementation of `BuildTargetReference` is likely to simply wrap an instance of the
- * `AndroidFacet`.
+ * Note: In the case of the Gradle project system an implementation of `BuildTargetReference` is likely to simply wrap an IDE module.
  */
 interface BuildTargetReference {
-  val facet: AndroidFacet
-  val module: Module get() = facet.module
-  val project: Project get() = module.project
+  val project: Project
+  val module: Module
+
+  private data class GradleOnlyBuildTargetReference(override val module: Module): BuildTargetReference {
+    override val project: Project
+      get() = module.project
+  }
 
   companion object {
-    private data class GradleOnlyBuildTargetReference(override val facet: AndroidFacet): BuildTargetReference
-
     /**
      * Obtains a reference to a build target that contains the given [targetFile].
      *
-     * A [facet] is required to refer to an Android module containing the [targetFile]. This is a temporary measure used to cross-validate
-     * usages during the transition from facets to [BuildTargetReference]s.
+     * A [module] is required to contain the [targetFile]. This is a temporary measure used to cross-validate usages during the transition
+     * from facets/modules to [BuildTargetReference]s.
      */
     @JvmStatic
-    fun from(facet: AndroidFacet, targetFile: VirtualFile): BuildTargetReference {
+    fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       if (ApplicationManager.getApplication().isUnitTestMode) {
         // NOTE: This method has two parameters even though `targetFile` seems enough. This is to make sure correct migration of all
         // callers from facet based to target file based services. It is important for a narrower scope defined by the file to be nested
@@ -60,19 +58,13 @@ interface BuildTargetReference {
         // The following check is supposed to catch cases when, for example, a caller passes a resource file from a dependency or the
         // framework as a target file that is supposed to define the build ocntext.
         runReadAction {
-          if (!ModuleRootManager.getInstance(facet.module).fileIndex.isInContent(targetFile)) {
-            error("'$targetFile' is not under '${facet.module}' content roots")
+          if (!ModuleRootManager.getInstance(module).fileIndex.isInContent(targetFile)) {
+            error("'$targetFile' is not under '${module}' content roots")
           }
         }
       }
-      return gradleOnly(facet)
+      return gradleOnly(module)
     }
-
-    /**
-     * Obtains a reference to a build target that was used to build the running application (if known).
-     */
-    @JvmStatic
-    fun from(applicationProjectContext: ApplicationProjectContext): BuildTargetReference? = error("Not yet implemented")
 
     /**
      * Returns an instance of `BuildTargetReference` that refers to code under the modules (or the group of main, androidTest etc. modules).
@@ -81,8 +73,8 @@ interface BuildTargetReference {
      * being not found.
      */
     @JvmStatic
-    fun gradleOnly(facet: AndroidFacet): BuildTargetReference {
-      return GradleOnlyBuildTargetReference(facet)
+    fun gradleOnly(module: Module): BuildTargetReference {
+      return GradleOnlyBuildTargetReference(module)
     }
   }
 }

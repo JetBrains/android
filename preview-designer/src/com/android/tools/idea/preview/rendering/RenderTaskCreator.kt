@@ -21,7 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -60,7 +60,7 @@ fun createRenderTaskFuture(
 
   val builder =
     StudioRenderService.getInstance(project)
-      .taskBuilder(BuildTargetReference.gradleOnly(facet), configuration)
+      .taskBuilder(AndroidBuildTargetReference.gradleOnly(facet), configuration)
       .withPsiFile(PsiXmlFile(xmlFile))
       .apply {
         if (privateClassLoader) {

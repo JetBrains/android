@@ -23,7 +23,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
@@ -67,7 +67,7 @@ open class NlModel
 @VisibleForTesting
 protected constructor(
   parent: Disposable,
-  val buildTarget: BuildTargetReference,
+  val buildTarget: AndroidBuildTargetReference,
   val virtualFile: VirtualFile,
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
@@ -388,7 +388,7 @@ protected constructor(
   /** An [NlModel] builder */
   class Builder(
     val parentDisposable: Disposable,
-    val buildTarget: BuildTargetReference,
+    val buildTarget: AndroidBuildTargetReference,
     val file: VirtualFile,
     val configuration: Configuration,
   ) {

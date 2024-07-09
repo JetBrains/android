@@ -175,7 +175,7 @@ public class RenderTestUtil {
     assertNotNull(xmlFile);
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     final CompletableFuture<RenderTask> taskFuture =
-      taskBuilder(renderService, BuildTargetReference.gradleOnly(facet), configuration, logger)
+      taskBuilder(renderService, AndroidBuildTargetReference.gradleOnly(facet), configuration, logger)
         .withPsiFile(new PsiXmlFile(xmlFile))
         .disableSecurityManager()
         .withTopic(topic)

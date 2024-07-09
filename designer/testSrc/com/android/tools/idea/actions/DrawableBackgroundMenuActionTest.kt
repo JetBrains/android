@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction
@@ -144,7 +144,7 @@ class DrawableBackgroundMenuActionTest {
       val nlModel =
         NlModel.Builder(
             projectRule.testRootDisposable,
-            BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+            AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             virtualFile,
             ConfigurationManager.getOrCreateInstance(projectRule.module)
               .getConfiguration(virtualFile),

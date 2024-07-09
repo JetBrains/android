@@ -20,7 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -37,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -134,7 +133,7 @@ class LayoutRendererTest {
   }
 }
 
-private fun createRenderTaskForTest(buildTarget: BuildTargetReference, xmlFile: XmlFile, configuration: Configuration) =
+private fun createRenderTaskForTest(buildTarget: AndroidBuildTargetReference, xmlFile: XmlFile, configuration: Configuration) =
   StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)

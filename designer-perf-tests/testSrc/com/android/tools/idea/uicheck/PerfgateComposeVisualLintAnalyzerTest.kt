@@ -18,7 +18,7 @@ package com.android.tools.idea.uicheck
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
@@ -103,7 +103,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          BuildTargetReference.gradleOnly(facet),
+          AndroidBuildTargetReference.gradleOnly(facet),
           file
         )
       resultToModelMap[renderResult.result!!] = nlModel

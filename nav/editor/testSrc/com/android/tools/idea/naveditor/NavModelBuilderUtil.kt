@@ -44,7 +44,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavInteractionHandler
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
@@ -100,7 +100,7 @@ object NavModelBuilderUtil {
       manager
     }
 
-    return ModelBuilder(BuildTargetReference.gradleOnly(facet),
+    return ModelBuilder(AndroidBuildTargetReference.gradleOnly(facet),
                         fixture,
                         name,
                         f(),

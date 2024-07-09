@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -328,7 +328,7 @@ class VisualLintAnalysisTest {
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          BuildTargetReference.gradleOnly(facet),
+          AndroidBuildTargetReference.gradleOnly(facet),
           file,
           configuration,
         )
