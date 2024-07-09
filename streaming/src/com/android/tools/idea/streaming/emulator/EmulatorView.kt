@@ -23,7 +23,6 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
-import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
@@ -750,6 +749,7 @@ class EmulatorView(
   }
 
   override val hardwareInput: HardwareInput = object : HardwareInput() {
+
     override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
       if (!isConnected) {
         return
@@ -760,11 +760,7 @@ class EmulatorView(
         KEY_RELEASED -> KeyEventType.keyup
         else -> return
       }
-      val grpcEvent = KeyboardEvent.newBuilder()
-          .setKey(keyName)
-          .setEventType(eventType)
-          .build()
-      emulator.sendKey(grpcEvent)
+      emulator.sendKeyEvent(keyName, eventType)
     }
   }
 
@@ -807,8 +803,7 @@ class EmulatorView(
         return
       }
 
-      val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
-      emulator.sendKey(keyboardEvent)
+      emulator.sendTypedText(c.toString())
       event.consume()
     }
 
@@ -857,9 +852,7 @@ class EmulatorView(
       if (event.id == KEY_PRESSED) {
         val emulatorKeyStroke = hostKeyStrokeToEmulatorKeyStroke(event.keyCode, event.modifiersEx)
         if (emulatorKeyStroke != null) {
-          emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
-          emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
-          emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
+          emulator.sendKeyStroke(emulatorKeyStroke)
           event.consume()
         }
       }

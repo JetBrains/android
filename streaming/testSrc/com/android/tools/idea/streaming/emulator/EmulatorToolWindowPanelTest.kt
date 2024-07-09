@@ -169,58 +169,40 @@ class EmulatorToolWindowPanelTest {
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
     ui.mousePressOn(button)
-    var call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"Power\" }")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"Power\" }")
 
     // Check EmulatorPowerButtonAction invoked by a keyboard shortcut.
     var action = ActionManager.getInstance().getAction("android.device.power.button")
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     val dataContext = DataManager.getInstance().getDataContext(panel.primaryEmulatorView)
     action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keypress key: \"Power\" }")
 
     // Check EmulatorPowerAndVolumeUpButtonAction invoked by a keyboard shortcut.
     action = ActionManager.getInstance().getAction("android.device.power.and.volume.up.button")
     keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK or SHIFT_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "VolumeUp"""")
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Power"""")
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "VolumeUp"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"VolumeUp\" }")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keypress key: \"Power\" }")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"VolumeUp\" }")
 
     // Check EmulatorVolumeUpButtonAction.
     button = ui.getComponent { it.action.templateText == "Volume Up" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeUp"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeUp\" }")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeUp\" }")
 
     // Check EmulatorVolumeDownButtonAction.
     button = ui.getComponent { it.action.templateText == "Volume Down" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeDown"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeDown\" }")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeDown\" }")
 
     // Check that the Fold/Unfold action is hidden because the device is not foldable.
     assertThat(updateAndGetActionPresentation("android.device.postures", emulatorView, project).isVisible).isFalse()
@@ -234,9 +216,9 @@ class EmulatorToolWindowPanelTest {
     val content = StringSelection("host clipboard")
     ClipboardSynchronizer.getInstance().setContent(content, content)
     focusManager.focusOwner = emulatorView
-    call = emulator.getNextGrpcCall(3.seconds)
+    var call = emulator.getNextGrpcCall(3.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
-    assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
+    assertThat(shortDebugString(call.request)).isEqualTo("text: \"host clipboard\"")
     call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
     call.waitForResponse(2.seconds)
@@ -276,35 +258,27 @@ class EmulatorToolWindowPanelTest {
     // Check Wear1ButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Button 1" }
     ui.mouseClickOn(button)
-    var call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "GoHome"""")
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "GoHome"""")
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"GoHome\" }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"GoHome\" }")
 
     // Check Wear2ButtonAction.
     button = ui.getComponent { it.action.templateText == "Button 2" }
     ui.mousePressOn(button)
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Power\" }")
     ui.mouseRelease()
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Power\" }")
 
     // Check PalmAction.
     button = ui.getComponent { it.action.templateText == "Palm" }
     ui.mouseClickOn(button)
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Standby"""")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Standby\" }")
 
     // Check TiltAction.
     button = ui.getComponent { it.action.templateText == "Tilt" }
     ui.mouseClickOn(button)
-    call = emulator.getNextGrpcCall(2.seconds)
+    val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: WRIST_TILT value { data: 1.0 }")
 
