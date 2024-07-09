@@ -43,6 +43,10 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
+import com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer
+import com.intellij.execution.junit.AllInPackageConfigurationProducer
+import com.intellij.execution.junit.TestInClassConfigurationProducer
+import com.intellij.execution.junit.UniqueIdConfigurationProducer
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -136,6 +140,11 @@ private suspend fun performActivity(project: Project) {
   // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
   // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
   removeGradleProducersFromIgnoredList(project)
+
+  // Also, make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
+  // But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
+  // This would also make sure that we do not even try to create configurations using JUnit.
+  addJUnitProducersToIgnoredList(project)
 
   if (shouldSyncOrAttachModels()) {
     withContext(Dispatchers.EDT) {
@@ -416,6 +425,14 @@ private fun removeGradleProducersFromIgnoredList(project: Project) {
   producerService.state.ignoredProducers.remove(AllInPackageGradleConfigurationProducer::class.java.name)
   producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
   producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
+}
+
+private fun addJUnitProducersToIgnoredList(project: Project) {
+  val producerService = RunConfigurationProducerService.getInstance(project)
+  producerService.state.ignoredProducers.add(TestInClassConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.add(AllInPackageConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.add(AbstractAllInDirectoryConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.add(UniqueIdConfigurationProducer::class.java.name)
 }
 
 private fun Module.isEmptyModule() =
