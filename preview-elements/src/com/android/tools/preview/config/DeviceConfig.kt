@@ -44,6 +44,7 @@ import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_NAVIGATION
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ORIENTATION
 import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_PARENT
 import com.android.tools.preview.config.Preview.DeviceSpec.SEPARATOR
+import com.android.tools.res.FrameworkOverlay
 import com.google.common.base.Objects
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty
@@ -546,12 +547,12 @@ enum class Orientation {
   landscape
 }
 
-enum class Cutout {
-  none,
-  corner,
-  double,
-  punch_hole,
-  tall
+enum class Cutout(val overlay: FrameworkOverlay) {
+  none(FrameworkOverlay.NO_CUTOUT),
+  corner(FrameworkOverlay.CUTOUT_CORNER),
+  double(FrameworkOverlay.CUTOUT_DOUBLE),
+  punch_hole(FrameworkOverlay.CUTOUT_HOLE),
+  tall(FrameworkOverlay.CUTOUT_TALL)
 }
 
 enum class Navigation {
