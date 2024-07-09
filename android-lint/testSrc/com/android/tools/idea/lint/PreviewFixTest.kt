@@ -32,7 +32,6 @@ import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.LintFix.Companion.create
 import com.android.tools.lint.detector.api.Location
-import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
@@ -49,47 +48,111 @@ import org.jetbrains.android.intentions.AndroidExtractDimensionAction
 
 class PreviewFixTest : AbstractAndroidLintTest() {
 
-  fun testIntentionPreviewAddTargetVersion() {
-    // Test that the intention preview for AddTargetVersionCheckQuickFix works as expected; in
-    // particular,
-    // it makes edits to the preview non-physical file, and does not modify the physical file.
-    val file =
-      myFixture.configureByText(
-        "X.java", /*language=JAVA */
-        """
+  fun testIntentionPreviewAddTargetVersionJava() {
+    myFixture.configureByText(
+      "X.java", /*language=JAVA */
+      """
       package com.example;
       import java.io.FileReader;
       import java.io.IOException;
       import java.util.Properties;
       public class X {
-        public static void foo() throws IOException {
-          FileReader reader = new FileReader("../local.properties");
-          Properties props = new Properties();
-          props.load(reader);
-          reader.close();
-        }
+          public static void foo() throws IOException {
+              FileReader reader = new FileReader("../local.properties");
+              Properties props = new Properties();
+              props.l<caret>oad(reader);
+              reader.close();
+          }
       }
       """
-          .trimIndent(),
+        .trimIndent(),
+    )
+
+    val element = myFixture.file.findElementAt(myFixture.caretOffset)!!
+
+    val fix =
+      ModCommandLintQuickFix(
+        AddTargetVersionCheckQuickFix(
+          project,
+          element,
+          9,
+          ExtensionSdk.ANDROID_SDK_ID,
+          ApiConstraint.ALL,
+        )
       )
 
-    checkPreviewFix(
-      file,
-      "^props.load",
-      {
-        val fix =
-          AddTargetVersionCheckQuickFix(project, 9, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL)
-        assertThat(fix.name)
-          .isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }")
-        fix
-      },
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=JAVA */
       """
-      @@ -9 +9
-      -     props.load(reader);
-      +     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-      + props.load(reader);
-      +     }
-      """,
+      package com.example;
+      import java.io.FileReader;
+      import java.io.IOException;
+      import java.util.Properties;
+      public class X {
+          public static void foo() throws IOException {
+              FileReader reader = new FileReader("../local.properties");
+              Properties props = new Properties();
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+                  props.load(reader);
+              }
+              reader.close();
+          }
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  fun testIntentionPreviewAddTargetVersionKotlin() {
+    myFixture.configureByText(
+      "X.kt", /*language=Kotlin */
+      """
+      package com.example
+      import java.io.FileReader
+      import java.util.Properties
+      class X {
+          fun foo() {
+              val reader = FileReader("../local.properties")
+              Properties().l<caret>oad(reader)
+              reader.close()
+          }
+      }
+      """
+        .trimIndent(),
+    )
+
+    val element = myFixture.file.findElementAt(myFixture.caretOffset)!!
+
+    val fix =
+      ModCommandLintQuickFix(
+        AddTargetVersionCheckQuickFix(
+          project,
+          element,
+          9,
+          ExtensionSdk.ANDROID_SDK_ID,
+          ApiConstraint.ALL,
+        )
+      )
+
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=Kotlin */
+      """
+      package com.example
+      import java.io.FileReader
+      import java.util.Properties
+      class X {
+          fun foo() {
+              val reader = FileReader("../local.properties")
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+                  Properties().load(reader)
+              }
+              reader.close()
+          }
+      }
+      """
+        .trimIndent()
     )
   }
 
