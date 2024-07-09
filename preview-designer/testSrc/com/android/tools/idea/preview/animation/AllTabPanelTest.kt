@@ -21,7 +21,6 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AllTabPanel.Companion.createAllTabPanelForTest
-import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -78,7 +77,6 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove cards`() {
-    val slider = createTestSlider()
     val cardOne =
       AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
     val cardTwo =
@@ -158,7 +156,6 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui`() {
-    val slider = createTestSlider()
     val cardOne =
       AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
     val cardTwo =
@@ -186,7 +183,6 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui with mixed cards`() {
-    val slider = createTestSlider()
     val cardOne =
       AnimationCard(surface, "AnimationCard One", emptyList(), NoopAnimationTracker).apply {
         setDuration(111)
@@ -226,7 +222,6 @@ class AllTabPanelTest {
 
   @Test
   fun `expand cards`() {
-    val slider = createTestSlider()
     panel.apply {
       setSize(1000, 400)
       addPlayback(TestUtils.createPlaybackPlaceHolder())
@@ -260,7 +255,6 @@ class AllTabPanelTest {
 
   @Test
   fun `scroll ui`() {
-    val slider = createTestSlider()
     panel.apply {
       setSize(1000, 400)
       addPlayback(TestUtils.createPlaybackPlaceHolder())
