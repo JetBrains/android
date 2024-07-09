@@ -27,13 +27,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.junit.runners.Suite;
-
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
 public class ModuleTestSuiteRunner extends Suite {
+
+    private static boolean assertIsEmpty = System.getenv("ASSERT_TEST_IS_EMPTY") != null;
 
     public ModuleTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder)
             throws InitializationError, ClassNotFoundException, IOException {
@@ -49,6 +53,8 @@ public class ModuleTestSuiteRunner extends Suite {
             .filter(p -> p.toString().endsWith(".class"))
             .collect(Collectors.toList());
         ArrayList<Class<?>> suites = new ArrayList<>();
+        if (assertIsEmpty)
+            suites.add(AllowNoTests.class);
         for (Path cl : classes) {
             String name = dir.relativize(cl).toString();
             name = name.replaceAll("/", ".");
@@ -63,5 +69,22 @@ public class ModuleTestSuiteRunner extends Suite {
             }
         }
         return suites.toArray(new Class[]{});
+    }
+
+    public void run(RunNotifier notifier) {
+        // This runner supports checking for splits to ensure no tests are left outside the splits.
+        // When checking the "left overs" split, we assert that the AllowNoTests is the only one in.
+        if (assertIsEmpty && testCount() > 1) {
+            throw new IllegalStateException("This test suite should be empty");
+        }
+        super.run(notifier);
+    }
+
+    @RunWith(JUnit4.class)
+    public static class AllowNoTests {
+        @Test
+        public void allowNoTests() {
+
+        }
     }
 }
