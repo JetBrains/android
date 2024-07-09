@@ -245,7 +245,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (executor instanceof DefaultDebugExecutor && debugger != null) {
       DeployTarget deployTarget = getDeployTarget();
       if (deployTarget != null) {
-        List<AndroidDevice> devices = deployTarget.getDevices(getProject()).getDevices();
+        List<AndroidDevice> devices = deployTarget.getAndroidDevices(getProject());
         NativeDebugOnRemoteDeviceChecker deviceChecker = new NativeDebugOnRemoteDeviceChecker(getProject());
         boolean ok = deviceChecker.showWarningIfNeeded(debugger, devices);
         if (!ok) {
