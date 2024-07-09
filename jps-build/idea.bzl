@@ -173,6 +173,7 @@ def _jps_test_impl(ctx):
         "--env JAVA_BIN $PWD/" + ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path,
         "--env TEST_SUITE '" + ctx.attr.test_suite + "'",
         "--env TEST_EXCLUDE_FILTER '" + "|".join(ctx.attr.test_exclude_filter) + "'",
+        "--env TEST_FILTER '" + "|".join(ctx.attr.test_filter) + "'",
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
@@ -194,7 +195,7 @@ def _jps_test_impl(ctx):
     runfiles = runfiles.merge(ctx.attr._java_runtime.default_runfiles)
     return DefaultInfo(executable = ctx.outputs.executable, runfiles = runfiles)
 
-jps_test = rule(
+_jps_test = rule(
     attrs = {
         "download_cache": attr.string(),
         "test_suite": attr.string(),
@@ -203,6 +204,7 @@ jps_test = rule(
         "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
         "test_exclude_filter": attr.string_list(default = []),
+        "test_filter": attr.string_list(default = []),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
         "_test_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:test_runner"),
         "_bazel_runner": attr.label(allow_single_file = True, default = "//tools/adt/idea/jps-build:jps-test-runner_deploy.jar"),
@@ -213,6 +215,72 @@ jps_test = rule(
     executable = True,
     implementation = _jps_test_impl,
 )
+
+def split(
+        name,
+        filter,
+        shard_count = None):
+    return struct(name = name, filter = filter, shard_count = shard_count)
+
+def jps_test(
+        name,
+        split_tests = None,
+        test_exclude_filter = None,
+        env = None,
+        **kwargs):
+    """A jps based test.
+
+    Args:
+        test_suite: The test suite to run
+        module: The module to use the classpath from.
+        data: Test data
+        download_cache: where to save downloaded data when running the test with 'bazel run'
+        deps: The jps workspace setup.
+        test_filter: What tests to run. See bazel's --test_filter.
+        test_exclude_filter: What tests not to run. See bazel's --test_exclude_filter
+        split_tests: A list of split objects constructed with 'split'. Each split has a name used as suffix,
+                     a test filter, and a shard_count. A target is created per split, with one additional
+                     target suffixed '_empty' that asserts that no tests were left out of the splits.
+    """
+    if split_tests:
+        names = []
+        splits = []
+        for split in split_tests:
+            this_name = name + "_" + split.name
+            names.append(this_name)
+            splits.append(split.filter)
+            _jps_test(
+                name = this_name,
+                test_exclude_filter = test_exclude_filter,
+                env = env,
+                test_filter = [split.filter],
+                shard_count = split.shard_count,
+                **kwargs
+            )
+        check_empty_env = {"ASSERT_TEST_IS_EMPTY": "1"}
+        if env:
+            check_empty_env.update(env)
+        check_empty_test_name = name + "_empty"
+        _jps_test(
+            name = check_empty_test_name,
+            test_exclude_filter = test_exclude_filter + splits,
+            env = check_empty_env,
+            **kwargs
+        )
+        names.append(check_empty_test_name)
+
+        native.test_suite(
+            name = name,
+            tests = names,
+        )
+
+    else:
+        _jps_test(
+            name = name,
+            env = env,
+            test_exclude_filter = test_exclude_filter,
+            **kwargs
+        )
 
 JpsSourceInfo = provider("Source info", fields = ["files", "strip_prefix", "zips"])
 
