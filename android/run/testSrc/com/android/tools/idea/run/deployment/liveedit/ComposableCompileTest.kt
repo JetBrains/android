@@ -29,13 +29,10 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.PsiFile
-import com.intellij.testFramework.utils.editor.commitToPsi
 import junit.framework.Assert
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -47,7 +44,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ComposableCompileTest {
-  private var files = HashMap<String, PsiFile>()
 
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
@@ -113,7 +109,7 @@ class ComposableCompileTest {
         composableNested()(0)
       }
       fun composableNested(): @Composable (Int) -> Unit {
-        return { } // group 22704048
+        return { } // group 22704048 for K1 / group 2076812637 for K2
       }""")
     val cache = projectRule.initialCache(listOf(file))
     projectRule.modifyKtFile(file, """
@@ -127,7 +123,12 @@ class ComposableCompileTest {
       }""")
     val output = compile(file, cache)
     Assert.assertTrue(-1369675262 in output.groupIds)
-    Assert.assertTrue(22704048 in output.groupIds)
+    val groupIdForNestedLambda = if (!KotlinPluginModeProvider.isK2Mode()) {
+      22704048
+    } else {
+      2076812637
+    }
+    Assert.assertTrue(groupIdForNestedLambda in output.groupIds)
   }
 
   @Test
