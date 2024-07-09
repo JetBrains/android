@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,7 +104,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   private String[] getErrorHtml(Module module) throws Exception {
     Project project = module.getProject();
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-    ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
+    ManifestPanelToken<AndroidProjectSystem> token = ManifestPanelToken.EP_NAME.getExtensionList().stream()
       .filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
     MergedManifestSnapshot manifest = MergedManifestManager.getMergedManifest(module).get();
     ImmutableList<MergingReport.Record> records = manifest.getLoggingRecords();

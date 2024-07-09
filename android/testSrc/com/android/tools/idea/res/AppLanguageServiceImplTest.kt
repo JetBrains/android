@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import org.junit.Before
@@ -72,7 +73,7 @@ class AppLanguageServiceImplTest {
     projectRule.fixture.addFileToProject("one/res/values-da/strings.xml", createStringsFile("Hallo"))
     projectRule.fixture.addFileToProject("two/res/values/strings.xml", createStringsFile("Hello"))
     projectRule.fixture.addFileToProject("two/res/values-ru/strings.xml", createStringsFile("Привет"))
-    val extensionPoint = projectRule.project.extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
+    val extensionPoint = ApplicationManager.getApplication().extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
     extensionPoint.unregisterExtension(GradlePseudoLocalesToken::class.java)
     extensionPoint.registerExtension(pseudoLocalesToken, projectRule.testRootDisposable)
     val state = adbRule.attachDevice(serialNumber, "Google", "Pixel6", "versionX", "33")

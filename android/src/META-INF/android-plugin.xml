@@ -691,28 +691,22 @@
     <extensionPoint qualifiedName="com.android.tools.idea.diagnostics.report.logsProvider"
                     interface="com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.editors.manifest.manifestPanelToken"
-                    interface="com.android.tools.idea.editors.manifest.ManifestPanelToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.editors.manifest.ManifestPanelToken"/>
     <extensionPoint qualifiedName="org.jetbrains.android.refactoring.unusedResourcesToken"
-                    interface="org.jetbrains.android.refactoring.UnusedResourcesToken"
-                    area="IDEA_PROJECT"/>
+                    interface="org.jetbrains.android.refactoring.UnusedResourcesToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.actions.annotations.inferAnnotationsToken"
-                    interface="com.android.tools.idea.actions.annotations.InferAnnotationsToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.actions.annotations.InferAnnotationsToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.testRunConfigurationOptions"
                     interface="com.android.tools.idea.testartifacts.instrumented.TestRunConfigurationOptions"
                     dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.flags.experimentalSettingsContributor"
                     interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.testRunParametersToken"
-                    interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
-                    interface="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken"
-                    interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">

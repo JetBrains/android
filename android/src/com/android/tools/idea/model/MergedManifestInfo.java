@@ -53,7 +53,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -404,7 +403,7 @@ final class MergedManifestInfo {
     Project project = facet.getModule().getProject();
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     Optional<MergedManifestInfoToken<AndroidProjectSystem>> maybeToken =
-      Arrays.stream(MergedManifestInfoToken.EP_NAME.getExtensions(project))
+      MergedManifestInfoToken.EP_NAME.getExtensionList().stream()
         .filter(t -> t.isApplicable(projectSystem))
         .findFirst();
     maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker));

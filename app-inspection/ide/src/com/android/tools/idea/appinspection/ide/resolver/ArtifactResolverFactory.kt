@@ -22,6 +22,7 @@ import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
@@ -32,9 +33,8 @@ class ArtifactResolverFactory(private val fileService: FileService) : ArtifactRe
   override fun getArtifactResolver(project: Project): ArtifactResolver {
     val projectSystem = project.getProjectSystem()
     val token =
-      ArtifactResolverFactoryToken.EP_NAME.getExtensions(project).firstOrNull {
-        it.isApplicable(projectSystem)
-      } ?: return httpArtifactResolver
+      projectSystem.getTokenOrNull(ArtifactResolverFactoryToken.EP_NAME)
+        ?: return httpArtifactResolver
     return token.getArtifactResolver(projectSystem, fileService, httpArtifactResolver)
   }
 }
