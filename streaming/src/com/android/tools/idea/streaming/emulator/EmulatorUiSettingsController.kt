@@ -117,7 +117,7 @@ internal const val FACTORY_RESET_COMMAND =
 
 internal const val FACTORY_RESET_DEBUG_LAYOUT =
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; "
+    "service call activity $SYSPROPS_TRANSACTION"
 
 internal const val FACTORY_RESET_GESTURE_NAVIGATION =
   "cmd overlay enable $GESTURES_OVERLAY; " +
