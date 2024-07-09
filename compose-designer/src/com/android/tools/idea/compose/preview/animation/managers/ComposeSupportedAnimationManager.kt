@@ -26,7 +26,6 @@ import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
-import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.Transition
 import com.intellij.openapi.diagnostic.Logger
 import javax.swing.JComponent
@@ -54,7 +53,7 @@ abstract class ComposeSupportedAnimationManager(
   tracker: ComposeAnimationTracker,
   protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   protected val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
@@ -64,7 +63,7 @@ abstract class ComposeSupportedAnimationManager(
 ) :
   ComposeAnimationManager,
   SupportedAnimationManager(
-    timelinePanel,
+    getCurrentTime,
     playbackControls,
     tabbedPane,
     rootComponent,

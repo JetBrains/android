@@ -154,11 +154,11 @@ abstract class AnimationPreview<T : AnimationManager>(
    * An interactive timeline where users scrub or jump within an animation. Visual ranges display
    * the durations of individual animations on the timeline.
    */
-  protected val timeline: Timeline =
+  private val timeline: Timeline =
     Timeline(animationPreviewPanel, component).apply {
       addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
     }
-  private val clockControl = SliderClockControl(timeline)
+  protected val clockControl = SliderClockControl(timeline)
 
   /**
    * Provides buttons and controls for playing, pausing, and adjusting the playback speed of the
@@ -298,7 +298,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   /** Triggers a render/update of the displayed preview. */
-  private suspend fun renderAnimation() {
+  protected suspend fun renderAnimation() {
     sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
   }
 
