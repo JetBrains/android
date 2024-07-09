@@ -287,10 +287,6 @@ internal class EmulatorToolWindowPanel(
     return uiState
   }
 
-  fun updateMainToolbar() {
-    mainToolbar.updateActionsAsync()
-  }
-
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
