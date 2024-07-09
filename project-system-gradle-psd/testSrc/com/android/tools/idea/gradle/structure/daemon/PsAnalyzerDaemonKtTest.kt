@@ -24,12 +24,13 @@ class PsAnalyzerDaemonKtTest {
                                private val nonCompliant: Boolean,
                                private val outdated: Boolean,
                                private val critical: Boolean,
+                               private val showNotes: Boolean,
                                private val violations: List<SdkPolicy>,
                                private val expectedMessages: List<String>) {
 
     @Test
     fun `Expected issue`() {
-      val sdkIndex = TestGooglePlaySdkIndex(blocking, nonCompliant, outdated, critical, violations)
+      val sdkIndex = TestGooglePlaySdkIndex(blocking, nonCompliant, outdated, critical, showNotes, violations)
       sdkIndex.prepareForTest()
       val issues = getSdkIndexIssueFor(PsArtifactDependencySpec.Companion.create(LIBRARY_GROUP, LIBRARY_ARTIFACT, LIBRARY_VERSION),
                                       TestPath("testPath"), parentModuleRootDir = null, sdkIndex = sdkIndex)
@@ -48,41 +49,51 @@ class PsAnalyzerDaemonKtTest {
       private const val MESSAGE_OUTDATED = "test-group:test-artifact version test-version has been reported as outdated by its author"
       private const val MESSAGE_OUTDATED_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as outdated by its author and will block publishing of your app to Play Console"
       private const val MESSAGE_CRITICAL = "test-group:test-artifact version test-version has an associated message from its author"
+      private const val MESSAGE_CRITICAL_WITH_NOTE = "$MESSAGE_CRITICAL. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
       private const val MESSAGE_CRITICAL_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as problematic by its author and will block publishing of your app to Play Console"
+      private const val MESSAGE_CRITICAL_BLOCKING_WITH_NOTE = "$MESSAGE_CRITICAL_BLOCKING. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
       private const val MESSAGE_POLICY_USER = "test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console in the future"
       private const val MESSAGE_POLICY_USER_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console"
       private const val MESSAGE_POLICY_PERMISSIONS = "test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console in the future"
       private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console"
 
       @JvmStatic
-      @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, message={4}")
+      @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, notes={4}")
       fun data() = listOf(
         // No issues
-        arrayOf(false, false, false, false, emptyList<SdkPolicy>(), emptyList<String>()),
+        arrayOf(false, false, false, false, true, emptyList<SdkPolicy>(), emptyList<String>()),
         // Policy
-        arrayOf(false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY)),
+        arrayOf(false, true, false, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY)),
         // Outdated
-        arrayOf(false, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED)),
-        // Critical
-        arrayOf(false, false, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL)),
+        arrayOf(false, false, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED)),
+        // Critical (with notes)
+        arrayOf(false, false, false, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_WITH_NOTE)),
+        // Critical (without notes)
+        arrayOf(false, false, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL)),
         // Two types
-        arrayOf(false, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED)),
-        // Three types
-        arrayOf(false, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
+        arrayOf(false, true, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED)),
+        // Three types (with notes)
+        arrayOf(false, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
+        // Three types (without notes)
+        arrayOf(false, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
         // Two policies
-        arrayOf(false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER, MESSAGE_POLICY_PERMISSIONS)),
+        arrayOf(false, true, false, false, true, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER, MESSAGE_POLICY_PERMISSIONS)),
         // Policy BLOCKING
-        arrayOf(true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING)),
+        arrayOf(true, true, false, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING)),
         // Outdated BLOCKING
-        arrayOf(true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED_BLOCKING)),
-        // Critical BLOCKING
-        arrayOf(true, false, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING)),
+        arrayOf(true, false, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED_BLOCKING)),
+        // Critical BLOCKING (with notes)
+        arrayOf(true, false, false, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING_WITH_NOTE)),
+        // Critical BLOCKING (without notes)
+        arrayOf(true, false, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING)),
         // Two types BLOCKING
-        arrayOf(true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
-        // Three types BLOCKING
-        arrayOf(true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        // Three types BLOCKING (with notes)
+        arrayOf(true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_OUTDATED_BLOCKING)),
+        // Three types BLOCKING (without notes)
+        arrayOf(true, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Two policies BLOCKING
-        arrayOf(true, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_BLOCKING, MESSAGE_POLICY_PERMISSIONS_BLOCKING)),
+        arrayOf(true, true, false, false, true, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_BLOCKING, MESSAGE_POLICY_PERMISSIONS_BLOCKING)),
       )
     }
 
@@ -91,6 +102,7 @@ class PsAnalyzerDaemonKtTest {
       private val nonCompliant: Boolean,
       private val outdated: Boolean,
       private val critical: Boolean,
+      private val showNotes: Boolean,
       private val violations: List<SdkPolicy>,
     ) : GooglePlaySdkIndex(null) {
       override fun readUrlData(url: String, timeout: Int, lastModified: Long) = ReadUrlDataResult(null, true)
@@ -139,6 +151,7 @@ class PsAnalyzerDaemonKtTest {
           )
           .build()
         this.initialize(ByteArrayInputStream(proto.toByteArray()))
+        this.showNotesFromDeveloper = showNotes
       }
     }
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.setWriterForTest
+import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.detector.api.LintFix
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -48,5 +49,12 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
     assertThat(libraryEvents[0].studioEvent.hasSdkIndexLibraryDetails()).isTrue()
     val libraryDetails = libraryEvents[0].studioEvent.sdkIndexLibraryDetails
     assertThat(libraryDetails.hasIsBlocking()).isTrue()
+  }
+
+  fun testIdeFlagsMatchDefaultFlags() {
+    val ideIndex = IdeGooglePlaySdkIndex
+    ideIndex.initializeAndSetFlags()
+    assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER and StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER should match.\n" +
+                      "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showNotesFromDeveloper).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER)
   }
 }
