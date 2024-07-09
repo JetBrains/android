@@ -156,17 +156,8 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
-    <!--
-      These two activities, along with NativeStartupActivity in android-ndk, have an ordering requirement.  In production,
-      that ordering requirement is satisfied by the services within the activities, providing DeferredCompletables which
-      are completed when the activity is done, and which can be waited for from other activities.
-
-      In unit test mode, StartupManagerImpl runs all the ProjectActivities synchronously, and in order.  We therefore
-      have to ensure that these activities are in an acceptable order, or our tests will deadlock.
-    -->
-    <postStartupActivity id="Android.Initialization" implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
-    <postStartupActivity id="Android.Gradle.Project" implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"
-                         order="after Android.Initialization"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <intentionAction>
       <language>UAST</language>
       <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
