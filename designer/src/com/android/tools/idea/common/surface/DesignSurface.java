@@ -15,23 +15,14 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
-import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
-import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
-import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
-
 import com.android.annotations.VisibleForTesting;
-import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.layout.manager.MatchParentLayoutManager;
@@ -39,8 +30,6 @@ import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceVi
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -48,7 +37,6 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentAdapter;
@@ -265,52 +253,13 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
-      return this;
-    }
-    if (PANNABLE_KEY.is(dataId)) {
-      return getPannable();
-    }
-    if (ZOOMABLE_KEY.is(dataId)){
-      return getZoomController();
-    }
-    if (CONFIGURATIONS.is(dataId)) {
-      return getConfigurations();
-    }
-    if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
-      return getFileEditorDelegate();
-    }
-    else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
-             PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
-             PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
-             PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
       return getActionHandlerProvider().invoke(this);
     }
-    else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      NlComponent selection = getSelectionModel().getPrimary();
-      Scene scene = getScene();
-      if (view == null || scene == null || selection == null) {
-        return null;
-      }
-      SceneComponent sceneComponent = scene.getSceneComponent(selection);
-      if (sceneComponent == null) {
-        return null;
-      }
-      return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
-                       Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
-    }
-    else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
-      return (DataProvider)this::getSlowData;
-    }
-    else {
-      NlModel model = getModel();
-      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
-        return model.getModule();
-      }
-    }
-
-    return null;
+    return super.getData(dataId);
   }
 
   @Override

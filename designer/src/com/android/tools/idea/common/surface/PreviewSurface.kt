@@ -19,10 +19,14 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidCoordinate
+import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.actions.CONFIGURATIONS
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
@@ -31,6 +35,7 @@ import com.android.tools.idea.common.error.LintIssueProvider
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
 import com.android.tools.idea.common.lint.LintAnnotationsModel
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.ModelListener
@@ -56,6 +61,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -69,6 +75,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AWTEvent
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.MouseInfo
@@ -94,6 +101,7 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -1116,12 +1124,36 @@ abstract class PreviewSurface<T : SceneManager>(
     }
   }
 
+  override fun getData(dataId: @NonNls String): Any? {
+    fun getMenuPoint(): Point? {
+      val view = focusedSceneView ?: return null
+      val selection = selectionModel.primary ?: return null
+      val sceneComponent = scene?.getSceneComponent(selection) ?: return null
+      return Point(
+        Coordinates.getSwingXDip(view, sceneComponent.centerX),
+        Coordinates.getSwingYDip(view, sceneComponent.centerY),
+      )
+    }
+
+    return when {
+      DESIGN_SURFACE.`is`(dataId) || GuiInputHandler.CURSOR_RECEIVER.`is`(dataId) -> this
+      PANNABLE_KEY.`is`(dataId) -> pannable
+      ZOOMABLE_KEY.`is`(dataId) -> zoomController
+      CONFIGURATIONS.`is`(dataId) -> configurations
+      PlatformCoreDataKeys.FILE_EDITOR.`is`(dataId) -> fileEditorDelegate
+      PlatformDataKeys.CONTEXT_MENU_POINT.`is`(dataId) -> getMenuPoint()
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { getSlowData(it) }
+      PlatformCoreDataKeys.MODULE.`is`(dataId) -> model?.module
+      else -> null
+    }
+  }
+
   /**
-   * The data which should be obtained from the background thread. TODO Make private
+   * The data which should be obtained from the background thread.
    *
    * @see [PlatformCoreDataKeys.BGT_DATA_PROVIDER]
    */
-  protected fun getSlowData(dataId: String): Any? {
+  private fun getSlowData(dataId: String): Any? {
     if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
       return focusedSceneView?.selectionModel?.primary?.tagDeprecated
     } else if (LangDataKeys.PSI_ELEMENT_ARRAY.`is`(dataId)) {
