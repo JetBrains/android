@@ -28,9 +28,6 @@ import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.LintIssueProvider;
-import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
@@ -58,7 +55,6 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
@@ -81,10 +77,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -115,9 +109,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   private final Predicate<T> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
-  private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
-  private static final Integer LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10;
-
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
    */
@@ -128,9 +119,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
    */
   @NotNull private final JComponent myContentContainerPane;
   @NotNull protected final DesignSurfaceViewport myViewport;
-  @NotNull private final JLayeredPane myLayeredPane;
   @NotNull protected final SceneViewPanel mySceneViewPanel;
-  @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final GuiInputHandler myGuiInputHandler;
 
@@ -198,9 +187,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     };
     getSelectionModel().addListener(selectionListener);
 
-    myProgressPanel = new SurfaceProgressPanel(this, this::useSmallProgressIcon);
-    myProgressPanel.setName("Layout Editor Progress Panel");
-
     mySceneViewPanel = new SceneViewPanel(
       this::getSceneViews,
       () -> getGuiInputHandler().getLayers(),
@@ -216,7 +202,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     else {
       myScrollPane = null;
     }
-    myMouseClickDisplayPanel = new MouseClickDisplayPanel(this);
 
     // Setup the layers for the DesignSurface
     // If the surface is scrollable, we use four layers:
@@ -230,11 +215,9 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     //
     // If the surface is NOT scrollable, the zoom controls will not be added and the scroll pane will be replaced
     // by the actual content.
-    myLayeredPane = new JLayeredPane();
-    myLayeredPane.setFocusable(true);
     if (myScrollPane != null) {
-      myLayeredPane.setLayout(new MatchParentLayoutManager());
-      myLayeredPane.add(myScrollPane, JLayeredPane.POPUP_LAYER);
+      getLayeredPane().setLayout(new MatchParentLayoutManager());
+      getLayeredPane().add(myScrollPane, JLayeredPane.POPUP_LAYER);
       myContentContainerPane = myScrollPane;
       myViewport = new ScrollableDesignSurfaceViewport(myScrollPane.getViewport());
       myScrollPane.addComponentListener(new ComponentAdapter() {
@@ -246,16 +229,14 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       });
     }
     else {
-      myLayeredPane.setLayout(new OverlayLayout(myLayeredPane));
+      getLayeredPane().setLayout(new OverlayLayout(getLayeredPane()));
       mySceneViewPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-      myLayeredPane.add(mySceneViewPanel, JLayeredPane.POPUP_LAYER);
+      getLayeredPane().add(mySceneViewPanel, JLayeredPane.POPUP_LAYER);
       myContentContainerPane = mySceneViewPanel;
       myViewport = new NonScrollableDesignSurfaceViewport(this);
     }
-    myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
-    myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
-    add(myLayeredPane);
+    add(getLayeredPane());
 
 
 
@@ -264,7 +245,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myGuiInputHandler.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
-    myActionManager.registerActionsShortcuts(myLayeredPane);
+    myActionManager.registerActionsShortcuts(getLayeredPane());
 
     if (hasZoomControls) {
       JPanel zoomControlsLayerPane = new JPanel();
@@ -273,7 +254,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       zoomControlsLayerPane.setLayout(new BorderLayout());
       zoomControlsLayerPane.setFocusable(false);
 
-      myLayeredPane.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
+      getLayeredPane().add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
       zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
       if (getZoomControlsPolicy() == ZoomControlsPolicy.AUTO_HIDE) {
         myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, zoomControlsLayerPane);
@@ -288,7 +269,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       myOnHoverListener = event -> {};
     }
   }
-
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
@@ -783,11 +763,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     state.saveFileScale(getProject(), model.getVirtualFile(), getZoomController());
   }
 
-  @NotNull
-  public JComponent getLayeredPane() {
-    return myLayeredPane;
-  }
-
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
   @NotNull
   public JComponent getInteractionPane() {
@@ -940,35 +915,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myGuiInputHandler;
   }
 
-
-
-  private final Set<ProgressIndicator> myProgressIndicators = new HashSet<>();
-
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  private final SurfaceProgressPanel myProgressPanel;
-
-  public void registerIndicator(@NotNull ProgressIndicator indicator) {
-    if (getProject().isDisposed() || Disposer.isDisposed(this)) {
-      return;
-    }
-
-    synchronized (myProgressIndicators) {
-      if (myProgressIndicators.add(indicator)) {
-        myProgressPanel.showProgressIcon();
-      }
-    }
-  }
-
-  public void unregisterIndicator(@NotNull ProgressIndicator indicator) {
-    synchronized (myProgressIndicators) {
-      myProgressIndicators.remove(indicator);
-
-      if (myProgressIndicators.isEmpty()) {
-        myProgressPanel.hideProgressIcon();
-      }
-    }
-  }
-
   /**
    * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
    * The result {@link CompletableFuture} will notify when all the renderings have completed.
@@ -1095,20 +1041,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
         manager.getSceneViews().forEach(SceneView::updateUI);
       }
     }
-  }
-
-  /**
-   * Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface.
-   */
-  public void enableMouseClickDisplay() {
-    myMouseClickDisplayPanel.setEnabled(true);
-  }
-
-  /**
-   * Disables the mouse click display.
-   */
-  public void disableMouseClickDisplay() {
-    myMouseClickDisplayPanel.setEnabled(false);
   }
 
   @Override
