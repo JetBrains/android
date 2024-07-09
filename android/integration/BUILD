@@ -415,13 +415,12 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",  # This dependency does not seem important but without it the test keeps timing out
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
