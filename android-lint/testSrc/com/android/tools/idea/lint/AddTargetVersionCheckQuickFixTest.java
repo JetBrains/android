@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix;
 import com.android.tools.lint.detector.api.ApiConstraint;
 import com.intellij.openapi.util.Ref;
@@ -58,12 +58,14 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     });
     PsiExpression expression = first.get();
     assertThat(expression).isNotNull();
-    AddTargetVersionCheckQuickFix fix = new AddTargetVersionCheckQuickFix(getProject(), 9, ANDROID_SDK_ID, ApiConstraint.ALL);
-    assertThat(fix.getName()).isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }");
+
+    ModCommandLintQuickFix fix = new ModCommandLintQuickFix(
+      new AddTargetVersionCheckQuickFix(getProject(), expression, 9, ANDROID_SDK_ID, ApiConstraint.ALL));
+
     assertThat(AndroidFacet.getInstance(expression)).isNull();
     // Regression test for https://code.google.com/p/android/issues/detail?id=228481 :
     // Ensure that no VERSION.SDK_INT check is offered.
-    assertThat(fix.isApplicable(expression, expression, AndroidQuickfixContexts.EditorContext.TYPE)).isFalse();
+    assertThat(fix.rawIntention().isAvailable(getProject(), myFixture.getEditor(), myFixture.getFile())).isFalse();
   }
 
   // There are actual functional tests of the operation of this quickfix in AndroidLintTest, such as AndroidLintTest#testApiCheck1f
