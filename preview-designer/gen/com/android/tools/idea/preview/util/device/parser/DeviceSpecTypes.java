@@ -41,11 +41,9 @@ public interface DeviceSpecTypes {
   IElementType ORIENTATION_T = new DeviceSpecElementType("ORIENTATION_T");
   IElementType PARAM = new DeviceSpecElementType("PARAM");
   IElementType PARENT_PARAM = new DeviceSpecElementType("PARENT_PARAM");
-  IElementType SHAPE_PARAM = new DeviceSpecElementType("SHAPE_PARAM");
   IElementType SIZE_T = new DeviceSpecElementType("SIZE_T");
   IElementType SPEC = new DeviceSpecElementType("SPEC");
   IElementType UNIT = new DeviceSpecElementType("UNIT");
-  IElementType UNIT_PARAM = new DeviceSpecElementType("UNIT_PARAM");
   IElementType WIDTH_PARAM = new DeviceSpecElementType("WIDTH_PARAM");
 
   IElementType CHIN_SIZE_KEYWORD = new DeviceSpecTokenType("chinSize");
@@ -78,7 +76,6 @@ public interface DeviceSpecTypes {
   IElementType SQUARE_KEYWORD = new DeviceSpecTokenType("square");
   IElementType STRING_T = new DeviceSpecTokenType("STRING_T");
   IElementType TRUE = new DeviceSpecTokenType("true");
-  IElementType UNIT_KEYWORD = new DeviceSpecTokenType("unit");
   IElementType WIDTH_KEYWORD = new DeviceSpecTokenType("width");
 
   class Factory {
@@ -126,9 +123,6 @@ public interface DeviceSpecTypes {
       else if (type == PARENT_PARAM) {
         return new DeviceSpecParentParamImpl(node);
       }
-      else if (type == SHAPE_PARAM) {
-        return new DeviceSpecShapeParamImpl(node);
-      }
       else if (type == SIZE_T) {
         return new DeviceSpecSizeTImpl(node);
       }
@@ -137,9 +131,6 @@ public interface DeviceSpecTypes {
       }
       else if (type == UNIT) {
         return new DeviceSpecUnitImpl(node);
-      }
-      else if (type == UNIT_PARAM) {
-        return new DeviceSpecUnitParamImpl(node);
       }
       else if (type == WIDTH_PARAM) {
         return new DeviceSpecWidthParamImpl(node);
