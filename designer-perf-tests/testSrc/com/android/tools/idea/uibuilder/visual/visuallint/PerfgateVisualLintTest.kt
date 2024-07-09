@@ -99,7 +99,9 @@ class PerfgateVisualLintTest {
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("phone_background_linting_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("phone_background_linting_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), emptyMap(), visualLintExecutorService)
@@ -127,7 +129,9 @@ class PerfgateVisualLintTest {
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("wear_background_linting_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("wear_background_linting_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), emptyMap(), visualLintExecutorService)
