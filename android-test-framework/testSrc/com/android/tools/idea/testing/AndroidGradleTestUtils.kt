@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
@@ -76,6 +77,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -151,6 +153,7 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -200,6 +203,8 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -2282,6 +2287,10 @@ private fun <T> openPreparedProject(
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
+        val awaitGradleStartupActivity = project.coroutineScope().launch {
+          project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
+        }
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture())
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.maybeOutputDiagnostics()
         project

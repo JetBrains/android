@@ -20,11 +20,9 @@ import kotlinx.coroutines.completeWith
 
 /**
  * Instances of this service exist to allow ProjectActivities related to [AndroidGradleProjectStartupActivity] to
- * manage an ordering between them.  In production, StartupManagerImpl runs all ProjectActivity asynchronously,
+ * manage an ordering between them. The StartupManagerImpl runs all ProjectActivity asynchronously,
  * so this service is what allows us to guarantee that some activities run entirely before
- * [AndroidGradleProjectStartupActivity] and some after.  In tests, StartupManagerImpl runs the activities
- * synchronously and in order, so it is still necessary to maintain a compatible ordering of the postStartupActivity
- * extensions in the runtime plugin.xml, otherwise tests will likely deadlock.
+ * [AndroidGradleProjectStartupActivity] and some after.
  */
 abstract class AndroidGradleProjectStartupService<T> {
   val deferred = CompletableDeferred<T>()
