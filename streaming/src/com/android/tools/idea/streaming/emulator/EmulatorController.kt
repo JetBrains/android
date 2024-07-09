@@ -869,6 +869,11 @@ private class ImageResponseMarshaller : Marshaller<Image> {
   }
 }
 
+private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> getEmptyObserver(): StreamObserver<T> = EMPTY_OBSERVER as StreamObserver<T>
+
 private const val FORMAT_FIELD_TAG = Image.FORMAT_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
 private const val IMAGE_FIELD_TAG = Image.IMAGE_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
 private const val SEQ_FIELD_TAG = Image.SEQ_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
