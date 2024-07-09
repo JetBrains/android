@@ -62,6 +62,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -465,6 +467,8 @@ abstract class PreviewSurface<T : SceneManager>(
       return ImmutableList.copyOf(listeners)
     }
   }
+
+  protected abstract fun notifyModelChanged(model: NlModel)
 
   override fun onScaleChange(update: ScaleChange) {
     if (update.isAnimating) {
@@ -932,7 +936,40 @@ abstract class PreviewSurface<T : SceneManager>(
    * @see [addAndRenderModel]
    * @see [removeModel]
    */
-  abstract fun setModel(model: NlModel?): CompletableFuture<Void>
+  open fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+    val oldModel = model
+    if (newModel === oldModel) {
+      return CompletableFuture.completedFuture(null)
+    }
+
+    if (oldModel != null) {
+      removeModelImpl(oldModel)
+    }
+
+    if (newModel == null) {
+      return CompletableFuture.completedFuture(null)
+    }
+
+    return CompletableFuture.supplyAsync(
+        { addModel(newModel) },
+        AppExecutorUtil.getAppExecutorService(),
+      )
+      .thenCompose { requestRender() }
+      .whenCompleteAsync(
+        { _, _ ->
+          // Mark the scene view panel as invalid to force the scene views to be updated
+          sceneViewPanel.invalidate()
+
+          reactivateGuiInputHandler()
+          restoreZoomOrZoomToFit()
+          revalidateScrollArea()
+
+          notifyModelChanged(newModel)
+        },
+        EdtExecutorService.getInstance(),
+      )
+      .thenRun {}
+  }
 
   /**
    * Add an [NlModel] to [DesignSurface] and refreshes the rendering of the model. If the model was
@@ -946,7 +983,25 @@ abstract class PreviewSurface<T : SceneManager>(
    * @param model the added [NlModel]
    * @see [addModel]
    */
-  abstract fun addAndRenderModel(model: NlModel): CompletableFuture<Void>
+  fun addAndRenderModel(model: NlModel): CompletableFuture<Void> {
+    val modelSceneManager = addModel(model)
+
+    // Mark the scene view panel as invalid to force the scene views to be updated
+    sceneViewPanel.invalidate()
+
+    // We probably do not need to request a render for all models but it is currently the
+    // only point subclasses can override to disable the layoutlib render behaviour.
+    return modelSceneManager
+      .requestRenderAsync()
+      .whenCompleteAsync(
+        { _, _ ->
+          reactivateGuiInputHandler()
+          revalidateScrollArea()
+          notifyModelChanged(model)
+        },
+        EdtExecutorService.getInstance(),
+      )
+  }
 
   /**
    * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
@@ -964,7 +1019,20 @@ abstract class PreviewSurface<T : SceneManager>(
    *
    * TODO(b/147225165): Remove [addAndRenderModel] function and rename this function as [addModel]
    */
-  abstract fun addModelWithoutRender(model: NlModel): CompletableFuture<T>
+  fun addModelWithoutRender(modelToAdd: NlModel): CompletableFuture<T> {
+    return CompletableFuture.supplyAsync(
+        { addModel(modelToAdd) },
+        AppExecutorUtil.getAppExecutorService(),
+      )
+      .whenCompleteAsync(
+        { _, _ ->
+          if (project.isDisposed || modelToAdd.isDisposed) return@whenCompleteAsync
+          notifyModelChanged(modelToAdd)
+          reactivateGuiInputHandler()
+        },
+        EdtExecutorService.getInstance(),
+      )
+  }
 
   // TODO Make private
   protected val renderFutures = mutableListOf<CompletableFuture<Void>>()

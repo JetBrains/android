@@ -44,10 +44,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -59,10 +55,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.OverlayLayout;
 import kotlin.jvm.functions.Function1;
@@ -242,79 +236,13 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myActionManager;
   }
 
-  @NotNull
   @Override
-  public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
-    T modelSceneManager = addModel(model);
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
-
-    // We probably do not need to request a render for all models but it is currently the
-    // only point subclasses can override to disable the layoutlib render behaviour.
-    return modelSceneManager.requestRenderAsync()
-      .whenCompleteAsync((result, ex) -> {
-        reactivateGuiInputHandler();
-
-        revalidateScrollArea();
-
-        // TODO(b/147225165): The tasks depends on model inflating callback should be moved to ModelListener#modelDerivedDataChanged.
-        for (DesignSurfaceListener listener : getListeners()) {
-          listener.modelChanged(this, model);
-        }
-      }, EdtExecutorService.getInstance());
-  }
-
-  @NotNull
-  @Override
-  public final CompletableFuture<T> addModelWithoutRender(@NotNull NlModel modelToAdd) {
-    return CompletableFuture
-      .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
-      .whenCompleteAsync((model, ex) -> {
-          if (getProject().isDisposed() || modelToAdd.isDisposed()) return;
-          for (DesignSurfaceListener listener : getSurfaceListeners()) {
-            // TODO: The listeners have the expectation of the call happening in the EDT. We need
-            //       to address that.
-            listener.modelChanged(this, modelToAdd);
-          }
-          reactivateGuiInputHandler();
-      }, EdtExecutorService.getInstance());
-  }
-
-  @Override
-  public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
-    NlModel oldModel = getModel();
-    if (model == oldModel) {
-      return CompletableFuture.completedFuture(null);
+  protected void notifyModelChanged(@NotNull NlModel model) {
+    // TODO: The listeners have the expectation of the call happening in the EDT. We need
+    //       to address that.
+    for (DesignSurfaceListener listener : getSurfaceListeners()) {
+      listener.modelChanged(this, model);
     }
-
-    if (oldModel != null) {
-      removeModelImpl(oldModel);
-    }
-
-    if (model == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-
-    return CompletableFuture.supplyAsync(
-      () -> addModel(model),
-      AppExecutorUtil.getAppExecutorService()
-    )
-      .thenCompose((sceneManager) -> requestRender())
-      .whenCompleteAsync((result, ex) -> {
-        // Mark the scene view panel as invalid to force the scene views to be updated
-        mySceneViewPanel.invalidate();
-
-        reactivateGuiInputHandler();
-        restoreZoomOrZoomToFit();
-        revalidateScrollArea();
-
-        // TODO: The listeners have the expectation of the call happening in the EDT. We need
-        //       to address that.
-        for (DesignSurfaceListener listener : getListeners()) {
-          listener.modelChanged(this, model);
-        }
-      }, EdtExecutorService.getInstance())
-      .thenRun(() -> {});
   }
 
   @NotNull
