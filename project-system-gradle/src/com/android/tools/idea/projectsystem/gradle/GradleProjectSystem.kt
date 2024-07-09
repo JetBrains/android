@@ -99,7 +99,7 @@ import java.io.File
 import java.nio.file.Path
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
-  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
+  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider.getInstance(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
   private val myBuildManager: ProjectSystemBuildManager = GradleProjectSystemBuildManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)

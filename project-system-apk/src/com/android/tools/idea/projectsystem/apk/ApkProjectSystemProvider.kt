@@ -22,10 +22,10 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 
-class ApkProjectSystemProvider(val project: Project): AndroidProjectSystemProvider {
+class ApkProjectSystemProvider : AndroidProjectSystemProvider {
   override val id: String = "com.android.tools.idea.ApkProjectSystem"
-  override val projectSystem: AndroidProjectSystem by lazy { ApkProjectSystem(project) }
-
-  override fun isApplicable() = StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() &&
-                                ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
+  override fun isApplicable(project: Project) =
+    StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() &&
+    ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
+  override fun projectSystemFactory(project: Project) = ApkProjectSystem(project)
 }

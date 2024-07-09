@@ -16,15 +16,15 @@
 package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.atomic.AtomicReference
 
 class ProjectSystemService(val project: Project) {
-  private val cachedProjectSystem = AtomicReference<AndroidProjectSystem?>()
+  private val cachedProjectSystemDelegate = lazy(LazyThreadSafetyMode.PUBLICATION) { detectProjectSystem(project) }
+  private val cachedProjectSystem by cachedProjectSystemDelegate
+  private var projectSystemForTests: AndroidProjectSystem? = null
 
   companion object {
     @JvmStatic
@@ -34,34 +34,14 @@ class ProjectSystemService(val project: Project) {
   }
 
   val projectSystem: AndroidProjectSystem
-    get() {
-      // We need to guarantee that the project system remains unique until the next time the project
-      // is closed. This method may be called by multiple threads in parallel.
-      var cache = cachedProjectSystem.get()
-
-      if (cache == null) {
-        // The call to detectProjectSystem invokes unknown non-local code loaded from an extension
-        // point, so we can't hold any locks or be inside a synchronized block while invoking it or
-        // it would be a deadlock risk.
-        cache = detectProjectSystem(project)
-        if (cachedProjectSystem.compareAndSet(null, cache)) {
-          Logger.getInstance(ProjectSystemService::class.java).info("${cache.javaClass.simpleName} project system has been detected")
-        }
-        // Can't return null since we've set it to a non-null value earlier in the method and there
-        // is no code that ever sets it back to null once set to a non-null value. However, it's
-        // possible that another thread initialized it to a different non-null value, so we should
-        // use the result of get rather than our local cache variable.
-        cache = cachedProjectSystem.get()!!
-      }
-      return cache
-    }
+    get() = projectSystemForTests ?: cachedProjectSystem
 
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
-    val extensions = EP_NAME.getExtensions(project)
-    val provider = extensions.find { it.isApplicable() }
+    val extensions = EP_NAME.extensionList
+    val provider = extensions.find { it.isApplicable(project) }
                    ?: extensions.find { it.id == "" }
                    ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
-    return provider.projectSystem
+    return provider.projectSystemFactory(project)
   }
 
   /**
@@ -69,8 +49,8 @@ class ProjectSystemService(val project: Project) {
    */
   @TestOnly
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
-    val old = cachedProjectSystem.getAndUpdate { projectSystem }
-    if (old != null) {
+    projectSystemForTests = projectSystem
+    if (cachedProjectSystemDelegate.isInitialized()) {
       runWriteAction {
         val publisher = project.messageBus.syncPublisher(ModuleRootListener.TOPIC)
         val rootChangedEvent = ModuleRootEventImpl(project, false)
