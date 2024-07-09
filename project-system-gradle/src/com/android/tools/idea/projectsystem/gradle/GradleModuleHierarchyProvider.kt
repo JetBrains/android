@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
 import com.intellij.openapi.module.Module
@@ -28,9 +29,15 @@ import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ModuleRootManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 
-class GradleModuleHierarchyProvider(private val project: Project) {
+@Service
+class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val project: Project) {
   private var moduleSubmodules: Map<ComponentManager, List<Module>>? = null // Keys: Modules and the project.
+
+  companion object {
+    fun getInstance(project: Project): GradleModuleHierarchyProvider = project.getService(GradleModuleHierarchyProvider::class.java)
+  }
 
   init {
     // Project systems are not currently disposable and live until their project is disposed. Thus we subscribe to events for the

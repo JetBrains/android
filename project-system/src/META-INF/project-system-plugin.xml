@@ -16,8 +16,7 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.project.projectsystem"
-                    interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"/>
     <extensionPoint qualifiedName="com.android.androidStartupActivity"
                     interface="com.android.tools.idea.AndroidStartupActivity"/>
     <extensionPoint qualifiedName="com.android.tools.idea.model.mergedManifestInfoToken"
