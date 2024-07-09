@@ -1501,11 +1501,6 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
-    COMPOSE, "ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
-    "Enable colorblind Check mode in UI Check Mode for Compose preview",
-    true);
-
   public static final Flag<Boolean> COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
     COMPOSE, "visual.lint.run", "Enable visual lint for Compose Preview",
     "Enable so that visual lint runs on previews in the Compose Preview.",
