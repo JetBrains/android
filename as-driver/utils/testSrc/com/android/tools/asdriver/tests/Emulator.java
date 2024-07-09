@@ -226,7 +226,6 @@ public class Emulator implements AutoCloseable {
     API_30("system_image_android-30_default_x86_64"),
     API_31("system_image_android-31_default_x86_64"),
     API_33("system_image_android-33_default_x86_64"),
-    API_35("system_image_android-35_default_x86_64"),
     // Android Automated Test Device system image
     API_33_ATD("system_image_android-33_aosp_atd_x86_64"),
     // Google Play builds
