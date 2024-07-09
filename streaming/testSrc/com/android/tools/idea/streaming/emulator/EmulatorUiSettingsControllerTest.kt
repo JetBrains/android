@@ -89,6 +89,7 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout true; service call activity 1599295570", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout false; service call activity 1599295570", "")
+    adb.configureShellCommand(deviceSelector, "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS", "")
   }
 
   @Test
@@ -209,7 +210,10 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.talkBackOn.setFromUi(true)
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" }
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS" &&
+      lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME"
+    }
     assertUsageEvent(OperationKind.TALKBACK)
     assertThat(model.differentFromDefault.value).isTrue()
   }
@@ -231,6 +235,7 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     model.talkBackOn.setFromUi(true)
     waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS" &&
       lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME"
     }
     assertUsageEvent(OperationKind.TALKBACK)
