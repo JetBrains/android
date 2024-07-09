@@ -99,8 +99,7 @@ class ComposeAnimationPreview(
       removeAnimation(animation).join()
       val tab = withContext(uiThread) { createAnimationManager(animation) }
       tab.setup()
-      withContext(uiThread) { addAnimationManager(tab) }
-      updateTimelineElements()
+      addAnimationManager(tab)
     }
 
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
@@ -182,10 +181,7 @@ class ComposeAnimationPreview(
    */
   override fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
-      withContext(uiThread) {
-        animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
-      }
-      updateTimelineElements()
+      animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
     }
 
   override fun invalidatePanel() =

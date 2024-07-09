@@ -111,9 +111,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   private val bottomPanel =
     BottomPanel(rootComponent, tracker).apply {
       addResetListener {
-        scope.launch {
-          animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
-        }
+        animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
       }
     }
 
@@ -358,7 +356,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    * animations.
    */
   open fun invalidatePanel(): Job =
-    scope.launch(uiThread) {
+    scope.launch {
       /**
        * Calling [removeAnimationManager] for all animations will properly remove the cards from
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
@@ -367,44 +365,50 @@ abstract class AnimationPreview<T : AnimationManager>(
       animations.forEach { removeAnimationManager(it) }
     }
 
-  @UiThread
   protected suspend fun removeAnimationManager(animationManager: T) {
-    animationManager.destroy()
-    coordinationTab.removeCard(animationManager.card)
-    removeAnimation(animationManager)
-    if (animationManager is SupportedAnimationManager) {
-      tabbedPane.tabs
-        .find { it.component == animationManager.tab.component }
-        ?.let { tabbedPane.removeTab(it) }
+    withContext(uiThread) {
+      animationManager.destroy()
+      coordinationTab.removeCard(animationManager.card)
+      removeAnimation(animationManager)
+      if (animationManager is SupportedAnimationManager) {
+        tabbedPane.tabs
+          .find { it.component == animationManager.tab.component }
+          ?.let { tabbedPane.removeTab(it) }
+      }
+      if (animations.isEmpty()) {
+        tabbedPane.removeAllTabs()
+        // There are no more tabs. Replace the TabbedPane with the placeholder panel.
+        showNoAnimationsPanel()
+      } else if (tabbedPane.tabCount != 0) {
+        tabbedPane.select(tabbedPane.getTabAt(0), true)
+      }
     }
-    if (animations.isEmpty()) {
-      tabbedPane.removeAllTabs()
-      // There are no more tabs. Replace the TabbedPane with the placeholder panel.
-      showNoAnimationsPanel()
-    } else if (tabbedPane.tabCount != 0) {
-      tabbedPane.select(tabbedPane.getTabAt(0), true)
-    }
+    updateMaxDuration()
+    updateTimelineElements()
   }
 
   /** Adds an [AnimationManager] card to [coordinationTab]. */
-  @UiThread
-  protected fun addAnimationManager(animationTab: T) {
-    val isAddingFirstTab = animations.isEmpty()
-    addAnimation(animationTab)
-    coordinationTab.addCard(animationTab.card)
+  protected suspend fun addAnimationManager(animationTab: T) {
+    withContext(uiThread) {
+      val isAddingFirstTab = animations.isEmpty()
+      addAnimation(animationTab)
+      coordinationTab.addCard(animationTab.card)
 
-    if (isAddingFirstTab) {
-      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
-      // TabbedPane.
-      hideNoAnimationPanel()
-      tabbedPane.addTab(
-        TabInfo(coordinationTab).apply {
-          text = "${message("animation.inspector.tab.all.title")}  "
-        },
-        0,
-      )
-      coordinationTab.addTimeline(timeline)
+      if (isAddingFirstTab) {
+        // There are no tabs, and we're about to add one. Replace the placeholder panel with the
+        // TabbedPane.
+        hideNoAnimationPanel()
+        tabbedPane.addTab(
+          TabInfo(coordinationTab).apply {
+            text = "${message("animation.inspector.tab.all.title")}  "
+          },
+          0,
+        )
+        coordinationTab.addTimeline(timeline)
+      }
     }
+    updateMaxDuration()
+    updateTimelineElements()
   }
 
   protected suspend fun executeInRenderSession(longTimeout: Boolean = false, function: () -> Unit) {
