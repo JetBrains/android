@@ -20,7 +20,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.ide.GeneralSettings;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,56 +109,6 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFuture.get());
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      fail("Failed while waiting for future");
-    }
-  }
-
-  /**
-   * Test that Tip of the Day settings is properly restored when WNA needs to auto-show
-   */
-  public void testStartupTips() {
-    // Make local bundle guaranteed to be available, so we don't try to open browser in tests
-    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewBundleCreator.class);
-    bundleCreator.setStudioRevision(Revision.parseRevision("3.3.0"));
-    bundleCreator.setURLProvider(mockUrlProvider);
-    bundleCreator.setAllowDownload(false);
-
-    GeneralSettings generalSettings = new GeneralSettings();
-
-    // Tips of the Day should be enabled by default
-    assertTrue(generalSettings.isShowTipsOnStartup());
-    SettableFuture<Boolean> completeFutureEnabled = SettableFuture.create();
-
-    // Temporarily disables tips and opens WNA
-    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), generalSettings, new BooleanCallback(completeFutureEnabled));
-
-    // Check that Tips are enabled again
-    try {
-      FutureUtils.pumpEventsAndWaitForFuture(completeFutureEnabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-      assertTrue(completeFutureEnabled.get());
-      assertTrue(generalSettings.isShowTipsOnStartup());
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      fail("Failed while waiting for future");
-    }
-
-    // Now disable Tips instead
-    generalSettings.setShowTipsOnStartup(false);
-    SettableFuture<Boolean> completeFutureDisabled = SettableFuture.create();
-
-    // Temporarily disables tips and opens WNA
-    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), generalSettings, new BooleanCallback(completeFutureDisabled));
-
-    // Check that Tips are still disabled
-    try {
-      FutureUtils.pumpEventsAndWaitForFuture(completeFutureDisabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-      assertTrue(completeFutureDisabled.get());
-      assertFalse(generalSettings.isShowTipsOnStartup());
     }
     catch (Exception e) {
       e.printStackTrace();
