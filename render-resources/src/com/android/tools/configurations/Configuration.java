@@ -263,6 +263,10 @@ public class Configuration {
     myAdaptiveShape = from.myAdaptiveShape;
     myUseThemedIcon = from.myUseThemedIcon;
     myWallpaper = from.myWallpaper;
+    myDeviceOverlay = from.myDeviceOverlay;
+    myGestureNav = from.myGestureNav;
+    myCutoutOverlay = from.myCutoutOverlay;
+    myEdgeToEdge = from.myEdgeToEdge;
   }
 
   @Override
@@ -955,7 +959,6 @@ public class Configuration {
     myImageTransformation = imageTransformation;
   }
 
-
   /**
    * Returns the transformation function to apply to the rendered image
    *
@@ -1263,6 +1266,14 @@ public class Configuration {
       .add("target", myTarget)
       .add("uimode", myUiMode)
       .add("nightmode", myNightMode)
+      .add("fontScale", myFontScale)
+      .add("adaptiveShape", myAdaptiveShape)
+      .add("useThemedIcon", myUseThemedIcon)
+      .add("wallpaper", myWallpaper)
+      .add("deviceOverlay", myDeviceOverlay)
+      .add("gestureNav", myGestureNav)
+      .add("cutoutOverlay", myCutoutOverlay)
+      .add("edgeToEdge", myEdgeToEdge)
       .toString();
   }
 
