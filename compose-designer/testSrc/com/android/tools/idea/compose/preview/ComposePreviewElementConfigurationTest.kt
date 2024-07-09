@@ -325,7 +325,11 @@ class ComposePreviewElementConfigurationTest {
       assertEquals(pixel4Device.getState("Portrait"), it.deviceState)
       assertTrue(it.isGestureNav)
       assertEquals(
-        listOf(FrameworkOverlay.NAV_GESTURE, FrameworkOverlay.PIXEL_4, FrameworkOverlay.NO_CUTOUT),
+        listOf(
+          FrameworkOverlay.NAV_GESTURE,
+          FrameworkOverlay.PIXEL_4,
+          FrameworkOverlay.CUTOUT_NONE,
+        ),
         it.overlays,
       )
     }
@@ -354,7 +358,7 @@ class ComposePreviewElementConfigurationTest {
         listOf(
           FrameworkOverlay.NAV_3_BUTTONS,
           FrameworkOverlay.PIXEL_4,
-          FrameworkOverlay.NO_CUTOUT,
+          FrameworkOverlay.CUTOUT_NONE,
         ),
         it.overlays,
       )
@@ -383,7 +387,7 @@ class ComposePreviewElementConfigurationTest {
         devicesProvider = deviceProvider,
         defaultDeviceProvider = { defaultDevice },
       )
-      assertEquals(FrameworkOverlay.NO_CUTOUT, it.cutoutOverlay)
+      assertEquals(FrameworkOverlay.CUTOUT_NONE, it.cutoutOverlay)
     }
 
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {

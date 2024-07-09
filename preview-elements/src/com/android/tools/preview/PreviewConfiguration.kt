@@ -18,7 +18,6 @@ package com.android.tools.preview
 import com.android.annotations.TestOnly
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
@@ -28,7 +27,6 @@ import com.android.tools.configurations.updateScreenSize
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.Navigation
-import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.createDeviceInstance
 import com.android.tools.preview.config.findByIdOrName
 import com.android.tools.res.FrameworkOverlay
@@ -180,7 +178,7 @@ private fun PreviewConfiguration.applyTo(
   } else {
     null
   }
-  renderConfiguration.cutoutOverlay = deviceConfig?.cutout?.overlay ?: FrameworkOverlay.NO_CUTOUT
+  renderConfiguration.cutoutOverlay = deviceConfig?.cutout?.overlay ?: FrameworkOverlay.CUTOUT_NONE
   renderConfiguration.isGestureNav = deviceConfig == null || deviceConfig.navigation == Navigation.gesture
 
   val deviceFromSpec = deviceConfig?.createDeviceInstance() ?: allDevices.findByIdOrName(deviceSpec)
