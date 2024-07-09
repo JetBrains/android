@@ -1092,11 +1092,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       .thenApply(resultProcessing);
   }
 
-  protected void notifyListenersModelLayoutComplete(boolean animate) {
+  private void notifyListenersModelLayoutComplete(boolean animate) {
     getModel().notifyListenersModelChangedOnLayout(animate);
   }
 
-  protected void notifyListenersModelUpdateComplete() {
+  private void notifyListenersModelUpdateComplete() {
     getModel().notifyListenersModelDerivedDataChanged();
   }
 
@@ -1278,13 +1278,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myElapsedFrameTimeMs = ms;
   }
 
-  protected void fireOnRenderStart() {
+  private void fireOnRenderStart() {
     myRenderListeners.forEach(RenderListener::onRenderStarted);
   }
-  protected void fireOnRenderComplete() {
+  private void fireOnRenderComplete() {
     myRenderListeners.forEach(RenderListener::onRenderCompleted);
   }
-  protected void fireOnRenderFail(@NotNull Throwable e) {
+  private void fireOnRenderFail(@NotNull Throwable e) {
     myRenderListeners.forEach(listener -> {
       listener.onRenderFailed(e);
     });
