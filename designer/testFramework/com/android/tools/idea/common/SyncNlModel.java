@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.common;
 
-import com.android.tools.idea.common.model.DefaultModelUpdater;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -41,7 +40,7 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @NotNull BuildTargetReference buildTarget,
+                                   @NotNull AndroidBuildTargetReference buildTarget,
                                    @NotNull VirtualFile file) {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(buildTarget.getModule());
     Configuration configuration =  manager.getConfiguration(file);
@@ -52,7 +51,7 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
-                                   @NotNull BuildTargetReference buildTarget,
+                                   @NotNull AndroidBuildTargetReference buildTarget,
                                    @NotNull VirtualFile file,
                                    @NotNull Configuration configuration) {
     return new SyncNlModel(parent, componentRegistrar, buildTarget, file, configuration);
@@ -60,7 +59,7 @@ public class SyncNlModel extends NlModel {
 
   private SyncNlModel(@NotNull Disposable parent,
                       @NotNull Consumer<NlComponent> componentRegistrar,
-                      @NotNull BuildTargetReference buildTarget,
+                      @NotNull AndroidBuildTargetReference buildTarget,
                       @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
     super(parent, buildTarget, file, configuration, componentRegistrar, NlModel.Companion::getDefaultFile, DataContext.EMPTY_CONTEXT);

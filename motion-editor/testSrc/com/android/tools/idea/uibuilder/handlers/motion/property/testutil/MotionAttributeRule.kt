@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
@@ -193,7 +193,7 @@ class MotionAttributeRule(
     val facet = projectRule.module.androidFacet!!
     val model =
       NlModelBuilderUtil.model(
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         projectRule.fixture,
         "layout",
         "layout.xml",

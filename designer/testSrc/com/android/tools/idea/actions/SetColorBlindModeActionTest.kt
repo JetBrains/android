@@ -17,7 +17,7 @@ package com.android.tools.idea.actions
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -59,7 +59,7 @@ class SetColorBlindModeActionTest {
   fun testColorBlindModeChange() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-          BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+          AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",

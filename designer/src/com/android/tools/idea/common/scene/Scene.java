@@ -43,7 +43,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;

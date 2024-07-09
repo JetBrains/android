@@ -25,13 +25,12 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.DesignSurfaceTestUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -55,7 +54,6 @@ import javax.swing.JComponent;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModelBuilder {
   private final ComponentDescriptor myRoot;
-  private final BuildTargetReference myBildTarget;
+  private final AndroidBuildTargetReference myBildTarget;
   private final CodeInsightTestFixture myFixture;
   private String myName;
   private final Function2<DesignSurface<? extends SceneManager>, SyncNlModel, SceneManager> myManagerFactory;
@@ -75,7 +73,7 @@ public class ModelBuilder {
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
 
-  public ModelBuilder(@NotNull BuildTargetReference buildTarget,
+  public ModelBuilder(@NotNull AndroidBuildTargetReference buildTarget,
                       @NotNull CodeInsightTestFixture fixture,
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
