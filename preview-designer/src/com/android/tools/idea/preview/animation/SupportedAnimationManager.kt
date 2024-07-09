@@ -181,7 +181,7 @@ abstract class SupportedAnimationManager(
    * Load transition for current animation state. If transition was loaded before, the cached result
    * is used.
    */
-  suspend fun loadTransition(longTimeout: Boolean = false) {
+  private suspend fun loadTransition(longTimeout: Boolean = false) {
     val stateHash = animationState.state.value.hashCode()
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
@@ -199,7 +199,15 @@ abstract class SupportedAnimationManager(
 
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setup() {
-    setupStateManager()
+    setupInitialAnimationState()
+    scope.launch {
+      animationState.state.collect {
+        syncAnimationWithState()
+        loadTransition()
+        loadAnimatedPropertiesAtCurrentTime(false)
+        updateTimelineElementsCallback()
+      }
+    }
 
     withContext(uiThread) {
       card =
@@ -240,7 +248,14 @@ abstract class SupportedAnimationManager(
     }
   }
 
-  abstract suspend fun setupStateManager()
+  /**
+   * This method is called when the animation state changes. It should be overridden by subclasses
+   * to perform any necessary synchronization between the animation and its state.
+   */
+  abstract suspend fun syncAnimationWithState()
+
+  /** This method is called during the setup process to initialize the animation state. */
+  abstract suspend fun setupInitialAnimationState()
 }
 
 private fun CoroutineScope.createChildScope(name: String) =
