@@ -206,7 +206,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull
   final NlDesignSurfacePositionableContentLayoutManager getSceneViewLayoutManager() {
-    return (NlDesignSurfacePositionableContentLayoutManager)mySceneViewPanel.getLayout();
+    return (NlDesignSurfacePositionableContentLayoutManager)getSceneViewPanel().getLayout();
   }
 
   @NotNull
@@ -220,7 +220,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @UiThread
   public void onLayoutUpdated(SurfaceLayoutOption layoutOption) {
-    if (mySceneViewPanel != null && myViewport != null) {
+    if (getSceneViewPanel() != null && getViewport() != null) {
       setSceneViewAlignment(layoutOption.getSceneViewAlignment());
       setScrollPosition(0, 0);
       revalidateScrollArea();
@@ -254,8 +254,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * When true, the surface will autoscroll when the mouse gets near the edges. See {@link JScrollPane#setAutoscrolls(boolean)}
    */
   private void setSurfaceAutoscrolls(boolean enabled) {
-    if (myScrollPane != null) {
-      myScrollPane.setAutoscrolls(enabled);
+    if (getScrollPane() != null) {
+      getScrollPane().setAutoscrolls(enabled);
     }
   }
 
@@ -465,16 +465,16 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   @NotNull
   protected Collection<PositionableContent> getPositionableContent() {
-    return mySceneViewPanel.getPositionableContent();
+    return getSceneViewPanel().getPositionableContent();
   }
 
   public Map<SceneView, Rectangle> findSceneViewRectangles() {
-    return mySceneViewPanel.findSceneViewRectangles();
+    return getSceneViewPanel().findSceneViewRectangles();
   }
 
   @Override
   public @Nullable LayoutManagerSwitcher getLayoutManagerSwitcher() {
-    return (LayoutManagerSwitcher) mySceneViewPanel.getLayout();
+    return (LayoutManagerSwitcher) getSceneViewPanel().getLayout();
   }
 
   @Override
@@ -562,7 +562,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         update.getPreviousScale(),
         update.getNewScale(),
         findSceneViewRectangles(),
-        (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView, getExtentSize())
+        (SceneView sceneView) -> getSceneViewPanel().findMeasuredSceneViewRectangle(sceneView, getExtentSize())
       );
     }
   }
@@ -580,7 +580,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   public final void zoomAndCenter(@NotNull SceneView sceneView,
                                   @NotNull @SwingCoordinate Rectangle rectangle) {
-    if (myScrollPane == null) {
+    if (getScrollPane() == null) {
       Logger
         .getInstance(NlDesignSurface.class)
         .warn("The scroll pane is null, cannot zoom and center.");
@@ -774,6 +774,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    * content size is less than the minimum size allowed. See {@link SceneViewPanel}.
    */
   public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
-    mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
+    getSceneViewPanel().setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
   }
 }
