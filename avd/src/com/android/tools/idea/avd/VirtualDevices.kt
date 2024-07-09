@@ -29,7 +29,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 internal class VirtualDevices(
   val devices: List<Device> =
     DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList(),
-  val avdManagerConnection: AvdManagerConnection =
+  private val avdManagerConnection: AvdManagerConnection =
     AvdManagerConnection.getDefaultAvdManagerConnection(),
   private val manager: SystemImageManager = getSystemImageManager(),
 ) {
