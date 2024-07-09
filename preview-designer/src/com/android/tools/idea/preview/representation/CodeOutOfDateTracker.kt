@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.representation
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.rendering.BuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.androidFacet
@@ -50,12 +51,13 @@ interface CodeOutOfDateTracker : ModificationTracker {
 
   companion object {
     fun create(
-      module: Module?,
+      buildTargetReference: BuildTargetReference?,
       parentDisposable: Disposable,
       needsRefreshCallback: () -> Unit,
     ): CodeOutOfDateTracker =
-      module?.let { CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback) }
-        ?: NopCodeOutOfDateTrackerImpl
+      buildTargetReference?.let {
+        CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback)
+      } ?: NopCodeOutOfDateTrackerImpl
   }
 }
 
@@ -71,8 +73,11 @@ object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
 }
 
 private class CodeOutOfDateTrackerImpl
-constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: () -> Unit) :
-  CodeOutOfDateTracker {
+constructor(
+  buildTargetReference: BuildTargetReference,
+  parentDisposable: Disposable,
+  needsRefreshCallback: () -> Unit,
+) : CodeOutOfDateTracker {
   private val log = Logger.getInstance(CodeOutOfDateTrackerImpl::class.java)
 
   /**
@@ -86,7 +91,7 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
 
   @GuardedBy("previewFreshnessLock") private var kotlinJavaModificationCount = -1L
   private val kotlinJavaModificationTracker =
-    PsiModificationTracker.getInstance(module.project).forLanguages { lang ->
+    PsiModificationTracker.getInstance(buildTargetReference.project).forLanguages { lang ->
       lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
     }
 
@@ -111,7 +116,7 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
     val buildDisposable = Disposer.newDisposable()
     Disposer.register(parentDisposable, buildDisposable)
     setupBuildListener(
-      module.project,
+      buildTargetReference,
       object : BuildListener {
         @GuardedBy("previewFreshnessLock") private var pendingBuildsCount = 0
 
@@ -182,12 +187,12 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
       parentDisposable = buildDisposable,
     )
 
-    module.androidFacet?.let { facet ->
+    buildTargetReference.module.androidFacet?.let { facet ->
       // Set a ResourceChangeListener to update the need of refreshing the previews when corresponds
-      ResourceNotificationManager.getInstance(module.project)
+      ResourceNotificationManager.getInstance(buildTargetReference.project)
         .addListener(resourceChangeListener, facet, null, null)
       Disposer.register(parentDisposable) {
-        ResourceNotificationManager.getInstance(module.project)
+        ResourceNotificationManager.getInstance(buildTargetReference.project)
           .removeListener(resourceChangeListener, facet, null, null)
       }
     }

@@ -60,12 +60,14 @@ class BuildListenerTest {
   private val project: Project
     get() = projectRule.project
 
+  private val buildTargetReference get() = BuildTargetReference.gradleOnly(projectRule.module)
+
   private fun setupBuildListener(buildMode: ProjectSystemBuildManager.BuildMode)
     : Triple<TestProjectSystemBuildManager, ProjectSystemBuildManager.BuildMode, TestBuildListener> {
     // Make sure there are no pending call before setting up the listener
     processEvents()
     val listener = TestBuildListener()
-    setupBuildListener(project, listener, projectRule.fixture.testRootDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, listener, projectRule.fixture.testRootDisposable, buildManager = testBuildManager)
     return Triple(testBuildManager,
                   buildMode,
                   listener)
@@ -125,7 +127,7 @@ class BuildListenerTest {
       override fun buildSucceeded() {}
     }
     val secondDisposable = Disposer.newDisposable()
-    setupBuildListener(project, secondListener, secondDisposable)
+    setupBuildListener(buildTargetReference, secondListener, secondDisposable)
 
     Disposer.dispose(secondDisposable)
 
@@ -152,7 +154,7 @@ class BuildListenerTest {
       }
     }
     val disposable = Disposer.newDisposable()
-    setupBuildListener(project, listener, disposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, listener, disposable, buildManager = testBuildManager)
 
     assertThat(listenerCalls).isEqualTo(1)
 
@@ -168,7 +170,7 @@ class BuildListenerTest {
       }
     }
     val firstDisposable = Disposer.newDisposable()
-    setupBuildListener(project, firstListener, firstDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, firstListener, firstDisposable, buildManager = testBuildManager)
 
     var secondListenerCalls = 0
     val secondListener = object : BuildListener {
@@ -177,7 +179,7 @@ class BuildListenerTest {
       }
     }
     val secondDisposable = Disposer.newDisposable()
-    setupBuildListener(project, secondListener, secondDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, secondListener, secondDisposable, buildManager = testBuildManager)
 
     testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
@@ -202,7 +204,7 @@ class BuildListenerTest {
       }
     }
     val thirdDisposable = Disposer.newDisposable()
-    setupBuildListener(project, thirdListener, thirdDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, thirdListener, thirdDisposable, buildManager = testBuildManager)
 
     assertThat(thirdListenerCalls).isEqualTo(1)
 
@@ -231,7 +233,7 @@ class BuildListenerTest {
       }
     }
     val fourthDisposable = Disposer.newDisposable()
-    setupBuildListener(project, fourthListener, fourthDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, fourthListener, fourthDisposable, buildManager = testBuildManager)
 
     assertThat(fourthListenerCalls).isEqualTo(1)
 

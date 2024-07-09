@@ -18,9 +18,11 @@ package com.android.tools.idea.rendering
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 
 /**
  * An entity that encapsulates the notion of a build target reference.
@@ -64,6 +66,14 @@ interface BuildTargetReference {
         }
       }
       return gradleOnly(module)
+    }
+
+    /**
+     * Obtains a reference to a build target that contains the given [targetFile].
+     */
+    @JvmStatic
+    fun from(targetFile: PsiFile): BuildTargetReference? {
+      return from(runReadAction { ModuleUtilCore.findModuleForPsiElement(targetFile) } ?: return null, targetFile.originalFile.virtualFile)
     }
 
     /**

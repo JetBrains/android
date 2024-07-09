@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.BuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -284,7 +285,7 @@ class CustomViewPreviewRepresentation(
       )
 
     setupBuildListener(
-      project,
+      BuildTargetReference.from(psiFile) ?: error("Cannot obtain a build reference for: $psiFile"),
       object : BuildListener {
         override fun buildSucceeded() {
           AndroidPsiUtils.getPsiFileSafely(psiFilePointer)

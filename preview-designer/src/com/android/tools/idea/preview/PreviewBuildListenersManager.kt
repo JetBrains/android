@@ -20,9 +20,9 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.rendering.BuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.setupBuildListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
@@ -30,7 +30,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.SlowOperations
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Class responsible for setting up a Project System build listener, and also a fast preview
@@ -62,11 +61,12 @@ class PreviewBuildListenersManager(
   ) {
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val module =
-      runReadAction { SlowOperations.allowSlowOperations(ThrowableComputable { psiFile.module }) }
+    val buildTargetReference =
+      SlowOperations.allowSlowOperations(ThrowableComputable { BuildTargetReference.from(psiFile) })
         ?: return
+    val module = buildTargetReference.module
     setupBuildListener(
-      module.project,
+      buildTargetReference,
       object : BuildListener {
         private var refreshAfterBuildFailed = false
 
