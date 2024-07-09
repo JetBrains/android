@@ -16,8 +16,8 @@
 package com.android.tools.idea.preview.representation
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.BuildListener
+import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.lang.java.JavaLanguage
