@@ -48,10 +48,10 @@ class EditorPerformanceTest {
       studio.waitForIndex()
 
       for (warmupCompletionPosition in warmupCompletionPositions) {
-        checkCompletionTestCase(studio, warmupCompletionPosition, true);
+        checkCompletionTestCase(studio, warmupCompletionPosition, true)
       }
       for (completionPosition in completionPositions) {
-        checkCompletionTestCase(studio, completionPosition, false);
+        checkCompletionTestCase(studio, completionPosition, false)
       }
     }
   }
@@ -144,65 +144,7 @@ class EditorPerformanceTest {
                                 37, "TodoDestinationsArgs"),
              CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavigation.kt", 79, 33,
                                 "TodoDestinations"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 51, 33, "TodoDestinations"),
-             CompletionPosition("app/src/test/java/com/example/android/architecture/blueprints/todoapp/taskdetail/TaskDetailViewModelTest.kt", 125,
-                                37, "TodoDestinationsArgs"),
-             CompletionPosition("app/src/androidTest/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksTest.kt", 184, 83,
-                                "menu_back", false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksViewModel.kt", 108, 43,
-                                "completed_tasks_cleared", false),
-             CompletionPosition("app/src/test/java/com/example/android/architecture/blueprints/todoapp/taskdetail/TaskDetailViewModelTest.kt", 117,
-                                34, "loading_task_error", false),
-             CompletionPosition("app/src/test/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksViewModelTest.kt", 208, 34,
-                                "task_marked_complete", false),
-             CompletionPosition("app/src/androidTest/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksTest.kt", 176, 69,
-                                "label_all", false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksViewModel.kt", 169, 33,
-                                "logo_no_fill", false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksScreen.kt", 306, 46, "logo_no_fill",
-                                false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksScreen.kt", 290, 46, "logo_no_fill",
-                                false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/util/TodoDrawer.kt", 121, 56, "logo_no_fill",
-                                false),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksViewModel.kt", 193, 42,
-                                "logo_no_fill", false),
-             CompletionPosition("app/src/androidTest/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksTest.kt", 233, 33,
-                                "isToggleable"),
-             CompletionPosition("app/src/test/java/com/example/android/architecture/blueprints/todoapp/statistics/StatisticsViewModelTest.kt", 78, 10,
-                                "assertThat"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/statistics/StatisticsScreen.kt", 63, 34,
-                                "padding"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/CoroutinesModule.kt", 33, 33, "RUNTIME"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/CoroutinesModule.kt", 30, 33, "RUNTIME"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 118, 29, "Activity"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/data/source/local/ToDoDatabase.kt", 27, 32,
-                                "RoomDatabase"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 117, 31, "Activity"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavigation.kt", 69, 36, "graph"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/addedittask/AddEditTaskViewModel.kt", 115, 34,
-                                "value"),
-             CompletionPosition("shared-test/src/main/java/com/example/android/architecture/blueprints/todoapp/data/source/local/FakeTaskDao.kt", 65,
-                                14, "entries"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/statistics/StatisticsViewModel.kt", 63, 10,
-                                "viewModelScope"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksViewModel.kt", 136, 23, "value"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/addedittask/AddEditTaskScreen.kt", 97, 32,
-                                "snackbarHostState"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/CoroutinesModule.kt", 30, 13,
-                                "AnnotationRetention"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 72, 42, "arguments"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/taskdetail/TaskDetailScreen.kt", 142, 89,
-                                "body1"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 94, 38, "arguments"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/taskdetail/TaskDetailScreen.kt", 82, 25,
-                                "Modifier"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/util/TodoDrawer.kt", 124, 25, "Modifier"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/statistics/StatisticsScreen.kt", 47, 27,
-                                "Modifier"),
-             CompletionPosition("app/src/test/java/com/example/android/architecture/blueprints/todoapp/addedittask/AddEditTaskViewModelTest.kt", 86,
-                                10, "Dispatchers"),
-             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/util/TodoDrawer.kt", 155, 34, "Alignment"))
+             CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/TodoNavGraph.kt", 51, 33, "TodoDestinations"))
   }
 }
 
