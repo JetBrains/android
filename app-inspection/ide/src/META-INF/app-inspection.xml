@@ -29,8 +29,7 @@
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.appinspection.ide.resolver.artifactResolverFactoryToken"
-                    interface="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactoryToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactoryToken"/>
   </extensionPoints>
   <projectListeners>
     <listener class="com.android.tools.idea.appinspection.ide.ui.AppInspectionExecutionListener"

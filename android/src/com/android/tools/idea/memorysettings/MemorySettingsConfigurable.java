@@ -37,7 +37,6 @@ import com.intellij.xml.util.XmlStringUtil;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
@@ -323,7 +322,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       }
       AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(myProject);
       Optional<MemorySettingsToken<AndroidProjectSystem>> maybeToken =
-        Arrays.stream(MemorySettingsToken.EP_NAME.getExtensions(myProject)).filter((it) -> it.isApplicable(projectSystem))
+        MemorySettingsToken.EP_NAME.getExtensionList().stream()
+          .filter((it) -> it.isApplicable(projectSystem))
           .findFirst();
       if (maybeToken.isPresent()) {
         myBuildSystemComponent = maybeToken.get().createBuildSystemComponent(projectSystem);

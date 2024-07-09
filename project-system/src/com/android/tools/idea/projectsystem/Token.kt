@@ -44,7 +44,5 @@ inline fun <reified T : Token> AndroidProjectSystem.getToken(extensionPointName:
 
 /** Returns an instance of token [T] such that it is suitable for [this] project system. */
 inline fun <reified T : Token> AndroidProjectSystem.getTokenOrNull(extensionPointName: ExtensionPointName<T>): T? {
-  return if (project.extensionArea.hasExtensionPoint(extensionPointName))
-    extensionPointName.getExtensions(project).singleOrNull { it.isApplicable(this) }
-  else extensionPointName.extensionList.singleOrNull { it.isApplicable(this) }
+  return extensionPointName.extensionList.singleOrNull { it.isApplicable(this) }
 }

@@ -59,7 +59,6 @@ import com.intellij.ui.UserActivityProviderComponent;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -106,7 +105,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myModuleSelector = moduleSelector;
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     TestRunParametersToken<AndroidProjectSystem> token =
-      Arrays.stream(TestRunParametersToken.EP_NAME.getExtensions(project))
+      TestRunParametersToken.EP_NAME.getExtensionList().stream()
         .filter(it -> it.isApplicable(projectSystem))
         .findFirst()
         .orElse(null);

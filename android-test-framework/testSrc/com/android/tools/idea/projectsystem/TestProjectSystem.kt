@@ -39,6 +39,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
@@ -83,14 +84,14 @@ class TestProjectSystem @JvmOverloads constructor(
   @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
-    val provider = object : ApplicationProjectContextProvider, TestToken {
+    val provider = object : ApplicationProjectContextProvider<AndroidProjectSystem>, TestToken {
       override val expectedInstance: TestProjectSystem = this@TestProjectSystem
 
-      override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext {
+      override fun computeApplicationProjectContext(projectSystem: AndroidProjectSystem, info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext {
         return TestApplicationProjectContext(info.applicationId ?: error("applicationId must not be empty"))
       }
     }
-    project.extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
+    ApplicationManager.getApplication().extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
       .registerExtension(provider, project)
   }
 
