@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$/integration">
       <sourceFolder url="file://$MODULE_DIR$/integration" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/integration/event-logger" />
+      <excludeFolder url="file://$MODULE_DIR$/integration/languages" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

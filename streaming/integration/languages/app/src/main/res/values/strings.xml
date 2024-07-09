@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" description="The name of the application">Languages"</string>
+    <string name="hello_world">Hello World</string>
+    <string name="english">English</string>
+    <string name="danish">Danish</string>
+    <string name="italian">Italian</string>
+    <string name="spanish">Spanish</string>
+    <string name="pseudo_english">Pseudo English</string>
+    <string name="pseudo_arabic">Pseudo Arabic</string>
+</resources>
