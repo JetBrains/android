@@ -89,6 +89,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/adt/idea/designer-perf-tests/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
