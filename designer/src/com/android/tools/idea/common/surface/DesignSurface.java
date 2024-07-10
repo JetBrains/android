@@ -196,9 +196,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myViewport;
   }
 
-  @NotNull
   @Override
-  public ActionManager getActionManager() {
+  public @NotNull ActionManager<? extends DesignSurface<T>> getActionManager() {
     return myActionManager;
   }
 
