@@ -209,7 +209,7 @@ public class Configuration {
   private Consumer<BufferedImage> myImageTransformation = null;
   private boolean myGestureNav = false;
   private boolean myEdgeToEdge = false;
-  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.NO_CUTOUT;
+  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
   private FrameworkOverlay myDeviceOverlay = null;
 
   /**
