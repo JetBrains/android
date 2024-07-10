@@ -23,7 +23,6 @@ import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
@@ -127,11 +126,7 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
           previewInstances.addAll(deviceSizePreviews(base))
           previewInstances.addAll(fontSizePreviews(base))
           previewInstances.addAll(lightDarkPreviews(base))
-
-          val isColorBlindModeUICheckEnabled = StudioFlags.COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
-          if (isColorBlindModeUICheckEnabled) {
-            previewInstances.addAll(colorBlindPreviews(base))
-          }
+          previewInstances.addAll(colorBlindPreviews(base))
         }
         return previewInstances
       }
