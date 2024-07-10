@@ -1305,8 +1305,8 @@ android-studio/plugins/android/lib/generator.jar
 android-studio/plugins/android/lib/google-analytics-library.jar
 android-studio/plugins/android/lib/google-api-client-2.2.0.jar
 android-studio/plugins/android/lib/google-api-services-oauth2-v2-rev20200213-2.0.0.jar
-android-studio/plugins/android/lib/google-auth-library-credentials-1.4.0.jar
-android-studio/plugins/android/lib/google-auth-library-oauth2-http-1.4.0.jar
+android-studio/plugins/android/lib/google-auth-library-credentials-1.24.0.jar
+android-studio/plugins/android/lib/google-auth-library-oauth2-http-1.24.0.jar
 android-studio/plugins/android/lib/google-http-client-1.42.3.jar
 android-studio/plugins/android/lib/google-http-client-gson-1.42.3.jar
 android-studio/plugins/android/lib/google-login.jar
