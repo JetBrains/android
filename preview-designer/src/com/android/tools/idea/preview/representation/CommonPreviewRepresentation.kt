@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.representation
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
@@ -147,6 +148,7 @@ val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("Previe
  * @param useCustomInflater a configuration to apply when rendering the previews.
  * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
  *   for tracking refresh metrics.
+ * @param onAfterRender the function to be called after preview rendering completed for each scene.
  */
 open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   adapterViewFqcn: String,
@@ -170,6 +172,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
   private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
+  private val onAfterRender: (LayoutlibSceneManager) -> Unit = {},
 ) :
   PreviewRepresentation,
   AndroidCoroutinesAware,
@@ -179,7 +182,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   PreviewInvalidationManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
-  private val project = psiFile.project
+  protected val project = psiFile.project
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val buildTargetReference =
     BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
@@ -268,7 +271,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
   }
 
-  private val surface: NlDesignSurface
+  protected val surface: NlDesignSurface
     get() = previewView.mainSurface
 
   /** Used for allowing to decrease qualities of previews after deactivating this representation */
@@ -677,7 +680,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private fun onAfterRender() {
     // We need to run any callbacks that have been registered during the rendering of the preview
-    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
+    surface.sceneManagers.forEach {
+      onAfterRender(it)
+      it.executeCallbacksAndRequestRender()
+    }
     previewViewModel.afterPreviewsRefreshed()
   }
 
@@ -842,14 +848,17 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
-    createAnimationInspector()?.also {
-      Disposer.register(this@CommonPreviewRepresentation, it)
-      withContext(uiThread) { previewView.bottomPanel = it.component }
+    withContext(uiThread) {
+      createAnimationInspector(element)?.also {
+        Disposer.register(this@CommonPreviewRepresentation, it)
+        previewView.bottomPanel = it.component
+      }
     }
     ActivityTracker.getInstance().inc()
   }
 
-  protected open fun createAnimationInspector(): AnimationPreview<*>? {
+  @UiThread
+  protected open fun createAnimationInspector(element: PreviewElement<*>): AnimationPreview<*>? {
     return null
   }
 
