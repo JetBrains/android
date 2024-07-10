@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -45,12 +46,15 @@ final class Utils {
       .collect(Collectors.toList());
 
     LocalResourceRepository<VirtualFile> repository = ModuleResourceRepository.createForTest(facet, resVirtualFiles);
-    StringResourceRepository stringRepository = createStringRepository(repository);
+    StringResourceRepository stringRepository = createStringRepository(repository, panel.getProject());
     panel.getTable().setModel(new StringResourceTableModel(stringRepository, facet.getModule().getProject()));
   }
 
-  static @NotNull StringResourceRepository createStringRepository(@NotNull LocalResourceRepository<VirtualFile> repository) {
-    StringResourceRepository stringResourceRepository = StringResourceRepository.create(repository);
+  static @NotNull StringResourceRepository createStringRepository(
+    @NotNull LocalResourceRepository<VirtualFile> repository,
+    @NotNull Project project
+  ) {
+    StringResourceRepository stringResourceRepository = StringResourceRepository.create(repository, project);
     try {
       AtomicBoolean updatesFinished = new AtomicBoolean();
       repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(),

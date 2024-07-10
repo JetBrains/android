@@ -84,7 +84,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
     myRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
-    myPanel.getTable().setModel(new StringResourceTableModel(Utils.createStringRepository(myRepository), myFacet.getModule().getProject()));
+    myPanel.getTable().setModel(new StringResourceTableModel(Utils.createStringRepository(myRepository, getProject()), getProject()));
   }
 
   public void testSetShowingOnlyKeysNeedingTranslations() {

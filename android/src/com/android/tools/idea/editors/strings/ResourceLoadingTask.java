@@ -55,7 +55,7 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
     LocalResourceRepository<VirtualFile> localResourceRepository = myGetModuleResources.get();
-    StringResourceRepository repository = StringResourceRepository.create(localResourceRepository);
+    StringResourceRepository repository = StringResourceRepository.create(localResourceRepository, getProject());
     // Creating the StringResourceRepository initiates changes to localResourceRepository that may still
     // be in-flight. Wait (as long as it takes) for them to finish before proceeding.
     CountDownLatch latch = new CountDownLatch(1);
