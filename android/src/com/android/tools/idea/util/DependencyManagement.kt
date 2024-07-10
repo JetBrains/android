@@ -51,9 +51,7 @@ typealias DependencyAnalysis = Triple<List<GradleCoordinate>, List<GradleCoordin
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   try {
-    // TODO this artifact to coordinate translation is temporary and will be removed when GradleCoordinates are swapped in for GoogleMavenArtifactId.
-    val coordinate = GradleCoordinate(artifactId.mavenGroupId, artifactId.mavenArtifactId, "+")
-    return getModuleSystem().getResolvedDependency(coordinate) != null
+    return getModuleSystem().getResolvedDependency(artifactId) != null
   }
   catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)
