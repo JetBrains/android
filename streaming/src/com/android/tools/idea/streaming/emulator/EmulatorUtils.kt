@@ -16,15 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.ThemingStyle
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.intellij.ide.ui.LafManager
-
-private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
-
-@Suppress("UNCHECKED_CAST")
-fun <T> getEmptyObserver(): StreamObserver<T> {
-  return EMPTY_OBSERVER as StreamObserver<T>
-}
 
 /**
  * Returns the emulator UI theme matching the current IDE theme.
