@@ -54,7 +54,6 @@ import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -72,11 +71,13 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
@@ -130,6 +131,9 @@ class AndroidRunConfigurationExecutorTest {
 
   @Before
   fun setUp() {
+    // InnocuousThread- is needed because adblib's AsynchronousChannelGroup is reusing IJ's background threads.
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "InnocuousThread-")
+
     projectRule.project.replaceService(BackupManager::class.java, mockBackupManager, projectRule.testRootDisposable)
   }
 
