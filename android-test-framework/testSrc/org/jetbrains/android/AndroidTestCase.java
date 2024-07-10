@@ -260,7 +260,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  public static void initializeModuleFixtureBuilderWithSrcAndGen(AndroidModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+  public static void initializeModuleFixtureBuilderWithSrcAndGen(
+    AndroidModuleFixtureBuilder<?> moduleFixtureBuilder,
+    String moduleRoot
+  ) {
     moduleFixtureBuilder.setModuleRoot(moduleRoot);
     moduleFixtureBuilder.addContentRoot(moduleRoot);
 
