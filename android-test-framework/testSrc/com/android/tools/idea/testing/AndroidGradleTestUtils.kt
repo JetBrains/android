@@ -113,6 +113,7 @@ import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -2559,9 +2560,13 @@ fun injectSyncOutputDumper(
   )
 }
 
-fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
+fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStarted: () -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
   val gradleBuildInvoker = GradleBuildInvoker.getInstance(this)
   val disposable = Disposer.newDisposable()
+  val listener =  object: ProjectSystemBuildManager.BuildListener {
+    override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) = buildStarted()
+  }
+  messageBus.connect(disposable).subscribe(PROJECT_SYSTEM_BUILD_TOPIC, listener)
   try {
     injectBuildOutputDumpingBuildViewManager(project = this, disposable = disposable, eventHandler = eventHandler)
     val future = invoker(gradleBuildInvoker)

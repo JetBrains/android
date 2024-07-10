@@ -122,11 +122,9 @@ class BuildListenerTest {
     val preparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedTestProject.runTest {
       project.buildAndWait(
-        eventHandler = BuildStartHandler {
-          setupTestListener(
-            buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
-          )
-        }::handleEvent
+        buildStarted = { setupTestListener(
+          buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
+        )}
       ) { it.assemble() }
 
       assertThat(collectedEvents()).isEqualTo(
@@ -150,11 +148,9 @@ class BuildListenerTest {
     preparedTestProject.runTest {
       project.buildAndWait { it.assemble() }
       project.buildAndWait(
-        eventHandler = BuildStartHandler {
-          setupTestListener(
-            buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
-          )
-        }::handleEvent
+        buildStarted = { setupTestListener(
+          buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
+        )}
       ) { it.assemble() }
 
       assertThat(collectedEvents()).isEqualTo(
@@ -184,11 +180,9 @@ class BuildListenerTest {
         project.buildAndWait { it.assemble() }
       }
       project.buildAndWait(
-        eventHandler = BuildStartHandler {
-          setupTestListener(
-            buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
-          )
-        }::handleEvent
+        buildStarted = { setupTestListener(
+          buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
+        )}
       ) { it.assemble() }
 
       assertThat(collectedEvents()).isEqualTo(
@@ -408,17 +402,6 @@ class BuildListenerTest {
       )
     }) { project ->
       body(project)
-    }
-  }
-}
-
-private class BuildStartHandler(private val onBuildStart: () -> Unit) {
-  private var seen = false
-  fun handleEvent(event: BuildEvent) {
-    if (seen) return
-    if (event is ProgressBuildEvent) { // StartBuildEvent comes too soon.
-      seen = true
-      onBuildStart()
     }
   }
 }
