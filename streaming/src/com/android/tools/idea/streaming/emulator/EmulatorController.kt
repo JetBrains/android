@@ -717,7 +717,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     override fun onError(t: Throwable) {
-      if (!(t is StatusRuntimeException && t.status.code == Status.Code.CANCELLED) && channel?.isShutdown == false) {
+      if (channel?.isShutdown == false &&
+          (t !is StatusRuntimeException ||
+           (t.status.code != Status.Code.CANCELLED &&
+            (t.status.code != Status.Code.UNAVAILABLE || emulatorState.get() == EmulatorState.RUNNING)))) {
         LOG.warn("${method.fullMethodName} call failed - ${t.message}")
       }
 
