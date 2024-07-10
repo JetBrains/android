@@ -466,7 +466,8 @@ iml_studio_test(
     tags = [
         "block-network",
         "noci:studio-win",
-        "very_flaky",  # b/283129200
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/283129200
     ],
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
 )
@@ -506,7 +507,8 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags_linux = [
         "block-network",
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.

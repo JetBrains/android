@@ -37,7 +37,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/322952709
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/322952709
         "block-network",
     ],
     tags_mac = [],
@@ -56,7 +57,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/282881259, b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/282881259, b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/282881259, b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -75,7 +77,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -94,7 +97,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -113,7 +117,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -132,7 +137,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -167,7 +173,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -250,7 +257,8 @@ iml_studio_test(
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
         "block-network",
     ],
     tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
@@ -273,7 +281,8 @@ iml_studio_test(
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "block-network",
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
@@ -294,7 +303,8 @@ iml_studio_test(
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "block-network",
-        "very_flaky",  # b/260867011
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/260867011
     ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
