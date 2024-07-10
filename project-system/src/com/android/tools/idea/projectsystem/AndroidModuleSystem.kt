@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -149,6 +150,13 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(id: GoogleMavenArtifactId): GradleCoordinate? = getResolvedDependency(id.getCoordinate("+"))
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(id: GoogleMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
+    getResolvedDependency(id.getCoordinate("+"), scope)
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus

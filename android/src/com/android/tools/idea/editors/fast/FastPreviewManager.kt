@@ -191,7 +191,7 @@ private class DaemonRegistry(
  */
 private fun defaultRuntimeVersionLocator(module: Module): Version =
   module.getModuleSystem()
-    .getResolvedDependency(GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("+"))
+    .getResolvedDependency(GoogleMavenArtifactId.COMPOSE_TOOLING)
     ?.lowerBoundVersion ?: DEFAULT_RUNTIME_VERSION
 
 /**
