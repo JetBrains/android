@@ -164,6 +164,20 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "rendering": {
+            "test_filter": ".rendering",
+            "tags": ["cpu:4"],
+            "shard_count": 1,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "other": {
             # Note: we do not include AGP/Gradle artifacts in this test target, to enforce the separation between tests which require Gradle
             # to run (in split targets above) and this catch-all target.
