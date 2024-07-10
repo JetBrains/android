@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
@@ -398,6 +399,19 @@ abstract class PreviewSurface<T : SceneManager>(
       }
       return null
     }
+
+  /** Returns the list of [SceneView]s attached to this [DesignSurface]. */
+  val sceneViews: ImmutableCollection<SceneView>
+    get() {
+      return sceneManagers
+        .stream()
+        .flatMap { sceneManager: T -> sceneManager.sceneViews.stream() }
+        .collect(ImmutableList.toImmutableList())
+    }
+
+  override fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    sceneViews.forEach { it.onHover(x, y) }
+  }
 
   val layoutType: DesignerEditorFileType
     get() = model?.type ?: DefaultDesignerFileType

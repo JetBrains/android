@@ -44,7 +44,6 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -237,8 +236,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
 
     add(getLayeredPane());
-
-
 
     Interactable interactable = interactableProvider.apply(this);
     myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.apply(this));
@@ -589,23 +586,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   public JComponent getPreferredFocusedComponent() {
     return getInteractionPane();
-  }
-
-  /**
-   * Returns the list of SceneViews attached to this surface
-   */
-  @NotNull
-  public ImmutableCollection<SceneView> getSceneViews() {
-    return getSceneManagers().stream()
-      .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
-      .collect(ImmutableList.toImmutableList());
-  }
-
-  @Override
-  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    for (SceneView sceneView : getSceneViews()) {
-      sceneView.onHover(x, y);
-    }
   }
 
   @Override
