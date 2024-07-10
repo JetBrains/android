@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -147,6 +148,10 @@ public class StringResourceViewPanel implements Disposable {
     }
   }
 
+  public Project getProject() {
+    return myFacet.getModule().getProject();
+  }
+
   public void stopLoading() {
     myLoadingPanel.stopLoading();
     if (myToolbar != null) {
@@ -176,7 +181,7 @@ public class StringResourceViewPanel implements Disposable {
       .boxed()
       .flatMap((selectedRow) -> model.getRepository().getItems(model.getKey(selectedRow)).stream())
       .toList();
-    myStringResourceWriterFactory.get().safeDelete(myFacet.getModule().getProject(), items, this::reloadData);
+    myStringResourceWriterFactory.get().safeDelete(getProject(), items, this::reloadData);
   }
 
   /**
@@ -199,7 +204,7 @@ public class StringResourceViewPanel implements Disposable {
     int[] selectedRows = myTable.getSelectedModelRows();
     if (selectedRows.length < 1) return;
 
-    WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), "Delete Strings", null, () ->
+    WriteCommandAction.runWriteCommandAction(getProject(), "Delete Strings", null, () ->
       Arrays.stream(selectedRows).forEach(rowIndex -> myTable.getModel().setValueAt("", rowIndex, modelColumn)));
   }
 
@@ -211,7 +216,7 @@ public class StringResourceViewPanel implements Disposable {
     myTable = new StringResourceTable();
 
     myDeleteAction = new DeleteStringAction(this);
-    myGoToAction = new GoToDeclarationAction(myFacet.getModule().getProject());
+    myGoToAction = new GoToDeclarationAction(getProject());
     myCopyAllAction = CopyAllSelectedAction.create(myTable);
 
     myTable.putInActionMap("delete", myDeleteAction);
