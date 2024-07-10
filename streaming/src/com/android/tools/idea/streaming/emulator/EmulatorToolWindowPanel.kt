@@ -406,11 +406,15 @@ internal class EmulatorToolWindowPanel(
     }
 
     private fun setRootPanel(rootPanel: JPanel) {
-      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsAsync()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()
+
+      // Toolbar updates should be requested after all AbstractDisplayView have been placed in component hierarchy.
+      // Otherwise we risk the action update to have a partial component hierarchy which may lead to wrong results.
+      // See b/351129848
+      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
+      secondaryToolbar.updateActionsAsync()
     }
 
     private fun getDisplayDescriptors(emulatorView: EmulatorView, displays: List<DisplayConfiguration>): List<DisplayDescriptor> {
