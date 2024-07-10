@@ -159,7 +159,8 @@ iml_test(
     module = ":intellij.android.streaming.integration",
     tags = [
         "noci:studio-win",
-        "very_flaky",  # b/303195243
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/303195243
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -182,7 +183,8 @@ iml_test(
     module = ":intellij.android.streaming.integration",
     tags = [
         "noci:studio-win",
-        "very_flaky",  # b/303195243
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/303195243
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -205,7 +207,8 @@ iml_test(
     module = ":intellij.android.streaming.integration",
     tags = [
         "noci:studio-win",
-        "very_flaky",  # b/271008444
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/271008444
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
