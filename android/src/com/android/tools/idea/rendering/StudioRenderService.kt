@@ -77,7 +77,7 @@ open class StudioRenderService {
  */
 @JvmOverloads
 fun RenderService.taskBuilder(
-  buildTarget: BuildTargetReference,
+  buildTarget: AndroidBuildTargetReference,
   configuration: Configuration,
   logger: RenderLogger = createLogger(buildTarget.project),
   wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity(),

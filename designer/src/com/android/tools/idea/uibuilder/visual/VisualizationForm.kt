@@ -34,7 +34,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
@@ -391,7 +391,7 @@ class VisualizationForm(
             myCurrentModelsProvider.createNlModels(
               this,
               file!!,
-              BuildTargetReference.from(facet!!, targetFile),
+              AndroidBuildTargetReference.from(facet!!, targetFile),
             )
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")

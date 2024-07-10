@@ -25,7 +25,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
@@ -167,7 +167,7 @@ class PreviewProvider(
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
     return renderService
-      .taskBuilderWithHtmlLogger(BuildTargetReference.gradleOnly(facet), configuration)
+      .taskBuilderWithHtmlLogger(AndroidBuildTargetReference.gradleOnly(facet), configuration)
       .build()
   }
 

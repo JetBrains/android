@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -97,7 +97,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         dashboardLayout,
       )
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
@@ -120,7 +120,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         atfLayout,
       )
     VisualLintService.getInstance(projectRule.project)
@@ -150,7 +150,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         wearLayout,
         wearConfiguration,
       )
@@ -200,7 +200,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         notificationsLayout,
         phoneConfig,
       )
@@ -234,7 +234,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         notificationsLayout,
         tabletConfig,
       )
@@ -264,7 +264,7 @@ class VisualLintServiceTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         atfLayout,
         phoneConfig,
       )

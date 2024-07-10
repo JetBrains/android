@@ -25,7 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
-import com.google.common.collect.ImmutableList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.ArrayList;
@@ -55,12 +54,12 @@ public class NlModelBuilderUtil {
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
-    return model(BuildTargetReference.gradleOnly(AndroidFacet.getInstance(rule.getModule())), rule.getFixture(), resourceFolder, name,
+    return model(AndroidBuildTargetReference.gradleOnly(AndroidFacet.getInstance(rule.getModule())), rule.getFixture(), resourceFolder, name,
                  root);
   }
 
   @NotNull
-  public static ModelBuilder model(@NotNull BuildTargetReference buildTarget,
+  public static ModelBuilder model(@NotNull AndroidBuildTargetReference buildTarget,
                                    @NotNull CodeInsightTestFixture fixture,
                                    @NotNull String resourceFolder,
                                    @NotNull String name,

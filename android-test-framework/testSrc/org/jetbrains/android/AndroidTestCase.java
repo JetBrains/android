@@ -9,7 +9,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
@@ -93,7 +93,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected List<Module> myAdditionalModules;
 
   protected AndroidFacet myFacet;
-  protected BuildTargetReference myBuildTarget;
+  protected AndroidBuildTargetReference myBuildTarget;
   protected CodeStyleSettings mySettings;
 
   protected AdtTestProjectDescriptor myProjectDescriptor;
@@ -159,7 +159,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     createManifest();
 
     myFacet = addAndroidFacetAndSdk(myModule);
-    myBuildTarget = BuildTargetReference.gradleOnly(myFacet);
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 

@@ -50,10 +50,10 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Studio-specific [RenderModelModule] constructed from a [BuildTargetReference] that is an [AndroidFacet] wrapper.
+ * Studio-specific [RenderModelModule] constructed from a [AndroidBuildTargetReference] that is an [AndroidFacet] wrapper.
  * The facet is then used to retrieve the [RenderModelModule] information.
  */
-class AndroidFacetRenderModelModule(private val buildTarget: BuildTargetReference) : RenderModelModule {
+class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetReference) : RenderModelModule {
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
   private val _isDisposed = AtomicBoolean(false)
   private val facet: AndroidFacet get() = buildTarget.facet
