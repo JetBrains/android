@@ -26,6 +26,7 @@
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceCableMonitor"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.AdbServerStatusReporter"/>
     <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
