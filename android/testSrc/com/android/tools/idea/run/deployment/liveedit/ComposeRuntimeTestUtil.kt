@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.JavaLibraryDependency
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
@@ -71,6 +72,7 @@ fun registerComposeCompilerPlugin(project: Project) {
  */
 fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(projectRule: AndroidProjectRule.Typed<T, Nothing>) {
   // Load the compose runtime into the main module's library dependency.
+  VfsRootAccess.allowRootAccess(projectRule.testRootDisposable, composeRuntimePath)
   LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
   projectRule.project.modules.forEach {
     PsiTestUtil.addLibrary(it, composeRuntimePath)
