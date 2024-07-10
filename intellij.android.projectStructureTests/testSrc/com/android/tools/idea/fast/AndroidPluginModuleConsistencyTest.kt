@@ -1,13 +1,10 @@
 // Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.fast
 
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
-import com.intellij.project.IntelliJProjectConfiguration
-import com.intellij.testFramework.PlatformTestUtil
 import org.jdom.Element
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.module.JpsModule
@@ -22,22 +19,24 @@ import java.util.Locale
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 
-class AndroidPluginModuleConsistencyTest {
+class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCase() {
+  /**
+   * The following Android modules exist only in IJ Ultimate and IJ Community projects
+   * and should not be referenced in Android plugin projects.
+   */
   private val intelliJOnlyAndroidModules = listOf(
     // The IntelliJ project consistency test module that exists only in IJ monorepo
     "intellij.android.projectStructureTests",
     // Remote dev module available only in ultimate
     "intellij.android.backend.split"
   )
-  private val communityHomePath = Paths.get(PlatformTestUtil.getCommunityPath())
-  private val androidHomePath = communityHomePath.resolve("android")
-
-  private val androidProject: JpsProject = IntelliJProjectConfiguration.loadIntelliJProject(androidHomePath.absolutePathString())
 
   @Test
   fun `modules from 'Android plugin' repository are added to 'Ultimate'`() {
-    val ultimateProjectHomePath = Paths.get(PathManager.getHomePath())
-    val ultimateProject = IntelliJProjectConfiguration.loadIntelliJProject(ultimateProjectHomePath.absolutePathString())
+    val androidProject = androidProject
+    val androidProjectHomePath = androidHomePath
+    val ultimateProject = ultimateProject
+    val ultimateProjectHomePath = ultimateHomePath
 
     val androidModules = androidProject.modules.toHashSet()
     val androidModulesNames = androidModules
@@ -57,7 +56,7 @@ class AndroidPluginModuleConsistencyTest {
       .partition { it.exists() }
 
     if (missingAndroidModulesInAndroidPlugin.isNotEmpty()) {
-      failWithFileComparisonError(androidProject, androidHomePath, missingAndroidModulesInAndroidPlugin, emptyList())
+      failWithFileComparisonError(androidProject, androidProjectHomePath, missingAndroidModulesInAndroidPlugin, emptyList())
     }
 
     if ((missingAndroidModulesInUltimate + obsoleteAndroidModulesInUltimate).isNotEmpty()) {
@@ -70,7 +69,10 @@ class AndroidPluginModuleConsistencyTest {
 
   @Test
   fun `modules from 'Android plugin' repository are added to 'Community'`() {
-    val communityProject = IntelliJProjectConfiguration.loadIntelliJProject(communityHomePath.absolutePathString())
+    val androidProject = androidProject
+    val androidProjectHomePath = androidHomePath
+    val communityProject = communityProject
+    val communityProjectHomePath = communityHomePath
 
     val androidModules = androidProject.modules.toHashSet()
     val androidModulesNames = androidModules
@@ -90,12 +92,12 @@ class AndroidPluginModuleConsistencyTest {
       .partition { it.exists() }
 
     if (missingAndroidModulesInAndroidPlugin.isNotEmpty()) {
-      failWithFileComparisonError(androidProject, androidHomePath, missingAndroidModulesInAndroidPlugin, emptyList())
+      failWithFileComparisonError(androidProject, androidProjectHomePath, missingAndroidModulesInAndroidPlugin, emptyList())
     }
 
     if ((missingAndroidModulesInCommunity + obsoleteAndroidModulesInCommunity).isNotEmpty()) {
       failWithFileComparisonError(communityProject,
-                                  communityHomePath,
+                                  communityProjectHomePath,
                                   missingAndroidModulesInCommunity,
                                   obsoleteAndroidModulesInCommunity)
     }
