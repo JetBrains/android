@@ -1248,7 +1248,8 @@ internal fun modelCacheV2Impl(
 
   fun androidGradlePluginProjectFlagsFrom(
     flags: AndroidGradlePluginProjectFlags,
-    gradlePropertiesModel: GradlePropertiesModel
+    gradlePropertiesModel: GradlePropertiesModel,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
   ): IdeAndroidGradlePluginProjectFlagsImpl =
     IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
@@ -1261,7 +1262,9 @@ internal fun modelCacheV2Impl(
       androidResourcesEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.BUILD_FEATURE_ANDROID_RESOURCES.getValue(flags),
       unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
       // If the property is not found in AGPProjectFlags (e.g., when opening older AGPs), get it from GradlePropertiesModel
-      useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX)
+      useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX),
+      dataBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.DATA_BINDING_ENABLED
+        .getValue(flags, legacyAndroidGradlePluginProperties?.dataBindingEnabled),
     )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
@@ -1329,7 +1332,7 @@ internal fun modelCacheV2Impl(
     val groupId = androidDsl.groupId
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
-    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel)
+    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel, legacyAndroidGradlePluginProperties)
     val desugarLibConfig = project.takeIf { modelVersions[ModelFeature.HAS_DESUGAR_LIB_CONFIG] }?.desugarLibConfig.orEmpty()
     val lintJar = project.takeIf { modelVersions[ModelFeature.HAS_LINT_JAR_IN_ANDROID_PROJECT] }?.lintJar?.deduplicateFile()
 

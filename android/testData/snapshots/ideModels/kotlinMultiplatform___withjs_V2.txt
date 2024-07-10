@@ -1256,6 +1256,7 @@
             UsesCompose                   : false
             MlModelBindingEnabled         : false
             AndroidResourcesEnabled       : true
+            DataBindingEnabled            : false
         - basicVariant:               : debug
             applicationId                 : com.example.android.kotlin
             testApplicationId             : com.example.android.kotlin.test
@@ -2546,6 +2547,7 @@ Required by:
             UsesCompose                   : false
             MlModelBindingEnabled         : false
             AndroidResourcesEnabled       : true
+            DataBindingEnabled            : false
         - basicVariant:               : debug
             testApplicationId             : com.example.test.multiproject.module2.test
             buildType                     : debug

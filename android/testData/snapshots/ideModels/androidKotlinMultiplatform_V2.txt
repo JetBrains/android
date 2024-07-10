@@ -1186,6 +1186,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
         buildType                     : debug
@@ -1788,6 +1789,7 @@ MODULE                        : Kotlin_Multiplatform.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -2237,6 +2239,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : false
+        DataBindingEnabled            : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -3044,6 +3047,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : false
+        DataBindingEnabled            : false
     - basicVariant:               : androidMain
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DefaultSourceProvider

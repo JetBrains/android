@@ -95,7 +95,8 @@ enum class ModelFeature(
   USES_ABSOLUTE_GRADLE_BUILD_PATHS_IN_DEPENDENCY_MODEL(AgpVersion.parse("8.2.0-alpha13")),
   HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH(AgpVersion.parse("8.2.0-alpha03")),
   HAS_SCREENSHOT_TESTS_SUPPORT(AgpVersion.parse("8.4.0-alpha07")),
-  HAS_EXPERIMENTAL_PROPERTIES(AgpVersion.parse("8.6.0-alpha01"))
+  HAS_EXPERIMENTAL_PROPERTIES(AgpVersion.parse("8.6.0-alpha01")),
+  HAS_DATA_BINDING(ModelVersion(9))
   ;
 
   init {
@@ -141,11 +142,12 @@ data class ModelVersions(
 private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
                                                    gradleProject: BasicGradleProject,
                                                    modelVersions: ModelVersions): LegacyAndroidGradlePluginProperties? {
-  if (modelVersions[ModelFeature.HAS_APPLICATION_ID] && modelVersions[ModelFeature.HAS_NAMESPACE]) return null // Only fetch the model if it is needed.
+  if (modelVersions[ModelFeature.HAS_APPLICATION_ID] && modelVersions[ModelFeature.HAS_NAMESPACE] && modelVersions[ModelFeature.HAS_DATA_BINDING]) return null // Only fetch the model if it is needed.
   return controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java,
                               LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
     it.componentToApplicationIdMap = !modelVersions[ModelFeature.HAS_APPLICATION_ID]
     it.namespace = !modelVersions[ModelFeature.HAS_NAMESPACE]
+    it.dataBinding = !modelVersions[ModelFeature.HAS_DATA_BINDING]
   }
 }
 /**

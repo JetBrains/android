@@ -54,4 +54,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean
+
+  /** Whether android resource data binding is enabled in this project. */
+  val dataBindingEnabled: Boolean
 }
