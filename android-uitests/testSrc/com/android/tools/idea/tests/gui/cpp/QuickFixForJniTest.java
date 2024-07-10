@@ -93,9 +93,8 @@ public class QuickFixForJniTest {
     inspectCodeDialog.clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.requestFocusIfLost();
-
-    List<String> errors = editor.getHighlights(HighlightSeverity.ERROR);
-    assertThat(errors).hasSize(1);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
 
     // Trigger Quick fix.
     editor.select("void printFromJNI()")
@@ -137,8 +136,8 @@ public class QuickFixForJniTest {
 
     // Check no red in Java file.
     editor = ideFrame.getEditor().open(JAVA_FILE);
-    errors = editor.getHighlights(HighlightSeverity.ERROR);
-    assertThat(errors).hasSize(0);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
   private void clickOnItemInPopup(JBList quickFixPopup, String popupToBeSelected) {
