@@ -328,6 +328,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether the view binding feature is enabled for this module. */
   val isViewBindingEnabled: Boolean get() = false
 
+  /** Whether the data binding feature is enabled for this module. */
+  val isDataBindingEnabled: Boolean get() = false
+
   /** Whether KAPT is enabled for this module. */
   val isKaptEnabled: Boolean get() = false
 
