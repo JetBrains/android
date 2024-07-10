@@ -29,8 +29,6 @@ import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.InputEvent
-import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
@@ -41,7 +39,6 @@ import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
-import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
@@ -124,9 +121,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       ch.notifyWhenStateChanged(state, this)
     }
   }
-  private val keyboardEventQueue = ArrayDeque<Pair<KeyboardEvent, StreamObserver<Empty>>>()
-  @GuardedBy("keyboardEventQueue")
-  private var keyboardEventInFlight = false
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
@@ -361,72 +355,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     emulatorControllerStub.setDisplayMode(displayMode,
                                           DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetDisplayModeMethod()))
-  }
-
-  /**
-   * Sends a [KeyboardEvent] to the Emulator.
-   */
-  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
-    }
-    // Non-streaming gRPC calls don't guarantee in-order delivery. To make sure that the keyboard
-    // events don't arrive out of order, we don't issue a new sendKey call until the previous one
-    // is completed.
-    synchronized(keyboardEventQueue) {
-      if (keyboardEventInFlight) {
-        keyboardEventQueue.add(Pair(keyboardEvent, streamObserver))
-        return
-      }
-      keyboardEventInFlight = true
-    }
-
-    doSendKeyboardEvent(keyboardEvent, streamObserver)
-  }
-
-  private fun doSendKeyboardEvent(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty>) {
-    val observer = object : DelegatingStreamObserver<KeyboardEvent, Empty>(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()) {
-      override fun onCompleted() {
-        try {
-          super.onCompleted()
-        }
-        finally {
-          sendQueuedKeyboardEventIfAny()
-        }
-      }
-    }
-
-    emulatorControllerStub.sendKey(keyboardEvent, observer)
-  }
-
-  private fun sendQueuedKeyboardEventIfAny() {
-    val item: Pair<KeyboardEvent, StreamObserver<Empty>>
-    synchronized(keyboardEventQueue) {
-      keyboardEventInFlight = false
-      item = keyboardEventQueue.removeFirstOrNull() ?: return
-      keyboardEventInFlight = true
-    }
-    doSendKeyboardEvent(item.first, item.second)
-  }
-
-  /**
-   * Sends a [MouseEvent] to the Emulator.
-   */
-  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
-      LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
-    }
-    emulatorControllerStub.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
-  }
-
-  /**
-   * Sends a [TouchEvent] to the Emulator.
-   */
-  fun sendTouch(touchEvent: TouchEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
-      LOG.info("sendTouch(${shortDebugString(touchEvent)})")
-    }
-    emulatorControllerStub.sendTouch(touchEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendTouchMethod()))
   }
 
   /**

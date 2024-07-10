@@ -288,13 +288,16 @@ class EmulatorViewTest {
     fakeUi = FakeUi(createScrollPane(view), 2.0)
 
     fakeUi.keyboard.setFocus(view)
+    var call: GrpcCallRecord? = null
     // Printable ASCII characters.
     for (c in ' '..'~') {
       fakeUi.keyboard.type(c.code)
-      val call = fakeEmulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      if (call == null) {
+        call = fakeEmulator.getNextGrpcCall(2.seconds)
+      }
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
       val expectedText = when (c) { '\"', '\'', '\\' -> "\\$c" else -> c.toString() }
-      assertThat(shortDebugString(call.request)).isEqualTo("""text: "$expectedText"""")
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { text: \"$expectedText\" }")
     }
 
     val trivialKeyStrokeCases = mapOf(
@@ -318,9 +321,8 @@ class EmulatorViewTest {
     )
     for ((hostKeyStroke, emulatorKeyName) in trivialKeyStrokeCases) {
       fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      val call = fakeEmulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "$emulatorKeyName"""")
+      assertThat(shortDebugString(call!!.getNextRequest(1.seconds))).isEqualTo(
+          "key_event { eventType: keypress key: \"$emulatorKeyName\" }")
     }
 
     val keyStrokeCases = mapOf(
@@ -375,9 +377,7 @@ class EmulatorViewTest {
       fakeUi.keyboard.pressAndRelease(hostKeyStroke.keyCode)
       fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
       for (message in keyboardEventMessages) {
-        val call = fakeEmulator.getNextGrpcCall(2.seconds)
-        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-        assertThat(shortDebugString(call.request)).isEqualTo(message)
+        assertThat(shortDebugString(call!!.getNextRequest(1.seconds))).isEqualTo("key_event { $message }")
       }
     }
 
@@ -500,21 +500,17 @@ class EmulatorViewTest {
 
     // Check EmulatorBackButtonAction.
     emulatorViewRule.executeAction("android.device.back.button", view, place = ActionPlaces.KEYBOARD_SHORTCUT)
-    var call = fakeEmulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("""eventType: keypress key: "GoBack"""")
+    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"GoBack\" }")
 
     // Check EmulatorHomeButtonAction.
     emulatorViewRule.executeAction("android.device.home.button", view, place = ActionPlaces.KEYBOARD_SHORTCUT)
-    call = fakeEmulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("""eventType: keypress key: "GoHome"""")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"GoHome\" }")
 
     // Check EmulatorOverviewButtonAction.
     emulatorViewRule.executeAction("android.device.overview.button", view, place = ActionPlaces.MOUSE_SHORTCUT)
-    call = fakeEmulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("""eventType: keypress key: "AppSwitch"""")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"AppSwitch\" }")
   }
 
   @Test
@@ -707,28 +703,18 @@ class EmulatorViewTest {
     fakeUi.keyboard.setFocus(view)
 
     fakeUi.keyboard.press(VK_CONTROL)
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("key: \"Control\"")
-    }
+    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Control\" }")
 
     fakeUi.keyboard.press(KeyEvent.VK_S)
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("key: \"s\"")
-    }
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"s\" }")
 
     fakeUi.keyboard.release(KeyEvent.VK_S)
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"s\"")
-    }
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"s\" }")
 
     fakeUi.keyboard.release(VK_CONTROL)
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"Control\"")
-    }
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
   }
 
   @Test
@@ -849,25 +835,21 @@ class EmulatorViewTest {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 2.0)
 
-    // Enable hardware input
+    // Enable hardware input.
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
 
-    // Press Ctrl
+    // Press Ctrl.
     focusManager.focusOwner = view
     fakeUi.keyboard.press(VK_CONTROL)
 
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("key: \"Control\"")
-    }
+    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Control\" }")
 
-    // Disable hardware input
+    // Disable hardware input.
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
 
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"Control\"")
-    }
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
   }
 
   @Test
@@ -875,25 +857,21 @@ class EmulatorViewTest {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 2.0)
 
-    // Enable hardware input
+    // Enable hardware input.
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
 
-    // Press Ctrl
+    // Press Ctrl.
     focusManager.focusOwner = view
     fakeUi.keyboard.press(VK_CONTROL)
 
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("key: \"Control\"")
-    }
+    val call = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Control\" }")
 
-    // Lose focus
+    // Lose focus.
     focusManager.focusOwner = null
 
-    fakeEmulator.getNextGrpcCall(2.seconds).apply {
-      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"Control\"")
-    }
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
   }
 
   @Test
