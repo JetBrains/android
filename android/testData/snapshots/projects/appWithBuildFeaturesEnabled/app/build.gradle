@@ -21,8 +21,11 @@ android {
         abortOnError false
     }
 
+    dataBinding {
+      enabled = true // This form is valid across all supported versions of AGP
+    }
+
     // Enable all build features
-    // TODO(b/250021829) Add dataBinding and viewBinding too
     buildFeatures {
         aidl true
         buildConfig true
