@@ -28,10 +28,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.UnindexedFilesScannerExecutor
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.annotations.CheckReturnValue
+import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -41,21 +43,6 @@ import org.junit.Test
 class AndroidMavenImportIntentionActionTest {
 
   @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
-  private fun <T> openTestProject(
-    testProject: TestProjectDefinition,
-    body: PreparedTestProject.Context.(Project) -> T
-  ) {
-    return projectRule.openTestProject(testProject) {
-      ApplicationManager.getApplication()
-        .replaceService(
-          MavenClassRegistryManager::class.java,
-          fakeMavenClassRegistryManager,
-          fixture.testRootDisposable
-        )
-      body(project)
-    }
-  }
 
   @Test
   fun unresolvedSymbolInAndroidX() {
@@ -682,6 +669,8 @@ class AndroidMavenImportIntentionActionTest {
         }
         // Run whatever is left
         andThen(action)
+
+        UnindexedFilesScannerExecutor.getInstance(project).cancelAllTasksAndWait()
       }
     }
   }
