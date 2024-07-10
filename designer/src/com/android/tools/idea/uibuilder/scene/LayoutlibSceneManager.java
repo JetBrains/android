@@ -114,7 +114,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,7 +140,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
   private SessionClock mySessionClock;
-  private final Supplier<SessionClock> mySessionClockFactory;
   // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
   // since RenderTask is able to handle those safely.
   private final Object myRenderingTaskLock = new Object();
@@ -279,19 +277,16 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param sceneComponentProvider     a {@link SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
-   * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @NotNull LayoutScannerConfiguration layoutScannerConfig,
-                                  @NotNull Supplier<SessionClock> sessionClockFactory) {
+                                  @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
-    mySessionClockFactory = sessionClockFactory;
     createSceneView();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
@@ -332,26 +327,23 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, LayoutScannerConfiguration, Supplier)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, LayoutScannerConfiguration)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
    *                               {@link SceneComponent}s.
-   * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
-                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @NotNull Supplier<SessionClock> sessionClockFactory) {
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
     this(
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       sceneComponentProvider,
-      new LayoutScannerEnabled(),
-      sessionClockFactory);
+      new LayoutScannerEnabled());
     myLayoutScannerConfig.setLayoutScannerEnabled(false);
   }
 
@@ -369,8 +361,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
-      config,
-      RealTimeSessionClock::new);
+      config);
   }
 
   @NotNull
@@ -448,7 +439,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         }
       }
       // TODO(b/168445543): move session clock to RenderTask
-      mySessionClock = mySessionClockFactory.get();
+      mySessionClock = new RealTimeSessionClock();
       myRenderTask = newTask;
     }
   }
