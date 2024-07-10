@@ -628,7 +628,12 @@ studio_plugin(
     licenses = [
         "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
     ],
-    modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
+    modules = {
+        "test-recorder.jar": [
+            "//tools/studio/google/cloud/testing/test-recorder:test-recorder",
+            "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
