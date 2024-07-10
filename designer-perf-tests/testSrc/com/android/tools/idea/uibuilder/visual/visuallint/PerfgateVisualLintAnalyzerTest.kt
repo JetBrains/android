@@ -155,7 +155,9 @@ class PerfgateVisualLintAnalyzerTest {
     }
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel) }
     }
