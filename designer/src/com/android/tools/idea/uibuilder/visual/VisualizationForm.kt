@@ -142,7 +142,7 @@ class VisualizationForm(
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
   private val analyticsManager: NlAnalyticsManager
-    get() = surface.analyticsManager
+    get() = surface.analyticsManager as NlAnalyticsManager
 
   var editor: FileEditor?
     get() = myEditor

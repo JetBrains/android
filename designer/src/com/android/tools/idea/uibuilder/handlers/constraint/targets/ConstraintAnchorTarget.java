@@ -869,7 +869,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       return;
     }
 
-    NlAnalyticsManager manager = ((NlDesignSurface)surface).getAnalyticsManager();
+    NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
     manager.trackAddConstraint();
   }
 
@@ -879,7 +879,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       return;
     }
 
-    NlAnalyticsManager manager = ((NlDesignSurface)surface).getAnalyticsManager();
+    NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
     manager.trackRemoveConstraint();
   }
 

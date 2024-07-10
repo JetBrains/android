@@ -1316,7 +1316,7 @@ public class CommonActions {
 
   @NotNull
   private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
-    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
+    return (NlAnalyticsManager)editor.getScene().getDesignSurface().getAnalyticsManager();
   }
 
 }

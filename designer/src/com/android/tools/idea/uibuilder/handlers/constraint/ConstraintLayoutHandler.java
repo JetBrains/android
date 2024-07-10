@@ -200,7 +200,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   @NotNull
   private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
-    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
+    return (NlAnalyticsManager)editor.getScene().getDesignSurface().getAnalyticsManager();
   }
 
   @Override

@@ -1077,7 +1077,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     if (flags != 0) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
-      NlAnalyticsManager analyticsManager = ((NlDesignSurface)surface).getAnalyticsManager();
+      NlAnalyticsManager analyticsManager = (NlAnalyticsManager)(surface.getAnalyticsManager());
 
       if ((flags & ConfigurationListener.CFG_THEME) != 0) {
         analyticsManager.trackThemeChange();
