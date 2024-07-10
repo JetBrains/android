@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2024.1.2">
+    version="2024.1.3.00">
   <feature
-      name="What's New in Koala Feature Drop">
+      name="What's New in Ladybug">
     <tutorial
         key="whats-new"
-        label=" What's New in Koala Feature Drop"
+        label=" What's New in Ladybug"
         icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-1-2"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-1-3"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,57 +37,87 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Access real devices with Device Streaming">
+      <step label="Code suggestions with Gemini in Android Studio">
         <stepElement>
           <section>
             <![CDATA[
-            <p>
-            Device streaming in Android Studio lets you securely connect to remote physical
-            Android devices hosted in Google's secure data centers. Powered by Firebase, it's the
-            fastest and easiest way to test your app against real devices, including the Google
-            Pixel 8 Pro, Pixel Fold, select Samsung devices, and more.
+            <p>Provide custom prompts for Gemini in Android Studio to generate code suggestions. You
+            can ask Gemini to simplify complex code by rewriting it, perform very specific code
+            transformations such as "make this code idiomatic," or generate new functions you
+            describe. Android Studio then shows you Gemini's code suggestion as a code diff, so that
+            you can review and accept only the suggestions you want.
             </p>
             <br>
-            <img
-              src="https://d.android.com/studio/releases/assistant/2023.3.1/device-streaming.gif"
-              width="428"
-              alt="">
-            <br><br>
-            <p>
-            After connecting to a device, you can deploy your app, view the display, interact with
-            the device (including rotating or unfolding the device), and anything else you might do
-            with a device over a direct ADB over SSL connection—all without leaving Android Studio.
-            When you're done using the device, Google wipes all your data and factory resets the
-            device before making it available to another developer.
-            </p>
-            <p>
-            During Open Alpha, you can use Device Streaming at no cost by simply logging into your
-            Developer account and selecting a Firebase project. If you don't already have a Firebase
-            project, it's free and easy to create one.
-            </p>
+            <a href="https://d.android.com/r/studio-ui/gemini/code-suggestions">Learn more</a>
+            <br>
             ]]>
           </section>
         </stepElement>
-        <stepElement>
-          <action
-              key="device.streaming.onboarding"
-              label="Get Started">
-          </action>
-        </stepElement>
       </step>
-      <step label="Build a Generative AI app using the Gemini API template">
+      <step label="Analyze crash reports with Gemini in Android Studio">
         <stepElement>
           <section>
             <![CDATA[
-            <p>
-            You can now use Android Studio to build an app that implements Generative AI using the
-            <a href="http://ai.google.dev/tutorials/android_quickstart?utm_source=android&utm_medium=referral">Google AI SDK</a>.
-            The Gemini API template in Android Studio lets you incorporate AI-powered features, such
-            as those that rely on text generation and image recognition, in your app to delight your
-            users.
+            <p>Use Gemini in Android Studio to analyze your App Quality Insights crash reports,
+            generate insights, provide a crash summary, and when possible recommend next steps,
+            including sample code and links to relevant documentation. Generate all of this
+            information by clicking <b>Show Insights</b> in the <b>App Quality Insights</b> tool
+            window in Android Studio after you enable Gemini from
+            <b>View > Tool Windows > Gemini</b>.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/debug/gemini-aqi">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Google Play SDK Index integration">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>The Android Studio
+            <a href="https://d.android.com/build/dependencies#sdk-insights">Google Play SDK Index integration</a>
+            now includes warnings from the
+            <a href="https://android-developers.googleblog.com/2024/05/build-better-safer-sdks-google-play-sdk-console.html">Google Play SDK Console</a>.
+            This gives you a complete view of any potential version or policy issues in your
+            dependencies before submitting your app to the Google Play Console.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/build/play-sdk-index">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Mock sensor capabilities and values">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>Android Studio now includes a new sensor panel, which lets you simulate a device
+            having or not having specific sensor capabilities, such as a heart rate sensor, as well
+            as set specific test values for these sensors. Use this panel to test how your app
+            handles devices that have different sensor capabilities. This panel is useful for
+            testing health and fitness apps, especially on Wear OS devices.
+            </p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/test/mock-sensor-capabilities-values">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Compose Preview Screenshot Testing tool">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>Use the Compose Preview Screenshot Testing tool to test your Compose UIs and
+            prevent regressions. The new tool helps you generate HTML reports that let you
+            visually detect any changes to your app's UI.
             </p>
             <br><br>
-            <a href="https://d.android.com/r/studio-ui/ide/gemini-template">Learn more</a>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/test/compose-screenshot-testing">Learn more</a>
             <br>
             ]]>
           </section>
@@ -97,7 +127,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 05/07/2024</em><br><br>
+              <br><em>Last updated 7/2/2024</em><br>
             ]]>
           </section>
         </stepElement>
