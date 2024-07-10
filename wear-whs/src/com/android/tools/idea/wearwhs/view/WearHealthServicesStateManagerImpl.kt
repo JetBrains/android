@@ -25,7 +25,9 @@ import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -40,8 +42,8 @@ import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
-/** Maximum wait time for a command to get executed. */
-private const val MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS: Long = 5000
+private val MAX_WAIT_TIME_FOR_POLL_UPDATE = 5.seconds
+private val MAX_WAIT_TIME_FOR_MODIFICATION = 10.seconds
 
 internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
@@ -109,7 +111,7 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   private suspend fun updateState() {
-    runWithStatus(WhsStateManagerStatus.Busy) {
+    runWithStatus(WhsStateManagerStatus.Busy, MAX_WAIT_TIME_FOR_POLL_UPDATE) {
       val activeExerciseResult =
         deviceManager.loadActiveExercise().map { activeExercise ->
           _ongoingExercise.value = activeExercise
@@ -147,10 +149,11 @@ internal class WearHealthServicesStateManagerImpl(
    */
   private suspend fun runWithStatus(
     status: WhsStateManagerStatus,
+    timeout: Duration,
     block: suspend () -> Result<Unit>,
   ) {
     try {
-      withTimeout(MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS) {
+      withTimeout(timeout) {
         _status.takeWhile { !it.idle }.collect {}
         _status.value = status
         block()
@@ -163,7 +166,9 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    runWithStatus(WhsStateManagerStatus.Syncing) { deviceManager.triggerEvent(eventTrigger) }
+    runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
+      deviceManager.triggerEvent(eventTrigger)
+    }
 
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
@@ -214,7 +219,7 @@ internal class WearHealthServicesStateManagerImpl(
     }
 
   override suspend fun applyChanges() =
-    runWithStatus(WhsStateManagerStatus.Syncing) {
+    runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
       val capabilityUpdates: Map<WhsDataType, Boolean>
       val overrideUpdates: List<WhsDataValue>
 
@@ -266,7 +271,7 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   override suspend fun reset() =
-    runWithStatus(WhsStateManagerStatus.Syncing) {
+    runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
       val reset =
         if (!ongoingExercise.value) {
           preset.value = Preset.ALL
