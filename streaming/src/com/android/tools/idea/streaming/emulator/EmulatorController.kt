@@ -289,6 +289,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (emulatorState.compareAndSet(EmulatorState.RUNNING, EmulatorState.SHUTDOWN_REQUESTED) &&
         connectionState == ConnectionState.CONNECTED) {
       sendShutdown()
+      channel?.shutdown()
     }
   }
 
