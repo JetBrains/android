@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Ladybug"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "2.1"
+STUDIO_MICRO_PATCH = "3.1"
 STUDIO_RELEASE_NUMBER = 1
