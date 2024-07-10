@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.animation.state.SingleState
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
-import com.android.tools.idea.preview.animation.TimelinePanel
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +39,7 @@ class AnimatedVisibilityAnimationManager(
   tracker: ComposeAnimationTracker,
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
@@ -54,7 +53,7 @@ class AnimatedVisibilityAnimationManager(
     tracker,
     animationClock,
     maxDurationPerIteration,
-    timelinePanel,
+    getCurrentTime,
     executeInRenderSession,
     tabbedPane,
     rootComponent,

@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
-import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -54,7 +53,7 @@ class SingleStateTest {
           "Title",
           listOf(
             FreezeAction(
-              createTestSlider(),
+              { 200 },
               MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
               NoopAnimationTracker,
             )
