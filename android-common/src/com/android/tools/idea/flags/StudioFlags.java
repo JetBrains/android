@@ -1929,12 +1929,6 @@ public final class StudioFlags {
                     "by the values set here.",
                     ChannelDefault.enabledUpTo(DEV));
 
-  public static final Flag<Boolean> STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
-                    "Enable sending context with build/sync error queries.",
-                    "When enabled, build/sync error queries will attach context from the project.",
-                    ChannelDefault.enabledUpTo(DEV));
-
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
                 "Enable sending context with compiler error queries.",

@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetailsContext
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorFileLocationContext
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
-import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.StudioBotExternalFlags
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
@@ -44,27 +41,29 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.writeText
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerExtension
 import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
-import java.util.function.Supplier
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
-import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
+import java.util.function.Supplier
+import kotlin.test.assertTrue
 
 @RunsInEdt
 class ExplainSyncOrBuildOutputTest {
@@ -80,6 +79,14 @@ class ExplainSyncOrBuildOutputTest {
     private val _chatService = spy(object : ChatService.StubChatService() {})
 
     override fun chat(project: Project): ChatService = _chatService
+  }
+
+  class MockStudioBotExternalFlags : StudioBotExternalFlags {
+    override fun isCompilerErrorContextEnabled(): Boolean = isCompilerErrorContextEnabled
+
+    companion object {
+      var isCompilerErrorContextEnabled = true
+    }
   }
 
   private val projectRule = ProjectRule()
@@ -99,14 +106,19 @@ class ExplainSyncOrBuildOutputTest {
 
   @Before
   fun setUp() {
-    // By default, enable context for tests
-    StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.override(true)
+    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = true
+
+    ApplicationManager.getApplication().registerExtension(
+      StudioBotExternalFlags.EP_NAME,
+      MockStudioBotExternalFlags(),
+      projectRule.disposable
+    )
   }
 
   @Test
   fun testActionPerformedExplainerText() {
     val panel = createTree()
-    panel.setSelectionRow(5)
+    panel.setSelectionRow(4)
 
     val action = ExplainSyncOrBuildOutput()
     val event =
@@ -120,18 +132,25 @@ class ExplainSyncOrBuildOutputTest {
           userMessage {
             text(
               """
-        I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
+I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
 
-        Here are more details about the error and my project:
-        START CONTEXT
-        Project name: ${project.name}
-        Project path: ${project.basePath}
-        END CONTEXT
+Full error details/trace:
+MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
 
-        Explain this error and how to fix it.
+The error is in this file:
+${errorFile.path}
+
+The error is located at the line marked with --->:
+```
+     class MyClass {
+--->   println("Hello") return
+     }
+```
+
+Explain this error and how to fix it.
       """
                 .trimIndent(),
-              emptyList(),
+              listOf(errorFile),
             )
           }
         },
@@ -142,11 +161,12 @@ class ExplainSyncOrBuildOutputTest {
 
   @Test
   fun test336196316() {
+    // Make sure that multi-line error messages don't mess up the prompt formatting
     val multilineErrorMessage = "Unexpected tokens (use ';' to separate expressions on the same line)\n" +
                                 "This is another line of the error description.\n" +
                                 "Multiple lines shouldn't mess up the query format."
     val panel = createTree(multilineErrorMessage)
-    panel.setSelectionRow(5)
+    panel.setSelectionRow(4)
 
     val action = ExplainSyncOrBuildOutput()
     val event =
@@ -164,16 +184,23 @@ I'm getting an error trying to build my project. The error is "Unexpected tokens
 This is another line of the error description.
 Multiple lines shouldn't mess up the query format.".
 
-Here are more details about the error and my project:
-START CONTEXT
-Project name: ${project.name}
-Project path: ${project.basePath}
-END CONTEXT
+Full error details/trace:
+MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
+
+The error is in this file:
+${errorFile.path}
+
+The error is located at the line marked with --->:
+```
+     class MyClass {
+--->   println("Hello") return
+     }
+```
 
 Explain this error and how to fix it.
       """
                 .trimIndent(),
-              emptyList(),
+              listOf(errorFile),
             )
           }
         },
@@ -183,10 +210,10 @@ Explain this error and how to fix it.
   }
 
   @Test
-  fun testActionPerformedWithContextFlagDisabled() {
+  fun testActionPerformedWithContextSettingDisabled() {
     (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
     val panel = createTree()
-    panel.setSelectionRow(5)
+    panel.setSelectionRow(4)
 
     val action = ExplainSyncOrBuildOutput()
     val event =
@@ -195,9 +222,47 @@ Explain this error and how to fix it.
     action.actionPerformed(event)
     verify(StudioBot.getInstance().chat(project))
       .stageChatQuery(
-        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
+        """
+          Explain build error: MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
+        """.trimIndent(),
         StudioBot.RequestSource.BUILD,
       )
+  }
+
+  @Test
+  fun testActionPerformedWithCompilerErrorContextFlagDisabled() {
+    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = false
+    val panel = createTree()
+    panel.setSelectionRow(4)
+
+    val action = ExplainSyncOrBuildOutput()
+    val event =
+      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+
+    action.actionPerformed(event)
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(
+        buildPrompt(project) {
+          userMessage {
+            text(
+              """
+I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
+
+Full error details/trace:
+MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
+
+Explain this error and how to fix it.
+      """
+                .trimIndent(),
+              emptyList(),
+            )
+          }
+        },
+        StudioBot.RequestSource.BUILD,
+        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
+      )
+    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = true
   }
 
   @Test
@@ -212,11 +277,11 @@ Explain this error and how to fix it.
     action.update(event)
     assertFalse(event.presentation.isEnabled)
     // leaf node selected
-    panel.setSelectionRow(5)
+    panel.setSelectionRow(4)
     action.update(event)
     assertTrue(event.presentation.isEnabled)
     // inner node selected
-    panel.setSelectionRow(4)
+    panel.setSelectionRow(3)
     action.update(event)
     assertFalse(event.presentation.isEnabled)
     verifyNoInteractions(StudioBot.getInstance().chat(project))
@@ -290,7 +355,7 @@ Explain this error and how to fix it.
 
       """
         .trimIndent(),
-      getErrorShortDescription(event),
+      getErrorDetails(event),
     )
   }
 
@@ -320,7 +385,7 @@ Explain this error and how to fix it.
       }
     assertEquals(
       """
-        Error details:
+        Gradle Sync issues.
         Could not find com.android.tools.build:gradle:123.456.789.
         Searched in the following locations:
           - file:/Users/username/dev/studio-main/out/repo/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
@@ -332,7 +397,7 @@ Explain this error and how to fix it.
         <a href="open.plugin.build.file">Open File</a>
       """
         .trimIndent(),
-      getErrorDetailsContext(node),
+      getErrorDetails(node.result),
     )
   }
 
@@ -350,77 +415,11 @@ Explain this error and how to fix it.
       }
     assertEquals(
       """
-        Error details:
         e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration
       """
         .trimIndent(),
-      getErrorDetailsContext(node),
+      getErrorDetails(node.result),
     )
-  }
-
-  @Test
-  fun getCompilerErrorLocationContext() {
-    val file = tempDirRule.createVirtualFile("MyFile.kt")
-
-    WriteCommandAction.runWriteCommandAction(project) {
-      file.writeText(
-        """
-        class MyClass {
-          println("Hello")
-        }
-      """
-          .trimIndent()
-      )
-    }
-
-    val navigatable = FileNavigatable(project, FilePosition(file.toIoFile(), 1, 2))
-
-    assertEquals(
-      Pair(
-        """
-        The error is in this file:
-        ${file.path}
-
-        The error is located at the line marked with --->:
-        ```
-             class MyClass {
-        --->   println("Hello")
-             }
-        ```
-      """
-          .trimIndent(),
-        file,
-      ),
-      getErrorFileLocationContext(navigatable, AiExcludeService.FakeAiExcludeService(project)),
-    )
-  }
-
-  @Test
-  fun errorLocationRespectsAiExclude() {
-    val file = tempDirRule.createVirtualFile("MyFile.kt")
-
-    WriteCommandAction.runWriteCommandAction(project) {
-      file.writeText(
-        """
-        class MyClass {
-          println("Hello")
-        }
-      """
-          .trimIndent()
-      )
-    }
-
-    val navigatable = FileNavigatable(project, FilePosition(file.toIoFile(), 1, 2))
-
-    // An AiExcludeService that excludes all files
-    val aiExcludeService =
-      AiExcludeService.FakeAiExcludeService(project).apply {
-        defaultStatus = AiExcludeService.ExclusionStatus.EXCLUDED
-      }
-
-    val result = getErrorFileLocationContext(navigatable, aiExcludeService)
-
-    assertEquals(null, result)
   }
 
   private class TestBuildTreeStructure(val root: TestExecutionNode) : AbstractTreeStructure() {
@@ -441,35 +440,63 @@ Explain this error and how to fix it.
     override fun hasSomethingToCommit(): Boolean = false
   }
 
-  private class TestExecutionNode(val payload: String, vararg val myChildren: TestExecutionNode) :
+  private class TestExecutionNode(
+    private val nodeName: String,
+    private val errorDetails: String? = null,
+    private val navigatable: Navigatable? = null,
+    private val child: TestExecutionNode? = null
+  ) :
     ExecutionNode(null, null, true, Supplier { true }) {
-    override fun getName(): String {
-      return payload
+    override fun getName(): String = nodeName
+
+    override fun getResult() = object : MessageEventResult {
+      override fun getKind() = MessageEvent.Kind.ERROR
+      override fun getDetails(): String? = errorDetails
     }
 
-    override fun getChildList(): List<TestExecutionNode> = listOf(*myChildren)
+    override fun getNavigatables() = listOfNotNull(navigatable)
+
+    override fun getChildList(): List<TestExecutionNode> = listOfNotNull(child)
   }
 
-  private fun createTree(errorMessage: String = "Unexpected tokens (use ';' to separate expressions on the same line)"): Tree {
+  // The file that the error is located in. The path changes on each test run so it needs to be updated
+  lateinit var errorFile: VirtualFile
+
+  private fun createTree(
+    errorMessage: String = "Unexpected tokens (use ';' to separate expressions on the same line)",
+    description: String = "MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description."
+  ): Tree {
+    errorFile = tempDirRule.createVirtualFile(
+      "MyFile.kt",
+      """
+        class MyClass {
+          println("Hello") return
+        }
+      """
+        .trimIndent()
+    )
+
+    val navigatable = FileNavigatable(project, FilePosition(errorFile.toIoFile(), 1, 2))
+
     val node =
       TestExecutionNode(
         "",
-        TestExecutionNode(
+        child = TestExecutionNode(
           "failed",
-          TestExecutionNode(
+          child = TestExecutionNode(
             ":app:compileDebugKotlin",
-            TestExecutionNode(
-              "SomeFile.kt",
-              TestExecutionNode(
-                "MainActivity.kt",
-                TestExecutionNode(
-                  errorMessage
-                ),
+            child = TestExecutionNode(
+              "MyFile.kt",
+              child = TestExecutionNode(
+                errorMessage,
+                description,
+                navigatable
               ),
             ),
           ),
         ),
       )
+
     val eventDispatchThread = Invoker.forEventDispatchThread(projectRule.disposable)
     val root =
       StructureTreeModel(
