@@ -141,9 +141,10 @@ class MimeTypeUtilsTest : BasePlatformTestCase() {
     assertFalse(MimeType.JAVA.isCompatibleWith(MimeType.KOTLIN))
     assertFalse(MimeType.KOTLIN.isCompatibleWith(MimeType.JAVA))
 
+    assertFalse(MimeType.GRADLE_KTS.isCompatibleWith(MimeType.KOTLIN))
+    assertFalse(MimeType.KOTLIN.isCompatibleWith(MimeType.GRADLE_KTS))
+
     assertTrue(MimeType.KOTLIN.isCompatibleWith(MimeType.KOTLIN))
-    assertTrue(MimeType.GRADLE_KTS.isCompatibleWith(MimeType.KOTLIN))
-    assertTrue(MimeType.KOTLIN.isCompatibleWith(MimeType.GRADLE_KTS))
     assertTrue(MimeType.GRADLE.isCompatibleWith(MimeType.GROOVY))
     assertTrue(MimeType.GROOVY.isCompatibleWith(MimeType.GRADLE))
 
