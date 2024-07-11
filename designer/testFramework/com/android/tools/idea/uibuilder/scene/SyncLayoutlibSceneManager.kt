@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
-import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.api.RenderModelModule
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
@@ -82,16 +81,6 @@ open class SyncLayoutlibSceneManager(
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
     return result
-  }
-
-  override fun renderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
-  ): CompletableFuture<RenderResult> {
-    if (ignoreRenderRequests) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger, reverseUpdate))
   }
 
   override fun requestRenderAsync(): CompletableFuture<Void> {
