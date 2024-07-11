@@ -140,7 +140,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
             ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) == null
           ) {
             if (ProblemsView.getToolWindow(project) != null) {
-              ProblemsView.addPanel(project, SharedIssuePanelProvider(project))
+              ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
             } else {
               // In unit tests, the ProblemView might be missing
               assert(ApplicationManager.getApplication().isUnitTestMode) {
