@@ -47,7 +47,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -256,7 +256,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
       is KtNamedFunction -> {
         analyze(sourcePsi) {
           val symbol = sourcePsi.symbol
-          val returnType = symbol.returnType as? KtNonErrorClassType
+          val returnType = symbol.returnType as? KaClassType
           returnType?.classId?.asSingleFqName()?.asString() == TILE_PREVIEW_DATA_FQ_NAME
         }
       }
@@ -288,7 +288,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
         val typeReference = valueParameters.singleOrNull()?.typeReference
         if (typeReference != null) {
           analyze(typeReference) {
-            val ktType = typeReference.getKtType() as? KtNonErrorClassType
+            val ktType = typeReference.getKtType() as? KaClassType
             ktType?.classId?.asSingleFqName()?.asString() == SdkConstants.CLASS_CONTEXT
           }
         } else false
