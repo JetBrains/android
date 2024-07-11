@@ -714,7 +714,7 @@
     <experimentalSettingsContributor implementation="com.android.tools.idea.flags.ComposeExperimentalSettingsContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.project">
-    <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>
+    <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystemProvider"/>
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml"/>

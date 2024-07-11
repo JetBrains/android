@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.openapi.project.Project
+
 /**
  * Interface to be implemented by extensions to the com.android.tools.idea.projectsystem extension
  * point. Implementations of this interface will receive a {@link Project} instance in their constructor,
@@ -31,7 +33,7 @@ interface AndroidProjectSystemProvider {
    * implementations of this interface should not make any assumptions in their constructor that they
    * will only be instantiated on projects they apply to.
    */
-  fun isApplicable(): Boolean
+  fun isApplicable(project: Project): Boolean
 
   /**
    * Unique ID for this type of project system. Each implementation should supply a different
@@ -43,7 +45,8 @@ interface AndroidProjectSystemProvider {
   val id: String
 
   /**
-   * The project system for this project.
+   * The project system factory for this project system.  See the comment for [AndroidProjectSystem] for
+   * requirements for implementations of this factory.
    */
-  val projectSystem: AndroidProjectSystem
+  fun projectSystemFactory(project: Project): AndroidProjectSystem
 }
