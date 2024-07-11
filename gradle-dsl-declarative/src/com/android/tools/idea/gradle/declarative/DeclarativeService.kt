@@ -36,20 +36,19 @@ import java.io.File
  * Gets and caches declarative schema.
  */
 @Service(Service.Level.PROJECT)
-class DeclarativeService {
-  val map = HashMap<Module, DeclarativeSchema>()
+class DeclarativeService(val project: Project) {
+  private val schema: DeclarativeSchema? = null
 
   companion object {
     fun getInstance(project: Project) = project.service<DeclarativeService>()
     val log = Logger.getInstance(DeclarativeService::class.java)
   }
 
-  fun getSchema(module: Module): DeclarativeSchema? {
+  fun getSchema(): DeclarativeSchema? {
     if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
-    return map.getOrPut(module) {
-      val parentPath = module.guessModuleDir()?.path
+    if (schema == null) {
+      val parentPath = project.basePath
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
-      schemaFolder.lastModified()
       val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
       val schemas = mutableListOf<DefaultAnalysisSchema>()
       var failure = false
@@ -68,6 +67,7 @@ class DeclarativeService {
         DeclarativeSchema(schemas, failure)
       else null
     }
+    return schema
   }
 }
 

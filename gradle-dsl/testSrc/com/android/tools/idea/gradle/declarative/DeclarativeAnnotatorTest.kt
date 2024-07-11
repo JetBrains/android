@@ -265,7 +265,7 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   private fun checkSchemaErrors(){
     val project = projectRule.project
 
-    val schema = DeclarativeService.getInstance(project).getSchema(project.modules[0])
+    val schema = DeclarativeService.getInstance(project).getSchema()
     Truth.assertThat(schema).isNotNull()
     Truth.assertThat(schema!!.failureHappened).isFalse()
   }

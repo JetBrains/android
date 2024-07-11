@@ -49,15 +49,15 @@ class DeclarativeServiceTest {
   @Test
   fun `read random schema files from predefined folder`() {
     fixture.copyFileToProject("somethingDeclarative/newFormatSchemas/project.dcl.schema", ".gradle/declarative-schema/random.dcl.schema")
-    val service = DeclarativeService()
-    val schema = service.getSchema(projectRule.module)
+    val service = DeclarativeService(projectRule.project)
+    val schema = service.getSchema()
     Truth.assertThat(schema).isNotNull()
   }
 
   @Test
   fun doNotFailIfNoSchemas() {
-    val service = DeclarativeService()
-    val schema = service.getSchema(projectRule.module)
+    val service = DeclarativeService(projectRule.project)
+    val schema = service.getSchema()
     Truth.assertThat(schema).isNull()
   }
 
@@ -66,8 +66,8 @@ class DeclarativeServiceTest {
     fixture.copyFileToProject("somethingDeclarative/settingsSchemas/settings.dcl.schema", ".gradle/declarative-schema/settings.dcl.schema")
     fixture.copyFileToProject("somethingDeclarative/oldSchema/project.dcl.schema", ".gradle/declarative-schema/project.dcl.schema")
 
-    val service = DeclarativeService()
-    val schema = service.getSchema(projectRule.module)
+    val service = DeclarativeService(projectRule.project)
+    val schema = service.getSchema()
     Truth.assertThat(schema).isNotNull()
     Truth.assertThat(schema!!.failureHappened).isTrue()
   }
