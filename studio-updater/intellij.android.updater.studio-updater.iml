@@ -17,5 +17,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="opentest4j" level="project" />
   </component>
 </module>

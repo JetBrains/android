@@ -9,6 +9,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # Tested via the integration_test target below
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/.idea/libraries:opentest4j"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
