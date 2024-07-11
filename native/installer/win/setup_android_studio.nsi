@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +96,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define BAD_CHARS '?%*:|"<>!;'
 
 !define VERSION_MAJOR 2024
-!define VERSION_MINOR 2
+!define VERSION_MINOR 1
 !define VERSION ${VERSION_MAJOR}.${VERSION_MINOR}
 !define VENDOR Android
 !define COMPANY "Google LLC"
