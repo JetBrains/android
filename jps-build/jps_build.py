@@ -10,6 +10,10 @@ import tarfile
 import tempfile
 import zipfile
 
+def fprint(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
+
 def files_in_dir(root, base = None):
     walk_dir = os.path.join(root, base) if base else root
     ret = []
@@ -21,7 +25,7 @@ def files_in_dir(root, base = None):
     return ret
 
 def write_files(workspace, files, dest):
-    print("Creating " + dest)
+    fprint("Creating " + dest)
     if dest.endswith(".zip"):
         with zipfile.ZipFile(dest, "w") as zip:
             for rel in files:
@@ -43,7 +47,7 @@ def jps_build(args, environment, cwd):
         workspace = tempfile.mkdtemp()
 
     for source in args.sources:
-        print("Setting up source: " + source + " @ " + str(datetime.datetime.now()))
+        fprint("Setting up source: " + source + " @ " + str(datetime.datetime.now()))
         if source.endswith(".tar"):
             with tarfile.open(source, "r") as tar:
                 if not args.reuse_workspace:
@@ -60,7 +64,7 @@ def jps_build(args, environment, cwd):
                     dest = os.path.join(workspace, rel)
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
                     if args.verbose:
-                        print("Copying listed file from %s to: %s %s" %(path, workspace, rel))
+                        fprint("Copying listed file from %s to: %s %s" %(path, workspace, rel))
                     shutil.copy2(path, dest)
         elif os.path.isdir(source):
             shutil.copytree(source, workspace, dirs_exist_ok=True)
@@ -78,15 +82,15 @@ def jps_build(args, environment, cwd):
     bin_cwd = os.path.join(workspace, args.working_directory)
     bin_path = os.path.join(bin_cwd, args.command)
 
-    print("Running at: " + str(datetime.datetime.now()))
+    fprint("Running at: " + str(datetime.datetime.now()))
     cmd = [bin_path]
     cmd.extend([s.replace("{jps_bin_cwd}", bin_cwd) for s in args.args])
     if args.verbose:
-        print("Running " + " ".join(cmd))
+        fprint("Running " + " ".join(cmd))
     retcode = subprocess.call(cmd, cwd=bin_cwd, env=env)
 
     run_workspace = environment.get("BUILD_WORKSPACE_DIRECTORY")
-    print("Done running at: " + str(datetime.datetime.now()))
+    fprint("Done running at: " + str(datetime.datetime.now()))
     if retcode == 0:
         all_files = set(files_in_dir(workspace))
 
@@ -105,26 +109,29 @@ def jps_build(args, environment, cwd):
 
         if args.download_cache and run_workspace:
             write_files(workspace, downloaded_files, os.path.join(run_workspace, args.download_cache))
+            fprint("Done writing cache at: " + str(datetime.datetime.now()))
 
         if args.out_file:
             write_files(workspace, output_files, args.out_file)
+            fprint("Done writing output file at: " + str(datetime.datetime.now()))
 
         if args.verbose:
-            print("Output Dirs:\n " + "\n".join(args.output_dirs))
-            print("Output Files:\n " + "\n".join(output_files))
-            print("Downloaded Files:\n " + "\n".join(downloaded_files))
+            fprint("Output Dirs:\n " + "\n".join(args.output_dirs))
+            fprint("Output Files:\n " + "\n".join(output_files))
+            fprint("Downloaded Files:\n " + "\n".join(downloaded_files))
 
     if run_workspace and args.delete_workspace and not args.reuse_workspace:
         shutil.rmtree(workspace)
+        fprint("Done deleting at: " + str(datetime.datetime.now()))
     else:
-        print("Leaving " + workspace + " behind.")
-    print("Done copying at: " + str(datetime.datetime.now()))
+        fprint("Leaving " + workspace + " behind.")
+    fprint("Done copying at: " + str(datetime.datetime.now()))
 
     return retcode
 
 def endswith_zip(arg):
     if not arg.endswith(".zip"):
-        print("Argument '%s' must end with .zip" % arg)
+        fprint("Argument '%s' must end with .zip" % arg)
         sys.exit(1)
     return arg
 
