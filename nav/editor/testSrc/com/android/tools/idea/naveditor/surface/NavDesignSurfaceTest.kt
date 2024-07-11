@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.testutils.MockitoKotlinUtils.safeEq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
@@ -226,7 +227,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
     LayoutTestUtilities.clickMouse(guiInputHandler, MouseEvent.BUTTON1, 2, x, y, 0)
 
-    verify(surface).notifyComponentActivate(eq(fragment.nlComponent), anyInt(), anyInt())
+    verify(surface).notifyComponentActivate(safeEq(fragment.nlComponent), anyInt(), anyInt())
   }
 
   fun testScrollToCenter() {

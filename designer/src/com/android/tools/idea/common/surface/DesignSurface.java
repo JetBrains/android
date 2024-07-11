@@ -24,7 +24,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
-import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
@@ -45,7 +44,6 @@ import com.android.tools.idea.common.layout.manager.PositionableContentLayoutMan
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
@@ -66,15 +64,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,7 +82,6 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.OverlayLayout;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -563,11 +557,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     mySceneViewPanel.repaint();
   }
 
-  /**
-   * Asks the ScreenViews for a re-layouts the ScreenViews contained in this design surface. The re-layout will not happen immediately in
-   * this call.
-   */
   @UiThread
+  @Override
   public void revalidateScrollArea() {
     // Mark the scene view panel as invalid to force a revalidation when the scroll pane is revalidated.
     mySceneViewPanel.invalidate();
@@ -581,55 +572,9 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return getInteractionPane();
   }
 
-  @SwingCoordinate
-  protected abstract Dimension getScrollToVisibleOffset();
-
   public Rectangle getCurrentScrollRectangle() {
     if (myScrollPane == null) return null;
     return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());
-  }
-
-  /**
-   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
-   * center such rectangle. See {@link #scrollToCenter(Rectangle)}
-   * @param sceneView the {@link SceneView} that contains the given rectangle.
-   * @param rectangle the rectangle that should be visible, with its coordinates relative to the sceneView.
-   */
-  protected void scrollToCenter(@NotNull SceneView sceneView, @NotNull @SwingCoordinate Rectangle rectangle) {
-    Dimension availableSpace = getExtentSize();
-    Rectangle sceneViewRectangle =
-      mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
-                                                      availableSpace);
-    if (sceneViewRectangle != null) {
-      Point topLeftCorner = new Point(sceneViewRectangle.x + rectangle.x,
-                                      sceneViewRectangle.y + rectangle.y);
-      scrollToCenter(new Rectangle(topLeftCorner, rectangle.getSize()));
-    }
-  }
-
-  /**
-   * Move the scroll position to make the given rectangle visible and centered.
-   * If the given rectangle is too big for the available space, it will be centered anyway and
-   * some of its borders will probably not be visible at the new scroll position.
-   * @param rectangle the rectangle that should be centered.
-   */
-  protected void scrollToCenter(@NotNull @SwingCoordinate Rectangle rectangle) {
-    Dimension availableSpace = getExtentSize();
-    int extraW = availableSpace.width - rectangle.width;
-    int extraH = availableSpace.height - rectangle.height;
-    setScrollPosition(rectangle.x - (extraW + 1) / 2, rectangle.y - (extraH + 1) / 2);
-  }
-
-  /**
-   * Ensures that the given model is visible in the surface by scrolling to it if needed.
-   * If the {@link SceneView} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
-   */
-  public final void scrollToVisible(@NotNull SceneView sceneView, boolean forceScroll) {
-    Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
-    if (rectangle != null && (forceScroll || !getViewport().getViewRect().intersects(rectangle))) {
-      Dimension offset = getScrollToVisibleOffset();
-      setScrollPosition(rectangle.x - offset.width, rectangle.y - offset.height);
-    }
   }
 
   /**
@@ -663,31 +608,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return Math.min(Math.max(scale, getZoomController().getMinScale()), getZoomController().getMaxScale());
   }
 
-  @Override
-  public void onScaleChange(@NotNull ScaleChange update) {
-    NlModel model = Iterables.getFirst(getModels(), null);
-    if(update.isAnimating()){
-      revalidateScrollArea();
-      return;
-    }
-    if (model != null) {
-      storeCurrentScale(model);
-    }
-    revalidateScrollArea();
-    notifyScaleChanged(update.getPreviousScale(), update.getNewScale());
-  }
-
-  /**
-   * Save the current zoom level from the file of the given {@link NlModel}.
-   */
-  private void storeCurrentScale(@NotNull NlModel model) {
-    if (!isKeepingScaleWhenReopen()) {
-      return;
-    }
-    SurfaceState state = DesignSurfaceSettings.getInstance(model.getProject()).getSurfaceState();
-    state.saveFileScale(getProject(), model.getVirtualFile(), getZoomController());
-  }
-
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
   @NotNull
   public JComponent getInteractionPane() {
@@ -706,16 +626,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     }
   }
 
-  /**
-   * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
-   * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
-   */
-  public void notifyComponentActivate(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    notifyComponentActivate(component);
-  }
-
-  public void notifyComponentActivate(@NotNull NlComponent component) {}
-  /**
+   /**
    * The editor has been activated
    */
   public void activate() {
@@ -768,46 +679,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return view;
   }
 
-  @Override
-  @Nullable
-  public SceneView getSceneViewAt(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Collection<SceneView> sceneViews = getSceneViews();
-    Dimension scaledSize = new Dimension();
-    for (SceneView view : sceneViews) {
-      view.getScaledContentSize(scaledSize);
-      if (view.getX() <= x &&
-          x <= (view.getX() + scaledSize.width) &&
-          view.getY() <= y &&
-          y <= (view.getY() + scaledSize.height)) {
-        return view;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns the {@link SceneView} under the mouse cursor if the mouse is within the coordinates of this surface or null
-   * otherwise.
-   */
-  @Nullable
-  public SceneView getSceneViewAtMousePosition() {
-    Point mouseLocation = !GraphicsEnvironment.isHeadless() ? MouseInfo.getPointerInfo().getLocation() : null;
-    if (mouseLocation == null || contains(mouseLocation) || !isVisible() || !isEnabled()) {
-      return null;
-    }
-
-    SwingUtilities.convertPointFromScreen(mouseLocation, mySceneViewPanel);
-    return getSceneViewAt(mouseLocation.x, mouseLocation.y);
-  }
-
-  @Override
-  @Deprecated
-  @Nullable
-  public Scene getScene() {
-    SceneManager sceneManager = getSceneManager();
-    return sceneManager != null ? sceneManager.getScene() : null;
-  }
-
   /**
    * @return The {@link SceneManager} associated to the given {@link NlModel}.
    */
@@ -825,14 +696,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     finally {
       myModelToSceneManagersLock.readLock().unlock();
     }
-  }
-
-  /**
-   * This is called before {@link #setModel(NlModel)}. After the returned future completes, we'll wait for smart mode and then invoke
-   * {@link #setModel(NlModel)}. If a {@code DesignSurface} needs to do any extra work before the model is set it should be done here.
-   */
-  public CompletableFuture<?> goingToSetModel(NlModel model) {
-    return CompletableFuture.completedFuture(null);
   }
 
   @NotNull

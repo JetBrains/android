@@ -147,7 +147,7 @@ private class Surface(
 
   override fun scrollToCenter(list: List<NlComponent>) {}
 
-  override fun getScrollToVisibleOffset() = Dimension()
+  override val scrollToVisibleOffset = Dimension()
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)

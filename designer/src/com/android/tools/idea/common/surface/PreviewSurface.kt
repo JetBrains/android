@@ -17,6 +17,8 @@ package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
@@ -32,12 +34,14 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
+import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
+import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
@@ -49,8 +53,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
+import java.awt.GraphicsEnvironment
 import java.awt.LayoutManager
+import java.awt.MouseInfo
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -121,6 +128,12 @@ abstract class PreviewSurface<T : SceneManager>(
   fun setDesignToolTip(text: String?) {
     sceneViewPanel.setToolTipText(text)
   }
+
+  /**
+   * Asks the [ScreenView]s contained in this [DesignSurface] for a re-layouts. The re-layout will
+   * not happen immediately in this call.
+   */
+  @UiThread abstract fun revalidateScrollArea()
 
   /** Converts a given point that is in view coordinates to viewport coordinates. */
   @TestOnly
@@ -306,9 +319,9 @@ abstract class PreviewSurface<T : SceneManager>(
 
   /**
    * Gets a copy of [zoomListeners] under a lock. Use this method instead of accessing the listeners
-   * directly. TODO Make it private
+   * directly.
    */
-  protected fun getZoomListeners(): ImmutableList<PanZoomListener> {
+  private fun getZoomListeners(): ImmutableList<PanZoomListener> {
     listenersLock.withLock {
       return ImmutableList.copyOf(zoomListeners)
     }
@@ -324,6 +337,26 @@ abstract class PreviewSurface<T : SceneManager>(
     }
   }
 
+  override fun onScaleChange(update: ScaleChange) {
+    if (update.isAnimating) {
+      revalidateScrollArea()
+      return
+    }
+    models.firstOrNull()?.let { storeCurrentScale(it) }
+    revalidateScrollArea()
+    notifyScaleChanged(update.previousScale, update.newScale)
+  }
+
+  /** Save the current zoom level from the file of the given [NlModel]. */
+  private fun storeCurrentScale(model: NlModel) {
+    if (!isKeepingScaleWhenReopen()) {
+      return
+    }
+    val state = getInstance(project).surfaceState
+    // TODO Maybe have a reference to virtualFile directly instead of from NlModel
+    state.saveFileScale(project, model.virtualFile, zoomController)
+  }
+
   protected fun notifyScaleChanged(previousScale: Double, newScale: Double) {
     for (listener in getZoomListeners()) {
       listener.zoomChanged(previousScale, newScale)
@@ -335,6 +368,22 @@ abstract class PreviewSurface<T : SceneManager>(
       listener.panningChanged(adjustmentEvent)
     }
   }
+
+  /**
+   * @param x the x coordinate of the double click converted to pixels in the Android coordinate
+   *   system
+   * @param y the y coordinate of the double click converted to pixels in the Android coordinate
+   *   system
+   */
+  open fun notifyComponentActivate(
+    component: NlComponent,
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+  ) {
+    notifyComponentActivate(component)
+  }
+
+  open fun notifyComponentActivate(component: NlComponent) {}
 
   abstract val selectionAsTransferable: ItemTransferable
 
@@ -358,6 +407,57 @@ abstract class PreviewSurface<T : SceneManager>(
    * these elements.
    */
   abstract fun scrollToCenter(list: List<NlComponent>)
+
+  /**
+   * The offsets to the left and top edges when scrolling to a component by calling
+   * [scrollToVisible].
+   */
+  @get:SwingCoordinate protected abstract val scrollToVisibleOffset: Dimension
+
+  /**
+   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the
+   * [SceneView] is partially visible and [forceScroll] is set to `false`, no scroll will happen.
+   */
+  fun scrollToVisible(sceneView: SceneView, forceScroll: Boolean) {
+    sceneViewPanel.findSceneViewRectangle(sceneView)?.let { sceneViewRectangle ->
+      if (forceScroll || !viewport.viewRect.intersects(sceneViewRectangle)) {
+        val offset = scrollToVisibleOffset
+        setScrollPosition(sceneViewRectangle.x - offset.width, sceneViewRectangle.y - offset.height)
+      }
+    }
+  }
+
+  /**
+   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
+   * center such rectangle. See [scrollToCenter]
+   *
+   * @param sceneView the [SceneView] that contains the given rectangle.
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the
+   *   sceneView.
+   */
+  protected fun scrollToCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle) {
+    val availableSpace = viewport.extentSize
+    sceneViewPanel.findMeasuredSceneViewRectangle(sceneView, availableSpace)?.let {
+      sceneViewRectangle ->
+      val topLeftCorner =
+        Point(sceneViewRectangle.x + rectangle.x, sceneViewRectangle.y + rectangle.y)
+      scrollToCenter(Rectangle(topLeftCorner, rectangle.size))
+    }
+  }
+
+  /**
+   * Move the scroll position to make the given rectangle visible and centered. If the given
+   * rectangle is too big for the available space, it will be centered anyway and some of its
+   * borders will probably not be visible at the new scroll position.
+   *
+   * @param rectangle the rectangle that should be centered.
+   */
+  private fun scrollToCenter(@SwingCoordinate rectangle: Rectangle) {
+    val availableSpace = viewport.extentSize
+    val extraW = availableSpace.width - rectangle.width
+    val extraH = availableSpace.height - rectangle.height
+    setScrollPosition(rectangle.x - (extraW + 1) / 2, rectangle.y - (extraH + 1) / 2)
+  }
 
   protected open fun isKeepingScaleWhenReopen(): Boolean {
     return true
@@ -441,6 +541,41 @@ abstract class PreviewSurface<T : SceneManager>(
         .collect(ImmutableList.toImmutableList())
     }
 
+  @Deprecated("Owner can have multiple scenes")
+  override val scene: Scene?
+    get() = sceneManager?.scene
+
+  override fun getSceneViewAt(@SwingCoordinate x: Int, @SwingCoordinate y: Int): SceneView? {
+    val sceneViews = sceneViews
+    val scaledSize = Dimension()
+    for (view in sceneViews) {
+      view.getScaledContentSize(scaledSize)
+      if (
+        (view.x <= x && x <= view.x + scaledSize.width && view.y <= y) &&
+          y <= (view.y + scaledSize.height)
+      ) {
+        return view
+      }
+    }
+    return null
+  }
+
+  /**
+   * Returns the [SceneView] under the mouse cursor if the mouse is within the coordinates of this
+   * surface or null otherwise.
+   */
+  val sceneViewAtMousePosition: SceneView?
+    get() {
+      val mouseLocation =
+        if (!GraphicsEnvironment.isHeadless()) MouseInfo.getPointerInfo().location else null
+      if (mouseLocation == null || contains(mouseLocation) || !isVisible || !isEnabled) {
+        return null
+      }
+
+      SwingUtilities.convertPointFromScreen(mouseLocation, sceneViewPanel)
+      return getSceneViewAt(mouseLocation.x, mouseLocation.y)
+    }
+
   override fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
     sceneViews.forEach { it.onHover(x, y) }
   }
@@ -509,6 +644,15 @@ abstract class PreviewSurface<T : SceneManager>(
 
   fun setScrollPosition(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
     pannable.scrollPosition = Point(x, y)
+  }
+
+  /**
+   * This is called before [setModel]. After the returned future completes, we'll wait for smart
+   * mode and then invoke [setModel]. If a [DesignSurface] needs to do any extra work before the
+   * model is set it should be done here.
+   */
+  open fun goingToSetModel(model: NlModel?): CompletableFuture<*> {
+    return CompletableFuture.completedFuture<Any?>(null)
   }
 
   abstract fun setModel(model: NlModel?): CompletableFuture<Void>
