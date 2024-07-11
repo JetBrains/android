@@ -25,6 +25,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
@@ -41,6 +42,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
+  protected AndroidBuildTargetReference myBuildTarget;
 
   public LayoutTestCase() {
   }
@@ -48,6 +50,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet);
     myFixture.setTestDataPath(getTestDataPath());
     RenderTestUtil.beforeRenderTestCase();
   }
