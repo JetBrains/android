@@ -117,6 +117,26 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
 }
 
 /**
+ * This function is exactly same as the above [KtAnnotationEntry.getQualifiedName] function for K2, but it can run
+ * on write-action. Please be aware that this function must be used only when we cannot avoid calling this function
+ * on write-action. Otherwise, the above [KtAnnotationEntry.getQualifiedName] function must be used. The analysis
+ * API use on a write-action can cause IDE freeze. However, we have some cases like code-format or
+ * reference-shortener in the middle of template execution. In that case, we cannot run analysis in advance on a
+ * background thread, because the PSI will vary depending on the last updates from users (imagine a type given from
+ * a template execution, and it needs the reference shortening), which means we have to run the analysis APIs for
+ * code-format and reference-shortener on a write-action.
+ */
+@OptIn(KtAllowAnalysisFromWriteAction::class, KtAllowAnalysisOnEdt::class)
+fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(analysisSession: KtAnalysisSession): String? =
+  allowAnalysisFromWriteAction {
+    allowAnalysisOnEdt {
+      analysisSession.applyOrAnalyze(this) {
+        resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
+      }
+    }
+  }
+
+/**
  * Determines whether this [KtAnnotationEntry] has the specified qualified name.
  * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
  *   Fortunately, type aliases are extremely uncommon for simple annotation types.
