@@ -152,7 +152,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutOption defaultLayoutOption,
+                          @NotNull SurfaceLayoutOption defaultLayoutOption,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
