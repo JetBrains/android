@@ -255,6 +255,35 @@ class BuildListenerTest {
   }
 
   @Test
+  fun `open clean subscribe build`() {
+    val preparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedTestProject.runTest {
+
+      project.buildAndWait { it.cleanProject() }
+      setupTestListener(buildTargetReference)
+      project.buildAndWait { it.assemble() }
+
+      assertThat(collectedEvents()).isEqualTo(
+        """
+        * syncStarted
+        * firstSourceRootsAdded
+        * syncSucceeded
+        * buildStarted
+        * buildFinished
+        * setupBuildListener
+        ->buildStarted
+        ->buildSucceeded
+        ->startedListening
+        * buildStarted
+        ->buildStarted
+        * buildFinished
+        ->buildSucceeded
+      """.trimIndent() // TODO: Note the incorrectly delivered `->buildSucceeded` before `->startedListening`.
+      )
+    }
+  }
+
+  @Test
   fun `open build subscribe build-failed`() {
     val preparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedTestProject.runTest {
