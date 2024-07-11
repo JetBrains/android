@@ -81,9 +81,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
         val service = DeclarativeService.getInstance(project)
-
-        val module = ModuleUtil.findModuleForPsiElement(parameters.originalFile) ?: return
-        val schema = service.getSchema(module) ?: return
+        val schema = service.getSchema() ?: return
         result.addAllElements(getSuggestionList(parameters.position.parent, schema).map {
           val element = LookupElementBuilder.create(it.name)
             .withTypeText(it.type.str, null, true)
