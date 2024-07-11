@@ -9,15 +9,12 @@ import org.jdom.Element
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.module.JpsModule
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
-import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.Locale
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.exists
 
 class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCase() {
   /**
@@ -195,9 +192,4 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
   private fun List<Element>.filterNonObsoleteModules(obsoleteModules: List<JpsModule>): List<Element> = this.filter { element ->
     obsoleteModules.none { module -> element.getAttributeValue("filepath").contains(module.name) }
   }
-
-  private fun JpsModule.exists(): Boolean = Paths.get("${this.baseDirectory}/${this.name}.iml").exists()
-
-  private val JpsModule.baseDirectory: File
-    get() = JpsModelSerializationDataService.getModuleExtension(this)!!.baseDirectory
 }
