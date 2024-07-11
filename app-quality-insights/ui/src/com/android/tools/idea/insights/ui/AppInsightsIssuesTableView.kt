@@ -96,7 +96,7 @@ class AppInsightsIssuesTableView(
     table.selectionModel.addListSelectionListener(changeListener)
     loadingPanel.setLoadingText("Loading")
     loadingPanel.startLoading()
-    loadingPanel.minimumSize = Dimension(JBUIScale.scale(90), 0)
+    loadingPanel.minimumSize = Dimension(JBUIScale.scale(300), 0)
     component = loadingPanel
 
     scope.launch {

@@ -88,7 +88,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
         foreground,
         issue.issueDetails.notesCount > 0,
       )
-    var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(24)
+    var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(30)
 
     signalPanel.removeAll()
     issue.issueDetails.signals.forEach {
@@ -100,7 +100,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
           isOpaque = false
         }
       signalPanel.add(iconLabel)
-      availableWidth -= JBUIScale.scale(20)
+      availableWidth -= JBUIScale.scale(24)
     }
 
     val (className, methodName) = issue.issueDetails.getDisplayTitle()
