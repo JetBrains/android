@@ -55,7 +55,7 @@ class K2AndroidViewConstructorFix(
 
             val superType = superTypeReference.type as? KaClassType ?: return null
 
-            if (!isAndroidView(superType) && superType.getAllSuperTypes().none { isAndroidView(it) }) {
+            if (!isAndroidView(superType) && superType.allSupertypes.none { isAndroidView(it) }) {
                 return null
             }
 

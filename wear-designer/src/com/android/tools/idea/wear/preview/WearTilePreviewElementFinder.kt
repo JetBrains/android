@@ -288,7 +288,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
         val typeReference = valueParameters.singleOrNull()?.typeReference
         if (typeReference != null) {
           analyze(typeReference) {
-            val ktType = typeReference.getKtType() as? KaClassType
+            val ktType = typeReference.type as? KaClassType
             ktType?.classId?.asSingleFqName()?.asString() == SdkConstants.CLASS_CONTEXT
           }
         } else false

@@ -131,7 +131,7 @@ class ComposeCreateComposableFunctionQuickFix(
               val lastIndex = unresolvedCall.valueArguments.lastIndex
               unresolvedCall.valueArguments.forEachIndexed { index, arg ->
                 val isLastLambdaArgument = index == lastIndex && arg is KtLambdaArgument
-                val type = arg.getArgumentExpression()?.expressionType ?: builtinTypes.ANY
+                val type = arg.getArgumentExpression()?.expressionType ?: builtinTypes.any
                 val paramName =
                   if (isLastLambdaArgument) "content"
                   else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
@@ -153,7 +153,7 @@ class ComposeCreateComposableFunctionQuickFix(
      * of type `Unit`.
      */
     private fun KaSession.guessReturnType(expression: KtExpression): KaType {
-      return (expression.expressionType as? KaFunctionType)?.returnType ?: builtinTypes.UNIT
+      return (expression.expressionType as? KaFunctionType)?.returnType ?: builtinTypes.unit
     }
   }
 }
