@@ -1062,27 +1062,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Asynchronously update the model. This will inflate the layout and notify the listeners using
-   * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
-   */
-  @NotNull
-  public CompletableFuture<Void> updateModelAsync() {
-    return updateModelAndProcessResultsAsync(result -> null);
-  }
-
-  /**
-   * Asynchronously update the model and apply the provided processing to the {@link RenderResult}.
-   */
-  @NotNull
-  public CompletableFuture<Void> updateModelAndProcessResultsAsync(Function<? super RenderResult, Void> resultProcessing) {
-    if (isDisposed.get()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return inflateAsync(true, new AtomicBoolean())
-      .thenApply(resultProcessing);
-  }
-
   private void notifyListenersModelLayoutComplete(boolean animate) {
     getModel().notifyListenersModelChangedOnLayout(animate);
   }
