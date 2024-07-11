@@ -73,11 +73,9 @@
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.naveditor.editor.addDestinationMenuToken"
-                    interface="com.android.tools.idea.naveditor.editor.AddDestinationMenuToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.naveditor.editor.AddDestinationMenuToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.naveditor.surface.navDesignSurfaceToken"
-                    interface="com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken"
-                    area="IDEA_PROJECT"/>
+                    interface="com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken"/>
   </extensionPoints>
 
 </idea-plugin>

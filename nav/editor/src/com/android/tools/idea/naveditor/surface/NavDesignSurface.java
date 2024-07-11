@@ -104,7 +104,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -358,7 +357,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     Project project = model.getProject();
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     Optional<NavDesignSurfaceToken<AndroidProjectSystem>> maybeToken =
-      Arrays.stream(NavDesignSurfaceToken.EP_NAME.getExtensions(project)).filter(t -> t.isApplicable(projectSystem))
+      NavDesignSurfaceToken.EP_NAME.getExtensionList().stream()
+        .filter(t -> t.isApplicable(projectSystem))
         .findFirst();
     if (maybeToken.isEmpty()) return false;
     NavDesignSurfaceToken<AndroidProjectSystem> token = maybeToken.get();

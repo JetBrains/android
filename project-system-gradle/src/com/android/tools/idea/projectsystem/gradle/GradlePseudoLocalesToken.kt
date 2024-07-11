@@ -23,7 +23,7 @@ import com.android.tools.idea.projectsystem.PseudoLocalesToken
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
-class GradlePseudoLocalesToken(val project: Project): PseudoLocalesToken, GradleToken {
+class GradlePseudoLocalesToken: PseudoLocalesToken, GradleToken {
   override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState {
     val applicationId = applicationProjectContext.applicationId
     val context = (applicationProjectContext as? FacetBasedApplicationProjectContext) ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also { Logger.getInstance(GradlePseudoLocalesToken::class.java).debug("Expected FacetBasedApplicationProjectContext, but got ", applicationProjectContext) }

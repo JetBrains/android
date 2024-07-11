@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +65,7 @@ public class AndroidIconProvider extends IconProvider {
     Project project = element.getProject();
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     AndroidIconProviderProjectToken<AndroidProjectSystem> token =
-      Arrays.stream(AndroidIconProviderProjectToken.getEP_NAME().getExtensions(project))
+      AndroidIconProviderProjectToken.getEP_NAME().getExtensionList().stream()
         .filter(it -> it.isApplicable(projectSystem))
         .findFirst().orElse(null);
     if (token != null) {

@@ -523,9 +523,12 @@ private fun IdeArtifactName.toKnownScopeType() =
 /**
  * An [ApplicationProjectContextProvider] for the Gradle project system.
  */
-class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
-  override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext? {
-    val result = FacetFinder.tryFindFacetForProcess(project, info) ?: return null
+class GradleApplicationProjectContextProvider : ApplicationProjectContextProvider<GradleProjectSystem>, GradleToken {
+  override fun computeApplicationProjectContext(
+    projectSystem: GradleProjectSystem,
+    info: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ) : ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(projectSystem.project, info) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

@@ -61,7 +61,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.EditorFontType;
@@ -184,9 +183,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     myFacet = facet;
     myProject = myFacet.getModule().getProject();
     myProjectSystem = ProjectSystemUtil.getProjectSystem(myProject);
-    myToken = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(myProject))
-        .filter(it -> it.isApplicable(myProjectSystem))
-          .findFirst().orElse(null);
+    myToken = ManifestPanelToken.EP_NAME.getExtensionList().stream()
+      .filter(it -> it.isApplicable(myProjectSystem))
+      .findFirst().orElse(null);
     setLayout(new BorderLayout());
 
     EditorColorsManager colorsManager = EditorColorsManager.getInstance();

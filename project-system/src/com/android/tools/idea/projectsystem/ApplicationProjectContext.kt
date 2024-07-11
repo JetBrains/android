@@ -44,7 +44,7 @@ interface ApplicationProjectContext {
  * Note: this mechanism is applicable when the IDE is attaching to an already Running process. When deploying and launching a new process
  *       the project/build system should construct the [ApplicationProjectContext] directly.
  */
-interface ApplicationProjectContextProvider: Token {
+interface ApplicationProjectContextProvider<P : AndroidProjectSystem>: Token {
 
   /** A best-effort identifier for a running application */
   data class RunningApplicationIdentity(
@@ -74,10 +74,10 @@ interface ApplicationProjectContextProvider: Token {
 
   companion object {
     val EP_NAME =
-      ExtensionPointName<ApplicationProjectContextProvider>("com.android.tools.idea.projectsystem.ApplicationProjectContextProvider")
+      ExtensionPointName<ApplicationProjectContextProvider<AndroidProjectSystem>>("com.android.tools.idea.projectsystem.ApplicationProjectContextProvider")
 
     @JvmStatic
-    fun AndroidProjectSystem.getApplicationProjectContextProvider(): ApplicationProjectContextProvider = getToken(EP_NAME)
+    fun AndroidProjectSystem.getApplicationProjectContextProvider(): ApplicationProjectContextProvider<AndroidProjectSystem> = getToken(EP_NAME)
 
     @JvmStatic
     fun AndroidProjectSystem.getApplicationProjectContext(client: Client): ApplicationProjectContext? =
@@ -85,8 +85,8 @@ interface ApplicationProjectContextProvider: Token {
 
     @JvmStatic
     fun AndroidProjectSystem.getApplicationProjectContext(info: RunningApplicationIdentity): ApplicationProjectContext? =
-      getApplicationProjectContextProvider().getApplicationProjectContext(info)
+      getApplicationProjectContextProvider().computeApplicationProjectContext(this, info)
   }
 
-  fun getApplicationProjectContext(client: RunningApplicationIdentity): ApplicationProjectContext?
+  fun computeApplicationProjectContext(projectSystem: P, client: RunningApplicationIdentity): ApplicationProjectContext?
 }

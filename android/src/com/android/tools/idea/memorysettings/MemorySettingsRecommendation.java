@@ -18,9 +18,7 @@ package com.android.tools.idea.memorysettings;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +59,7 @@ public class MemorySettingsRecommendation {
 
   private static int getRecommendedBasedOnProject(Project project) {
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-    Optional<MemorySettingsToken<AndroidProjectSystem>> maybeToken = Arrays.stream(MemorySettingsToken.EP_NAME.getExtensions(project))
+    Optional<MemorySettingsToken<AndroidProjectSystem>> maybeToken = MemorySettingsToken.EP_NAME.getExtensionList().stream()
       .filter(it -> it.isApplicable(projectSystem))
       .findFirst();
     if (maybeToken.isPresent()) {
