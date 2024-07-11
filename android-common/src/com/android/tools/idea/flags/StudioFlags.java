@@ -2146,6 +2146,11 @@ public final class StudioFlags {
     // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS so the behavior of Android Studio and CLI is consistent
     ChannelDefault.enabledUpTo(CANARY)
   );
+  public static final Flag<Boolean> SHOW_SUMMARY_NOTIFICATION = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.summary.notification", "Show a notification for SDK Index issues",
+    "Show a notification after initial sync when there are blocking SDK Index issues",
+    ChannelDefault.enabledUpTo(CANARY)
+  );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
