@@ -90,7 +90,7 @@ inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.()
 fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      val symbol = getVariableSymbol() as? KaPropertySymbol ?: return false
+      val symbol = symbol as? KaPropertySymbol ?: return false
       return symbol.hasBackingField
     }
   } else {
@@ -158,7 +158,7 @@ fun KaSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String
 fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      val symbol = getClassOrObjectSymbol()
+      val symbol = classSymbol
       val classId = symbol?.classId ?: return null
 
       if (symbol.classKind != KaClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {

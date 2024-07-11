@@ -63,7 +63,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val classOrObjectSymbol = getClassOrObjectSymbol() ?: return false
+                    val classOrObjectSymbol = classSymbol ?: return false
                     return baseClassIds.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
                 }
             }

@@ -255,7 +255,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
       is PsiMethod -> sourcePsi.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) == true
       is KtNamedFunction -> {
         analyze(sourcePsi) {
-          val symbol = sourcePsi.getFunctionLikeSymbol()
+          val symbol = sourcePsi.symbol
           val returnType = symbol.returnType as? KtNonErrorClassType
           returnType?.classId?.asSingleFqName()?.asString() == TILE_PREVIEW_DATA_FQ_NAME
         }

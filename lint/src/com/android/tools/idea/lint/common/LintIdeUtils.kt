@@ -62,7 +62,7 @@ internal fun KtProperty.hasBackingField(): Boolean {
     allowAnalysisFromWriteAction {
       analyze(this) {
         val propertySymbol =
-          this@hasBackingField.getVariableSymbol() as? KaPropertySymbol ?: return false
+          this@hasBackingField.symbol as? KaPropertySymbol ?: return false
         return propertySymbol.hasBackingField
       }
     }

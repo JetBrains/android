@@ -273,7 +273,7 @@ private val AnnotationDescriptor.isQualifier: Boolean
 
 private fun KaSession.isQualifier(annotationClassId: ClassId?): Boolean =
   annotationClassId
-    ?.let { getClassOrObjectSymbolByClassId(it) }
+    ?.let { findClass(it) }
     ?.annotations
     ?.contains(DaggerClasses.Qualifier.classId) == true
 

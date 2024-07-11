@@ -183,7 +183,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (KotlinPluginModeProvider.isK2Mode()) {
       val element = psiElement
       analyze(element) {
-        val functionSymbol = element.getFunctionLikeSymbol()
+        val functionSymbol = element.symbol
         val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnit }
         presentation.setTypeText(typeText, null)
         presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
@@ -437,7 +437,7 @@ private data class FunctionInfo(
 
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
   analyze(this) {
-    val allParameters = getFunctionLikeSymbol().valueParameters
+    val allParameters = symbol.valueParameters
 
     val endsInRequiredLambda =
       allParameters.lastOrNull()?.let {

@@ -293,7 +293,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
       return isVisible(
         symbolWithVisibility,
-        useSiteFile = ktFile.getFileSymbol(),
+        useSiteFile = ktFile.symbol,
         position = completionPosition,
       )
     }
@@ -410,7 +410,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val receiverType = receiverExpression.expressionType ?: return emptyList()
 
     val file = nameExpression.containingFile as KtFile
-    val fileSymbol = file.getFileSymbol()
+    val fileSymbol = file.symbol
 
     return KtSymbolFromIndexProvider.createForElement(file)
       .getTopLevelExtensionCallableSymbolsByNameFilter(
