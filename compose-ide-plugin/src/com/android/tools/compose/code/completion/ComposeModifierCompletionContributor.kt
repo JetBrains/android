@@ -46,7 +46,6 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KaSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
@@ -288,11 +287,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val symbolWithVisibility =
-        elementToAnalyze.symbol as? KaSymbolWithVisibility ?: return true
-
       return isVisible(
-        symbolWithVisibility,
+        elementToAnalyze.symbol,
         useSiteFile = ktFile.symbol,
         position = completionPosition,
       )
@@ -418,7 +414,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         listOf(receiverType),
       )
       .filter {
-        isVisible(it as KaSymbolWithVisibility, fileSymbol, receiverExpression, originalPosition)
+        isVisible(it, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
   }
