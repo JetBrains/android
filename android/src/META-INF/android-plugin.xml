@@ -627,7 +627,9 @@
                         implementationClass="com.android.tools.idea.editors.AndroidRegExpHost"
                         order="first" />
 
-    <codeInsight.codeVision.settings.defaults implementation="com.android.tools.idea.editors.AndroidCodeVisionSettingsDefaults" />
+    <codeInsight.codeVision.settings.defaults
+        implementation="com.android.tools.idea.editors.AndroidCodeVisionSettingsDefaults"
+        order="first" />
 
     <iconMapper mappingFile="StudioIntUiIconMappings.json"/>
 
