@@ -7,6 +7,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.module.JpsLibraryDependency
 import org.jetbrains.jps.model.module.JpsModule
+import org.jetbrains.jps.model.module.JpsModuleDependency
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService
 import java.io.File
 import java.nio.file.Path
@@ -52,6 +53,11 @@ abstract class AndroidPluginProjectConsistencyTestCase {
     return IntelliJProjectConfiguration.loadIntelliJProject(projectHome.absolutePathString())
   }
 
+  protected val JpsModule.isAndroidModule: Boolean
+    get() = this.name.startsWith("intellij.android")
+
+  protected fun JpsProject.findModuleByName(moduleName: String): JpsModule? = modules.find { it.name.equals(moduleName) }
+
   protected val JpsModule.imlFilePath: Path
     get() = Paths.get("${this.baseDirectory}/${this.name}.iml")
 
@@ -59,6 +65,9 @@ abstract class AndroidPluginProjectConsistencyTestCase {
 
   protected val JpsModule.baseDirectory: File
     get() = JpsModelSerializationDataService.getModuleExtension(this)!!.baseDirectory
+
+  protected val JpsModule.moduleDependencies: List<JpsModuleDependency>
+    get() = this.dependenciesList.dependencies.filterIsInstance<JpsModuleDependency>()
 
   protected val JpsModule.libraryDependencies: List<JpsLibraryDependency>
     get() = this.dependenciesList.dependencies.filterIsInstance<JpsLibraryDependency>()

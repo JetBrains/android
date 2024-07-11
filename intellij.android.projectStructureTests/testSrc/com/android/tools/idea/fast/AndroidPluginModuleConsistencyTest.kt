@@ -5,6 +5,8 @@ import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
 import org.jdom.Element
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.module.JpsModule
@@ -100,6 +102,24 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
     }
   }
 
+  @Test
+  fun `'Android gradle-dsl' module does not depend on the Android plugin modules`() {
+    val androidGradleDslModule = androidProject.findModuleByName("intellij.android.gradle.dsl")
+                                 ?: error("'intellij.android.gradle.dsl' module not found.")
+    val androidModuleDependencies = androidGradleDslModule
+      .moduleDependencies
+      .filter { it.moduleReference.moduleName.startsWith("intellij.android") }
+      .map { it.moduleReference.moduleName }
+
+    val reason = buildString {
+      appendLine("'intellij.android.gradle.dsl' module should not have the Android plugin modules as dependencies,")
+      appendLine("but it depends on following Android plugin modules: $androidModuleDependencies.")
+      appendLine("Module file: ${androidGradleDslModule.imlFilePath}")
+    }
+
+    assertThat(reason, androidModuleDependencies, CoreMatchers.`is`(emptyList()))
+  }
+
   private fun failWithFileComparisonError(
     project: JpsProject,
     projectPath: Path,
@@ -159,9 +179,6 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
       }
     }
   }
-
-  private val JpsModule.isAndroidModule: Boolean
-    get() = this.name.startsWith("intellij.android")
 
   private fun generateExpectedModulesXmlContent(
     projectHomePath: Path,
