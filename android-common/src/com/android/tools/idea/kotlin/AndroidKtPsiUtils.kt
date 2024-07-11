@@ -24,7 +24,6 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -271,7 +270,7 @@ fun KtClassOrObject.toPsiType() =
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
-    mapOnDeclarationSymbol { it.hasAnnotation(classId) } ?: (findAnnotationEntryByClassId(classId) != null)
+    mapOnDeclarationSymbol { classId in it.annotations } ?: (findAnnotationEntryByClassId(classId) != null)
   } else {
     findAnnotationK1(classId) != null
   }

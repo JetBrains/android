@@ -26,7 +26,6 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -408,7 +407,8 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())
           ?.symbol
-          ?.hasAnnotation(ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME)) == true
+          ?.annotations
+          ?.contains(ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME)) == true
       } else {
         // K1 plugin - use old descriptor API.
         val resolvedCall = call.resolveToCall() ?: return false

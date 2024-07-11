@@ -28,8 +28,6 @@ import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.annotations
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -276,7 +274,8 @@ private val AnnotationDescriptor.isQualifier: Boolean
 private fun KaSession.isQualifier(annotationClassId: ClassId?): Boolean =
   annotationClassId
     ?.let { getClassOrObjectSymbolByClassId(it) }
-    ?.hasAnnotation(DaggerClasses.Qualifier.classId) == true
+    ?.annotations
+    ?.contains(DaggerClasses.Qualifier.classId) == true
 
 private val PsiAnnotation.isQualifier: Boolean
   get() {
