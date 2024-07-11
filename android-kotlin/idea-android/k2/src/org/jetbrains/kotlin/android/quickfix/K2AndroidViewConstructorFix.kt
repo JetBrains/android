@@ -87,7 +87,7 @@ class K2AndroidViewConstructorFix(
 
         }
 
-        private fun KaSession.classId(type: KaType): ClassId? = type.expandedClassSymbol?.classId
+        private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId
         private fun KaSession.isAndroidView(type: KaType): Boolean =
             classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
     }

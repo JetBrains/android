@@ -103,7 +103,7 @@ class ComposeCreateComposableFunctionQuickFix(
       val container = fullCallExpression.getExtractionContainers().firstOrNull() ?: return null
 
       val returnType = guessReturnType(fullCallExpression)
-      if (!returnType.isUnit) return null
+      if (!returnType.isUnitType) return null
 
       val newFunction = buildNewComposableFunction(unresolvedCall, unresolvedName, container)
       return ComposeCreateComposableFunctionQuickFix(unresolvedCall, newFunction, parentFunction)

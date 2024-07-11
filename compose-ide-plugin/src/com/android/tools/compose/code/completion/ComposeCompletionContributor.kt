@@ -184,7 +184,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
       val element = psiElement
       analyze(element) {
         val functionSymbol = element.symbol
-        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnit }
+        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnitType }
         presentation.setTypeText(typeText, null)
         presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
       }
