@@ -29,7 +29,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.LAYOUTLIB_NATIVE_MEMORY_CLEAN
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
@@ -43,7 +42,7 @@ import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.IncludeReference
 import com.android.tools.rendering.api.NavGraphResolver
 import com.android.tools.rendering.parsers.RenderXmlFile
-import com.android.tools.rendering.security.RenderSecurityManager
+import com.android.tools.rendering.security.RenderSecurity
 import com.android.tools.sdk.AndroidPlatform
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -64,6 +63,7 @@ import java.lang.ref.WeakReference
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
+import org.jetbrains.android.uipreview.StudioRenderSecurity
 
 private val LOG = Logger.getInstance(StudioEnvironmentContext::class.java)
 
@@ -125,16 +125,9 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
     }
   }
 
-  override fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager {
+  override fun createRenderSecurity(projectPath: String?, platform: AndroidPlatform?): RenderSecurity {
     val sdkPath = platform?.sdkData?.location?.toString()
-
-    val securityManager = StudioRenderSecurityManager(sdkPath, projectPath, false)
-    securityManager.setLogger(
-      LogWrapper(Logger.getInstance(StudioRenderSecurityManager::class.java)).alwaysLogAsDebug(true).allowVerbose(false)
-    )
-    securityManager.setAppTempDir(PathManager.getTempPath())
-
-    return securityManager
+    return StudioRenderSecurity(sdkPath, projectPath, PathManager.getTempPath())
   }
 
   override fun getOriginalFile(psiFile: PsiFile): PsiFile {

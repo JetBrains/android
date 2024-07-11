@@ -41,6 +41,7 @@ import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_6;
 import static org.objectweb.asm.Opcodes.V1_7;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;
@@ -337,6 +338,57 @@ public class ClassConverterTest extends TestCase {
       // Check that this does not cause any problems
       rewriteClass(data, UtilKt.toClassTransform(), NopClassLocator.INSTANCE);
     }
+  }
+
+  public void testIndependentRewrite() {
+    byte[] data = ClassConverterTest.dumpTestViewClass();
+
+    Set<String> called = new HashSet<>();
+
+    // Transform 1: Always runs
+    ClassTransform transform1 = UtilKt.toClassTransform(
+      visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))
+    );
+
+    // Transform 2: Runs only if class name contains "Test"
+    ClassTransform transform2 = UtilKt.toClassTransform(
+      ImmutableList.of(visitor -> new TestVisitor(visitor, name -> called.add("Visitor2"))),
+      classData -> new ClassReader(classData).getClassName().contains("Test")
+    );
+
+    // Combine them
+    ClassTransform combined = transform1.plus(transform2);
+
+    // Run on data (it is named "TestView" so it should match)
+    rewriteClass(data, combined, NopClassLocator.INSTANCE);
+    assertThat(called).containsExactly("Visitor1", "Visitor2");
+
+    called.clear();
+
+    // Transform 3: Runs only if class name contains "NonExistent"
+    ClassTransform transform3 = UtilKt.toClassTransform(
+      ImmutableList.of(visitor -> new TestVisitor(visitor, name -> called.add("Visitor3"))),
+      classData -> new ClassReader(classData).getClassName().contains("NonExistent")
+    );
+
+    ClassTransform combined2 = transform1.plus(transform3);
+
+    // Run on data (it is named "TestView" so it should NOT match transform3)
+    rewriteClass(data, combined2, NopClassLocator.INSTANCE);
+    assertThat(called).containsExactly("Visitor1");
+
+    called.clear();
+
+    // Transform 4: Always runs
+    ClassTransform transform4 = UtilKt.toClassTransform(
+      visitor -> new TestVisitor(visitor, name -> called.add("Visitor4"))
+    );
+
+    // Chain: Run, Don't run, Run
+    ClassTransform combined3 = transform1.plus(transform3).plus(transform4);
+
+    rewriteClass(data, combined3, NopClassLocator.INSTANCE);
+    assertThat(called).containsExactly("Visitor1", "Visitor4");
   }
 
   /**

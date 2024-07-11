@@ -40,6 +40,9 @@ constructor(
 
   override fun loadClass(fqcn: String): ByteArray? {
     val bytes = delegate.loadClass(fqcn) ?: return null
+    // Optimization: Skip transformation if the transform doesn't need to rewrite this class.
+    // This allows bypassing the expensive ASM parsing and frame recalculation.
+    if (!transform.shouldRewrite(bytes)) return bytes
     val startTime = System.currentTimeMillis()
     val rewrittenBytes = ClassConverter.rewriteClass(bytes, transform, asmFlags, pseudoClassLocator)
     onRewrite(fqcn, System.currentTimeMillis() - startTime, rewrittenBytes.size)

@@ -25,7 +25,7 @@ import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.parsers.RenderXmlFile
-import com.android.tools.rendering.security.RenderSecurityManager
+import com.android.tools.rendering.security.RenderSecurity
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.psi.PsiFile
 
@@ -50,8 +50,8 @@ interface EnvironmentContext {
 
   fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver
 
-  /** Returns a [RenderSecurityManager] for the SDK path and project path. */
-  fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager
+  /** Returns a [RenderSecurity] for the SDK path and project path. */
+  fun createRenderSecurity(projectPath: String?, platform: AndroidPlatform?): RenderSecurity
 
   fun getOriginalFile(psiFile: PsiFile): PsiFile
 

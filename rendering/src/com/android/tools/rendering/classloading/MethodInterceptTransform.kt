@@ -21,25 +21,11 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 
-private const val VIRTUAL_METHOD_DESCRIPTOR = "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)V"
+private const val VIRTUAL_METHOD_DESCRIPTOR = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V"
 private const val STATIC_METHOD_DESCRIPTOR = "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V"
 
-private val OBJECT_TYPE = Type.getType(java.lang.Object::class.java)
-
-/** Utility method to get the equivalent boxed for this type. If the method does not need boxing, the same type is returned. */
-private fun Type.getBoxedType(): Type {
-  return when (this) {
-    Type.BOOLEAN_TYPE -> Type.getType(java.lang.Boolean::class.java)
-    Type.BYTE_TYPE -> Type.getType(java.lang.Byte::class.java)
-    Type.CHAR_TYPE -> Type.getType(java.lang.Character::class.java)
-    Type.SHORT_TYPE -> Type.getType(java.lang.Short::class.java)
-    Type.INT_TYPE -> Type.getType(java.lang.Integer::class.java)
-    Type.FLOAT_TYPE -> Type.getType(java.lang.Float::class.java)
-    Type.LONG_TYPE -> Type.getType(java.lang.Long::class.java)
-    Type.DOUBLE_TYPE -> Type.getType(java.lang.Double::class.java)
-    else -> this
-  }
-}
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") // This is intentionally the Object type
+private val OBJECT_TYPE = Type.getType(Object::class.java)
 
 private class MethodInterceptorVisitor(
   delegate: MethodVisitor,
@@ -155,10 +141,12 @@ private class MethodInterceptorVisitor(
           // stack: []
         }
       }
-      Opcodes.INVOKEVIRTUAL -> {
+      Opcodes.INVOKEVIRTUAL,
+      Opcodes.INVOKEINTERFACE -> {
         val arguments = Type.getArgumentTypes(interceptedMethodDescriptor)
         if (arguments.isEmpty()) {
           dup() // Push "this" again
+          push(interceptedOwner)
           push(interceptedMethodName)
           push(null as String?)
           invokeStatic(virtualTrampolineClassType, virtualTrampolineMethodType)
@@ -166,21 +154,48 @@ private class MethodInterceptorVisitor(
           // stack: [this, <arguments>]
           buildObjectsArrayFromOperandStackForCall(arguments)
           // stack: [this, ar]
-          dup2()
-          // stack: [this, ar, this, ar]
-          push(interceptedMethodName)
-          // stack: [this, ar, this, ar, methodName]
-          dupX1()
-          // stack: [this, ar, this, methodName, ar, methodName]
-          pop()
-          // stack: [this, ar, this, methodName, ar]
+          dup2() // stack: [this, ar, this, ar]
+          push(interceptedOwner) // stack: [this, ar, this, ar, owner]
+          swap() // stack: [this, ar, this, owner, ar]
+          push(interceptedMethodName) // stack: [this, ar, this, owner, ar, methodName]
+          swap() // stack: [this, ar, this, owner, methodName, ar]
           invokeStatic(virtualTrampolineClassType, virtualTrampolineMethodType)
           // stack: [this, ar]
           pushObjectsFromArrayIntoOperandStack(arguments)
           // stack: [this, <arguments>]
         }
       }
-      else -> {}
+      Opcodes.INVOKESPECIAL -> {
+        if (interceptedMethodName == "<init>") {
+          val arguments = Type.getArgumentTypes(interceptedMethodDescriptor)
+          if (arguments.isEmpty()) {
+            push(interceptedOwner)
+            push(interceptedMethodName)
+            push(null as String?)
+            invokeStatic(staticTrampolineClassType, staticTrampolineMethodType)
+          } else {
+            buildObjectsArrayFromOperandStackForCall(arguments)
+            dup() // stack: [ar, ar]
+            push(interceptedOwner)
+            push(interceptedMethodName)
+            // stack: [ar, ar, owner, method]
+            dup2X1()
+            // stack: [ar, owner, method, ar, owner, method]
+            pop()
+            pop()
+            // stack: [ar, owner, method, ar]
+            invokeStatic(staticTrampolineClassType, staticTrampolineMethodType)
+            // stack: [ar]
+            pushObjectsFromArrayIntoOperandStack(arguments)
+            // stack: []
+          }
+        } else {
+          // Do nothing
+        }
+      }
+      else -> {
+        // Do nothing
+      }
     }
 
   override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {

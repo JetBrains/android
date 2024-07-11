@@ -69,7 +69,9 @@ import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.android.tools.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.security.RenderSandbox;
 import com.android.tools.rendering.security.RenderSecurityManager;
+import com.android.tools.rendering.security.RenderSecurity;
 import com.android.tools.rendering.tracking.RenderTaskAllocationTracker;
 import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -792,14 +794,16 @@ public class RenderTask {
     try {
       myLayoutlibCallback.setLogger(myLogger);
 
-      RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ?
-        myContext.getModule().getEnvironment().createRenderSecurityManager(
+      RenderSecurity security = null;
+      if (isSecurityManagerEnabled) {
+        security = myContext.getModule().getEnvironment().createRenderSecurity(
           module.getProject().getBasePath(),
           context.getModule().getAndroidPlatform()
-        ) : null;
-      if (securityManager != null) {
-        securityManager.setActive(true, myCredential);
+        );
+      }
+
+      if (security != null) {
+        security.activate(myCredential);
       }
 
       try {
@@ -824,8 +828,8 @@ public class RenderTask {
         return result;
       }
       finally {
-        if (securityManager != null) {
-          securityManager.dispose(myCredential);
+        if (security != null) {
+          security.deactivate(myCredential);
         }
       }
     }

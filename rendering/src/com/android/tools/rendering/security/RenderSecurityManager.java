@@ -79,6 +79,7 @@ public class RenderSecurityManager extends SecurityManager {
 
   private boolean mAllowSetSecurityManager;
   private boolean mDisabled;
+  private boolean mUseSandbox;
   private final String mSdkPath;
   private final String mProjectPath;
   private final String mTempDir;
@@ -179,6 +180,13 @@ public class RenderSecurityManager extends SecurityManager {
   }
 
   /**
+   * Sets whether to use the new RenderSandbox instead of legacy SecurityManager.
+   */
+  public void setUseSandbox(boolean useSandbox) {
+    mUseSandbox = useSandbox;
+  }
+
+  /**
    * Sets whether the {@linkplain RenderSecurityManager} is active or not.
    * If it is being set as active, the passed in credential is remembered
    * and anyone wishing to turn off the security manager must provide the
@@ -189,67 +197,69 @@ public class RenderSecurityManager extends SecurityManager {
    *                   credential passed in to the earlier activation call
    */
   public void setActive(boolean active, @Nullable Object credential) {
-    SecurityManager current = System.getSecurityManager();
-    boolean isActive = current == this;
-    if (active == isActive) {
-      return;
-    }
+    if (!mUseSandbox) {
+      SecurityManager current = System.getSecurityManager();
+      boolean isActive = current == this;
+      if (active == isActive) {
+        return;
+      }
 
-    if (active) {
-      // Enable
-      assert !(current instanceof RenderSecurityManager);
-      myPreviousSecurityManager = current;
-      mDisabled = false;
-      // JetBrains patch: JDK 24+ (JEP 486) no longer allows installing a SecurityManager at runtime.
-      // Skip the sandbox instead of failing the whole render if it is unsupported.
-      if (sIsSecurityManagerSupported) {
-        try {
-          System.setSecurityManager(this);
-        }
-        catch (UnsupportedOperationException e) {
-          sIsSecurityManagerSupported = false;
-          mDisabled = true;
-          if (mLogger != null) {
-            mLogger.warning("Render sandbox disabled: this JRE does not support installing a SecurityManager: ", e);
+      if (active) {
+        // Enable
+        assert !(current instanceof RenderSecurityManager);
+        myPreviousSecurityManager = current;
+        mDisabled = false;
+        // JetBrains patch: JDK 24+ (JEP 486) no longer allows installing a SecurityManager at runtime.
+        // Skip the sandbox instead of failing the whole render if it is unsupported.
+        if (sIsSecurityManagerSupported) {
+          try {
+            System.setSecurityManager(this);
+          }
+          catch (UnsupportedOperationException e) {
+            sIsSecurityManagerSupported = false;
+            mDisabled = true;
+            if (mLogger != null) {
+              mLogger.warning("Render sandbox disabled: this JRE does not support installing a SecurityManager: ", e);
+            }
           }
         }
+        else {
+          mDisabled = true;
+        }
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        sCredential = credential;
       }
       else {
-        mDisabled = true;
-      }
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      sCredential = credential;
-    }
-    else {
-      if (credential != sCredential) {
-        throw RenderSecurityException.create("Invalid credential");
-      }
+        if (credential != sCredential) {
+          throw RenderSecurityException.create("Invalid credential");
+        }
 
-      // Disable
-      mAllowSetSecurityManager = true;
-      // Don't set mDisabled and clear sInRenderThread yet: the call
-      // to revert to the previous security manager below will trigger
-      // a check permission, and in that code we need to distinguish between
-      // this call (isRelevant() should return true) and other threads calling
-      // it outside the scope of the security manager
-      try {
-        // Only reset the security manager if it hasn't already been set to
-        // something else. If other threads try to do the same thing we could have
-        // a problem; if they sampled the render security manager while it was globally
-        // active, replaced it with their own, and sometime in the future try to
-        // set it back, it will be active when we didn't intend for it to be. That's
-        // why there is also the {@code mDisabled} flag, used to ignore any requests
-        // later on.
-        if (current instanceof RenderSecurityManager) {
-          System.setSecurityManager(myPreviousSecurityManager);
+        // Disable
+        mAllowSetSecurityManager = true;
+        // Don't set mDisabled and clear sInRenderThread yet: the call
+        // to revert to the previous security manager below will trigger
+        // a check permission, and in that code we need to distinguish between
+        // this call (isRelevant() should return true) and other threads calling
+        // it outside the scope of the security manager
+        try {
+          // Only reset the security manager if it hasn't already been set to
+          // something else. If other threads try to do the same thing we could have
+          // a problem; if they sampled the render security manager while it was globally
+          // active, replaced it with their own, and sometime in the future try to
+          // set it back, it will be active when we didn't intend for it to be. That's
+          // why there is also the {@code mDisabled} flag, used to ignore any requests
+          // later on.
+          if (current instanceof RenderSecurityManager) {
+            System.setSecurityManager(myPreviousSecurityManager);
+          }
+          else if (mLogger != null) {
+            mLogger.warning("Security manager was changed behind the scenes: ", current);
+          }
         }
-        else if (mLogger != null) {
-          mLogger.warning("Security manager was changed behind the scenes: ", current);
+        finally {
+          mDisabled = true;
+          mAllowSetSecurityManager = false;
         }
-      }
-      finally {
-        mDisabled = true;
-        mAllowSetSecurityManager = false;
       }
     }
   }

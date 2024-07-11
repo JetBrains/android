@@ -15,6 +15,7 @@
  */
 package com.android.tools.rendering.classloading
 
+import com.android.tools.rendering.classloading.test.sandboxing.MethodInterceptInterface
 import com.android.tools.rendering.classloading.test.sandboxing.MethodInterceptTest
 import java.io.StringWriter
 import kotlin.reflect.jvm.javaMethod
@@ -47,6 +48,10 @@ interface CallerInterface {
   fun testInstanceArgsCall()
 
   fun testStaticArgsCall()
+
+  fun testConstructorCall()
+
+  fun testInterfaceCall()
 }
 
 class Caller() : CallerInterface {
@@ -81,6 +86,15 @@ class Caller() : CallerInterface {
     } catch (e: ClassNotFoundException) {
       call(e)
     }
+  }
+
+  override fun testConstructorCall() {
+    MethodInterceptTest(123)
+  }
+
+  override fun testInterfaceCall() {
+    val iface: MethodInterceptInterface = MethodInterceptTest()
+    iface.interfaceMethod()
   }
 
   companion object {
@@ -132,12 +146,26 @@ class MethodInterceptTransformTest {
     val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as CallerInterface
     methodIntercept.testInstanceNoArgsCall()
 
-    assertEquals("VIRTUAL MethodInterceptTest@1 noArgsInstanceMethod null", Trampoline.callLog.toString().trim())
+    assertEquals(
+      """
+      STATIC com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptTest <init> null
+      VIRTUAL MethodInterceptTest@1 com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptTest noArgsInstanceMethod null
+      """
+        .trimIndent(),
+      Trampoline.callLog.toString().trim(),
+    )
 
     Trampoline.callLog.clear()
 
     methodIntercept.testInstanceArgsCall()
-    assertEquals("VIRTUAL MethodInterceptTest@1 instanceMethod 123,98765,StringArg", Trampoline.callLog.toString().trim())
+    assertEquals(
+      """
+      STATIC com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptTest <init> null
+      VIRTUAL MethodInterceptTest@1 com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptTest instanceMethod 123,98765,StringArg
+      """
+        .trimIndent(),
+      Trampoline.callLog.toString().trim(),
+    )
   }
 
   @Test
@@ -170,6 +198,50 @@ class MethodInterceptTransformTest {
   }
 
   @Test
+  fun `check constructor intercept`() {
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(mapOf("Test" to Caller::class.java), beforeTransformTrace, afterTransformTrace) { visitor ->
+        MethodInterceptTransform(
+          visitor,
+          virtualTrampolineMethod = Trampoline::invoke.javaMethod!!,
+          staticTrampolineMethod = Trampoline::invokeStatic.javaMethod!!,
+          shouldIntercept = { className, methodName ->
+            className.startsWith(Type.getInternalName(MethodInterceptTest::class.java)) && methodName == "<init>"
+          },
+        )
+      }
+
+    val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as CallerInterface
+    methodIntercept.testConstructorCall()
+
+    assertEquals(
+      "STATIC com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptTest <init> 123",
+      Trampoline.callLog.toString().trim(),
+    )
+  }
+
+  @Test
+  fun `check interface intercept`() {
+    val testClassLoader =
+      setupTestClassLoaderWithTransformation(mapOf("Test" to Caller::class.java), beforeTransformTrace, afterTransformTrace) { visitor ->
+        MethodInterceptTransform(
+          visitor,
+          virtualTrampolineMethod = Trampoline::invoke.javaMethod!!,
+          staticTrampolineMethod = Trampoline::invokeStatic.javaMethod!!,
+          shouldIntercept = { className, _ -> className == Type.getInternalName(MethodInterceptInterface::class.java) },
+        )
+      }
+
+    val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as CallerInterface
+    methodIntercept.testInterfaceCall()
+
+    assertEquals(
+      "VIRTUAL MethodInterceptTest@1 com/android/tools/rendering/classloading/test/sandboxing/MethodInterceptInterface interfaceMethod null",
+      Trampoline.callLog.toString().trim(),
+    )
+  }
+
+  @Test
   fun `check broken trampoline`() {
     try {
       setupTestClassLoaderWithTransformation(mapOf("Test" to Caller::class.java), beforeTransformTrace, afterTransformTrace) { visitor ->
@@ -182,7 +254,7 @@ class MethodInterceptTransformTest {
       }
     } catch (e: AssertionError) {
       assertEquals(
-        "Virtual trampoline method descriptor must be (Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)V but was (Ljava/lang/String;[Ljava/lang/Object;)V",
+        "Virtual trampoline method descriptor must be (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V but was (Ljava/lang/String;[Ljava/lang/Object;)V",
         e.message,
       )
     }
@@ -208,8 +280,8 @@ class MethodInterceptTransformTest {
     val callLog = StringBuilder()
 
     @JvmStatic
-    fun invoke(owner: Any, method: String, params: Array<Any>?): Unit {
-      callLog.appendLine("VIRTUAL $owner $method ${params?.joinToString(",")}")
+    fun invoke(instance: Any, ownerClass: String, method: String, params: Array<Any>?): Unit {
+      callLog.appendLine("VIRTUAL $instance $ownerClass $method ${params?.joinToString(",")}")
     }
 
     @JvmStatic

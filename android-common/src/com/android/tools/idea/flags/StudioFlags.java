@@ -1508,6 +1508,13 @@ public final class StudioFlags {
     "Support paginating the previews",
     "If enabled, the previews shown in a file will be paginated"
   );
+
+  public static final Flag<Boolean> RENDER_SANDBOX =
+    new BooleanFlag(
+      PREVIEW_COMMON,
+      "render.sandbox.enabled",
+      "Enable Rendering Sandbox feature",
+      "Enable Rendering Sandbox feature");
   //endregion
 
   //region Compose

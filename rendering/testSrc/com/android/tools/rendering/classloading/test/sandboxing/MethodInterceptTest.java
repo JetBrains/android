@@ -15,7 +15,13 @@
  */
 package com.android.tools.rendering.classloading.test.sandboxing;
 
-public class MethodInterceptTest {
+public class MethodInterceptTest implements MethodInterceptInterface {
+  public MethodInterceptTest() {}
+
+  public MethodInterceptTest(int a) {
+    System.out.println("MethodInterceptTest#init " + a);
+  }
+
   public void noArgsInstanceMethod() {
     System.out.println("MethodInterceptTest#noArgsInstanceMethod");
   }
@@ -32,6 +38,11 @@ public class MethodInterceptTest {
     System.out.println("MethodInterceptTest#staticMethod " + a + " " + b + " " + c);
 
     throw new ClassNotFoundException("Hello");
+  }
+
+  @Override
+  public void interfaceMethod() {
+    System.out.println("MethodInterceptTest#interfaceMethod");
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.android.tools.rendering.classloading
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Functions
 import com.google.common.hash.Hashing
+import java.util.function.Function
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
@@ -44,22 +45,31 @@ private fun ClassVisitor.uniqueId(): String =
  *
  * A [ClassTransform] also contains an id that allows identifying the transformations done by this transform. If the id of two class
  * transforms is the same, the transformation applied by both is the same.
+ *
+ * [shouldRewrite] is an optional predicate that allows the transformation pipeline to skip classes that don't need rewriting, providing a
+ * significant performance optimization by avoiding ASM overhead.
  */
-class ClassTransform(private val transforms: List<java.util.function.Function<ClassVisitor, ClassVisitor>>) {
+class ClassTransform(val transformsWithPredicate: List<Pair<Function<ClassVisitor, ClassVisitor>, (ByteArray) -> Boolean>>) {
+  constructor(
+    transforms: List<Function<ClassVisitor, ClassVisitor>>,
+    shouldRewrite: (ByteArray) -> Boolean = { true },
+  ) : this(transforms.map { it to shouldRewrite })
+
   @VisibleForTesting
   val debugId: String
     get() =
-      java.util.function
-        .Function<Pair<String, ClassVisitor>, Pair<String, ClassVisitor>> {
-          transforms.fold(it) { acc, visitor ->
-            val newVisitor = visitor.apply(acc.second)
-            if (newVisitor != acc.second) {
-              "${newVisitor.uniqueId()}\n${acc.first}" to newVisitor
-            } else {
-              // The provider was the identity, skip this in the uniqueId output.
-              acc.first to newVisitor
+      Function<Pair<String, ClassVisitor>, Pair<String, ClassVisitor>> {
+          transformsWithPredicate
+            .map { it.first }
+            .fold(it) { acc, visitor ->
+              val newVisitor = visitor.apply(acc.second)
+              if (newVisitor != acc.second) {
+                "${newVisitor.uniqueId()}\n${acc.first}" to newVisitor
+              } else {
+                // The provider was the identity, skip this in the uniqueId output.
+                acc.first to newVisitor
+              }
             }
-          }
         }
         .apply("" to EmptyClassVisitor)
         .first
@@ -67,14 +77,24 @@ class ClassTransform(private val transforms: List<java.util.function.Function<Cl
   val id: String by lazy { @Suppress("UnstableApiUsage") Hashing.goodFastHash(64).hashString(debugId, Charsets.UTF_8).toString() }
 
   operator fun invoke(visitor: ClassVisitor): ClassVisitor =
-    java.util.function.Function<ClassVisitor, ClassVisitor> { transforms.fold(it) { acc, visitor -> visitor.apply(acc) } }.apply(visitor)
+    Function<ClassVisitor, ClassVisitor> { transformsWithPredicate.map { it.first }.fold(it) { acc, visitor -> visitor.apply(acc) } }
+      .apply(visitor)
 
-  operator fun plus(f2: ClassTransform) = ClassTransform(transforms + f2.transforms)
+  fun invoke(visitor: ClassVisitor, bytes: ByteArray): ClassVisitor {
+    val activeTransforms = transformsWithPredicate.filter { it.second(bytes) }.map { it.first }
+    return Function<ClassVisitor, ClassVisitor> { activeTransforms.fold(it) { acc, visitor -> visitor.apply(acc) } }.apply(visitor)
+  }
 
-  operator fun plus(f2: List<java.util.function.Function<ClassVisitor, ClassVisitor>>) = ClassTransform(transforms + f2)
+  /** Returns whether the given [classData] needs to be rewritten by this transform. */
+  fun shouldRewrite(classData: ByteArray): Boolean = transformsWithPredicate.any { it.second(classData) }
+
+  operator fun plus(f2: ClassTransform) = ClassTransform(transformsWithPredicate + f2.transformsWithPredicate)
+
+  operator fun plus(f2: List<Function<ClassVisitor, ClassVisitor>>) =
+    ClassTransform(transformsWithPredicate + f2.map { it to this::shouldRewrite })
 
   companion object {
-    @JvmStatic val identity = ClassTransform(listOf(Functions.identity()))
+    @JvmStatic val identity = ClassTransform(listOf(Functions.identity())) { false }
   }
 }
 
@@ -85,6 +105,15 @@ fun combine(f1: ClassTransform, f2: ClassTransform) = f1 + f2
 @SafeVarargs
 fun toClassTransform(vararg transforms: java.util.function.Function<ClassVisitor, ClassVisitor>): ClassTransform =
   ClassTransform(transforms.toList())
+
+/**
+ * Converts a list of [ClassVisitor] transformations into a transformation applied to all the visitors sequentially with the given
+ * [shouldRewrite] predicate.
+ */
+fun toClassTransform(
+  transforms: List<java.util.function.Function<ClassVisitor, ClassVisitor>>,
+  shouldRewrite: (ByteArray) -> Boolean,
+): ClassTransform = ClassTransform(transforms, shouldRewrite)
 
 /**
  * Utility method to transform the strings containing the package names in their regular from "a.b.c" to its disk representation "a/b/c".

@@ -58,7 +58,7 @@ public class ClassConverter {
                                     @NotNull PseudoClassLocator classLocator) {
     ClassReader reader = new ClassReader(classData);
     final ClassWriter classWriter = new ClassWriterWithPseudoClassLocator(flags, classLocator);
-    ClassVisitor classVisitor = transformations.invoke(classWriter);
+    ClassVisitor classVisitor = transformations.invoke(classWriter, classData);
     reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
     return classWriter.toByteArray();

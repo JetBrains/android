@@ -5,6 +5,7 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.module.ModuleDisposableService;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
@@ -34,6 +35,7 @@ import com.android.tools.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
+import com.android.tools.rendering.security.RenderSandbox;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -151,6 +153,11 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
+  ).plus(
+    UtilKt.toClassTransform(
+      ImmutableList.of(visitor -> StudioFlags.RENDER_SANDBOX.get() ? RenderSandbox.getClassTransform(visitor) : visitor),
+      classData -> StudioFlags.RENDER_SANDBOX.get() && RenderSandbox.getClassTransform().shouldRewrite(classData)
+    )
   );
 
   static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = UtilKt.toClassTransform(
@@ -170,6 +177,11 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     visitor -> new StringReplaceTransform(visitor, STRING_REPLACEMENTS),
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
+  ).plus(
+    UtilKt.toClassTransform(
+      ImmutableList.of(visitor -> StudioFlags.RENDER_SANDBOX.get() ? RenderSandbox.getClassTransform(visitor) : visitor),
+      classData -> StudioFlags.RENDER_SANDBOX.get() && RenderSandbox.getClassTransform().shouldRewrite(classData)
+    )
   );
 
   private static final ExecutorService ourDisposeService =
