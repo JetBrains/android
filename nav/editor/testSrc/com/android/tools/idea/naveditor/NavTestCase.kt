@@ -20,6 +20,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -41,9 +42,11 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
   // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
   // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
   protected lateinit var myRootDisposable: Disposable
+  protected lateinit var myBuildTarget: AndroidBuildTargetReference
 
   public override fun setUp() {
     super.setUp()
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet)
 
     @Suppress("ObjectLiteralToLambda") // Otherwise a static instance is created and used between tests.
     myRootDisposable = object : Disposable {

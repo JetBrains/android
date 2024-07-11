@@ -71,12 +71,14 @@ import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.mockito.ArgumentMatchers;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
+  private AndroidBuildTargetReference myBuildTarget;
   private DownloadableFontCacheService myFontCacheServiceMock;
   private ProjectFonts myProjectFonts;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet);
     myFontCacheServiceMock = mock(DownloadableFontCacheServiceImpl.class);
     when(myFontCacheServiceMock.toXml(any())).thenCallRealMethod();
     doAnswer(mock -> {
