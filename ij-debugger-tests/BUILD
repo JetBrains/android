@@ -6,11 +6,6 @@ jps_library(
     name = "kotlin.jvm-debugger.test_lib",
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_lib",
     module = "kotlin.jvm-debugger.test",
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//tools/base/bazel/ci/conditions:studio-linux": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
         "//tools/idea:idea_source",
@@ -24,11 +19,7 @@ debugger_test(
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
     module = "kotlin.jvm-debugger.test",
     suite = "com.android.tools.test.ModuleTestSuite",
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//tools/base/bazel/ci/conditions:studio-linux": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    tags = ["ci:studio-linux_large"],
     deps = [
         ":kotlin.jvm-debugger.test_lib",
         ":test_repo.zip",
