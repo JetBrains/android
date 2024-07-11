@@ -62,18 +62,13 @@ class PromptBuilderTest : BasePlatformTestCase() {
           listOf(
             Prompt.SystemMessage(
               listOf(
-                Prompt.Message.TextChunk(
-                  "You are Gemini, an AI assistant for Android Studio.",
-                  emptyList(),
-                )
+                Prompt.TextChunk("You are Gemini, an AI assistant for Android Studio.", emptyList())
               )
             ),
-            Prompt.UserMessage(listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))),
-            Prompt.ModelMessage(
-              listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))
-            ),
+            Prompt.UserMessage(listOf(Prompt.TextChunk("Hello Gemini!", emptyList()))),
+            Prompt.ModelMessage(listOf(Prompt.TextChunk("Hello! How are you?", emptyList()))),
             Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
+              listOf(Prompt.TextChunk("I am doing well, how about you?", emptyList()))
             ),
           )
         )
@@ -94,9 +89,9 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt.messages.size).isEqualTo(1)
     val chunks = prompt.messages.single().chunks
     assertThat(chunks.size).isEqualTo(2)
-    assertThat(chunks[0]).isEqualTo(Prompt.Message.TextChunk("What is in this image?", emptyList()))
-    assertThat(chunks[1]).isInstanceOf(Prompt.Message.BlobChunk::class.java)
-    assertThat((chunks[1] as Prompt.Message.BlobChunk).data).isEqualTo(data)
+    assertThat(chunks[0]).isEqualTo(Prompt.TextChunk("What is in this image?", emptyList()))
+    assertThat(chunks[1]).isInstanceOf(Prompt.BlobChunk::class.java)
+    assertThat((chunks[1] as Prompt.BlobChunk).data).isEqualTo(data)
   }
 
   @Test
@@ -134,12 +129,10 @@ class PromptBuilderTest : BasePlatformTestCase() {
       .isEqualTo(
         PromptImpl(
           listOf(
-            Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("Write some Kotlin code.", emptyList()))
-            ),
+            Prompt.UserMessage(listOf(Prompt.TextChunk("Write some Kotlin code.", emptyList()))),
             Prompt.ModelMessage(
               listOf(
-                Prompt.Message.CodeChunk(
+                Prompt.CodeChunk(
                   """
                   fun f(): Int {
                     return 5
@@ -153,8 +146,8 @@ class PromptBuilderTest : BasePlatformTestCase() {
             ),
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk("Does this Java code do the same thing?", emptyList()),
-                Prompt.Message.CodeChunk(
+                Prompt.TextChunk("Does this Java code do the same thing?", emptyList()),
+                Prompt.CodeChunk(
                   """
                   int f() {
                     return 5;
@@ -191,7 +184,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
         PromptImpl(
           messages =
             listOf(
-              Prompt.Context(
+              Prompt.ContextMessage(
                 files =
                   listOf(
                     Prompt.ContextFile(
@@ -201,16 +194,12 @@ class PromptBuilderTest : BasePlatformTestCase() {
                     ),
                     Prompt.ContextFile(file2),
                     Prompt.ContextFile(file3),
-                  )
+                  ),
+                chunks = emptyList(),
               ),
               Prompt.UserMessage(
                 chunks =
-                  listOf(
-                    Prompt.Message.TextChunk(
-                      text = "What does someApiCall do?",
-                      filesUsed = listOf(),
-                    )
-                  )
+                  listOf(Prompt.TextChunk(text = "What does someApiCall do?", filesUsed = listOf()))
               ),
             )
         )
@@ -285,6 +274,16 @@ class PromptBuilderTest : BasePlatformTestCase() {
     assertFailsWith<AiExcludeException> {
       buildPrompt(project) {
         systemMessage { text("preamble", emptyList()) }
+        context { text("file contents", listOf(file)) }
+        userMessage { text("user", emptyList()) }
+        modelMessage { text("model", emptyList()) }
+        userMessage { text("user", emptyList()) }
+      }
+    }
+
+    assertFailsWith<AiExcludeException> {
+      buildPrompt(project) {
+        systemMessage { text("preamble", emptyList()) }
         userMessage { text("user", emptyList()) }
         modelMessage { text("model", listOf(file)) }
         userMessage { text("user", emptyList()) }
@@ -308,13 +307,11 @@ class PromptBuilderTest : BasePlatformTestCase() {
       .isEqualTo(
         PromptImpl(
           listOf(
-            Prompt.SystemMessage(listOf(Prompt.Message.TextChunk("You are Gemini", emptyList()))),
-            Prompt.UserMessage(listOf(Prompt.Message.TextChunk("Hello Gemini!", emptyList()))),
-            Prompt.ModelMessage(
-              listOf(Prompt.Message.TextChunk("Hello! How are you?", emptyList()))
-            ),
+            Prompt.SystemMessage(listOf(Prompt.TextChunk("You are Gemini", emptyList()))),
+            Prompt.UserMessage(listOf(Prompt.TextChunk("Hello Gemini!", emptyList()))),
+            Prompt.ModelMessage(listOf(Prompt.TextChunk("Hello! How are you?", emptyList()))),
             Prompt.UserMessage(
-              listOf(Prompt.Message.TextChunk("I am doing well, how about you?", emptyList()))
+              listOf(Prompt.TextChunk("I am doing well, how about you?", emptyList()))
             ),
           )
         )
@@ -428,7 +425,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
       .isEqualTo(
         listOf(
           Prompt.UserMessage(
-            chunks = listOf(Prompt.Message.TextChunk("Tell me if my code is good", emptyList()))
+            chunks = listOf(Prompt.TextChunk("Tell me if my code is good", emptyList()))
           ),
           Prompt.FunctionCallMessage(
             Content.FunctionCall(name = "getCode", args = mapOf("source" to "EDITOR"))
