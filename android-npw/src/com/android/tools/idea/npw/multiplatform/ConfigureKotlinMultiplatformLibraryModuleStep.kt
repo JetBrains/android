@@ -20,7 +20,7 @@ import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
-import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.npw.validator.MultiplatformKgpMinVersionValidator
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
@@ -38,6 +38,7 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(
 
   init {
     model.language.set(Optional.of(Language.Kotlin))
+    validatorPanel.registerValidator(model.kgpVersion, MultiplatformKgpMinVersionValidator())
   }
 
   override fun createMainPanel(): DialogPanel = panel {
