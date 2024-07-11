@@ -119,6 +119,10 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   @NotNull private final JComponent myContentContainerPane;
   @NotNull protected final DesignSurfaceViewport myViewport;
   @NotNull protected final SceneViewPanel mySceneViewPanel;
+
+  @Override
+  protected @NotNull SceneViewPanel getSceneViewPanel() { return mySceneViewPanel; }
+
   @VisibleForTesting
   private final GuiInputHandler myGuiInputHandler;
 
@@ -525,18 +529,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       .thenRun(() -> {});
   }
 
-  /**
-   * Update the status of {@link GuiInputHandler}. It will start or stop listening depending on the current layout type.
-   */
-  private void reactivateGuiInputHandler() {
-    if (isEditable()) {
-      myGuiInputHandler.startListening();
-    }
-    else {
-      myGuiInputHandler.stopListening();
-    }
-  }
-
   @Override
   public void dispose() {
     clearListeners();
@@ -849,28 +841,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return myGuiInputHandler;
   }
 
-  /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
-   * The result {@link CompletableFuture} will notify when all the renderings have completed.
-   */
-  @NotNull
-  public CompletableFuture<Void> requestRender() {
-    ImmutableList<T> managers = getSceneManagers();
-    if (managers.isEmpty()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return requestSequentialRender(manager -> manager.requestLayoutAndRenderAsync(false));
-  }
-
-  /**
-   * Converts a given point that is in view coordinates to viewport coordinates.
-   */
-  @TestOnly
-  @NotNull
-  public Point getCoordinatesOnViewport(@NotNull Point viewCoordinates) {
-    return SwingUtilities.convertPoint(mySceneViewPanel, viewCoordinates.x, viewCoordinates.y, getViewport().getViewportComponent());
-  }
-
   @TestOnly
   public void setScrollViewSizeAndValidate(@SwingCoordinate int width, @SwingCoordinate int height) {
     if (myScrollPane != null) {
@@ -878,13 +848,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
       myScrollPane.doLayout();
       UIUtil.invokeAndWaitIfNeeded((Runnable)this::validateScrollArea);
     }
-  }
-
-  /**
-   * Sets the tooltip for the design surface
-   */
-  public void setDesignToolTip(@Nullable String text) {
-    mySceneViewPanel.setToolTipText(text);
   }
 
   @Override

@@ -61,10 +61,12 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
@@ -91,6 +93,8 @@ abstract class PreviewSurface<T : SceneManager>(
 
   private val progressIndicators: MutableSet<ProgressIndicator> = HashSet()
 
+  protected abstract val sceneViewPanel: SceneViewPanel
+
   val layeredPane: JComponent =
     JLayeredPane().apply {
       setFocusable(true)
@@ -111,6 +115,22 @@ abstract class PreviewSurface<T : SceneManager>(
   /** Disables the mouse click display. */
   fun disableMouseClickDisplay() {
     mouseClickDisplayPanel.isEnabled = false
+  }
+
+  /** Sets the tooltip for the design surface */
+  fun setDesignToolTip(text: String?) {
+    sceneViewPanel.setToolTipText(text)
+  }
+
+  /** Converts a given point that is in view coordinates to viewport coordinates. */
+  @TestOnly
+  fun getCoordinatesOnViewportForTest(viewCoordinates: Point): Point {
+    return SwingUtilities.convertPoint(
+      sceneViewPanel,
+      viewCoordinates.x,
+      viewCoordinates.y,
+      viewport.viewportComponent,
+    )
   }
 
   fun registerIndicator(indicator: ProgressIndicator) {
@@ -438,6 +458,18 @@ abstract class PreviewSurface<T : SceneManager>(
     return models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
   }
 
+  /**
+   * Update the status of [GuiInputHandler]. It will start or stop listening depending on the
+   * current layout type. TODO Make private
+   */
+  protected fun reactivateGuiInputHandler() {
+    if (isEditable) {
+      guiInputHandler.startListening()
+    } else {
+      guiInputHandler.stopListening()
+    }
+  }
+
   /** Support for panning actions. */
   val pannable =
     object : Pannable {
@@ -492,6 +524,18 @@ abstract class PreviewSurface<T : SceneManager>(
   }
 
   /**
+   * Invalidates all models and request a render of the layout. This will re-inflate the [NlModel]s
+   * and render them sequentially. The result [CompletableFuture] will notify when all the
+   * renderings have completed.
+   */
+  open fun requestRender(): CompletableFuture<out Void?> {
+    if (sceneManagers.isEmpty()) {
+      return CompletableFuture.completedFuture(null)
+    }
+    return requestSequentialRender { it.requestLayoutAndRenderAsync(false) }
+  }
+
+  /**
    * Schedule the render requests sequentially for all [SceneManager]s in this [DesignSurface].
    *
    * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to
@@ -499,7 +543,7 @@ abstract class PreviewSurface<T : SceneManager>(
    * @return A callback which is triggered when the scheduled rendering are completed.
    */
   protected fun requestSequentialRender(
-    renderRequest: (T) -> CompletableFuture<Void?>?
+    renderRequest: (T) -> CompletableFuture<Void>
   ): CompletableFuture<Void> {
     val callback = CompletableFuture<Void>()
     synchronized(renderFutures) {
