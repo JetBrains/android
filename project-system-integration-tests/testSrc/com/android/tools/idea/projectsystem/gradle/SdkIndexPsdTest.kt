@@ -60,7 +60,6 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
           "androidx.annotation:annotation version 1.0.0 has been reported as outdated by its author.",
           "The library author recommends using versions:",
           "  - 1.0.1 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
         ),
         // Warning
         listOf(
@@ -69,7 +68,6 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
           "  - From 3.19.0 to 3.29.0",
           "  - From 3.30.2 to 3.31.0",
           "  - 3.33.0 or higher",
-          "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
         ),
         // Warning
         listOf(
