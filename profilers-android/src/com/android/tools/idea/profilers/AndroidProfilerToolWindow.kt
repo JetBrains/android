@@ -63,7 +63,11 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private val project: Project) : AspectObserver(), Disposable {
+// TODO(ydbeis): Replace isGameTools with a better mechanism to communicate "use old ui" to
+//  the profiler window. This is a quick work-around to unblock AS Koala C7 (b/338285051).
+class AndroidProfilerToolWindow(private val isGameTools: Boolean,
+                                private val window: ToolWindowWrapper,
+                                private val project: Project) : AspectObserver(), Disposable {
   private val ideProfilerServices: IntellijProfilerServices
   private val ideProfilerComponents: IdeProfilerComponents
   val profilers: StudioProfilers
@@ -78,6 +82,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   lateinit var profilersPanel: JPanel
     private set
 
+  private val isTaskBasedUxEnabled: Boolean
+
   init {
     val symbolSource: SymbolSource = ProjectSymbolSource(project)
     val symbolLocator = SymbolFilesLocator(symbolSource)
@@ -86,6 +92,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     // Ensures the transport service is initialized.
     TransportService.getInstance()
+
+    // If the tool window is being used with game tools, we can't use the task based ux because it will remove the device selection UI on
+    // the left side.
+    isTaskBasedUxEnabled = !isGameTools && ideProfilerServices.featureConfig.isTaskBasedUxEnabled
 
     val client = ProfilerClient(TransportService.channelName)
     profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
@@ -115,7 +125,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     // Create and store the task handlers in a map.
     initializeTaskHandlers()
 
-    if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+    if (isTaskBasedUxEnabled) {
       // Initialize the two static/un-closable tabs: home and past recordings tabs.
       homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
       homePanel = JPanel(BorderLayout())
@@ -130,6 +140,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       pastRecordingsPanel.revalidate()
       pastRecordingsPanel.repaint()
     }
+
     // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
     // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
     // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
@@ -192,9 +203,12 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeProfilerTab() {
-    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window,
-                                                                                                      ideProfilerComponents, project)
-    else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
+    profilersTab = if (isTaskBasedUxEnabled) {
+      StudioProfilersTaskTab(profilers, window, ideProfilerComponents, project)
+    } else {
+      StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
+    }
+
     Disposer.register(this, profilersTab)
 
     profilersPanel = JPanel(BorderLayout())
