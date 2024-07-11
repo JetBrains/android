@@ -132,7 +132,6 @@
     <orderEntry type="module" module-name="intellij.jvm.analysis" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.java.tests" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
     <orderEntry type="module" module-name="intellij.maven.server.indexer" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
