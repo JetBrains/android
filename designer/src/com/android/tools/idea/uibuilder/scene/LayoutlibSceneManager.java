@@ -682,8 +682,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
 
     LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
+    // TODO(b/335424569): remove isRenderingSynchronously. The clients that want this behaviour should achieve it by using the futures
+    //   properly, but it shouldn't be a mode in LayoutlibSceneManager
     if (getDesignSurface().isRenderingSynchronously()) {
-      return renderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return requestRenderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
