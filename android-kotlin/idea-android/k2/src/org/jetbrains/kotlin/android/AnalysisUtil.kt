@@ -35,6 +35,6 @@ fun KaSession.isSubclassOf(classSymbol: KaClassLikeSymbol, superClassId: ClassId
 fun KaSession.isSubclassOf(classType: KaType, superClassId: ClassId, strict: Boolean = false): Boolean {
     val superClassType = buildClassType(superClassId)
     if (superClassType is KaErrorType) return false
-    if (!strict && classType.isEqualTo(superClassType)) return true
-    return classType.isSubTypeOf(superClassType)
+    if (!strict && classType.semanticallyEquals(superClassType)) return true
+    return classType.isSubtypeOf(superClassType)
 }

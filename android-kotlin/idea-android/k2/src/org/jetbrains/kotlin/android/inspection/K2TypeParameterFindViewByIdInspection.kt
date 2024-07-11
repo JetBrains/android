@@ -51,7 +51,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
         if (castTargetType is KaErrorType) return null
 
         val castTargetTypeNonNull = castTargetType.withNullability(KaTypeNullability.NON_NULLABLE)
-        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubTypeOf(it) }) return null
+        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubtypeOf(it) }) return null
 
         return FindViewCallInfo(
             returnTypeNullability = when {
