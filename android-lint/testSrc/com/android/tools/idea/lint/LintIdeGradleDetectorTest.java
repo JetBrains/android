@@ -34,9 +34,13 @@ import com.android.tools.idea.lint.inspections.AndroidLintGradlePluginVersionIns
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
+import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingProvider;
+import com.intellij.codeInsight.daemon.impl.analysis.FileHighlightingSetting;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.ExtensionTestUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -68,8 +72,22 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     super.setUp();
 
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
-    // We mask (in particular) the KotlinProblemHighlightFilter which can cause Kotlin Script files not to get any highlighting at all.
-    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
+
+    // We mask (in particular) the KotlinProblemHighlightFilter and KotlinDefaultHighlightingSettingsProvider which can cause
+    // Kotlin Script files not to get any highlighting at all.
+    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(new ProblemHighlightFilter() {
+      @Override
+      public boolean shouldHighlight(@NotNull PsiFile psiFile) {
+        return true;
+      }
+    }), myFixture.getProjectDisposable());
+    ExtensionTestUtil.maskExtensions(DefaultHighlightingSettingProvider.EP_NAME, List.of(new DefaultHighlightingSettingProvider() {
+      @Override
+      public FileHighlightingSetting getDefaultSetting(@NotNull Project project, @NotNull VirtualFile file) {
+        return FileHighlightingSetting.FORCE_HIGHLIGHTING;
+      }
+    }), myFixture.getProjectDisposable());
+
     // However, we are not interested in Kotlin compiler diagnostics or resolution failures, as we are running with a
     // simplified and unrealistic project structure: so mask away the Kotlin highlighting visitors.
     unmaskKotlinHighlightVisitor();
