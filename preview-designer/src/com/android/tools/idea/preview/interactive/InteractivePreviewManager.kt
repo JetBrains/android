@@ -37,7 +37,7 @@ class InteractivePreviewManager(
   private val fpsCounter = FpsCalculator { System.nanoTime() }
 
   private val originalInteractionHandler = delegateInteractionHandler.delegate
-  private val interactiveInteractionHandler = LayoutlibInteractionHandler(surface)
+  private val interactiveInteractionHandler = LayoutlibInteractionHandler(surface, surface.pannable)
 
   var fpsLimit = initialFpsLimit
     set(value) {

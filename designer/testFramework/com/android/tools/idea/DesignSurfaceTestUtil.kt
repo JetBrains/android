@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.SelectionModel
@@ -41,6 +42,7 @@ import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -57,13 +59,15 @@ object DesignSurfaceTestUtil {
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
     whenever(surface.getData(ArgumentMatchers.any())).thenCallRealMethod()
-    whenever(surface.layeredPane).thenReturn(JPanel())
+    whenever(surface.layeredPane).thenReturn(JLayeredPane())
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)
     whenever(surface.size).thenReturn(Dimension(1000, 1000))
     whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
-    val interactable = TestInteractable(surface, JPanel(), surface)
+    val pannable = TestPannable()
+    whenever(surface.pannable).thenReturn(pannable)
+    val interactable = TestInteractable(pannable, JPanel(), surface)
     whenever(surface.guiInputHandler)
       .thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {

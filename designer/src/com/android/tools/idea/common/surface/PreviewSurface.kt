@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
@@ -33,19 +34,23 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
+import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.Point
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -58,6 +63,8 @@ import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.Timer
 import kotlin.concurrent.withLock
+import kotlin.math.max
+import kotlin.math.min
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
@@ -70,7 +77,10 @@ abstract class PreviewSurface<T : SceneManager>(
   val selectionModel: SelectionModel,
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
-) : EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener {
+) :
+  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, DataProvider {
+
+  abstract val guiInputHandler: GuiInputHandler
 
   private val mouseClickDisplayPanel = MouseClickDisplayPanel(parentDisposable = this)
 
@@ -87,6 +97,8 @@ abstract class PreviewSurface<T : SceneManager>(
       add(progressPanel, LAYER_PROGRESS)
       add(mouseClickDisplayPanel, LAYER_MOUSE_CLICK)
     }
+
+  abstract val viewport: DesignSurfaceViewport
 
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
@@ -424,6 +436,47 @@ abstract class PreviewSurface<T : SceneManager>(
 
   override fun getConfigurations(): ImmutableCollection<Configuration> {
     return models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
+  }
+
+  /** Support for panning actions. */
+  val pannable =
+    object : Pannable {
+      override var isPanning: Boolean
+        get() = guiInputHandler.isPanning
+        set(value) {
+          guiInputHandler.isPanning = value
+        }
+
+      override val isPannable: Boolean
+        get() = true
+
+      /**
+       * Sets the offset for the scroll viewer to the specified x and y values The offset will never
+       * be less than zero, and never greater that the maximum value allowed by the sizes of the
+       * underlying view and the extent. If the zoom factor is large enough that a scroll bars isn't
+       * visible, the position will be set to zero.
+       */
+      @set:SwingCoordinate
+      @get:SwingCoordinate
+      override var scrollPosition: Point
+        get() = viewport.viewPosition
+        set(value) {
+          value.setLocation(max(0.0, value.x.toDouble()), max(0.0, value.y.toDouble()))
+
+          val extent: Dimension = viewport.extentSize
+          val view: Dimension = viewport.viewSize
+
+          val minX = min(value.x.toDouble(), (view.width - extent.width).toDouble()).toInt()
+          val minY = min(value.y.toDouble(), (view.height - extent.height).toDouble()).toInt()
+
+          value.setLocation(minX, minY)
+
+          viewport.viewPosition = value
+        }
+    }
+
+  fun setScrollPosition(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    pannable.scrollPosition = Point(x, y)
   }
 
   abstract fun setModel(model: NlModel?): CompletableFuture<Void>

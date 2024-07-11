@@ -482,7 +482,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     super.onScaleChange(update);
 
     DesignSurfaceViewport port = getViewport();
-    Point scrollPosition = getScrollPosition();
+    Point scrollPosition = getPannable().getScrollPosition();
     Point focusPoint = update.getFocusPoint();
 
     @SuppressWarnings("deprecation")

@@ -170,7 +170,7 @@ open class NavSceneManager(
       @SwingCoordinate val deltaX = Coordinates.getSwingDimension(it, root.drawX - (prevRootBounds?.x ?: 0))
       @SwingCoordinate val deltaY = Coordinates.getSwingDimension(it, root.drawY - (prevRootBounds?.y ?: 0))
 
-      @SwingCoordinate val point = designSurface.scrollPosition
+      @SwingCoordinate val point = designSurface.pannable.scrollPosition
       designSurface.setScrollPosition(point.x - deltaX, point.y - deltaY)
     }
   }

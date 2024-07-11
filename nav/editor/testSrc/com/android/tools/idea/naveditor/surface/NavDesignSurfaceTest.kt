@@ -301,7 +301,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
     val manager = GuiInputHandler(
-      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
     )
     manager.startListening()
 
@@ -508,7 +508,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
 
     val manager = GuiInputHandler(
-      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
     )
     manager.startListening()
 

@@ -421,21 +421,21 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(origScale, mySurface.getZoomController().getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.IN);
     double scale = mySurface.getZoomController().getScale();
     assertTrue(scale > origScale);
-    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getZoomController().getScale() > scale);
-    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.OUT, 100, 100);
-    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
     mySurface.getZoomController().zoom(ZoomType.OUT);
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
     mySurface.getZoomController().zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getZoomController().getScale(), origScale);
@@ -474,21 +474,21 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(origScale, mySurface.getZoomController().getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.IN);
     double scale = mySurface.getZoomController().getScale();
     assertTrue(scale > origScale);
-    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getZoomController().getScale() > scale);
-    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
 
     mySurface.getZoomController().zoom(ZoomType.OUT, 100, 100);
-    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
     mySurface.getZoomController().zoom(ZoomType.OUT);
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getPannable().getScrollPosition()));
     mySurface.getZoomController().zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getZoomController().getScale(), origScale);

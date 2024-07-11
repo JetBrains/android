@@ -269,6 +269,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
+  @Override
   public DesignSurfaceViewport getViewport() {
     return myViewport;
   }
@@ -588,23 +589,8 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     return getInteractionPane();
   }
 
-  @Override
-  public void setPanning(boolean isPanning) {
-    myGuiInputHandler.setPanning(isPanning);
-  }
-
   @SwingCoordinate
   protected abstract Dimension getScrollToVisibleOffset();
-
-  @Override
-  public boolean isPanning() {
-    return myGuiInputHandler.isPanning();
-  }
-
-  @Override
-  public boolean isPannable() {
-    return true;
-  }
 
   public Rectangle getCurrentScrollRectangle() {
     if (myScrollPane == null) return null;
@@ -662,40 +648,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     getSceneViews().stream().filter(sceneView -> sceneView.getSceneManager().getModel() == model).findFirst()
       .ifPresent(sceneView -> scrollToVisible(sceneView, forceScroll));
   }
-
-  public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
-    setScrollPosition(new Point(x, y));
-  }
-
-  /**
-   * Sets the offset for the scroll viewer to the specified x and y values
-   * The offset will never be less than zero, and never greater that the
-   * maximum value allowed by the sizes of the underlying view and the extent.
-   * If the zoom factor is large enough that a scroll bars isn't visible,
-   * the position will be set to zero.
-   */
-  @Override
-  public void setScrollPosition(@SwingCoordinate Point p) {
-    p.setLocation(Math.max(0, p.x), Math.max(0, p.y));
-
-    Dimension extent = getExtentSize();
-    Dimension view = getViewSize();
-
-    int minX = Math.min(p.x, view.width - extent.width);
-    int minY = Math.min(p.y, view.height - extent.height);
-
-    p.setLocation(minX, minY);
-
-    getViewport().setViewPosition(p);
-  }
-
-  @Override
-  @NotNull
-  @SwingCoordinate
-  public Point getScrollPosition() {
-    return getViewport().getViewPosition();
-  }
-
+  
   /**
    * Returns the size of the surface scroll viewport.
    */
@@ -891,6 +844,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   @NotNull
+  @Override
   public GuiInputHandler getGuiInputHandler() {
     return myGuiInputHandler;
   }
@@ -935,8 +889,11 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || PANNABLE_KEY.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
+    if (DESIGN_SURFACE.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
       return this;
+    }
+    if (PANNABLE_KEY.is(dataId)) {
+      return getPannable();
     }
     if (ZOOMABLE_KEY.is(dataId)){
       return getZoomController();
