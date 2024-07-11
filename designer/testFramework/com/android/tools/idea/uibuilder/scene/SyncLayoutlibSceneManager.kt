@@ -57,7 +57,6 @@ open class SyncLayoutlibSceneManager(
     },
     LayoutlibSceneManagerHierarchyProvider(),
     DISABLED,
-    ::RealTimeSessionClock,
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
