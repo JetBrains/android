@@ -21,5 +21,7 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.ml.mimetypeAugmenter"
                     interface="com.android.tools.idea.studiobot.mimetype.MimeTypeAugmenter" />
+    <extensionPoint qualifiedName="com.android.tools.idea.ml.studioBotExternalFlags"
+                    interface="com.android.tools.idea.studiobot.StudioBotExternalFlags" />
   </extensionPoints>
 </idea-plugin>

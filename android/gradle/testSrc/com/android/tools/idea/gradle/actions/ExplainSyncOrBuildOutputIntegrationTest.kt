@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getGradleFilesContext
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent
@@ -69,7 +69,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     ) {}
 
     val actual =
-      getErrorShortDescription(eventResults[1])!!
+      getErrorDetails(eventResults[1])!!
         .trimIndent()
         .replace("\r\n", "\n")
         .replace("\\", "/")
