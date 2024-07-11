@@ -610,12 +610,8 @@ class VisualizationForm(
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
-            val modelUpdateFuture = manager.updateModelAsync()
-            if (isRenderingCanceled.get()) {
-              return@thenCompose CompletableFuture.completedFuture<Void?>(null)
-            } else {
-              return@thenCompose modelUpdateFuture.thenCompose { manager.requestRenderAsync() }
-            }
+            manager.forceReinflate()
+            return@thenCompose manager.requestRenderAsync()
           }
         }
     }
