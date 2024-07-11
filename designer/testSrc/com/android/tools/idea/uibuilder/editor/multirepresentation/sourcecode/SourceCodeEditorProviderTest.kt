@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
@@ -85,7 +84,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
       EditorCreationMode.SYNC -> withContext(uiThread) { provider.createEditor(project, file) }
       EditorCreationMode.ASYNC -> {
         val builder =
-          withContext(workerThread) { readAction { provider.createEditorAsync(project, file) } }
+          withContext(workerThread) { provider.createEditorBuilder(project, file, document = null) }
         withContext(uiThread) { builder.build() }
       }
     }.also { Disposer.register(projectRule.testRootDisposable, it) }
