@@ -1137,7 +1137,7 @@ public final class StudioFlags {
     EDITOR, "dagger.cache.related.elements",
     "Enable caching related Dagger elements",
     "If enabled, related Dagger elements will be cached rather than being recalculated every time they're required.",
-    true
+    false // TODO(b/352564637): Fix this for K2 and re-enable after 2024.2 merge
   );
 
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = new BooleanFlag(
