@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightVirtualFile
 import kotlin.test.assertEquals
@@ -69,6 +70,7 @@ private fun someDisplaySettings(name: String = "") =
 
 class MethodPreviewElementModelAdapterTest {
   @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private val adapter = TestAdapter()
 
