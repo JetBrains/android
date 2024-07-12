@@ -50,10 +50,10 @@ internal interface WearHealthServicesStateManager {
   fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 
   /** Applies the changes on current device. */
-  suspend fun applyChanges()
+  suspend fun applyChanges(): Result<Unit>
 
   /** Resets the state to the defaults, in this case, to selected preset. */
-  suspend fun reset()
+  suspend fun reset(): Result<Unit>
 
   /**
    * State flow for the ongoing status updates, it's an instance of [WhsStateManagerStatus] which
@@ -69,7 +69,7 @@ internal interface WearHealthServicesStateManager {
   val ongoingExercise: StateFlow<Boolean>
 
   /** Triggers given event on the device. */
-  suspend fun triggerEvent(eventTrigger: EventTrigger)
+  suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 
   /** Used to get/set the serial number of the currently running emulator. */
   var serialNumber: String?
