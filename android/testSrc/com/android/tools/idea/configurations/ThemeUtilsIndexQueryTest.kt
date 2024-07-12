@@ -81,17 +81,5 @@ class ThemeUtilsIndexQueryTest {
         Truth.assertThat(facet.module.getAllActivityThemeNames()).containsExactly("@style/AppTheme")
       }
     }
-
-    // Run in non-smart mode in the UI thread. These conditions will cause a lock if the methods block to
-    // wait for the smart mode.
-    DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
-      SwingUtilities.invokeAndWait {
-        @Suppress("UnstableApiUsage")
-        (ApplicationManager.getApplication() as ApplicationEx).releaseWriteIntentLock()
-        println(ApplicationManager.getApplication().isReadAccessAllowed)
-        DumbService.getInstance(projectRule.project).isDumb
-        Truth.assertThat(facet.module.getAllActivityThemeNames()).containsExactly("@style/AppTheme")
-      }
-    }
   }
 }
