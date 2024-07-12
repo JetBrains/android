@@ -18,9 +18,9 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,13 +28,20 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.App;
 import com.android.tools.idea.execution.common.stats.RunStats;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +56,35 @@ public class AndroidRunConfigurationTest {
   public void setUp() throws Exception {
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(myProjectRule.getProject(), configurationFactory);
+  }
+
+  @Test
+  public void testMethodOfGettingDevicesInValidateBeforeRun() throws ExecutionException {
+    Project project = myProjectRule.getProject();
+    DeployTarget target = Mockito.mock(DeployTarget.class);
+    AndroidRunConfiguration configuration = Mockito.spy(myRunConfiguration);
+    DefaultDebugExecutor debugExecutor = Mockito.mock(DefaultDebugExecutor.class);
+    DataContext dataContext = SimpleDataContext.getProjectContext(project);
+
+    when(configuration.validate(debugExecutor)).thenReturn(List.of());
+    when(configuration.getDeployTarget()).thenReturn(target);
+    when(target.getAndroidDevices(project)).thenReturn(List.of());
+    when(target.getDevices(project)).thenThrow(new AssertionError(
+      """
+      DeployTarget.getDevices shouldn't be used in AndroidRunConfigurationBase.validateBeforeRun
+      because it launches the selected deployment target devices if necessary.
+      DeployTarget.getAndroidDevices should be used instead as it promises not to lauch not booted devices.
+      
+      Booting devices twice (in AndroidRunConfigurationBase.validateBeforeRun and in
+      AndroidRunConfigurationBase.doGetState where validateBeforeRun is used) seems to cause problems for
+      LocalEmulatorDeviceHandle, causing DeviceActionDisabledException to be thrown.
+      
+      Also, AndroidRunConfigurationBase.validateBeforeRun doesn't make use of DeviceFutures returned
+      from DeployTarget.getDevices, but only calls DeviceFutures.getDevices on it, which returns the same
+      value as DeployTarget.getAndroidDevices.
+      """));
+
+    configuration.validateBeforeRun(debugExecutor, dataContext);
   }
 
   /**
