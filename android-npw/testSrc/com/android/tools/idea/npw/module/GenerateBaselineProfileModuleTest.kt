@@ -234,7 +234,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk 34
+  compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -658,7 +658,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk 34
+  compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
