@@ -32,6 +32,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
@@ -84,6 +85,7 @@ class WearTilePreviewRepresentationTest {
     Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     logger.info("setup")
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
+    FakeBuildSystemFilePreviewServices().register(fixture.testRootDisposable)
     logger.info("setup complete")
 
     project.replaceService(

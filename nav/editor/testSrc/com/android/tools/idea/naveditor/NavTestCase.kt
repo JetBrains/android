@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -46,12 +47,12 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
 
   public override fun setUp() {
     super.setUp()
-    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet)
-
     @Suppress("ObjectLiteralToLambda") // Otherwise a static instance is created and used between tests.
     myRootDisposable = object : Disposable {
       override fun dispose() {}
     }
+    FakeBuildSystemFilePreviewServices().register(myRootDisposable)
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet)
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/java", "src")
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/res", "res")
     myFixture.copyFileToProject("$projectDirectory/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")

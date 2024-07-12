@@ -60,6 +60,7 @@ import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
@@ -186,6 +187,7 @@ class ComposePreviewRepresentationTest {
     logger.info("setup")
     val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
+    FakeBuildSystemFilePreviewServices().register(fixture.testRootDisposable)
     logger.info("setup complete")
     project.replaceService(
       ToolWindowManager::class.java,

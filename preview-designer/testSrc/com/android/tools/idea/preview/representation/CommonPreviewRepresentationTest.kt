@@ -51,6 +51,7 @@ import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.preview.waitUntilRefreshStarts
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -141,6 +142,7 @@ class CommonPreviewRepresentationTest {
   fun setup() {
     setUpComposeInProjectFixture(projectRule)
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
+    FakeBuildSystemFilePreviewServices().register(fixture.testRootDisposable)
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common
