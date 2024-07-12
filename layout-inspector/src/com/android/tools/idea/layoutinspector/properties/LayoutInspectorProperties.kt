@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.adtui.stdui.StandardColors.PLACEHOLDER_TEXT_COLOR
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.createCenterTextPanel
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 const val PROPERTIES_COMPONENT_NAME = "Properties Component"
@@ -53,10 +51,8 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
     val infoPanel = JPanel(BorderLayout())
     val text =
       HtmlEscapers.htmlEscaper().escape(LayoutInspectorBundle.message("no.selection.no.properties"))
-    val infoText = JLabel("<html><div style='text-align: center;'>$text</div></html>")
-    infoText.border = JBUI.Borders.empty(50)
+    val infoText = createCenterTextPanel(listOf(text))
     infoText.name = INFO_TEXT
-    infoText.foreground = PLACEHOLDER_TEXT_COLOR
     infoPanel.add(infoText, BorderLayout.CENTER)
     cardView.add(infoPanel, NO_SELECTION_CARD)
     cardView.add(properties.component, SELECTED_VIEW_CARD)
