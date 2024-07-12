@@ -22,8 +22,10 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.ApplicationRule
 import org.junit.After
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 
 private fun wearTilePreviewElement(
@@ -49,6 +51,7 @@ private fun simplestDisplaySettings(name: String = "") =
 
 class WearTilePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun testCalcAffinityPriority() {
