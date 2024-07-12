@@ -115,7 +115,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Tests for [StreamingToolWindowManager] and [StreamingToolWindowFactory].
  */
-@RunsInEdt(writeIntent = false)
+@RunsInEdt
 class StreamingToolWindowManagerTest {
 
   private val agentRule = FakeScreenSharingAgentRule()
