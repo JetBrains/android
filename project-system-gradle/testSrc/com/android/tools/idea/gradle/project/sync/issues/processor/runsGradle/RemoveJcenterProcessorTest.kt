@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradle
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.junit.Test
@@ -71,8 +74,9 @@ class RemoveJcenterProcessorTest : AndroidGradleTestCase() {
       }
     })
     WriteCommandAction.runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
+      processor.updateProjectBuildModel(usages)
     }
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES)
 
     // Confirm sync was successful and repository was removed
     assertTrue(synced)

@@ -16,20 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
+import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.lang.properties.psi.PropertiesFile
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
+import org.jetbrains.annotations.VisibleForTesting
 
 class SuppressUnsupportedSdkVersionPropertyProcessor(
   val project: Project,
@@ -74,28 +75,37 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
   }
 
   public override fun performRefactoring(usages: Array<UsageInfo>) {
+    updateProjectBuildModel(usages)
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PROJECT_MODIFIED)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel(usages: Array<UsageInfo>) {
     usages.forEach { usage ->
-      val propertiesFile = when(val element = usage.element) {
+      val propertiesFile = when (val element = usage.element) {
         is PsiFile -> element as? PropertiesFile
-        is PsiDirectory -> (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile (FN_GRADLE_PROPERTIES)).let {
-          (it as? PropertiesFile ?: return)
+        is PsiDirectory -> (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile(FN_GRADLE_PROPERTIES)).let {
+          (it as? PropertiesFile ?: return@forEach)
         }
+
         is PsiElement -> element.containingFile as? PropertiesFile
-        else -> return
+        else -> return@forEach
       }
 
       val existing = propertiesFile?.findPropertyByKey("android.suppressUnsupportedCompileSdk")
       if (existing != null) {
         existing.setValue(sdkVersionsToSuppress)
-      } else {
+      }
+      else {
         propertiesFile?.addProperty("android.suppressUnsupportedCompileSdk", sdkVersionsToSuppress)
       }
     }
 
     val projectBuildModel = ProjectBuildModel.get(myProject)
     projectBuildModel.applyChanges()
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PROJECT_MODIFIED)
   }
+
 
   public override fun getCommandName(): String {
     return "Updating or adding android.suppressUnsupportedCompileSdk gradle property"
