@@ -1,6 +1,7 @@
 // Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.fast
 
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
@@ -51,11 +52,18 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
         }
 
         if (library.scope != expectedLibraryScope) {
-          moduleLibraryDiffReport.addReport(
-            library,
-            expectedLibraryScope,
-            "Module library '${library.libraryName}' in module '${moduleName}' should be defined with a '$expectedLibraryScope' scope."
-          )
+          if (moduleName == "intellij.android.plugin" && library.libraryName == "studio-platform") {
+            logger<AndroidPluginModuleConsistencyTest>()
+              .warn("'$moduleName' module specifies '${library.libraryName}' as a '${library.scope}' dependency. " +
+                    "It should be declared as a 'PROVIDED' dependency instead.")
+          }
+          else {
+            moduleLibraryDiffReport.addReport(
+              library,
+              expectedLibraryScope,
+              "Module library '${library.libraryName}' in module '${moduleName}' should be defined with a '$expectedLibraryScope' scope."
+            )
+          }
         }
       }
 
