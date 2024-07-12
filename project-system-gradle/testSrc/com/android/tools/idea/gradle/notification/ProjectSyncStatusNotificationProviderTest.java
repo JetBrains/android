@@ -39,7 +39,9 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.NewUiValue;
 import java.util.Arrays;
 import java.util.function.Function;
 import org.junit.Test;
@@ -229,7 +231,25 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
   }
 
   @Test
-  public void testCustomizeNotificationColor() {
+  public void testCustomizeNotificationColorNewUI() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED);
+
+    EditorColorsScheme colorsSchemeSupplier = EditorColorsManager.getInstance().getGlobalScheme();
+    ColorKey panelColorKey = panel.getBackgroundColorKey();
+    colorsSchemeSupplier.setColor(panelColorKey, JBColor.RED);
+
+    assertThat(panelColorKey).isEqualTo(EditorColors.NOTIFICATION_BACKGROUND);
+    assertThat(EditorColorsManager.getInstance().getGlobalScheme().getColor(panelColorKey)).isEqualTo(JBColor.RED);
+  }
+
+  @Test
+  public void testCustomizeNotificationColorOldUI() {
+    NewUiValue.overrideNewUiForOneRemDevSession(false);
+    assertFalse(ExperimentalUI.isNewUI());
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
 
     Type type = myNotificationProvider.notificationPanelType();
