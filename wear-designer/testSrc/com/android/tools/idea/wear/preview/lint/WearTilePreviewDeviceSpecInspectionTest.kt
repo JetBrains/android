@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.application.runUndoTransparentWriteAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -29,7 +26,7 @@ import org.junit.Test
 
 class WearTilePreviewDeviceSpecInspectionTest {
 
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
   private val fixture
     get() = projectRule.fixture
@@ -38,7 +35,6 @@ class WearTilePreviewDeviceSpecInspectionTest {
 
   @Before
   fun setUp() {
-    runWriteActionAndWait { Sdks.addLatestAndroidSdk(fixture.projectDisposable, fixture.module) }
     fixture.enableInspections(inspection)
   }
 
@@ -160,7 +156,5 @@ class WearTilePreviewDeviceSpecInspectionTest {
     assertEquals(0, fixture.doHighlighting(HighlightSeverity.ERROR).size)
   }
 
-  private fun IntentionAction.apply() = runInEdt {
-    runUndoTransparentWriteAction { invoke(fixture.project, fixture.editor, fixture.file) }
-  }
+  private fun IntentionAction.apply() = fixture.launchAction(this)
 }
