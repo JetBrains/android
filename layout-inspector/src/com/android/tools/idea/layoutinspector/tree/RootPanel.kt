@@ -107,12 +107,13 @@ class RootPanel(
   }
 
   /** Panel shown when no other panel should be shown . */
-  private val defaultPanel = createTextPanel(listOf("Waiting for Layout Inspector to connect."))
+  private val defaultPanel =
+    createCenterTextPanel(listOf("Waiting for Layout Inspector to connect."))
   /** Panel used to show a loading indicator. */
   private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
   /** Panel used to indicate that the current foreground process is not debuggable. */
   private val processNotDebuggablePanel =
-    createTextPanel(
+    createCenterTextPanel(
       listOf(
         LayoutInspectorBundle.message("application.not.inspectable"),
         LayoutInspectorBundle.message("navigate.to.debuggable.application"),
@@ -200,7 +201,7 @@ class RootPanel(
  *
  * @param lines Each string is shown on a separate line.
  */
-private fun createTextPanel(lines: List<String>): JPanel {
+fun createCenterTextPanel(lines: List<String>): JPanel {
   val html =
     """
   <center>
