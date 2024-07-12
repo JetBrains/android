@@ -50,6 +50,7 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.AndroidIcons
+import icons.StudioIllustrations
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -203,7 +204,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
     val text = htmlComponent(text = html,
                              lineWrap = true,
-                             font = JBUI.Fonts.label(13f),
+                             font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT,
                              foreground = StandardColors.PLACEHOLDER_TEXT_COLOR,
                              hyperlinkListener = hyperlinkListener).apply {
       isOpaque = false
@@ -218,9 +219,10 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
       weightx = 1 - SIDE_MARGIN * 2
       weighty = TOP_MARGIN
     }
-    val icon = JBLabel(AndroidIcons.Explorer.DevicesLineup)
+    val icon = JBLabel(StudioIllustrations.Common.DEVICES_LINEUP)
     icon.horizontalAlignment = SwingConstants.CENTER
     icon.verticalAlignment = SwingConstants.BOTTOM
+    icon.border = JBUI.Borders.emptyBottom(16)
     add(icon, c)
 
     c.apply {
