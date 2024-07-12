@@ -1529,6 +1529,11 @@ public final class StudioFlags {
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
     true);
+
+  public static final Flag<Boolean> WEAR_TILE_ANIMATION_INSPECTOR = new BooleanFlag(
+    WEAR_SURFACES, "wear.tile.preview.animation.inspector.enabled", "Enable Wear Tile Preview Animation Inspector",
+    "If enabled, a Wear Tile Animation Inspector functionality is available in Preview",
+    false);
   // endregion
 
   // region Wear Health Services
