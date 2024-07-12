@@ -53,9 +53,10 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
           verticalAlignment = Alignment.CenterVertically) {
         if (!isStopButtonClicked) {
           Icon(
-            painter = StudioIconsCompose.Profiler.Toolbar.StopRecording().getPainter().value,
+            key = StudioIconsCompose.Profiler.Toolbar.StopRecording,
             contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
+            iconClass = StudioIconsCompose::class.java
           )
         }
         val ongoingTaskName = recordingScreenModel.taskName.lowercase()

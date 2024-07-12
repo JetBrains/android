@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_MAX_WIDTH_DP
@@ -34,6 +33,7 @@ import main.utils.tooltips.TooltipStyleFactory.createTooltipStyle
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 import kotlin.time.Duration
 
 /**
@@ -50,7 +50,7 @@ import kotlin.time.Duration
 @Composable
 fun CollapsibleNotification(mainText: String,
                             tooltip: (@Composable () -> Unit)? = null,
-                            iconPainter: Painter,
+                            iconKey: IntelliJIconKey,
                             iconDescription: String,
                             isCollapsed: Boolean) {
   if (isCollapsed || tooltip != null) {
@@ -66,20 +66,20 @@ fun CollapsibleNotification(mainText: String,
           tooltip?.let { it() }
         }
       },
-      content = { NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed) },
+      content = { NotificationIconAndText(mainText, iconKey, iconDescription, isCollapsed) },
       style = createTooltipStyle(Duration.ZERO)
     )
   }
   else {
-    NotificationIconAndText(mainText, iconPainter, iconDescription, isCollapsed)
+    NotificationIconAndText(mainText, iconKey, iconDescription, isCollapsed)
   }
 }
 
 @Composable
-private fun NotificationIconAndText(mainText: String, iconPainter: Painter, iconDescription: String, isCollapsed: Boolean) {
+private fun NotificationIconAndText(mainText: String, iconKey: IntelliJIconKey, iconDescription: String, isCollapsed: Boolean) {
   Row(verticalAlignment = Alignment.CenterVertically) {
     Icon(
-      painter = iconPainter,
+      key = iconKey,
       contentDescription = iconDescription,
     )
     if (!isCollapsed) {
