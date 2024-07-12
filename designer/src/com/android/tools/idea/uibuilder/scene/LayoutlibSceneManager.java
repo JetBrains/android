@@ -1110,7 +1110,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   @NotNull
-  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,
+  private CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,
                                                         AtomicBoolean reverseUpdate) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
