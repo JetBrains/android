@@ -18,6 +18,7 @@ package com.android.tools.adtui.swing
 
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
+import com.intellij.concurrency.resetThreadContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -170,24 +171,26 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogTrigger: R
 }
 
 private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
-  // Code similar to EdtInvocationManager.dispatchAllInvocationEvents.
-  val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
-  while (eventQueue.peekEvent() != null) {
-    try {
-      val event = eventQueue.nextEvent
-      if (event is InvocationEvent) {
-        dispatchEventMethod.invoke(eventQueue, event)
-        return event
+  // Code similar to EDT.dispatchAllInvocationEvents.
+  resetThreadContext().use {
+    val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
+    while (eventQueue.peekEvent() != null) {
+      try {
+        val event = eventQueue.nextEvent
+        if (event is InvocationEvent) {
+          dispatchEventMethod.invoke(eventQueue, event)
+          return event
+        }
+      }
+      catch (e: InvocationTargetException) {
+        ExceptionUtil.rethrowAllAsUnchecked(e.cause)
+      }
+      catch (e: Exception) {
+        ExceptionUtil.rethrow(e)
       }
     }
-    catch (e: InvocationTargetException) {
-      ExceptionUtil.rethrowAllAsUnchecked(e.cause)
-    }
-    catch (e: Exception) {
-      ExceptionUtil.rethrow(e)
-    }
+    return null
   }
-  return null
 }
 
 private val modalityChangeLock = ReentrantLock()
