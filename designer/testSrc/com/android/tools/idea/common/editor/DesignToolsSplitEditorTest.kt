@@ -16,7 +16,11 @@
 package com.android.tools.idea.common.editor
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.analytics.CommonUsageTracker
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -24,33 +28,74 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.EditorGutterComponentEx
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import org.jetbrains.android.AndroidTestCase
+import javax.swing.JLabel
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.mock
 
-class DesignToolsSplitEditorTest : AndroidTestCase() {
+@RunsInEdt
+class DesignToolsSplitEditorTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule val runsInEdt = EdtRule()
 
   private lateinit var splitEditor: DesignToolsSplitEditor
   private lateinit var textEditor: TextEditor
   private lateinit var designerEditor: DesignerEditor
   private var showDefaultGutterPopupValue = false
 
-  override fun setUp() {
-    super.setUp()
-    val panel = mock(DesignerEditorPanel::class.java)
-    whenever(panel.surface).thenReturn(NlSurfaceBuilder.build(project, testRootDisposable))
-    whenever(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
-    designerEditor = mock(DesignerEditor::class.java)
-    whenever(designerEditor.component).thenReturn(panel)
+  @Before
+  fun setUp() {
+    val nlModel =
+      NlModelBuilderUtil.model(
+          projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor("LinearLayout"),
+        )
+        .build()
+        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+
+    val project = projectRule.project
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
+    designerEditor =
+      object : DesignerEditor(nlModel.file.virtualFile, project) {
+        override fun getName(): String = "Test Design Editor"
+
+        override fun getEditorId(): String = "TestDesignEditor"
+
+        override fun createEditorPanel(): DesignerEditorPanel =
+          DesignerEditorPanel(
+              this,
+              project,
+              file!!,
+              WorkBench(project, "TestWorkBench", null, projectRule.testRootDisposable),
+              { _ -> surface },
+              {},
+              { _, _, _, _, _ -> nlModel },
+              { _ -> listOf() },
+              { _, _ -> JLabel() },
+              DesignerEditorPanel.State.FULL,
+            )
+            .apply { Disposer.register(projectRule.testRootDisposable, this) }
+      }
 
     val textEditorComponent = object : JComponent() {}
-    textEditor = mock(TextEditor::class.java)
+    textEditor = mock()
     whenever(textEditor.component).thenReturn(textEditorComponent)
     whenever(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val editor = mock(EditorEx::class.java)
@@ -85,14 +130,16 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
           return component
         }
       }
+    Disposer.register(projectRule.testRootDisposable, splitEditor)
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
-    super.tearDown()
   }
 
+  @Test
   fun testTrackingModeChange() {
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isNull()
     var triggerExplicitly = false
@@ -119,6 +166,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
       .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
+  @Test
   fun testModeChange() {
     var triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
@@ -137,11 +185,13 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     assertTrue(showDefaultGutterPopupValue)
   }
 
+  @Test
   fun testFileIsDelegateToTextEditor() {
     val splitEditorFile = splitEditor.file!!
     assertThat(splitEditorFile).isEqualTo(textEditor.file)
   }
 
+  @Test
   fun testKeyboardShortcuts() {
     val modifiers =
       (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or
