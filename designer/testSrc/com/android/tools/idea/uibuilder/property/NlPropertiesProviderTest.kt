@@ -46,6 +46,7 @@ import com.android.SdkConstants.VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_IMAGE_VIEW
@@ -61,6 +62,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.asJava.classes.runReadAction
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -85,6 +87,11 @@ class NlPropertiesProviderTest {
 
   @get:Rule
   val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
+
+  @Before
+  fun setUp() {
+    FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
+  }
 
   private val viewAttrs =
     listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)

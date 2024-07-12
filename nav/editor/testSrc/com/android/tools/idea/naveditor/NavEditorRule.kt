@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.android.tools.idea.util.androidFacet
@@ -80,6 +81,7 @@ class NavEditorRule(
   }
 
   private fun before() {
+    FakeBuildSystemFilePreviewServices().register(myProjectRule.testRootDisposable)
     myProjectRule.fixture.testDataPath = AndroidTestBase.getTestDataPath()
 
     myProjectRule.fixture.copyDirectoryToProject("$projectName/app/src/main/java", "src")
