@@ -51,6 +51,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
@@ -455,6 +456,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testActivateWithSchemaChange() {
+    // Wait for dependencies to be ready
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
@@ -565,6 +568,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testActivateAddNavigator() {
+    // Wait for dependencies to be ready
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
     PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
