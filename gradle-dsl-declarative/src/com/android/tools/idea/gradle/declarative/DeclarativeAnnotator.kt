@@ -37,8 +37,7 @@ class DeclarativeAnnotator : Annotator {
     if (parent is DeclarativeIdentifier) {
       val path = getPath(parent)
       val service = DeclarativeService.getInstance(element.project)
-      val module = ModuleUtil.findModuleForPsiElement(element.containingFile) ?: return
-      val schema = service.getSchema(module) ?: return
+      val schema = service.getSchema() ?: return
       if (schema.failureHappened) return
       verifyPath(path, schema, holder)
     }
