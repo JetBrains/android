@@ -15,10 +15,6 @@ public final class AndroidIcons {
     return IconManager.getInstance().loadRasterizedIcon(path, AndroidIcons.class.getClassLoader(), cacheKey, flags);
   }
 
-  public static final class Explorer {
-    /** 220x125 */ public static final @NotNull Icon DevicesLineup = load("icons/explorer/devices-lineup.png", 0, 7);
-  }
-
   public static final class Flags {
     /** 16x11 */ public static final @NotNull Icon Ad = load("icons/flags/ad.png", 0, 0);
     /** 16x11 */ public static final @NotNull Icon Ae = load("icons/flags/ae.png", 0, 0);

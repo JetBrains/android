@@ -31,7 +31,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLoadingPanel
-import icons.AndroidIcons
+import icons.StudioIllustrations
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
@@ -143,7 +143,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   private fun showNoDeviceScreen() {
     panel.showMessageLayer(
       "Connect a device via USB cable or run an Android Virtual Device",
-      AndroidIcons.Explorer.DevicesLineup,
+      StudioIllustrations.Common.DEVICES_LINEUP,
       false
     )
   }
