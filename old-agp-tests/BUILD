@@ -178,6 +178,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
         "@maven//:org.junit.junit-bom_5.9.3",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
