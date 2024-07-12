@@ -33,30 +33,31 @@ import org.junit.Test
 
 class ModuleCompileTest {
 
-  @get:Rule
-  var projectRule = AndroidProjectRule.onDisk().withKotlin() // The light weight inMemory() version does not support modules modifications.
   val libModule1Name = "lib1"
   val libModule2Name = "lib2"
 
+  @get:Rule
+  val projectRule =
+    AndroidProjectRule
+      // The light weight inMemory() version does not support modules modifications.
+      .onDisk(extraModules = listOf(libModule1Name, libModule2Name))
+      .withKotlin()
+
   @Before
   fun setUp() {
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      var dir1 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule1Name);
-      var lib1 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule1Name, dir1)
-      AdtTestProjectDescriptors.kotlin().configureModule(lib1)
-      PsiTestUtil.addContentRoot(lib1, dir1)
-
-      var dir2 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule2Name);
-      var lib2 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule2Name, dir2)
-      AdtTestProjectDescriptors.kotlin().configureModule(lib2)
-      PsiTestUtil.addContentRoot(lib2, dir2)
-    }
     setUpComposeInProjectFixture(projectRule)
   }
 
   @Test
   fun testLibModule() {
-    val file = projectRule.fixture.addFileToProject("$libModule1Name/B.kt", "public class B() { internal fun foo() : Int { return 2 } }") as KtFile
+    val file = projectRule.fixture.addFileToProject(
+      "$libModule1Name/src/B.kt",
+      """
+        public class B() {
+          internal fun foo(): Int = 2
+        }
+      """.trimIndent(),
+    ) as KtFile
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -73,8 +74,22 @@ class ModuleCompileTest {
 
   @Test
   fun testDifferentModules() {
-    val file1 = projectRule.fixture.addFileToProject("$libModule1Name/A.kt", "public class A() { internal fun foo() : Int { return 2 } }") as KtFile
-    val file2 = projectRule.fixture.addFileToProject("$libModule2Name/B.kt", "public class B() { internal fun bar() : Int { return 2 } }") as KtFile
+    val file1 = projectRule.fixture.addFileToProject(
+      "$libModule1Name/src/A.kt",
+      """
+        public class A() {
+          internal fun foo(): Int = 2
+        }
+      """.trimIndent(),
+    ) as KtFile
+    val file2 = projectRule.fixture.addFileToProject(
+      "$libModule2Name/src/B.kt",
+      """
+        public class B() {
+          internal fun bar(): Int = 2
+        }
+      """.trimIndent(),
+    ) as KtFile
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -96,10 +111,24 @@ class ModuleCompileTest {
 
   @Test
   fun `Single compiler invocation with files in different modules`() {
-    var file1 = projectRule.fixture.addFileToProject("$libModule1Name/A.kt", "public class A() { internal fun foo() : Int { return 2 } }")
-    var file2 = projectRule.fixture.addFileToProject("$libModule2Name/B.kt", "public class B() { internal fun bar() : Int { return 2 } }")
+    val file1 = projectRule.fixture.addFileToProject(
+      "$libModule1Name/src/A.kt",
+      """
+        public class A() {
+          internal fun foo(): Int = 2
+        }
+      """.trimIndent(),
+    ) as KtFile
+    val file2 = projectRule.fixture.addFileToProject(
+      "$libModule2Name/src/B.kt",
+      """
+        public class B() {
+          internal fun bar(): Int = 2
+        }
+      """.trimIndent(),
+    ) as KtFile
     try {
-      projectRule.directApiCompile(listOf(file1 as KtFile, file2 as KtFile))
+      projectRule.directApiCompile(listOf(file1, file2))
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (l : LiveEditUpdateException) {
       // TODO: This test is wrong. We should *NOT* be getting a null pointer exception if you allow files of two different module to be
