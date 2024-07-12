@@ -324,8 +324,9 @@ class WearHealthServicesStateManagerTest {
     stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
     stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(false)
 
-    stateManager.applyChanges()
+    val result = stateManager.applyChanges()
 
+    assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
@@ -359,8 +360,9 @@ class WearHealthServicesStateManagerTest {
     deviceManager.failState = true
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager.applyChanges()
+    val result = stateManager.applyChanges()
 
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     assertThat(loggedEvents).hasSize(2)
@@ -380,12 +382,14 @@ class WearHealthServicesStateManagerTest {
 
     deviceManager.failState = true
 
-    stateManager.applyChanges()
+    var result = stateManager.applyChanges()
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     deviceManager.failState = false
 
-    stateManager.applyChanges()
+    result = stateManager.applyChanges()
+    assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
   }
 
@@ -435,8 +439,9 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `test triggered events are forwarded to device manager`(): Unit = runBlocking {
-    stateManager.triggerEvent(EventTrigger("key", "label"))
+    val result = stateManager.triggerEvent(EventTrigger("key", "label"))
 
+    assertThat(result.isSuccess).isTrue()
     assertThat(deviceManager.triggeredEvents).hasSize(1)
     assertThat(deviceManager.triggeredEvents[0].eventKey).isEqualTo("key")
   }
@@ -445,8 +450,9 @@ class WearHealthServicesStateManagerTest {
   fun `test triggered event failures are reflected in state manager`(): Unit = runBlocking {
     deviceManager.failState = true
 
-    stateManager.triggerEvent(EventTrigger("key", "label"))
+    val result = stateManager.triggerEvent(EventTrigger("key", "label"))
 
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
   }
 
@@ -455,8 +461,9 @@ class WearHealthServicesStateManagerTest {
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
-    stateManager.reset()
+    val result = stateManager.reset()
 
+    assertThat(result.isSuccess).isTrue()
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
   }
 
@@ -466,8 +473,9 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
     deviceManager.failState = true
-    stateManager.reset()
+    val result = stateManager.reset()
 
+    assertThat(result.isSuccess).isFalse()
     try {
       stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       fail("Value should not reset if the communication with the device is lost")
