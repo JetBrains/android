@@ -963,8 +963,7 @@ class ComposePreviewRepresentation(
         projectBuildStatus == RenderingBuildStatus.Building)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the
-    // preview
-    // is out of date.
+    // preview is out of date.
     val newStatus =
       ComposePreviewManager.Status(
         !isRefreshing && hasErrorsAndNeedsBuild(),
@@ -979,11 +978,9 @@ class ComposePreviewRepresentation(
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
-    // moment we detect a difference,
-    // we immediately ask the editor to refresh the notifications.
+    // moment we detect a difference, we immediately ask the editor to refresh the notifications.
     // For example, IntelliJ will periodically update the toolbar. If one of the actions checks the
-    // state and changes its UI, this will
-    // allow for notifications to be refreshed at the same time.
+    // state and changes its UI, this will allow for notifications to be refreshed at the same time.
     val previousStatus = previousStatusRef.getAndSet(newStatus)
     if (newStatus != previousStatus) {
       requestVisibilityAndNotificationsUpdate()
