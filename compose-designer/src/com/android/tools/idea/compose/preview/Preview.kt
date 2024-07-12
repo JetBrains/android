@@ -975,7 +975,7 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
-        psiFilePointer.element,
+        runReadAction { psiFilePointer.element },
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
