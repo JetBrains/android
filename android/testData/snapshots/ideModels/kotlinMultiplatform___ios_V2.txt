@@ -1281,6 +1281,12 @@ MODULE                        : kotlinMultiPlatform
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseWearApp                : <empty>
+                        resolvableIosArm64CompilationApi        : <empty>
+                        resolvableIosArm64TestCompilationApi    : <empty>
+                        resolvableIosSimulatorArm64CompilationApi         : <empty>
+                        resolvableIosSimulatorArm64TestCompilationApi     : <empty>
+                        resolvableIosX64CompilationApi          : <empty>
+                        resolvableIosX64TestCompilationApi      : <empty>
                         runtimeOnly                   : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
