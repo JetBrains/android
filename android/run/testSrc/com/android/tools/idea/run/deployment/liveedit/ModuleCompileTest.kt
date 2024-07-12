@@ -18,14 +18,11 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.JavaModuleType
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.containers.stream
 import junit.framework.Assert
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Rule
@@ -67,8 +64,9 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    var output = compile(listOf(LiveEditCompilerInput(file, readPsiValidationState(file))), compiler)
-    var clazz = loadClass(output)
+
+    val output = compile(listOf(LiveEditCompilerInput(file, readPsiValidationState(file))), compiler)
+    val clazz = loadClass(output)
     Assert.assertTrue(clazz.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
   }
 
@@ -99,14 +97,15 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
+
     val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
                                 LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
 
-    var clazzA = loadClass(output, "A")
-    Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
+    val clazzA = loadClass(output, "A")
+    Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch { it.name.contains("foo\$$libModule1Name") })
 
-    var clazzB = loadClass(output, "B")
-    Assert.assertTrue(clazzB.declaredMethods.stream().anyMatch {it.name.contains("bar\$$libModule2Name")})
+    val clazzB = loadClass(output, "B")
+    Assert.assertTrue(clazzB.declaredMethods.stream().anyMatch { it.name.contains("bar\$$libModule2Name") })
   }
 
   @Test
@@ -127,13 +126,31 @@ class ModuleCompileTest {
         }
       """.trimIndent(),
     ) as KtFile
-    try {
-      projectRule.directApiCompile(listOf(file1, file2))
-      Assert.fail("Expecting LiveEditUpdateException")
-    } catch (l : LiveEditUpdateException) {
-      // TODO: This test is wrong. We should *NOT* be getting a null pointer exception if you allow files of two different module to be
-      //  compiled at once. I suspect we are not setting up the modules correctly for it to mirror an actual Android project set up.
-      Assert.assertTrue(l.cause is NullPointerException)
+    if (!KotlinPluginModeProvider.isK2Mode()) {
+      try {
+        projectRule.directApiCompile(listOf(file1, file2))
+        Assert.fail("Expecting LiveEditUpdateException")
+      }
+      catch (l: LiveEditUpdateException) {
+        // TODO: This test is wrong. We should *NOT* be getting a null pointer exception if you allow files of two different module to be
+        //  compiled at once. I suspect we are not setting up the modules correctly for it to mirror an actual Android project set up.
+        Assert.assertTrue(l.cause is NullPointerException)
+      }
+    } else {
+      val cache = MutableIrClassCache()
+      val apk = projectRule.directApiCompileIr(listOf(file1, file2))
+      val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
+        override fun getClass(ktFile: KtFile, className: String) = apk[className]
+      })
+
+      val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
+                                  LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
+
+      val clazzA = loadClass(output, "A")
+      Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch { it.name.contains("foo\$$libModule1Name") })
+
+      val clazzB = loadClass(output, "B")
+      Assert.assertTrue(clazzB.declaredMethods.stream().anyMatch { it.name.contains("bar\$$libModule2Name") })
     }
   }
 
