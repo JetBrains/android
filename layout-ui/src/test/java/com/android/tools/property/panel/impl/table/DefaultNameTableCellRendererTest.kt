@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.TOOLS_URI
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableColumn
@@ -27,16 +28,21 @@ import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.util.IconLoader
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.ui.NewUI
 import icons.StudioIcons
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val TOOLTIP_PROPERTY = "JComponent.helpTooltip"
 
 class DefaultNameTableCellRendererTest {
+  @get:Rule val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule())
 
   @Test
   fun testGetToolTipText() {
@@ -85,7 +91,7 @@ class DefaultNameTableCellRendererTest {
     val selected =
       renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false)
         as DefaultNameComponent
-    assertThat(IconTester.hasOnlyWhiteColors(selected.icon!!)).isTrue()
+    assertThat(IconTester.hasOnlyWhiteColors(selected.icon!!)).isEqualTo(!NewUI.isEnabled())
   }
 
   private fun createTable(): JTable {

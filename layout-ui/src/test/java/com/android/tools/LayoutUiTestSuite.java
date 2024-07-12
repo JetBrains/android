@@ -22,4 +22,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public class LayoutUiTestSuite extends IdeaTestSuiteBase {
+
+  static {
+    IconLoaderRule.enableIconLoading();
+  }
 }
