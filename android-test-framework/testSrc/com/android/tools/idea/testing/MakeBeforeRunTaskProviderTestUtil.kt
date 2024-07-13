@@ -47,8 +47,10 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
@@ -103,13 +105,15 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
     deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
     try {
       Truth.assertThat(
-        BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
-          .executeTask(
-            DataContext.EMPTY_CONTEXT,
-            this,
-            executionEnvironment,
-            makeBeforeRunTask
-          )
+        ProgressManager.getInstance().runProcessWithProgressSynchronously(ThrowableComputable {
+          BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
+            .executeTask(
+              DataContext.EMPTY_CONTEXT,
+              this,
+              executionEnvironment,
+              makeBeforeRunTask
+            )
+        }, "Test Run MakeBeforeTask", false, project)
       ).isTrue()
     } finally {
       runInEdtAndWait {
