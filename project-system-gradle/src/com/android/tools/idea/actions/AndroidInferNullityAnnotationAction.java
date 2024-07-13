@@ -111,9 +111,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       super.analyze(project, scope);
       return;
     }
-    int[] fileCount = new int[]{0};
     PsiDocumentManager.getInstance(project).commitAllDocuments();
-    UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
+    UsageInfo[] usageInfos = findUsages(project, scope, scope.getFileCount());
     if (usageInfos == null) return;
 
     Map<Module, PsiFile> modules = findModulesFromUsage(usageInfos);
