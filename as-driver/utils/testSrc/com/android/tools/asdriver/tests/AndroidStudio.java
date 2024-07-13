@@ -417,7 +417,7 @@ public class AndroidStudio implements AutoCloseable {
    * @param isWarmup should the metric entries describing this call be marked as warmup
    */
   public void openFile(@Nullable String project, @NotNull final String filePath, boolean isWarmup) {
-    executeCommand("%openFile " + filePath + (isWarmup ? " WARMUP" : ""), project);
+    executeCommand("%openFile " + filePath + " -disableCodeAnalysis" + (isWarmup ? " WARMUP" : ""), project);
   }
 
   /**
