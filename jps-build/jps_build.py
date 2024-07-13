@@ -85,6 +85,7 @@ def jps_build(args, environment, cwd):
         print("Running " + " ".join(cmd))
     retcode = subprocess.call(cmd, cwd=bin_cwd, env=env)
 
+    run_workspace = environment.get("BUILD_WORKSPACE_DIRECTORY")
     print("Done running at: " + str(datetime.datetime.now()))
     if retcode == 0:
         all_files = set(files_in_dir(workspace))
@@ -102,7 +103,6 @@ def jps_build(args, environment, cwd):
                 # If it's not a build output or ignored, it is a download
                 downloaded_files.add(new_file)
 
-        run_workspace = environment.get("BUILD_WORKSPACE_DIRECTORY")
         if args.download_cache and run_workspace:
             write_files(workspace, downloaded_files, os.path.join(run_workspace, args.download_cache))
 
@@ -114,7 +114,7 @@ def jps_build(args, environment, cwd):
             print("Output Files:\n " + "\n".join(output_files))
             print("Downloaded Files:\n " + "\n".join(downloaded_files))
 
-    if args.delete_workspace and not args.reuse_workspace:
+    if run_workspace and args.delete_workspace and not args.reuse_workspace:
         shutil.rmtree(workspace)
     else:
         print("Leaving " + workspace + " behind.")
