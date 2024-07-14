@@ -57,7 +57,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.task.ProjectTaskManager
-import io.ktor.util.reflect.instanceOf
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
@@ -283,7 +282,7 @@ class PlatformIntegrationTest {
     val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
       if (output.contains("waiting!")) {
         CoreProgressManager.getCurrentIndicators()
-          .single { it.instanceOf(ProgressWindow::class) }
+          .single { it is ProgressWindow }
           .cancel()
       }
     }) { project ->
@@ -314,7 +313,7 @@ class PlatformIntegrationTest {
     val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
       if (output.contains("waiting!")) {
         CoreProgressManager.getCurrentIndicators()
-          .single { it.instanceOf(ProgressWindow::class) }
+          .single { it is ProgressWindow }
           .cancel()
       }
     }) { project ->
