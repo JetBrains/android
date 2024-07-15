@@ -17,6 +17,10 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -24,6 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -61,6 +66,20 @@ class BuildListenerTest {
     get() = projectRule.project
 
   private val buildTargetReference get() = BuildTargetReference.gradleOnly(projectRule.module)
+
+  private val buildSystemServices = FakeBuildSystemFilePreviewServices(
+    buildServices = object : BuildServices<BuildTargetReference> by FakeBuildServices() {
+      override fun getLastCompileStatus(buildTarget: BuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+        // Return the build status from the project system while in migration.
+        return testBuildManager.getLastBuildResult().status
+      }
+    }
+  )
+
+  @Before
+  fun setUp() {
+    buildSystemServices.register(projectRule.testRootDisposable)
+  }
 
   private fun setupBuildListener(buildMode: ProjectSystemBuildManager.BuildMode)
     : Triple<TestProjectSystemBuildManager, ProjectSystemBuildManager.BuildMode, TestBuildListener> {
