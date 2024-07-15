@@ -35,7 +35,6 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PsiElementPattern
@@ -43,9 +42,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.declarative.dsl.schema.SchemaFunction
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
@@ -58,16 +54,6 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiEl
     psiElement().withParent(DeclarativeBlockGroup::class.java),
     psiElement().withParent(DeclarativeFile::class.java),
   )
-
-private enum class ElementType(val str: String) {
-  STRING("String"),
-  INTEGER("Integer"),
-  LONG("Long"),
-  BOOLEAN("Boolean"),
-  BLOCK("Block element"),
-  FACTORY("Factory"),
-  PROPERTY("Property")
-}
 
 private data class Suggestion(val name: String, val type: ElementType)
 
@@ -134,28 +120,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
     val element = schema.getDataClassesByFqName()[currentName]  ?: return emptyList()
     return element.properties.map { Suggestion(it.name, getType(it.valueType)) } +
-           element.memberFunctions.map { Suggestion(it.simpleName, if(isBlock(it)) BLOCK else FACTORY) }
+           element.memberFunctions.map { Suggestion(it.simpleName, if(it.isFunction()) FACTORY else BLOCK) }
   }
-
-  // blocks are functions with unit return type
-  private fun isBlock(schema: SchemaFunction):Boolean {
-    return when(val returnType = schema.returnValueType){
-      is DataTypeRef.Type -> returnType.dataType is DataType.UnitType
-      else -> false
-    }
-  }
-
-  private fun getType(type: DataTypeRef):ElementType =
-    when (type) {
-      is DataTypeRef.Name -> BLOCK
-      is DataTypeRef.Type -> when (type.dataType) {
-        is DataType.IntDataType -> INTEGER
-        is DataType.LongDataType -> LONG
-        is DataType.StringDataType -> STRING
-        is DataType.BooleanDataType -> BOOLEAN
-        else -> ElementType.PROPERTY
-      }
-    }
 
   // create path - list of identifiers from root element to parent
   private fun getPath(parent: PsiElement): List<String> {
