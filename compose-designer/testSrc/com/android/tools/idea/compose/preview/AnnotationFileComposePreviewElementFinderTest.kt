@@ -381,7 +381,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       "src/File1.kt",
       // language=kotlin
       """
-        package androidx.preview.valid.package
+        package androidx.preview.valid.pkg
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -395,7 +395,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       "src/File2.kt",
       // language=kotlin
       """
-        package androidx.valid.preview.package
+        package androidx.valid.preview.pkg
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -409,7 +409,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       "src/File3.kt",
       // language=kotlin
       """
-        package androidx.valid.package.preview
+        package androidx.valid.pkg.preview
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -427,7 +427,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       // language=kotlin
       """
         // Doesn't contain preview
-        package androidx.invalid.package
+        package androidx.invalid.pkg
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -442,7 +442,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       // language=kotlin
       """
         // 'mypreview' is not valid
-        package androidx.invalid.mypreview.package
+        package androidx.invalid.mypreview.pkg
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -457,7 +457,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       // language=kotlin
       """
         // 'pre.view' is not valid
-        package androidx.invalid.pre.view.package
+        package androidx.invalid.pre.view.pkg
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -477,12 +477,12 @@ class AnnotationFileComposePreviewElementFinderTest {
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
-        import androidx.preview.valid.package.MyValidAnnotation1
-        import androidx.valid.preview.package.MyValidAnnotation2
-        import androidx.valid.package.preview.MyValidAnnotation3
-        import androidx.invalid.package.MyInvalidAnnotation1
-        import androidx.invalid.mypreview.package.MyInvalidAnnotation2
-        import androidx.invalid.pre.view.package.MyInvalidAnnotation3
+        import androidx.preview.valid.pkg.MyValidAnnotation1
+        import androidx.valid.preview.pkg.MyValidAnnotation2
+        import androidx.valid.pkg.preview.MyValidAnnotation3
+        import androidx.invalid.pkg.MyInvalidAnnotation1
+        import androidx.invalid.mypreview.pkg.MyInvalidAnnotation2
+        import androidx.invalid.pre.view.pkg.MyInvalidAnnotation3
 
         @Composable
         @Preview
