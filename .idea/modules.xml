@@ -404,6 +404,7 @@
       <module fileurl="file://$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" filepath="$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/targetsdkversion-upgrade-assistant/targetsdkversion-upgrade-assistant.iml" filepath="$PROJECT_DIR$/../../vendor/google/targetsdkversion-upgrade-assistant/targetsdkversion-upgrade-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.tests.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/testutils/testutils-tests.iml" filepath="$PROJECT_DIR$/../../base/testutils/testutils-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
