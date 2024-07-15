@@ -88,4 +88,4 @@ fun determineVersionCatalogUse(project: Project): Boolean {
 }
 
 // TODO(b/322863175): Establish process/tests to ensure the default version gets updated.
-const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "1.9.0"
+const val DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS = "1.9.24"
