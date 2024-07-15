@@ -31,7 +31,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
-import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -135,8 +134,7 @@ public class CommonActions {
     actions.add(ViewActionUtils.getViewOptionsAction(ImmutableList.of(
       new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
-      new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-      new ToggleAllLiveRenderingAction())));
+      new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false))));
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
 
