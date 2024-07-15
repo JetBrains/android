@@ -344,12 +344,11 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
   fun testGotoStyleableAttr_frameworkAttr() {
     myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
     val file = myFixture.addFileToProject(
-      "src/p1/p2/ExampleActivity.java",
+      "src/p1/p2/SomeClass.java",
       //language=JAVA
       """
       package p1.p2;
 
-      import com.android.internal.R;
       public class SomeClass {
           void f() {
             int attrId = R.styleable.MyView_android_${caret}maxHeight;
