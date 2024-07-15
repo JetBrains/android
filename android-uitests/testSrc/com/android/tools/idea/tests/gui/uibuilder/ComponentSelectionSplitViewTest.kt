@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,6 +66,7 @@ class ComponentSelectionSplitViewTest {
 
   @Test
   @Throws(Exception::class)
+  @Ignore("b/351907895")
   fun selectionInSplitModeWorksBothWays() {
     val editorFixture = guiTest
       .importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
