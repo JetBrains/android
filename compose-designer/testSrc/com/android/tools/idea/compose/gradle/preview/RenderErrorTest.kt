@@ -332,10 +332,9 @@ class RenderErrorTest {
   }
 
   private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
-    sceneViewTopPanel.components
-      .filterIsInstance<ActionToolbarImpl>()
-      .single()
-      .actions
+    (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
+        as DefaultActionGroup)
+      .childActionsOrStubs
       .filterIsInstance<DefaultActionGroup>()
       .single()
       .childActionsOrStubs
