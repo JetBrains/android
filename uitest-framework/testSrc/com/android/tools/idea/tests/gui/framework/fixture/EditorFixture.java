@@ -475,18 +475,22 @@ public class EditorFixture {
       }
     );
 
+    List<AnAction> splitActions = actionToolbar.getActions();
+    if (splitActions.isEmpty()) {
+      splitActions = Arrays.asList(editor.getTabActions().getChildren(null));
+    }
     List<ToggleAction> actions =
-      actionToolbar.getActions()
+      splitActions
         .stream()
         .flatMap((action) -> {
           if (action instanceof DefaultActionGroup) {
-            return Arrays.stream(((DefaultActionGroup)action).getChildren(null));
+            return Arrays.stream(((DefaultActionGroup)action).getChildren(null, ActionManager.getInstance()));
           }
           return Stream.of(action);
         })
         .filter(ToggleAction.class::isInstance)
         .map(ToggleAction.class::cast)
-        .collect(Collectors.toList());
+        .toList();
     AnActionEvent e = TestActionEvent.createTestEvent();
     int actionToSelect = -1;
     switch (tab) {
