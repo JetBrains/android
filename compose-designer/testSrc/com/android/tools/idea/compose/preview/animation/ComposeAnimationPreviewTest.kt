@@ -317,7 +317,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @Test
   fun playbackControlActions() = runBlocking {
-    val numberOfPlaybackControls = 7
+    val numberOfPlaybackControls = 6 // loop, go to start, play, go to end, speed, separator
     val inspector = createAndOpenInspector()
 
     subscribeAnimations(listOf(createTransitionAnimation()))
@@ -331,15 +331,16 @@ class ComposeAnimationPreviewTest : InspectorTests() {
           .map { it as ActionToolbarImpl }
       val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
       assertNotNull(playbackControls)
-      assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
+      val actions = playbackControls!!.actionGroup.getChildren(null)
+      assertEquals(numberOfPlaybackControls, actions.size)
       val actionEvent = Mockito.mock(AnActionEvent::class.java)
       // Press loop
-      val loopAction = playbackControls.actions[0] as ToggleAction
+      val loopAction = actions[0] as ToggleAction
       loopAction.setSelected(actionEvent, true)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
       // Play and pause
-      val playAction = playbackControls.actions[2]
+      val playAction = actions[2]
       playAction.actionPerformed(actionEvent)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
@@ -347,12 +348,12 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
       // Go to start.
-      val goToStart = playbackControls.actions[1]
+      val goToStart = actions[1]
       goToStart.actionPerformed(actionEvent)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
       // Go to end.
-      val toToEnd = playbackControls.actions[3]
+      val toToEnd = actions[3]
       toToEnd.actionPerformed(actionEvent)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
