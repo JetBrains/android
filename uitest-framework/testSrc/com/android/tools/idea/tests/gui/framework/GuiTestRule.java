@@ -54,6 +54,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testFramework.RegistryKeyRule;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import java.awt.Component;
@@ -150,7 +151,8 @@ public class GuiTestRule implements TestRule {
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(new DiagnosticsOnFailure())
-      .around(myInnerTimeout);
+      .around(myInnerTimeout)
+      .around(new RegistryKeyRule("ide.experimental.ui.meetNewUi", false)); // Do not show "Meet New UI" tool window for UI tests
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
     if (TestUtils.runningFromBazel()) {
