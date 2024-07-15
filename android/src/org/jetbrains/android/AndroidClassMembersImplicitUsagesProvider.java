@@ -26,13 +26,8 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
     else if (element instanceof PsiParameter) {
       return isImplicitParameterUsage((PsiParameter)element);
     }
-    else if (element instanceof PsiMethod) {
-      PsiMethod method = (PsiMethod)element;
-      if (method.isConstructor()) {
-        return isImplicitConstructorUsage(method);
-      } else {
-        return isImplicitMethodUsage(method);
-      }
+    else if (element instanceof PsiMethod method && method.isConstructor()) {
+      return isImplicitConstructorUsage(method);
     }
     return false;
   }
@@ -136,18 +131,6 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
     }
     exp = (PsiReferenceExpression)qExp;
     return AndroidUtils.R_CLASS_NAME.equals(exp.getReferenceName());
-  }
-
-  public boolean isImplicitMethodUsage(PsiMethod method) {
-     // Methods annotated with lifecycle annotations are not unused
-    for (PsiAnnotation annotation : method.getModifierList().getAnnotations()) {
-      String qualifiedName = annotation.getQualifiedName();
-      if ("android.arch.lifecycle.OnLifecycleEvent".equals(qualifiedName)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   public boolean isImplicitConstructorUsage(PsiMethod method) {

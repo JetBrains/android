@@ -34,13 +34,4 @@ public class AndroidJavaHighlightingTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, true);
   }
-
-  public void testLifecycleUsage() throws Exception {
-    // Regression test for issue 37787915: Don't show methods listening to lifecycle events as unused
-    final UnusedDeclarationInspection inspection = new UnusedDeclarationInspection(true);
-    myFixture.enableInspections(inspection);
-    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/android/arch/lifecycle/LifecycleUsage.java");
-    myFixture.configureFromExistingVirtualFile(f);
-    myFixture.checkHighlighting(true, false, true);
-  }
 }
