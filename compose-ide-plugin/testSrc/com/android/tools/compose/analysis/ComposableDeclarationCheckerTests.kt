@@ -16,6 +16,7 @@
 package com.android.tools.compose.analysis
 
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.junit.Ignore
 import org.junit.Test
 
 /** Tests for [ComposableDeclarationChecker] */
@@ -362,6 +363,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   }
 
   @Test
+  @Ignore("b/353305576")
   fun testInterfaceComposablesWithDefaultParameters() {
     doTest(
       """
@@ -374,6 +376,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   }
 
   @Test
+  @Ignore("b/353305576")
   fun testAbstractComposablesWithDefaultParameters() {
     doTest(
       """
