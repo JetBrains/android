@@ -1,3 +1,0 @@
-package p1.p2;
-
-public class R1 {}
