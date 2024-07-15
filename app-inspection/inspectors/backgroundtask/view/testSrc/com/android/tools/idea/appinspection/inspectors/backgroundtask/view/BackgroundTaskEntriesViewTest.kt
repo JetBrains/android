@@ -35,6 +35,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskInspectorEvent.Type.WORK_SELECTED
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.concurrency.EdtExecutorService
@@ -135,7 +136,10 @@ private fun BackgroundTaskInspectorTab.getAction(title: String) =
   TreeWalker(component)
     .descendants()
     .filterIsInstance<ActionToolbar>()
-    .flatMap { it.actions }
+    .flatMap {
+      PlatformTestUtil.waitForFuture(it.updateActionsAsync())
+      it.actions
+    }
     .first { it.templatePresentation.text == title }
 
 private fun UsageTrackerRule.backgroundInspectorEvents(): List<BackgroundTaskInspectorEvent> =
