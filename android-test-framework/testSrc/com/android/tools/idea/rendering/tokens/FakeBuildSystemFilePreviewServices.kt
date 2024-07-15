@@ -16,7 +16,9 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
@@ -28,8 +30,22 @@ import org.jetbrains.annotations.TestOnly
  * An implementation of [BuildSystemFilePreviewServices] for use in tests that allows simulating custom scenarios.
  */
 @TestOnly
-class FakeBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<AndroidProjectSystem> {
-  override val buildTargets: BuildTargets = object : BuildTargets {
+class FakeBuildSystemFilePreviewServices(
+  override val buildTargets: BuildTargets = FakeBuildTargets(),
+  override val buildServices: BuildServices<BuildTargetReference> = FakeBuildServices(),
+) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
+
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
+  override fun isApplicable(buildTarget: BuildTargetReference): Boolean = true
+
+  /**
+   * Registers this fake implementation for the lifespan of [parentDisposable] for all project systems.
+   */
+  fun register(parentDisposable: Disposable) {
+    ExtensionTestUtil.maskExtensions(BuildSystemFilePreviewServices.EP_NAME, listOf(this), parentDisposable)
+  }
+
+  class FakeBuildTargets : BuildTargets {
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       return FakeBuildTargetReference(module)
     }
@@ -39,13 +55,10 @@ class FakeBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Androi
     }
   }
 
-  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
-
-  /**
-   * Registers this fake implementation for the lifespan of [parentDisposable] for all project systems.
-   */
-  fun register(parentDisposable: Disposable) {
-    ExtensionTestUtil.maskExtensions(BuildSystemFilePreviewServices.EP_NAME, listOf(this), parentDisposable)
+  class FakeBuildServices: BuildServices<BuildTargetReference> {
+    override fun getLastCompileStatus(buildTarget: BuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+      return error("not implemented")
+    }
   }
 }
 

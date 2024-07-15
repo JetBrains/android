@@ -17,8 +17,9 @@ package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.project.DefaultToken
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -28,7 +29,9 @@ import com.intellij.openapi.vfs.VirtualFile
  *
  * It supports basic features only. Builds are not available in the default project system.
  */
-class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<AndroidProjectSystem>, DefaultToken {
+class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<DefaultProjectSystem, DefaultBuildTargetReference>, DefaultToken {
+  override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean = buildTargetReference is DefaultBuildTargetReference
+
   override val buildTargets: BuildTargets = object : BuildTargets {
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       return DefaultBuildTargetReference(module)
@@ -38,6 +41,17 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<And
       return DefaultBuildTargetReference(module)
     }
   }
+
+  /**
+   * An implementation of [BuildSystemFilePreviewServices.BuildServices] for a [DefaultBuildTargetReference].
+   *
+   * Builds are not supported in the [DefaultProjectSystem].
+   */
+  override val buildServices = object : BuildServices<DefaultBuildTargetReference> {
+    override fun getLastCompileStatus(buildTarget: DefaultBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+      return ProjectSystemBuildManager.BuildStatus.UNKNOWN
+    }
+  }
 }
 
-private data class DefaultBuildTargetReference(override val module: Module) : BuildTargetReference
+data class DefaultBuildTargetReference internal constructor(override val module: Module) : BuildTargetReference

@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
@@ -158,8 +160,10 @@ fun setupBuildListener(
     ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
-    val lastResult = buildManager.getLastBuildResult()
-    if (lastResult.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+    val buildServices = buildTargetReference.getBuildSystemFilePreviewServices().buildServices
+
+    val lastStatus = buildServices.getLastCompileStatus(buildTargetReference)
+    if (lastStatus == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
       // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
       buildable.buildStarted()
       buildable.buildSucceeded()
