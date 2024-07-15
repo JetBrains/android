@@ -58,9 +58,13 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
@@ -187,7 +191,18 @@ class ComposePreviewRepresentationTest {
     logger.info("setup")
     val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
-    FakeBuildSystemFilePreviewServices().register(fixture.testRootDisposable)
+    FakeBuildSystemFilePreviewServices(
+        buildServices =
+          object : BuildServices<BuildTargetReference> by FakeBuildServices() {
+            override fun getLastCompileStatus(
+              buildTarget: BuildTargetReference
+            ): ProjectSystemBuildManager.BuildStatus {
+              // Return the build status from the project system while in migration.
+              return testProjectSystem.getBuildManager().getLastBuildResult().status
+            }
+          }
+      )
+      .register(fixture.testRootDisposable)
     logger.info("setup complete")
     project.replaceService(
       ToolWindowManager::class.java,

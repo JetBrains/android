@@ -49,9 +49,14 @@ import com.android.tools.idea.preview.requestRefreshSync
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.preview.waitUntilRefreshStarts
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -142,7 +147,18 @@ class CommonPreviewRepresentationTest {
   fun setup() {
     setUpComposeInProjectFixture(projectRule)
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
-    FakeBuildSystemFilePreviewServices().register(fixture.testRootDisposable)
+    FakeBuildSystemFilePreviewServices(
+        buildServices =
+          object : BuildServices<BuildTargetReference> by FakeBuildServices() {
+            override fun getLastCompileStatus(
+              buildTarget: BuildTargetReference
+            ): ProjectSystemBuildManager.BuildStatus {
+              // Return the build status from the project system while in migration.
+              return project.getProjectSystem().getBuildManager().getLastBuildResult().status
+            }
+          }
+      )
+      .register(fixture.testRootDisposable)
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common

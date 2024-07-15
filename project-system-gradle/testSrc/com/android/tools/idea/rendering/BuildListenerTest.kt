@@ -271,14 +271,12 @@ class BuildListenerTest {
         * buildStarted
         * buildFinished
         * setupBuildListener
-        ->buildStarted
-        ->buildSucceeded
         ->startedListening
         * buildStarted
         ->buildStarted
         * buildFinished
         ->buildSucceeded
-      """.trimIndent() // TODO: Note the incorrectly delivered `->buildSucceeded` before `->startedListening`.
+      """.trimIndent()
       )
     }
   }

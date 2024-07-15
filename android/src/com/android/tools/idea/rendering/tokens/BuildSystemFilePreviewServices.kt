@@ -16,9 +16,11 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -26,7 +28,8 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * A project system specific set of services required by UI tools to manage builds and fetch build artifacts needed for rendering.
  */
-interface BuildSystemFilePreviewServices<P : AndroidProjectSystem> : Token {
+interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTargetReference> : Token {
+  fun isApplicable(buildTargetReference: BuildTargetReference): Boolean
 
   /**
    * A collection of services used by `BuildTargetReference`'s companion object to obtain build target references from references to
@@ -50,18 +53,42 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem> : Token {
   }
 
   /**
+   * A collection of services used by UI tools to query the status and build artifacts required for rendering.
+   */
+  interface BuildServices<R : BuildTargetReference> {
+    fun getLastCompileStatus(buildTarget: R): ProjectSystemBuildManager.BuildStatus
+  }
+
+  /**
    * An instance of [BuildTargets] services.
    */
   val buildTargets: BuildTargets
 
+  /**
+   * An instance of [BuildServices].
+   */
+  val buildServices: BuildServices<R>
+
   companion object {
     val EP_NAME =
-      ExtensionPointName<BuildSystemFilePreviewServices<AndroidProjectSystem>>(
+      ExtensionPointName<BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference>>(
         "com.android.tools.idea.rendering.tokens.buildSystemFilePreviewServices"
       )
 
-    fun AndroidProjectSystem.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*> {
+    /**
+     * Returns an instances of [BuildSystemFilePreviewServices] applicable to [this] project system.
+     *
+     * Note, that the method returns an interface projection that does not accept [BuildTargetReference]s.
+     * Use [BuildTargetReference.getBuildSystemFilePreviewServices] to gen an instances suitable for handling build target references.
+     */
+    fun AndroidProjectSystem.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, *> {
       return getToken(EP_NAME)
+    }
+
+    fun <R: BuildTargetReference> R.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, R> {
+      @Suppress("UNCHECKED_CAST")
+      return EP_NAME.extensionList.singleOrNull { it.isApplicable(this) } as? BuildSystemFilePreviewServices<*, R>
+        ?: error("${BuildSystemFilePreviewServices::class.java} token is not available for $this")
     }
   }
 }
