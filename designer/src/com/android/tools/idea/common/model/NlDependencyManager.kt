@@ -115,10 +115,7 @@ class NlDependencyManager private constructor() {
    *   maven version is unknown.
    */
   fun getModuleDependencyVersion(artifactId: GoogleMavenArtifactId, facet: AndroidFacet): Version? =
-    facet.module
-      .getModuleSystem()
-      .getResolvedDependency(artifactId.getCoordinate("+"))
-      ?.lowerBoundVersion
+    facet.module.getModuleSystem().getResolvedDependency(artifactId)?.lowerBoundVersion
 
   /**
    * Checks if there is any missing dependencies and ask the user only if they are some.

@@ -37,5 +37,5 @@ object SafeArgsFeatureVersions {
 internal fun AndroidFacet.findNavigationVersion(): Version =
   module
     .getModuleSystem()
-    .getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getCoordinate("+"))
+    .getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON)
     ?.lowerBoundVersion ?: SafeArgsFeatureVersions.MINIMUM_VERSION
