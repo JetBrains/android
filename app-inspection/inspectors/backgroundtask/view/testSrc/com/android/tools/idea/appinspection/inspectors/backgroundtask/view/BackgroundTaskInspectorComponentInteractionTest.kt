@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.StubBackgroundTaskInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskEntriesView.TagsDropDownAction
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
@@ -37,8 +38,11 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
@@ -50,7 +54,6 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-import kotlin.streams.toList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -58,6 +61,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -128,7 +132,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo2)
     client.sendWorkAddedEvent(workInfo3)
     withContext(uiDispatcher) {
-      val filterActionList = entriesView.getFilterActionList()
+      val filterActionList = getFilterActionList()
       assertThat(filterActionList.size).isEqualTo(3)
       assertThat(filterActionList[0].templateText).isEqualTo("All tags")
       val tag1Filter = filterActionList[1]
@@ -184,9 +188,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
       setOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED)
 
     withContext(uiDispatcher) {
-      val toolbar =
-        TreeWalker(entriesView).descendantStream().filter { it is ActionToolbar }.findFirst().get()
-          as ActionToolbarImpl
+      val toolbar = getToolbar(0)
 
       val cancelAction = toolbar.actions[0] as AnAction
       val event = TestActionEvent.createTestEvent()
@@ -232,9 +234,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo)
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
-          as ActionToolbarImpl
+      val toolbar = getToolbar(1)
       val graphViewAction = toolbar.actions[1] as AnAction
       assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
@@ -249,9 +249,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo)
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
-          as ActionToolbarImpl
+      val toolbar = getToolbar(1)
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -270,9 +268,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
-          as ActionToolbarImpl
+      val toolbar = getToolbar(1)
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -332,4 +328,21 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
   private inline fun <reified T> JComponent.getFirstChildIsInstance(): T =
     TreeWalker(this).descendantStream().filter { it is T }.findFirst().get() as T
+
+  private fun getToolbar(index: Int): ActionToolbarImpl {
+    val toolbar =
+      TreeWalker(entriesView).descendants().filter { it is ActionToolbar }[index]
+        as ActionToolbarImpl
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    return toolbar
+  }
+
+  /** @return a list of actions from the drop-down menu that filter works with a tag. */
+  @TestOnly
+  fun getFilterActionList(): List<ToggleAction> {
+    val toolbar = getToolbar(0)
+    val selectFilterAction = toolbar.actions[2] as TagsDropDownAction
+    selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
+    return selectFilterAction.getChildren(null).map { it as ToggleAction }
+  }
 }
