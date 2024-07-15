@@ -88,7 +88,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
-import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -223,8 +222,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(getViewOptionsAction(ImmutableList.of(
       new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
-      new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-      new ToggleAllLiveRenderingAction())));
+      new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false))));
     actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
