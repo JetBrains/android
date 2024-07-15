@@ -61,7 +61,7 @@ object AdtUiUtils {
    * eg Device File Explorer when no device is connected and Sqlite Explorer when no database has been opened.
    */
   @JvmField
-  val EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(16f)
+  val EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(13f)
 
   /**
    * Default font color of charts, and component labels.
