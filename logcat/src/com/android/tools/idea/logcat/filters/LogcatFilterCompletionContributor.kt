@@ -106,8 +106,9 @@ private val MESSAGE_KEY = StringKey("message", message("logcat.filter.completion
 private val PACKAGE_KEY = StringKey("package", message("logcat.filter.completion.hint.key.package"))
 private val PROCESS_KEY = StringKey("process", message("logcat.filter.completion.hint.key.process"))
 private val TAG_KEY = StringKey("tag", message("logcat.filter.completion.hint.key.tag"))
+private val LINE_KEY = StringKey("line", message("logcat.filter.completion.hint.key.line"))
 
-private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY, PROCESS_KEY)
+private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY, PROCESS_KEY, LINE_KEY)
 
 private val LEVEL_LOOKUP
   get() = createLookupElement(LEVEL_KEY, message("logcat.filter.completion.hint.level"))
