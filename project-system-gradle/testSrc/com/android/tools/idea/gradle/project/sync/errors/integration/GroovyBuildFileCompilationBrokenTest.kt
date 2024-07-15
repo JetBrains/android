@@ -86,4 +86,38 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       }
     )
   }
+
+  @Test
+  fun testCheckIssueWhenClassCannotBeCastInGroovyCode() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+
+    val buildFile = preparedProject.root.resolve(SdkConstants.FN_BUILD_GRADLE)
+    buildFile.appendText("\nabdd = (Date) \"abc\"")
+
+    runSyncAndCheckGeneralFailure(
+      preparedProject = preparedProject,
+      verifySyncViewEvents = { _, buildEvents ->
+        // Expect single MessageEvent on Sync Output
+        buildEvents.filterIsInstance<MessageEvent>().let { events ->
+          expect.that(events).hasSize(1)
+          events.firstOrNull()?.let {
+            expect.that(it.message).startsWith("Cannot cast object 'abc' with class 'java.lang.String' to class 'java.util.Date'")
+            expect.that(it.group).isEqualTo("Other Messages")
+          }
+        }
+        // Make sure no additional error build issue events are generated
+        expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
+        expect.that(buildEvents.finishEventFailures()).isEmpty()
+      },
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
+        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+          .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent())
+      }
+    )
+  }
 }
