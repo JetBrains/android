@@ -65,6 +65,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -120,7 +121,7 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
   override fun modelToElement(model: NlModel): PsiTestPreviewElement? = previewElement
 
   override fun createDataContext(previewElement: PsiTestPreviewElement): DataContext =
-    mock(DataContext::class.java)
+    SimpleDataContext.EMPTY_CONTEXT
 
   override fun toLogString(previewElement: PsiTestPreviewElement): String = ""
 
