@@ -134,8 +134,6 @@ public class Scene implements SelectionListener, Disposable {
   List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   Set<SceneComponent> myHoveredComponents = new HashSet<>();
 
-  private boolean myIsLiveRenderingEnabled;
-
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
@@ -164,8 +162,6 @@ public class Scene implements SelectionListener, Disposable {
       }
       return true;
     });
-
-    myIsLiveRenderingEnabled = false;
 
     Disposer.register(sceneManager, this);
   }
@@ -940,12 +936,7 @@ public class Scene implements SelectionListener, Disposable {
       SceneManager manager = getSceneManager();
 
       // TODO: b/180067858 Clean up the render path. Currently mNeedsLayout is never ANIMATED_LAYOUT.
-      if (myIsLiveRenderingEnabled) {
-        manager.requestLayoutAndRenderAsync(mNeedsLayout == ANIMATED_LAYOUT);
-      }
-      else {
-        manager.requestLayoutAsync(mNeedsLayout == ANIMATED_LAYOUT);
-      }
+      manager.requestLayoutAsync(mNeedsLayout == ANIMATED_LAYOUT);
     }
   }
 
@@ -1233,14 +1224,6 @@ public class Scene implements SelectionListener, Disposable {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
     doGetPlaceholders(builder, myRoot, requester, draggedComponents);
     return builder.build();
-  }
-
-  public boolean isLiveRenderingEnabled() {
-    return myIsLiveRenderingEnabled;
-  }
-
-  public void setLiveRenderingEnabled(boolean enabled) {
-    myIsLiveRenderingEnabled = enabled;
   }
 
   private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,
