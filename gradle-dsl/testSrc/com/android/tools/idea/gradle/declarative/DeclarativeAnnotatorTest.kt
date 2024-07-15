@@ -68,8 +68,8 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
     val file = addDeclarativeBuildFile("""
       ${"androidApplication1" highlightedAs HighlightSeverity.ERROR} {
-        versionUnknownCode = 8
-        versionName = "0.1.2"
+        ${"versionUnknownCode" highlightedAs HighlightSeverity.ERROR} = 8
+        ${"versionName" highlightedAs HighlightSeverity.ERROR} = "0.1.2"
       }
     """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -85,8 +85,8 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
     val file = addDeclarativeBuildFile("""
       androidApplication {
         ${"myDeps2" highlightedAs HighlightSeverity.ERROR } {
-            debugImplementation("com.google.guava:guava:30.1.1-jre")
-            wrongImplementation("com.google.guava:guava:30.1.1-jre")
+             ${"debugImplementation" highlightedAs HighlightSeverity.ERROR }("com.google.guava:guava:30.1.1-jre")
+             ${"wrongImplementation" highlightedAs HighlightSeverity.ERROR }("com.google.guava:guava:30.1.1-jre")
         }
       }
     """)
@@ -251,10 +251,55 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
     checkSchemaErrors()
 
     val file = fixture.addFileToProject("build.gradle.dcl",
-                                        """
+    """
     androidApplication {
        jdkVersion = 11
        compileSdk = 33
+    }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkWrongPropertyType() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
+    val file = addDeclarativeBuildFile("""
+    androidLibrary {
+        ${"namespace = 1" highlightedAs HighlightSeverity.ERROR}
+   }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkWrongBlockType() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
+    val file = addDeclarativeBuildFile("""
+    ${"androidLibrary = 1" highlightedAs HighlightSeverity.ERROR}
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkWrongFunctionType() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
+    val file = addDeclarativeBuildFile("""
+    androidLibrary {
+        dependencies {
+            ${"implementation = \"dependency\"" highlightedAs HighlightSeverity.ERROR}
+         }
     }
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

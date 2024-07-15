@@ -19,13 +19,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessModuleDir
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataMemberFunction
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
@@ -94,16 +95,68 @@ fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? 
     return (it.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
   }
   return null
-
 }
 
-private fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
+abstract sealed class Receiver
+data class Function(val type: DataMemberFunction) : Receiver()
+data class Object(val fqName: FqName):Receiver()
+data class SimpleType(val type: DataType) : Receiver()
 
-fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
-  val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
+fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema): List<Receiver> {
+  getReceiverByName(name, schema.getRootMemberFunctions())?.let {
+    // TODO need to consume property and functions here as well
+    return listOf(Object(it))
+  }
+  // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
+  // to have all settingsInternal attributes in rootMembers
+  val settingFqName = DefaultFqName("org.gradle.api.internal", "SettingsInternal")
+  schema.getDataClassesByFqName()[settingFqName]?.let {
+    return getAllMembersByName(it, name)
+  }
+  return listOf()
+}
+
+fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver> {
+  val result = mutableListOf<Receiver>()
+
+  // object/simple types
+  result.addAll(
+    dataClass.properties.filter { it.name == memberName }.map { it.valueType }.map {
+      when (it) {
+        is DataTypeRef.Type -> SimpleType(it.dataType)
+        is DataTypeRef.Name -> Object(it.fqName)
+      }
+    }
+  )
+  // functions/objects
+  result.addAll(
+    dataClass.memberFunctions.filter { it.simpleName == memberName }.mapNotNull {
+      when {
+        it.isFunction() && it is DataMemberFunction -> Function(it)
+        it.semantics is FunctionSemantics.AccessAndConfigure -> {
+          (it.semantics as FunctionSemantics.AccessAndConfigure).accessor.objectType.fqName()?.let { Object(it) }
+        }
+        // TODO verify possible other types
+        else -> null
+      }
+    })
+
+  return result
+}
+
+fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
+
+
+fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>?): FqName? {
+  val dataMemberFunction = memberFunctions?.find { it.simpleName == name } ?: return null
   (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor?.let {
     return it.objectType.fqName()
   }
-  dataMemberFunction.receiver.fqName()?.let { return it }
+  if(!dataMemberFunction.isFunction()) dataMemberFunction.receiver.fqName()?.let { return it }
   return null
 }
+
+// get those types empirically
+fun SchemaFunction.isFunction() =
+  this.semantics is FunctionSemantics.Pure ||
+  this.semantics is FunctionSemantics.AddAndConfigure
