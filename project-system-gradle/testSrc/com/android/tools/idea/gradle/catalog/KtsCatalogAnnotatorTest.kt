@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.catalog
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
+import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingProvider
 import com.intellij.lang.ExternalLanguageAnnotators
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.registry.Registry
@@ -56,6 +57,7 @@ class KtsCatalogAnnotatorTest {
     }
     fixture = projectRule.fixture
 
+    ExtensionTestUtil.maskExtensions(DefaultHighlightingSettingProvider.EP_NAME, listOf(), disposableRule.disposable)
     ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(extension), disposableRule.disposable)
     // skipping lint annotator
     ExtensionTestUtil.maskExtensions(ExternalLanguageAnnotators.EP_NAME, listOf(), disposableRule.disposable)
