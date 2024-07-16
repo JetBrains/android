@@ -16,6 +16,7 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.ide.HelpTooltip;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
@@ -33,7 +34,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -164,7 +164,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
         protected void updateToolTipText() {
           // Copied from ActionButtonWithText to get the same tooltip behaviour for both types of buttons
           String description = myPresentation.getDescription();
-          if (Registry.is("ide.helptooltip.enabled")) {
+          if (UISettings.isIdeHelpTooltipEnabled()) {
             HelpTooltip.dispose(this);
             if (StringUtil.isNotEmpty(description)) {
               new HelpTooltip().setDescription(description).installOn(this);
