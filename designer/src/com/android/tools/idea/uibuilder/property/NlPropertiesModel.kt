@@ -557,7 +557,7 @@ open class NlPropertiesModel(
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
 
-    override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
+    override fun modelLiveUpdate(model: NlModel) {
       // Move the handling onto the event dispatch thread in case this notification is sent from a
       // different thread:
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
