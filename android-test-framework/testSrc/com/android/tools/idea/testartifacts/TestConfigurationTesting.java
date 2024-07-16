@@ -23,6 +23,7 @@ import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -38,12 +39,12 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.
@@ -138,6 +139,13 @@ public class TestConfigurationTesting {
       return configuration;
     }
     return null;
+  }
+
+  @Nullable
+  public static List<ConfigurationFromContext> createConfigurationsFromPsiElement(@NotNull Project project, @NotNull PsiElement psiElement) {
+    ConfigurationContext context = createContext(project, psiElement);
+    List<ConfigurationFromContext> configurations = context.getConfigurationsFromContext();
+    return configurations;
   }
 
   @NotNull
