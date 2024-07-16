@@ -38,6 +38,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase
@@ -136,9 +137,11 @@ fun addAarDependency(
     emptyList()
   )
   ModuleRootModificationUtil.addDependency(module, library)
+  IndexingTestUtil.waitUntilIndexesAreReady(module.project)
 
   createResources(resDir)
   VfsUtil.markDirtyAndRefresh(false, true, true, aarDir.toVirtualFile(refresh = true))
+  IndexingTestUtil.waitUntilIndexesAreReady(module.project)
 }
 
 /**
