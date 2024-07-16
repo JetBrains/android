@@ -119,7 +119,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       registerValidator(versionCatalogUse, createValidator {
         if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get()) return@createValidator Validator.Result(INFO, message(
           "android.wizard.module.will.not.use.version.catalog"))
-        if (it.isPresent && it.get() && !versionCatalogUseForNewModule.value) {
+        if (it.isPresent && it.get() && versionCatalogUseForNewModule.get().isPresent && !versionCatalogUseForNewModule.value) {
           // Meaning existing project uses Version Catalogs, but new module's dependencies are not managed by Version Catalogs
           Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
         } else OK
