@@ -54,15 +54,10 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.resolvedPromise
+import org.jsoup.Jsoup
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-
-internal const val EXPECTED_TEXT_DOCUMENTATION =
-  "<html><body><div class='content'><p><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
-
-internal const val EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION =
-  "<html><body><div class='content'><p><b>legend</b><br/><br/></div>"
 
 class HelpActionsTest {
 
@@ -89,7 +84,21 @@ class HelpActionsTest {
       )
 
     withContext(uiThread) {
-      assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
+      assertThat(helpTextInPopup(property))
+        .isEqualTo(
+          // language=HTML
+          """
+            <html>
+             <head></head>
+             <body>
+              <div class="content">
+               <p><b>legend</b><br><br></p>
+              </div>
+             </body>
+            </html>
+          """
+            .trimIndent()
+        )
     }
   }
 
@@ -99,7 +108,23 @@ class HelpActionsTest {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT)
     util.loadProperties()
     val property = util.properties[ANDROID_URI, ATTR_TEXT]
-    assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_TEXT_DOCUMENTATION)
+    assertThat(helpTextInPopup(property))
+      .isEqualTo(
+        // language=HTML
+        """
+        <html>
+         <head></head>
+         <body>
+          <div class="content">
+           <p><b>android:text</b><br><br>
+            Formats: string<br><br>
+            Text to display.</p>
+          </div>
+         </body>
+        </html>
+      """
+          .trimIndent()
+      )
   }
 
   private fun helpTextInPopup(property: NlPropertyItem): String {
@@ -119,10 +144,8 @@ class HelpActionsTest {
       UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
         .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
-    return doc.text
-      // IntelliJ 2024.1 changes the class from content-only to content
-      // Once the merge is complete, this check can be removed.
-      .replace("class='content-only'", "class='content'")
+
+    return Jsoup.parse(doc.text).html()
   }
 
   @Test
