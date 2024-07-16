@@ -153,7 +153,9 @@ class AppInsightsProjectLevelControllerImpl(
           LOG.debug("Got event $event for $project.")
           val (newState, action) = event.transition(currentState, tracker, key)
           if (currentState.issues != newState.issues) {
-            project.service<IssuesPerFileIndex>().updateIssueIndex(newState.issues.map { it.value })
+            project
+              .service<IssuesPerFileIndex>()
+              .updateIssueIndex(newState.issues.map { it.value }, key)
           }
           if (currentState.mode != newState.mode) {
             offlineStatusManager.enterMode(newState.mode)
@@ -263,7 +265,12 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun insightsInFile(file: PsiFile): List<AppInsight> {
     val issues =
-      project.service<IssuesPerFileIndex>().issuesPerFilename.get(file.virtualFile.name).toList()
+      project
+        .service<IssuesPerFileIndex>()
+        .getIssuesPerFilename(key)
+        .get(file.virtualFile.name)
+        .toList()
+
     logIssues(issues, file)
 
     val selectIssueCallback = { issue: AppInsightsIssue ->
