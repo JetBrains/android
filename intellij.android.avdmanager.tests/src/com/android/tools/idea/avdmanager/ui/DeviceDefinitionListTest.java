@@ -35,7 +35,8 @@ public final class DeviceDefinitionListTest {
                               Definitions.mockDesktop(),
                               Definitions.mockDefinition("android-tv", Definitions.mockHardware(0), "Android TV (1080p)", "tv_1080p"),
                               Definitions.mockAutomotiveDefinition(),
-                              Definitions.mockLegacyDefinition());
+                              Definitions.mockLegacyDefinition(),
+                              Definitions.mockXrDefinition());
 
     var supplier = Mockito.mock(DeviceSupplier.class);
     Mockito.when(supplier.get()).thenReturn(definitions);
@@ -60,7 +61,8 @@ public final class DeviceDefinitionListTest {
                               tv1,
                               tv2,
                               Definitions.mockAutomotiveDefinition(),
-                              Definitions.mockLegacyDefinition());
+                              Definitions.mockLegacyDefinition(),
+                              Definitions.mockXrDefinition());
 
     var supplier = Mockito.mock(DeviceSupplier.class);
     Mockito.when(supplier.get()).thenReturn(definitions);

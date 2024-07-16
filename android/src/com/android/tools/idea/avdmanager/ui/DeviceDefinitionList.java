@@ -183,6 +183,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       case TV -> "TV";
       case AUTOMOTIVE -> "automotive device";
       case LEGACY -> "legacy device";
+      case XR -> "XR";
     };
   }
 
