@@ -33,7 +33,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.EventDispatcher
 import com.intellij.util.containers.nullize
 import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import java.util.Collections
 import java.util.EventListener
@@ -51,7 +50,7 @@ class PsLibraryUpdateCheckerDaemon(
 ) : PsDaemon(parentDisposable) {
   val availableLibraryUpdateStorage = AvailableLibraryUpdateStorage.getInstance(project.ideProject)
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
-  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT)
+  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", MergingUpdateQueue.ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
   private val beingSearchedKeys: MutableSet<PsLibraryKey> = Collections.newSetFromMap(ConcurrentHashMap())
