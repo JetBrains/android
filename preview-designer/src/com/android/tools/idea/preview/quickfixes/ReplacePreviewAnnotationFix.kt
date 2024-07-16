@@ -29,6 +29,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -49,6 +50,30 @@ class ReplacePreviewAnnotationFix(
   override fun getFamilyName() = message("inspection.quick.fix.family")
 
   override fun getText() = message("inspection.quick.fix.replace.annotation", withAnnotationFqn)
+
+  private var invalidPreviewImportDirectiveFqName: String? = null
+
+  override fun isAvailable(
+    project: Project,
+    file: PsiFile,
+    startElement: PsiElement,
+    endElement: PsiElement,
+  ): Boolean {
+    return when (file.language) {
+      KotlinLanguage.INSTANCE -> {
+        val invalidPreviewAnnotation = startElement as? KtAnnotationEntry ?: return false
+        invalidPreviewImportDirectiveFqName =
+          invalidPreviewAnnotation.getQualifiedName()?.takeIf { fqName ->
+            PsiTreeUtil.findChildrenOfType(file, KtAnnotationEntry::class.java).none {
+              if (it == invalidPreviewAnnotation) return@none false
+              it.shortName != null && it.fqNameMatches(fqName)
+            }
+          } ?: ""
+        true
+      }
+      else -> super.isAvailable(project, file, startElement, endElement)
+    }
+  }
 
   override fun invoke(
     project: Project,
@@ -80,7 +105,6 @@ class ReplacePreviewAnnotationFix(
 
   private fun handleKotlin(file: PsiFile, element: PsiElement) {
     val invalidPreviewAnnotation = element as? KtAnnotationEntry ?: return
-    val invalidPreviewAnnotationFqn = invalidPreviewAnnotation.getQualifiedName() ?: ""
     val parent = invalidPreviewAnnotation.parentOfType<KtModifierListOwner>() ?: return
     val innerText =
       invalidPreviewAnnotation.valueArgumentList?.text?.let {
@@ -89,26 +113,19 @@ class ReplacePreviewAnnotationFix(
       }
 
     invalidPreviewAnnotation.delete()
-    removeKtImportDirectiveIfUnused(file, invalidPreviewAnnotationFqn)
+
+    // Delete import directives for the invalid preview annotation.
+    if (invalidPreviewImportDirectiveFqName != null) {
+      PsiTreeUtil.findChildrenOfType(file, KtImportDirective::class.java)
+        .filter { it.importedFqName?.asString() == invalidPreviewImportDirectiveFqName }
+        .forEach { it.delete() }
+    }
 
     parent.addAnnotation(
       ClassId.fromString(withAnnotationFqn),
       innerText,
       searchForExistingEntry = false,
     )
-  }
-
-  private fun removeKtImportDirectiveIfUnused(file: PsiFile, annotationFqn: String) {
-    PsiTreeUtil.findChildrenOfType(file, KtImportDirective::class.java)
-      .singleOrNull { it.importedFqName?.asString() == annotationFqn }
-      ?.let { annotationImportDirective ->
-        val isAnnotationUsed =
-          PsiTreeUtil.findChildrenOfType(file, KtAnnotationEntry::class.java).any {
-            it.fqNameMatches(annotationFqn) && it.shortName != null
-          }
-        if (!isAnnotationUsed) {
-          annotationImportDirective.delete()
-        }
-      }
+    shortenReferences(parent)
   }
 }
