@@ -16,6 +16,8 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
+        # Project System Token implementation modules
+        "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
@@ -26,7 +28,6 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint",
         # TODO(xof): investigate
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
-        "//tools/studio/google/cloud/testing/test-recorder:test-recorder",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
     ],
