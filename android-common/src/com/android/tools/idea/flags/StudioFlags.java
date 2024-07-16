@@ -2053,10 +2053,17 @@ public final class StudioFlags {
                     false);
 
 
+  public static final Flag<Boolean> AI_RETHINK_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.rethink.action",
+                    "Use AI to suggest better variable names",
+                    "Enables AI to provide better variable renaming functionalities",
+                    false);
+
+
   public static final Flag<Boolean> AI_RENAME_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
-                    "Use ML model to rename variable names",
-                    "Enables AI renaming functionalities",
+                    "Use AI to suggest a better identifier name",
+                    "Enables AI rename suggestion functionality",
                     false);
 
 
