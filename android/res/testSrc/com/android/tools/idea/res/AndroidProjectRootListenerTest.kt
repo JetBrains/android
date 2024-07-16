@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.junit.Rule
@@ -61,6 +62,7 @@ class AndroidProjectRootListenerTest {
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
     ApplicationManager.getApplication().invokeAndWait {}
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 
@@ -88,6 +90,7 @@ class AndroidProjectRootListenerTest {
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
     ApplicationManager.getApplication().invokeAndWait {}
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 }
