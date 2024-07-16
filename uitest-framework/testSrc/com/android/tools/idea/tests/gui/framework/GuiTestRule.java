@@ -47,6 +47,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -223,6 +224,9 @@ public class GuiTestRule implements TestRule {
     myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
     GeneralSettings.getInstance().setReopenLastProject(false);
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
+    // Our MenuFixture does not support at the moment the new UI menu.
+    // Setting it to separate main menu will ensure that it still works in tests.
+    UISettings.getInstance().setSeparateMainMenu(true);
     GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
