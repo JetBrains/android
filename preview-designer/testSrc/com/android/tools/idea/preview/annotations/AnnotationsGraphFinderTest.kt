@@ -337,7 +337,7 @@ class AnnotationsGraphFinderTest {
       "src/File1.kt",
       // language=kotlin
       """
-        package androidx.preview.valid.package
+        package androidx.preview.valid.somepackage
 
         import androidx.MyTestPreview
 
@@ -350,7 +350,7 @@ class AnnotationsGraphFinderTest {
       "src/File2.kt",
       // language=kotlin
       """
-        package androidx.valid.preview.package
+        package androidx.valid.preview.somepackage
 
         import androidx.MyTestPreview
 
@@ -363,7 +363,7 @@ class AnnotationsGraphFinderTest {
       "src/File3.kt",
       // language=kotlin
       """
-        package androidx.valid.package.preview
+        package androidx.valid.somepackage.preview
 
         import androidx.MyTestPreview
 
@@ -380,7 +380,7 @@ class AnnotationsGraphFinderTest {
       // language=kotlin
       """
         // Doesn't contain preview
-        package androidx.invalid.package
+        package androidx.invalid.somepackage
 
         import androidx.MyTestPreview
 
@@ -394,7 +394,7 @@ class AnnotationsGraphFinderTest {
       // language=kotlin
       """
         // 'mypreview' is not valid
-        package androidx.invalid.mypreview.package
+        package androidx.invalid.mypreview.somepackage
 
         import androidx.MyTestPreview
 
@@ -408,7 +408,7 @@ class AnnotationsGraphFinderTest {
       // language=kotlin
       """
         // 'pre.view' is not valid
-        package androidx.invalid.pre.view.package
+        package androidx.invalid.pre.view.somepackage
 
         import androidx.MyTestPreview
 
@@ -426,12 +426,12 @@ class AnnotationsGraphFinderTest {
         package com.example.test
 
         import androidx.MyTestPreview
-        import androidx.preview.valid.package.MyValidAnnotation1
-        import androidx.valid.preview.package.MyValidAnnotation2
-        import androidx.valid.package.preview.MyValidAnnotation3
-        import androidx.invalid.package.MyInvalidAnnotation1
-        import androidx.invalid.mypreview.package.MyInvalidAnnotation2
-        import androidx.invalid.pre.view.package.MyInvalidAnnotation3
+        import androidx.preview.valid.somepackage.MyValidAnnotation1
+        import androidx.valid.preview.somepackage.MyValidAnnotation2
+        import androidx.valid.somepackage.preview.MyValidAnnotation3
+        import androidx.invalid.somepackage.MyInvalidAnnotation1
+        import androidx.invalid.mypreview.somepackage.MyInvalidAnnotation2
+        import androidx.invalid.pre.view.somepackage.MyInvalidAnnotation3
 
         @MyTestPreview
         @MyValidAnnotation1
