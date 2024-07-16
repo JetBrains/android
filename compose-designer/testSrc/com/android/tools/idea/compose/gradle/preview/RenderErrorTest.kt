@@ -371,9 +371,7 @@ class RenderErrorTest {
   }
 
   private suspend fun stopUiCheck() {
-    val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.setMode(PreviewMode.Default())
-    onRefreshCompletable.join()
     waitForAllRefreshesToFinish(1.minutes)
   }
 
