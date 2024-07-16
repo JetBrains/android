@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
@@ -60,6 +61,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   @Test
   fun multiModuleTest() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     // check contents when providing app package name in app module.
     val appModule = fixture.project.findAppModule().getMainModule()
