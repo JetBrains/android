@@ -21,15 +21,9 @@ import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.base.Verify
-import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
-import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
-import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
-import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInsight.intention.IntentionActionDelegate
-import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
@@ -58,7 +52,6 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 
 class LintIdeTest : UsefulTestCase() {
@@ -337,43 +330,25 @@ class LintIdeTest : UsefulTestCase() {
       myFixture.doHighlighting()
       myFixture.checkHighlighting(true, false, false)
 
-      val action = getIntentionAction("Update build.gradle")
-      assertNotNull(action)
-      action!!
-
+      val action =
+        myFixture.getAvailableIntention("Update build.gradle") ?: error("Failed to find intention")
+      assertThat(action.asModCommandAction()).isNotNull()
       assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-      WriteCommandAction.writeCommandAction(myFixture.project)
-        .run(
-          ThrowableRunnable<Throwable?> {
-            action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-          }
-        )
+      myFixture.launchAction(action)
       myFixture.checkResultByFile("build.gradle", "$globalTestDir/build.gradle_after", true)
     } finally {
       AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     }
   }
 
+  @Suppress("UnstableApiUsage")
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {
     myFixture.enableInspections(inspection)
-    doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
-  }
+    val wrapper = GlobalInspectionToolWrapper(inspection)
 
-  private fun doGlobalInspectionTest(
-    inspection: GlobalInspectionTool,
-    globalTestDir: String,
-    scope: AnalysisScope,
-  ) {
-    doGlobalInspectionTest(GlobalInspectionToolWrapper(inspection), globalTestDir, scope)
-  }
-
-  private fun doGlobalInspectionTest(
-    wrapper: GlobalInspectionToolWrapper,
-    globalTestDir: String,
-    scope: AnalysisScope,
-  ) {
-    myFixture.enableInspections(wrapper.tool)
+    val scope = AnalysisScope(myModule)
     scope.invalidate()
+
     val globalContext =
       createGlobalContextForTool(scope, project, listOf<InspectionToolWrapper<*, *>>(wrapper))
     InspectionTestUtil.runTool(wrapper, scope, globalContext)
@@ -383,7 +358,7 @@ class LintIdeTest : UsefulTestCase() {
       false,
       testDataPath + globalTestDir,
     )
-    globalContext.getPresentation(wrapper).problemElements
+    globalContext.getPresentation(wrapper)
   }
 
   private val globalTestDir: String
@@ -395,84 +370,18 @@ class LintIdeTest : UsefulTestCase() {
     copyTo: String,
     extension: String,
   ) {
-    val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
-    doTestWithAction(extension, action!!)
-  }
-
-  private fun doTestWithAction(extension: String, action: IntentionAction) {
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    // TODO(b/319287252): Remove write command after migration to ModCommand API is complete.
-    if (action.asModCommandAction() != null) {
-      myFixture.checkPreviewAndLaunchAction(action)
-    } else {
-      WriteCommandAction.writeCommandAction(myFixture.project)
-        .run(
-          ThrowableRunnable<Throwable?> {
-            action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-          }
-        )
-    }
-    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
-  }
-
-  @Throws(IOException::class)
-  private fun doTestHighlightingAndGetQuickfix(
-    inspection: AndroidLintInspectionBase,
-    message: String,
-    copyTo: String,
-    extension: String,
-  ): IntentionAction? {
-    doTestHighlighting(inspection, copyTo, extension, skipCheck = false)
-    return getIntentionAction(message)
-  }
-
-  private fun doTestHighlighting(
-    inspection: AndroidLintInspectionBase,
-    copyTo: String,
-    extension: String,
-    skipCheck: Boolean,
-  ) {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.doHighlighting()
-    if (!skipCheck) {
-      myFixture.checkHighlighting(true, false, false)
-    }
-  }
+    myFixture.checkHighlighting(true, false, false)
 
-  private val availableFixes: List<IntentionAction>
-    get() {
-      val intentions = IntentionsInfo()
-      ShowIntentionsPass.getActionsToShow(myFixture.editor, myFixture.file, intentions, -1)
-      val actions: MutableList<IntentionAction> = Lists.newArrayList()
-      for (descriptor in intentions.inspectionFixesToShow) {
-        actions.add(descriptor.action)
-      }
-      return actions
-    }
-
-  private fun listAvailableFixes(): String {
-    val intentions = IntentionsInfo()
-    ShowIntentionsPass.getActionsToShow(myFixture.editor, myFixture.file, intentions, -1)
-    val sb = StringBuilder()
-    for (action in availableFixes) {
-      sb.append(action.text).append("\n")
-    }
-    return sb.toString()
-  }
-
-  private fun getIntentionAction(message: String): IntentionAction? {
-    for (intention in myFixture.availableIntentions) {
-      if (message == intention.text) {
-        return if (intention is IntentionActionDelegate) {
-          (intention as IntentionActionDelegate).delegate
-        } else {
-          intention
-        }
-      }
-    }
-    return null
+    val action =
+      myFixture.getAvailableIntention(message) ?: error("Failed to find intention \"$message\"")
+    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+    assertThat(action.asModCommandAction()).isNotNull()
+    myFixture.checkPreviewAndLaunchAction(action)
+    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
   }
 
   private fun addCallSuper() {
@@ -543,7 +452,8 @@ class LintIdeTest : UsefulTestCase() {
       val project = myFixtureBuilder.fixture.project
       Verify.verifyNotNull(project)
       val moduleFilePath = myModuleRoot.toString() + "/app" + ModuleFileType.DOT_DEFAULT_EXTENSION
-      return ModuleManager.getInstance(project).newModule(moduleFilePath, JavaModuleType.getModuleType().id)
+      return ModuleManager.getInstance(project)
+        .newModule(moduleFilePath, JavaModuleType.getModuleType().id)
     }
 
     override fun instantiateFixture(): ModuleFixtureImpl {
