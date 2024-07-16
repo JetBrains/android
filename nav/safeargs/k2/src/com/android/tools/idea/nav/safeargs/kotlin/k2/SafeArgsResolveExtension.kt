@@ -21,11 +21,10 @@ import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.module.NavInfoChangeReason
-import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
 import com.android.tools.idea.nav.safeargs.module.NavStatusCache
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.projectsystem.FilenameConstants
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,16 +32,16 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopesCore
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
-import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
+import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionFile
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
+import org.jetbrains.kotlin.idea.util.publishModuleOutOfBlockModification
 import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 @OptIn(KaExperimentalApi::class)
-class SafeArgsResolveExtensionModuleService(private val module: Module) : KtResolveExtension() {
+class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension() {
 
   private data class Status(
     val args: List<ArgsClassResolveExtensionFile>,
@@ -66,10 +65,10 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) : KtReso
   private val directions: List<DirectionsClassResolveExtensionFile>
     get() = currentStatus?.directions ?: emptyList()
 
-  private val allClasses: List<KtResolveExtensionFile>
+  private val allClasses: List<KaResolveExtensionFile>
     get() = args + directions
 
-  override fun getKtFiles(): List<KtResolveExtensionFile> = allClasses
+  override fun getKtFiles(): List<KaResolveExtensionFile> = allClasses
 
   override fun getContainedPackages(): Set<FqName> =
     allClasses.map { it.getFilePackageName() }.toSet()
@@ -97,16 +96,8 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) : KtReso
   }
 
   private fun fireInvalidateEvent(reason: NavInfoChangeReason) {
-    if (
-      reason.shouldRaiseOutOfBlockModification()
-      // Only fire events if we're enabled and would be generating declarations here.
-      // This prevents excessive churn if we were enabled at one point, but became
-      // disabled later due to a change in module SafeArgs mode - since we're a
-      // module service, we'll stick around and continue to receive callbacks from
-      // NavStatusCache even if we're not currently acting as a KtResolveExtension.
-      && NavInfoFetcher.isSafeArgsModule(module, SafeArgsMode.KOTLIN)
-    ) {
-      module.fireEvent(KotlinModificationTopics.MODULE_OUT_OF_BLOCK_MODIFICATION) { onModification(it) }
+    if (reason.shouldRaiseOutOfBlockModification()) {
+      runWriteAction { module.publishModuleOutOfBlockModification() }
     }
   }
 
@@ -165,9 +156,5 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) : KtReso
 
   companion object {
     private val logger = thisLogger()
-
-    @JvmStatic
-    fun getInstance(module: Module) =
-      module.getService(SafeArgsResolveExtensionModuleService::class.java)!!
   }
 }

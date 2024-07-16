@@ -29,20 +29,19 @@ import com.intellij.psi.xml.XmlFile
 import kotlin.reflect.full.declaredMemberProperties
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.KtDeclarationRenderer
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.KaDeclarationRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KaParameterDefaultValueRenderer
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KaValueParameterSymbolRenderer
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtConstructorSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtSymbolOrigin
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.psi.KtElement
@@ -74,10 +73,10 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     } as KtFile
 
   @OptIn(KaAllowAnalysisOnEdt::class)
-  protected inline fun <reified TSymbol : KtSymbol, TResult> analyzeFileContent(
+  protected inline fun <reified TSymbol : KaSymbol, TResult> analyzeFileContent(
     @Language("kotlin") fileContent: String,
     fileName: String = "analyzedFile.kt",
-    block: KtAnalysisSession.(TSymbol) -> TResult,
+    block: KaSession.(TSymbol) -> TResult,
   ): TResult {
     val ktFile = addKotlinSource(fileContent, fileName)
     val caretReference =
@@ -97,9 +96,9 @@ abstract class AbstractSafeArgsResolveExtensionTest {
         analyze(ktFile) {
           val symbol =
             if (caretReference != null) {
-              caretReference.resolveToSymbols().single() as TSymbol
+              caretReference.resolveToSymbol() as TSymbol
             } else {
-              ktFile.getFileSymbol() as TSymbol
+              ktFile.symbol as TSymbol
             }
 
           block(symbol)
@@ -111,25 +110,22 @@ abstract class AbstractSafeArgsResolveExtensionTest {
   }
 
   @OptIn(KaExperimentalApi::class)
-  protected fun KtAnalysisSession.getRenderedMemberFunctions(
-    symbol: KtNamedClassOrObjectSymbol,
-    renderer: KtDeclarationRenderer = RENDERER,
+  protected fun KaSession.getRenderedMemberFunctions(
+    symbol: KaClassSymbol,
+    renderer: KaDeclarationRenderer = RENDERER,
   ): List<String> =
-    symbol
-      .declaredMemberScope
-      .getCallableSymbols()
-      .filterIsInstance<KtFunctionSymbol>()
-      .filter { it.origin != KtSymbolOrigin.SOURCE_MEMBER_GENERATED }
+    symbol.declaredMemberScope.callables
+      .filterIsInstance<KaNamedFunctionSymbol>()
+      .filter { it.origin != KaSymbolOrigin.SOURCE_MEMBER_GENERATED }
       .map { it.render(renderer) }
       .toList()
 
-  protected fun KtAnalysisSession.getPrimaryConstructorSymbol(
-    symbol: KtClassOrObjectSymbol
-  ): KtConstructorSymbol = symbol.declaredMemberScope.constructors.single { it.isPrimary }
+  protected fun KaSession.getPrimaryConstructorSymbol(symbol: KaClassSymbol): KaConstructorSymbol =
+    symbol.declaredMemberScope.constructors.single { it.isPrimary }
 
   @OptIn(KaExperimentalApi::class)
-  protected fun KtAnalysisSession.getResolveExtensionPsiNavigationTargets(
-    symbol: KtSymbol
+  protected fun KaSession.getResolveExtensionPsiNavigationTargets(
+    symbol: KaSymbol
   ): Collection<PsiElement> {
     assertThat(symbol.psi).isInstanceOf(KtElement::class.java)
     val ktElement = symbol.psi as KtElement
@@ -150,7 +146,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
 
     @OptIn(KaExperimentalApi::class)
     val RENDERER =
-      KtDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
+      KaDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
         valueParameterRenderer = KaValueParameterSymbolRenderer.AS_SOURCE
         parameterDefaultValueRenderer = KaParameterDefaultValueRenderer.THREE_DOTS
       }

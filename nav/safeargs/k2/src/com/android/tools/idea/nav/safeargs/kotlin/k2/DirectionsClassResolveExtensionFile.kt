@@ -30,11 +30,11 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTra
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.name.ClassId
 
 /*
@@ -95,23 +95,21 @@ internal class DirectionsClassResolveExtensionFile(
   override val fallbackPsi
     get() = destinationXmlTag
 
-  override fun KtAnalysisSession.getNavigationElementForDeclaration(
-    symbol: KtDeclarationSymbol
+  override fun KaSession.getNavigationElementForDeclaration(
+    symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
       // Containing class or its companion object -> overall destination.
-      is KtClassOrObjectSymbol -> destinationXmlTag
+      is KaClassSymbol -> destinationXmlTag
       // Function on companion object -> matching action tag.
-      is KtFunctionSymbol -> findMatchingAction(symbol)?.actionTag ?: destinationXmlTag
+      is KaNamedFunctionSymbol -> findMatchingAction(symbol)?.actionTag ?: destinationXmlTag
       // Argument of companion object function -> argument under action (preferred) or destination.
-      is KtValueParameterSymbol -> getTagForValueParameterSymbol(symbol) ?: destinationXmlTag
+      is KaValueParameterSymbol -> getTagForValueParameterSymbol(symbol) ?: destinationXmlTag
       else -> null
     }
 
-  private fun KtAnalysisSession.getTagForValueParameterSymbol(
-    symbol: KtValueParameterSymbol
-  ): XmlTag? {
-    val declaringFunctionSymbol = symbol.containingSymbol as? KtFunctionSymbol ?: return null
+  private fun KaSession.getTagForValueParameterSymbol(symbol: KaValueParameterSymbol): XmlTag? {
+    val declaringFunctionSymbol = symbol.containingSymbol as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag
 
@@ -135,7 +133,7 @@ internal class DirectionsClassResolveExtensionFile(
     return actionTag
   }
 
-  private fun KtAnalysisSession.findMatchingAction(symbol: KtFunctionSymbol): NavActionData? =
+  private fun KaSession.findMatchingAction(symbol: KaNamedFunctionSymbol): NavActionData? =
     actionsWithResolvedArguments.firstOrNull {
       it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial
     }
