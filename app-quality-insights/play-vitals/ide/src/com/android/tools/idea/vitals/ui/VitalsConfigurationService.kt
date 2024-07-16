@@ -116,8 +116,29 @@ class VitalsConfigurationManager(
   override val offlineStatusManager = OfflineStatusManagerImpl()
 
   override val configuration =
-    queryConnectionsFlow
-      .mapAvailableAppsToModel()
+    flow {
+        var isFirstAppsEmitted = false
+        queryConnectionsFlow.collect { connections ->
+          if (isFirstAppsEmitted && connections is LoadingState.NetworkFailure) {
+            emit(AppInsightsModel.Authenticated(loader.getController()))
+            return@collect
+          }
+          emit(
+            when (connections) {
+              is LoadingState.Ready -> {
+                isFirstAppsEmitted = true
+                AppInsightsModel.Authenticated(loader.getController())
+              }
+              is LoadingState.Unauthorized -> {
+                AppInsightsModel.Unauthenticated
+              }
+              is LoadingState.Failure -> {
+                AppInsightsModel.InitializationFailed
+              }
+            }
+          )
+        }
+      }
       .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
   init {
@@ -162,19 +183,6 @@ class VitalsConfigurationManager(
         cache.getRecentConnections()
       }
       else -> null
-    }
-  }
-
-  private fun Flow<LoadingState.Done<List<AppConnection>>>.mapAvailableAppsToModel() = map {
-    when (it) {
-      is LoadingState.Ready,
-      is LoadingState.NetworkFailure -> {
-        AppInsightsModel.Authenticated(loader.getController())
-      }
-      // TODO(b/274775776): disambiguate between different failures. Ex: authentication, grpc, etc.
-      is LoadingState.Failure -> {
-        AppInsightsModel.Unauthenticated
-      }
     }
   }
 

@@ -25,13 +25,21 @@ package com.android.tools.idea.insights
  */
 sealed class AppInsightsModel {
   /** The system hasn't initialized yet. Represents the state before authentication is known. */
-  object Uninitialized : AppInsightsModel()
+  data object Uninitialized : AppInsightsModel()
 
   /** The user is not signed in, App Insights will not work until they do. */
-  object Unauthenticated : AppInsightsModel()
+  data object Unauthenticated : AppInsightsModel()
 
-  /** Studio failed the gradle sync at startup and AQI could not determine app names. */
-  object InitialSyncFailed : AppInsightsModel()
+  /**
+   * Indicates some failure during the initialization causing AQI to not be able to show any useful
+   * information.
+   *
+   * For Crashlytics, this means Studio failed the gradle sync at startup and AQI could not
+   * determine app names.
+   *
+   * For Vitals, this means the initial connections query failed.
+   */
+  data object InitializationFailed : AppInsightsModel()
 
   /**
    * When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App

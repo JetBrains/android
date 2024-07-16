@@ -121,4 +121,30 @@ class VitalsConfigurationManagerTest {
       )
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
     }
+
+  @Test
+  fun `Vitals fails to load connections on startup and then succeeds on refresh`() =
+    runBlocking<Unit> {
+      val client = mock<AppInsightsClient>()
+      `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("failed"))
+      loginUsersRule.setActiveUser(
+        "foo@goo.com",
+        features = listOf(LoginFeature.feature<VitalsLoginFeature>()),
+      )
+
+      val configManager =
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          parentDisposable = projectRule.testRootDisposable,
+          testClient = client,
+        )
+      Disposer.register(projectRule.testRootDisposable, configManager)
+
+      configManager.refreshConfiguration()
+      configManager.configuration.first { it is AppInsightsModel.InitializationFailed }
+      `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
+      configManager.refreshConfiguration()
+      configManager.configuration.first { it is AppInsightsModel.Authenticated }
+    }
 }
