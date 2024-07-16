@@ -270,11 +270,9 @@ protected constructor(
    * This will warn model listeners that the model has been changed "live", without the attributes
    * of components being actually committed. Listeners such as Scene Managers will likely want for
    * example to schedule a layout pass in reaction to that callback.
-   *
-   * @param animate should the changes be animated or not.
    */
-  fun notifyLiveUpdate(animate: Boolean) {
-    listeners.forEach { listener -> listener.modelLiveUpdate(this, animate) }
+  fun notifyLiveUpdate() {
+    listeners.forEach { listener -> listener.modelLiveUpdate(this, false) }
   }
 
   /** Simply create a component. In most cases you probably want [NlTreeWriter.createComponent]. */
