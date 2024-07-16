@@ -28,6 +28,7 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -35,6 +36,14 @@ import org.mockito.Mockito.`when`
 class SceneViewIssueNodeVisitorTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
+
+  @Before
+  fun setUp() {
+    rule.projectRule.replaceProjectService(
+      DesignerCommonIssuePanelModelProvider::class.java,
+      TestIssuePanelModelProvider(),
+    )
+  }
 
   @RunsInEdt
   @Test

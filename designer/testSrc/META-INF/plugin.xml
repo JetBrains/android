@@ -17,10 +17,4 @@
   <name>Designer Tests</name>
   <id>com.android.tools.idea.designer.tests</id>
   <depends>com.android.tools.design</depends>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
-                    serviceImplementation="com.android.tools.idea.common.error.TestIssuePanelModelProvider"
-                    overrides="true" />
-  </extensions>
 </idea-plugin>
