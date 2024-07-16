@@ -122,12 +122,14 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.AncestorListenerAdapter
+import com.intellij.util.SlowOperations
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.time.Duration
@@ -974,7 +976,9 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
-        runReadAction { psiFilePointer.element },
+        SlowOperations.allowSlowOperations(
+          ThrowableComputable { runReadAction { psiFilePointer.element } }
+        ),
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
