@@ -33,7 +33,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         # TODO(xof): investigate
         "//tools/adt/idea/android-lint:intellij.android.lint",
-        "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
         "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",

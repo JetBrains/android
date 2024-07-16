@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
@@ -35,6 +34,7 @@ import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
@@ -171,7 +171,7 @@ class VitalsConfigurationManager(
         val modules = project.getHolderModules().filter { it.isAndroidApp }
         val appIds =
           modules
-            .flatMap { module -> GradleAndroidModel.get(module)?.allApplicationIds ?: emptyList() }
+            .flatMap { module -> AndroidModel.get(module)?.allApplicationIds ?: emptyList() }
             .toSet()
         result.value
           .map { app -> VitalsConnection(app.appId, app.displayName, app.appId in appIds) }
