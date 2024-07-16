@@ -26,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
@@ -76,6 +77,7 @@ class SafeArgsKtCompletionContributorTest {
   @Test
   fun testBasicCompletion() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     val file =
       fixture.project
@@ -168,6 +170,7 @@ class SafeArgsKtCompletionContributorTest {
   @Test
   fun testCompletionInImports() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     val file =
       fixture.project
@@ -227,6 +230,7 @@ class SafeArgsKtCompletionContributorTest {
   @Test
   fun testCompletionWithReceiver() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     val file =
       fixture.project
