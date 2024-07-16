@@ -587,8 +587,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
 
     @Override
-    public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      requestLayoutAndRenderAsync(animate);
+    public void modelLiveUpdate(@NotNull NlModel model) {
+      requestLayoutAndRenderAsync(false);
     }
   }
 

@@ -272,7 +272,7 @@ protected constructor(
    * example to schedule a layout pass in reaction to that callback.
    */
   fun notifyLiveUpdate() {
-    listeners.forEach { listener -> listener.modelLiveUpdate(this, false) }
+    listeners.forEach { listener -> listener.modelLiveUpdate(this) }
   }
 
   /** Simply create a component. In most cases you probably want [NlTreeWriter.createComponent]. */

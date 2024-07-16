@@ -147,7 +147,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
   private inner class NlModelListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) = updateLater(model)
-    override fun modelLiveUpdate(model: NlModel, animate: Boolean) = updateLater(model)
+    override fun modelLiveUpdate(model: NlModel) = updateLater(model)
 
     private fun updateLater(model: NlModel) = ApplicationManager.getApplication().invokeLater { update(model) }
   }

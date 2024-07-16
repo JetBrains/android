@@ -40,9 +40,8 @@ public interface ModelListener {
    * Listeners may want to schedule a layout pass in reaction to that callback.
    *
    * @param model the notifier model
-   * @param animate shall those changes be animated or not
    */
-  default void modelLiveUpdate(@NotNull NlModel model, boolean animate) {}
+  default void modelLiveUpdate(@NotNull NlModel model) {}
 
   /** The model changed due to a layout pass */
   default void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {}
