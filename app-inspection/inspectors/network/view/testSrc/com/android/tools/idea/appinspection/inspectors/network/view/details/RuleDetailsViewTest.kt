@@ -43,9 +43,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.NetworkInspectorEvent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
@@ -1244,10 +1246,11 @@ class RuleDetailsViewTest {
     focusListeners.forEach { it.focusLost(FocusEvent(this, FocusEvent.FOCUS_LOST)) }
   }
 
-  private fun findAction(decoratedTable: Component, templateText: String) =
-    TreeWalker(decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0].actions.first {
-      it.templateText?.contains(templateText) == true
-    }
+  private fun findAction(decoratedTable: Component, templateText: String): AnAction {
+    val toolbar = TreeWalker(decoratedTable).descendants().filterIsInstance<ActionToolbar>()[0]
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    return toolbar.actions.first { it.templateText?.contains(templateText) == true }
+  }
 
   private fun Component.isVisibleToRoot(root: Component): Boolean {
     var current = this
