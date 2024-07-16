@@ -43,6 +43,10 @@ class ToggleIssueDetailActionTest {
   @Before
   fun setup() {
     rule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    rule.replaceProjectService(
+      DesignerCommonIssuePanelModelProvider::class.java,
+      TestIssuePanelModelProvider(),
+    )
     HeadlessDataManager.fallbackToProductionDataManager(rule.testRootDisposable)
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))

@@ -44,6 +44,10 @@ class IssuePanelProjectActivityTest {
       ToolWindowManager::class.java,
       TestToolWindowManager(rule.project),
     )
+    rule.projectRule.replaceProjectService(
+      DesignerCommonIssuePanelModelProvider::class.java,
+      TestIssuePanelModelProvider(),
+    )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     runInEdtAndWait {
