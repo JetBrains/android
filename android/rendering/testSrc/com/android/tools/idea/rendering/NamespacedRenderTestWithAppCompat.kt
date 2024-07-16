@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.res.TestResourceIdManager
+import com.intellij.testFramework.IndexingTestUtil
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 
@@ -27,6 +28,7 @@ class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
     super.setUp()
     loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
     generateSources()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     RenderTestUtil.beforeRenderTestCase()
     resourceIdManger = TestResourceIdManager.getManager(myAndroidFacet.module)
     // Disable final IDs for this test, so it can use light classes to resolve resources.
