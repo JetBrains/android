@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea
 
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiComment
@@ -28,6 +29,7 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.SmartFMap
+import com.intellij.util.application
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.android.KotlinTestUtils
@@ -49,8 +51,11 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import java.io.File
 import java.util.Collections
+import java.util.concurrent.Semaphore
 
 abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
+
+  override fun runInDispatchThread() = false
 
   fun doTest(path: String) {
     copyResourceDirectoryForTest(path)
@@ -103,29 +108,36 @@ abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
 
   // Originally from AbstractExtractionTest.kt.
   private fun doExtractFunction(fixture: CodeInsightTestFixture, file: KtFile) {
-    val explicitPreviousSibling = file.findElementByCommentPrefix("// SIBLING:")
-    val fileText = file.getText() ?: ""
-    val expectedNames = InTextDirectivesUtils.findListWithPrefixes(fileText, "// SUGGESTED_NAMES: ")
-    val expectedReturnTypes = InTextDirectivesUtils.findListWithPrefixes(fileText, "// SUGGESTED_RETURN_TYPES: ")
-    val expectedDescriptors =
-      InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, "// PARAM_DESCRIPTOR: ").joinToString()
-    val expectedTypes =
-      InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, "// PARAM_TYPES: ").map { "[$it]" }.joinToString()
-
-    val extractionOptions = InTextDirectivesUtils.findListWithPrefixes(fileText, "// OPTIONS: ").let {
-      if (it.isNotEmpty()) {
-        @Suppress("UNCHECKED_CAST")
-        val args = it.map { it.toBoolean() }.toTypedArray() as Array<Any?>
-        ExtractionOptions::class.java.constructors.first { it.parameterTypes.size == args.size }.newInstance(*args) as ExtractionOptions
-      }
-      else ExtractionOptions.DEFAULT
-    }
-
-    val renderer = DescriptorRenderer.FQ_NAMES_IN_TYPES
-
     val editor = fixture.editor
-    val handler = ExtractKotlinFunctionHandler(
-      helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
+
+    val helper = runReadAction {
+      val fileText = file.getText() ?: ""
+      val expectedNames = InTextDirectivesUtils.findListWithPrefixes(fileText, "// SUGGESTED_NAMES: ")
+      val expectedReturnTypes = InTextDirectivesUtils.findListWithPrefixes(fileText, "// SUGGESTED_RETURN_TYPES: ")
+      val expectedDescriptors =
+        InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, "// PARAM_DESCRIPTOR: ").joinToString()
+      val expectedTypes =
+        InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, "// PARAM_TYPES: ").map { "[$it]" }.joinToString()
+
+      val extractionOptions = InTextDirectivesUtils.findListWithPrefixes(fileText, "// OPTIONS: ").let {
+        if (it.isNotEmpty()) {
+          @Suppress("UNCHECKED_CAST") val args = it.map { it.toBoolean() }.toTypedArray() as Array<Any?>
+          ExtractionOptions::class.java.constructors.first { it.parameterTypes.size == args.size }.newInstance(
+            *args) as ExtractionOptions
+        }
+        else ExtractionOptions.DEFAULT
+      }
+
+      val renderer = DescriptorRenderer.FQ_NAMES_IN_TYPES
+
+      object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
+
+        private val finishedSemaphore = Semaphore(0)
+
+        fun waitUntilFinished() {
+          finishedSemaphore.acquire()
+        }
+
         override fun adjustExtractionData(data: ExtractionData): ExtractionData {
           return data.copy(options = extractionOptions)
         }
@@ -134,42 +146,51 @@ abstract class AbstractAndroidExtractionTest: KotlinAndroidTestCase() {
           project: Project,
           editor: Editor,
           descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-          onFinish: (ExtractionResult) -> Unit
-        ) {
-          val descriptor = descriptorWithConflicts.descriptor
-          val actualNames = descriptor.suggestedNames
-          val actualReturnTypes = descriptor.controlFlow.possibleReturnTypes.map {
-            IdeDescriptorRenderers.SOURCE_CODE.renderType(it)
-          }
-          val allParameters = listOfNotNull(descriptor.receiverParameter) + descriptor.parameters
-          val actualDescriptors = allParameters.map { renderer.render(it.originalDescriptor) }.joinToString()
-          val actualTypes = allParameters.map {
-            it.getParameterTypeCandidates().map { renderer.renderType(it) }.joinToString(", ", "[", "]")
-          }.joinToString()
+          onFinish: (ExtractionResult) -> Unit) {
+            val descriptor = descriptorWithConflicts.descriptor
+            val actualNames = descriptor.suggestedNames
+            val actualReturnTypes = descriptor.controlFlow.possibleReturnTypes.map {
+              IdeDescriptorRenderers.SOURCE_CODE.renderType(it)
+            }
+            val allParameters = listOfNotNull(descriptor.receiverParameter) + descriptor.parameters
+            val actualDescriptors = allParameters.map { renderer.render(it.originalDescriptor) }.joinToString()
+            val actualTypes = allParameters.map {
+              it.getParameterTypeCandidates().map { renderer.renderType(it) }.joinToString(", ", "[", "]")
+            }.joinToString()
 
-          if (actualNames.size != 1 || expectedNames.isNotEmpty()) {
-            assertEquals("Expected names mismatch.", expectedNames, actualNames)
-          }
-          if (actualReturnTypes.size != 1 || expectedReturnTypes.isNotEmpty()) {
-            assertEquals("Expected return types mismatch.", expectedReturnTypes, actualReturnTypes)
-          }
-          assertEquals("Expected descriptors mismatch.", expectedDescriptors, actualDescriptors)
-          assertEquals("Expected types mismatch.", expectedTypes, actualTypes)
+            if (actualNames.size != 1 || expectedNames.isNotEmpty()) {
+              assertEquals("Expected names mismatch.", expectedNames, actualNames)
+            }
+            if (actualReturnTypes.size != 1 || expectedReturnTypes.isNotEmpty()) {
+              assertEquals("Expected return types mismatch.", expectedReturnTypes, actualReturnTypes)
+            }
+            assertEquals("Expected descriptors mismatch.", expectedDescriptors, actualDescriptors)
+            assertEquals("Expected types mismatch.", expectedTypes, actualTypes)
 
-          val newDescriptor = if (descriptor.name == "") {
-            descriptor.copy(suggestedNames = Collections.singletonList("__dummyTestFun__"))
-          }
-          else {
-            descriptor
-          }
+            val newDescriptor = if (descriptor.name == "") {
+              descriptor.copy(suggestedNames = Collections.singletonList("__dummyTestFun__"))
+            }
+            else {
+              descriptor
+            }
 
-          doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
-        }
+            doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT)) { er ->
+              onFinish(er)
+              finishedSemaphore.release()
+            }
+          }
       }
-    )
-    handler.selectElements(editor, file) { elements, previousSibling ->
-      handler.doInvoke(editor, file, elements, explicitPreviousSibling ?: previousSibling)
     }
+
+    application.invokeAndWait {
+      val handler = ExtractKotlinFunctionHandler(helper = helper)
+      val explicitPreviousSibling = file.findElementByCommentPrefix("// SIBLING:")
+      handler.selectElements(editor, file) { elements, previousSibling ->
+        handler.doInvoke(editor, file, elements, explicitPreviousSibling ?: previousSibling)
+      }
+    }
+
+    helper.waitUntilFinished()
   }
 
   private fun PsiFile.findElementByCommentPrefix(commentText: String): PsiElement? =
