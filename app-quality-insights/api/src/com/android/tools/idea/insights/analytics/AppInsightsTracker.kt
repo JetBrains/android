@@ -62,6 +62,14 @@ interface AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   )
 
+  fun logEventViewed(
+    unanonymizedAppId: String,
+    mode: ConnectionMode,
+    issueId: String,
+    eventId: String,
+    isFetched: Boolean,
+  )
+
   enum class ProductType {
     CRASHLYTICS,
     PLAY_VITALS;

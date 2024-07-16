@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
+import com.android.testutils.MockitoKt.capture
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ConnectionMode
@@ -25,6 +26,8 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
@@ -39,6 +42,7 @@ import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.IssueResponse
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
 import com.intellij.testFramework.ProjectRule
@@ -46,6 +50,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -227,6 +232,41 @@ class AppInsightsTrackerTest {
         eq(ConnectionMode.OFFLINE),
         eq(AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails.OFFLINE_TO_ONLINE),
       )
+  }
+
+  @Test
+  fun `track event views`() = runBlocking {
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(
+        IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
+      ),
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), "abc")),
+    )
+
+    controllerRule.controller.nextEvent()
+    controllerRule.consumeNext()
+    controllerRule.controller.nextEvent()
+    controllerRule.consumeNext()
+
+    controllerRule.controller.nextEvent()
+    controllerRule.client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("4")), "")))
+    controllerRule.consumeNext()
+
+    val eventIdCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val isFetchedCaptor: ArgumentCaptor<Boolean> = ArgumentCaptor.forClass(Boolean::class.java)
+
+    // verify total number of tracking calls
+    verify(controllerRule.tracker, times(4))
+      .logEventViewed(
+        any(),
+        eq(ConnectionMode.ONLINE),
+        eq(ISSUE1.id.value),
+        capture(eventIdCaptor),
+        capture(isFetchedCaptor),
+      )
+
+    assertThat(eventIdCaptor.allValues).containsExactly("1", "2", "3", "4").inOrder()
+    assertThat(isFetchedCaptor.allValues).containsExactly(true, false, false, true).inOrder()
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {
