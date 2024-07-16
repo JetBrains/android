@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionsManager;
 import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings;
 
@@ -51,12 +52,15 @@ public final class AndroidStudioPreferences {
     ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
 
     // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-    ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
-      KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
-      if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
-        settings.setAutoReloadConfigurations(scriptDefinition, false);
-      }
-    });
+    // TODO(b/353550539): this code throws an error with IntelliJ 2024.2 when Kotlin K2 is enabled.
+    if (KotlinPluginModeProvider.Companion.isK1Mode()) {
+      ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
+        KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
+        if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
+          settings.setAutoReloadConfigurations(scriptDefinition, false);
+        }
+      });
+    }
 
     // Note: This unregisters the extensions when the predicate returns False.
     projectConfigurable.unregisterExtensions((s, adapter) -> {
