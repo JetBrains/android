@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.project.build.attribution;
 
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildAttributionOutputLinkFilter implements Filter {
+public class BuildAttributionOutputLinkFilter implements Filter, DumbAware {
 
   public static final String LINK_TEXT = "Build Analyzer";
   public static final String INSIGHTS_AVAILABLE_LINE = "Build Analyzer results available";
