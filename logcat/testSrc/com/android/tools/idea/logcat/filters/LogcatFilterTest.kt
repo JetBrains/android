@@ -35,6 +35,7 @@ import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
@@ -62,7 +63,8 @@ class LogcatFilterTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
+  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                       disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
 
   private val project by lazy(projectRule::project)
 

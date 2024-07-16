@@ -2,6 +2,7 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.Filter.ResultItem
 import com.intellij.execution.filters.impl.MultipleFilesHyperlinkInfo
@@ -25,6 +26,7 @@ class SimpleFileLinkFilterTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       ProjectServiceRule(projectRule, PsiShortNamesCache::class.java) {
         FakePsiShortNamesCache(project, projectFiles)
       },

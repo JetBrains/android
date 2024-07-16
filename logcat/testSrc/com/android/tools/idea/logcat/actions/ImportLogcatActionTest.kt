@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -47,6 +48,7 @@ class ImportLogcatActionTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
     )
 

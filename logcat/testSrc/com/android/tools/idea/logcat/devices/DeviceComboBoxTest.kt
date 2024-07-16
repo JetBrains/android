@@ -24,6 +24,7 @@ import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.File
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -53,6 +54,7 @@ class DeviceComboBoxTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,

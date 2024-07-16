@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -27,7 +28,9 @@ import org.junit.Test
 
 /** Tests for [LogcatFormatPresetAction] */
 class LogcatFormatPresetActionTest {
-  @get:Rule val rule = RuleChain(ProjectRule())
+  private val projectRule = ProjectRule()
+  @get:Rule
+  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 

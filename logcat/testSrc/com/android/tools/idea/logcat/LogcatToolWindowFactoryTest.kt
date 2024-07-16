@@ -34,6 +34,7 @@ import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -69,6 +70,7 @@ class LogcatToolWindowFactoryTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       ProjectServiceRule(
         projectRule,
         DeviceComboBoxDeviceTrackerFactory::class.java,

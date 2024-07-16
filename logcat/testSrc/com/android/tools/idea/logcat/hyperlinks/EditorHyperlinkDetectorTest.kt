@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.filters.Filter
@@ -33,9 +34,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -50,6 +53,7 @@ class EditorHyperlinkDetectorTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       logcatEditorRule,
       ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
       disposableRule,

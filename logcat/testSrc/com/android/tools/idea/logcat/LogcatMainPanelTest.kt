@@ -72,6 +72,7 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.TestLoggerRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
@@ -96,6 +97,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -144,6 +146,7 @@ class LogcatMainPanelTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       ApplicationServiceRule(
         AndroidLogcatFormattingOptions::class.java,
         androidLogcatFormattingOptions,
@@ -210,6 +213,7 @@ class LogcatMainPanelTest {
       .isNotNull()
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     assertThat(toolbar.actions.mapToStrings())
       .containsExactly(
         "Clear Logcat",
@@ -414,7 +418,7 @@ class LogcatMainPanelTest {
       }
     val logcatMainPanel =
       logcatMainPanel(splitterPopupActionGroup = splitterActions).apply {
-        size = Dimension(100, 500)
+        size = Dimension(200, 500)
         editor.document.setText("foo") // put some text so 'Fold Lines Like This' is enabled
       }
     val fakeUi =
