@@ -284,7 +284,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
       for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
-        manager.requestLayoutAndRenderAsync(false);
+        manager.requestLayoutAndRenderAsync();
       }
       revalidateScrollArea();
     }
@@ -298,7 +298,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myScreenViewProvider.setColorBlindFilter(mode);
     for (SceneManager manager : getSceneManagers()) {
       manager.updateSceneView();
-      manager.requestLayoutAndRenderAsync(false);
+      manager.requestLayoutAndRenderAsync();
     }
     revalidateScrollArea();
   }
