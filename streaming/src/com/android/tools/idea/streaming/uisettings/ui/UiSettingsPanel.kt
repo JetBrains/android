@@ -23,12 +23,14 @@ import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.IntelliJSpacingConfiguration
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.actionListener
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Component
@@ -43,6 +45,7 @@ import javax.swing.SwingUtilities
 import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
+private const val LANGUAGE_WIDTH = 200
 internal const val DARK_THEME_TITLE = "Dark Theme:"
 internal const val GESTURE_NAVIGATION_TITLE = "Navigation Mode:"
 internal const val APP_LANGUAGE_TITLE = "App Language:"
@@ -111,8 +114,11 @@ internal class UiSettingsPanel(
           comboBox(model.appLanguage)
             .accessibleName(APP_LANGUAGE_TITLE)
             .bindItem(model.appLanguage.selection)
-            .apply { component.name = APP_LANGUAGE_TITLE }
             .align(AlignX.FILL)
+            .apply {
+              component.name = APP_LANGUAGE_TITLE
+              component.setMinimumAndPreferredWidth(JBUIScale.scale(LANGUAGE_WIDTH))
+            }
         }.visibleIf(model.appLanguage.sizeIsAtLeast(2))
 
         row(JBLabel(TALKBACK_TITLE)) {
@@ -135,6 +141,7 @@ internal class UiSettingsPanel(
           slider(0, model.fontScaleMaxIndex.value, 1, 1)
             .accessibleName(FONT_SCALE_TITLE)
             .noLabels()
+            .align(Align.FILL)
             .bindSliderPosition(model.fontScaleIndex)
             .bindSliderMaximum(model.fontScaleMaxIndex)
             .apply { component.name = FONT_SCALE_TITLE }
@@ -145,6 +152,7 @@ internal class UiSettingsPanel(
             slider(0, model.screenDensityIndex.value, 1, 1)
               .accessibleName(DENSITY_TITLE)
               .noLabels()
+              .align(Align.FILL)
               .bindSliderPosition(model.screenDensityIndex)
               .bindSliderMaximum(model.screenDensityMaxIndex)
               .apply { component.name = DENSITY_TITLE }
