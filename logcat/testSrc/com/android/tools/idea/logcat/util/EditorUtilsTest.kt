@@ -26,6 +26,7 @@ import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FilterHint.AppName
 import com.android.tools.idea.logcat.util.FilterHint.Level
 import com.android.tools.idea.logcat.util.FilterHint.Tag
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
@@ -43,7 +44,8 @@ class EditorUtilsTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor

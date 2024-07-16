@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -29,7 +30,8 @@ import org.junit.Test
 class AndroidLogcatFilterHistoryTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule
+  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule())
 
   private val project
     get() = projectRule.project

@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
@@ -54,7 +55,9 @@ import org.junit.Test
 class LogcatMessageAssemblerTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(ProjectRule(), disposableRule)
+  private val projectRule = ProjectRule()
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 disposableRule)
 
   private val processNameMonitor = FakeProcessNameMonitor()
 

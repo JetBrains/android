@@ -14,6 +14,7 @@ import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.notification.NotificationType
@@ -64,6 +65,7 @@ class SaveLogcatActionTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       disposableRule,
       temporaryDirectoryRule,
       notificationRule,

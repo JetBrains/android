@@ -33,6 +33,7 @@ import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
@@ -77,6 +78,7 @@ class LogcatFilterParserTest(private val matchCase: Boolean) {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       EdtRule(),
       LogcatFilterLanguageRule(),
       FlagRule(StudioFlags.LOGCAT_IS_FILTER),
