@@ -588,7 +588,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model) {
-      requestLayoutAndRenderAsync(false);
+      requestLayoutAndRenderAsync();
     }
   }
 
@@ -675,17 +675,17 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   @Override
   @NotNull
-  public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
+  public CompletableFuture<Void> requestLayoutAndRenderAsync() {
     // Don't re-render if we're just showing the blueprint
     if (myRenderedVersion != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
-      return requestLayoutAsync(animate);
+      return requestLayoutAsync(false);
     }
 
     LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
     // TODO(b/335424569): remove isRenderingSynchronously. The clients that want this behaviour should achieve it by using the futures
     //   properly, but it shouldn't be a mode in LayoutlibSceneManager
     if (getDesignSurface().isRenderingSynchronously()) {
-      return requestRenderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return requestRenderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(false));
     } else {
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
@@ -699,7 +699,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
             return CompletableFuture.completedFuture(null);
           }
         })
-        .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), AppExecutorUtil.getAppExecutorService());
+        .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(false), AppExecutorUtil.getAppExecutorService());
     }
   }
 
@@ -1456,7 +1456,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       if (!version.equals(myRenderedVersion)) {
         forceReinflate();
       }
-      requestLayoutAndRenderAsync(false);
+      requestLayoutAndRenderAsync();
     }
 
     return active;

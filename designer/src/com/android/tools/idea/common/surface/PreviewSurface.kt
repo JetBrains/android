@@ -76,7 +76,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AWTEvent
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.MouseInfo
@@ -1090,7 +1089,7 @@ abstract class PreviewSurface<T : SceneManager>(
     if (sceneManagers.isEmpty()) {
       return CompletableFuture.completedFuture(null)
     }
-    return requestSequentialRender { it.requestLayoutAndRenderAsync(false) }
+    return requestSequentialRender { it.requestLayoutAndRenderAsync() }
   }
 
   /**
