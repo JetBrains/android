@@ -71,5 +71,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="RUNTIME" />
     <orderEntry type="module" module-name="test-recorder.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="url-assistant.gradle" scope="RUNTIME" />
   </component>
 </module>

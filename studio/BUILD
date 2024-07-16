@@ -647,7 +647,12 @@ studio_plugin(
     libs = [
         "//tools/vendor/google/url-assistant:urlassistant_proto",
     ],
-    modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
+    modules = {
+        "url-assistant.jar": [
+            "//tools/vendor/google/url-assistant:url-assistant",
+            "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
