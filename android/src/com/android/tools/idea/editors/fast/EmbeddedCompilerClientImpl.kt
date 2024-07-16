@@ -73,7 +73,7 @@ class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
   private val isKotlinPluginBundled: () -> Boolean,
-  private val beforeCompilationStarts: suspend () -> Unit) : CompilerDaemonClient {
+  private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
 
   constructor(project: Project, log: Logger):
     this(project, log, ::isKotlinPluginBundled, {})
@@ -82,7 +82,7 @@ class EmbeddedCompilerClientImpl private constructor(
   constructor(project: Project,
               log: Logger,
               isKotlinPluginBundled: Boolean = true,
-              beforeCompilationStarts: suspend () -> Unit = {}) :
+              beforeCompilationStarts: () -> Unit = {}) :
     this(project, log,
          isKotlinPluginBundled = { isKotlinPluginBundled },
          beforeCompilationStarts = beforeCompilationStarts)
