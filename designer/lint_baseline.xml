@@ -475,39 +475,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager"
-        errorLine2="                             ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="196"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="    for (manager in surface.sceneManagers) {"
-        errorLine2="                            ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="604"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope"
-        errorLine1="    surface.sceneManagers"
-        errorLine2="            ~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="208"
-            column="13"/>
-    </issue>
-
-    <issue
         id="DiscouragedApi"
         message="Use of `scheduleAtFixedRate` is strongly discouraged because it can lead to unexpected behavior when Android processes become cached (tasks may unexpectedly execute hundreds or thousands of times in quick succession when a process changes from cached to uncached); prefer using `scheduleWithFixedDelay`"
         errorLine1="    executor?.scheduleAtFixedRate(onTick, 0, period.toNanos(), TimeUnit.NANOSECONDS)"
