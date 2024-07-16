@@ -133,6 +133,18 @@ class KotlinMultiplatformAndroidTestConfigurationProducer : JavaRunConfiguration
   override fun findExistingConfiguration(context: ConfigurationContext): RunnerAndConfigurationSettings? = null
 
   override fun getConfigurationFactory(): ConfigurationFactory = AndroidTestRunConfigurationType.getInstance().factory
+
+  override fun onFirstRun(configurationFromcontext: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
+    // This function is called right before the execution time and after the run configuration has been set up.
+    // We want to make sure we don't end up unnecessarily adding duplicates Run Configuration to the "Run/Debug" window.
+    // Initially these RCs get a unique name set up for them each time we create them, but when we execute them, we do not need to add
+    // a new entry to the UI menu if it is the same name and type.
+    val configuration = configurationFromcontext.configuration
+    if (configuration is AndroidTestRunConfiguration) {
+      configuration.setGeneratedName()
+    }
+    super.onFirstRun(configurationFromcontext, context, startRunnable)
+  }
 }
 
 /**
