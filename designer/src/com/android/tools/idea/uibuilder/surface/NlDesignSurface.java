@@ -597,7 +597,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     );
     // Adjust the scale change to keep the new scale between the lower and upper bounds.
     double curScale = myZoomController.getScale();
-    double boundedNewScale = getBoundedScale(curScale * scaleChangeNeeded);
+    double boundedNewScale = myZoomController.getBoundedScale(curScale * scaleChangeNeeded);
     scaleChangeNeeded = boundedNewScale / curScale;
     // The rectangle size and its coordinates relative to the sceneView have
     // changed due to the scale change.
