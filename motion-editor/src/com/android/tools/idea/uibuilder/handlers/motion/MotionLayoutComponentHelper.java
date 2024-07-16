@@ -417,7 +417,7 @@ public class MotionLayoutComponentHelper {
         return;
       }
 
-      model.notifyLiveUpdate(false);
+      model.notifyLiveUpdate();
       refresh(myMotionLayoutComponent);
     });
   }
@@ -455,7 +455,7 @@ public class MotionLayoutComponentHelper {
       return;
     }
     NlModel model = myMotionLayoutComponent.getModel();
-    model.notifyLiveUpdate(false);
+    model.notifyLiveUpdate();
   }
 
   public void setState(String state) {
@@ -488,7 +488,7 @@ public class MotionLayoutComponentHelper {
         return;
       }
       NlModel model = myMotionLayoutComponent.getModel();
-      model.notifyLiveUpdate(false);
+      model.notifyLiveUpdate();
     });
   }
 

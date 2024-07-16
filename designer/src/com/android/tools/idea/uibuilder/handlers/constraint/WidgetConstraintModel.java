@@ -755,7 +755,7 @@ public class WidgetConstraintModel implements SelectionListener {
     }
     myModification.setAttribute(nameSpace, attribute, value);
     myModification.apply();
-    model.notifyLiveUpdate(false);
+    model.notifyLiveUpdate();
     myTimer.setRepeats(false);
     myTimer.restart();
   }
