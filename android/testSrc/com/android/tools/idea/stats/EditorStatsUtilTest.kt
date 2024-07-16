@@ -20,6 +20,14 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.EditorFileType
+import com.intellij.ide.plugins.PluginManagerCore.getPlugin
+import com.intellij.lang.Language
+import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher
+import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.openapi.fileTypes.impl.FileTypeManagerImpl
+import com.intellij.util.application
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -100,4 +108,43 @@ class EditorStatsUtilTest {
     (projectRule.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     assertThat(getEditorFileTypeForAnalytics(fakeKotlinFile, projectRule.project)).isEqualTo(EditorFileType.KOTLIN_COMPOSE)
   }
+
+  @Test
+  fun protoFileWithPlugin() = runBlocking {
+    val fileTypeManager = FileTypeManager.getInstance() as FileTypeManagerImpl
+    application.invokeAndWait {
+      fileTypeManager.registerFileType(
+        FakePbFileType,
+        listOf(ExtensionFileNameMatcher("proto")),
+        projectRule.testRootDisposable,
+        requireNotNull(getPlugin(PluginId.getId("org.jetbrains.android")))
+      )
+    }
+
+    val protoFile = projectRule.fixture.addFileToProject("hello.proto", "").virtualFile
+
+    assertThat(getEditorFileTypeForAnalytics(protoFile, null)).isEqualTo(EditorFileType.PROTO)
+  }
+
+  @Test
+  fun protoFileWithoutPlugin() = runBlocking {
+    val protoFile = projectRule.fixture.addFileToProject("hello.proto", "").virtualFile
+
+    assertThat(getEditorFileTypeForAnalytics(protoFile, null)).isEqualTo(EditorFileType.PROTO_WITHOUT_PLUGIN)
+  }
+}
+
+private object FakePbLangauge : Language("FakePb") {
+  private fun readResolve(): Any = FakePbLangauge
+}
+
+private object FakePbFileType : LanguageFileType(FakePbLangauge) {
+  override fun getName() = "protobuf"
+
+  override fun getDescription() = "Protocol Buffer"
+
+  override fun getDefaultExtension() = "proto"
+
+  override fun getIcon() = TODO("Not yet implemented")
+
 }
