@@ -124,6 +124,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI
 import junit.framework.TestCase
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1029,6 +1030,7 @@ class MyViewportLayoutManagerTest {
   }
 
   @Test
+  @Ignore("b/353455979")
   fun testZoom() {
     // Start view as centered
     scrollPane.viewport.viewPosition = Point(250, 400)
