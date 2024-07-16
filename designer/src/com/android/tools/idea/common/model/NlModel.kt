@@ -39,16 +39,16 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import java.util.Collections
-import java.util.WeakHashMap
-import java.util.concurrent.atomic.AtomicLong
-import java.util.function.BiFunction
-import java.util.function.Consumer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import java.util.Collections
+import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.BiFunction
+import java.util.function.Consumer
 
 /**
  * Model for an XML file
@@ -384,7 +384,7 @@ protected constructor(
    */
   @TestOnly
   fun flushPendingUpdates() {
-    updateQueue.run()
+    updateQueue.flush()
   }
 
   fun resetLastChange() {
