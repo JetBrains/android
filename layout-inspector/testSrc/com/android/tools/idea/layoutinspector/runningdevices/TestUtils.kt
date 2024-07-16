@@ -236,7 +236,10 @@ fun verifyUiInjected(
 
   assertThat(workbench.isFocusCycleRoot).isFalse()
 
-  verifyToolbar(container)
+  verifyToolbar(
+    container,
+    shouldContainProcessPicker = !LayoutInspectorSettings.getInstance().autoConnectEnabled,
+  )
   verifyWorkbench(workbench)
 
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
@@ -264,7 +267,7 @@ fun verifyUiRemoved(content: Component, container: Container, displayView: Abstr
   assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
 }
 
-private fun verifyToolbar(container: Container) {
+private fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
   val toolbars =
     container.allChildren().filterIsInstance<ActionToolbar>().filter {
       it.component.name == "LayoutInspector.MainToolbar"
@@ -273,7 +276,9 @@ private fun verifyToolbar(container: Container) {
   assertThat(toolbars).hasSize(1)
   val toolbar = toolbars.first()
 
-  assertThat(toolbar.actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
+  if (shouldContainProcessPicker) {
+    assertThat(toolbar.actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
+  }
   assertThat(toolbar.actions.filterIsInstance<ToggleDeepInspectAction>()).hasSize(1)
   assertThat(toolbar.actions.filterIsInstance<GearAction>()).hasSize(1)
 
