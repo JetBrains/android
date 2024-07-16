@@ -46,7 +46,9 @@ import kotlinx.coroutines.launch
  */
 class DeviceCableMonitor : ProjectActivity {
 
-  private val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
+  companion object {
+    val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
+  }
 
   private val notificationGroup: NotificationGroup
     get() =
