@@ -24,9 +24,9 @@ import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtVariableLikeSymbol
+import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaVariableSymbol
 import org.jetbrains.kotlin.name.ClassId
 
 /*
@@ -64,16 +64,16 @@ internal class ArgsClassResolveExtensionFile(
       destination.arguments
     }
 
-  override fun KtAnalysisSession.getNavigationElementForDeclaration(
-    symbol: KtDeclarationSymbol
+  override fun KaSession.getNavigationElementForDeclaration(
+    symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
-      is KtVariableLikeSymbol -> getNavigationElementForVariableLikeSymbol(symbol)
+      is KaVariableSymbol -> getNavigationElementForVariableSymbol(symbol)
       else -> destinationXmlTag
     }
 
-  private fun KtAnalysisSession.getNavigationElementForVariableLikeSymbol(
-    symbol: KtVariableLikeSymbol
+  private fun KaSession.getNavigationElementForVariableSymbol(
+    symbol: KaVariableSymbol
   ): PsiElement? {
     val matchingArgument =
       resolvedArguments.firstOrNull {
