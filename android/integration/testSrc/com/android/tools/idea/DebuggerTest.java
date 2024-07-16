@@ -23,7 +23,10 @@ import com.android.tools.asdriver.tests.Emulator;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
+import com.android.tools.perflogger.Benchmark;
+import com.android.tools.perflogger.Metric;
 import java.nio.file.Path;
+import java.time.Instant;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,11 +37,15 @@ public class DebuggerTest {
   @Rule
   public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();
 
+  public Metric metric = new Metric("Time-elapsed");
+
   @Test
   public void runDebuggerTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/mindebugapp");
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"));
+
+    long startTime = System.currentTimeMillis();
 
     try (Adb adb = system.runAdb();
          Emulator emulator = system.runEmulator();
@@ -47,7 +54,11 @@ public class DebuggerTest {
       studio.waitForIndex();
       studio.executeAction("MakeGradleProject");
       studio.waitForBuild();
+      metric.addSamples(new Benchmark.Builder("Debugger-before-boot").setProject("Android Studio E2E").build(),
+                        new Metric.MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime));
       emulator.waitForBoot();
+      metric.addSamples(new Benchmark.Builder("Debugger-after-boot").setProject("Android Studio E2E").build(),
+                        new Metric.MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime));
       adb.waitForDevice(emulator);
       adb.runCommand("logcat");
       System.out.println("Opening a file");
@@ -62,6 +73,9 @@ public class DebuggerTest {
       System.out.println("Debugging the application");
       studio.executeAction("android.deploy.DebugWithoutBuild");
       studio.waitForDebuggerToHitBreakpoint();
+      metric.addSamples(new Benchmark.Builder("Debugger-total-time-boot").setProject("Android Studio E2E").build(),
+                        new Metric.MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime));
+      metric.commit();
     }
   }
 }
