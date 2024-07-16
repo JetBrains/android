@@ -64,6 +64,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -606,13 +607,20 @@ class NlComponentTreeDefinitionTest {
       )
     )
 
-  private fun checkPaint(aButton: JBLabel, expected: String) {
+  private fun checkPaint(
+    aButton: JBLabel,
+    expected: String,
+    // For IntelliJ 2024.1 we are allowing a higher threshold to allow for the 2024.2 golden images
+    // to be used. This can be removed after 2024.2 platform has been merged.
+    diffThreshold: Double =
+      if (ApplicationInfo.getInstance().build.baselineVersion == 241) 1.5 else DIFF_THRESHOLD,
+  ) {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(aButton.width, aButton.height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     aButton.paint(graphics)
     graphics.dispose()
-    ImageDiffUtil.assertImageSimilar(testDataPath.resolve(expected), image, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(testDataPath.resolve(expected), image, diffThreshold)
   }
 
   private fun dumpTree(tree: JTree): String {
