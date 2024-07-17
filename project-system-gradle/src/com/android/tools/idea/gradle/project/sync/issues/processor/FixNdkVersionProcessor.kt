@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
-
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -28,7 +27,7 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
-import java.util.ArrayList
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Tool to rewrite build.gradle file to add or update android.ndkVersion section.
@@ -106,6 +105,13 @@ class FixNdkVersionProcessor(
    * Once all build.gradle files have been modified, the project is synced.
    */
   public override fun performRefactoring(usages: Array<UsageInfo>) {
+    updateProjectBuildModel()
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel() {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     for (file in buildFiles) {
@@ -119,8 +125,6 @@ class FixNdkVersionProcessor(
     }
 
     projectBuildModel.applyChanges()
-
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
   }
 
   /**

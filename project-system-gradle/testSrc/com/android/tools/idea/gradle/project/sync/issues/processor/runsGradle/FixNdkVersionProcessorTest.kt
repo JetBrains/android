@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -28,6 +30,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Expect
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
@@ -91,7 +94,6 @@ class FixNdkVersionProcessorTest {
       val file = GradleProjectSystemUtil.getGradleBuildFile(module)!!
 
       val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
-      val usages = processor.findUsages()
       var synced = false
       GradleSyncState.subscribe(project, object : GradleSyncListener {
         override fun syncFailed(project: Project, errorMessage: String) {
@@ -101,8 +103,11 @@ class FixNdkVersionProcessorTest {
       })
 
       WriteCommandAction.runWriteCommandAction(project) {
-        processor.performRefactoring(usages)
+        processor.updateProjectBuildModel()
       }
+
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED)
+
       expect.that(String(file.contentsToByteArray()).contains("ndkVersion"))
       expect.that(String(file.contentsToByteArray()).contains("77.7.7"))
       expect.that(synced).isTrue()

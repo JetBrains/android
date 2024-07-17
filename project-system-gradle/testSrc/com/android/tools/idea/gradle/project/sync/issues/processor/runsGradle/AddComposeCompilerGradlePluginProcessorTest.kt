@@ -20,14 +20,17 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddComposeCompilerGradlePluginProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.junit.Test
@@ -213,8 +216,9 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
       }
     })
     WriteCommandAction.runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
+      processor.updateProjectBuildModel()
     }
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN)
 
     // Assert that sync succeeded
     assertThat(synced).isTrue()

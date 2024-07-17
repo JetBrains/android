@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradle
 
-import org.junit.Test
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.SuppressUnsupportedSdkVersionPropertyProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -31,6 +33,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class SuppressUnsupportedSdkVersionPropertyProcessorTest {
@@ -79,8 +82,9 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
         }
       })
       WriteCommandAction.runWriteCommandAction(project) {
-        processor.performRefactoring(usages)
+        processor.updateProjectBuildModel(usages)
       }
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
       assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=33,UpsideDownCake")).isTrue()
       assertThat(synced).isTrue()
@@ -108,8 +112,9 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
         }
       })
       WriteCommandAction.runWriteCommandAction(project) {
-        processor.performRefactoring(usages)
+        processor.updateProjectBuildModel(usages)
       }
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
       assertThat(String(gradlePropertiesFile.contentsToByteArray()).contains("android.suppressUnsupportedCompileSdk=UpsideDownCake")).isTrue()
       assertThat(synced).isTrue()
@@ -139,8 +144,9 @@ class SuppressUnsupportedSdkVersionPropertyProcessorTest {
         }
       })
       WriteCommandAction.runWriteCommandAction(project) {
-        processor.performRefactoring(usages)
+        processor.updateProjectBuildModel(usages)
       }
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PROJECT_MODIFIED)
 
       gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       assertThat(gradlePropertiesFile.exists()).isTrue()
