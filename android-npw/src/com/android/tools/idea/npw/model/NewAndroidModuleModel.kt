@@ -210,10 +210,6 @@ class NewAndroidModuleModel(
   }
 
   private fun getInitialBytecodeLevel(): BytecodeLevel {
-    if (isLibrary) {
-      val savedValue = properties.getValue(PROPERTIES_BYTECODE_LEVEL_KEY)
-      return BytecodeLevel.values().firstOrNull { it.toString() == savedValue } ?: BytecodeLevel.default
-    }
     return BytecodeLevel.default
   }
 
