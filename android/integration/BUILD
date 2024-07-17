@@ -465,9 +465,9 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "noci:studio-win",
-        "noci:studio-linux",
         "ci:studio-linux_very_flaky",  # b/283129200
+        "noci:studio-linux",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
 )
@@ -484,11 +484,16 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.core.integration",
-    tags_linux = ["block-network"],
+    tags = [
+        "noci:studio-linux",  # http://b/346573467
+        "noci:studio-win",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    tags_linux = [
+        "block-network",
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.RunApkTest",
 )
