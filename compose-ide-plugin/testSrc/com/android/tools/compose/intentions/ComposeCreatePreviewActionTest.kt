@@ -103,6 +103,53 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testCursorAtWhitespace() {
+    // Only K2 supports ComposeCreatePreviewAction for the cursor right after @Composable.
+    if (!KotlinPluginModeProvider.isK2Mode()) return
+
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+
+      @Composable<caret>
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+      """
+        .trimIndent(),
+    )
+
+    val action = myFixture.availableIntentions.find { it.familyName == "Create Preview" }
+    assertThat(action).isNotNull()
+
+    action?.let { executeCommandAction(it) } ?: error("Action is null")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
+
+      @Preview
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+    """
+        .trimIndent()
+    )
+  }
+
   fun testSelection() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -114,6 +161,106 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
       <caret><selection>
       @Composable
       fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+
+      </selection>
+      """
+        .trimIndent(),
+    )
+
+    var action = myFixture.availableIntentions.find { it.familyName == "Create Preview" }
+    assertThat(action).isNotNull()
+
+    action?.let { executeCommandAction(it) } ?: error("Action is null")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
+
+      @Preview
+      @Composable
+      fun NewsStory() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+
+
+    """
+        .trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      <caret>
+
+      <selection>
+      @Composable
+      fun NewsStory2() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+
+      </selection>
+      """
+        .trimIndent(),
+    )
+
+    action = myFixture.availableIntentions.find { it.familyName == "Create Preview" }
+    assertThat(action).isNotNull()
+
+    action?.let { executeCommandAction(it) } ?: error("Action is null")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
+
+
+      @Preview
+      @Composable
+      fun NewsStory2() {
+          Text("A day in Shark Fin Cove")
+          Text("Davenport, California")
+          Text("December 2018")
+      }
+
+
+    """
+        .trimIndent()
+    )
+  }
+
+  fun testPartialSelection() {
+    // Only K2 supports ComposeCreatePreviewAction for the partially selected composable function.
+    if (!KotlinPluginModeProvider.isK2Mode()) return
+
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+
+      @Composable
+      fun NewsStory() {<caret><selection>
           Text("A day in Shark Fin Cove")
           Text("Davenport, California")
           Text("December 2018")
