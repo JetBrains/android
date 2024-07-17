@@ -36,8 +36,10 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -51,7 +53,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
+import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.ZoomChange;
 import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.common.surface.ZoomListener;
@@ -157,9 +161,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          (surface) -> new SinglePositionableContentLayoutManager(),
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface),
+          SurfaceInteractable::new,
+          (NavInteractionHandler::new),
+          (surface) -> (PositionableContentLayoutManager)(new SinglePositionableContentLayoutManager()),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
+          new DefaultSelectionModel(),
           ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));

@@ -333,20 +333,20 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
 
 class TestDesignSurface(
   project: Project,
-  private val disposable: Disposable,
+  disposable: Disposable,
   val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
     { model, surface ->
       TestSceneManager(model, surface)
     },
 ) :
   DesignSurface<SceneManager>(
-    project,
-    disposable,
-    { ModelBuilder.TestActionManager(it) },
-    { TestInteractionHandler(it) },
-    { TestLayoutManager(it) },
-    { TestActionHandler(it) },
-    ZoomControlsPolicy.VISIBLE,
+    project = project,
+    parentDisposable = disposable,
+    actionManagerProvider = { ModelBuilder.TestActionManager(it) },
+    interactionProviderCreator = { TestInteractionHandler(it) },
+    positionableLayoutManagerProvider = { TestLayoutManager(it) },
+    actionHandlerProvider = { TestActionHandler(it) },
+    zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
   ) {
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
