@@ -23,12 +23,15 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.LintIssueProvider
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
 import com.android.tools.idea.common.lint.LintAnnotationsModel
+import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -61,9 +64,9 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
-import java.awt.LayoutManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
@@ -97,11 +100,20 @@ val FILTER_DISPOSED_MODELS =
  */
 abstract class PreviewSurface<T : SceneManager>(
   val project: Project,
-  val selectionModel: SelectionModel,
+  val parentDisposable: Disposable,
+  val actionManagerProvider: (DesignSurface<T>) -> ActionManager<out DesignSurface<T>>,
+  val interactableProvider: (DesignSurface<T>) -> Interactable = { SurfaceInteractable(it) },
+  val interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
+  val positionableLayoutManagerProvider: (DesignSurface<T>) -> PositionableContentLayoutManager,
+  val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler,
+  val selectionModel: SelectionModel = DefaultSelectionModel(),
   val zoomControlsPolicy: ZoomControlsPolicy,
-  layout: LayoutManager,
 ) :
-  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, DataProvider {
+  EditorDesignSurface(BorderLayout()),
+  Disposable,
+  InteractableScenesSurface,
+  ScaleListener,
+  DataProvider {
 
   abstract val guiInputHandler: GuiInputHandler
 
