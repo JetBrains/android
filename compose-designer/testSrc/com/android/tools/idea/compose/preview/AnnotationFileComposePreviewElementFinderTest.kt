@@ -125,7 +125,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
         @Composable
         @Preview(name = "Preview with parameters")
-        fun PreviewWithParametrs(i: Int) {
+        fun PreviewWithParameters(i: Int) {
         }
 
         @Composable
@@ -365,7 +365,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[9].let {
-      assertEquals("PreviewWithParametrs - Preview with parameters", it.displaySettings.name)
+      assertEquals("PreviewWithParameters - Preview with parameters", it.displaySettings.name)
     }
 
     elements[10].let {
