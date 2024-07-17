@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.DocumentEx
@@ -41,7 +42,8 @@ private val redKey = TextAttributesKey.createTextAttributesKey("red")
 class DocumentAppenderTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 EdtRule())
 
   private val document: DocumentEx = DocumentImpl("", true)
   private val markupModel by lazy {

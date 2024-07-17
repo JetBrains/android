@@ -22,8 +22,10 @@ import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -32,7 +34,14 @@ import org.junit.Test
 
 /** Tests for [ProjectAppMonitor] */
 class ProjectAppMonitorTest {
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+    )
 
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 

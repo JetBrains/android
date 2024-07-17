@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.util.getButton
 import com.android.tools.idea.logcat.util.getCheckBox
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
@@ -54,6 +55,7 @@ class LogcatFormatDialogTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       EdtRule(),
       usageTrackerRule,
       disposableRule,

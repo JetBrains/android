@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.popup.FakeJBPopup.ShowStyle.SHOW_UNDERNEATH_OF
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.logcat.FakeLogcatPresenter
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
@@ -46,7 +47,8 @@ class LogcatFormatActionTest {
   private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, popupRule, disposableRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 

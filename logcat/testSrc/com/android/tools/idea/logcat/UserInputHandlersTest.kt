@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.editorActions.TextBlockTransferable
 import com.intellij.execution.ui.ConsoleViewContentType.USER_INPUT
@@ -46,7 +47,8 @@ class UserInputHandlersTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor

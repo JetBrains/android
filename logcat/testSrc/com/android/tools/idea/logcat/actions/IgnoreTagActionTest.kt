@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -55,7 +56,8 @@ class IgnoreTagActionTest {
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 logcatEditorRule, EdtRule(), disposableRule)
 
   private val editor
     get() = logcatEditorRule.editor

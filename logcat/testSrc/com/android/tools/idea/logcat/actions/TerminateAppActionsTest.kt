@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -55,6 +56,7 @@ class TerminateAppActionsTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       editorRule,
       fakeAdbRule,
       ProjectServiceRule(projectRule, AdbLibService::class.java) {

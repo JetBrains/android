@@ -7,6 +7,7 @@ import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.Filter.ResultItem
 import com.intellij.openapi.project.Project
@@ -43,6 +44,7 @@ class StudioBotFilterTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       logcatEditorRule,
       ApplicationServiceRule(StudioBot::class.java, mockStudioBot),
       EdtRule(),

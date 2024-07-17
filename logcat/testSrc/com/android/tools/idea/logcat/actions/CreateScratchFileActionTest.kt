@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.LogcatPresenter.Companion.EDITOR
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction.Companion.findEmbeddedData
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage
@@ -41,7 +42,7 @@ class CreateScratchFileActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
 
   private val project
     get() = projectRule.project
