@@ -10,7 +10,7 @@ kotlin_library(
     jar = "compose-compiler.jar",
     kotlinc_opts = ["-Xjvm-default=all"],  # To support @JvmDefaultWithCompatibility annotations.
     lint_enabled = False,
-    resource_strip_prefix = "../compose-compiler-sources",  # Unsure why there is '..' prefix, but it works.
+    resource_strip_prefix = "../compose-compiler-sources/resources",  # Unsure why there is '..' prefix, but it works.
     resources = ["@compose-compiler-sources//:resources"],
     visibility = ["//visibility:public"],
     deps = [

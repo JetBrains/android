@@ -5,14 +5,14 @@
 filegroup(
     name = "sources",
     srcs = glob([
-        "**/*.java",
-        "**/*.kt",
+        "java/**/*.java",
+        "java/**/*.kt",
     ]),
     visibility = ["@//tools/adt/idea/compose-ide-plugin/compose-compiler:__pkg__"],
 )
 
 filegroup(
     name = "resources",
-    srcs = glob(["META-INF/**"]),
+    srcs = glob(["resources/**"]),
     visibility = ["@//tools/adt/idea/compose-ide-plugin/compose-compiler:__pkg__"],
 )
