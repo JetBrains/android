@@ -123,6 +123,8 @@ import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
 import junit.framework.TestCase
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -753,7 +755,8 @@ class DeviceViewPanelTest {
 
   @Test
   fun testNewWindowDoesntResetZoom() {
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    val testScheduler = TestCoroutineScheduler()
+    val coroutineScope = TestScope(testScheduler)
     val model = InspectorModel(projectRule.project, coroutineScope)
     val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
@@ -788,8 +791,12 @@ class DeviceViewPanelTest {
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
-
-    model.update(window1, listOf(ROOT), 0)
+    run {
+      val latch = CountDownLatch(1)
+      model.update(window1, listOf(ROOT), 0) { latch.countDown() }
+      latch.await()
+      testScheduler.advanceUntilIdle()
+    }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 2 }
 
     inspector.renderLogic.renderSettings.scalePercent = 33
@@ -797,12 +804,12 @@ class DeviceViewPanelTest {
     // Add another window
     val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) { view(VIEW2, 50, 20, 30, 40) { image() } }
 
-    val latch = CountDownLatch(1)
-    model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
-    latch.await()
-
-    // Make sure model has been refreshed.
-    contentPanelModel.refresh()
+    run {
+      val latch = CountDownLatch(1)
+      model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
+      latch.await()
+      testScheduler.advanceUntilIdle()
+    }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 4 }
 
     // we should still have the manually set zoom
