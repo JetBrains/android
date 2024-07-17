@@ -89,7 +89,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val scene = surface.scene!!
     var sceneComponent = scene.getSceneComponent(nlComponent)!!
     sceneComponent.setPosition(123, 456)
-    val sceneManager = surface.sceneManager!!
+    val sceneManager = surface.getSceneManager(model)!!
     sceneManager.save(listOf(sceneComponent))
     val editor = TestNavEditor(model.virtualFile, project)
 

@@ -55,6 +55,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
@@ -333,7 +334,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void layout() {
-      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      NlDesignSurface surface = myScreenView.getSurface();
+      LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
       assert manager != null;
       try {
         manager.requestLayoutAsync(false).get(2, TimeUnit.SECONDS);
@@ -344,7 +346,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void postLayoutRun() {
-      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      NlDesignSurface surface = myScreenView.getSurface();
+      LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
       if (manager == null) {
         Logger.getInstance(ConvertToConstraintLayoutAction.class).warn("null SceneManager");
         return;

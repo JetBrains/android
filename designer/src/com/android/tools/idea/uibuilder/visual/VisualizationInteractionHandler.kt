@@ -166,7 +166,7 @@ class VisualizationInteractionHandler(
     val sceneView = surface.getSceneViewAt(mouseX, mouseY) ?: return
 
     val hoveredManager = sceneView.sceneManager
-    val primarySceneManager = surface.sceneManager
+    val primarySceneManager = surface.model?.let { surface.getSceneManager(it) }
 
     val group =
       DefaultActionGroup().apply {

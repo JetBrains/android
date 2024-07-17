@@ -583,12 +583,6 @@ abstract class PreviewSurface<T : SceneManager>(
   val model: NlModel?
     get() = models.firstOrNull()
 
-  @Deprecated(
-    "b/352512443 Use getSceneManager(NlModel) or sceneManagers instead. Using this method will cause the code not to correctly support multiple previews."
-  )
-  open val sceneManager: T?
-    get() = model?.let { getSceneManager(it) }
-
   /** @return the list of added non-disposed [NlModel]s. */
   val models: ImmutableList<NlModel>
     get() {
@@ -705,7 +699,7 @@ abstract class PreviewSurface<T : SceneManager>(
       val managers = sceneManagers
       if (managers.size == 1) {
         // Always return primary SceneView In single-model mode,
-        val manager: T = checkNotNull(sceneManager)
+        val manager: T = checkNotNull(model?.let { getSceneManager(it) })
         return manager.sceneViews.firstOrNull()
       }
       val selection = selectionModel.selection
@@ -728,7 +722,7 @@ abstract class PreviewSurface<T : SceneManager>(
 
   @Deprecated("b/352512443 Owner can have multiple scenes")
   override val scene: Scene?
-    get() = sceneManager?.scene
+    get() = model?.let { getSceneManager(it) }?.scene
 
   override fun getSceneViewAt(@SwingCoordinate x: Int, @SwingCoordinate y: Int): SceneView? {
     val sceneViews = sceneViews
@@ -752,7 +746,7 @@ abstract class PreviewSurface<T : SceneManager>(
   ): SceneView? {
     // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView
     // when there is no hovered SceneView.
-    return getSceneViewAt(x, y) ?: sceneManager?.sceneView
+    return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneView
   }
 
   /**

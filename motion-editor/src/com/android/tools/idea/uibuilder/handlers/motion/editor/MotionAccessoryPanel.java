@@ -239,7 +239,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           startScreenRotating();
           //noinspection fallthrough
         case MOTION_PLAY: {
-          LayoutlibSceneManager manager = surface.getSceneManager();
+          LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
           manager.updateSceneView();
           manager.requestLayoutAndRenderAsync(false);
           surface.setRenderSynchronously(true);
@@ -247,7 +247,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         case MOTION_STOP: {
           surface.setRenderSynchronously(false);
           surface.setAnimationScrubbing(false);
-          LayoutlibSceneManager manager = surface.getSceneManager();
+          LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
           manager.requestLayoutAndRenderAsync(false);
           stopScreenRotating();
         } break;
@@ -258,7 +258,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           float speed = mMotionEditor.getTimeLineSpeed();
           int playDelay  = (int)(GIF_PLAY_DELAY / speed);
           String filename = mSelectedStartConstraintId + "->" + mSelectedEndConstraintId + ".gif";
-          LayoutlibSceneManager manager = surface.getSceneManager();
+          LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
           manager.updateSceneView();
           manager.requestLayoutAndRenderAsync(false);
           surface.setRenderSynchronously(true);

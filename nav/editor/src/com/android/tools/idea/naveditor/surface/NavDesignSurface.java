@@ -177,7 +177,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     myZoomController = new NavDesignSurfaceZoomController(
       getSize(),
       getViewport(),
-      this::getSceneManager,
+      () -> getSceneManager(getModel()),
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
@@ -249,12 +249,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   @Override
   protected NavSceneManager createSceneManager(@NotNull NlModel model) {
     return new NavSceneManager(model, this);
-  }
-
-  @Nullable
-  @Override
-  public NavSceneManager getSceneManager() {
-    return (NavSceneManager)super.getSceneManager();
   }
 
   /**
@@ -476,8 +470,9 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
-    getSceneManager().update();
-    getSceneManager().requestLayoutAsync(false);
+    SceneManager sceneManager = getSceneManager(getModel());
+    sceneManager.update();
+    sceneManager.requestLayoutAsync(false);
     myZoomController.zoomToFit();
     currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
     repaint();
@@ -578,12 +573,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     if (scaled || shouldRecenter) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
       // or we will re-center the area, we need to re-calculate the bounding box.
-      NavSceneManager sceneManager = getSceneManager();
+      NlModel model = getModel();
+      if (model != null) {
+        NavSceneManager sceneManager = getSceneManager(model);
 
-      if (sceneManager != null) {
-        sceneManager.requestLayoutAsync(false);
-        // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
-        validateScrollArea();
+        if (sceneManager != null) {
+          sceneManager.requestLayoutAsync(false);
+          // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
+          validateScrollArea();
+        }
       }
     }
 

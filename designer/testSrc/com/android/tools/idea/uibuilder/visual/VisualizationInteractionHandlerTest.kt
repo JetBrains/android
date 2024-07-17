@@ -36,7 +36,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
   override fun setUp() {
     super.setUp()
     val surface = myModel.surface
-    val sceneManager = surface.sceneManager!!
+    val sceneManager = surface.getSceneManager(myModel)!!
 
     // Return SceneView when hover on it, null otherwise.
     val view = sceneManager.sceneView
@@ -63,7 +63,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
         )
       }
 
-    val view = surface.sceneManager!!.sceneView
+    val view = surface.getSceneManager(myModel)!!.sceneView
     val mouseEvent =
       MouseEventBuilder(
           view.x + view.scaledContentSize.width * 2,

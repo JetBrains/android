@@ -225,9 +225,9 @@ public class LayoutTestUtilities {
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
     DesignSurface<LayoutlibSceneManager> surface = (DesignSurface<LayoutlibSceneManager>)model.getSurface();
-    LayoutlibSceneManager spy = spy(surface.getSceneManager());
+    LayoutlibSceneManager spy = spy(surface.getSceneManager(model));
     Disposer.register(model, spy);
-    when(surface.getSceneManager()).thenReturn(spy);
+    when(surface.getSceneManager(model)).thenReturn(spy);
     ScreenView screenView = new ScreenView((NlDesignSurface)surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
