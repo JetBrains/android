@@ -30,7 +30,6 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MESaveGif;
@@ -45,7 +44,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -97,7 +95,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private boolean myUpdatingSelectionInLayoutEditor = false;
   private boolean myUpdatingSelectionFromLayoutEditor = false;
 
-  // For screen rotation when draging in timeline panel
+  // For screen rotation when dragging in timeline panel
   private float myStartDegree = Float.NaN;
   private float myEndDegree = Float.NaN;
 
@@ -142,154 +140,140 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     mMotionEditor.myTrack.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
     List<NlComponent> dsSelection = designSurfaceSelection.getSelection();
-    designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
-    mMotionEditor.addCommandListener(new MotionEditor.Command() {
-
-      @Override
-      public void perform(Action action, MTag[] tag) {
-        switch (action) {
-          case DELETE: {
-            for (int i = 0; i < tag.length; i++) {
-              tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
-            }
+    designSurfaceSelection.addListener(this::handleSelectionChanged);
+    mMotionEditor.addCommandListener((action, tag) -> {
+      switch (action) {
+        case DELETE: {
+          for (int i = 0; i < tag.length; i++) {
+            tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
+          }
+        }
+        break;
+        case COPY:
+          CharSequence[] buff = new CharSequence[tag.length];
+          for (int i = 0; i < tag.length; i++) {
+            buff[i] = MTag.serializeTag(tag[i]);
           }
           break;
-          case COPY:
-            CharSequence[] buff = new CharSequence[tag.length];
-            for (int i = 0; i < tag.length; i++) {
-              buff[i] = MTag.serializeTag(tag[i]);
-            }
-            break;
-        }
       }
     });
-    mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
-      @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
-        if (DEBUG) {
-          Debug.logStack("Selection changed " + selection, 23);
-        }
-        mLastSelection = selection;
-        myLastSelectedTags = tag;
-        switch (selection) {
-          case CONSTRAINT_SET:
-            String id = tag[0].getAttributeValue("id");
-            if (DEBUG) {
-              Debug.log("id of constraint set " + id);
-            }
-            if (id != null) {
-              mSelectedStartConstraintId = Utils.stripID(id);
-              mSelectedEndConstraintId = null;
-              myMotionHelper.setState(mSelectedStartConstraintId);
-            }
-            if (TEMP_HACK_FORCE_APPLY) {
-              applyMotionSceneValue(true);
-            }
-            break;
-          case TRANSITION:
-            mSelectedStartConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetStart"));
-            mSelectedEndConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetEnd"));
-            myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
-            myMotionHelper.setProgress(mLastProgress);
-            if (flags == MotionEditorSelector.Listener.CONTROL_FLAG) {
-              mShowPath = !mShowPath;
-            }
-            myMotionHelper.setShowPaths(mShowPath);
+    mMotionEditor.addSelectionListener((selection, tag, flags) -> {
+      if (DEBUG) {
+        Debug.logStack("Selection changed " + selection, 23);
+      }
+      mLastSelection = selection;
+      myLastSelectedTags = tag;
+      switch (selection) {
+        case CONSTRAINT_SET:
+          String id = tag[0].getAttributeValue("id");
+          if (DEBUG) {
+            Debug.log("id of constraint set " + id);
+          }
+          if (id != null) {
+            mSelectedStartConstraintId = Utils.stripID(id);
+            mSelectedEndConstraintId = null;
+            myMotionHelper.setState(mSelectedStartConstraintId);
+          }
+          if (TEMP_HACK_FORCE_APPLY) {
+            applyMotionSceneValue(true);
+          }
+          break;
+        case TRANSITION:
+          mSelectedStartConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetStart"));
+          mSelectedEndConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetEnd"));
+          myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
+          myMotionHelper.setProgress(mLastProgress);
+          if (flags == MotionEditorSelector.Listener.CONTROL_FLAG) {
+            mShowPath = !mShowPath;
+          }
+          myMotionHelper.setShowPaths(mShowPath);
 
-            break;
-          case LAYOUT:
-            if (TEMP_HACK_FORCE_APPLY) {
-              applyMotionSceneValue(false);
-            }
-            selectOnDesignSurface(tag);
-            if (DEBUG) {
-              Debug.log("LAYOUT myMotionHelper.setState(null); ");
-            }
-            myMotionHelper.setState(null);
-            mSelectedStartConstraintId = null;
-            break;
-          case CONSTRAINT:
-            // TODO: This should always be a WrapMotionScene (remove this code when bug is fixed):
-            selectOnDesignSurface(tag);
-            if (tag[0] instanceof MotionSceneTag) {
-              MotionSceneTag msTag = ((MotionSceneTag)tag[0]);
-              id = Utils.stripID(msTag.getAttributeValue("id"));
-              MTag[] layoutViews = myMotionLayoutTag.getChildTags();
-              for (int i = 0; i < layoutViews.length; i++) {
-                MTag view = layoutViews[i];
-                String vid = Utils.stripID(view.getAttributeValue("id"));
-                if (vid.equals(id)) {
-                  updateSelectionInLayoutEditor((NlComponentTag)view);
-                }
+          break;
+        case LAYOUT:
+          if (TEMP_HACK_FORCE_APPLY) {
+            applyMotionSceneValue(false);
+          }
+          if (DEBUG) {
+            Debug.log("LAYOUT myMotionHelper.setState(null); ");
+          }
+          myMotionHelper.setState(null);
+          mSelectedStartConstraintId = null;
+          break;
+        case CONSTRAINT:
+          if (tag[0] instanceof MotionSceneTag msTag) {
+            id = Utils.stripID(msTag.getAttributeValue("id"));
+            MTag[] layoutViews = myMotionLayoutTag.getChildTags();
+            for (int i = 0; i < layoutViews.length; i++) {
+              MTag view = layoutViews[i];
+              String vid = Utils.stripID(view.getAttributeValue("id"));
+              if (vid.equals(id)) {
+                updateSelectionInLayoutEditor((NlComponentTag)view);
               }
-            } else if (tag[0] instanceof NlComponentTag) {
-              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
-            break;
-          case LAYOUT_VIEW:
-            if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
-              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
-            }
-            break;
-          case KEY_FRAME_GROUP:
-            // The NelePropertiesModel should be handling the properties in these cases...
-            break;
-        }
-        if (!mMotionEditor.isUpdatingModel()) {
-          fireSelectionChanged(Collections.singletonList(mySelection));
-        }
+          } else if (tag[0] instanceof NlComponentTag) {
+            updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
+          }
+          break;
+        case LAYOUT_VIEW:
+          if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
+            updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
+          }
+          break;
+        case KEY_FRAME_GROUP:
+          // The NelePropertiesModel should be handling the properties in these cases...
+          break;
+      }
+      if (!mMotionEditor.isUpdatingModel()) {
+        fireSelectionChanged(Collections.singletonList(mySelection));
       }
     });
-    mMotionEditor.addTimeLineListener(new MotionEditorSelector.TimeLineListener() {
-      @Override
-      public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
-        switch (cmd) {
-          case MOTION_PROGRESS: {
-            myMotionHelper.setProgress(pos);
-            mLastProgress = pos;
-            applyRotation();
-          }  break;
-          case MOTION_SCRUB:
-            surface.setAnimationScrubbing(true);
-            startScreenRotating();
-            //noinspection fallthrough
-          case MOTION_PLAY: {
-            LayoutlibSceneManager manager = surface.getSceneManager();
-            manager.updateSceneView();
-            manager.requestLayoutAndRenderAsync(false);
-            surface.setRenderSynchronously(true);
-          }  break;
-          case MOTION_STOP: {
-            surface.setRenderSynchronously(false);
-            surface.setAnimationScrubbing(false);
-            LayoutlibSceneManager manager = surface.getSceneManager();
-            manager.requestLayoutAndRenderAsync(false);
-            stopScreenRotating();
-          } break;
-          case MOTION_CAPTURE: {
-            int playMode = mMotionEditor.getPlayMode();
-            // when it's yoyo mode (playMode: 2), we need to save images for both forward and backward
-            int numImages = playMode == 2 ? NUM_SAVED_IMAGES : NUM_SAVED_IMAGES / 2;
-            float speed = mMotionEditor.getTimeLineSpeed();
-            int playDelay  = (int)(GIF_PLAY_DELAY / speed);
-            String filename = mSelectedStartConstraintId + "->" + mSelectedEndConstraintId + ".gif";
-            LayoutlibSceneManager manager = surface.getSceneManager();
-            manager.updateSceneView();
-            manager.requestLayoutAndRenderAsync(false);
-            surface.setRenderSynchronously(true);
-            FileSaverDescriptor descriptor = new FileSaverDescriptor("Save Transition as GIF",
-                                                                     "Save the selected transition as GIF",
-                                                                     "gif");
-            FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project)null);
-            VirtualFileWrapper fileWrapper = saveFileDialog.save(filename);
-            if (fileWrapper != null) {
-              File file = fileWrapper.getFile();
-              mySaveGif = new MESaveGif(file, playDelay, true, "Written by Android Studio");
-              mySaveGif.saveGif(myDesignSurface, numImages, playMode, myMotionHelper,
-                                myProject, WAIF_FOR_TIME);
-            }
-          } break;
-        }
+    mMotionEditor.addTimeLineListener((cmd, pos) -> {
+      switch (cmd) {
+        case MOTION_PROGRESS: {
+          myMotionHelper.setProgress(pos);
+          mLastProgress = pos;
+          applyRotation();
+        }  break;
+        case MOTION_SCRUB:
+          surface.setAnimationScrubbing(true);
+          startScreenRotating();
+          //noinspection fallthrough
+        case MOTION_PLAY: {
+          LayoutlibSceneManager manager = surface.getSceneManager();
+          manager.updateSceneView();
+          manager.requestLayoutAndRenderAsync(false);
+          surface.setRenderSynchronously(true);
+        }  break;
+        case MOTION_STOP: {
+          surface.setRenderSynchronously(false);
+          surface.setAnimationScrubbing(false);
+          LayoutlibSceneManager manager = surface.getSceneManager();
+          manager.requestLayoutAndRenderAsync(false);
+          stopScreenRotating();
+        } break;
+        case MOTION_CAPTURE: {
+          int playMode = mMotionEditor.getPlayMode();
+          // when it's yoyo mode (playMode: 2), we need to save images for both forward and backward
+          int numImages = playMode == 2 ? NUM_SAVED_IMAGES : NUM_SAVED_IMAGES / 2;
+          float speed = mMotionEditor.getTimeLineSpeed();
+          int playDelay  = (int)(GIF_PLAY_DELAY / speed);
+          String filename = mSelectedStartConstraintId + "->" + mSelectedEndConstraintId + ".gif";
+          LayoutlibSceneManager manager = surface.getSceneManager();
+          manager.updateSceneView();
+          manager.requestLayoutAndRenderAsync(false);
+          surface.setRenderSynchronously(true);
+          FileSaverDescriptor descriptor = new FileSaverDescriptor("Save Transition as GIF",
+                                                                   "Save the selected transition as GIF",
+                                                                   "gif");
+          FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project)null);
+          VirtualFileWrapper fileWrapper = saveFileDialog.save(filename);
+          if (fileWrapper != null) {
+            File file = fileWrapper.getFile();
+            mySaveGif = new MESaveGif(file, playDelay, true, "Written by Android Studio");
+            mySaveGif.saveGif(myDesignSurface, numImages, playMode, myMotionHelper,
+                              myProject, WAIF_FOR_TIME);
+          }
+        } break;
       }
     });
     MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
@@ -331,35 +315,32 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   @NotNull
   private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
-    return new ResourceNotificationManager.ResourceChangeListener() {
-      @Override
-      public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reason) {
-        // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
-        // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
-        // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if
-        // this notification comes too early.
-        boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
-        if (forLayout) {
-          return;
-        }
-        mLastSelection = null;
-        myLastSelectedTags = null;
-        MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
-        if (motionScene != null) {
-          myMotionScene = motionScene;
-          myMotionSceneFile = motionScene.mVirtualFile;
-          mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+    return reason -> {
+      // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
+      // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
+      // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if
+      // this notification comes too early.
+      boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
+      if (forLayout) {
+        return;
+      }
+      mLastSelection = null;
+      myLastSelectedTags = null;
+      MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
+      if (motionScene != null) {
+        myMotionScene = motionScene;
+        myMotionSceneFile = motionScene.mVirtualFile;
+        mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
 
-          if (myLastSelectedTags == null) {
-            // The previous selection could not be restored.
-            // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
-            selectSomething(motionScene);
-          }
+        if (myLastSelectedTags == null) {
+          // The previous selection could not be restored.
+          // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
+          selectSomething(motionScene);
         }
-        fireSelectionChanged(Collections.singletonList(mySelection));
-        if (motionScene != null) {
-          PsiFileUtil.saveFileIfNecessary(motionScene.mXmlFile);
-        }
+      }
+      fireSelectionChanged(Collections.singletonList(mySelection));
+      if (motionScene != null) {
+        PsiFileUtil.saveFileIfNecessary(motionScene.mXmlFile);
       }
     };
   }
@@ -405,28 +386,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (v == null) return null;
     if (v.compareTo(Version.parse("2.0.0-beta03")) < 0) return error;
     return null;
-  }
-
-  private void selectOnDesignSurface(MTag[] tag) {
-    if (DEBUG) {
-      Debug.log("Selection changed " + ((tag.length > 0) ? tag[0] : "empty"));
-    }
-    if (true) return;
-    ArrayList<NlComponent> list = new ArrayList<>();
-    for (int i = 0; i < tag.length; i++) {
-      MTag mTag = tag[i];
-      if (mTag instanceof NlComponentTag) {
-        list.add(((NlComponentTag)mTag).mComponent);
-      }
-    }
-    if (list.isEmpty()) {
-      list.add(myMotionLayoutNlComponent);
-    }
-
-    if (DEBUG) {
-      Debug.log(" set section " + tag.length + " " + tag[0].getTagName());
-    }
-    updateSelectionInLayoutEditor(list);
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
@@ -635,14 +594,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   @Override
   public boolean handlesWriteForComponent(String id) {
-    boolean handlesWrite = getSelectedConstraintSet() != null;
-    return handlesWrite;
-    //SmartPsiElementPointer<XmlTag> constraint = getSelectedConstraint();
-    //if (constraint != null) {
-    //  String constraintId = constraint.getElement().getAttribute("android:id").getValue();
-    //  return id.equals(stripID(constraintId));
-    //}
-    //return false;
+    return getSelectedConstraintSet() != null;
   }
 
   @Override
