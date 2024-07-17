@@ -118,19 +118,24 @@ class AndroidRunConfigurations {
       }
     }
 
-    wearRunConfigurationsToAdd.forEach {
-      runManager.addConfiguration(it)
+    runReadAction {
+      if (!project.isDisposed) {
+        wearRunConfigurationsToAdd.forEach {
+          runManager.addConfiguration(it)
+        }
+      }
     }
   }
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
     val module = facet.module.getMainModule()
-    if (module.project.isDisposed) {
+    val project = module.project
+    if (project.isDisposed) {
       return
     }
 
-    val runManager = RunManager.getInstance(module.project)
-    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
+    val runManager = RunManager.getInstance(project)
+    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
     val moduleName = module.getHolderModule().name
     val configurationName = moduleName.removePrefix("$projectNameInExternalSystemStyle.")
     val settings = runManager.createConfiguration(configurationName, AndroidRunConfigurationType::class.java)
@@ -145,8 +150,12 @@ class AndroidRunConfigurations {
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
 
-    runManager.addConfiguration(settings)
-    runManager.selectedConfiguration = settings
+    runReadAction {
+      if (!project.isDisposed) {
+        runManager.addConfiguration(settings)
+        runManager.selectedConfiguration = settings
+      }
+    }
   }
 
   private fun hasDefaultLauncherActivity(facet: AndroidFacet): Boolean {
