@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.preview.animation.AnimatedProperty
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -28,11 +27,11 @@ class AnimatedPropertyTest {
   @Test
   fun buildFlatCurve() {
     val builder = AnimatedProperty.Builder()
-    builder.add(0, ComposeUnit.Dp(10f))
-    builder.add(1, ComposeUnit.Dp(10f))
-    builder.add(2, ComposeUnit.Dp(10f))
-    builder.add(3, ComposeUnit.Dp(10f))
-    builder.add(4, ComposeUnit.Dp(10f))
+    builder.add(0, AnimationUnit.FloatUnit(10f))
+    builder.add(1, AnimationUnit.FloatUnit(10f))
+    builder.add(2, AnimationUnit.FloatUnit(10f))
+    builder.add(3, AnimationUnit.FloatUnit(10f))
+    builder.add(4, AnimationUnit.FloatUnit(10f))
     val result = builder.build()
     assertNotNull(result)
     assertEquals(result.startMs, 0)
@@ -53,8 +52,8 @@ class AnimatedPropertyTest {
   fun buildCurveWithStartEndPointsSet() {
     val result =
       AnimatedProperty.Builder()
-        .add(2, ComposeUnit.Dp(10f))
-        .add(3, ComposeUnit.Dp(15f))
+        .add(2, AnimationUnit.FloatUnit(10f))
+        .add(3, AnimationUnit.FloatUnit(15f))
         .setStartTimeMs(0)
         .setEndTimeMs(4)
         .build()
@@ -76,9 +75,9 @@ class AnimatedPropertyTest {
   @Test
   fun buildRectCurve() {
     val builder = AnimatedProperty.Builder()
-    builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
-    builder.add(15, ComposeUnit.Rect(1f, 2f, 3f, 4f))
-    builder.add(5, ComposeUnit.Rect(1f, 3f, 6f, 3f))
+    builder.add(10, TestMultiUnitFloat(6f, 3f, 6f, 2f))
+    builder.add(15, TestMultiUnitFloat(1f, 2f, 3f, 4f))
+    builder.add(5, TestMultiUnitFloat(1f, 3f, 6f, 3f))
     val result = builder.build()
     assertNotNull(result)
     assertEquals(4, result.dimension)
@@ -119,9 +118,10 @@ class AnimatedPropertyTest {
   @Test
   fun buildRectWithExactlySameCurves() {
     val builder = AnimatedProperty.Builder()
-    builder.add(5, ComposeUnit.Rect(1f, 3f, 0f, -9f))
-    builder.add(10, ComposeUnit.Rect(2f, 6f, 300f, -6f))
-    builder.add(15, ComposeUnit.Rect(3f, 9f, 600f, -3f))
+
+    builder.add(5, TestMultiUnitFloat(1f, 3f, 0f, -9f))
+    builder.add(10, TestMultiUnitFloat(2f, 6f, 300f, -6f))
+    builder.add(15, TestMultiUnitFloat(3f, 9f, 600f, -3f))
     val result = builder.build()
     assertNotNull(result)
     assertEquals(1, result.dimension)
@@ -142,9 +142,9 @@ class AnimatedPropertyTest {
   fun buildRectWithSimilarCurves() {
     mapOf(97f to false, 99f to true, 101f to true, 103f to false).forEach {
       val builder = AnimatedProperty.Builder()
-      builder.add(5, ComposeUnit.Rect(1f, 1f, 0f, -9f))
-      builder.add(10, ComposeUnit.Rect(2f, 2f, it.key, -6f))
-      builder.add(15, ComposeUnit.Rect(3f, 3f, 200f, -3f))
+      builder.add(5, TestMultiUnitFloat(1f, 1f, 0f, -9f))
+      builder.add(10, TestMultiUnitFloat(2f, 2f, it.key, -6f))
+      builder.add(15, TestMultiUnitFloat(3f, 3f, 200f, -3f))
       val result = builder.build()
       assertEquals("Grouped for ${it.key}", it.value, result!!.grouped)
     }
@@ -153,7 +153,7 @@ class AnimatedPropertyTest {
   @Test
   fun buildRectCurveWithOnePoint() {
     val builder = AnimatedProperty.Builder()
-    builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
+    builder.add(10, TestMultiUnitFloat(6f, 3f, 6f, 2f))
     val result = builder.build()
     assertNotNull(result)
     assertEquals(1, result.dimension)
@@ -173,9 +173,9 @@ class AnimatedPropertyTest {
   @Test
   fun buildWithInvalidDimensions() {
     val builder = AnimatedProperty.Builder()
-    builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
-    builder.add(15, ComposeUnit.IntOffset(1, 2))
-    builder.add(5, ComposeUnit.Rect(1f, 3f, 6f, 3f))
+    builder.add(10, TestMultiUnitFloat(6f, 3f, 6f, 2f))
+    builder.add(15, AnimationUnit.IntUnit(1))
+    builder.add(5, TestMultiUnitFloat(1f, 3f, 6f, 3f))
     val result = builder.build()
     assertNull(result)
   }
@@ -184,8 +184,8 @@ class AnimatedPropertyTest {
   fun buildWithInvalidTypes() {
     val builder = AnimatedProperty.Builder()
     // Rect and Color are with the same dimension but types are different
-    builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
-    builder.add(5, ComposeUnit.Color(6f, 3f, 6f, 2f))
+    builder.add(10, TestMultiUnitFloat(6f, 3f, 6f, 2f))
+    builder.add(5, TestMultiUnitInt(6, 3, 6, 2))
     val result = builder.build()
     assertNull(result)
   }
@@ -195,5 +195,33 @@ class AnimatedPropertyTest {
     val builder = AnimatedProperty.Builder()
     val result = builder.build()
     assertNull(result)
+  }
+
+  @Test
+  fun buildWithEmptyValues() {
+    val builder = AnimatedProperty.Builder()
+    builder.setStartTimeMs(0)
+    builder.setEndTimeMs(100)
+
+    val result = builder.build()
+    assertNull(result)
+  }
+
+  class TestMultiUnitFloat(value1: Float, value2: Float, value3: Float, value4: Float) :
+    AnimationUnit.BaseUnit<Float>(value1, value2, value3, value4), AnimationUnit.NumberUnit<Float> {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
+      return null
+    }
+
+    override fun getPickerTitle(): String = "testFloat"
+  }
+
+  class TestMultiUnitInt(value1: Int, value2: Int, value3: Int, value4: Int) :
+    AnimationUnit.BaseUnit<Int>(value1, value2, value3, value4), AnimationUnit.NumberUnit<Int> {
+    override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
+      return null
+    }
+
+    override fun getPickerTitle(): String = "testInt"
   }
 }
