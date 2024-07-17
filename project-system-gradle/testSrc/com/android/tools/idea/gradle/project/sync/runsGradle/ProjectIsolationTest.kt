@@ -51,13 +51,17 @@ class ProjectIsolationTest {
         },
       )
     ) {
-      Truth.assertThat(stdout.toString()).contains("""
-        5 problems were found storing the configuration cache, 3 of which seem unique.
-      """.trimIndent())
-      // check no issue caused by applying AndroidStudioToolingPlugin plugin in all projects in initialization script '/xxx/sync.studio.tooling.gradle'
-      Truth.assertThat(stdout.toString()).doesNotContain("""
-        Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
-      """.trimIndent())
+      stdout.toString().let {
+        Truth.assertThat(it).contains("""
+          2 problems were found storing the configuration cache.
+          """.trimIndent())
+        Truth.assertThat(it).doesNotContain("""
+          Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
+          """.trimIndent())
+        Truth.assertThat(it).doesNotContain("""
+          Plugin class 'com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin': Project ':app' cannot dynamically look up a property
+        """.trimIndent())
+      }
     }
   }
 }

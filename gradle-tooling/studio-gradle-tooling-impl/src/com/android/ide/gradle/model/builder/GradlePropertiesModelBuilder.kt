@@ -19,6 +19,7 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.impl.GradlePropertiesModelImpl
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.util.GradleVersion
 import java.util.Locale
 
 /**
@@ -33,11 +34,21 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
   override fun buildAll(modelName: String, project: Project): GradlePropertiesModel {
     check(canBuild(modelName)) { "Unexpected model name requested: $modelName" }
     return GradlePropertiesModelImpl(
-      useAndroidX = project.findProperty(USE_ANDROID_X_PROPERTY)?.toBoolean(),
-      excludeLibraryComponentsFromConstraints = project.findProperty(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY)?.toBoolean()
-                                                ?: project.findProperty(
-                                                  EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL)?.toBoolean(),
+      useAndroidX = getGradlePropertyBooleanValue(USE_ANDROID_X_PROPERTY, project),
+      excludeLibraryComponentsFromConstraints = getGradlePropertyBooleanValue(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY, project)
+                                                ?: getGradlePropertyBooleanValue(
+                                                  EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL, project),
     )
+  }
+
+  private fun getGradlePropertyBooleanValue(propertyName: String, project: Project): Boolean? {
+    // Project isolation support for applying AndroidStudioToolingPlugin starts in 8.8, so it doesn't make a difference for choosing an
+    // earlier gradle version here.
+    return if (GradleVersion.current() >= GradleVersion.version("8.8")) {
+      project.providers.gradleProperty(propertyName).orNull?.toBoolean()
+    } else {
+      project.findProperty(propertyName)?.toBoolean()
+    }
   }
 
   // Modelled from AGP's logic in OptionParsers.kt
