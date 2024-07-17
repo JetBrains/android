@@ -22,15 +22,13 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.run.activity.IndexedActivityWrapper
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
@@ -273,6 +271,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
     deleteManifest(module)
     myFixture.addFileToProject(relativePath, manifestContents)
+    UIUtil.dispatchAllInvocationEvents()
     modificationListener.waitAllUpdatesCompletedWithTimeout(1, TimeUnit.SECONDS)
     CodeInsightTestFixtureImpl.ensureIndexesUpToDate(project)
   }
