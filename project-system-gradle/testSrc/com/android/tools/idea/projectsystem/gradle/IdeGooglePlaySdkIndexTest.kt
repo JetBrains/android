@@ -56,5 +56,7 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
     ideIndex.initializeAndSetFlags()
     assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER and StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER should match.\n" +
                       "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showNotesFromDeveloper).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER)
+    assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS and StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS should match.\n" +
+                      "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showRecommendedVersions).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS)
   }
 }

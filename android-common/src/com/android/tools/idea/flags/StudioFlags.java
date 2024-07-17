@@ -2140,6 +2140,12 @@ public final class StudioFlags {
     // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER so the behavior of Android Studio and CLI is consistent
     ChannelDefault.enabledUpTo(CANARY)
   );
+  public static final Flag<Boolean> SHOW_SDK_INDEX_RECOMMENDED_VERSIONS = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.recommended.versions", "Show SDK recommended versions",
+    "Whether or not to display recommended versions on SDK Index issues",
+    // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS so the behavior of Android Studio and CLI is consistent
+    ChannelDefault.enabledUpTo(CANARY)
+  );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
