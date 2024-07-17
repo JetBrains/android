@@ -353,7 +353,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.7.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:org.mockito.mockito-core_5.6.0",
+        "@maven//:org.mockito.mockito-core_5.12.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
