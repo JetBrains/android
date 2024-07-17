@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
@@ -67,6 +68,7 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
 
 
     val future = buildIssue.quickFixes[0].runQuickFix(project, SimpleDataContext.getProjectContext(project))
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     executor.waitAllTasksExecuted(1, TimeUnit.SECONDS)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
