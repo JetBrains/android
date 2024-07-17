@@ -289,7 +289,6 @@ class DependenciesTest {
       clickCancel()
     }
     ide.editor.open("app/build.gradle").run {
-      println(currentFileContents)
       assertThat(currentFileContents)
         .contains("    implementation 'com.android.support.constraint:constraint-layout:1.0.2'\n" +
                   "    implementation project(path: ':mylibrary')\n" +
