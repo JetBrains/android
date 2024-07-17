@@ -20,6 +20,8 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.capture
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
@@ -36,21 +38,28 @@ import com.android.tools.idea.insights.NOTE1
 import com.android.tools.idea.insights.NOTE1_BODY
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.TimeIntervalFilter
+import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
 import com.intellij.testFramework.ProjectRule
+import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -267,6 +276,46 @@ class AppInsightsTrackerTest {
 
     assertThat(eventIdCaptor.allValues).containsExactly("1", "2", "3", "4").inOrder()
     assertThat(isFetchedCaptor.allValues).containsExactly(true, false, false, true).inOrder()
+  }
+
+  @Test
+  fun `track crash view`() = runBlocking {
+    val testState =
+      AppInsightsState(
+        Selection(CONNECTION1, listOf(CONNECTION1)),
+        TEST_FILTERS,
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+      )
+    var issueChanged = SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
+    issueChanged.transition(testState, controllerRule.tracker, TEST_KEY)
+    verify(controllerRule.tracker, never()).logCrashListDetailView(any())
+
+    issueChanged = SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
+    issueChanged.transition(testState, controllerRule.tracker, TEST_KEY)
+    verify(controllerRule.tracker, times(1))
+      .logCrashListDetailView(
+        argThat {
+          it.crashType == ISSUE2.issueDetails.fatality.toCrashType() &&
+            it.source ==
+              AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
+        }
+      )
+
+    issueChanged = SelectedIssueChanged(ISSUE2, IssueSelectionSource.INSPECTION)
+    issueChanged.transition(testState, controllerRule.tracker, TEST_KEY)
+    verify(controllerRule.tracker, times(1))
+      .logCrashListDetailView(
+        argThat {
+          it.crashType == ISSUE2.issueDetails.fatality.toCrashType() &&
+            it.source ==
+              AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource
+                .INSPECTION
+        }
+      )
+
+    issueChanged = SelectedIssueChanged(null, IssueSelectionSource.INSPECTION)
+    issueChanged.transition(testState, controllerRule.tracker, TEST_KEY)
+    verify(controllerRule.tracker, times(2)).logCrashListDetailView(any())
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {

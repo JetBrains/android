@@ -244,7 +244,7 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   override fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource) {
-    emit(SelectedIssueChanged(value))
+    emit(SelectedIssueChanged(value, selectionSource))
   }
 
   override fun refresh() {
