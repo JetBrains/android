@@ -100,13 +100,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   private final ActionManager<? extends DesignSurface<T>> myActionManager;
 
-  private boolean myIsActive = false;
-
-  @Override
-  protected boolean isActive() {
-    return myIsActive;
-  }
-
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
    */
@@ -115,6 +108,12 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
 
   @NotNull
   private final AWTEventListener myOnHoverListener;
+
+  @NotNull
+  @Override
+  public AWTEventListener getOnHoverListener() {
+    return myOnHoverListener;
+  }
 
   public DesignSurface(
     @NotNull Project project,
@@ -381,40 +380,6 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     for (DesignSurfaceListener listener : listeners) {
       listener.componentSelectionChanged(this, newSelection);
     }
-  }
-
-   /**
-   * The editor has been activated
-   */
-  public void activate() {
-    if (Disposer.isDisposed(this)) {
-      // Prevent activating a disposed surface.
-      return;
-    }
-
-    if (!myIsActive) {
-      for (SceneManager manager : getSceneManagers()) {
-        manager.activate(this);
-      }
-      if (getZoomControlsPolicy() == ZoomControlsPolicy.AUTO_HIDE) {
-        Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
-      }
-    }
-    myIsActive = true;
-    getIssueModel().activate();
-  }
-
-  public void deactivate() {
-    if (myIsActive) {
-      Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
-      for (SceneManager manager : getSceneManagers()) {
-        manager.deactivate(this);
-      }
-    }
-    myIsActive = false;
-    getIssueModel().deactivate();
-
-    myGuiInputHandler.cancelInteraction();
   }
 
   @NotNull
