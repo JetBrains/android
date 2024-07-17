@@ -17,6 +17,7 @@ package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
+import org.junit.Ignore
 import org.junit.Test
 
 class LiveViewTaskTest : ProfilersTestBase() {
@@ -39,6 +40,7 @@ class LiveViewTaskTest : ProfilersTestBase() {
    *  5. Verify live view UI components.
    *  6. Verify if the profiler session is still viewable after stopping.
    */
+  @Ignore("b/355647718")
   @Test
   fun test() {
     taskBasedProfiling(

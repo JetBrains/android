@@ -68,6 +68,7 @@ class RenderingBuildStatusManagerTest {
     FastPreviewConfiguration.getInstance().resetDefault()
   }
 
+  @Ignore("b/355654431")
   @RunsInEdt
   @Test
   @Ignore("b/356192917")
