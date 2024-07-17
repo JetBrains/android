@@ -170,7 +170,7 @@ public class MotionLayoutComponentHelper {
     }
 
     myFuture.thenRunAsync(() -> {
-      if (myDesignTool == null) {
+      if (myDesignTool != null) {
         runnable.run();
       }
     }, EdtExecutorService.getInstance());
