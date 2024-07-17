@@ -77,6 +77,7 @@ import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1031,5 +1032,23 @@ abstract class PreviewSurface<T : SceneManager>(
       }
     }
     return null
+  }
+
+  override fun dispose() {
+    clearListeners()
+    guiInputHandler.stopListening()
+    Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
+    synchronized(renderFutures) {
+      for (future in renderFutures) {
+        try {
+          future.cancel(true)
+        } catch (ignored: CancellationException) {}
+      }
+      renderFutures.clear()
+    }
+    if (repaintTimer.isRunning) {
+      repaintTimer.stop()
+    }
+    models.forEach { removeModelImpl(it) }
   }
 }
