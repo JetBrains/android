@@ -15,8 +15,16 @@
  */
 package com.android.tools.idea.insights.analytics
 
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource
+
 /** Used for distinguishing sources of issue selection in metrics tracking. */
 enum class IssueSelectionSource {
   LIST,
-  INSPECTION,
+  INSPECTION;
+
+  fun toCrashOpenSource(): CrashOpenSource =
+    when (this) {
+      LIST -> CrashOpenSource.LIST
+      INSPECTION -> CrashOpenSource.INSPECTION
+    }
 }

@@ -29,6 +29,7 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
+import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.Action
@@ -88,7 +89,7 @@ class PreJIssueTransitionTest {
         LoadingState.Ready(Timed(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)), Instant.now())),
       )
 
-    val event = SelectedIssueChanged(ISSUE1)
+    val event = SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
 
     with(event.transition(currentState, TestAppInsightsTracker, TEST_KEY)) {
       assertThat(newState.currentEvents)
