@@ -29,4 +29,6 @@ public interface AndroidProjectSettingsService {
   void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString);
 
   void openAndSelectDependenciesEditor(@NotNull Module module);
+
+  void openSuggestions();
 }
