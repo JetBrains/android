@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
@@ -27,6 +28,7 @@ class RunApkTest {
   @Rule
   val system = AndroidSystem.standard()
 
+  @Ignore("http://b/346573467")
   @Test
   fun runApkTest() {
     val project = AndroidProjectWithoutGradle("tools/adt/idea/android/integration/testData/helloworldapk")
