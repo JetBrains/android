@@ -35,6 +35,7 @@ void DisplayControl::InitializeStatics(Jni jni) {
     class_ = jni.GetClass("android/view/SurfaceControl");
     get_physical_display_ids_method_ = class_.FindStaticMethod("getPhysicalDisplayIds", "()[J");
     if (get_physical_display_ids_method_ == nullptr) {
+      Log::D("The SurfaceControl.getPhysicalDisplayIds method doesn't exist. Attempting to use DisplayControl");
       // SurfaceControl doesn't have the necessary method. Load libandroid_servers.so and use DisplayControl instead.
       class_.Release();
       JClass class_loader_class = jni.GetClass("java/lang/ClassLoader");
