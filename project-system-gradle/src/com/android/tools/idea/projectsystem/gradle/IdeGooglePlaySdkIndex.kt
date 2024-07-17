@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
@@ -127,6 +128,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
    */
   fun initializeAndSetFlags() {
     initialize()
+    showNotesFromDeveloper = StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER.get()
   }
 
   private fun findProject(file: File): Project? {

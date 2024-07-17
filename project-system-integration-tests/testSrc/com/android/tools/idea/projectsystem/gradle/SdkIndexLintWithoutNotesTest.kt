@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import org.junit.Test
 import java.nio.file.Path
 import kotlin.io.path.name
 
-class SdkIndexLintTest : SdkIndexTestBase() {
+class SdkIndexLintWithoutNotesTest : SdkIndexTestBase() {
   @Test
-  fun `Snapshot used by Lint`() {
-    system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.notes=true")
+  fun `Snapshot used by Lint without notes`() {
+    system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.notes=false")
     verifySdkIndexIsInitializedAndUsedWhen(
       showFunction = { studio, project ->
         // Open build.gradle file in editor
@@ -34,8 +34,7 @@ class SdkIndexLintTest : SdkIndexTestBase() {
       expectedIssues = listOf(
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.google.android.gms:play-services-ads-lite version 19.4.0 has been reported as problematic by its author and will block publishing of your app to Play Console.",
-          "**Note:** As of June 30th 2023, this version is sunset. For more information, please visit https://developers.google.com/admob/android/deprecation.",
+          "**[Prevents app release in Google Play Console]** com.google.android.gms:play-services-ads-lite version 19.4.0 has been reported as problematic by its author and will block publishing of your app to Play Console",
         ),
         // Error
         listOf(
@@ -43,8 +42,7 @@ class SdkIndexLintTest : SdkIndexTestBase() {
         ),
         // Error
         listOf(
-          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console.",
-          "**Note:** Critical issue has been identified which causes intensive battery consumption.",
+          "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console",
         ),
         // Error
         listOf(

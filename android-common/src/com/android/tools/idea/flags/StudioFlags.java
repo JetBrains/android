@@ -2132,6 +2132,16 @@ public final class StudioFlags {
       false);
   // endregion Backup
 
+  // region GOOGLE_PLAY_SDK_INDEX
+  private static final FlagGroup GOOGLE_PLAY_SDK_INDEX = new FlagGroup(FLAGS, "google.play.sdk.index", "Google Play SDK Index");
+  public static final Flag<Boolean> SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.notes", "Show notes from SDK developer",
+    "Whether or not SDK Index critical issues should include notes from developer",
+    // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER so the behavior of Android Studio and CLI is consistent
+    ChannelDefault.enabledUpTo(CANARY)
+  );
+  // endregion GOOGLE_PLAY_SDK_INDEX
+
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
     // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
