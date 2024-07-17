@@ -46,8 +46,8 @@ interface MarkdownStylingProvider {
    * Any parameter left as `null` will use the same value as [createDefault] would.
    */
   fun create(
-    baseTextStyle: TextStyle? = null,
-    editorTextStyle: TextStyle? = null,
+    baseTextStyle: TextStyle,
+    editorTextStyle: TextStyle,
     inlinesStyling: InlinesStyling? = null,
     blockVerticalSpacing: Dp? = null,
     paragraph: Paragraph? = null,
@@ -61,7 +61,7 @@ interface MarkdownStylingProvider {
   ): MarkdownStyling
 
   /** Create a new [MarkdownStyling], using the default values for the current theme. */
-  fun createDefault(): MarkdownStyling
+  fun createDefault(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling
 }
 
 val LocalMarkdownStylingProvider = staticCompositionLocalOf<MarkdownStylingProvider> {

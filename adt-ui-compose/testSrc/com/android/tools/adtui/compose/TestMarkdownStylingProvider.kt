@@ -26,8 +26,8 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
 
 class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStylingProvider {
   override fun create(
-    baseTextStyle: TextStyle?,
-    editorTextStyle: TextStyle?,
+    baseTextStyle: TextStyle,
+    editorTextStyle: TextStyle,
     inlinesStyling: InlinesStyling?,
     blockVerticalSpacing: Dp?,
     paragraph: MarkdownStyling.Paragraph?,
@@ -37,16 +37,18 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
     list: MarkdownStyling.List?,
     image: MarkdownStyling.Image?,
     thematicBreak: MarkdownStyling.ThematicBreak?,
-    htmlBlock: MarkdownStyling.HtmlBlock?
+    htmlBlock: MarkdownStyling.HtmlBlock?,
   ): MarkdownStyling {
-    val defaults = createDefault()
+    val defaults =
+      createDefault(defaultTextStyle = baseTextStyle, editorTextStyle = editorTextStyle)
 
     val defaultInlinesStyling = defaults.paragraph.inlinesStyling
     val defaultTextSize = defaultInlinesStyling.textStyle.fontSize
-    val defaultEditorTextStyle = JewelTheme.createEditorTextStyle(
-      fontSize = defaultTextSize,
-      lineHeight = defaultTextSize * 1.2,
-    )
+    val defaultEditorTextStyle =
+      JewelTheme.createEditorTextStyle(
+        fontSize = defaultTextSize,
+        lineHeight = defaultTextSize * 1.2,
+      )
 
     return if (isDark) {
       MarkdownStyling.dark(
@@ -63,8 +65,7 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
         thematicBreak = thematicBreak ?: defaults.thematicBreak,
         htmlBlock = htmlBlock ?: defaults.htmlBlock,
       )
-    }
-    else {
+    } else {
       MarkdownStyling.light(
         baseTextStyle = defaultInlinesStyling.textStyle.merge(baseTextStyle),
         editorTextStyle = defaultEditorTextStyle.merge(editorTextStyle),
@@ -89,6 +90,11 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
       textStyle = textStyle.merge(other.textStyle),
       inlineCode = inlineCode.merge(other.inlineCode),
       link = link.merge(other.link),
+      linkDisabled = link.merge(other.linkDisabled),
+      linkFocused = link.merge(other.linkFocused),
+      linkHovered = link.merge(other.linkHovered),
+      linkPressed = link.merge(other.linkPressed),
+      linkVisited = link.merge(other.linkVisited),
       emphasis = emphasis.merge(other.emphasis),
       strongEmphasis = strongEmphasis.merge(other.strongEmphasis),
       inlineHtml = inlineHtml.merge(other.inlineHtml),
@@ -96,6 +102,13 @@ class TestMarkdownStylingProvider(private val isDark: Boolean) : MarkdownStyling
     )
   }
 
-  override fun createDefault(): MarkdownStyling =
-    if (isDark) MarkdownStyling.dark() else MarkdownStyling.light()
+  override fun createDefault(
+    defaultTextStyle: TextStyle,
+    editorTextStyle: TextStyle,
+  ): MarkdownStyling =
+    if (isDark) {
+      MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+    } else {
+      MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+    }
 }

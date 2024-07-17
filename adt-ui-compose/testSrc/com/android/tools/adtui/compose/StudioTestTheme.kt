@@ -19,9 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.markdown.bridge.create
@@ -40,42 +37,45 @@ import org.jetbrains.jewel.ui.ComponentStyling
 @Suppress("TestFunctionName") // It's a composable
 @Composable
 fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
-  val fontFamily =
-    FontFamily(
-      Font(resource = "fonts/inter/Inter-Thin.ttf", weight = FontWeight.Thin),
-      Font(resource = "fonts/inter/Inter-ThinItalic.ttf", weight = FontWeight.Thin, style = FontStyle.Italic),
-      Font(resource = "fonts/inter/Inter-ExtraLight.ttf", weight = FontWeight.ExtraLight),
-      Font(resource = "fonts/inter/Inter-Light.ttf", weight = FontWeight.Light),
-      Font(resource = "fonts/inter/Inter-Regular.ttf", weight = FontWeight.Normal),
-      Font(resource = "fonts/inter/Inter-Medium.ttf", weight = FontWeight.Medium),
-      Font(resource = "fonts/inter/Inter-SemiBold.ttf", weight = FontWeight.SemiBold),
-      Font(resource = "fonts/inter/Inter-Bold.ttf", weight = FontWeight.Bold),
-      Font(resource = "fonts/inter/Inter-ExtraBold.ttf", weight = FontWeight.ExtraBold),
-      Font(resource = "fonts/inter/Inter-Black.ttf", weight = FontWeight.Black),
-    )
-
-  val textStyle = JewelTheme.createDefaultTextStyle().copy(fontFamily = fontFamily)
+  val defaultTextStyle = JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.InterForTests)
+  val editorTextStyle =
+    JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.JetBrainsMonoForTests)
 
   // TODO bring in JetBrains Mono and the editor text style, too, when Jewel 0.19.5 is available
   val themeDefinition =
     if (darkMode) {
-      JewelTheme.darkThemeDefinition(defaultTextStyle = textStyle)
+      JewelTheme.darkThemeDefinition(
+        defaultTextStyle = defaultTextStyle,
+        editorTextStyle = editorTextStyle,
+      )
     } else {
-      JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle)
+      JewelTheme.lightThemeDefinition(
+        defaultTextStyle = defaultTextStyle,
+        editorTextStyle = editorTextStyle,
+      )
     }
 
-  val componentStyling = if (darkMode) ComponentStyling.dark() else ComponentStyling.light()
+  val componentStyling = createComponentStyling(darkMode)
 
   IntUiTheme(themeDefinition, componentStyling, true) {
     val provider = remember(darkMode) { TestMarkdownStylingProvider(darkMode) }
-    val markdownStyling = remember(darkMode, provider) { provider.createDefault() }
+    val markdownStyling =
+      remember(darkMode, provider) { provider.createDefault(defaultTextStyle, editorTextStyle) }
     val markdownProcessor = remember { MarkdownProcessor() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 
-    CompositionLocalProvider(
-      LocalMarkdownStylingProvider provides provider,
-    ) {
-      ProvideMarkdownStyling(JewelTheme.isDark, markdownStyling, markdownProcessor, blockRenderer, content)
+    CompositionLocalProvider(LocalMarkdownStylingProvider provides provider) {
+      ProvideMarkdownStyling(
+        JewelTheme.isDark,
+        markdownStyling,
+        markdownProcessor,
+        blockRenderer,
+        content,
+      )
     }
   }
 }
+
+@Composable
+private fun createComponentStyling(darkMode: Boolean) =
+  if (darkMode) ComponentStyling.dark() else ComponentStyling.light()

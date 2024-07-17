@@ -20,10 +20,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
-import org.jetbrains.jewel.bridge.retrieveEditorColorScheme
-import org.jetbrains.jewel.bridge.theme.retrieveDefaultTextStyle
-import org.jetbrains.jewel.bridge.theme.retrieveEditorTextStyle
-import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.intui.markdown.bridge.styling.create
 import org.jetbrains.jewel.intui.markdown.bridge.styling.default
 import org.jetbrains.jewel.markdown.rendering.InlinesStyling
@@ -32,8 +28,8 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
 internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
 
   override fun create(
-    baseTextStyle: TextStyle?,
-    editorTextStyle: TextStyle?,
+    baseTextStyle: TextStyle,
+    editorTextStyle: TextStyle,
     inlinesStyling: InlinesStyling?,
     blockVerticalSpacing: Dp?,
     paragraph: MarkdownStyling.Paragraph?,
@@ -45,44 +41,37 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
     thematicBreak: MarkdownStyling.ThematicBreak?,
     htmlBlock: MarkdownStyling.HtmlBlock?,
   ): MarkdownStyling {
-    val actualEditorTextStyle =
-      editorTextStyle
-        ?: retrieveEditorTextStyle()
-          .copy(color = retrieveEditorColorScheme().defaultForeground.toComposeColor())
-
-    val actualBaseTextStyle =
-      baseTextStyle ?: retrieveDefaultTextStyle().copy(color = Color.Unspecified)
-
     val actualInlinesStyling =
       inlinesStyling
         ?: InlinesStyling.create(
-          actualBaseTextStyle,
-          actualEditorTextStyle
+          baseTextStyle,
+          editorTextStyle
             .copy(
-              fontSize = actualBaseTextStyle.fontSize * .85,
+              fontSize = baseTextStyle.fontSize * .85,
               background = inlineCodeBackgroundColor,
             )
             .toSpanStyle(),
         )
 
     return MarkdownStyling.create(
-      baseTextStyle = actualBaseTextStyle,
-      editorTextStyle = actualEditorTextStyle,
+      baseTextStyle = baseTextStyle,
+      editorTextStyle = editorTextStyle,
       inlinesStyling = actualInlinesStyling,
       blockVerticalSpacing = blockVerticalSpacing ?: 16.dp,
       paragraph = paragraph ?: MarkdownStyling.Paragraph.create(actualInlinesStyling),
-      heading = heading ?: MarkdownStyling.Heading.create(actualBaseTextStyle),
+      heading = heading ?: MarkdownStyling.Heading.create(baseTextStyle),
       blockQuote =
-        blockQuote ?: MarkdownStyling.BlockQuote.create(textColor = actualBaseTextStyle.color),
-      code = code ?: MarkdownStyling.Code.create(actualEditorTextStyle),
-      list = list ?: MarkdownStyling.List.create(actualBaseTextStyle),
+      blockQuote ?: MarkdownStyling.BlockQuote.create(textColor = baseTextStyle.color),
+      code = code ?: MarkdownStyling.Code.create(editorTextStyle),
+      list = list ?: MarkdownStyling.List.create(baseTextStyle),
       image = image ?: MarkdownStyling.Image.default(),
       thematicBreak = thematicBreak ?: MarkdownStyling.ThematicBreak.create(),
-      htmlBlock = htmlBlock ?: MarkdownStyling.HtmlBlock.create(actualEditorTextStyle),
+      htmlBlock = htmlBlock ?: MarkdownStyling.HtmlBlock.create(editorTextStyle),
     )
   }
 
-  override fun createDefault(): MarkdownStyling = MarkdownStyling.create()
+  override fun createDefault(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling =
+    MarkdownStyling.create(defaultTextStyle, editorTextStyle)
 }
 
 // Copied from org.intellij.plugins.markdown.ui.preview.PreviewLAFThemeStyles#createStylesheet
