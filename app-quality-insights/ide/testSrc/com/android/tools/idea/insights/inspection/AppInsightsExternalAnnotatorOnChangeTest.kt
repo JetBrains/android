@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
@@ -35,12 +33,8 @@ import org.junit.rules.RuleChain
 class AppInsightsExternalAnnotatorOnChangeTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
-  private val changeAwareFlagRule =
-    FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, true)
 
-  @get:Rule
-  val rule: RuleChain =
-    RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(changeAwareFlagRule)
+  @get:Rule val rule: RuleChain = RuleChain.outerRule(projectRule).around(vcsInsightsRule)
 
   private lateinit var validAppVcsInfo: AppVcsInfo.ValidInfo
   private lateinit var errorAppVcsInfo: AppVcsInfo.Error

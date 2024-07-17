@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -70,8 +69,6 @@ class InsightsAttachInlayDiffLinkFilter(
   private val project = containingConsole.project
 
   private fun fetchVcsInfo(): AppVcsInfo.ValidInfo? {
-    if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return null
-
     return containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo.ValidInfo
   }
 

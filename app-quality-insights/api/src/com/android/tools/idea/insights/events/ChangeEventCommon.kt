@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.Event
@@ -43,8 +42,7 @@ fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
         if (useIssueSampleEvent(key)) Action.NONE else Action.ListEvents(id, null, null)
     }
 
-private fun useIssueSampleEvent(key: InsightsProviderKey) =
-  key == VITALS_KEY || !StudioFlags.CRASHLYTICS_J_UI.get()
+private fun useIssueSampleEvent(key: InsightsProviderKey) = key == VITALS_KEY
 
 fun AppInsightsTracker.trackEventView(state: AppInsightsState, isFetched: Boolean) {
   val issueId = state.selectedIssue?.id?.value ?: return
