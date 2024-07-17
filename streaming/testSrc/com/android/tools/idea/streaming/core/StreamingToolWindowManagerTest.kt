@@ -67,7 +67,6 @@ import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.runners.IndicatorIcon
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -88,7 +87,6 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.LayeredIcon
 import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
@@ -650,15 +648,15 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2.seconds) { deviceProvisioner.devices.value.size == 1 }
     val device = deviceProvisioner.devices.value[0]
     waitForCondition(2.seconds) { mirroringManager.mirroringHandles.value.size == 1 }
-    assertThat(toolWindow.icon).isNotInstanceOf(LayeredIcon::class.java) // Liveness indicator is off.
+    assertThat(toolWindow.icon).isEqualTo(INACTIVE_ICON) // Liveness indicator is off.
 
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
     waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat((toolWindow.icon as? LayeredIcon)?.getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
+    assertThat(toolWindow.icon).isEqualTo(LIVE_ICON) // Liveness indicator is on.
 
     toolWindow.hide()
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
-    waitForCondition(2.seconds) { toolWindow.icon !is LayeredIcon } // Liveness indicator is off.
+    waitForCondition(2.seconds) { toolWindow.icon == INACTIVE_ICON } // Liveness indicator is off.
     assertThat(mirroringManager.mirroringHandles.value[device]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
 
