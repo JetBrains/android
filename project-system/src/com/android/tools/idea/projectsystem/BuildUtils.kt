@@ -43,6 +43,7 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     }
   }
   runReadAction { psiFile.classes.mapNotNull { it.qualifiedName } }
+    // TODO: solodkyy - this needs to be included in the build services for rendering.
     .mapNotNull { androidModuleSystem?.getClassFileFinderForSourceFile(runReadAction { psiFile.virtualFile })?.findClassFile(it) }
     .firstOrNull() != null
 }

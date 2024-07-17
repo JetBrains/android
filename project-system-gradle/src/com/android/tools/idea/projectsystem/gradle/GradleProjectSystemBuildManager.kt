@@ -17,13 +17,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.concurrent.atomic.AtomicInteger
 
-private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
+internal fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
   BuildStatus.SUCCESS -> ProjectSystemBuildManager.BuildStatus.SUCCESS
   BuildStatus.FAILED -> ProjectSystemBuildManager.BuildStatus.FAILED
   BuildStatus.CANCELED -> ProjectSystemBuildManager.BuildStatus.CANCELLED
 }
 
-private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
+internal fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
   BuildMode.CLEAN -> ProjectSystemBuildManager.BuildMode.CLEAN
   BuildMode.COMPILE_JAVA -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
   BuildMode.ASSEMBLE -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE

@@ -21,7 +21,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -51,6 +53,14 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
     override fun getLastCompileStatus(buildTarget: DefaultBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
       return ProjectSystemBuildManager.BuildStatus.UNKNOWN
     }
+  }
+
+  override fun subscribeBuildListener(
+    project: Project,
+    parentDisposable: Disposable,
+    listener: BuildSystemFilePreviewServices.BuildListener
+  ) {
+    // Do nothing. There are no builds in the DefaultProjectSystem.
   }
 }
 

@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
@@ -28,11 +29,15 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
+import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.withKotlin
 import com.android.tools.rendering.RenderService
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.io.File
 import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
@@ -105,7 +110,22 @@ open class ComposeGradleProjectRule(
 
   fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
 
-  fun build(): GradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
+  fun build(): GradleInvocationResult {
+    val invocationResult =
+      project.buildAndWait() { invoker ->
+        invoker.executeTasks(
+          GradleBuildInvoker.Request.builder(
+              project,
+              File(project.basePath!!),
+              "compileDebugSources",
+            )
+            .setMode(BuildMode.COMPILE_JAVA)
+            .build()
+        )
+      }
+    invokeAndWaitIfNeeded { PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() }
+    return invocationResult
+  }
 
   fun buildAndAssertIsSuccessful() {
     build().also {

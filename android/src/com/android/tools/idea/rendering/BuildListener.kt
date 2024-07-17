@@ -16,16 +16,23 @@
 package com.android.tools.idea.rendering
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.WeakHashMap
@@ -98,35 +105,37 @@ interface BuildListener {
   }
 }
 
-private fun Project.createBuildListener() = object : ProjectSystemBuildManager.BuildListener {
-  // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
-  override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-    if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
-
-    forEachNonDisposedBuildListener(this@createBuildListener,
-                                    BuildListener::buildStarted)
-  }
-
-  override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-    // We do not call refresh if the build was not successful or if it was simply a clean build.
-    val isCleanBuild = result.mode == ProjectSystemBuildManager.BuildMode.CLEAN
-    if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS && !isCleanBuild) {
-      forEachNonDisposedBuildListener(
-        this@createBuildListener,
-        BuildListener::buildSucceeded)
+private fun Project.createBuildListener() = object : BuildSystemFilePreviewServices.BuildListener {
+  val project = this@createBuildListener
+  @UiThread
+  override fun buildStarted(
+    buildMode: BuildMode,
+    buildResult: ListenableFuture<BuildSystemFilePreviewServices.BuildListener.BuildResult>
+  ) {
+    val isCleanBuild = buildMode == BuildMode.CLEAN
+    if (!isCleanBuild) {
+      forEachNonDisposedBuildListener(project, BuildListener::buildStarted)
     }
-    else {
-      if (isCleanBuild) {
-        forEachNonDisposedBuildListener(
-          this@createBuildListener,
-          BuildListener::buildCleaned)
+
+    // Using directExecutor() since both this code runs on the EDT and the future is completed on the EDT.
+    buildResult.addCallback(directExecutor(), object : FutureCallback<BuildSystemFilePreviewServices.BuildListener.BuildResult> {
+      override fun onSuccess(result: BuildSystemFilePreviewServices.BuildListener.BuildResult) {
+        val eventMethod = when {
+          isCleanBuild -> BuildListener::buildCleaned
+          !isCleanBuild && result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS -> BuildListener::buildSucceeded
+          else -> BuildListener::buildFailed
+        }
+        forEachNonDisposedBuildListener(project, eventMethod)
       }
-      else {
+
+      override fun onFailure(t: Throwable) {
+        thisLogger().error(t)
         forEachNonDisposedBuildListener(
-          this@createBuildListener,
-          BuildListener::buildFailed)
+          project,
+          BuildListener::buildFailed
+        )
       }
-    }
+    })
   }
 }
 
@@ -143,9 +152,9 @@ fun setupBuildListener(
   buildTargetReference: BuildTargetReference,
   buildable: BuildListener,
   parentDisposable: Disposable,
-  buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(buildTargetReference.project).projectSystem.getBuildManager(),
 ) {
   val project = buildTargetReference.project
+  val previewServices = project.getProjectSystem().getBuildSystemFilePreviewServices()
   if (Disposer.isDisposed(parentDisposable)) {
     Logger.getInstance("com.android.tools.idea.common.util.ChangeManager")
       .warn("calling setupBuildListener for a disposed component $parentDisposable")
@@ -156,7 +165,7 @@ fun setupBuildListener(
    * Sets up the listener once all conditions are met. This method can only be called once the project has synced and is smart on a
    * dispatcher thread.
    */
-  fun setupListenerWhenSmartAndSynced(buildManager: ProjectSystemBuildManager) {
+  fun setupListenerWhenSmartAndSynced() {
     ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
@@ -173,10 +182,7 @@ fun setupBuildListener(
       val subscription = projectSubscriptions.computeIfAbsent(project) {
         val projectSubscription = ProjectSubscription()
         // If we are not yet subscribed to this project, we should subscribe.
-        buildManager.addBuildListener(
-          projectSubscription.projectSystemListenerDisposable,
-          project.createBuildListener()
-        )
+        previewServices.subscribeBuildListener(project, projectSubscription.projectSystemListenerDisposable, project.createBuildListener())
         projectSubscription
       }
       subscription.listenersMap[parentDisposable] = buildable
@@ -197,24 +203,24 @@ fun setupBuildListener(
   /**
    * Setup listener. This method does not make assumptions about the project sync and smart status.
    */
-  fun setupListener(buildManager: ProjectSystemBuildManager) {
+  fun setupListener() {
     if (Disposer.isDisposed(parentDisposable)) return
     // We are not registering before the constructor finishes, so we should be safe here
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, { result ->
       if (result.isSuccessful) {
-        setupListenerWhenSmartAndSynced(buildManager)
+        setupListenerWhenSmartAndSynced()
       }
       else {
         // The project failed to sync, run initialization when the project syncs correctly
         project.listenUntilNextSync(parentDisposable, object : ProjectSystemSyncManager.SyncResultListener {
           override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
             // Sync has completed but we might not be in smart mode so re-run the initialization
-            setupListener(buildManager)
+            setupListener()
           }
         })
       }
     })
   }
 
-  setupListener(buildManager)
+  setupListener()
 }

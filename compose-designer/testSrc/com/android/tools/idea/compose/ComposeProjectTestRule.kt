@@ -17,6 +17,7 @@ package com.android.tools.idea.compose
 
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
@@ -32,7 +33,10 @@ import org.junit.runners.model.Statement
 /** [TestRule] that implements the [before] and [after] setup specific for Compose unit tests. */
 private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) :
   NamedExternalResource() {
+  val buildSystemServices = FakeBuildSystemFilePreviewServices()
+
   override fun before(description: Description) {
+    buildSystemServices.register(projectRule.testRootDisposable)
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
     projectRule.fixture.stubComposableAnnotation()
     projectRule.fixture.stubPreviewAnnotation()
@@ -54,10 +58,12 @@ class ComposeProjectRule(
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate =
-    RuleChain.outerRule(TestLoggerRule())
-      .around(projectRule)
-      .around(ComposeProjectRuleImpl(projectRule))
+  private val implRule = ComposeProjectRuleImpl(projectRule)
+
+  val buildSystemServices: FakeBuildSystemFilePreviewServices
+    get() = implRule.buildSystemServices
+
+  val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)

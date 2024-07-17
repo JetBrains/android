@@ -136,8 +136,7 @@ class BuildListenerTest {
         * setupBuildListener
         ->startedListening
         * buildFinished
-        ->buildSucceeded
-      """.trimIndent() // Note the absence of `->buildStarted`.
+      """.trimIndent()
       )
     }
   }
@@ -166,7 +165,6 @@ class BuildListenerTest {
         ->buildSucceeded
         ->startedListening
         * buildFinished
-        ->buildSucceeded
       """.trimIndent() // Note the artificially nested builds and `->startedListening` after the nested one.
       )
     }
@@ -196,8 +194,7 @@ class BuildListenerTest {
         * setupBuildListener
         ->startedListening
         * buildFinished
-        ->buildSucceeded
-      """.trimIndent() // Note an incomplete build after `->startedListening`.
+      """.trimIndent()
       )
     }
   }
