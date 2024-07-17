@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.hasExistingClassFile
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -36,16 +44,19 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.search.EverythingGlobalScope
+import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.projectStructure.module
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * This represents the build status of the project artifacts used to render previews without taking into account any file
@@ -136,11 +147,9 @@ interface RenderingBuildStatusManager {
 }
 
 interface RenderingBuildStatusManagerForTests {
-  /** Returns the internal [ProjectSystemBuildManager.BuildListener] to be used by tests. */
-  @TestOnly fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener
-
   /** Returns the internal [ResourceChangeListener] to be used by tests. */
-  @TestOnly fun getResourcesListenerForTest(): ResourceChangeListener
+  @TestOnly
+  fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
 private class RenderingBuildStatusManagerImpl(
@@ -158,12 +167,15 @@ private class RenderingBuildStatusManagerImpl(
     get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
+  private val buildSystemFilePreviewServices: BuildSystemFilePreviewServices<*, *> = project
+    .getProjectSystem()
+    .getBuildSystemFilePreviewServices()
+
 
   private val projectBuildStatusFlow = MutableStateFlow(ProjectBuildStatus.NotReady)
   private val areResourcesOutOfDateFlow = MutableStateFlow(false)
   override val statusFlow = MutableStateFlow<RenderingBuildStatus>(RenderingBuildStatus.NotReady)
 
-  @Suppress("DEPRECATION")
   override val isBuilding: Boolean
     get() =
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
@@ -171,50 +183,20 @@ private class RenderingBuildStatusManagerImpl(
 
   private val myPsiCodeFileUpToDateStatusRecorder = PsiCodeFileUpToDateStatusRecorder.getInstance(project)
   private val buildListener =
-    object : ProjectSystemBuildManager.BuildListener {
-      private val buildCounter = AtomicInteger(0)
+    object : BuildListener {
+      @UiThread
+      override fun buildStarted(
+        buildMode: BuildMode,
+        buildResult: ListenableFuture<BuildListener.BuildResult>
+      ) {
+        val preparedMarkUpToDateAction = myPsiCodeFileUpToDateStatusRecorder.prepareMarkUpToDate()
 
-      /**
-       * Holds a list of actions that make up-to-date those files that were out-of-date when the build started.
-       *
-       * Actions obtained from [PsiCodeFileUpToDateStatusRecorder] are added to the list by [buildStarted] method and are removed
-       * when the build completes in [buildCompleted]. If the build fails the removed actions are simply discarded without being invoked.
-       */
-      private val preparedMarkUpToDateActions = mutableListOf<PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction>()
-
-      override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-        val buildCount = buildCounter.incrementAndGet()
-        LOG.debug("buildStarted $mode, buildCount = $buildCount")
-        preparedMarkUpToDateActions.add(myPsiCodeFileUpToDateStatusRecorder.prepareMarkUpToDate())
-        if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+        projectBuildStatusFlow.value = when (buildMode) {
           // For a clean build, we know the project will need a build
-          projectBuildStatusFlow.value = ProjectBuildStatus.NeedsBuild
-        }
-        else {
-          projectBuildStatusFlow.value = ProjectBuildStatus.Building
-        }
-      }
-
-      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-        val buildCount = buildCounter.getAndUpdate { if (it > 0) it - 1 else 0 }
-        LOG.debug("buildFinished $result, buildCount = $buildCount")
-        if (buildCount > 1) {
-          // More builds are still pending
-          return
-        }
-        val outOfDateFilesToClear = preparedMarkUpToDateActions.toSet() // Create a copy
-        preparedMarkUpToDateActions.clear()
-        if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-          return
-        }
-        val newProjectBuildStatus =
-          if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-            outOfDateFilesToClear.forEach { it.markUpToDate() }
-            // Clear the resources out of date flag
-            areResourcesOutOfDateFlow.value = false
-            ProjectBuildStatus.Built
-          } else {
-            when (projectBuildStatusFlow.value) {
+          BuildMode.CLEAN -> ProjectBuildStatus.NeedsBuild
+          BuildMode.COMPILE -> {
+            val previousState = projectBuildStatusFlow.value
+            fun handleFailure(): ProjectBuildStatus = when (previousState) {
               // If the project was ready before, we keep it as Ready since it was just the new
               // build
               // that failed.
@@ -222,16 +204,41 @@ private class RenderingBuildStatusManagerImpl(
               // If the project was not ready, then it needs a build since this one failed.
               else -> ProjectBuildStatus.NeedsBuild
             }
-          }
 
-        projectBuildStatusFlow.value = newProjectBuildStatus
+
+            fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
+              preparedMarkUpToDateAction.markUpToDate(scope)
+              // Clear the resources out of date flag
+              areResourcesOutOfDateFlow.value = false
+              return ProjectBuildStatus.Built
+            }
+
+            fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
+              when (result.status) {
+                BuildStatus.SUCCESS -> handleSuccess(result.scope)
+                BuildStatus.FAILED -> handleFailure()
+                BuildStatus.UNKNOWN -> previousState
+                BuildStatus.CANCELLED -> previousState
+              }
+
+            scope.launch {
+              val result = runCatching { buildResult.await() }
+                .getOrElse { BuildListener.BuildResult(BuildStatus.FAILED, EverythingGlobalScope()) }
+              withContext(AndroidDispatchers.uiThread) {
+                projectBuildStatusFlow.value = handleBuildResult(result)
+              }
+            }
+            ProjectBuildStatus.Building
+          }
+        }
       }
     }
 
   private val resourceChangeListener = ResourceChangeListener { reason ->
     LOG.debug("ResourceNotificationManager resourceChange ${reason.joinToString()} ")
     if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT) ||
-        reason.contains(ResourceNotificationManager.Reason.EDIT)) {
+      reason.contains(ResourceNotificationManager.Reason.EDIT)
+    ) {
       areResourcesOutOfDateFlow.value = true
     }
   }
@@ -262,10 +269,8 @@ private class RenderingBuildStatusManagerImpl(
     }
 
     LOG.debug("setup build listener")
-    ProjectSystemService.getInstance(project)
-      .projectSystem
-      .getBuildManager()
-      .addBuildListener(parentDisposable, buildListener)
+    buildSystemFilePreviewServices.subscribeBuildListener(project, parentDisposable, buildListener)
+
     FastPreviewManager.getInstance(project)
       .addListener(
         parentDisposable,
@@ -321,9 +326,6 @@ private class RenderingBuildStatusManagerImpl(
       }
     )
   }
-
-  @TestOnly
-  override fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener = buildListener
 
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 }

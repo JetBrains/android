@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
-import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -61,35 +59,24 @@ class BuildListenerTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val testBuildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
   private val project: Project
     get() = projectRule.project
 
   private val buildTargetReference get() = BuildTargetReference.gradleOnly(projectRule.module)
 
-  private val buildSystemServices = FakeBuildSystemFilePreviewServices(
-    buildServices = object : BuildServices<BuildTargetReference> by FakeBuildServices() {
-      override fun getLastCompileStatus(buildTarget: BuildTargetReference): ProjectSystemBuildManager.BuildStatus {
-        // Return the build status from the project system while in migration.
-        return testBuildManager.getLastBuildResult().status
-      }
-    }
-  )
+  private val buildSystemServices = FakeBuildSystemFilePreviewServices()
 
   @Before
   fun setUp() {
     buildSystemServices.register(projectRule.testRootDisposable)
   }
 
-  private fun setupBuildListener(buildMode: ProjectSystemBuildManager.BuildMode)
-    : Triple<TestProjectSystemBuildManager, ProjectSystemBuildManager.BuildMode, TestBuildListener> {
+  private fun setupBuildListener(): TestBuildListener {
     // Make sure there are no pending call before setting up the listener
     processEvents()
     val listener = TestBuildListener()
-    setupBuildListener(buildTargetReference, listener, projectRule.fixture.testRootDisposable, buildManager = testBuildManager)
-    return Triple(testBuildManager,
-                  buildMode,
-                  listener)
+    setupBuildListener(buildTargetReference, listener, projectRule.fixture.testRootDisposable)
+    return listener
   }
 
   private fun processEvents() = UIUtil.invokeAndWaitIfNeeded(Runnable {
@@ -98,13 +85,13 @@ class BuildListenerTest {
 
   @Test
   fun testBuildSuccessful() {
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-
-    buildState.buildStarted(buildMode)
+    val buildListener = setupBuildListener()
+    val completion = SettableFuture.create<Unit>()
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS, completion = completion)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("Build Started")
 
-    buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    completion.set(Unit)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
@@ -114,10 +101,9 @@ class BuildListenerTest {
 
   @Test
   fun testBuildFailed() {
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
+    val buildListener = setupBuildListener()
 
-    buildState.buildStarted(buildMode)
-    buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.FAILED)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.FAILED)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
@@ -127,12 +113,13 @@ class BuildListenerTest {
 
   @Test
   fun testCleanBuild() {
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.CLEAN)
-    buildState.buildStarted(buildMode)
+    val completion = SettableFuture.create<Unit>()
+    val buildListener = setupBuildListener()
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS, buildMode = BuildMode.CLEAN, completion = completion)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("")
 
-    buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    completion.set(Unit)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("Build Cleaned")
   }
@@ -150,9 +137,8 @@ class BuildListenerTest {
 
     Disposer.dispose(secondDisposable)
 
-    val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    buildState.buildStarted(buildMode)
-    buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    val buildListener = setupBuildListener()
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
     assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
@@ -162,8 +148,7 @@ class BuildListenerTest {
 
   @Test
   fun testCalledOnSubscriptionWhenPreviousBuildIsSuccessful() {
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     var listenerCalls = 0
@@ -173,7 +158,7 @@ class BuildListenerTest {
       }
     }
     val disposable = Disposer.newDisposable()
-    setupBuildListener(buildTargetReference, listener, disposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, listener, disposable)
 
     assertThat(listenerCalls).isEqualTo(1)
 
@@ -189,7 +174,7 @@ class BuildListenerTest {
       }
     }
     val firstDisposable = Disposer.newDisposable()
-    setupBuildListener(buildTargetReference, firstListener, firstDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, firstListener, firstDisposable)
 
     var secondListenerCalls = 0
     val secondListener = object : BuildListener {
@@ -198,10 +183,9 @@ class BuildListenerTest {
       }
     }
     val secondDisposable = Disposer.newDisposable()
-    setupBuildListener(buildTargetReference, secondListener, secondDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, secondListener, secondDisposable)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     assertThat(firstListenerCalls).isEqualTo(1)
@@ -209,8 +193,7 @@ class BuildListenerTest {
 
     Disposer.dispose(firstDisposable)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     assertThat(firstListenerCalls).isEqualTo(1)
@@ -223,12 +206,11 @@ class BuildListenerTest {
       }
     }
     val thirdDisposable = Disposer.newDisposable()
-    setupBuildListener(buildTargetReference, thirdListener, thirdDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, thirdListener, thirdDisposable)
 
     assertThat(thirdListenerCalls).isEqualTo(1)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     assertThat(secondListenerCalls).isEqualTo(3)
@@ -237,8 +219,7 @@ class BuildListenerTest {
     Disposer.dispose(secondDisposable)
     Disposer.dispose(thirdDisposable)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     assertThat(firstListenerCalls).isEqualTo(1)
@@ -252,12 +233,11 @@ class BuildListenerTest {
       }
     }
     val fourthDisposable = Disposer.newDisposable()
-    setupBuildListener(buildTargetReference, fourthListener, fourthDisposable, buildManager = testBuildManager)
+    setupBuildListener(buildTargetReference, fourthListener, fourthDisposable)
 
     assertThat(fourthListenerCalls).isEqualTo(1)
 
-    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
-    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
 
     assertThat(firstListenerCalls).isEqualTo(1)

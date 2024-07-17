@@ -18,11 +18,20 @@ package com.android.tools.idea.rendering.tokens
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.testFramework.ExtensionTestUtil
 import org.jetbrains.annotations.TestOnly
 
@@ -31,12 +40,39 @@ import org.jetbrains.annotations.TestOnly
  */
 @TestOnly
 class FakeBuildSystemFilePreviewServices(
-  override val buildTargets: BuildTargets = FakeBuildTargets(),
-  override val buildServices: BuildServices<BuildTargetReference> = FakeBuildServices(),
+  buildTargets: FakeBuildSystemFilePreviewServices.() -> BuildTargets = { FakeBuildTargets() },
+  buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = { FakeBuildServices() },
 ) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
+  private val listeners: MutableList<BuildListener> = mutableListOf()
+  private var lastStatus: ProjectSystemBuildManager.BuildStatus = ProjectSystemBuildManager.BuildStatus.UNKNOWN
+
+  override val buildTargets: BuildTargets = buildTargets()
+  override val buildServices: BuildServices<BuildTargetReference> = buildServices()
+
+  override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
+    listeners.add(listener)
+    Disposer.register(parentDisposable) { listeners.remove(listener) }
+  }
+
+  /**
+   * Simulates a build of artifacts affecting rendering at the level of [BuildSystemFilePreviewServices].
+   */
+  fun simulateArtifactBuild(
+    buildStatus: ProjectSystemBuildManager.BuildStatus,
+    buildMode: BuildMode = BuildMode.COMPILE,
+    completion: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
+  ) {
+    val buildResult = BuildListener.BuildResult(buildStatus, EverythingGlobalScope())
+    val buildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
+    listeners.forEach {listener ->
+      listener.buildStarted(buildMode, buildResultFuture)
+    }
+    lastStatus = buildStatus
+    completion.addListener({ buildResultFuture.set(buildResult) }, directExecutor())
+  }
 
   override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
-  override fun isApplicable(buildTarget: BuildTargetReference): Boolean = true
+  override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean = true
 
   /**
    * Registers this fake implementation for the lifespan of [parentDisposable] for all project systems.
@@ -55,9 +91,9 @@ class FakeBuildSystemFilePreviewServices(
     }
   }
 
-  class FakeBuildServices: BuildServices<BuildTargetReference> {
+  inner class FakeBuildServices: BuildServices<BuildTargetReference> {
     override fun getLastCompileStatus(buildTarget: BuildTargetReference): ProjectSystemBuildManager.BuildStatus {
-      return error("not implemented")
+      return lastStatus
     }
   }
 }

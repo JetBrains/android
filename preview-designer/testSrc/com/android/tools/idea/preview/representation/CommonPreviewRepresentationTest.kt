@@ -50,13 +50,8 @@ import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.preview.waitUntilRefreshStarts
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.rendering.BuildTargetReference
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
-import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -137,6 +132,7 @@ class CommonPreviewRepresentationTest {
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
   private lateinit var psiFile: PsiFile
+  private val buildSystemServices = FakeBuildSystemFilePreviewServices()
 
   private val fixture
     get() = projectRule.fixture
@@ -148,18 +144,7 @@ class CommonPreviewRepresentationTest {
   fun setup() {
     setUpComposeInProjectFixture(projectRule)
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
-    FakeBuildSystemFilePreviewServices(
-        buildServices =
-          object : BuildServices<BuildTargetReference> by FakeBuildServices() {
-            override fun getLastCompileStatus(
-              buildTarget: BuildTargetReference
-            ): ProjectSystemBuildManager.BuildStatus {
-              // Return the build status from the project system while in migration.
-              return project.getProjectSystem().getBuildManager().getLastBuildResult().status
-            }
-          }
-      )
-      .register(fixture.testRootDisposable)
+    buildSystemServices.register(fixture.testRootDisposable)
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common
@@ -201,7 +186,7 @@ class CommonPreviewRepresentationTest {
 
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+      buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
       delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
         previewRepresentation.isInvalidatedForTest()
       }
@@ -536,8 +521,8 @@ class CommonPreviewRepresentationTest {
     assertTrue(isInvalidatedForTest())
 
     // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    delayUntilCondition(delayPerIterationMs = 1000, 40.seconds) {
       !isInvalidatedForTest() &&
         refreshManager.getTotalRequestsInQueueForTest() == 0 &&
         refreshManager.refreshingTypeFlow.value == null
