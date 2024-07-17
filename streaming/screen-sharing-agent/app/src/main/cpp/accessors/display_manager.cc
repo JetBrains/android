@@ -43,7 +43,7 @@ void DisplayManager::InitializeStatics(Jni jni) {
     get_display_info_method_ = display_manager_global_class_.GetMethod("getDisplayInfo", "(I)Landroid/view/DisplayInfo;");
     get_display_ids_method_ = display_manager_global_class_.GetMethod("getDisplayIds", "()[I");
     if (Agent::feature_level() >= 35) {
-      request_display_power_method_ = display_manager_global_class_.FindMethod("requestDisplayPower", "(IZ)Z");
+      request_display_power_method_ = display_manager_global_class_.FindMethod("requestDisplayPower", "(II)Z");
     }
 
     JClass display_info_class = jni.GetClass("android/view/DisplayInfo");
@@ -172,12 +172,17 @@ VirtualDisplay DisplayManager::CreateVirtualDisplay(
       jni, create_virtual_display_method_, JString(jni, name).ref(), width, height, display_id, SurfaceToJava(jni, surface).ref()));
 }
 
-void DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, bool on) {
+bool DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, int state) {
   InitializeStatics(jni);
-  if (request_display_power_method_ != nullptr) {
-    Log::D("Turning display %s", on ? "on" : "off");
-    display_manager_global_.CallVoidMethod(jni, request_display_power_method_, display_id, jboolean(on));
+  if (request_display_power_method_ == nullptr) {
+    return false;
   }
+  Log::D("%s display %d", state == DisplayInfo::STATE_OFF ? "Turning off" : "Restoring power of", display_id);
+  if (!display_manager_global_.CallBooleanMethod(jni, request_display_power_method_, display_id, state)) {
+    Log::W(jni.GetAndClearException(), "Unable to turn display %d off", display_id);
+    return false;
+  }
+  return true;
 }
 
 JClass DisplayManager::display_manager_global_class_;

@@ -45,15 +45,16 @@ void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
-bool ControlDisplayPower(Jni jni, DisplayPowerMode power_mode) {
+bool ControlDisplayPower(Jni jni, int state) {
   if (Agent::feature_level() >= 35) {
-    DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, power_mode == DisplayPowerMode::POWER_MODE_NORMAL);
+    return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
     // TODO: Turn off secondary physical displays.
   } else if (Agent::feature_level() >= 29) {
     vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
     if (display_ids.empty()) {
       return false;
     }
+    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
     for (int64_t display_id : display_ids) {
       JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
       SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
@@ -63,6 +64,7 @@ bool ControlDisplayPower(Jni jni, DisplayPowerMode power_mode) {
     if (display_token.IsNull()) {
       return false;
     }
+    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
     SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
   }
   return true;
@@ -80,7 +82,8 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
   if (turn_off_display) {
     // Turn off display.
     Jni jni = Jvm::GetJni();
-    if (ControlDisplayPower(jni, DisplayPowerMode::POWER_MODE_OFF)) {
+    if (ControlDisplayPower(jni, DisplayInfo::STATE_OFF)) {
+      Log::D("Device display has been turned off");
       restore_normal_display_power_mode_ = true;
     } else {
       Log::W(jni.GetAndClearException(), "Unable to turn off display");
@@ -93,7 +96,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
     Jni jni = Jvm::GetJni();
-    if (!ControlDisplayPower(jni, DisplayPowerMode::POWER_MODE_NORMAL)) {
+    if (!ControlDisplayPower(jni, DisplayInfo::STATE_UNKNOWN)) {
       Log::W(jni.GetAndClearException(), "Unable to restore display power");
     }
   }

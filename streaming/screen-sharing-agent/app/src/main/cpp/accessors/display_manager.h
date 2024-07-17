@@ -51,8 +51,10 @@ public:
   // Requires API 34+.
   static VirtualDisplay CreateVirtualDisplay(
       Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface);
-  // Requires API 35+.
-  static void RequestDisplayPower(Jni jni, int32_t display_id, bool on);
+  // Requests to power a display OFF or reset it to a power state it supposed to have. Requires API 35+.
+  // The state parameter is one of DisplayInfo::STATE_OFF (to turn display off), DisplayInfo::STATE_UNKNOWN
+  // (to reset the display to its default state). Returns true if successful, false otherwise.
+  static bool RequestDisplayPower(Jni jni, int32_t display_id, int state);
 
   DisplayManager() = delete;
 
