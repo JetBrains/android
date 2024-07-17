@@ -35,7 +35,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -70,15 +69,14 @@ import org.junit.Test;
 /** Tests for {@link AndroidVirtualDevice}. */
 @RunsInEdt
 public final class AndroidVirtualDeviceTest {
-  private static final String DEVICE_ID =  "pixel_fold";
+  private static final String DEVICE_SKIN =  "1080x2400";
 
   private static Map<String, String> getReferenceMap() {
-    // Expected values are defined in http://b.android.com/78945
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-    builder.put("AvdId", "Pixel_Fold_API_34");
+    builder.put("AvdId", "Medium_Phone_API_34");
     builder.put("PlayStore.enabled", "true");
     builder.put("abi.type", "x86_64");
-    builder.put("avd.ini.displayname", "Pixel Fold API 34");
+    builder.put("avd.ini.displayname", "Medium Phone API 34");
     builder.put("avd.ini.encoding", "UTF-8");
     builder.put("disk.dataPartition.size", "2G");
     builder.put("hw.accelerometer", "yes");
@@ -89,33 +87,19 @@ public final class AndroidVirtualDeviceTest {
     builder.put("hw.camera.front", "emulated");
     builder.put("hw.cpu.arch", "x86_64");
     builder.put("hw.dPad", "no");
-    builder.put("hw.device.hash2", "MD5:253a4eaf19dee95e9be9194ced30b3df");
-    builder.put("hw.device.manufacturer", "Google");
-    builder.put("hw.device.name", "pixel_fold");
-    builder.put("hw.displayRegion.0.1.height", "2092");
-    builder.put("hw.displayRegion.0.1.width", "1080");
-    builder.put("hw.displayRegion.0.1.xOffset", "0");
-    builder.put("hw.displayRegion.0.1.yOffset", "0");
+    builder.put("hw.device.hash2", "MD5:3db3250dab5d0d93b29353040181c7e9");
+    builder.put("hw.device.manufacturer", "Generic");
+    builder.put("hw.device.name", "medium_phone");
     builder.put("hw.gps", "yes");
     builder.put("hw.gpu.enabled", "yes");
     builder.put("hw.gpu.mode", "auto");
     builder.put("hw.keyboard", "yes");
-    builder.put("hw.keyboard.lid", "yes");
     builder.put("hw.lcd.density", "420");
-    builder.put("hw.lcd.height", "1840");
-    builder.put("hw.lcd.width", "2208");
+    builder.put("hw.lcd.height", "2400");
+    builder.put("hw.lcd.width", "1080");
     builder.put("hw.mainKeys", "no");
-    builder.put("hw.ramSize", "11444");
+    builder.put("hw.ramSize", "2G");
     builder.put("hw.sdCard", "yes");
-    builder.put("hw.sensor.hinge", "yes");
-    builder.put("hw.sensor.hinge.areas", "1080-0-0-1840");
-    builder.put("hw.sensor.hinge.count", "1");
-    builder.put("hw.sensor.hinge.defaults", "180");
-    builder.put("hw.sensor.hinge.ranges", "0-180");
-    builder.put("hw.sensor.hinge.sub_type", "1");
-    builder.put("hw.sensor.hinge.type", "1");
-    builder.put("hw.sensor.hinge_angles_posture_definitions", "0-30, 30-150, 150-180");
-    builder.put("hw.sensor.posture_list", "1, 2, 3");
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
@@ -123,7 +107,7 @@ public final class AndroidVirtualDeviceTest {
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("sdcard.size", "800M");
-    builder.put("skin.name", DEVICE_ID);
+    builder.put("skin.name", DEVICE_SKIN);
     builder.put("tag.display", "Google Play");
     builder.put("tag.displaynames", "Google Play");
     builder.put("tag.id", "google_apis_playstore");
@@ -152,8 +136,6 @@ public final class AndroidVirtualDeviceTest {
     recordGoogleApisAddon(sdkRoot);
     recordGoogleApisSysImg(sdkRoot);
     sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android-home"));
-    InMemoryFileSystems.recordExistingFile(sdkHandler.toCompatiblePath(
-      DeviceArtDescriptor.getBundledDescriptorsFolder()).resolve(DEVICE_ID));
 
     IdeSdks ideSdks = spy(IdeSdks.getInstance());
     when(ideSdks.getAndroidSdkPath()).thenReturn(FileOpUtils.toFile(sdkRoot));
@@ -197,7 +179,7 @@ public final class AndroidVirtualDeviceTest {
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those, so we only ensure we have the ones we need.
     File skin = new File(properties.get(ConfigKey.SKIN_PATH));
-    assertEquals(DEVICE_ID, skin.getName());
+    assertEquals(DEVICE_SKIN, skin.getName());
   }
 
   @Test
