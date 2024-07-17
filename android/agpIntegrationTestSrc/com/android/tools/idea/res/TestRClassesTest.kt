@@ -34,6 +34,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
@@ -359,6 +360,7 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
     val projectRoot = File(FileUtil.toSystemDependentName(project.basePath!!))
     File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
     requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is present but only as
     // part of a NonTransitiveResourceFieldLookupElement, with a package name.
