@@ -1727,22 +1727,6 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
-  public static final Flag<Boolean> APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "insights.change.aware.annotation",
-      "Change-aware Annotation Support",
-      "Enhance annotation to aid crash investigation with the recorded VCS info",
-      true);
-
-  public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "insights.vcs",
-      "VCS Support",
-      "Enhance code navigation to aid crash investigation with the recorded VCS info",
-      true);
-
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
@@ -1759,24 +1743,6 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
-  public static final Flag<Boolean> CRASHLYTICS_VARIANTS =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "crashlytics.variants",
-      "Crashlytics Variants Support",
-      "Enabled Variant Selection in AQI Crashlytics",
-      true
-    );
-
-  public static final Flag<Boolean> CRASHLYTICS_J_UI =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "crashlytics.2023h2.ui",
-      "Crashlytics UI changes for J",
-      "Enabled Logs & Keys, Multi-event",
-      true
-    );
-
   public static final Flag<Boolean> CRASHLYTICS_SHOW_INSIGHT =
     new BooleanFlag(
       APP_INSIGHTS,
@@ -1785,14 +1751,6 @@ public final class StudioFlags {
       "Show AI generated insights for Crashlytics issue",
       true
     );
-
-  public static final Flag<Boolean> PLAY_VITALS_ENABLED =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "enable.play.vitals",
-      "Enable the play vitals tool window tab.",
-      "Enables the play vitals tab and its associated functionality.",
-      true);
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     new StringFlag(

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.vitals.client
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
@@ -50,8 +48,6 @@ class VitalsClientRequestProtoTest {
   @get:Rule val disposableRule = DisposableRule()
 
   @get:Rule val grpcRule = VitalsGrpcConnectionRule(TEST_CONNECTION_1)
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
 
   private val clock = FakeClock()
 

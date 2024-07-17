@@ -18,7 +18,6 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
@@ -121,30 +120,22 @@ class VitalsTab(
         )
       )
       addSeparator()
-      if (StudioFlags.CRASHLYTICS_J_UI.get()) {
-        add(
-          AppInsightsToggleAction(
-            "Crash",
-            null,
-            StudioIcons.AppQualityInsights.FATAL,
-            crashToggle,
-            scope,
-          ) {
-            projectController.toggleFailureType(FailureType.FATAL)
-          }
-        )
-        add(
-          AppInsightsToggleAction(
-            "ANR",
-            null,
-            StudioIcons.AppQualityInsights.ANR,
-            anrToggle,
-            scope,
-          ) {
-            projectController.toggleFailureType(FailureType.ANR)
-          }
-        )
-      }
+      add(
+        AppInsightsToggleAction(
+          "Crash",
+          null,
+          StudioIcons.AppQualityInsights.FATAL,
+          crashToggle,
+          scope,
+        ) {
+          projectController.toggleFailureType(FailureType.FATAL)
+        }
+      )
+      add(
+        AppInsightsToggleAction("ANR", null, StudioIcons.AppQualityInsights.ANR, anrToggle, scope) {
+          projectController.toggleFailureType(FailureType.ANR)
+        }
+      )
       add(
         AppInsightsDropDownAction(
           "Interval",
