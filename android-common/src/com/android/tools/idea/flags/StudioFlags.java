@@ -1922,6 +1922,13 @@ public final class StudioFlags {
                     "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
                     ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_OVERRIDE_BACKEND_EXPERIMENTS =
+    new BooleanFlag(STUDIOBOT, "override.backend.experiments",
+                    "Override flags set by AIDA backend experiments.",
+                    "When enabled, the values of flags that are usually controlled by backend experiments will be overridden" +
+                    "by the values set here.",
+                    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
                     "Enable sending context with build/sync error queries.",
