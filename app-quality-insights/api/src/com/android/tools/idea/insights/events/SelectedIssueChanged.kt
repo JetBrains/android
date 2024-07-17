@@ -21,12 +21,16 @@ import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.diagnostic.Logger
 
 /** Issue selection changed. */
-data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
+data class SelectedIssueChanged(
+  val issue: AppInsightsIssue?,
+  val selectionSource: IssueSelectionSource,
+) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -39,7 +43,7 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
       tracker.logCrashListDetailView(
         AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.newBuilder()
           .apply {
-            this.source = source
+            source = selectionSource.toCrashOpenSource()
             crashType = issue.issueDetails.fatality.toCrashType()
           }
           .build()
