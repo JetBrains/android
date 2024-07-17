@@ -44,7 +44,7 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
       if (model != null) {
         for (component in selection) {
           if (component.isDestination) {
-            surface.sceneManager?.performUndoablePositionAction(component)
+            surface.getSceneManager(model)?.performUndoablePositionAction(component)
             val parent = component.parent ?: continue
             model.treeWriter.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
             if (component.isStartDestination) {

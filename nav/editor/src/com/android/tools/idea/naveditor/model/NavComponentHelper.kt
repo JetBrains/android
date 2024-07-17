@@ -509,7 +509,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
   WriteCommandAction.runWriteCommandAction(surface.project, ADD_NESTED_COMMAND_NAME, ADD_NESTED_GROUP_ID, Runnable {
     val graph = newParent() ?: return@Runnable
     val ids = components.map { it.id }
-    components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
+    components.forEach { surface.model?.let { model -> surface.getSceneManager(model) }?.performUndoablePositionAction(it) }
 
     // Pick an arbitrary destination to be the start destination,
     // but give preference to destinations with incoming actions

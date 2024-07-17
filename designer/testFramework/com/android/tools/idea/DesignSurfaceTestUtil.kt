@@ -119,7 +119,7 @@ object DesignSurfaceTestUtil {
     }
 
     val sceneManager = sceneManagerFactory(surface, model)
-    whenever(surface.sceneManager).thenReturn(sceneManager)
+    whenever(surface.getSceneManager(any())).thenReturn(sceneManager)
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     whenever(surface.getSceneViewAtOrPrimary(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
       .thenCallRealMethod()

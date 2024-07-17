@@ -48,7 +48,7 @@ class SelectionTest : NavTestCase() {
       }
     }
     val surface = model.surface as NavDesignSurface
-    val sceneView = NavView(surface, surface.sceneManager!!)
+    val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     val scene = model.surface.scene!!
@@ -130,7 +130,7 @@ class SelectionTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    val sceneView = NavView(surface, surface.sceneManager!!)
+    val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     val scene = model.surface.scene!!

@@ -78,7 +78,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getFocusedSceneView()).thenReturn(screenView);
     when(surface.getZoomController()).thenReturn(createZoomControllerFake(1.0, null));
-    LayoutlibSceneManager manager = (LayoutlibSceneManager)model.getSurface().getSceneManager();
+    LayoutlibSceneManager manager = (LayoutlibSceneManager)model.getSurface().getSceneManager(model);
     when(manager.getSceneScalingFactor()).thenReturn(1.0f);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
     myPreviewProvider.setRenderTimeoutMillis(TimeUnit.MINUTES.toMillis(1));

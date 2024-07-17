@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -41,7 +42,7 @@ class AutoArrangeActionTest : NavTestCase() {
     val surface = model.surface
     val scene = surface.scene!!
     val root = scene.root!!
-    val manager = spy(surface.sceneManager)!!
+    val manager = spy(surface.getSceneManager(model))!!
     doAnswer {
       root.children.forEach { component ->
         TestCase.assertEquals(true, component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
@@ -49,7 +50,7 @@ class AutoArrangeActionTest : NavTestCase() {
       CompletableFuture.completedFuture(null)
     }.whenever(manager).requestRenderAsync()
 
-    whenever(surface.sceneManager).thenReturn(manager)
+    whenever(surface.getSceneManager(MockitoKt.any())).thenReturn(manager)
     whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())
     val actionEvent = mock(AnActionEvent::class.java)
     whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)

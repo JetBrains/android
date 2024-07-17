@@ -262,7 +262,7 @@ class PreviewEditorActionManagerProvider(
 /** Animation listener for <animated-vector>. */
 private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationListener {
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
-    (surface.sceneManager as? LayoutlibSceneManager)?.let {
+    (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
         // This condition happens when animation is reset (stop and set elapsed frame to 0) or the
         // elapsed frame is backed to negative.
@@ -312,7 +312,8 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
   private var modelTimeMap = listOf<Long>()
 
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
-    (surface.sceneManager as? LayoutlibSceneManager)?.let { sceneManager ->
+    (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
+      sceneManager ->
       val imageView =
         sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView? ?: return
       val animationDrawable = imageView.drawable as? AnimationDrawable ?: return
@@ -384,7 +385,7 @@ private class AnimatedSelectorListener(val surface: DesignSurface<*>) : Animatio
   private val animationListDelegate = AnimationListListener(surface)
 
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
-    (surface.sceneManager as? LayoutlibSceneManager)?.let {
+    (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
       when (it.model.file.rootTag?.name) {
         SdkConstants.TAG_ANIMATED_VECTOR -> {
           animatedVectorDelegate.animateTo(controller, framePositionMs)

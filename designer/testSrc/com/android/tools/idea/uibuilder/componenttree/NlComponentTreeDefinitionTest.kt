@@ -724,7 +724,7 @@ class NlComponentTreeDefinitionTest {
       )
       .build()
       .also {
-        val manager = it.surface.sceneManager as? SyncLayoutlibSceneManager
+        val manager = it.surface.getSceneManager(it) as? SyncLayoutlibSceneManager
         manager?.ignoreRenderRequests = true
         manager?.ignoreModelUpdateRequests = true
         val issueModel =
