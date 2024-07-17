@@ -72,7 +72,7 @@ constructor(
         // If a previously known device comes online, we emit StateChanged
         // If previously online device is missing from the list, we emit a StateChanged.
         deviceProvisioner
-          .mapStateNotNull { _, state -> state.asOnline() }
+          .mapStateNotNull { _, state -> state.asConnectedReady() }
           .collect { states ->
             val onlineStatesBySerial = states.associateBy { it.connectedDevice.serialNumber }
             onlineStatesBySerial.values.forEach { state ->
@@ -104,4 +104,4 @@ constructor(
   }
 }
 
-private fun DeviceState.asOnline() = takeIf { it.isOnline() } as? DeviceState.Connected
+private fun DeviceState.asConnectedReady() = takeIf { it.isReady } as? DeviceState.Connected
