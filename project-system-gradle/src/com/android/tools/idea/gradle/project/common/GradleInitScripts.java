@@ -235,14 +235,21 @@ public class GradleInitScripts {
         warnOnExcludedJarInclusion(paths);
       }
 
-      return "initscript {\n" +
+      return "import org.gradle.util.GradleVersion\n" +
+             "initscript {\n" +
              "    dependencies {\n" +
              "        " + createClassPathString(paths) + "\n" +
              "    }\n" +
              "}\n" +
-             "allprojects {\n" +
-             "    apply plugin: " + AndroidStudioToolingPlugin.class.getName() + "\n" +
-             "}\n";
+             "if (GradleVersion.current() < GradleVersion.version(\"8.8\")) {\n" +
+             "    allprojects {\n" +
+             "        apply plugin: " + AndroidStudioToolingPlugin.class.getName() + "\n" +
+             "    }\n" +
+             "} else {\n" +
+             "    lifecycle.beforeProject {\n" +
+             "        apply plugin: " + AndroidStudioToolingPlugin.class.getName() + "\n" +
+             "    }\n" +
+             "\n}";
     }
 
     @NotNull
