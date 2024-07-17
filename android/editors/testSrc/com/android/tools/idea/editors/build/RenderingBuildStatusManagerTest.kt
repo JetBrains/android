@@ -22,8 +22,8 @@ import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.ManualDisabledReason
-import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -37,9 +37,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -47,7 +44,10 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private fun RenderingBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
@@ -78,11 +78,13 @@ class RenderingBuildStatusManagerTest {
   val project: Project
     get() = projectRule.project
 
+  private val buildServices = FakeBuildSystemFilePreviewServices()
   private val execution = AppExecutorUtil.createBoundedApplicationPoolExecutor("Test", 1)
   private lateinit var dispatcher: CoroutineDispatcher
 
   @Before
   fun setUp() {
+    buildServices.register(projectRule.testRootDisposable)
     Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     dispatcher = execution.asCoroutineDispatcher()
   }
@@ -154,8 +156,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
-          buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()
 
@@ -182,8 +183,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
-          buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
+      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
 
       statusManager.awaitNeedsBuild()
 
@@ -210,8 +210,7 @@ class RenderingBuildStatusManagerTest {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
-      (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
-          buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+      buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()
 

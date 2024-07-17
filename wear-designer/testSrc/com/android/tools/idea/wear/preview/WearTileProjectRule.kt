@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
@@ -28,7 +29,10 @@ import org.junit.runners.model.Statement
 /** [TestRule] that implements the [before] and [after] setup specific for wear tile unit tests. */
 private class WearTileProjectRuleImpl(private val projectRule: AndroidProjectRule) :
   NamedExternalResource() {
+  val buildSystemServices = FakeBuildSystemFilePreviewServices()
+
   override fun before(description: Description) {
+    buildSystemServices.register(projectRule.testRootDisposable)
     projectRule.fixture.stubWearTilePreviewAnnotation()
   }
 
@@ -48,10 +52,12 @@ class WearTileProjectRule(
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate =
-    RuleChain.outerRule(TestLoggerRule())
-      .around(projectRule)
-      .around(WearTileProjectRuleImpl(projectRule))
+  private val implRule = WearTileProjectRuleImpl(projectRule)
+
+  val buildSystemServices: FakeBuildSystemFilePreviewServices
+    get() = implRule.buildSystemServices
+
+  private val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)

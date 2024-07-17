@@ -61,10 +61,7 @@ import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.rendering.BuildTargetReference
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
-import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices.FakeBuildServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
@@ -192,18 +189,6 @@ class ComposePreviewRepresentationTest {
     logger.info("setup")
     val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
-    FakeBuildSystemFilePreviewServices(
-        buildServices =
-          object : BuildServices<BuildTargetReference> by FakeBuildServices() {
-            override fun getLastCompileStatus(
-              buildTarget: BuildTargetReference
-            ): ProjectSystemBuildManager.BuildStatus {
-              // Return the build status from the project system while in migration.
-              return testProjectSystem.getBuildManager().getLastBuildResult().status
-            }
-          }
-      )
-      .register(fixture.testRootDisposable)
     logger.info("setup complete")
     project.replaceService(
       ToolWindowManager::class.java,
@@ -878,7 +863,13 @@ class ComposePreviewRepresentationTest {
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
   ) {
     val context =
-      ComposePreviewRepresentationTestContext(previewPsiFile, mainSurface, fixture, logger)
+      ComposePreviewRepresentationTestContext(
+        previewPsiFile,
+        mainSurface,
+        fixture,
+        logger,
+        projectRule.buildSystemServices,
+      )
     runBlocking(workerThread) {
       try {
         context.block()
@@ -922,6 +913,7 @@ class ComposePreviewRepresentationTest {
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
     private val logger: Logger,
+    private val buildSystemServices: FakeBuildSystemFilePreviewServices,
   ) {
 
     private lateinit var preview: ComposePreviewRepresentation
@@ -966,10 +958,7 @@ class ComposePreviewRepresentationTest {
       Disposer.register(fixture.testRootDisposable, preview)
       withContext(workerThread) {
         logger.info("compile")
-        ProjectSystemService.getInstance(fixture.project)
-          .projectSystem
-          .getBuildManager()
-          .compileProject()
+        buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
         logger.info("activate")
         preview.onActivate()
 

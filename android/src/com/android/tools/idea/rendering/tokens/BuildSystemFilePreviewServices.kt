@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.rendering.tokens
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
 
 /**
  * A project system specific set of services required by UI tools to manage builds and fetch build artifacts needed for rendering.
@@ -32,7 +39,7 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
   fun isApplicable(buildTargetReference: BuildTargetReference): Boolean
 
   /**
-   * A collection of services used by `BuildTargetReference`'s companion object to obtain build target references from references to
+   * A collection of services used by [BuildTargetReference]'s companion object to obtain build target references from references to
    * source code in the IDE.
    */
   interface BuildTargets {
@@ -69,6 +76,41 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
    */
   val buildServices: BuildServices<R>
 
+  /**
+   * A listener that can be subscribed to receive events related to builds that might affect rendering related build artifacts.
+   */
+  interface BuildListener {
+    enum class BuildMode { CLEAN, COMPILE }
+    /**
+     * The result of a build.
+     */
+    data class BuildResult(
+      /**
+       * The final status of the build.
+       */
+      val status: BuildStatus,
+      /**
+       * A predicate (a global search scope) that can be used to test whether a virtual file was included in the scope of the build.
+       */
+      val scope: GlobalSearchScope
+    )
+
+    /**
+     * Notifies the listener about the start of a new build that might affect rendering related artifacts
+     *
+     * [buildResult] future will complete **on the EDT** when the build completes.
+     */
+    @UiThread
+    fun buildStarted(buildMode: BuildMode, buildResult: ListenableFuture<BuildResult>)
+  }
+
+  /**
+   * Subscribes a [listener] to events that describe builds that affect artifacts that are used for rendering.
+   *
+   * Note that any currently running builds are not reported.
+   */
+  fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener)
+
   companion object {
     val EP_NAME =
       ExtensionPointName<BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference>>(
@@ -76,10 +118,10 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
       )
 
     /**
-     * Returns an instances of [BuildSystemFilePreviewServices] applicable to [this] project system.
+     * Returns an instance of [BuildSystemFilePreviewServices] applicable to [this] project system.
      *
      * Note, that the method returns an interface projection that does not accept [BuildTargetReference]s.
-     * Use [BuildTargetReference.getBuildSystemFilePreviewServices] to gen an instances suitable for handling build target references.
+     * Use [BuildTargetReference.getBuildSystemFilePreviewServices] to get an instance suitable for handling build target references.
      */
     fun AndroidProjectSystem.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, *> {
       return getToken(EP_NAME)
