@@ -812,6 +812,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             ads-sdk                       : :ads-sdk (DefaultExternalProject)
                 path                          : :ads-sdk [-]
@@ -833,6 +837,7 @@ MODULE                        : project
                         optionalSdk                   : <empty>
                         requiredSdk                   : <empty>
                         runtimeElements               : <empty>
+                taskModel                     : DefaultGradleTaskModel
             ads-sdk-implementation        : :ads-sdk-implementation (DefaultExternalProject)
                 path                          : :ads-sdk-implementation [-]
                 identityPath                  : :ads-sdk-implementation [-]
@@ -843,11 +848,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/ads-sdk-implementation
                 buildDir                      : <ROOT>/ads-sdk-implementation/build [-]
                 buildFile                     : <ROOT>/ads-sdk-implementation/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :ads-sdk-implementation:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :ads-sdk-implementation:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1085,6 +1085,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :ads-sdk-implementation:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :ads-sdk-implementation:testReleaseUnitTest
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -1095,11 +1101,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1331,6 +1332,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             app-with-dynamic-feature      : :app-with-dynamic-feature (DefaultExternalProject)
                 path                          : :app-with-dynamic-feature [-]
                 identityPath                  : :app-with-dynamic-feature [-]
@@ -1341,11 +1348,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app-with-dynamic-feature
                 buildDir                      : <ROOT>/app-with-dynamic-feature/build [-]
                 buildFile                     : <ROOT>/app-with-dynamic-feature/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app-with-dynamic-feature:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app-with-dynamic-feature:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1577,6 +1579,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app-with-dynamic-feature:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app-with-dynamic-feature:testReleaseUnitTest
             feature                       : :feature (DefaultExternalProject)
                 path                          : :feature [-]
                 identityPath                  : :feature [-]
@@ -1587,11 +1595,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/feature
                 buildDir                      : <ROOT>/feature/build [-]
                 buildFile                     : <ROOT>/feature/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :feature:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :feature:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1821,11 +1824,14 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :feature:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :feature:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.ads-sdk
     GradleModuleModel
         gradlePath                    : :ads-sdk
@@ -2283,8 +2289,8 @@ MODULE                        : project.ads-sdk-implementation
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2301,8 +2307,8 @@ MODULE                        : project.ads-sdk-implementation
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2319,8 +2325,8 @@ MODULE                        : project.ads-sdk-implementation
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3472,8 +3478,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3490,8 +3496,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3508,8 +3514,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -4671,8 +4677,8 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -4689,8 +4695,8 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -4707,8 +4713,8 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -5487,8 +5493,8 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -5505,8 +5511,8 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -5523,8 +5529,8 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

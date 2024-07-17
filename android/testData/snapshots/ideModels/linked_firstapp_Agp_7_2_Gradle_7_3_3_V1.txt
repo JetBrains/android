@@ -594,6 +594,10 @@ MODULE                        : My_First_App
         name                          : My First App
         qName                         : My First App
         version                       : unspecified
+        projectDir                    : <ROOT>/firstapp
+        buildDir                      : <ROOT>/firstapp/build [-]
+        buildFile                     : <ROOT>/firstapp/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -602,6 +606,10 @@ MODULE                        : My_First_App
                 qName                         : :app
                 group                         : My First App
                 version                       : unspecified
+                projectDir                    : <ROOT>/firstapp/app
+                buildDir                      : <ROOT>/firstapp/app/build [-]
+                buildFile                     : <ROOT>/firstapp/app/build.gradle
+                externalSystemId              : GRADLE
                 childProjects
                     mysharedlibrary               : :app:mysharedlibrary (DefaultExternalProject)
                         path                          : :app:mysharedlibrary [-]
@@ -613,11 +621,6 @@ MODULE                        : My_First_App
                         projectDir                    : <ROOT>/shared/mysharedlibrary
                         buildDir                      : <ROOT>/shared/mysharedlibrary/build [-]
                         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
-                        tasks
-                            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                                qName                         : :app:mysharedlibrary:testDebugUnitTest
-                            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                qName                         : :app:mysharedlibrary:testReleaseUnitTest
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -845,15 +848,12 @@ MODULE                        : My_First_App
                                 testRuntimeOnly               : <empty>
                                 testWearApp                   : <empty>
                                 wearApp                       : <empty>
-                projectDir                    : <ROOT>/firstapp/app
-                buildDir                      : <ROOT>/firstapp/app/build [-]
-                buildFile                     : <ROOT>/firstapp/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
-                externalSystemId              : GRADLE
+                        taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :app:mysharedlibrary:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :app:mysharedlibrary:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1069,11 +1069,14 @@ MODULE                        : My_First_App
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>/firstapp
-        buildDir                      : <ROOT>/firstapp/build [-]
-        buildFile                     : <ROOT>/firstapp/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -1675,8 +1678,8 @@ MODULE                        : My_First_App.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -1702,8 +1705,8 @@ MODULE                        : My_First_App.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -1729,8 +1732,8 @@ MODULE                        : My_First_App.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2322,8 +2325,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2349,8 +2352,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2376,8 +2379,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar

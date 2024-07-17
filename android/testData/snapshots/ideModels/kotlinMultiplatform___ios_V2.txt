@@ -590,6 +590,10 @@ MODULE                        : kotlinMultiPlatform
         name                          : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -601,11 +605,6 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -837,6 +836,12 @@ MODULE                        : kotlinMultiPlatform
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             module2                       : :module2 (DefaultExternalProject)
                 path                          : :module2 [-]
                 identityPath                  : :module2 [-]
@@ -847,15 +852,6 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/module2
                 buildDir                      : <ROOT>/module2/build [-]
                 buildFile                     : <ROOT>/module2/build.gradle
-                tasks
-                    iosSimulatorArm64Test         : iosSimulatorArm64Test (DefaultExternalTask)
-                        qName                         : :module2:iosSimulatorArm64Test
-                    iosX64Test                    : iosX64Test (DefaultExternalTask)
-                        qName                         : :module2:iosX64Test
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :module2:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :module2:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1021,13 +1017,13 @@ MODULE                        : kotlinMultiPlatform
                         appleTestIntransitiveDependenciesMetadata         : <empty>
                         appleTestResolvableDependenciesMetadata : <empty>
                         appleTestRuntimeOnly          : <empty>
-                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
-                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
                         - archives                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
-                        - archives                    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
-                        - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
-                        - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
+                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
+                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
+                        - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
+                        - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
+                        - archives                    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -1326,14 +1322,21 @@ MODULE                        : kotlinMultiPlatform
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        iosSimulatorArm64Test         : iosSimulatorArm64Test (DefaultExternalTask)
+                            qName                         : :module2:iosSimulatorArm64Test
+                        iosX64Test                    : iosX64Test (DefaultExternalTask)
+                            qName                         : :module2:iosX64Test
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :module2:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :module2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
             configurationArtifacts
                 kotlinKlibCommonizerClasspath : <empty>
                 kotlinNativeBundleConfiguration         : <empty>
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -2372,8 +2375,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2390,8 +2393,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2408,8 +2411,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3015,8 +3018,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidDebug:commonMain
                     - fragments                   : androidDebug
                     - fragments                   : commonMain
@@ -3087,8 +3090,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragments                   : androidInstrumentedTestDebug
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3179,8 +3182,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidUnitTestDebug:commonTest
                     - fragments                   : androidUnitTestDebug
                     - fragments                   : commonTest
@@ -3292,7 +3295,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3303,6 +3305,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosArm64Main:iosMain
                     - fragmentRefines             : iosMain:appleMain
                     - fragmentRefines             : appleMain:nativeMain
@@ -3429,7 +3432,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3440,6 +3442,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosArm64Test:iosTest
                     - fragmentRefines             : iosTest:appleTest
                     - fragmentRefines             : appleTest:nativeTest
@@ -3507,7 +3510,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3518,6 +3520,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosSimulatorArm64Main:iosMain
                     - fragmentRefines             : iosMain:appleMain
                     - fragmentRefines             : appleMain:nativeMain
@@ -3578,7 +3581,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3589,6 +3591,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosSimulatorArm64Test:iosTest
                     - fragmentRefines             : iosTest:appleTest
                     - fragmentRefines             : appleTest:nativeTest
@@ -3656,7 +3659,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3667,6 +3669,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosX64Main:iosMain
                     - fragmentRefines             : iosMain:appleMain
                     - fragmentRefines             : appleMain:nativeMain
@@ -3727,7 +3730,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
@@ -3738,6 +3740,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : iosX64Test:iosTest
                     - fragmentRefines             : iosTest:appleTest
                     - fragmentRefines             : appleTest:nativeTest

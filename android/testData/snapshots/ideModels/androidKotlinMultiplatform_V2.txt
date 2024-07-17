@@ -134,6 +134,10 @@ MODULE                        : Kotlin_Multiplatform
         name                          : Kotlin Multiplatform
         qName                         : Kotlin Multiplatform
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             androidLib                    : :androidLib (DefaultExternalProject)
                 path                          : :androidLib [-]
@@ -145,23 +149,6 @@ MODULE                        : Kotlin_Multiplatform
                 projectDir                    : <ROOT>/androidLib
                 buildDir                      : <ROOT>/androidLib/build [-]
                 buildFile                     : <ROOT>/androidLib/build.gradle.kts
-                tasks
-                    testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
-                    testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
-                    testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
-                    testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
-                    testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
-                    testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
-                    testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
-                    testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -617,6 +604,24 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoRuntimeOnly            : <empty>
                         typetwoWearApp                : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
+                        testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
+                        testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
+                        testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
+                        testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
+                        testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
+                        testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
+                        testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -627,11 +632,6 @@ MODULE                        : Kotlin_Multiplatform
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle.kts
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -754,6 +754,12 @@ MODULE                        : Kotlin_Multiplatform
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             kmpFirstLib                   : :kmpFirstLib (DefaultExternalProject)
                 path                          : :kmpFirstLib [-]
                 identityPath                  : :kmpFirstLib [-]
@@ -764,9 +770,6 @@ MODULE                        : Kotlin_Multiplatform
                 projectDir                    : <ROOT>/kmpFirstLib
                 buildDir                      : <ROOT>/kmpFirstLib/build [-]
                 buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
-                tasks
-                    testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
-                        qName                         : :kmpFirstLib:testAndroidUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -890,6 +893,10 @@ MODULE                        : Kotlin_Multiplatform
                         unitTestKotlinScriptDef       : <empty>
                         unitTestKotlinScriptDefExtensions       : <empty>
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
+                            qName                         : :kmpFirstLib:testAndroidUnitTest
             kmpJvmOnly                    : :kmpJvmOnly (DefaultExternalProject)
                 path                          : :kmpJvmOnly [-]
                 identityPath                  : :kmpJvmOnly [-]
@@ -900,9 +907,6 @@ MODULE                        : Kotlin_Multiplatform
                 projectDir                    : <ROOT>/kmpJvmOnly
                 buildDir                      : <ROOT>/kmpJvmOnly/build [-]
                 buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
-                tasks
-                    jvmTest                       : jvmTest (DefaultExternalTask)
-                        qName                         : :kmpJvmOnly:jvmTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -988,6 +992,10 @@ MODULE                        : Kotlin_Multiplatform
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
                     - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :kmpJvmOnly:jvmTest
             kmpSecondLib                  : :kmpSecondLib (DefaultExternalProject)
                 path                          : :kmpSecondLib [-]
                 identityPath                  : :kmpSecondLib [-]
@@ -998,9 +1006,6 @@ MODULE                        : Kotlin_Multiplatform
                 projectDir                    : <ROOT>/kmpSecondLib
                 buildDir                      : <ROOT>/kmpSecondLib/build [-]
                 buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
-                tasks
-                    jvmTest                       : jvmTest (DefaultExternalTask)
-                        qName                         : :kmpSecondLib:jvmTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1114,11 +1119,12 @@ MODULE                        : Kotlin_Multiplatform
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :kmpSecondLib:jvmTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -2590,8 +2596,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2659,8 +2665,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidMain:commonMain
                     - fragments                   : androidMain
                     - fragments                   : commonMain
@@ -2738,8 +2744,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidUnitTest:commonTest
                     - fragments                   : androidUnitTest
                     - fragments                   : commonTest
@@ -2859,8 +2865,8 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmMain:commonMain
                     - fragments                   : jvmMain
                     - fragments                   : commonMain
@@ -2938,8 +2944,8 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmTest:commonTest
                     - fragments                   : jvmTest
                     - fragments                   : commonTest
@@ -3169,8 +3175,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidMain:commonMain
                     - fragments                   : androidMain
                     - fragments                   : commonMain
@@ -3230,8 +3236,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmMain:commonMain
                     - fragments                   : jvmMain
                     - fragments                   : commonMain
@@ -3309,8 +3315,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmTest:commonTest
                     - fragments                   : jvmTest
                     - fragments                   : commonTest
