@@ -214,18 +214,11 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
     myActionManager = actionManagerProvider.invoke(this);
     myActionManager.registerActionsShortcuts(getLayeredPane());
 
-    if (hasZoomControls) {
-      JPanel zoomControlsLayerPane = new JPanel();
-      zoomControlsLayerPane.setBorder(JBUI.Borders.empty(UIUtil.getScrollBarWidth()));
-      zoomControlsLayerPane.setOpaque(false);
-      zoomControlsLayerPane.setLayout(new BorderLayout());
-      zoomControlsLayerPane.setFocusable(false);
-
-      getLayeredPane().add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
-      zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
+    if (getZoomControlsLayerPane() != null) {
+      getLayeredPane().add(getZoomControlsLayerPane(), JLayeredPane.DRAG_LAYER);
+      getZoomControlsLayerPane().add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
       if (getZoomControlsPolicy() == ZoomControlsPolicy.AUTO_HIDE) {
-        myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, zoomControlsLayerPane);
-        zoomControlsLayerPane.setVisible(false);
+        myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, getZoomControlsLayerPane());
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
       }
       else {
