@@ -45,15 +45,9 @@ internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx) :
 
   override fun getActionUpdateThread() = EDT
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    println("update")
-  }
-
   override fun isSelected(e: AnActionEvent): Boolean {
     val document = editor.document
     val isScrollAtBottom = editor.isScrollAtBottom(false)
-    println("isScrollAtBottom: $isScrollAtBottom")
     return (document.lineCount == 0 || editor.isCaretAtBottom()) && isScrollAtBottom
   }
 
