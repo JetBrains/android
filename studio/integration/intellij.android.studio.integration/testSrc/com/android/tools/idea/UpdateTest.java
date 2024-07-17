@@ -24,6 +24,7 @@ import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
+import com.android.tools.asdriver.tests.ComponentMatchersBuilder;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.TestFileSystem;
@@ -342,12 +343,13 @@ public class UpdateTest {
         // implicitly shown, so we need to invoke this for the update button to be available.
         studio.executeAction("CheckForUpdate");
 
+        ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+        builder.addComponentTextExactMatch("Update\u2026");
+        studio.waitForComponent(builder);
+
+        Thread.sleep(5000);
+
         System.out.println("Updating Android Studio");
-        // This invokes the "update button" in the bottom right of the "Welcome" window. It may
-        // have different icons depending on the state of the platform, but we only look for the
-        // "update" icon because the test's setup ensures that the only notification available is
-        // the update notification.
-        studio.invokeByIcon("ide/notification/ideUpdate.svg");
 
         // This will activate the update link inside the NotificationActionPanel in the "Welcome"
         // window. The Unicode character in this string is an ellipsis. The string corresponds to
