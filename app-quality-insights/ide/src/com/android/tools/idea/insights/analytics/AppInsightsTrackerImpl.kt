@@ -18,17 +18,16 @@ package com.android.tools.idea.insights.analytics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
 import com.intellij.openapi.project.Project
-import java.security.MessageDigest
-import java.util.Random
 
 class AppInsightsTrackerImpl(
   private val project: Project,
   private val insightsProductType: AppInsightsTracker.ProductType,
 ) : AppInsightsTracker {
-  private val appIdSalt: Int = Random().nextInt()
 
   override fun logZeroState(
     event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails
@@ -37,7 +36,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ZERO_STATE
             zeroStateDetails = event
             productType = insightsProductType.toProtoProductType()
@@ -56,7 +55,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(unanonymizedAppId)
+            appId = AnonymizerUtil.anonymizeUtf8(unanonymizedAppId)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.CRASHES_FETCHED
             fetchDetails = event
             isOffline = mode.isOfflineMode()
@@ -74,7 +73,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
             type =
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.CRASH_LIST_DETAILS_VIEW
             crashOpenDetails = event
@@ -93,7 +92,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.STACKTRACE_CLICKED
             stacktraceDetails = event
             mode?.let { isOffline = it.isOfflineMode() }
@@ -112,7 +111,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
             type =
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.FB_CONSOLE_LINK_CLICKED
             consoleLinkDetails = event
@@ -132,7 +131,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(project.name)
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ERROR
             errorDetails = event
             isOffline = mode.isOfflineMode()
@@ -152,7 +151,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(unanonymizedAppId)
+            appId = AnonymizerUtil.anonymizeUtf8(unanonymizedAppId)
             type =
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ISSUE_STATUS_CHANGED
             issueChangedDetails = event
@@ -173,7 +172,7 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(unanonymizedAppId)
+            appId = AnonymizerUtil.anonymizeUtf8(unanonymizedAppId)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.NOTE
             notesDetails = event
             isOffline = mode.isOfflineMode()
@@ -206,9 +205,38 @@ class AppInsightsTrackerImpl(
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = anonymizeAppId(unanonymizedAppId)
+            appId = AnonymizerUtil.anonymizeUtf8(unanonymizedAppId)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.MODE_TRANSITION
             modeTransitionDetails = event
+            isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
+          }
+        )
+        .withProjectId(project)
+    )
+  }
+
+  override fun logEventViewed(
+    unanonymizedAppId: String,
+    mode: ConnectionMode,
+    issueId: String,
+    eventId: String,
+    isFetched: Boolean,
+  ) {
+    UsageTracker.log(
+      generateAndroidStudioEventBuilder()
+        .setAppQualityInsightsUsageEvent(
+          AppQualityInsightsUsageEvent.newBuilder().apply {
+            appId = AnonymizerUtil.anonymizeUtf8(unanonymizedAppId)
+            type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.EVENT_VIEWED
+            eventDetails =
+              EventDetails.newBuilder()
+                .apply {
+                  this.issueId = AnonymizerUtil.anonymizeUtf8(issueId)
+                  this.eventId = AnonymizerUtil.anonymizeUtf8(eventId)
+                  this.isFetched = isFetched
+                }
+                .build()
             isOffline = mode.isOfflineMode()
             productType = insightsProductType.toProtoProductType()
           }
@@ -221,13 +249,5 @@ class AppInsightsTrackerImpl(
     return AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.FIREBASE_ASSISTANT)
       .setKind(AndroidStudioEvent.EventKind.APP_QUALITY_INSIGHTS_USAGE)
-  }
-
-  private fun anonymizeAppId(appId: String?): String? {
-    if (appId == null) return null
-    val bytes = (appId + appIdSalt).toByteArray()
-    val md = MessageDigest.getInstance("SHA-256")
-    val digest = md.digest(bytes)
-    return digest.fold("") { str, it -> str + "%02x".format(it) }
   }
 }
