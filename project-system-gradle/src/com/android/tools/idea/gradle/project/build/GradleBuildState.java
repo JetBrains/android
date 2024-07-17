@@ -22,6 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
@@ -48,6 +50,8 @@ public class GradleBuildState {
   @Nullable
   private BuildSummary mySummary;
 
+  private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
+
   @NotNull
   public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleBuildListener listener) {
     return subscribe(project, listener, project);
@@ -72,6 +76,10 @@ public class GradleBuildState {
     myMessageBus = project.getMessageBus();
   }
 
+  public ModificationTracker getModificationTracker() {
+    return myModificationTracker;
+  }
+
   public @NotNull BuildCompleter buildStarted(@NotNull BuildContext context) {
     synchronized (myLock) {
       myCurrentContext = context;
@@ -92,6 +100,7 @@ public class GradleBuildState {
         }
         myCurrentContext = null;
         mySummary = new BuildSummary(status, myContext);
+        myModificationTracker.incModificationCount();
       }
       syncPublisher(listener -> listener.buildFinished(status, myContext));
     }

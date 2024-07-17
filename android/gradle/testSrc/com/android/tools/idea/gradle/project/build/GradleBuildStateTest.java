@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -74,5 +76,17 @@ public class GradleBuildStateTest extends LightPlatformTestCase {
     assertNull(myBuildState.getRunningBuildContext());
     assertFalse(myBuildState.isBuildInProgress());
     verify(myListener).buildFinished(SUCCESS, myContext);
+  }
+
+  public void testModificationTracker() {
+    final var initialModificationCount = myBuildState.getModificationTracker().getModificationCount();
+    GradleBuildState.BuildCompleter completer = myBuildState.buildStarted(myContext);
+    completer.buildFinished(SUCCESS);
+    final var successfulBuildModificationCount = myBuildState.getModificationTracker().getModificationCount();
+    completer = myBuildState.buildStarted(myContext);
+    completer.buildFinished(FAILED);
+    final var failedBuildModificationCount = myBuildState.getModificationTracker().getModificationCount();
+    assertThat(successfulBuildModificationCount).isGreaterThan(initialModificationCount);
+    assertThat(failedBuildModificationCount).isGreaterThan(successfulBuildModificationCount);
   }
 }
