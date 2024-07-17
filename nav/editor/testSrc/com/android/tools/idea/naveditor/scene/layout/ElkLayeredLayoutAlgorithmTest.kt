@@ -51,8 +51,9 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
         fragment("profile")
       }
     }
-    model.surface.sceneManager!!.update()
-    val scene = model.surface.scene!!
+    val sceneManager = model.surface.getSceneManager(model)!!
+    sceneManager.update()
+    val scene = sceneManager.scene
     val root = scene.root!!
     val algorithm = ElkLayeredLayoutAlgorithm()
     root.children.forEach { it.setPosition(0, 0) }
@@ -82,8 +83,9 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
         }
       }
     }
-    model.surface.sceneManager!!.update()
-    val scene = model.surface.scene!!
+    val sceneManager = model.surface.getSceneManager(model)!!
+    sceneManager.update()
+    val scene = sceneManager.scene
     val root = scene.root!!
     val algorithm = ElkLayeredLayoutAlgorithm()
     root.children.forEach { it.setPosition(0, 0) }
@@ -106,8 +108,9 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
         fragment("f4")
       }
     }
-    model.surface.sceneManager!!.update()
-    val scene = model.surface.scene!!
+    val sceneManager = model.surface.getSceneManager(model)!!
+    sceneManager.update()
+    val scene = sceneManager.scene
     val root = scene.root!!
     val algorithm = ElkLayeredLayoutAlgorithm()
     root.children.forEach { it.setPosition(0, 0) }

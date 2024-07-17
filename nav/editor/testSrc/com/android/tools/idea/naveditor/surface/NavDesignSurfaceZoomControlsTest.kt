@@ -219,7 +219,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
+      surface.currentNavigation = surface.model?.treeReader?.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi
@@ -287,7 +287,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
+      surface.currentNavigation = surface.model?.treeReader?.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi
@@ -357,7 +357,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.currentNavigation = surface.sceneManager!!.model.treeReader.find("FirstFragment")!!
+      surface.currentNavigation = surface.model?.treeReader?.find("FirstFragment")!!
     }
 
     lateinit var fakeUi: FakeUi

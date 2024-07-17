@@ -43,12 +43,20 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
   }
 
   public boolean hasRenderResult() {
-    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    NlModel model = target().getModel();
+    if (model == null) {
+      return false;
+    }
+    LayoutlibSceneManager sceneManager = target().getSceneManager(model);
     return sceneManager != null && sceneManager.getRenderResult() != null;
   }
 
   public boolean isRendering() {
-    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    NlModel model = target().getModel();
+    if (model == null) {
+      return false;
+    }
+    LayoutlibSceneManager sceneManager = target().getSceneManager(model);
     return sceneManager != null && sceneManager.isRendering();
   }
 

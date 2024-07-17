@@ -184,7 +184,8 @@ private fun isSelected(surface: DesignSurface<*>, state: State): Boolean {
 }
 
 private fun getImageView(surface: DesignSurface<*>): ImageView? {
-  val layoutlibSceneManager = surface.sceneManager as? LayoutlibSceneManager ?: return null
+  val layoutlibSceneManager =
+    surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager ?: return null
   return layoutlibSceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as? ImageView
 }
 

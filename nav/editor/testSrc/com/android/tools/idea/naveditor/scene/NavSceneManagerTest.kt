@@ -201,9 +201,9 @@ class NavSceneManagerTest : NavTestCase() {
     }
     val model = modelBuilder.build(false)
 
-    val sceneManager = model.surface.sceneManager as NavSceneManager
+    val sceneManager = model.surface.getSceneManager(model) as NavSceneManager
     sceneManager.update()
-    val scene = model.surface.scene!!
+    val scene = sceneManager.scene
     assertEquals(1, scene.root!!.childCount)
 
     root.fragment("f2")

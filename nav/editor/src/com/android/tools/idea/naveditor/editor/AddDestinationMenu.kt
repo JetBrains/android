@@ -408,21 +408,22 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     creatingInProgress = true
 
     hideBalloon()
+    val model = surface.model
     lateinit var component: NlComponent
     WriteCommandAction.runWriteCommandAction(surface.project, "Add ${destination.label}", null, Runnable {
       destination.addToGraph()
       component = destination.component ?: return@Runnable
       if (component.isInclude) {
-        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
+        NavUsageTracker.getInstance(model).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
       }
       else {
-        NavUsageTracker.getInstance(surface.model).createEvent(
+        NavUsageTracker.getInstance(model).createEvent(
           NavEditorEvent.NavEditorEventType.ADD_DESTINATION).withDestinationInfo(component).log()
       }
       component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       // explicitly update so the new SceneComponent is created
-      surface.sceneManager!!.requestRenderAsync()
-    }, surface.model?.file)
+      model?.let { surface.getSceneManager(it) }!!.requestRenderAsync()
+    }, model?.file)
 
     addDynamicDependency(destination)
 

@@ -103,7 +103,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
 
     mySurface.requestRender().join();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().getIssues()
                   .stream()
                   .anyMatch(
@@ -166,20 +166,20 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager(model).getRenderResult());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
-    assertNull(mySurface.getSceneManager().getSecondarySceneView());
+    assertNull(mySurface.getSceneManager(model).getSecondarySceneView());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
 
     SceneView screenView = mySurface.getFocusedSceneView();
-    SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
+    SceneView blueprintView = mySurface.getSceneManager(model).getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
 
