@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
@@ -194,6 +195,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Now remove one of the modules, which should automatically cause the repo to have different roots.
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> removeModuleDependency(myModule, TestModuleUtil.findModule(getProject(), "plib2").getName()));
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
     assertEquals(originalChildren.size() - 1, resources.getChildren().size());
     assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
   }
@@ -387,9 +389,11 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // dependency order (like for example, alphabetical order of the modules).
     removeModuleDependency(lib1, lib2.getName());
     removeModuleDependency(app, lib1.getName());
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
     addModuleDependency(app, lib2);
     addModuleDependency(lib2, lib1);
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
 
     // app -> lib2 -> lib1
     assertTrue(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
