@@ -89,7 +89,7 @@ inline fun buildPrompt(
   val usedAnyFiles =
     prompt.messages.any {
       it.chunks.any { chunk -> chunk.filesUsed.isNotEmpty() } ||
-        (it is Prompt.Context && it.files.isNotEmpty())
+        (it is Prompt.ContextMessage && it.files.isNotEmpty())
     }
   if (usedAnyFiles) {
     // Enforce the context sharing setting
@@ -138,7 +138,7 @@ interface PromptBuilder {
     fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>)
   }
 
-  interface ContextBuilder {
+  interface ContextBuilder : MessageBuilder {
     /**
      * Adds a file to the context of the prompt. How it ends up being included in the request
      * depends on the [Model] being used. Some model APIs have a dedicated field for including
