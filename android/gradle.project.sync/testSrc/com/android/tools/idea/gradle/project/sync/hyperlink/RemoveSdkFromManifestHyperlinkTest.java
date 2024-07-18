@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.io.IOException;
@@ -82,6 +83,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         System.out.println(expected);
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       myHyperlink.execute(project);
@@ -130,6 +132,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       myHyperlink.execute(project);
@@ -179,6 +182,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.TARGET);
       myHyperlink.execute(project);
@@ -229,6 +233,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       myHyperlink.execute(project);
@@ -281,6 +286,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule, libModule), SdkProperty.MIN);
       myHyperlink.execute(project);
