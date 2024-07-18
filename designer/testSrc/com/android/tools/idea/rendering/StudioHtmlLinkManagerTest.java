@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.mock.MockPsiFile;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import java.util.List;
@@ -39,11 +40,11 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
     String url1 = manager.createActionLink(runnable1);
     String url2 = manager.createActionLink(runnable2);
     assertFalse(result1.get());
-    manager.handleUrl(url1, null, null, false, HtmlLinkManager.NOOP_SURFACE);
+    manager.handleUrl(url1, null, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
     assertTrue(result1.get());
     assertFalse(result2.get());
     result1.set(false);
-    manager.handleUrl(url2, null, null, false, HtmlLinkManager.NOOP_SURFACE);
+    manager.handleUrl(url2, null, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
     assertFalse(result1.get());
     assertTrue(result2.get());
   }
