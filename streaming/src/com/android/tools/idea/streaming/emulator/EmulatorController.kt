@@ -77,6 +77,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.Reference
@@ -87,6 +88,8 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 /**
  * Controls a running Emulator.
@@ -299,6 +302,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
     }
+  }
+
+  /**
+   * Waits for the termination of the gRPC channel. Shutdown should have been requested before calling this method.
+   */
+  @VisibleForTesting
+  internal fun awaitTermination(timeout: Duration) {
+    channel?.awaitTermination(timeout.toLong(DurationUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
   }
 
   /**
