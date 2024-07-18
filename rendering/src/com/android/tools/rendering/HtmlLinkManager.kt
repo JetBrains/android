@@ -42,7 +42,7 @@ interface HtmlLinkManager {
     surface: RefreshableSurface,
   )
 
-  fun createBuildModuleUrl(): String = URL_BUILD_MODULE
+  fun createBuildModuleUrl(): String = URL_BUILD_FOR_RENDERING
 
   fun createBuildProjectUrl(): String = URL_BUILD
 
@@ -164,7 +164,7 @@ interface HtmlLinkManager {
 }
 
 const val URL_BUILD = "action:build"
-const val URL_BUILD_MODULE = "action:buildModule"
+const val URL_BUILD_FOR_RENDERING = "action:buildForRendering"
 const val URL_SYNC = "action:sync"
 const val URL_EDIT_CLASSPATH = "action:classpath"
 const val URL_OPEN_CLASS = "openClass:"
