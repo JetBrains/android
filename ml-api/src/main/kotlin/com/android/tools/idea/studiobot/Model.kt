@@ -16,6 +16,7 @@
 package com.android.tools.idea.studiobot
 
 import com.android.tools.idea.studiobot.prompts.Prompt
+import com.intellij.openapi.util.TextRange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -121,20 +122,35 @@ sealed interface Content {
 /**
  * A citation identified for a particular response.
  *
- * @param action The necessary action that must be taken in response to this citation:
- *     * If it is [CitationAction.BLOCK] the content and url should be blank, and so you can either
- *       choose to do nothing with it, or indicate to the user that a response was received but was
- *       blocked.
- *     * If it is [CitationAction.CITE], the content will still be present, but the citation url
- *       should be shown alongside it when presented to the user.
- *
- * @param url The url source that should be cited if the action is [CitationAction.CITE]
+ * @param action The necessary action that must be taken in response to this citation.
+ * @param url The url source that should be cited if the action is [CitationAction.CITE_INDIRECT] or
+ *   [CitationAction.CITE_DIRECT]
+ * @param range The range in [Content.TextContent] that is influenced by this citation
  */
-data class Citation(val action: CitationAction, val url: String? = null)
+data class Citation(
+  val action: CitationAction,
+  val url: String? = null,
+  val range: TextRange = TextRange.EMPTY_RANGE,
+)
 
-/** See [Citation] */
 enum class CitationAction {
-  CITE,
+  /**
+   * A reference that had an indirect (or "minor") influence on the generation. These references
+   * must be shown to the user, but the UI can decide where to place them.
+   */
+  CITE_INDIRECT,
+
+  /**
+   * A reference that had a direct (or "heavy") influence on the generation. The UI must take an
+   * effort to display them as close the part of the generation that was influenced by this
+   * reference.
+   */
+  CITE_DIRECT,
+
+  /**
+   * The content should be blocked. The UI can choose to do nothing with it, or indicate that the
+   * response was blocked.
+   */
   BLOCK,
 }
 
