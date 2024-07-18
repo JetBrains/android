@@ -24,6 +24,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
@@ -56,6 +57,15 @@ interface BuildTargetReference {
     fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       maybeValidateModule(module, targetFile)
       return module.project.buildTargets.from(module, targetFile)
+    }
+
+    /**
+     * Obtains a reference to a build target that contains the given [targetFile].
+     */
+    @JvmStatic
+    fun from(project: Project, targetFile: VirtualFile): BuildTargetReference? {
+      val module = runReadAction { ProjectFileIndex.getInstance(project).getModuleForFile(targetFile)} ?: return null
+      return project.buildTargets.from(module, targetFile)
     }
 
     /**

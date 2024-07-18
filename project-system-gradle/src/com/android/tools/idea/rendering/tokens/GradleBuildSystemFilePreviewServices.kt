@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -66,6 +67,13 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
   override val buildServices: BuildServices<GradleBuildTargetReference> = object: BuildServices<GradleBuildTargetReference> {
     override fun getLastCompileStatus(buildTarget: GradleBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
       return getBuildServicesStatus(buildTarget).lastCompileStatus
+    }
+
+    override fun buildArtifacts(buildTargets: Collection<GradleBuildTargetReference>) {
+      if (buildTargets.isEmpty()) return
+      val modules = buildTargets.map { (it as GradleBuildTargetReference).module }.distinct()
+      val project = modules.map { it.project }.single()
+      GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
     }
   }
 
