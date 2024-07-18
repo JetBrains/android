@@ -33,8 +33,9 @@ void DisplayControl::InitializeStatics(Jni jni) {
   if (class_.IsNull()) {
     // Before API 34 QPR1 getPhysicalDisplayIds and getPhysicalDisplayToken used to be part of SurfaceControl.
     class_ = jni.GetClass("android/view/SurfaceControl");
+    get_physical_display_token_method_ = class_.FindStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
     get_physical_display_ids_method_ = class_.FindStaticMethod("getPhysicalDisplayIds", "()[J");
-    if (get_physical_display_ids_method_ == nullptr) {
+    if (get_physical_display_token_method_ == nullptr && get_physical_display_ids_method_ == nullptr) {
       Log::D("The SurfaceControl.getPhysicalDisplayIds method doesn't exist. Attempting to use DisplayControl");
       // SurfaceControl doesn't have the necessary method. Load libandroid_servers.so and use DisplayControl instead.
       class_.Release();
@@ -63,11 +64,9 @@ void DisplayControl::InitializeStatics(Jni jni) {
         return;
       }
       class_ = std::move(display_control_class);
-    }
-    if (get_physical_display_ids_method_ == nullptr) {
+      get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
       get_physical_display_ids_method_ = class_.GetStaticMethod("getPhysicalDisplayIds", "()[J");
     }
-    get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
     class_.MakeGlobal();
   }
 }

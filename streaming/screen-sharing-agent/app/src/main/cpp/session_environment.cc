@@ -49,23 +49,21 @@ bool ControlDisplayPower(Jni jni, int state) {
   if (Agent::feature_level() >= 35) {
     return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
     // TODO: Turn off secondary physical displays.
-  } else if (Agent::feature_level() >= 29) {
+  } else {
+    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
     vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
     if (display_ids.empty()) {
-      return false;
-    }
-    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
-    for (int64_t display_id : display_ids) {
-      JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+      if (display_token.IsNull()) {
+        return false;
+      }
       SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+    } else {
+      for (int64_t display_id: display_ids) {
+        JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+        SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+      }
     }
-  } else {
-    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-    if (display_token.IsNull()) {
-      return false;
-    }
-    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
-    SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
   }
   return true;
 }
