@@ -32,6 +32,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.compose-ide-plugin.tests",
+    generate_k2_tests = True,
     iml_files = ["intellij.android.compose-ide-plugin.tests.iml"],
     tags = ["noci:studio-win"],  # b/208245297
     test_class = "com.android.tools.tests.ComposeTestSuite",
