@@ -49,6 +49,7 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -327,6 +328,10 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   }
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
+    // TODO(b/353566778): skip for K2 until 242 merge
+    if (extension.equals(".gradle.kts")) {
+      assumeTrue(KotlinPluginModeProvider.Companion.isK1Mode());
+    }
     createManifest();
     myFixture.enableInspections(inspection);
     String sourceName = BASE_PATH + getTestName(false) + extension;
