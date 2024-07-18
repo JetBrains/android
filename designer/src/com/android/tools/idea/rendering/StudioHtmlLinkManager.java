@@ -35,7 +35,7 @@ import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD;
-import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD_MODULE;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD_FOR_RENDERING;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CLEAR_CACHE_AND_NOTIFY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CREATE_CLASS;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_DISABLE_SANDBOX;
@@ -154,7 +154,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   }
 
   @Override
-  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file,
+  public void handleUrl(@NotNull String url, @Nullable Module module, @NotNull PsiFile file,
                         boolean hasRenderResult, @NotNull HtmlLinkManager.RefreshableSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
@@ -165,12 +165,11 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
     else if (url.startsWith(URL_REPLACE_TAGS)) {
       assert module != null;
-      assert file != null;
       handleReplaceTagsUrl(url, module, file);
     }
-    else if (url.equals(URL_BUILD_MODULE)) {
+    else if (url.equals(URL_BUILD_FOR_RENDERING)) {
       assert module != null;
-      handleBuildModuleUrl(url, file);
+      handleBuildForRenderingUrl(url, file);
     }
     else if (url.equals(URL_BUILD)) {
       assert module != null;
@@ -330,8 +329,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
   }
 
-  private static void handleBuildModuleUrl(@NotNull String url, @NotNull PsiFile psiFile) {
-    assert url.equals(URL_BUILD_MODULE) : url;
+  private static void handleBuildForRenderingUrl(@NotNull String url, @NotNull PsiFile psiFile) {
+    assert url.equals(URL_BUILD_FOR_RENDERING) : url;
     ProjectSystemUtil.getProjectSystem(psiFile.getProject()).getBuildManager().compileFilesAndDependencies(Lists.newArrayList(psiFile.getVirtualFile()));
   }
 
