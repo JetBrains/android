@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.asdriver.tests.metric.MetricCollector
 import org.junit.Rule
 import org.junit.Test
 
@@ -54,6 +55,10 @@ class EditorPerformanceTest {
         checkCompletionTestCase(studio, completionPosition, false)
       }
     }
+    val metricCollector = MetricCollector(watcher.dashboardName!!, system.installation.telemetryJsonFile)
+    metricCollector.collect("completion", "firstCodeAnalysis", "semanticHighlighting")
+    metricCollector.collectChildMetrics("findUsagesParent", "findUsages")
+    metricCollector.collectChildMetrics("findUsagesParent", "findUsages_firstUsage")
   }
 
   private fun checkCompletionTestCase(studio: AndroidStudio, completionPosition: CompletionPosition, isWarmup: Boolean) {
