@@ -29,7 +29,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -126,6 +126,6 @@ class ReplacePreviewAnnotationFix(
       innerText,
       searchForExistingEntry = false,
     )
-    shortenReferences(parent)
+    ShortenReferencesFacility.getInstance().shorten(parent)
   }
 }
