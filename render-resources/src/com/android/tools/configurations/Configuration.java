@@ -207,8 +207,8 @@ public class Configuration {
   private boolean myUseThemedIcon = false;
   private Wallpaper myWallpaper = null;
   private Consumer<BufferedImage> myImageTransformation = null;
-  private boolean myGestureNav = false;
-  private boolean myEdgeToEdge = false;
+  private boolean myGestureNav = true;
+  private boolean myEdgeToEdge = true;
   private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
   private FrameworkOverlay myDeviceOverlay = null;
 
