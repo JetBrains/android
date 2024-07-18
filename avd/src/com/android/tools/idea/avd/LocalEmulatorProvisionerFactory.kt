@@ -72,7 +72,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,
       pluginExtensions =
-        listOf(DeviceSource::class providedBy { LocalVirtualDeviceSource.create(project, it) }),
+        listOf(DeviceSource::class providedBy { LocalVirtualDeviceSource.create(it) }),
       handleExtensions = emptyList(),
     )
   }
