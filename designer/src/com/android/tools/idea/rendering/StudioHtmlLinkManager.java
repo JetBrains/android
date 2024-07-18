@@ -29,6 +29,7 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
+import static com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServicesKt.requestBuildArtifactsForRendering;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEBUG_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
@@ -55,6 +56,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServicesKt;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
@@ -67,7 +69,6 @@ import com.android.utils.SdkUtils;
 import com.android.utils.SdkUtils.FileLineColumnUrlData;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -331,7 +332,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
   private static void handleBuildForRenderingUrl(@NotNull String url, @NotNull PsiFile psiFile) {
     assert url.equals(URL_BUILD_FOR_RENDERING) : url;
-    ProjectSystemUtil.getProjectSystem(psiFile.getProject()).getBuildManager().compileFilesAndDependencies(Lists.newArrayList(psiFile.getVirtualFile()));
+    if (psiFile.getProject().isDisposed()) return;
+    BuildSystemFilePreviewServicesKt.requestBuildArtifactsForRendering(psiFile.getProject(), psiFile.getVirtualFile());
   }
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
