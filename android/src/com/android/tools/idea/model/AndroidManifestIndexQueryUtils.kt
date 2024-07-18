@@ -30,6 +30,7 @@ import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getA
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivityAliases
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -56,10 +57,11 @@ private fun <T> AndroidFacet.queryManifestIndex(
   check(ApplicationManager.getApplication().isReadAccessAllowed)
   val project = this.module.project
   val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
+  val smartModeModificationTracker = DumbService.getInstance(this.module.project).modificationTracker
   val provider = {
     val overrides = this.module.getModuleSystem().getManifestOverrides()
     val result = processContributors(overrides, getDataForMergedManifestContributors(this))
-    CachedValueProvider.Result.create(result, modificationTracker)
+    CachedValueProvider.Result.create(result, modificationTracker, smartModeModificationTracker)
   }
   val manager = CachedValuesManager.getManager(project)
   return manager.getCachedValue(this,
@@ -234,11 +236,12 @@ private fun AndroidFacet.queryMainManifestFromManifestIndex(): AndroidManifestRa
   // TODO(b/147600367): implement a PrimaryManifestModificationTracker which MergedManifestModificationListener
   //  increments just for the primary manifest.
   val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
+  val smartModeModificationTracker = DumbService.getInstance(this.module.project).modificationTracker
 
   val provider = CachedValueProvider {
     val mainManifestFile = this.sourceProviders.mainManifestFile ?: return@CachedValueProvider null
     val result = getDataForManifestFile(project, mainManifestFile)
-    CachedValueProvider.Result.create(result, modificationTracker)
+    CachedValueProvider.Result.create(result, modificationTracker, smartModeModificationTracker)
   }
 
   val manager = CachedValuesManager.getManager(project)
