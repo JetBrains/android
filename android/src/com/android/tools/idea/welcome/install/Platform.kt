@@ -89,7 +89,7 @@ class Platform(
   public override fun isSelectedByDefault(): Boolean = false
 
   companion object {
-    private fun getLatestPlatform(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): Platform? {
+    private fun getLatestPlatform(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): Platform? {
       val latest = findLatestPlatform(remotePackages, true)
       if (latest != null) {
         val version = (latest.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
@@ -113,7 +113,7 @@ class Platform(
       return result
     }
 
-    fun createSubtree(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): ComponentTreeNode? {
+    fun createSubtree(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): ComponentTreeNode? {
       // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
       val latestPlatform = getLatestPlatform(remotePackages, installUpdates) ?: return null
       return ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms", listOf(latestPlatform))
