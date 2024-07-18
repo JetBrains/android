@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.wear.preview.animation.WearTileAnimationPreview
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
@@ -178,6 +179,28 @@ class WearTilePreviewRepresentationTest {
         preview.previewModeManager.setMode(PreviewMode.Gallery(previewElement))
 
         expectGalleryModeIsSet(preview, previewElement)
+      }
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testAnimationInspectorMode() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
+      assertThat(preview.previewView.galleryMode).isNull()
+
+      // go into gallery mode
+      run {
+        val previewElement =
+          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+        preview.previewModeManager.setMode(PreviewMode.AnimationInspection(previewElement))
+
+
+        delayUntilCondition(250) { preview.previewView.bottomPanel != null }
+        assertThat(preview.previewView.bottomPanel?.components?.get(0)?.name).isEqualTo("Animation Preview")
       }
 
       preview.onDeactivate()

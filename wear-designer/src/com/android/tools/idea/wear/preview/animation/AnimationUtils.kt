@@ -34,5 +34,19 @@ fun detectAnimations(sceneManager: SceneManager) {
       ?: return
   val tileServiceViewAdapter = sceneManager.scene.root?.nlComponent?.viewInfo?.viewObject
   previewElementInstance.tileServiceViewAdapter.value = tileServiceViewAdapter
-  previewElementInstance.hasAnimations = StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get()
+  previewElementInstance.hasAnimations =
+    StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get() &&
+      tileServiceViewAdapter?.getAnimations()?.isNotEmpty() == true
+}
+
+/** Supposed to be invoked on instance of [TileServiceViewAdapter]. */
+internal fun Any.getAnimations(): List<ProtoAnimation> {
+  val getAnimationsMethod =
+    this::class
+      .java
+      .declaredMethods
+      .single { it.name == "getAnimations" }
+      .also { it.isAccessible = true }
+  val list = getAnimationsMethod.invoke(this) as List<*>
+  return list.requireNoNulls().map { ProtoAnimation(it) }
 }
