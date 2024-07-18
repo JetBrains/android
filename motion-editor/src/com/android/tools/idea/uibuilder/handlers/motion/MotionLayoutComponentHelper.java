@@ -548,7 +548,7 @@ public class MotionLayoutComponentHelper {
           myCachedState = (String)myCallGetState.invoke(myDesignTool);
         }
         catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-          myCallSetState = null;
+          myCallGetState = null;
           Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         }
       });
