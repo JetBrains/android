@@ -652,7 +652,7 @@ public class ConfigurationMatcher {
     // (grabbing a read lock is not enough).
     FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
     if (editorManager instanceof FileEditorManagerImpl) { // not the case under test fixtures apparently
-      Editor activeEditor = ((FileEditorManagerImpl)editorManager).getSelectedTextEditor(true);
+      Editor activeEditor = editorManager.getSelectedTextEditor(true);
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
