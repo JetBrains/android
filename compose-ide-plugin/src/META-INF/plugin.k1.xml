@@ -24,6 +24,8 @@
     <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
     <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
+
+    <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

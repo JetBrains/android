@@ -170,7 +170,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
 
