@@ -39,6 +39,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Allows tests to use [FakeEmulator] instead of the real one.
@@ -89,6 +90,9 @@ class FakeEmulatorRule : TestRule {
         System.setProperty("user.home", savedUserHome)
         registrationDirectory = null
         val emulatorCatalog = RunningEmulatorCatalog.getInstance()
+        for (emulator in emulatorCatalog.emulators) {
+          emulator.awaitTermination(1.seconds)
+        }
         emulatorCatalog.overrideRegistrationDirectory(null)
         AvdManagerConnection.resetConnectionFactory()
       }
