@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
         "//tools/adt/idea/profilers-android/gradle:intellij.android.profilersAndroid.gradle",
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
+        "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
@@ -42,7 +43,6 @@ iml_module(
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
-        "//tools/vendor/google/url-assistant:url-assistant",
     ],
     resources = ["resources"],
     visibility = ["//visibility:public"],
