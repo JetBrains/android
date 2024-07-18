@@ -52,24 +52,34 @@ import java.nio.file.Path
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
+class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
 ) {
+  // This is a bit weird that we take a collection of RemotePackages just to find the latest
+  // version, but then later require an AndroidSdkHandler in a bunch of methods, which is the
+  // source of RemotePackages in the first place.
+  //
+  // Plus, there's an sdkHandler in the superclass; why aren't we using it?
+  constructor(remotePackages: Collection<RemotePackage>, installUpdates: Boolean) :
+    this(findLatestPlatform(remotePackages, true)?.let {
+      (it.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
+    }, installUpdates)
+
   private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
   private lateinit var myProgressStep: ProgressStep
-  private var myLatestVersion: AndroidVersion? = null
+
   // After this we use x86-64 system images
   private val MAX_X86_API_LEVEL = 30
 
   @Throws(WizardException::class)
   private fun getSystemImageDescription(sdkHandler: AndroidSdkHandler): SystemImageDescription {
     val progress = StudioLoggerProgressIndicator(javaClass)
-    if (myLatestVersion == null) {
+    if (androidVersion == null) {
       throw WizardException("Missing system image required for an AVD setup")
     }
-    val systemImages = sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, myLatestVersion!!, ID_VENDOR_GOOGLE)
+    val systemImages = sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
     if (systemImages.isEmpty()) {
       throw WizardException("Missing system image required for an AVD setup")
     }
@@ -99,7 +109,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     val settings = getAvdSettings(displayName, internalName, d)
     if (useRanchu) {
-      settings[ConfigKey.CPU_CORES] = "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
+      settings[ConfigKey.CPU_CORES] = if (supportsSmp) AvdWizardUtils.getMaxCpuCores().toString() else "1"
     }
     return avdManager.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, sdCard,
@@ -109,31 +119,24 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
   @VisibleForTesting
   fun getRequiredSysimgPath(isArm64HostOs: Boolean): String {
-    return DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG,
+    return DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG,
                                       when {
                                         isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
-                                        (myLatestVersion?.compareTo(MAX_X86_API_LEVEL, null) ?: -1) > 0 -> SdkConstants.ABI_INTEL_ATOM64
+                                        androidVersion == null -> SdkConstants.ABI_INTEL_ATOM
+                                        androidVersion.compareTo(MAX_X86_API_LEVEL, null) > 0 -> SdkConstants.ABI_INTEL_ATOM64
                                         else ->  SdkConstants.ABI_INTEL_ATOM
-                                      } )
+                                      })
   }
 
   override val requiredSdkPackages: Collection<String>
-    get() {
-      val result = mutableListOf<String>()
-      if (myLatestVersion != null) {
-        result.add(getRequiredSysimgPath(IS_ARM64_HOST_OS))
-      }
-      return result
-    }
+    get() =
+      if (androidVersion == null) emptyList()
+      else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
 
   override val optionalSdkPackages: Collection<String>
-    get() {
-      val result = mutableListOf<String>()
-      if (myLatestVersion != null) {
-        result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG))
-      }
-      return result
-    }
+    get() =
+      if (androidVersion == null) emptyList()
+      else listOf(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG))
 
   override fun init(progressStep: ProgressStep) {
     myProgressStep = progressStep
@@ -157,17 +160,15 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
   }
 
   public override fun isSelectedByDefault(): Boolean {
-    if (sdkHandler == null) {
-      return false
-    }
+    val sdkHandler = sdkHandler ?: return false
     val desired: SystemImageDescription = try {
-      getSystemImageDescription(sdkHandler!!)
+      getSystemImageDescription(sdkHandler)
     }
     catch (e: WizardException) {
       // No System Image yet. Default is to install.
       return true
     }
-    val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler!!)
+    val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val avds = connection.getAvds(false)
     for (avd in avds) {
       if (avd.abiType == desired.primaryAbiType && avd.androidVersion == desired.version) {
@@ -228,10 +229,5 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     private fun setStorageSizeKey(result: MutableMap<String, String>, key: String, size: Storage, convertToMb: Boolean) {
       result[key] = AvdOptionsModel.toIniString(size, convertToMb)
     }
-  }
-
-  init {
-    val latestInfo = findLatestPlatform(remotePackages, true)
-    myLatestVersion = if (latestInfo != null) (latestInfo.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion else null
   }
 }
