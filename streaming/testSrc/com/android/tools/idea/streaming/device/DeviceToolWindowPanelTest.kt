@@ -394,7 +394,9 @@ class DeviceToolWindowPanelTest {
 
     val frequencyHz = 440.0
     val durationMillis = 500
-    runBlocking { agent.beep(frequencyHz, durationMillis) }
+    // The 5% of extra sound duration is intended to make sure that there is enough data to satisfy
+    // the following wait condition.
+    runBlocking { agent.beep(frequencyHz, durationMillis * 105 / 100) }
     waitForCondition(2.seconds) {
       testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
     }
