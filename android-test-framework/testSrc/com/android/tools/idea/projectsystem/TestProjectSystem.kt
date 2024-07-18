@@ -383,10 +383,6 @@ class TestProjectSystemBuildManager(
     simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
-  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
-  }
-
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
     listeners.add(buildListener)
     Disposer.register(parentDisposable) {

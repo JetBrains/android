@@ -27,9 +27,12 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Co
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 
@@ -65,6 +68,13 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
    */
   interface BuildServices<R : BuildTargetReference> {
     fun getLastCompileStatus(buildTarget: R): ProjectSystemBuildManager.BuildStatus
+
+    /**
+     * Builds artifacts required to preview files from [buildTargets].
+     *
+     * This method does not wait for build completion.
+     */
+    fun buildArtifacts(buildTargets: Collection<R>)
   }
 
   /**
@@ -150,5 +160,29 @@ fun Project.requestBuildArtifactsForRendering(file: VirtualFile) = requestBuildA
  */
 @Suppress("UnstableApiUsage")
 fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
-  getProjectSystem().getBuildManager().compileFilesAndDependencies(files.map { (it as? BackedVirtualFile)?.originFile ?: it })
+  val buildSystemServices = this.getProjectSystem().getBuildSystemFilePreviewServices()
+  val buildTargets = buildSystemServices.buildTargets
+  val projectIndex = ProjectFileIndex.getInstance(this)
+
+  val buildTargetReferences =
+    runReadAction {
+      files
+        .map { (it as? BackedVirtualFile)?.originFile ?: it }
+        .mapNotNull {
+          val module =
+            projectIndex.getModuleForFile(it) ?: return@mapNotNull null.also {
+              thisLogger().error(
+                "Cannot find module for: $it",
+                Throwable()
+              )
+            }
+          buildTargets.from(module, it)
+        }
+    }
+
+  buildTargetReferences.map { it to it.getBuildSystemFilePreviewServices() }
+    .groupBy { it.second.buildServices }
+    .forEach { (buildServices, references) ->
+      buildServices.buildArtifacts(buildTargetReferences)
+    }
 }

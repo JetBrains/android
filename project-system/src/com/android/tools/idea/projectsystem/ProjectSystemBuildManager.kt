@@ -30,13 +30,6 @@ interface ProjectSystemBuildManager {
    */
   fun compileProject()
 
-  /**
-   * Initiates an incremental compilation of the given [files] and all its dependencies. [files] should be the source file the user is
-   * working on, rather than a synthetic file, however there is no guarantee that [files] will be the source file. If [files] does not
-   * belong in the project, it should be ignored. Does not block the caller until it finishes.
-   */
-  fun compileFilesAndDependencies(files: Collection<VirtualFile>)
-
   fun getLastBuildResult(): BuildResult
 
   /**

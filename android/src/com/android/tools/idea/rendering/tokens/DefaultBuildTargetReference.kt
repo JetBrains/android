@@ -53,6 +53,10 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
     override fun getLastCompileStatus(buildTarget: DefaultBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
       return ProjectSystemBuildManager.BuildStatus.UNKNOWN
     }
+
+    override fun buildArtifacts(buildTargets: Collection<DefaultBuildTargetReference>) {
+      error("Building artifacts for rendering is not supported in this project")
+    }
   }
 
   override fun subscribeBuildListener(
