@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
@@ -44,7 +44,7 @@ class FakeBuildSystemFilePreviewServices(
   buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = { FakeBuildServices() },
 ) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
   private val listeners: MutableList<BuildListener> = mutableListOf()
-  private var lastStatus: ProjectSystemBuildManager.BuildStatus = ProjectSystemBuildManager.BuildStatus.UNKNOWN
+  private var lastStatus: BuildStatus = BuildStatus.UNKNOWN
 
   override val buildTargets: BuildTargets = buildTargets()
   override val buildServices: BuildServices<BuildTargetReference> = buildServices()
@@ -58,7 +58,7 @@ class FakeBuildSystemFilePreviewServices(
    * Simulates a build of artifacts affecting rendering at the level of [BuildSystemFilePreviewServices].
    */
   fun simulateArtifactBuild(
-    buildStatus: ProjectSystemBuildManager.BuildStatus,
+    buildStatus: BuildStatus,
     buildMode: BuildMode = BuildMode.COMPILE,
     completion: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
   ) {
@@ -92,8 +92,12 @@ class FakeBuildSystemFilePreviewServices(
   }
 
   inner class FakeBuildServices: BuildServices<BuildTargetReference> {
-    override fun getLastCompileStatus(buildTarget: BuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+    override fun getLastCompileStatus(buildTarget: BuildTargetReference): BuildStatus {
       return lastStatus
+    }
+
+    override fun buildArtifacts(buildTargets: Collection<BuildTargetReference>) {
+      simulateArtifactBuild(BuildStatus.SUCCESS)
     }
   }
 }

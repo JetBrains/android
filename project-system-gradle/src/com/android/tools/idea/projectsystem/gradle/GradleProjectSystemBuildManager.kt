@@ -87,11 +87,6 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
     GradleBuildInvoker.getInstance(project).compileJava(modules)
   }
 
-  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.toSet()
-    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
-  }
-
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =
     GradleBuildState.getInstance(project).lastFinishedBuildSummary?.let {
       ProjectSystemBuildManager.BuildResult(
