@@ -72,6 +72,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" filepath="$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/kexter/android.sdktools.kexter.iml" filepath="$PROJECT_DIR$/../../base/kexter/android.sdktools.kexter.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" filepath="$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" filepath="$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" filepath="$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" />
