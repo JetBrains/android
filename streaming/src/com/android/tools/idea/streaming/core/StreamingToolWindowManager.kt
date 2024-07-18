@@ -128,6 +128,7 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
@@ -145,9 +146,11 @@ private val ID_KEY = Key.create<DeviceId>("device-id")
 private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
 private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
 
-private val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
+@VisibleForTesting
+internal val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
+@VisibleForTesting
 @Suppress("UnstableApiUsage")
-private val LIVE_ICON = BadgeIconSupplier(INACTIVE_ICON).liveIndicatorIcon
+internal val LIVE_ICON = BadgeIconSupplier(INACTIVE_ICON).liveIndicatorIcon
 
 /**
  * Manages contents of the Running Devices tool window. Listens to device connections and
