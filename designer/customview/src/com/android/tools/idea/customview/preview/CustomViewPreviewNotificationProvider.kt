@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -48,7 +49,7 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
           EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
             setText(PREVIEW_OUT_OF_DATE)
             createActionLabel("$BUILD_AND_REFRESH${getBuildAndRefreshShortcut().asString()}") {
-              project.getProjectSystem().getBuildManager().compileFilesAndDependencies(listOf(file))
+              project.requestBuildArtifactsForRendering(file)
             }
           }
         CustomViewPreviewManager.NotificationsState.BUILDING ->
@@ -67,8 +68,7 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
 }
 
 internal fun requestBuildForSurface(surface: DesignSurface<*>) {
-  val buildManager = surface.project.getProjectSystem().getBuildManager()
-  buildManager.compileFilesAndDependencies(surface.models.map { it.virtualFile })
+  surface.project.requestBuildArtifactsForRendering(surface.models.map { it.virtualFile })
 }
 
 /**

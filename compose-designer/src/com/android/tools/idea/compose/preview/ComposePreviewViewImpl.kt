@@ -47,7 +47,7 @@ import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
-import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
@@ -317,7 +317,7 @@ internal class ComposePreviewViewImpl(
       return ActionData(actionDataText) {
         val virtualFile = psiFilePointer.element?.virtualFile
         scope.launch(workerThread) {
-          if (virtualFile != null) project.requestBuild(virtualFile)
+          if (virtualFile != null) project.requestBuildArtifactsForRendering(virtualFile)
           withContext(uiThread) {
             // Repaint the workbench, otherwise the text and link will keep displaying if the mouse
             // is hovering the link

@@ -18,13 +18,14 @@ package com.android.tools.idea.rendering.tokens
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -133,4 +134,21 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
         ?: error("${BuildSystemFilePreviewServices::class.java} token is not available for $this")
     }
   }
+}
+
+/**
+ * Requests building artifacts required to render a preview of [file].
+ *
+ * This method does not wait for build completion.
+ */
+fun Project.requestBuildArtifactsForRendering(file: VirtualFile) = requestBuildArtifactsForRendering(listOf(file))
+
+/**
+ * Requests building artifacts required to render a preview of [files].
+ *
+ * This method does not wait for build completion.
+ */
+@Suppress("UnstableApiUsage")
+fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
+  getProjectSystem().getBuildManager().compileFilesAndDependencies(files.map { (it as? BackedVirtualFile)?.originFile ?: it })
 }
