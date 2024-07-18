@@ -91,8 +91,8 @@ public class MotionDragTest extends SceneTest {
                  "        android:id=\"@id/button2\"\n" +
                  "        android:layout_width=\"5dp\"\n" +
                  "        android:layout_height=\"5dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"95dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"195dp\" />");
+                 "        tools:layout_editor_absoluteX=\"92dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"192dp\" />");
   }
 
   public void testDragLeft() {
