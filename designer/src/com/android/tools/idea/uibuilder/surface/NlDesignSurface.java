@@ -26,6 +26,7 @@ import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
@@ -86,7 +87,6 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.AWTEventListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -125,7 +125,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private boolean myIsCanvasResizing = false;
   private final RenderListener myRenderListener = this::modelRendered;
   private final AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
-  @NotNull private final NlAnalyticsManager myAnalyticsManager;
+  @NotNull private final DesignerAnalyticsManager myAnalyticsManager;
   /**
    * Allows customizing the generation of {@link SceneManager}s
    */
@@ -229,7 +229,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull
   @Override
-  public NlAnalyticsManager getAnalyticsManager() {
+  public DesignerAnalyticsManager getAnalyticsManager() {
     return myAnalyticsManager;
   }
 
@@ -325,13 +325,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public AccessoryPanel getAccessoryPanel() {
     return myAccessoryPanel;
-  }
-
-  @NotNull
-  @Override
-  public ActionManager<DesignSurface<LayoutlibSceneManager>> getActionManager() {
-    //noinspection unchecked
-    return super.getActionManager();
   }
 
   @Override
