@@ -276,7 +276,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
     result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
-    System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "NDK r19c (/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600)",
@@ -296,7 +295,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
     result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
-    System.out.println(result);
     assertThat(dependencies).hasSize(1);
     // The tag should be NDK r19 not NDK r19a ('a' is elided)
     assertContainsInOrder(result,
@@ -317,7 +315,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
     result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
-    System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "NDK r18b (/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045)",
@@ -337,7 +334,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
     result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
-    System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "NDK Components (/path/to/ndk-bundle)",
