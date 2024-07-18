@@ -27,11 +27,10 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -41,6 +40,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
   private void commitAllDocumentsAndWaitForUpdatesToPropagate() throws Exception {
     PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
     waitForSourceFolderManagerToProcessUpdates(getProject());
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
   }
 
   /**
