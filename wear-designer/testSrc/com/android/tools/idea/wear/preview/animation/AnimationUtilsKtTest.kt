@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview.animation
 
+import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.testutils.MockitoKt.mock
@@ -87,19 +88,40 @@ class AnimationUtilsKtTest {
     whenever(model.dataContext)
       .thenReturn(SimpleDataContext.getSimpleContext(PREVIEW_ELEMENT_INSTANCE, previewElement))
 
-    val tileServiceViewAdapter = mock<Any>()
-    val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
-
-    nlComponent.viewInfo = viewInfo
 
     whenever(layoutlibSceneManager.model).thenReturn(model)
     whenever(layoutlibSceneManager.scene).thenReturn(scene)
     whenever(scene.root).thenReturn(root)
     whenever(root.nlComponent).thenReturn(nlComponent)
 
+    // With animations
+    val tileServiceViewAdapter = object  {
+      fun getAnimations() = listOf(TestDynamicTypeAnimator())
+    }
+
+    val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
+
+    nlComponent.viewInfo = viewInfo
+
+
     detectAnimations(layoutlibSceneManager)
 
     assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapter)
     assertThat(previewElement.hasAnimations).isTrue()
+
+    // Without animations
+    val tileServiceViewAdapterNoAnimations = object  {
+      fun getAnimations() = emptyList<DynamicTypeAnimator>()
+    }
+
+    val viewInfoNoAnimation = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapterNoAnimations, null, null)
+
+    nlComponent.viewInfo = viewInfoNoAnimation
+
+
+    detectAnimations(layoutlibSceneManager)
+
+    assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapterNoAnimations)
+    assertThat(previewElement.hasAnimations).isFalse()
   }
 }
