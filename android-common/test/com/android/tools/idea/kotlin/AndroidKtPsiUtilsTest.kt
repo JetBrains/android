@@ -142,7 +142,7 @@ class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
   @Test
   fun testKtExpression_tryEvaluateConstant_stringConstant() {
     val file = setFileContents("""
-      val bar = 42
+      const val bar = 42
       val <caret>foo = "foo" + bar + "baz"
     """.trimIndent())
 
@@ -154,13 +154,45 @@ class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
   @Test
   fun testKtExpression_tryEvaluateConstant_integerConstant() {
     val file = setFileContents("""
-      val foo = 2
+      const val foo = 2
       val <caret>bar = 1 + foo + 3
     """.trimIndent())
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isNull()
     assertThat(expression.tryEvaluateConstantAsText()).isEqualTo("6")
+  }
+
+  @Test
+  fun testKtExpression_tryEvaluateConstant_chainOfPropertyReferences() {
+    val file = setFileContents("""
+      val foo = 42
+      val bar = foo
+      val baz = bar
+      val <caret>quux = baz
+    """.trimIndent())
+
+    val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
+    assertThat(expression.tryEvaluateConstant()).isNull()
+    assertThat(expression.evaluateConstant<Int>()).isEqualTo(42)
+    assertThat(expression.tryEvaluateConstantAsText()).isEqualTo("42")
+  }
+
+  @Test
+  fun testKtExpression_tryEvaluateConstant_chainOfLocalVariableReferences() {
+    val file = setFileContents("""
+      fun f() {
+        val foo = 42
+        val bar = foo
+        val baz = bar
+        val <caret>quux = baz
+      }
+    """.trimIndent())
+
+    val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
+    assertThat(expression.tryEvaluateConstant()).isNull()
+    assertThat(expression.evaluateConstant<Int>()).isEqualTo(42)
+    assertThat(expression.tryEvaluateConstantAsText()).isEqualTo("42")
   }
 
   @Test
