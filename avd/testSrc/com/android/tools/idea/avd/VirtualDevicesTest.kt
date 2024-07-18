@@ -22,17 +22,17 @@ import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class VirtualDevicesTest {
   @Test
@@ -67,7 +67,7 @@ class VirtualDevicesTest {
         /* removePrevious = */ eq(true),
       )
 
-    assertThat(hardwarePropertiesCaptor.value).containsKey(ConfigKey.CLUSTER_WIDTH)
+    assertThat(hardwarePropertiesCaptor.lastValue).containsKey(ConfigKey.CLUSTER_WIDTH)
   }
 
   private companion object {
