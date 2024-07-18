@@ -21,11 +21,10 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_GRADLE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.impl.EdtDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -41,8 +40,6 @@ import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames.GRADL
 import org.jetbrains.plugins.gradle.util.GradleTaskClassifier
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 @RunsInEdt
 class GradleRunTaskActionIntegrationTest {
@@ -89,8 +86,16 @@ class GradleRunTaskActionIntegrationTest {
       taskName: String,
       linkedExternalProjectPath: @SystemIndependent String
     ) {
+      val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
+      fixture.openFileInEditor(buildGradleFile!!)
+
       val gradleTaskActionEvent = mock<AnActionEvent>().apply {
-        whenever(dataContext).thenReturn(EdtDataContext(createContextComponent(project, fixture)))
+        whenever(dataContext).thenReturn(
+          SimpleDataContext.builder()
+            .add(CommonDataKeys.EDITOR, fixture.editor)
+            .add(CommonDataKeys.PROJECT, project)
+            .build()
+        )
         whenever(place).thenReturn(TOOLWINDOW_GRADLE)
       }
       val gradleTaskData = TaskData(GRADLE_SYSTEM_ID, taskName, linkedExternalProjectPath, "Test run task from Gradle tool window").apply {
@@ -98,18 +103,6 @@ class GradleRunTaskActionIntegrationTest {
         type = GRADLE_API_DEFAULT_TASK
       }
       perform(project, GRADLE_SYSTEM_ID, gradleTaskData, gradleTaskActionEvent)
-    }
-
-    private fun createContextComponent(project: Project, fixture: CodeInsightTestFixture): JComponent {
-      val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
-      fixture.openFileInEditor(buildGradleFile!!)
-      val panel = JPanel().apply {
-        add(fixture.editor.component)
-      }
-      DataManager.registerDataProvider(panel) { dataId ->
-        if (CommonDataKeys.PROJECT.`is`(dataId)) project else null
-      }
-      return fixture.editor.contentComponent
     }
   }
 }
