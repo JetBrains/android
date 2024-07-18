@@ -485,7 +485,6 @@ iml_studio_test(
     ],
     module = ":intellij.android.core.integration",
     tags = [
-        "noci:studio-linux",  # http://b/346573467
         "noci:studio-win",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     tags_linux = [
