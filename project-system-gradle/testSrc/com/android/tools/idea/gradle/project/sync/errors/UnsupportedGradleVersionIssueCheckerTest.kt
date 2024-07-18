@@ -26,7 +26,7 @@ class UnsupportedGradleVersionIssueCheckerTest : AndroidGradleTestCase() {
 
   fun testCheckIssueOneQuickFix() {
     // This is to check we still show one quickFix if we can't fetch the IDEA project for the current Gradle project.
-    val errMessage = "Gradle version 2.2 is required."
+    val errMessage = "Minimum supported Gradle version is (6.3). Current version is 4.3"
     val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
     val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
 
@@ -39,16 +39,6 @@ class UnsupportedGradleVersionIssueCheckerTest : AndroidGradleTestCase() {
       unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "Minimum supported Gradle version is (6.3). Current version is 4.3",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
-
-    assertThat(
-      unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Gradle version 6.3 is required",
         null,
         null,
         "",
