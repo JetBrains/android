@@ -180,7 +180,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDevice::class.java)
-    private const val DEFAULT_DEVICE_ID = "pixel_fold"
+    private const val DEFAULT_DEVICE_ID = "medium_phone"
     private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis_playstore", "Google Play")
     private val ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC")
     private val DEFAULT_RAM_SIZE = Storage(2, Storage.Unit.GiB)
@@ -203,6 +203,9 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
     private fun getAvdSettings(displayName: String, internalName: String, device: Device): MutableMap<String, String> {
       val result: MutableMap<String, String> = hashMapOf()
+      // First, initialize AVD settings based on the device definition
+      result.putAll(DeviceManager.getHardwareProperties(device))
+      // Then, override device definition defaults and fill in remaining fields
       result[ConfigKey.GPU_MODE] = GpuMode.AUTO.gpuSetting
       for (key in ENABLED_HARDWARE) {
         result[key] = HardwareProperties.BOOLEAN_YES
@@ -212,8 +215,6 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
       }
       result[ConfigKey.CAMERA_BACK] = "virtualscene"
       result[ConfigKey.CAMERA_FRONT] = "emulated"
-      result[ConfigKey.DEVICE_NAME] = device.id
-      result[ConfigKey.DEVICE_MANUFACTURER] = device.manufacturer
       result[ConfigKey.NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
       result[ConfigKey.NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
       result[ConfigKey.AVD_ID] = internalName
@@ -221,9 +222,6 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
       setStorageSizeKey(result, ConfigKey.RAM_SIZE, DEFAULT_RAM_SIZE, false)
       setStorageSizeKey(result, ConfigKey.DATA_PARTITION_SIZE, DEFAULT_RAM_SIZE, false)
       setStorageSizeKey(result, ConfigKey.VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
-      val hardwareProperties = DeviceManager.getHardwareProperties(device)
-      result.putAll(hardwareProperties)
-
       return result
     }
 
