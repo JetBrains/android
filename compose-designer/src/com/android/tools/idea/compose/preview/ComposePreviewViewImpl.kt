@@ -474,7 +474,7 @@ internal class ComposePreviewViewImpl(
                   return@ifEnabled null
                 }
 
-                ActionData(message("action.generate.previews.for.file")) {
+                ActionData(message("action.generate.previews.for.file.empty.panel")) {
                   val psiFile = psiFilePointer.element ?: return@ActionData
                   val selectedEditor =
                     (FileEditorManager.getInstance(psiFile.project).selectedEditor
