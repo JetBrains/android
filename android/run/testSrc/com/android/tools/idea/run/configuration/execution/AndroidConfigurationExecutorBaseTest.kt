@@ -55,8 +55,8 @@ abstract class AndroidConfigurationExecutorBaseTest {
   val chain = RuleChain
     .outerRule(cleaner)
     .around(closeables)
-    .around(projectRule)
     .around(fakeAdbRule)
+    .around(projectRule)
 
   val project: Project
     get() = projectRule.project
