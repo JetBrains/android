@@ -119,8 +119,8 @@ class AndroidRunConfigurationExecutorTest {
   val chain = RuleChain.outerRule(cleaner)
     .around(closeables)
     .around(usageTrackerRule)
-    .around(projectRule)
     .around(fakeAdb)
+    .around(projectRule)
     .around(FlagRule(StudioFlags.BACKUP_ENABLED, true))
 
   private val mockBackupManager = mock<BackupManager>()
