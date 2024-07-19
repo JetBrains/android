@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
@@ -33,12 +31,9 @@ import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
-import org.junit.Rule
 import org.junit.Test
 
 class SelectedIssueChangedTest {
-  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
-
   @Test
   fun `selecting a different issue causes selection to update and actions to dispatch`() {
     val currentState =

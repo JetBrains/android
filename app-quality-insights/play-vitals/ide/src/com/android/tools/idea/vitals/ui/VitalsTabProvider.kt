@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.VITALS_KEY
@@ -92,7 +91,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     }
   }
 
-  override fun isApplicable(): Boolean = StudioFlags.PLAY_VITALS_ENABLED.get()
+  override fun isApplicable(): Boolean = true
 
   override fun getConfigurationManager(project: Project) =
     project.service<VitalsConfigurationService>().manager
