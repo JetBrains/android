@@ -32,9 +32,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.utils.TraceUtils.simpleId
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.ModificationTracker
@@ -42,6 +43,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KProperty
 import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.facet.AndroidFacet
@@ -108,6 +110,8 @@ class NavInfoFetcher(
 ) : NavInfoFetcherBase, ModificationTracker {
 
   private val modificationTracker = SimpleModificationTracker()
+
+  private val returnedStaleResults = AtomicBoolean(false)
 
   init {
     // Invalidate whenever the dependencies of [getCurrentNavInfo] may have changed.
@@ -186,11 +190,16 @@ class NavInfoFetcher(
     val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
 
     if (DumbService.getInstance(module.project).isDumb) {
-      Logger.getInstance(this.javaClass)
+      thisLogger()
         .warn(
-          "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now."
+          "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now. (${this.simpleId}"
         )
+      returnedStaleResults.set(true)
       return null
+    }
+
+    if (returnedStaleResults.getAndSet(false)) {
+      thisLogger().warn("Safe Args results returned after indexing completed. (${this.simpleId}")
     }
 
     // Save version and modification count _before_ reading resources - in the event of a change,
