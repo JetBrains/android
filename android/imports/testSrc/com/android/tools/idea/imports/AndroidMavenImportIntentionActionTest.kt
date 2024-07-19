@@ -33,7 +33,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.annotations.CheckReturnValue
-import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
