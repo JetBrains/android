@@ -16,8 +16,6 @@
 package com.android.tools.idea.studiobot
 
 import com.android.tools.idea.studiobot.prompts.Prompt
-import java.io.IOException
-import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -31,11 +29,7 @@ interface Model {
    *
    * @param prompt The prompt to generate code for.
    * @param config Configuration options for the backend.
-   * @throws IOException if the model endpoint throws an exception. To identify the cause of the
-   *   error, use [ExceptionUtil.getRootCause]. The result should be an
-   *   [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see
-   *   [CopyableThrowable]), the cause exception can end up nested a layer deeper than expected, but
-   *   using getRootCause avoids this problem.
+   * @throws StatusRuntimeException if the model endpoint throws an exception.
    */
   fun generateContent(prompt: Prompt, config: GenerationConfig = GenerationConfig()): Flow<Content>
 
@@ -49,11 +43,7 @@ interface Model {
    * @param language The language to generate code in.
    * @param config Configuration options for the backend.
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
-   * @throws IOException if the model endpoint throws an exception. To identify the cause of the
-   *   error, use [ExceptionUtil.getRootCause]. The result should be an
-   *   [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see
-   *   [CopyableThrowable]), the cause exception can end up nested a layer deeper than expected, but
-   *   using getRootCause avoids this problem.
+   * @throws [StatusRuntimeException] if the model endpoint throws an exception.
    */
   suspend fun generateCode(
     prompt: Prompt,
