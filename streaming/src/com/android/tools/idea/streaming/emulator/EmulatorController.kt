@@ -77,7 +77,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
-import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.Reference
@@ -307,7 +307,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Waits for the termination of the gRPC channel. Shutdown should have been requested before calling this method.
    */
-  @VisibleForTesting
+  @TestOnly
   internal fun awaitTermination(timeout: Duration) {
     channel?.awaitTermination(timeout.toLong(DurationUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
   }
