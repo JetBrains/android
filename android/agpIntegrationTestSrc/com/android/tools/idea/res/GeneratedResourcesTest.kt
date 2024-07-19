@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.testFramework.IndexingTestUtil
 import java.io.File
 
 
@@ -56,12 +57,14 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
       """.trimIndent())
 
     requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     AndroidProjectRootListener.ensureSubscribed(project)
     Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
     generateSources()
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
                        .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
