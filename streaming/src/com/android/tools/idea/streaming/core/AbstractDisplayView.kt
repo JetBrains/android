@@ -49,8 +49,20 @@ import java.awt.RenderingHints
 import java.awt.event.ActionEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.awt.event.InputEvent
+import java.awt.event.InputEvent.ALT_DOWN_MASK
+import java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
+import java.awt.event.InputEvent.CTRL_DOWN_MASK
+import java.awt.event.InputEvent.META_DOWN_MASK
+import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_ALT
+import java.awt.event.KeyEvent.VK_ALT_GRAPH
+import java.awt.event.KeyEvent.VK_CONTROL
+import java.awt.event.KeyEvent.VK_META
+import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.KeyEvent.VK_TAB
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
@@ -100,11 +112,13 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   init {
     background = primaryPanelBackground
     addToCenter(disconnectedStatePanel)
+    initializeFocusHandling()
+  }
 
+  private fun initializeFocusHandling() {
     isFocusable = true // Must be focusable to receive keyboard events.
     setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, emptySet())
-    setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-                          setOf(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK)))
+    setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(KeyStroke.getKeyStroke(VK_TAB, SHIFT_DOWN_MASK)))
     addFocusListener(object : FocusAdapter() {
       override fun focusLost(event: FocusEvent) {
         hardwareInput.resetMetaKeys()
@@ -307,8 +321,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       event.consume()
       vkToMask[event.keyCode]?.let {
         when (event.id) {
-          KeyEvent.KEY_PRESSED -> pressedModifierKeys = pressedModifierKeys or it
-          KeyEvent.KEY_RELEASED -> pressedModifierKeys = pressedModifierKeys and it.inv()
+          KEY_PRESSED -> pressedModifierKeys = pressedModifierKeys or it
+          KEY_RELEASED -> pressedModifierKeys = pressedModifierKeys and it.inv()
           else -> {}
         }
       }
@@ -320,7 +334,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       for ((vk, mask) in vkToMask) {
         if (pressedModifierKeys and mask == 0) continue
         pressedModifierKeys = pressedModifierKeys and mask.inv()
-        sendToDevice(KeyEvent.KEY_RELEASED, vk, pressedModifierKeys)
+        sendToDevice(KEY_RELEASED, vk, pressedModifierKeys)
       }
       pressedModifierKeys = 0
     }
@@ -329,11 +343,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
     companion object {
       private val vkToMask = mapOf(
-        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
-        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
-        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
-        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
-        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
+        VK_SHIFT to SHIFT_DOWN_MASK,
+        VK_CONTROL to CTRL_DOWN_MASK,
+        VK_ALT to ALT_DOWN_MASK,
+        VK_META to META_DOWN_MASK,
+        VK_ALT_GRAPH to ALT_GRAPH_DOWN_MASK,
       )
     }
   }
