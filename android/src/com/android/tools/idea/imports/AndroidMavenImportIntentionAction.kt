@@ -79,7 +79,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private data class AutoImportVariant(
     val artifactToAdd: String,
     val classToImport: String,
-    val version: String?
+    val version: String?,
   ) : Comparable<AutoImportVariant> {
     override fun compareTo(other: AutoImportVariant): Int {
       artifactToAdd.compareTo(other.artifactToAdd).let { if (it != 0) return it }
@@ -111,8 +111,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         Resolvable.createNewOrNull(
           findLibraryData(useAndroidX, text, receiverType, element.containingFile?.fileType)
         )
-      }
-        ?: return
+      } ?: return
 
     val suggestions =
       resolvable.libraries
@@ -134,7 +133,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         suggestion.artifactToAdd,
         suggestion.version,
         suggestion.classToImport,
-        sync
+        sync,
       )
       return
     }
@@ -147,13 +146,13 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     editor: Editor,
     element: PsiElement,
     suggestions: List<AutoImportVariant>,
-    sync: Boolean
+    sync: Boolean,
   ) {
     val step =
       object :
         BaseListPopupStep<AutoImportVariant>(
           AndroidBundle.message("android.suggested.imports.title"),
-          suggestions
+          suggestions,
         ) {
         override fun getTextFor(value: AutoImportVariant): String {
           return flagPreview(value.artifactToAdd, value.version)
@@ -161,7 +160,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
         override fun onChosen(
           selectedValue: AutoImportVariant,
-          finalChoice: Boolean
+          finalChoice: Boolean,
         ): PopupStep<*>? {
           perform(
             project,
@@ -169,7 +168,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
             selectedValue.artifactToAdd,
             selectedValue.version,
             selectedValue.classToImport,
-            sync
+            sync,
           )
           return FINAL_CHOICE
         }
@@ -184,7 +183,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     artifact: String,
     artifactVersion: String?,
     importSymbol: String?,
-    sync: Boolean
+    sync: Boolean,
   ) {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return
 
@@ -228,7 +227,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     element: PsiElement,
     artifact: String,
     artifactVersion: String?,
-    importSymbol: String?
+    importSymbol: String?,
   ) {
     // Import the class as well (if possible); otherwise it might be confusing that you have to
     // invoke two
@@ -245,11 +244,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     // Also add dependent annotation processor?
     val moduleSystem = module.getModuleSystem()
-    if (
-      moduleSystem
-        .canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)
-        .isSupported()
-    ) {
+    if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
       getMavenClassRegistry().findAnnotationProcessor(artifact)?.let {
         val annotationProcessor =
           if (moduleSystem.useAndroidX) {
@@ -262,7 +257,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           module,
           annotationProcessor,
           artifactVersion,
-          DependencyType.ANNOTATION_PROCESSOR
+          DependencyType.ANNOTATION_PROCESSOR,
         )
       }
     }
@@ -281,10 +276,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val resolvable =
       findResolvable(element, editor?.caretModel?.offset ?: -1) { text, receiverType ->
         Resolvable.createNewOrNull(
-          findLibraryData(moduleSystem.useAndroidX, text, receiverType, element.containingFile?.fileType)
+          findLibraryData(
+            moduleSystem.useAndroidX,
+            text,
+            receiverType,
+            element.containingFile?.fileType,
+          )
         )
-      }
-        ?: return false
+      } ?: return false
 
     val foundLibraries = resolvable.libraries
     // If we already depend on any of them, we just abort providing any suggestions as well.
@@ -298,7 +297,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         val artifact = resolveArtifact(moduleSystem.useAndroidX, element.language, library.artifact)
         AndroidBundle.message(
           "android.suggested.import.action.name.prefix",
-          flagPreview(artifact, library.version)
+          flagPreview(artifact, library.version),
         )
       } else {
         familyName
@@ -322,7 +321,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     module: Module,
     artifact: String,
     version: String?,
-    type: DependencyType = DependencyType.IMPLEMENTATION
+    type: DependencyType = DependencyType.IMPLEMENTATION,
   ) {
     val coordinate = getCoordinate(artifact, version) ?: return
     val moduleSystem = module.getModuleSystem()
@@ -353,7 +352,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private tailrec fun findResolvable(
     element: PsiElement,
     caret: Int,
-    resolve: (String, String?) -> Resolvable?
+    resolve: (String, String?) -> Resolvable?,
   ): Resolvable? {
     // This is actually the common case.
     fun resolveWithoutReceiver(s: String) = resolve(s, null)
@@ -479,7 +478,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     useAndroidX: Boolean,
     text: String,
     receiverType: String?,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<MavenClassRegistryBase.LibraryImportData> {
     if (receiverType == ALL_RECEIVER_TYPES) {
       return getMavenClassRegistry()
