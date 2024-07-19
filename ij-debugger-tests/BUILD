@@ -19,7 +19,7 @@ debugger_test(
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
     module = "kotlin.jvm-debugger.test",
     suite = "com.android.tools.test.ModuleTestSuite",
-    tags = ["ci:studio-linux_large"],
+    tags = ["ci:studio-linux-large"],
     deps = [
         ":kotlin.jvm-debugger.test_lib",
         ":test_repo.zip",
