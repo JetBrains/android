@@ -21,7 +21,7 @@
     <plugin id="com.intellij.gradle"/>
     <plugin id="org.jetbrains.plugins.gradle"/>
     <plugin id="org.jetbrains.kotlin"/>
-    <module name="kotlin.jvm-debugger.sequence"/>
+
   </dependencies>
 
   <depends optional="true" config-file="project-system-gradle-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
