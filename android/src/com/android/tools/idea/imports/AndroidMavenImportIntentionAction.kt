@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.lint.detector.api.isKotlin
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
@@ -184,61 +183,36 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     artifactVersion: String?,
     importSymbol: String?,
     sync: Boolean
-  ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
+  ) {
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return
 
-    var syncFuture: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
     WriteCommandAction.runWriteCommandAction(project) {
+      performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
+
       if (sync) {
-        syncFuture =
-          performWithLockAndSync(project, module, element, artifact, artifactVersion, importSymbol)
-      } else {
-        performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
+        UndoManager.getInstance(project)
+          .undoableActionPerformed(
+            object : GlobalUndoableAction() {
+              override fun undo() {
+                project.requestSync()
+              }
+
+              override fun redo() {
+                project.requestSync()
+              }
+            }
+          )
       }
     }
 
+    if (sync) {
+      project
+        .getProjectSystem()
+        .getSyncManager()
+        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    }
+
     trackSuggestedImport(artifact)
-    return syncFuture
-  }
-
-  private fun performWithLockAndSync(
-    project: Project,
-    module: Module,
-    element: PsiElement,
-    artifact: String,
-    artifactVersion: String?,
-    importSymbol: String?
-  ): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-    // Register sync action for undo.
-    UndoManager.getInstance(project)
-      .undoableActionPerformed(
-        object : GlobalUndoableAction() {
-          override fun undo() {
-            project.requestSync()
-          }
-
-          override fun redo() {}
-        }
-      )
-
-    performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
-
-    // Register sync action for redo.
-    UndoManager.getInstance(project)
-      .undoableActionPerformed(
-        object : GlobalUndoableAction() {
-          override fun undo() {}
-
-          override fun redo() {
-            project.requestSync()
-          }
-        }
-      )
-
-    return project
-      .getProjectSystem()
-      .getSyncManager()
-      .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
   /**
