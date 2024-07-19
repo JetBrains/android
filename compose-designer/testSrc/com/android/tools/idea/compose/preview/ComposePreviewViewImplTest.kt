@@ -40,6 +40,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -61,6 +62,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.replaceService
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -139,8 +141,17 @@ class ComposePreviewViewImplTest {
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
 
+  private val studioBot =
+    object : StudioBot.StubStudioBot() {
+      var contextAllowed = true
+
+      override fun isContextAllowed(project: Project) = contextAllowed
+    }
+
   @Before
-  fun setUp() =
+  fun setUp() {
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
     runBlocking(uiThread) {
       // Setup a fake manifest so rendering works correctly
       val manifest =
@@ -229,6 +240,7 @@ class ComposePreviewViewImplTest {
       previewView.component.findDescendant<SceneViewPanel>()!!.setNoComposeHeadersForTests()
       fakeUi.root.validate()
     }
+  }
 
   /**
    * Updates the [ComposePreviewView] with the preview elements provided by the [previewProvider]. A
@@ -300,8 +312,18 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `empty preview state when generate all previews is enabled`() {
+  fun `empty preview state when generate all previews is enabled and context-sharing disabled`() {
+    checkEmptyPreviewState(false)
+  }
+
+  @Test
+  fun `empty preview state when both generate all previews and context-sharing are enabled`() {
+    checkEmptyPreviewState(true)
+  }
+
+  private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
+    studioBot.contextAllowed = contextSharingEnabled
     ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false
@@ -314,9 +336,10 @@ class ComposePreviewViewImplTest {
       No preview found.
       Add preview by annotating Composables with @Preview
       [Using the Compose preview]
-      [Generate Compose Previews for this file]
+      ${if (contextSharingEnabled) "[Generate Compose Previews for this file]" else ""}
     """
-        .trimIndent(),
+        .trimIndent()
+        .trim(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
     )
   }

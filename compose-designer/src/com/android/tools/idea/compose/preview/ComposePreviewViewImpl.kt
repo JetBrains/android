@@ -48,6 +48,7 @@ import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
@@ -469,6 +470,10 @@ internal class ComposePreviewViewImpl(
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
               StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
+                if (!StudioBot.getInstance().isContextAllowed(project)) {
+                  return@ifEnabled null
+                }
+
                 ActionData(message("action.generate.previews.for.file")) {
                   val psiFile = psiFilePointer.element ?: return@ActionData
                   val selectedEditor =
