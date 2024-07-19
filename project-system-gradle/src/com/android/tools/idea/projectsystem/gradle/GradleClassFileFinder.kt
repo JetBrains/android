@@ -28,15 +28,12 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
 import com.intellij.psi.util.ParameterizedCachedValueProvider
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.base.facet.externalProjectId
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.EnumSet
@@ -244,7 +241,7 @@ private constructor(private val module: Module, private val scope: CompileRootsS
   ClassFileFinder {
 
   override fun findClassFile(fqcn: String): ClassContent? {
-    return module.getCompileOutputs(scope).findClass(fqcn) ?: module.findAndroidModule()?.getCompileOutputs(scope)?.findClass(fqcn)
+    return module.getCompileOutputs(scope).findClass(fqcn)
   }
 
   companion object {
@@ -266,10 +263,4 @@ private constructor(private val module: Module, private val scope: CompileRootsS
     fun createIncludingScreenshotTest(module: Module) =
       GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
   }
-}
-
-//todo: move this into some shared place
-internal fun Module.findAndroidModule(): Module? {
-  return project.modules.filter { it.externalProjectId == this.externalProjectId }
-    .firstNotNullOfOrNull { AndroidFacet.getInstance(it) }?.module
 }

@@ -129,9 +129,10 @@ interface ProjectBuildStatusManager {
       psiFile: PsiFile,
       dispatcher: CoroutineDispatcher = workerThread,
       scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, dispatcher),
+      hasExistingClassFileFun: suspend (PsiFile?) -> Boolean = { hasExistingClassFile(it) },
       onReady: (ProjectStatus) -> Unit = {},
     ): ProjectBuildStatusManager =
-      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher)
+      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, scope, onReady, dispatcher, hasExistingClassFileFun)
   }
 }
 
@@ -149,6 +150,7 @@ private class ProjectBuildStatusManagerImpl(
   scope: CoroutineScope,
   private val onReady: (ProjectStatus) -> Unit,
   private val dispatcher: CoroutineDispatcher,
+  private val hasExistingClassFile: suspend (PsiFile?) -> Boolean,
 ) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)

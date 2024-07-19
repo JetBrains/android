@@ -13,7 +13,6 @@
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="kotlinx-collections-immutable" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -22,7 +21,6 @@
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
@@ -35,6 +33,5 @@
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
-    <orderEntry type="module" module-name="intellij.java.psi.impl" />
   </component>
 </module>

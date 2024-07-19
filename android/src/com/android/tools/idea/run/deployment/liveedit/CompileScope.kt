@@ -21,10 +21,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -41,8 +40,6 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
-import org.jetbrains.kotlin.idea.base.facet.platform.platform
-import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectId
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
@@ -141,15 +138,7 @@ private object CompileScopeImpl : CompileScope {
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    val module = input.firstOrNull()?.module
-    val platform = module?.findAndroidModule()?.platform ?: JvmPlatforms.defaultJvmPlatform
-    return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, platform)
-  }
-
-  //todo: move this duplication to some shared place.
-  private fun Module.findAndroidModule(): Module? {
-    return project.modules.filter { it.externalProjectId == this.externalProjectId }
-      .firstNotNullOfOrNull { AndroidFacet.getInstance(it) }?.module
+    return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, JvmPlatforms.defaultJvmPlatform)
   }
 
   override fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
