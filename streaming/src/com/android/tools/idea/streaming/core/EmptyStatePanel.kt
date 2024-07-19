@@ -129,7 +129,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     }
     val scope = createCoroutineScope(Dispatchers.IO)
     scope.launch {
-      ASYNC_ACTIVITY_COUNT?.incrementAndGet() // Keep track of asynchronous activities for tests.
+      asyncActivityCount?.incrementAndGet() // Keep track of asynchronous activities for tests.
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
         val sdkManager = sdkHandler.getSdkManager(progress)
@@ -144,7 +144,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
         }
       }
       finally {
-        ASYNC_ACTIVITY_COUNT?.decrementAndGet()
+        asyncActivityCount?.decrementAndGet()
       }
     }
 
@@ -268,6 +268,6 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
   companion object {
     @TestOnly
-    internal val ASYNC_ACTIVITY_COUNT: AtomicInteger? = if (ApplicationManager.getApplication().isUnitTestMode) AtomicInteger() else null
+    internal val asyncActivityCount: AtomicInteger? = if (ApplicationManager.getApplication().isUnitTestMode) AtomicInteger() else null
   }
 }
