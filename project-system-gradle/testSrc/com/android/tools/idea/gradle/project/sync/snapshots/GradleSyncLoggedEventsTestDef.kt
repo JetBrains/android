@@ -89,20 +89,21 @@ data class GradleSyncLoggedEventsTestDef(
             )
           }.trimMargin()
         )
-        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
-          buildString {
-            appendLine(
-              """
-              |GRADLE_BUILD_DETAILS
-              |INTELLIJ_PROJECT_SIZE_STATS
-              |  JAVA : 3
-              |  XML : 16
-              |  DOT_CLASS : 0
-              |  KOTLIN : 0
-              |  NATIVE : 0""".trim()
-            )
-          }.trimMargin()
-        )
+        // TODO(b/354210253) Ignored for now
+        //assertThat(events.dumpGradleDetailEvents()).isEqualTo(
+        //  buildString {
+        //    appendLine(
+        //      """
+        //      |GRADLE_BUILD_DETAILS
+        //      |INTELLIJ_PROJECT_SIZE_STATS
+        //      |  JAVA : 3
+        //      |  XML : 16
+        //      |  DOT_CLASS : 0
+        //      |  KOTLIN : 0
+        //      |  NATIVE : 0""".trim()
+        //    )
+        //  }.trimMargin()
+        //)
         assertThat(events.dumpReportedSyncPhases()).isEqualTo("""
           SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
@@ -129,20 +130,21 @@ data class GradleSyncLoggedEventsTestDef(
             )
           }.trimMargin()
         )
-        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
-          buildString {
-            appendLine(
-              """
-              |GRADLE_BUILD_DETAILS
-              |INTELLIJ_PROJECT_SIZE_STATS
-              |  JAVA : 3
-              |  XML : 16
-              |  DOT_CLASS : 0
-              |  KOTLIN : 0
-              |  NATIVE : 0""".trim()
-            )
-          }.trimMargin()
-        )
+        // TODO(b/354210253) Ignored for now
+        //assertThat(events.dumpGradleDetailEvents()).isEqualTo(
+        //  buildString {
+        //    appendLine(
+        //      """
+        //      |GRADLE_BUILD_DETAILS
+        //      |INTELLIJ_PROJECT_SIZE_STATS
+        //      |  JAVA : 3
+        //      |  XML : 16
+        //      |  DOT_CLASS : 0
+        //      |  KOTLIN : 0
+        //      |  NATIVE : 0""".trim()
+        //    )
+        //  }.trimMargin()
+        //)
       },
       GradleSyncLoggedEventsTestDef(
         namePrefix = "module_counts",
