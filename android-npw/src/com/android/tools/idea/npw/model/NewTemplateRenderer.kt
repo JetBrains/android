@@ -386,8 +386,6 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: Te
     minSdk = metrics.minSdk
     if (metrics.bytecodeLevel != null) {
       bytecodeLevel = when (metrics.bytecodeLevel) {
-        TemplateBytecodeLevel.L6 -> BytecodeLevel.LEVEL_6
-        TemplateBytecodeLevel.L7 -> BytecodeLevel.LEVEL_7
         TemplateBytecodeLevel.L8 -> BytecodeLevel.LEVEL_8
       }
     }
