@@ -91,7 +91,7 @@ class StreamingToolWindowManagerMultiProjectTest {
   fun tearDown() {
     Disposer.dispose(toolWindow1.disposable)
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
-    waitForCondition(2.seconds) { EmptyStatePanel.ASYNC_ACTIVITY_COUNT?.get() == 0 }
+    waitForCondition(2.seconds) { EmptyStatePanel.asyncActivityCount?.get() == 0 }
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
     service<DeviceClientRegistry>().clear()
   }
