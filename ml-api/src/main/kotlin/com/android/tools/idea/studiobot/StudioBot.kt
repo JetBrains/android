@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
@@ -84,8 +85,7 @@ interface StudioBot {
 
     override fun isContextAllowed(project: Project): Boolean = false
 
-    override fun aiExcludeService(project: Project): AiExcludeService =
-      AiExcludeService.FakeAiExcludeService(project)
+    override fun aiExcludeService(project: Project): AiExcludeService = FakeAiExcludeService()
 
     override fun chat(project: Project): ChatService = ChatService.StubChatService()
 
