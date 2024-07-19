@@ -49,6 +49,7 @@ class EditorStatsUtilTest {
       "groovy" to EditorFileType.GROOVY,
       "properties" to EditorFileType.PROPERTIES,
       "json" to EditorFileType.JSON,
+      "toml" to EditorFileType.TOML,
       "foo" to EditorFileType.UNKNOWN,
     )
 
