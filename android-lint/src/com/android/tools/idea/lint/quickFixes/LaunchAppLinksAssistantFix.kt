@@ -21,25 +21,32 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 class LaunchAppLinksAssistantFix : DefaultLintQuickFix("Launch App Links Assistant") {
 
+  private fun getAppLinksAssistantToolWindow(project: Project): ToolWindow? {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    return toolWindowManager.getToolWindow("App Links Assistant")
+  }
+
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
     contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean = IdeInfo.getInstance().isAndroidStudio
+  ): Boolean =
+    IdeInfo.getInstance().isAndroidStudio &&
+      getAppLinksAssistantToolWindow(startElement.project) != null
 
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
     context: AndroidQuickfixContexts.Context,
   ) {
-    val toolWindowManager = ToolWindowManager.getInstance(startElement.project)
-    val window = toolWindowManager.getToolWindow("App Links Assistant") ?: return
+    val window = getAppLinksAssistantToolWindow(startElement.project) ?: return
     window.isShowStripeButton = true
     window.show()
   }
