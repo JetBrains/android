@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesL
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 
@@ -48,7 +49,7 @@ class K2AndroidViewConstructorFix(
         // Called from a background thread in an open analysis session.
         @OptIn(KaExperimentalApi::class)
         private fun KaSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
-            val superTypeReference = diagnostic.psi
+            val superTypeReference = diagnostic.psi as? KtTypeReference ?: return null
             val superTypeEntry = superTypeReference.getNonStrictParentOfType<KtSuperTypeEntry>() ?: return null
             val ktClass = superTypeEntry.containingClass() ?: return null
             if (ktClass.primaryConstructor != null) return null
