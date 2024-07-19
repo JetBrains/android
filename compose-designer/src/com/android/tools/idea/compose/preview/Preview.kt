@@ -58,6 +58,7 @@ import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewInvalidationManager
+import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
@@ -232,7 +233,11 @@ fun configureLayoutlibSceneManager(
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
-    interactive = isInteractive
+    // When the cache successful render image is enabled, the scene manager will retain the last
+    // valid image even if subsequent renders fail. But do not cache in interactive mode as it does
+    // not help and it would make unnecessary copies of the bitmap.
+    setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive)
+    setClassesToPreload(if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList())
     isUsePrivateClassLoader = requestPrivateClassLoader
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
@@ -596,6 +601,7 @@ class ComposePreviewRepresentation(
   private fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
+    invalidate()
   }
 
   private fun updateAnimationPanelVisibility() {

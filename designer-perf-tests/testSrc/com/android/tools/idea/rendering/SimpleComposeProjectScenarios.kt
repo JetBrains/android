@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.gradle.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.virtualFile
-import com.android.tools.idea.uibuilder.scene.ComposePreloadClasses
+import com.android.tools.idea.preview.PreviewPreloadClasses
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.application.ApplicationManager
@@ -98,7 +98,7 @@ class SimpleComposeProjectScenarios {
           "google.simpleapplication.ComplexPreviewKt.ComplexPreview"
         ),
         privateClassLoader = true,
-        classesToPreload = ComposePreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
+        classesToPreload = PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
       )
 
       // Pseudo interactive

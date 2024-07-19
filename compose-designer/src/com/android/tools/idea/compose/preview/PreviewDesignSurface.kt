@@ -73,9 +73,6 @@ private fun createPreviewDesignSurfaceBuilder(
         it.setListenResourceChange(false) // don't re-render on resource changes
         it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
         it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
-        // When the cache successful render image is enabled, the scene manager will retain
-        // the last valid image even if subsequent renders fail.
-        it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
       }
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
