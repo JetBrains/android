@@ -45,6 +45,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewInvalidationManager
+import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
@@ -694,7 +695,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     layoutlibSceneManager: LayoutlibSceneManager,
   ) =
     layoutlibSceneManager.apply {
-      interactive = mode.value is PreviewMode.Interactive
+      setCacheSuccessfulRenderImage(
+        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && mode.value !is PreviewMode.Interactive
+      )
+      setClassesToPreload(
+        if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      )
       isUsePrivateClassLoader = mode.value is PreviewMode.Interactive
       quality = qualityManager.getTargetQuality(this@apply)
     }

@@ -80,16 +80,6 @@ class LayoutlibSceneManagerTest : SceneTest() {
     assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
   }
 
-  fun testTransitioningFromInteractiveToStaticForcesReinflate() {
-    // static to interactive
-    myLayoutlibSceneManager.interactive = true
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    // interactive to static
-    myLayoutlibSceneManager.interactive = false
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
   fun testChangingUsePrivateClassLoaderForcesReinflate() {
     val defaultIsUsePrivateClassLoader = myLayoutlibSceneManager.isUsePrivateClassLoader
     assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()

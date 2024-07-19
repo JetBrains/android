@@ -51,7 +51,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -205,9 +204,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private boolean myUpdateAndRenderWhenActivated = true;
 
   /**
-   * If true, the scene is interactive.
+   * List of classes to preload when rendering.
    */
-  private boolean myIsInteractive;
+  private List<String> myClassesToPreload = Collections.emptyList();
 
   /**
    * If false, the use of the {@link ImagePool} will be disabled for the scene manager.
@@ -980,8 +979,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       if (myRenderResult != null && myRenderResult != result) {
         if (
           myCacheSuccessfulRenderImage
-          // Do not cache in interactive mode. It does not help and would make unnecessary copies of the bitmap.
-          && !myIsInteractive
           // The previous result was valid
           && myRenderResult.getRenderedImage().getWidth() > 1 && myRenderResult.getRenderedImage().getHeight() > 1
           // The new result is an error
@@ -1034,8 +1031,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       taskBuilder.usePrivateClassLoader();
     }
 
-    if (myIsInteractive) {
-      taskBuilder.preloadClasses(ComposePreloadClasses.getINTERACTIVE_CLASSES_TO_PRELOAD());
+    if (!myClassesToPreload.isEmpty()) {
+      taskBuilder.preloadClasses(myClassesToPreload);
     }
 
     if (!reportOutOfDateUserClasses) {
@@ -1395,25 +1392,12 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   /**
-   * Sets interactive mode of the scene.
-   * @param interactive true if the scene is interactive, false otherwise.
+   * Sets the list of classes to preload when rendering.
+   * This intended for classes that are very likely to be used, so that they can be preloaded.
+   * Interactive Preview is an example where preloading classes is a good idea.
    */
-  public void setInteractive(boolean interactive) {
-    var isTransitionFromInteractiveToStatic = myIsInteractive && !interactive;
-    myIsInteractive = interactive;
-    if (isTransitionFromInteractiveToStatic) {
-      forceReinflate();
-    }
-    if (StudioFlags.NELE_ATF_FOR_COMPOSE.get()) {
-      getLayoutScannerConfig().setLayoutScannerEnabled(!interactive);
-    }
-  }
-
-  /**
-   * @return true is the scene is interactive, false otherwise.
-   */
-  public boolean getInteractive() {
-    return myIsInteractive;
+  public void setClassesToPreload(List<String> classesToPreload) {
+    myClassesToPreload = classesToPreload;
   }
 
   /**
