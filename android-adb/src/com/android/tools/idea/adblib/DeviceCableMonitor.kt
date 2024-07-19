@@ -16,6 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.DeviceConnectionType
+import com.android.adblib.DeviceState
 import com.android.adblib.deviceInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.SetChange
@@ -31,59 +32,56 @@ import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.ProjectActivity
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
- * Monitor device connection event. If the device is using USB and the
- * negotiated speed is below the max capable speed, we issue a notification.
+ * Monitor device connection event. If the device is using USB and the negotiated speed is below the
+ * max capable speed, we issue a notification.
  */
 class DeviceCableMonitor : ProjectActivity {
 
   private val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
 
   private val notificationGroup: NotificationGroup
-    get() = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_ID)
-            ?: NotificationGroup(
-              NOTIFICATION_GROUP_ID,
-              NotificationDisplayType.BALLOON,
-            )
+    get() =
+      NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_ID)
+        ?: NotificationGroup(NOTIFICATION_GROUP_ID, NotificationDisplayType.BALLOON)
 
   override suspend fun execute(project: Project) {
     val service = project.service<DeviceProvisionerService>()
-    service.deviceProvisioner.devices.map {
-      it.toSet()
-    }.trackSetChanges().collect { change ->
-      when (change) {
-        is SetChange.Add -> {
-          // We don't want to run the coroutine on emulators or datacenter devices
-          val properties = change.value.state.properties
-          // isRemote can be null, we need to revert the test to pass anyway.
-          if (properties.isVirtual != true && properties.isRemote != true) {
-            change.value.scope.launch { monitorDevice(project, change.value) }
+    service.deviceProvisioner.devices
+      .map { it.toSet() }
+      .trackSetChanges()
+      .collect { change ->
+        when (change) {
+          is SetChange.Add -> {
+            // We don't want to run the coroutine on emulators or datacenter devices
+            val properties = change.value.state.properties
+            // isRemote can be null, we need to revert the test to pass anyway.
+            if (properties.isVirtual != true && properties.isRemote != true) {
+              change.value.scope.launch { monitorDevice(project, change.value) }
+            }
           }
+          is SetChange.Remove -> {}
         }
-
-        is SetChange.Remove -> {}
       }
-    }
   }
 
   private suspend fun monitorDevice(project: Project, handle: DeviceHandle) {
-    val deviceInfo = handle.stateFlow.mapNotNull { it.connectedDevice?.deviceInfo }.first { it.connectionType == DeviceConnectionType.USB }
+    val deviceInfo =
+      handle.stateFlow
+        .mapNotNull { it.connectedDevice?.deviceInfo }
+        .first { it.connectionType == DeviceConnectionType.USB }
 
     // Some older devices have USB controller bugs where they report being able to do USB 3 while
-    // only being USB 2 capable. We filter them out via the API level since which they are likely to not
-    // have been updated.
+    // only being USB 2 capable. We filter them out via the API level since which they are likely to
+    // not have been updated.
     if (!handle.state.properties.androidVersion!!.isGreaterOrEqualThan(11)) {
       return
     }
@@ -95,8 +93,11 @@ class DeviceCableMonitor : ProjectActivity {
 
     val isStudioNotificationEnabled = StudioFlags.ALERT_UPON_DEVICE_SUBOPTIMAL_SPEED.get()
 
-    val notification = createNotification("'$deviceTitle' is capable of faster USB connectivity." +
-           " Upgrade the cable/hub from ${ speedToString(negotiatedSpeed) } to ${speedToString(maxSpeed)}.")
+    val notification =
+      createNotification(
+        "'$deviceTitle' is capable of faster USB connectivity." +
+          " Upgrade the cable/hub from ${speedToString(negotiatedSpeed)} to ${speedToString(maxSpeed)}."
+      )
     var notificationShown = false
     if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
       if (isStudioNotificationEnabled) {
@@ -108,24 +109,23 @@ class DeviceCableMonitor : ProjectActivity {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_DEVICE_CONNECTED)
-        .setDeviceConnected(DeviceConnectedNotificationEvent.newBuilder()
-                              .setType(com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent.DeviceConnectionType.USB)
-                              .setMaxSpeedMbps(maxSpeed)
-                              .setNegotiatedSpeedMbps(negotiatedSpeed)
-                              .setSpeedNotificationsStudioDisabled(!isStudioNotificationEnabled)
-                              .setSpeedNotificationsUserDisabled(!notification.canShowFor(project))
+        .setDeviceConnected(
+          DeviceConnectedNotificationEvent.newBuilder()
+            .setType(DeviceConnectedNotificationEvent.DeviceConnectionType.USB)
+            .setMaxSpeedMbps(maxSpeed)
+            .setNegotiatedSpeedMbps(negotiatedSpeed)
+            .setSpeedNotificationsStudioDisabled(!isStudioNotificationEnabled)
+            .setSpeedNotificationsUserDisabled(!notification.canShowFor(project))
         )
     )
 
     // Dismiss the notification once the device is unplugged or when project is closed.
-    if (notificationShown && notification.canShowFor(project)) {
-      withContext(NonCancellable) { // To avoid a race condition we cannot run on the DeviceHandle scope.
-        val waiter = launch {handle.awaitRelease(connectedDevice)}
-        // Notifications are expired when the project is closed
-        notification.whenExpired {
-          waiter.cancel()
-        }
-        waiter.join()
+    if (notificationShown) {
+      // Launch in session scope (tied to project scope) so that we don't get
+      // cancelled when device is disconnected, but we still get cancelled
+      // if project is closed.
+      connectedDevice.session.scope.launch {
+        connectedDevice.deviceInfoFlow.first { it.deviceState == DeviceState.DISCONNECTED }
         notification.expire()
       }
     }
@@ -135,7 +135,9 @@ class DeviceCableMonitor : ProjectActivity {
     return notificationGroup
       .createNotification(text, NotificationType.WARNING)
       .setTitle("Connection speed warning")
-      .addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
+      .addAction(
+        BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check")
+      )
       .setImportant(true)
   }
 
