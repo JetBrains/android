@@ -460,7 +460,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   }
 
   // Wake up the device if the display was turned off.
-  if (action == AMOTION_EVENT_ACTION_DOWN && !display_info.IsOn()) {
+  if (action == AMOTION_EVENT_ACTION_DOWN) {
     WakeUpDevice();
   }
 }
