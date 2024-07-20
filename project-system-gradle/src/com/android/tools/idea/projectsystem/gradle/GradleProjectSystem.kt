@@ -404,7 +404,8 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val jniLibsDirectoryUrls: Sequence<String> = emptySequence()
         override val resDirectoryUrls: Sequence<String> =
           this@toGeneratedIdeaSourceProvider.generatedResourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
-        override val assetsDirectoryUrls: Sequence<String> = emptySequence()
+        override val assetsDirectoryUrls: Sequence<String> =
+          this@toGeneratedIdeaSourceProvider.generatedAssetFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
