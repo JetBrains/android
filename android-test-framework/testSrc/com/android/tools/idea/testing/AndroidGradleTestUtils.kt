@@ -902,6 +902,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
@@ -966,6 +967,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
@@ -1117,6 +1119,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
