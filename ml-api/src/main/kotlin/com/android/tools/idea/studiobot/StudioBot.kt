@@ -18,6 +18,8 @@ package com.android.tools.idea.studiobot
 import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.jetbrains.rd.util.getOrCreate
 
 /**
  * Entry point for Studio Bot functionality from android plugin. It mainly serves as a level of
@@ -80,12 +82,18 @@ interface StudioBot {
 
   open class StubStudioBot : StudioBot {
     override val MAX_QUERY_CHARS = Int.MAX_VALUE
+    private val aiExcludeServices = mutableMapOf<Project, FakeAiExcludeService>()
 
     override fun isAvailable(): Boolean = false
 
     override fun isContextAllowed(project: Project): Boolean = false
 
-    override fun aiExcludeService(project: Project): AiExcludeService = FakeAiExcludeService()
+    override fun aiExcludeService(project: Project): AiExcludeService {
+      return aiExcludeServices.getOrCreate(project) {
+        Disposer.register(project) { aiExcludeServices.remove(project) }
+        FakeAiExcludeService()
+      }
+    }
 
     override fun chat(project: Project): ChatService = ChatService.StubChatService()
 
