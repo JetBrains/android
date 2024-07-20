@@ -1577,6 +1577,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidMain
@@ -1585,6 +1586,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/assets [-]

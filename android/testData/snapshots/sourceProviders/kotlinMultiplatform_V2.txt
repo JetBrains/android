@@ -698,6 +698,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectories:
                     ./module2/src/debug/assets
                     ./module2/src/androidDebug/assets
+                    ./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectories:
                     ./module2/src/debug/java
                 KotlinDirectories:
@@ -758,6 +759,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectories:
                     ./module2/src/debug/assets
                     ./module2/src/androidDebug/assets
+                    ./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectories:
                     ./module2/src/debug/java
                 KotlinDirectories:
@@ -791,6 +793,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectories:
                     ./module2/src/release/assets
                     ./module2/src/androidRelease/assets
+                    ./module2/build/generated/assets/releaseAssetsCopyForAGP
                 JavaDirectories:
                     ./module2/src/release/java
                 KotlinDirectories:
@@ -950,6 +953,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidMain/assets
                     file://./module2/src/debug/assets
                     file://./module2/src/androidDebug/assets
+                    file://./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectoryUrls:
                     file://./module2/src/main/java
                     file://./module2/src/debug/java
@@ -1146,6 +1150,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectoryUrls:
                     file://./module2/src/debug/assets
                     file://./module2/src/androidDebug/assets
+                    file://./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectoryUrls:
                     file://./module2/src/debug/java
                 KotlinDirectoryUrls:
@@ -1183,6 +1188,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectoryUrls:
                     file://./module2/src/release/assets
                     file://./module2/src/androidRelease/assets
+                    file://./module2/build/generated/assets/releaseAssetsCopyForAGP
                 JavaDirectoryUrls:
                     file://./module2/src/release/java
                 KotlinDirectoryUrls:
@@ -1244,6 +1250,7 @@ MODULE: kotlinMultiPlatform.module2
                 AssetsDirectoryUrls:
                     file://./module2/src/debug/assets
                     file://./module2/src/androidDebug/assets
+                    file://./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectoryUrls:
                     file://./module2/src/debug/java
                 KotlinDirectoryUrls:
