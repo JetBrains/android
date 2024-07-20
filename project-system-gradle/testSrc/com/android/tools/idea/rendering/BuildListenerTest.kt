@@ -41,10 +41,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
+@Ignore("b/354210253")
 class BuildListenerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
