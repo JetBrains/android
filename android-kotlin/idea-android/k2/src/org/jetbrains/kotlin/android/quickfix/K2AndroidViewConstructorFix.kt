@@ -56,7 +56,7 @@ class K2AndroidViewConstructorFix(
 
             val superType = superTypeReference.type as? KaClassType ?: return null
 
-            if (!isAndroidView(superType) && superType.allSupertypes.none { isAndroidView(it) }) {
+            if (!isAndroidView(superType)) {
                 return null
             }
 
@@ -89,8 +89,7 @@ class K2AndroidViewConstructorFix(
         }
 
         private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId
-        private fun KaSession.isAndroidView(type: KaType): Boolean =
-            classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
+        private fun KaSession.isAndroidView(type: KaType): Boolean = type.isSubtypeOf(KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE)
     }
 }
 

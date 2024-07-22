@@ -128,10 +128,7 @@ private fun KotlinType.isStateType(stateTypeFqName: String) =
   (fqName?.asString() == stateTypeFqName ||
     supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
-private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
-  type is KaClassType &&
-    (type.classId == stateClassId ||
-      type.allSupertypes.any { it is KaClassType && it.classId == stateClassId })
+private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean = type.isSubtypeOf(stateClassId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
