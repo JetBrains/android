@@ -19,10 +19,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
@@ -58,7 +55,7 @@ class K2AndroidViewConstructorFix(
 
             val superType = superTypeReference.type as? KaClassType ?: return null
 
-            if (!isAndroidView(superType) && superType.allSupertypes(false).none { isAndroidView(it) }) {
+            if (!isAndroidView(superType)) {
                 return null
             }
 
@@ -91,8 +88,7 @@ class K2AndroidViewConstructorFix(
         }
 
         private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId
-        private fun KaSession.isAndroidView(type: KaType): Boolean =
-            classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
+        private fun KaSession.isAndroidView(type: KaType): Boolean = type.isSubtypeOf(KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE)
     }
 }
 
