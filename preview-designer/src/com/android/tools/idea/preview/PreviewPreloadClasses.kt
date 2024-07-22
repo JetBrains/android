@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene
+package com.android.tools.idea.preview
 
-import com.google.common.annotations.VisibleForTesting
-
-object ComposePreloadClasses {
+/**
+ * Contains lists of classes to preload when rendering previews in different scenarios, like for
+ * example when using interactive preview.
+ */
+object PreviewPreloadClasses {
   @JvmStatic
-  @VisibleForTesting
+  /** List of classes to preload when using interactive preview */
+  // TODO(b/354679689): move tool specific dependencies to their corresponding modules and only
+  //   keep common ones here.
   val INTERACTIVE_CLASSES_TO_PRELOAD: List<String> =
     listOf(
       // As of Compose alpha12
