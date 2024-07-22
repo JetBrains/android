@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.seconds
@@ -86,6 +87,7 @@ class OpenWearHealthServicesPanelActionTest {
             )
           )
         whenever(it.emulatorConfig).thenReturn(emulatorConfig)
+        Disposer.register(projectRule.testRootDisposable, it)
       }
     emulatorView = EmulatorView(projectRule.testRootDisposable, emulatorController, 0, null, false)
 
