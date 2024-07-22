@@ -22,10 +22,12 @@ import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.DynamicValueResourceRepository
 import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.findDirectory
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -73,13 +75,15 @@ class StringResourceRepositoryTest {
         )
       )
 
-    resourceDirectory =
-      androidProjectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
+    val fixture = androidProjectRule.fixture
+    resourceDirectory = fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
+    val buildFolder = fixture.copyDirectoryToProject("stringsEditor/base/build", "build")
+    val generatedDirectory = buildFolder.findDirectory("generated/res")!!
     key1 = StringResourceKey("key1", resourceDirectory)
     invalidKey = StringResourceKey("key1", resourceDirectory.parent)
-    localResourceRepository =
-      ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicResourceRepository)
-    stringResourceRepository = StringResourceRepository.create(localResourceRepository)
+    localResourceRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory, generatedDirectory),
+                                                                     ResourceNamespace.RES_AUTO, dynamicResourceRepository)
+    stringResourceRepository = StringResourceRepository.create(localResourceRepository, androidProjectRule.project)
 
     runBlocking {
       withTimeout(2.seconds) {
@@ -99,7 +103,8 @@ class StringResourceRepositoryTest {
 
   @Test
   fun getKeys() {
-    assertThat(stringResourceRepository.getKeys())
+    val keys = runReadAction { stringResourceRepository.getKeys() }
+    assertThat(keys)
         .containsExactly(
             StringResourceKey("key1", resourceDirectory),
             StringResourceKey("key2", resourceDirectory),
@@ -126,12 +131,12 @@ class StringResourceRepositoryTest {
   fun getItems_dynamicResources() {
     val value1Items = stringResourceRepository.getItems(StringResourceKey(DYNAMIC_KEY_1))
     assertThat(value1Items).hasSize(1)
-    assertThat(value1Items.first().resourceValue.resourceType).isEqualTo(ResourceType.STRING)
-    assertThat(value1Items.first().resourceValue.value).isEqualTo(DYNAMIC_VALUE_1)
+    assertThat(value1Items.first().resourceValue!!.resourceType).isEqualTo(ResourceType.STRING)
+    assertThat(value1Items.first().resourceValue!!.value).isEqualTo(DYNAMIC_VALUE_1)
     val value2Items = stringResourceRepository.getItems(StringResourceKey(DYNAMIC_KEY_2))
     assertThat(value2Items).hasSize(1)
-    assertThat(value2Items.first().resourceValue.resourceType).isEqualTo(ResourceType.STRING)
-    assertThat(value2Items.first().resourceValue.value).isEqualTo(DYNAMIC_VALUE_2)
+    assertThat(value2Items.first().resourceValue!!.resourceType).isEqualTo(ResourceType.STRING)
+    assertThat(value2Items.first().resourceValue!!.value).isEqualTo(DYNAMIC_VALUE_2)
 
     assertThat(stringResourceRepository.getItems(StringResourceKey(MISSING_KEY))).isEmpty()
   }
@@ -145,7 +150,7 @@ class StringResourceRepositoryTest {
       assertThat(it.type).isEqualTo(ResourceType.STRING)
     }
 
-    val key1Values = evaluateInEdtExecutor { key1Items.map { it.resourceValue.value } }
+    val key1Values = evaluateInEdtExecutor { key1Items.map { it.resourceValue!!.value } }
 
     assertThat(key1Values)
         .containsExactly(

@@ -75,7 +75,7 @@ class StringResourceDataTest {
     val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO,
                                                                   dynamicRepository)
 
-    data = create(module.project, Utils.createStringRepository(moduleRepository))
+    data = create(module.project, Utils.createStringRepository(moduleRepository, module.project))
   }
 
   @Test
