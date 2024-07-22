@@ -25,10 +25,10 @@ import static org.mockito.Mockito.when;
 
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.prefs.AndroidLocationsSingletonRule;
-import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -40,8 +40,8 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.TemporaryDirectoryRule;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -55,7 +55,6 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -157,9 +156,7 @@ public final class AndroidVirtualDeviceTest {
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(34);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    Map<String, RemotePackage> remotes = new HashMap<>();
-    remotes.put("platforms;android-34", remotePlatform);
-    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
+    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(ImmutableList.of(remotePlatform), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
@@ -186,32 +183,14 @@ public final class AndroidVirtualDeviceTest {
   public void testNoAvdIsCreatedIfThereAreExistingOnes() throws Exception {
     createPlaceholderAvd();
 
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-34");
-    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
-
-    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(34);
-    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    Map<String, RemotePackage> remotes = new HashMap<>();
-    remotes.put("platforms;android-34", remotePlatform);
-    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotes, true);
+    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(new AndroidVersion(34), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNull();
   }
 
   @Test
   public void testRequiredSysimgPath() {
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-34");
-    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
-
-    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(34);
-    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-
-    Map<String, RemotePackage> remotes = new HashMap<>();
-    remotes.put("platforms;android-34", remotePlatform);
-
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
 
     assertEquals("system-images;android-34;google_apis_playstore;x86_64", avd.getRequiredSysimgPath(false));
@@ -222,14 +201,12 @@ public final class AndroidVirtualDeviceTest {
   public void testSysimgWithExtensionLevel() {
     // create remote packages for both a base platform and for an extension of the same platform.
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
-    Map<String, RemotePackage> remotes = new HashMap<>();
 
     // Base: API 33
     FakePackage.FakeRemotePackage baseRemotePlatform = new FakePackage.FakeRemotePackage("platforms;android-33");
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(33);
     baseRemotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    remotes.put("platforms;android-33", baseRemotePlatform);
 
     // Extension: API 33, extension 3.
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-33-ext3");
@@ -238,9 +215,8 @@ public final class AndroidVirtualDeviceTest {
     platformDetailsType.setBaseExtension(false);
     platformDetailsType.setExtensionLevel(3);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    remotes.put("platforms;android-33-ext3", remotePlatform);
 
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
     avd.sdkHandler = sdkHandler;
 
     // The selected image should be the base one.
@@ -250,16 +226,7 @@ public final class AndroidVirtualDeviceTest {
 
   @Test
   public void testSelectedByDefault() throws Exception {
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-34");
-    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
-
-    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(34);
-    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-
-    Map<String, RemotePackage> remotes = Maps.newHashMap();
-
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(ImmutableList.of(), true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
@@ -269,8 +236,7 @@ public final class AndroidVirtualDeviceTest {
     assertTrue(avd.isSelectedByDefault());
 
     // SDK installed, System image, but no AVD -> Selected by default
-    remotes.put("platforms;android-34", remotePlatform);
-    avd = new AndroidVirtualDevice(remotes, true);
+    avd = new AndroidVirtualDevice(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 

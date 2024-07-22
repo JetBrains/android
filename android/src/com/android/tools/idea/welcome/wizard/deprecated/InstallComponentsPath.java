@@ -116,7 +116,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance());
-    Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
+    Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
     ComponentTreeNode platforms = Platform.Companion.createSubtree(remotePackages, myInstallUpdates);
     if (platforms != null) {
       components.add(platforms);
@@ -270,15 +270,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
    */
   @Nullable
   public static RemotePackage findLatestPlatform(
-    @Nullable Map<String, RemotePackage> remotePackages,
+    @NotNull Collection<RemotePackage> remotePackages,
     boolean returnBaseExtension
   ) {
-    if (remotePackages == null) {
-      return null;
-    }
     AndroidVersion max = null;
     RemotePackage latest = null;
-    for (RemotePackage pkg : remotePackages.values()) {
+    for (RemotePackage pkg : remotePackages) {
       TypeDetails details = pkg.getTypeDetails();
       if (!(details instanceof DetailsTypes.PlatformDetailsType)) {
         continue;
