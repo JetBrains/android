@@ -499,6 +499,7 @@
                         serviceInterface="com.android.tools.idea.adb.AdbFileProvider" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ProjectAdbFileProvider"
                         serviceInterface="com.android.tools.idea.adb.AdbFileProvider" />
+    <projectService serviceImplementation="com.android.tools.idea.stats.ReportProjectSizeTask"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/LiveLiteralsColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
