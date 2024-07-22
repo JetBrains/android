@@ -336,7 +336,7 @@ class ComposePreviewViewImplTest {
       No preview found.
       Add preview by annotating Composables with @Preview
       [Using the Compose preview]
-      ${if (contextSharingEnabled) "[Generate Compose Previews for this file]" else ""}
+      ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
     """
         .trimIndent()
         .trim(),
