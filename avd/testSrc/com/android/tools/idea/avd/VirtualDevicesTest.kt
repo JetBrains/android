@@ -45,7 +45,7 @@ class VirtualDevicesTest {
 
     whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
 
-    VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
+    VirtualDevices(avdManagerConnection, mockSystemImageManager())
       .add(
         autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(34))).toVirtualDevice(),
         mockSystemImage(),
