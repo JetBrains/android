@@ -16,19 +16,15 @@
 package com.android.tools.idea.avd
 
 import com.android.resources.ScreenOrientation
-import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 
 internal class VirtualDevices(
-  val devices: List<Device> =
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList(),
   private val avdManagerConnection: AvdManagerConnection =
     AvdManagerConnection.getDefaultAvdManagerConnection(),
   private val manager: SystemImageManager = getSystemImageManager(),
