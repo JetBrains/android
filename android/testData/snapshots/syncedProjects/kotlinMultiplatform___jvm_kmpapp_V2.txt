@@ -597,6 +597,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/assets/debugAssetsCopyForAGP [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidMain [-]
@@ -605,6 +606,7 @@ PROJECT                       : kotlinMultiPlatform
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/assets/debugAssetsCopyForAGP [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/androidDebug/assets [-]
@@ -1388,6 +1390,7 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain
@@ -1396,6 +1399,7 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/assets [-]
