@@ -91,7 +91,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -119,19 +118,16 @@ import com.intellij.psi.xml.XmlProcessingInstruction;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.serviceContainer.AlreadyDisposedException;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -143,8 +139,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -225,16 +219,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
   // Repository updates have to be applied in FIFO order to produce correct results.
-  private final @NotNull ExecutorService updateExecutor =
-      AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRepository", 1);
-  @GuardedBy("updateQueue")
-  private final @NotNull Deque<Runnable> updateQueue = new ArrayDeque<>();
-  /**
-   * {@link WolfTheProblemSolver} updates need to be executed in a background thread. This queue is used to process
-   * those updates.
-   */
-  private final @NotNull ExecutorService wolfQueue =
-    AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRepositoryWolfQueue", 1);
+  private final @NotNull ResourceFolderRepositoryBackgroundActions backgroundActions;
+
   private final @NotNull Object scanLock = new Object();
   @GuardedBy("scanLock")
   private final @NotNull Set<VirtualFile> pendingScans = new HashSet<>();
@@ -285,6 +271,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
                                    @NotNull ResourceNamespace namespace,
                                    @Nullable ResourceFolderRepositoryCachingData cachingData) {
     super(resourceDir.getName());
+
     myFacet = facet;
     myResourceDir = resourceDir;
     myNamespace = namespace;
@@ -301,9 +288,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
                     : psiListener;
 
     myLoader = new Loader(this, cachingData);
-
-    Disposer.register(myFacet, updateExecutor::shutdownNow);
-    Disposer.register(myFacet, wolfQueue::shutdownNow);
+    backgroundActions = new ResourceFolderRepositoryBackgroundActions(myFacet);
     ResourceUpdateTracer.logDirect(() ->
       TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
     );
@@ -667,9 +652,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        wolfQueue.submit(() -> {
-          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
-        });
+        backgroundActions.submitToWolfQueue(() ->
+          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
+        );
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getFileName()));
@@ -679,9 +664,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        wolfQueue.submit(() -> {
-          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
-        });
+        backgroundActions.submitToWolfQueue(() ->
+          WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
+        );
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
@@ -810,48 +795,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   }
 
   /**
-   * Runs the given update action on {@link #updateExecutor} in a read action.
+   * Runs the given update action on {@link #backgroundActions} in a read action.
    * All update actions are executed in the same order they were scheduled.
    */
   private void scheduleUpdate(@NotNull Runnable updateAction) {
-    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleUpdate scheduling " + updateAction);
-    boolean wasEmpty;
-    synchronized (updateQueue) {
-      wasEmpty = updateQueue.isEmpty();
-      updateQueue.add(updateAction);
-    }
-    if (wasEmpty) {
-      try {
-        updateExecutor.execute(() -> {
-          while (true) {
-            Runnable action;
-            synchronized (updateQueue) {
-              action = updateQueue.poll();
-              if (action == null) {
-                break;
-              }
-            }
-            ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " started");
-            try {
-              ReadAction.nonBlocking(action).expireWith(myFacet).executeSynchronously();
-              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " finished");
-            }
-            catch (ProcessCanceledException e) {
-              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " was canceled");
-              // The current update action has been canceled. Proceed to the next one in the queue.
-            }
-            catch (Throwable e) {
-              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " finished with exception " + e + '\n' +
-                                             TraceUtils.getStackTrace(e));
-              LOG.error(e);
-            }
-          }
-        });
-      }
-      catch (RejectedExecutionException ignore) {
-        // The executor has been shut down.
-      }
-    }
+    backgroundActions.scheduleUpdate(this, updateAction);
   }
 
   @Override
@@ -1120,7 +1068,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
    * with the given file.
    */
   private void getAndroidTargetDataThenRun(@NotNull VirtualFile file, @NotNull Consumer<AndroidTargetData> consumer) {
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    ResourceFolderRepositoryBackgroundActions.executeOnPooledThread(() -> {
       if (myFacet.isDisposed()) {
         return;
       }
@@ -2047,9 +1995,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       if (source != null) {
         removeSource(file, source);
       }
-      wolfQueue.submit(() -> {
-        WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this);
-      });
+      backgroundActions.submitToWolfQueue(() ->
+        WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this)
+      );
     }
   }
 
