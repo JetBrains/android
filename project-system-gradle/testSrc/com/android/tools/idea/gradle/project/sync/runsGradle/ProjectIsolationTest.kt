@@ -53,7 +53,7 @@ class ProjectIsolationTest {
     ) {
       stdout.toString().let {
         Truth.assertThat(it).contains("""
-          2 problems were found storing the configuration cache.
+          problems were found storing the configuration cache, 2 of which seem unique.
           """.trimIndent())
         Truth.assertThat(it).doesNotContain("""
           Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
