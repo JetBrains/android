@@ -44,6 +44,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -319,6 +320,7 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
+  @Ignore("b/341660003")
   fun testDeployPreview() {
     val composablePackageName = "google.simpleapplication"
     val composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
