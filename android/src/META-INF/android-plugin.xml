@@ -474,6 +474,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingAnnotationsService" />
     <moduleService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderOverlays" />
     <moduleService serviceImplementation="com.android.tools.idea.res.AndroidDependenciesCache" />
+    <moduleService serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryBackgroundActions" />
 
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
     <spellchecker.dictionary.runtimeDictionaryProvider implementation="com.android.tools.idea.AndroidDictionaryProvider"/>
