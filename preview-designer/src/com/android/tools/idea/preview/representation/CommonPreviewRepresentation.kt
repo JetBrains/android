@@ -171,7 +171,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   configureDesignSurface: NlSurfaceBuilder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
-  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
+  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = {
+    null
+  },
   private val onAfterRender: (LayoutlibSceneManager) -> Unit = {},
 ) :
   PreviewRepresentation,
@@ -876,10 +878,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     ActivityTracker.getInstance().inc()
   }
 
-  private suspend fun stopInteractivePreview() {
+  private fun stopInteractivePreview() {
     LOG.debug("Stopping interactive preview mode")
     interactiveManager.stop()
-    invalidateAndRefresh()
+    invalidate()
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
