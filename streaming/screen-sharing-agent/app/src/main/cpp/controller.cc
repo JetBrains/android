@@ -81,7 +81,7 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
 // Waits for incoming data on a socket. Returns true if new data is available, or false otherwise.
 template <class T>
 bool WaitForIncomingData(T timeout, int socket_fd) {
-  struct pollfd fds = {socket_fd, POLLIN, 0};
+  struct pollfd fds = { socket_fd, POLLIN, 0 };
   return poll(&fds, 1, duration_cast<milliseconds>(timeout).count()) > 0;
 }
 
@@ -233,7 +233,7 @@ void Controller::Run() {
 
       if (!WaitForIncomingData(socket_timeout, socket_fd_)) {
         continue;
-      };
+      }
 
       int32_t message_type;
       try {
