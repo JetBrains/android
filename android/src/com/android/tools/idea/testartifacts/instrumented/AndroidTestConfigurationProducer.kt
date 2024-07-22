@@ -137,7 +137,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
         // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
         // here we prioritize instrumentation.
         other.configurationType is JUnitConfigurationType -> true
-        other.configurationType is GradleExternalTaskConfigurationType -> true
+        other.configurationType is GradleExternalTaskConfigurationType -> false
 
         // Otherwise, we don't have preference. Let the IDE to decide which one to use.
         else -> false
