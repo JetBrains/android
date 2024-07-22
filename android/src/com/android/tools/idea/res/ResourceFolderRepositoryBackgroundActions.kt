@@ -20,22 +20,20 @@ import com.android.utils.TraceUtils.getStackTrace
 import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.concurrent.RejectedExecutionException
 
-/** Class responsible for managing background actions taken by [ResourceFolderRepository]. */
-class ResourceFolderRepositoryBackgroundActions(private val parentDisposable: Disposable) :
-  Disposable {
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
+/**
+ * Module service responsible for managing background actions taken by [ResourceFolderRepository].
+ */
+class ResourceFolderRepositoryBackgroundActions : Disposable {
 
   @GuardedBy("updateQueue") private val updateQueue: Deque<Pair<Runnable, String>> = ArrayDeque()
 
@@ -67,7 +65,7 @@ class ResourceFolderRepositoryBackgroundActions(private val parentDisposable: Di
 
           ResourceUpdateTracer.log { "$repositorySimpleId: Update $action started" }
           try {
-            ReadAction.nonBlocking(action).expireWith(parentDisposable).executeSynchronously()
+            ReadAction.nonBlocking(action).expireWith(this).executeSynchronously()
             ResourceUpdateTracer.log { "$repositorySimpleId: Update $action finished" }
           } catch (e: ProcessCanceledException) {
             ResourceUpdateTracer.log { "$repositorySimpleId: Update $action was canceled" }
@@ -95,6 +93,9 @@ class ResourceFolderRepositoryBackgroundActions(private val parentDisposable: Di
   }
 
   companion object {
+    @JvmStatic
+    fun getInstance(module: Module) = module.service<ResourceFolderRepositoryBackgroundActions>()
+
     @JvmStatic
     fun executeOnPooledThread(action: Runnable) {
       application.executeOnPooledThread(action)
