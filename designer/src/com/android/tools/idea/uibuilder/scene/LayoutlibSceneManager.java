@@ -420,10 +420,14 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       super.dispose();
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-        myRenderTaskDisposerExecutor.execute(this::disposeRenderTask);
+        myRenderTaskDisposerExecutor.execute(() -> {
+          updateRenderTask(null);
+          updateCachedRenderResult(null);
+        });
       }
       else {
-        disposeRenderTask();
+        updateRenderTask(null);
+        updateCachedRenderResult(null);
       }
     }
   }
@@ -441,22 +445,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       mySessionClock = new RealTimeSessionClock();
       myRenderTask = newTask;
     }
-  }
-
-  private void disposeRenderTask() {
-    RenderTask renderTask;
-    synchronized (myRenderingTaskLock) {
-      renderTask = myRenderTask;
-      myRenderTask = null;
-    }
-    if (renderTask != null) {
-      try {
-        renderTask.dispose();
-      } catch (Throwable t) {
-        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-      }
-    }
-    updateCachedRenderResult(null);
   }
 
   @NotNull
@@ -1447,7 +1435,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderingQueue.deactivate();
       clearAndCancelPendingFutures();
       completeRender();
-      disposeRenderTask();
+      updateRenderTask(null);
+      updateCachedRenderResult(null);
     }
 
     return deactivated;
