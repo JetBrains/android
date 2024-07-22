@@ -32,11 +32,14 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.platform.workspace.jps.entities.ModuleEntity;
+import com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeImpl;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.core.script.KotlinScriptEntitySourceK2;
 
 public class SupportedModuleChecker {
 
@@ -59,6 +62,9 @@ public class SupportedModuleChecker {
     List<Module> unsupportedModules = new ArrayList<>();
     boolean androidGradleSeen = false;
     for (Module module : modules) {
+      if (isKotlinScriptModule(module)) {
+        continue;
+      }
       ModuleType moduleType = ModuleType.get(module);
       if (moduleType instanceof JavaModuleType) {
         String externalSystemId = ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId();
@@ -74,6 +80,16 @@ public class SupportedModuleChecker {
       return;
     }
     displayUnsupportedModulesNotification(project, unsupportedModules);
+  }
+
+  private boolean isKotlinScriptModule(@NotNull Module module) {
+    ModuleBridgeImpl moduleBridge = (ModuleBridgeImpl)module;
+    ModuleEntity resolved = moduleBridge.getEntityStorage().getCurrent().resolve(moduleBridge.getModuleEntityId());
+    if (resolved == null) {
+      return false;
+    }
+
+    return resolved.getEntitySource() instanceof KotlinScriptEntitySourceK2;
   }
 
   private void displayUnsupportedModulesNotification(Project project, List<Module> unsupportedModules) {
