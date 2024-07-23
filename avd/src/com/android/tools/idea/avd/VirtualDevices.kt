@@ -16,7 +16,9 @@
 package com.android.tools.idea.avd
 
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
@@ -28,6 +30,8 @@ internal class VirtualDevices(
   private val avdManagerConnection: AvdManagerConnection =
     AvdManagerConnection.getDefaultAvdManagerConnection(),
   private val manager: SystemImageManager = getSystemImageManager(),
+  private val getHardwareProperties: (Device) -> Map<String, String> =
+    DeviceManager::getHardwareProperties,
 ) {
   internal fun add(device: VirtualDevice, image: SystemImage) {
     // First, the defaults to use if the device definition doesn't specify them.
@@ -42,7 +46,7 @@ internal class VirtualDevices(
     val sdklibImage = manager.images.first { it.`package`.path == image.path }
 
     // Next, the values from device definition.
-    properties.putAll(DeviceManager.getHardwareProperties(definition))
+    properties.putAll(getHardwareProperties(definition))
 
     // Finally, the user's inputs.
     properties.putAll(
@@ -52,9 +56,7 @@ internal class VirtualDevices(
         "disk.dataPartition.size" to device.internalStorage.withMaxUnit().toString(),
         "hw.camera.back" to device.rearCamera.asParameter,
         "hw.camera.front" to device.frontCamera.asParameter,
-        // TODO This depends on the system image and device.graphicAcceleration. See
-        //   ConfigureAvdOptionsStep.java.
-        "hw.gpu.enabled" to "yes",
+        "hw.gpu.enabled" to if (device.graphicAcceleration == GpuMode.OFF) "no" else "yes",
         // TODO Older emulators expect "guest" instead of "software". See AvdOptionsModel.java.
         "hw.gpu.mode" to device.graphicAcceleration.gpuSetting,
         "hw.initialOrientation" to ScreenOrientation.PORTRAIT.shortDisplayValue.lowercase(),
