@@ -24,6 +24,7 @@ import com.android.builder.model.v2.models.ProjectGraph
 import com.android.builder.model.v2.models.ProjectSyncIssues
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
+import com.android.builder.model.v2.models.VariantDependenciesFlatList
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
@@ -91,6 +92,7 @@ data class ActionToRun<T>(
       AndroidProject::class.java -> fetchesV2Models
       VariantDependencies::class.java -> fetchesV2Models
       VariantDependenciesAdjacencyList::class.java -> fetchesV2Models
+      VariantDependenciesFlatList::class.java -> fetchesV2Models
       ProjectGraph::class.java -> fetchesV2Models
       AndroidDsl::class.java -> fetchesV2Models
       ProjectSyncIssues::class.java -> fetchesV2Models
@@ -315,6 +317,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     AndroidProject::class.java -> projectModel
     VariantDependencies::class.java -> variantDependenciesModel
     VariantDependenciesAdjacencyList::class.java -> variantDependenciesModel
+    VariantDependenciesFlatList::class.java -> variantDependenciesModel
     ProjectGraph::class.java -> projectGraphModel
     AndroidDsl::class.java -> projectModel
     ProjectSyncIssues::class.java -> otherModel

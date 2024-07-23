@@ -225,10 +225,10 @@ sealed class AndroidModule constructor(
           val v2UnresolvedDependenciesIssues = this.unresolvedDependencies.map {
             IdeSyncIssueImpl(
               message = "Unresolved dependencies",
-              data = it.name,
+              data = it.name.ifBlank { null },
               multiLineMessage = it.cause?.lines(),
               severity = IdeSyncIssue.SEVERITY_ERROR,
-              type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
+              type = if (it.name.isBlank()) IdeSyncIssue.TYPE_EXCEPTION else IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
             )
           }
           this.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyModelProblems)

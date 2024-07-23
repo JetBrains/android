@@ -22,12 +22,14 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.ide.ArtifactDependencies
 import com.android.builder.model.v2.ide.ArtifactDependenciesAdjacencyList
+import com.android.builder.model.v2.ide.ArtifactDependenciesFlatList
 import com.android.builder.model.v2.ide.Edge
 import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.Library
 import com.android.builder.model.v2.ide.UnresolvedDependency
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
+import com.android.builder.model.v2.models.VariantDependenciesFlatList
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -109,7 +111,7 @@ internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
   modelVersions: ModelVersions,
   variantName: String,
-  useNewDependencyGraphModel: Boolean,
+  useFlatDependencyGraphModel: Boolean,
   parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit
 ): VariantDependenciesCompat? {
   fun <T> findModel(clazz: Class<T>, parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit) = findModel(
@@ -121,7 +123,11 @@ internal fun BuildController.findVariantDependenciesV2Model(
     parameterMutator(it)
   }
 
-  return if (useNewDependencyGraphModel) {
+  return if (useFlatDependencyGraphModel) {
+    findModel(VariantDependenciesFlatList::class.java, parameterMutator)?.let {
+      VariantDependenciesCompat.FlatList(it, modelVersions)
+    }
+  } else if (modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]) {
     findModel(VariantDependenciesAdjacencyList::class.java, parameterMutator)?.let {
       VariantDependenciesCompat.AdjacencyList(it, modelVersions)
     }
@@ -207,6 +213,27 @@ sealed class VariantDependenciesCompat(
   val testFixturesArtifact: ArtifactDependenciesCompat?,
   val libraries: Map<String, Library>,
 ) {
+  class FlatList(variantDependencies: VariantDependenciesFlatList, modelVersions: ModelVersions) : VariantDependenciesCompat(
+    ArtifactDependenciesCompat.FlatList(variantDependencies.mainArtifact),
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.deviceTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
+      }.toMap()
+    } else {
+      emptyMap()
+    },
+    if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+      variantDependencies.hostTestArtifacts.map { (k, v) ->
+        convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
+      }.toMap()
+    } else {
+      emptyMap()
+    },
+    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.FlatList(it) },
+    variantDependencies.libraries
+  )
+
+
   class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList, modelVersions: ModelVersions) : VariantDependenciesCompat(
     ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
     if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
@@ -259,6 +286,13 @@ sealed class VariantDependenciesCompat(
 sealed class ArtifactDependenciesCompat(val compileDependencies: DependencyGraphCompat,
                                         val runtimeDependencies: DependencyGraphCompat?,
                                         val unresolvedDependencies: List<UnresolvedDependency>) {
+  class FlatList(artifactDependencies: ArtifactDependenciesFlatList) : ArtifactDependenciesCompat(
+    DependencyGraphCompat.FlatList(artifactDependencies.compileDependencies),
+    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.FlatList(it)},
+    artifactDependencies.unresolvedDependencies
+  )
+
+
   class AdjacencyList(artifactDependencies: ArtifactDependenciesAdjacencyList) : ArtifactDependenciesCompat(
     DependencyGraphCompat.AdjacencyList(artifactDependencies.compileDependencies),
     artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.AdjacencyList(it)},
@@ -272,6 +306,7 @@ sealed class ArtifactDependenciesCompat(val compileDependencies: DependencyGraph
 }
 
 sealed class DependencyGraphCompat {
+  data class FlatList(val libraryKeys: List<String>) : DependencyGraphCompat()
   data class AdjacencyList(val edges: List<Edge>) : DependencyGraphCompat()
   data class GraphItemList(val graphItems: List<GraphItem>) : DependencyGraphCompat()
 }

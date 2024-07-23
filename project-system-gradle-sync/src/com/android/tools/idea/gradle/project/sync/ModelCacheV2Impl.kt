@@ -634,6 +634,9 @@ internal fun modelCacheV2Impl(
       val dependencyList = when (dependencies) {
         is DependencyGraphCompat.AdjacencyList -> dependencies.edges.toFlatLibraryList()
         is DependencyGraphCompat.GraphItemList -> dependencies.graphItems.toFlatLibraryList()
+        is DependencyGraphCompat.FlatList -> dependencies.libraryKeys.map {
+          LibraryWithDependencies(libraries[it]!!, emptyList()) // There are no nested dependencies in the flat list model
+        }
         null -> emptyList()
       }
       val typedLibraries = getTypedLibraries(dependencyList)
