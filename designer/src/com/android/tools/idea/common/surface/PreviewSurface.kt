@@ -136,7 +136,10 @@ abstract class PreviewSurface<T : SceneManager>(
   val interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
   val positionableLayoutManagerProvider: (DesignSurface<T>) -> PositionableContentLayoutManager,
   val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler,
-  val selectionModel: SelectionModel = DefaultSelectionModel(),
+  // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
+  // defined as open.
+  // "open" can be removed if we remove the mocks.
+  open val selectionModel: SelectionModel = DefaultSelectionModel(),
   val zoomControlsPolicy: ZoomControlsPolicy,
 ) :
   EditorDesignSurface(BorderLayout()),
