@@ -17,6 +17,8 @@ package com.android.tools.adtui.stdui.menu
 
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -25,6 +27,11 @@ import java.util.Arrays
 
 @RunWith(JUnit4::class)
 class CommonDropDownButtonTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
 
   @Test
   fun testProperyChangedListeners() {

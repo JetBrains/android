@@ -53,29 +53,23 @@ import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.table.JBTable
-import com.intellij.util.Alarm
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.FontSize
 import icons.StudioIcons
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
-import java.awt.Dimension
 import java.awt.Rectangle
-import java.awt.image.BufferedImage
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.JTable
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val LONG_STRING_VALUE = "A very long long long string value"
 private const val ROW_HEIGHT = 22
 
 class EditorBasedTableCellRendererTest {
-
   @get:Rule
   val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule()).around(EdtRule())!!
 
@@ -135,61 +129,8 @@ class EditorBasedTableCellRendererTest {
     // Then move to the actual cell
     ui.mouse.moveTo(rect.x + x, rect.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
-    findExpansionAlarm(table).drainRequestsInTest()
+    (table.expandableItemsHandler as AbstractExpandableItemsHandler<*, *>).updateAlarm.waitForAllExecuted(20.milliseconds)
     return table.isExpandedItem(row, 1)
-  }
-
-  private fun findExpansionAlarm(table: PTableImpl): Alarm {
-    val field =
-      AbstractExpandableItemsHandler::class.java.getDeclaredField("myUpdateAlarm").apply {
-        isAccessible = true
-      }
-    return field.get(table.expandableItemsHandler) as Alarm
-  }
-
-  private fun paint(component: JComponent): BufferedImage {
-    @Suppress("UndesirableClassUsage")
-    val generatedImage =
-      BufferedImage(component.width, component.height, BufferedImage.TYPE_INT_ARGB)
-    val graphics = generatedImage.createGraphics()
-    component.paint(graphics)
-    return generatedImage
-  }
-
-  private fun createComponent(
-    table: PTable,
-    renderer: PTableCellRenderer,
-    item: PTableItem,
-    emulateExpansionState: TableExpansionState,
-  ): JComponent {
-    table.expansionHandler.emulate(emulateExpansionState, item)
-    val component =
-      renderer.getEditorComponent(
-        table,
-        item,
-        PTableColumn.VALUE,
-        0,
-        isSelected = false,
-        hasFocus = false,
-        isExpanded = false,
-      ) as JComponent
-
-    val wrapped =
-      if (emulateExpansionState == TableExpansionState.EXPANDED_POPUP) {
-        val cell = table.expansionHandler.expandedItems.single()
-        val rendererAndBounds = table.expansionHandler.computeCellRendererAndBounds(cell)
-        component.apply { size = Dimension(rendererAndBounds!!.second.width, ROW_HEIGHT) }
-      } else {
-        JPanel(BorderLayout()).apply {
-          border = JBUI.Borders.empty()
-          setSize(100, ROW_HEIGHT)
-          add(component, BorderLayout.CENTER)
-        }
-      }
-    val drawTable = JBTable()
-    drawTable.add(wrapped)
-    FakeUi(drawTable, createFakeWindow = true)
-    return wrapped
   }
 
   private val PTable.expansionHandler: FakeExpandableItemsHandler
