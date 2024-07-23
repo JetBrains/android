@@ -96,8 +96,8 @@ enum class ModelFeature(
   HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH(AgpVersion.parse("8.2.0-alpha03")),
   HAS_SCREENSHOT_TESTS_SUPPORT(AgpVersion.parse("8.4.0-alpha07")),
   HAS_EXPERIMENTAL_PROPERTIES(AgpVersion.parse("8.6.0-alpha01")),
-  HAS_DATA_BINDING(ModelVersion(9))
-  ;
+  HAS_DATA_BINDING(ModelVersion(9)),
+  HAS_PROJECT_GRAPH_MODEL(ModelVersion(10, 0));
 
   init {
     check(!enabledForModelVersions.isEmpty) { "All features should be enabled for some model versions" }
