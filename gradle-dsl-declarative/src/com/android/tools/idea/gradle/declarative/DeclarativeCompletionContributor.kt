@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.declarative.ElementType.INTEGER
 import com.android.tools.idea.gradle.declarative.ElementType.LONG
 import com.android.tools.idea.gradle.declarative.ElementType.STRING
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockGroup
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -48,6 +48,7 @@ private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
     StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
 }
 
+// works when user start typing
 private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
   .with(declarativeFlag)
   .andOr(
@@ -55,20 +56,31 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiEl
     psiElement().withParent(DeclarativeFile::class.java),
   )
 
+//works when user just press ctrl+space
+private val DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
+  .with(declarativeFlag)
+  .andOr(
+      psiElement().withSuperParent(2, DeclarativeBlockGroup::class.java),
+      psiElement().withSuperParent(2, DeclarativeFile::class.java),
+    )
+
 private data class Suggestion(val name: String, val type: ElementType)
 
 class DeclarativeCompletionContributor : CompletionContributor() {
   init {
-    extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN, createCompletionProvider())
+    extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN,
+           createCompletionProvider{parameters:CompletionParameters -> parameters.position.parent })
+    extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN,
+           createCompletionProvider{parameters:CompletionParameters -> parameters.position.parent.parent })
   }
 
-  private fun createCompletionProvider(): CompletionProvider<CompletionParameters> {
+  private fun createCompletionProvider(getElement:(CompletionParameters) -> PsiElement): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
         val service = DeclarativeService.getInstance(project)
         val schema = service.getSchema() ?: return
-        result.addAllElements(getSuggestionList(parameters.position.parent, schema).map {
+        result.addAllElements(getSuggestionList(getElement(parameters), schema).map {
           val element = LookupElementBuilder.create(it.name)
             .withTypeText(it.type.str, null, true)
           element.withInsertHandler(insert(it.type))
@@ -110,6 +122,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun getSuggestionList(parent: PsiElement, schema: DeclarativeSchema): List<Suggestion> {
     val path = getPath(parent)
 
+    // TODO fix case for settings root - need to get InternalSettings
     if (path.isEmpty()) return schema.getRootMemberFunctions().map { Suggestion(it.simpleName, getType(it.receiver)) }
     var index = 0
     var currentName = getTopLevelReceiverByName(path[index], schema)
@@ -141,7 +154,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
 class EnableAutoPopupInDeclarativeCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
-    return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement)) ThreeState.NO
+    return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement) ||
+               DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN.accepts(contextElement)) ThreeState.NO
     else ThreeState.UNSURE
   }
 }
