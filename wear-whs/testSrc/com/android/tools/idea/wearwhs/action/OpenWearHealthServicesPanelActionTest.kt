@@ -21,8 +21,6 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -51,6 +49,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class OpenWearHealthServicesPanelActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
