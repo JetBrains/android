@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.models.ModelBuilderParameter
+import com.android.builder.model.v2.models.ProjectGraph
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
@@ -110,6 +112,7 @@ internal class VariantDiscovery(
    */
   fun discoverVariantsAndSync() {
     if (inputModules.isEmpty()) return
+    val supportsProjectGraph = inputModules.first().modelVersions[ModelFeature.HAS_PROJECT_GRAPH_MODEL]
     val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
 
     if (shouldUsePreviouslyResolvedVariants) {
@@ -122,7 +125,16 @@ internal class VariantDiscovery(
         if (modulesToVisit.isEmpty()) continue
 
         // Fetch the dependencies of the next batch recursively
-        actionRunner.runActions(modulesToVisit.map { it.toTraverseAction() })
+        // If we don't have many roots, then we first fetch a lighter weight
+        // project graph to parallelize the process earlier.
+        val subprojectsWithVariants =
+          // TODO: Use a more sensible check here
+          if(supportsProjectGraph && modulesToVisit.size <= 2)
+            runSubProjectGraphAction(modulesToVisit)
+          else
+            emptyList()
+
+        actionRunner.runActions((subprojectsWithVariants + modulesToVisit).distinctBy { it.toMapKey() }.map { it.toTraverseAction() })
         moduleFetchResults.ensureConsistent()
       }
     }
@@ -276,6 +288,42 @@ internal class VariantDiscovery(
       }
     }
   }
+
+  /**
+   * Normally, the dependencies of each app is fetched to figure out which variants to request for
+   * each sub-project, however this initial fetch of dependencies might take a long time (in the
+   * order of 10 seconds) for builds with many subprojects. In this case, AGP provides a lighter
+   * weight graph that only contains the sub-project info. This allows the IDE to parallelize
+   * execution much faster.
+   */
+  private fun runSubProjectGraphAction(modulesToVisit: List<ModuleConfiguration>) =
+    actionRunner.runActions(
+      modulesToVisit.map { it.toProjectGraphAction() }
+    ).flatten().distinct()
+
+  private fun ModuleConfiguration.toProjectGraphAction(): ActionToRun<List<ModuleConfiguration>> = ActionToRun({ controller ->
+      val parentModule = androidModulesById[id]!!
+      val projectGraph =
+        controller.findModel(parentModule.gradleProject,
+                             ProjectGraph::class.java,
+                             ModelBuilderParameter::class.java) {
+          it.variantName = variant
+          // The below is ignored for this model, but we need to set them regardless to avoid issues
+          // Ideally we should have a separate set of parameters for each model, but that's currently not the case
+          it.buildAllRuntimeClasspaths()
+      }
+
+      projectGraph!!.resolvedVariants.mapNotNull { (projectPath, variantName) ->
+        val moduleId = Modules.createUniqueModuleId(parentModule.gradleProject.projectIdentifier.buildIdentifier.rootDir, projectPath)
+        check(androidModulesById.contains(moduleId)) { "Expected android module not found! $moduleId" }
+        ModuleConfiguration(
+          moduleId,
+          variantName,
+          chooseAbiToRequest(parentModule, variant, abi) ?: abi, // using parent's abi values
+          isRoot = false
+        ).takeIf { it.shouldVisit() }
+      }
+  }, fetchesV2Models = true)
 
   /**
    * After the dependencies are fetched and processed, this will traverse the dependencies of the given module, in depth-first order.
