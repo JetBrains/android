@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getDefaultPhysicalPathFromGradlePath;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.contains;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
@@ -34,19 +34,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.project.impl.ProjectManagerImpl;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -57,20 +48,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.AndroidTestBase;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project, GradleSyncListener)}.
  */
 @SuppressWarnings("JUnitTestCaseWithNoTests") // Named differently, didn't want to do too much unnecessary setups
-public final class GradleModuleImportTest extends AndroidTestBase {
+public final class GradleModuleImportTest extends HeavyPlatformTestCase {
   public static final String MODULE_NAME = "guadeloupe";
   public static final String SAMPLE_PROJECT_PATH = "samples/sample1";
-  public static final String SAMPLE_PROJECT_NAME = "sample1";
-  public static final String BUILD_GRADLE_TEMPLATE = "apply plugin: 'android-library'\n\n" +
+  public static final String BUILD_GRADLE_TEMPLATE = "apply plugin: 'com.android.library'\n\n" +
                                                      "dependencies {\n" +
-                                                     "    compile 'com.android.support:support-v4:13.0.+'\n" +
+                                                     "    implementation 'com.android.support:support-v4:13.0.+'\n" +
                                                      "    %s\n" +
                                                      "}\n\n" +
                                                      "android {\n" +
@@ -88,12 +78,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
                                                      "        }\n" +
                                                      "    }\n" +
                                                      "}\n";
-  private final static Function<String, String> pathToModuleName = new Function<String, String>() {
-    @Override
-    public String apply(String input) {
-      return pathToGradleName(input);
-    }
-  };
+  private final static Function<String, String> pathToModuleName = GradleModuleImportTest::pathToGradleName;
   private File dir;
 
   public static VirtualFile createGradleProjectToImport(File dir, String name, String... requiredProjects) throws IOException {
@@ -101,12 +86,9 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     if (!moduleDir.mkdirs()) {
       throw new IllegalStateException("Unable to create module");
     }
-    Iterable<String> projectDependencies = transform(Arrays.asList(requiredProjects), new Function<String, String>() {
-      @Override
-      public String apply(String input) {
-        return String.format("\tcompile project('%s')", pathToGradleName(input));
-      }
-    });
+    Iterable<String> projectDependencies =
+      Arrays.stream(requiredProjects).map(input -> String.format("\timplementation project('%s')", pathToGradleName(input)))
+        .collect(Collectors.toList());
     String buildGradle = String.format(BUILD_GRADLE_TEMPLATE, Joiner.on("\n").join(projectDependencies));
     write(buildGradle, new File(moduleDir, SdkConstants.FN_BUILD_GRADLE), Charset.defaultCharset());
     VirtualFile moduleFile = findFileByIoFile(moduleDir, true);
@@ -118,54 +100,17 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
   }
 
-  private static void assertModuleInSettingsFile(Project project, String name) {
-    GradleSettingsModel settingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
-    assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsModel);
-    Iterable<String> modules = settingsModel.modulePaths();
-    if (!contains(modules, name)) {
-      fail(String.format("Subproject %s is not in %s. Found subprojects: %s", name, SdkConstants.FN_SETTINGS_GRADLE,
-                         Joiner.on(", ").join(modules)));
-    }
-  }
-
-  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
-    assertNotNull("Module sources were not copied", PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath(relativePath));
-    final VirtualFile[] moduleChildren = moduleRoot.getChildren();
-    assertNoFilesAdded(moduleChildren);
-    assertEquals(SdkConstants.FN_BUILD_GRADLE, moduleChildren[0].getName());
-    assertModuleInSettingsFile(project, pathToGradleName(relativePath));
-  }
-
-  private static void assertNoFilesAdded(VirtualFile[] moduleChildren) {
-    if (moduleChildren.length != 1) {
-      StringBuilder failure = new StringBuilder("Files were altered in the source directory:");
-      Joiner.on(", ").appendTo(failure, transform(Arrays.asList(moduleChildren), new Function<VirtualFile, String>() {
-        @Override
-        public String apply(VirtualFile input) {
-          return input.getName();
-        }
-      }));
-      fail(failure.toString());
-    }
-  }
-
   private static String module(int moduleNumber) {
     return MODULE_NAME + moduleNumber;
   }
 
   private static Map<String, String> projectsWithDefaultLocations(final String... paths) {
-    Iterable<String> names = transform(Arrays.asList(paths), pathToModuleName);
+    Iterable<String> names = Arrays.stream(paths).map(pathToModuleName).collect(Collectors.toList());
     return Maps.toMap(names, Functions.constant(""));
   }
 
   private static String pathToGradleName(String input) {
     return ":" + input.replaceAll("/", SdkConstants.GRADLE_PATH_SEPARATOR);
-  }
-
-  private static void assertModuleRequiredButNotFound(String modulePath, Map<String, VirtualFile> projects) {
-    String moduleName = pathToGradleName(modulePath);
-    assertTrue(String.format("Project %s should be known but path not detected", modulePath),
-               projects.containsKey(moduleName) && projects.get(moduleName) == null);
   }
 
   private static VirtualFile configureTopLevelProject(File projectRoot,
@@ -196,7 +141,8 @@ public final class GradleModuleImportTest extends AndroidTestBase {
       }
       createGradleProjectToImport(dir, path);
     }
-    Iterable<String> allModules = concat(modules.keySet(), transform(Arrays.asList(nonExistingReferencedModules), pathToModuleName));
+    Iterable<String> allModules = concat(modules.keySet(), Arrays.stream(nonExistingReferencedModules).map(pathToModuleName)
+      .collect(Collectors.toList()));
     return configureTopLevelProject(dir, allModules, customLocationStatements);
   }
 
@@ -204,30 +150,24 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.setUp();
-    myFixture.setTestDataPath(getTestDataPath());
-
-    dir = new File(createTempDir(), "project");
-    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+    Project project = getProject();
+    dir = getBaseDirPath(project);
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   /**
    * Test importing simple module into even simpler project
    */
-  public void testImportSimpleGradleProject() throws IOException, ConfigurationException {
+  public void testImportSimpleGradleProject() throws Exception {
     VirtualFile moduleRoot = createGradleProjectToImport(dir, MODULE_NAME);
-/* b/145809317
     GradleModuleImporter.importModules(this, Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
     assertModuleImported(getProject(), MODULE_NAME, moduleRoot);
-b/145809317 */
   }
 
   /**
    * Test importing a root project that has subprojects
    */
-  public void testImportSubprojects() throws IOException, ConfigurationException {
+  public void testImportSubprojects() throws IOException {
     String[] paths = {module(1), module(2), SAMPLE_PROJECT_PATH};
 
     VirtualFile projectRoot = createProjectWithSubprojects(projectsWithDefaultLocations(paths));
@@ -237,7 +177,6 @@ b/145809317 */
       assertEquals(projectRoot.findFileByRelativePath(path), toImport.get(pathToGradleName(path)));
     }
 
-/* b/145809317
     GradleModuleImporter.importModules(this, toImport, getProject(), null);
 
     for (String path : paths) {
@@ -245,7 +184,6 @@ b/145809317 */
       assertNotNull(String.format("Module was not imported into %s\n", projectRoot.getPath() + "/" + path), moduleRoot);
       assertModuleImported(getProject(), path, moduleRoot);
     }
-b/145809317 */
 
     System.out.println();
   }
@@ -253,7 +191,7 @@ b/145809317 */
   /**
    * Missing sub-module will be on the list but with a <code>null</code> path. It is up to client code to decide what to do with it.
    */
-  public void testImportSubProjectsWithMissingSubModule() throws IOException, ConfigurationException {
+  public void testImportSubProjectsWithMissingSubModule() throws IOException {
     VirtualFile projectRoot = createProjectWithSubprojects(projectsWithDefaultLocations(module(1)), module(2));
     Map<String, VirtualFile> toImport = moduleListToMap(GradleModuleImporter.getRelatedProjects(projectRoot, getProject()));
     assertEquals(2, toImport.size());
@@ -271,19 +209,17 @@ b/145809317 */
   /**
    * Verify discovery of projects with non-default locations
    */
-  public void testImportSubProjectWithCustomLocation() throws IOException, ConfigurationException {
+  public void testImportSubProjectWithCustomLocation() throws IOException {
     VirtualFile projectRoot =
-      createProjectWithSubprojects(Collections.singletonMap(pathToGradleName(SAMPLE_PROJECT_NAME), SAMPLE_PROJECT_PATH));
+      createProjectWithSubprojects(Collections.singletonMap(pathToGradleName(SAMPLE_PROJECT_PATH), SAMPLE_PROJECT_PATH));
     Map<String, VirtualFile> subProjects = moduleListToMap(GradleModuleImporter.getRelatedProjects(projectRoot, getProject()));
     assertEquals(1, subProjects.size());
     VirtualFile moduleLocation = projectRoot.findFileByRelativePath(SAMPLE_PROJECT_PATH);
     assert moduleLocation != null;
-    assertEquals(moduleLocation, subProjects.get(pathToGradleName(SAMPLE_PROJECT_NAME)));
+    assertEquals(moduleLocation, subProjects.get(pathToGradleName(SAMPLE_PROJECT_PATH)));
 
-/* b/145809317
     GradleModuleImporter.importModules(this, subProjects, getProject(), null);
-    assertModuleImported(getProject(), SAMPLE_PROJECT_NAME, moduleLocation);
-b/145809317 */
+    assertModuleImported(getProject(), SAMPLE_PROJECT_PATH, moduleLocation);
   }
 
   private static Map<String, VirtualFile> moduleListToMap(Set<ModuleToImport> projects) {
@@ -300,8 +236,7 @@ b/145809317 */
   public void testRequiredProjects() throws IOException {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
-    assert project1 != null && project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -314,8 +249,7 @@ b/145809317 */
    */
   public void testMissingRequiredProjects() throws IOException {
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
-    assert project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -328,7 +262,6 @@ b/145809317 */
    */
   public void testMissingEnclosingProject() throws IOException {
     VirtualFile module = createGradleProjectToImport(dir, module(1), module(2));
-    assert module != null;
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(module, getProject()));
     assertEquals(2, projects.size());
@@ -343,7 +276,7 @@ b/145809317 */
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -368,52 +301,40 @@ b/145809317 */
     assertEquals(project3, projects.get(pathToGradleName(module(3))));
   }
 
-  /**
-   * {@link ProjectManagerEx}
-   */
+  private static void assertModuleInSettingsFile(Project project, String name) {
+    GradleSettingsModel settingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
+    assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsModel);
+    Iterable<String> modules = settingsModel.modulePaths();
+    if (!contains(modules, name)) {
+      fail(String.format("Subproject %s is not in %s. Found subprojects: %s", name, SdkConstants.FN_SETTINGS_GRADLE,
+                         Joiner.on(", ").join(modules)));
+    }
+  }
+
+  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
+    assertNotNull("Module sources were not copied", PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath(relativePath));
+    final VirtualFile[] moduleChildren = moduleRoot.getChildren();
+    assertNoFilesAdded(moduleChildren);
+    assertEquals(SdkConstants.FN_BUILD_GRADLE, moduleChildren[0].getName());
+    assertModuleInSettingsFile(project, pathToGradleName(relativePath));
+  }
+
+  private static void assertNoFilesAdded(VirtualFile[] moduleChildren) {
+    if (moduleChildren.length != 1) {
+      StringBuilder failure = new StringBuilder("Files were altered in the source directory:");
+      Joiner.on(", ").appendTo(failure, transform(Arrays.asList(moduleChildren), VirtualFile::getName));
+      fail(failure.toString());
+    }
+  }
+
+  private static void assertModuleRequiredButNotFound(String modulePath, Map<String, VirtualFile> projects) {
+    String moduleName = pathToGradleName(modulePath);
+    assertTrue(String.format("Project %s should be known but path not detected", modulePath),
+               projects.containsKey(moduleName) && projects.get(moduleName) == null);
+  }
+
   @Override
   protected void tearDown() throws Exception {
-    try {
-      if (myFixture != null) {
-        myFixture.tearDown();
-        myFixture = null;
-      }
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-      Project[] openProjects = projectManager.getOpenProjects();
-      if (openProjects.length > 0) {
-        final Project project = openProjects[0];
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            Disposer.dispose(project);
-            ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-            if (projectManager instanceof ProjectManagerImpl) {
-              projectManager.forceCloseProject(project);
-              Collection<Project> projectsStillOpen = Arrays.asList(projectManager.getOpenProjects());
-              if (!projectsStillOpen.isEmpty()) {
-                Project project = projectsStillOpen.iterator().next();
-                projectsStillOpen.clear();
-                throw new AssertionError("Test project is not disposed: " + project);
-              }
-            }
-          }
-        });
-      }
-      if (dir != null && dir.isDirectory()) {
-        ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Boolean, IOException>() {
-          @Override
-          public Boolean compute() throws IOException {
-            VirtualFile vfile = findFileByIoFile(dir, true);
-            if (vfile != null) {
-              vfile.delete(GradleModuleImportTest.this);
-            }
-            return true;
-          }
-        });
-      }
-    }
-    finally {
-      super.tearDown();
-    }
+    super.tearDown();
   }
 }
