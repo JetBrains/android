@@ -20,6 +20,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataType
@@ -28,7 +29,6 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
@@ -51,7 +51,7 @@ class DeclarativeService(val project: Project) {
       val parentPath = project.basePath
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
       val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
-      val schemas = mutableListOf<DefaultAnalysisSchema>()
+      val schemas = mutableListOf<AnalysisSchema>()
       var failure = false
       for (path in paths) {
         try {
@@ -72,7 +72,7 @@ class DeclarativeService(val project: Project) {
   }
 }
 
-class DeclarativeSchema(private val schemas: List<DefaultAnalysisSchema>, val failureHappened: Boolean) {
+class DeclarativeSchema(private val schemas: List<AnalysisSchema>, val failureHappened: Boolean) {
   private val _dataClassesByFqName: Map<FqName, DataClass> by lazy {
     schemas.fold(mapOf()) { acc, e -> acc + e.dataClassesByFqName }
   }
@@ -91,26 +91,34 @@ fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? 
   }
   // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
   // to have all settingsInternal attributes in rootMembers
-  schema.getDataClassesByFqName()[DefaultFqName("org.gradle.api.internal", "SettingsInternal")]?.let {
-    return (it.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
+  schema.getDataClassesByFqName()[getSettingsWrapper()]?.let { settings ->
+    return (settings.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
   }
   return null
 }
 
 abstract sealed class Receiver
 data class Function(val type: DataMemberFunction) : Receiver()
-data class Object(val fqName: FqName):Receiver()
+data class ObjectRef(val fqName: FqName): Receiver()
 data class SimpleType(val type: DataType) : Receiver()
 
-fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema): List<Receiver> {
+fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema, fileName: String): List<Receiver> {
   getReceiverByName(name, schema.getRootMemberFunctions())?.let {
     // TODO need to consume property and functions here as well
-    return listOf(Object(it))
+    return listOf(ObjectRef(it))
   }
+  return if (fileName.lowercase().startsWith("settings"))
+    getSettingsReceivers(schema, name)
+  else emptyList()
+}
+
+private fun getSettingsWrapper():FqName =
+  DefaultFqName("org.gradle.api.internal", "SettingsInternal")
+
+private fun getSettingsReceivers(schema: DeclarativeSchema, name: String):List<Receiver> {
   // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
   // to have all settingsInternal attributes in rootMembers
-  val settingFqName = DefaultFqName("org.gradle.api.internal", "SettingsInternal")
-  schema.getDataClassesByFqName()[settingFqName]?.let {
+  schema.getDataClassesByFqName()[getSettingsWrapper()]?.let {
     return getAllMembersByName(it, name)
   }
   return listOf()
@@ -124,7 +132,7 @@ fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver>
     dataClass.properties.filter { it.name == memberName }.map { it.valueType }.map {
       when (it) {
         is DataTypeRef.Type -> SimpleType(it.dataType)
-        is DataTypeRef.Name -> Object(it.fqName)
+        is DataTypeRef.Name -> ObjectRef(it.fqName)
       }
     }
   )
@@ -134,9 +142,8 @@ fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver>
       when {
         it.isFunction() && it is DataMemberFunction -> Function(it)
         it.semantics is FunctionSemantics.AccessAndConfigure -> {
-          (it.semantics as FunctionSemantics.AccessAndConfigure).accessor.objectType.fqName()?.let { Object(it) }
+          (it.semantics as FunctionSemantics.AccessAndConfigure).accessor.objectType.fqName()?.let { ObjectRef(it) }
         }
-        // TODO verify possible other types
         else -> null
       }
     })
@@ -145,7 +152,6 @@ fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver>
 }
 
 fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
-
 
 fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>?): FqName? {
   val dataMemberFunction = memberFunctions?.find { it.simpleName == name } ?: return null
