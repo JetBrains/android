@@ -157,7 +157,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final LinkedList<CompletableFuture<Void>> myRenderFutures = new LinkedList<>();
   @GuardedBy("myFuturesLock")
   private final LinkedList<CompletableFuture<Void>> myPendingFutures = new LinkedList<>();
-  private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
   @NotNull private final ViewEditor myViewEditor;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
   /**
@@ -166,6 +165,14 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * pooled threads.
    */
   @NotNull private final Executor myRenderTaskDisposerExecutor;
+
+  /**
+   * Helper class in charge of some render related responsibilities
+   */
+  // TODO(b/335424569): add a better explanation after moving more responsibilities to
+  //  LayoutlibSceneRenderer
+  private final LayoutlibSceneRenderer myLayoutlibSceneRenderer;
+
   /**
    * True if we are currently in the middle of a render. This attribute is used to prevent listeners from triggering unnecessary renders.
    * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
@@ -285,6 +292,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
+    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(model);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
@@ -798,7 +806,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     return currentTask.layout()
       .thenAccept(result -> {
         if (result != null && !isDisposed.get()) {
-          updateHierarchy(result);
+          myLayoutlibSceneRenderer.updateHierarchy(result);
           notifyListenersModelLayoutComplete(animate);
         }
       });
@@ -813,26 +821,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     finally {
       myRenderResultLock.readLock().unlock();
     }
-  }
-
-  private boolean updateHierarchy(@Nullable RenderResult result) {
-    boolean reverseUpdate = false;
-    try {
-      myUpdateHierarchyLock.acquire();
-      try {
-        if (result == null || !result.getRenderResult().isSuccess()) {
-          reverseUpdate = NlModelHierarchyUpdater.updateHierarchy(Collections.emptyList(), getModel());
-        }
-        else {
-          reverseUpdate = NlModelHierarchyUpdater.updateHierarchy(result, getModel());
-        }
-      } finally {
-        myUpdateHierarchyLock.release();
-      }
-    }
-    catch (InterruptedException ignored) {
-    }
-    return reverseUpdate;
   }
 
   @VisibleForTesting
@@ -932,7 +920,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         if (!project.isDisposed() && result != null) {
           updateCachedRenderResult(result);
           if (result.getRenderResult().isSuccess()) {
-            reverseUpdate.set(updateHierarchy(result));
+            reverseUpdate.set(myLayoutlibSceneRenderer.updateHierarchy(result));
           }
         }
         return result;
@@ -1176,7 +1164,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           }
           // When the layout was inflated in this same call, we do not have to update the hierarchy again
           if (result != null && !inflated) {
-            reverseUpdate.set(reverseUpdate.get() || updateHierarchy(result));
+            reverseUpdate.set(reverseUpdate.get() || myLayoutlibSceneRenderer.updateHierarchy(result));
           }
           return result;
         });
