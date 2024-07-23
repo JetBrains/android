@@ -29,8 +29,8 @@ import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.FakeAndroidDevice
+import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
@@ -141,7 +141,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     invokeLater {
       consoleViewImpl.getComponent()
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)

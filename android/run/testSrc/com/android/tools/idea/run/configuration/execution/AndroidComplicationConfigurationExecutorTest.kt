@@ -43,7 +43,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.util.ExceptionUtil
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
@@ -164,7 +163,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     invokeLater {
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
@@ -342,7 +341,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       // Initialize editor.
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
