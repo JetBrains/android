@@ -21,7 +21,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.spellchecker.tokenizer.LanguageSpellchecking
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy
 import com.intellij.spellchecker.tokenizer.Tokenizer
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.callName
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 
@@ -47,7 +46,7 @@ class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy() {
   private fun isPrint(element: PsiElement): Boolean {
     return when (val maybeCall = element.parent?.parent?.parent?.parent) {
       null -> false
-      is KtCallExpression -> setOf("print", "println").contains(maybeCall.callName())
+      is KtCallExpression -> setOf("print", "println").contains(maybeCall.calleeExpression!!.text)
       else -> false
     }
   }

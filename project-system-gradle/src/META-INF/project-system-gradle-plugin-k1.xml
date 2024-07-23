@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <dependencies>
-    <module name="kotlin.jvm-debugger.sequence"/>
-  </dependencies>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="org.jetbrains.kotlin.idea.references.KotlinReferenceProviderContributor"
                     serviceImplementation="com.android.tools.idea.gradle.catalog.K10KtsAndroidReferenceProviderContributor"
