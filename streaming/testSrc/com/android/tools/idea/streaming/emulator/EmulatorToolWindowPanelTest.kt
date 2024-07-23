@@ -836,9 +836,9 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: UInt): GrpcCallRecord {
-    val call = emulator.getNextGrpcCall(2_000.seconds) //TODO NOW
+    val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
-    panel.waitForFrame(fakeUi, frameNumber, 2_000.seconds)
+    panel.waitForFrame(fakeUi, frameNumber, 2.seconds)
     return call
   }
 
