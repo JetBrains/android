@@ -56,6 +56,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         perfData.addBenchmark(FullProjectBenchmark.highlightingBenchmark)
         perfData.addBenchmark(FullProjectBenchmark.layoutCompletionBenchmark)
         perfData.addBenchmark(FullProjectBenchmark.completionBenchmark)
+        perfData.addBenchmark(FullProjectBenchmark.lintInspectionBenchmark)
         perfData.commit()
       }
       catch (e: Throwable) {
