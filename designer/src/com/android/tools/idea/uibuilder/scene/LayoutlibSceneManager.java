@@ -139,8 +139,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
   private SessionClock mySessionClock;
-  // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
-  // since RenderTask is able to handle those safely.
+  // Protects read and write accesses to myRenderTask.
+  // Executing RenderTask methods do not need to be protected as the corresponding
+  // synchronization needed is done in RenderTask.
   private final Object myRenderingTaskLock = new Object();
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
   // Protects all read/write accesses to the myRenderResult reference
@@ -433,17 +434,19 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   private void updateRenderTask(@Nullable RenderTask newTask) {
+    RenderTask oldTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask != null && !myRenderTask.isDisposed()) {
-        try {
-          myRenderTask.dispose();
-        } catch (Throwable t) {
-          Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-        }
-      }
+      oldTask = myRenderTask;
       // TODO(b/168445543): move session clock to RenderTask
       mySessionClock = new RealTimeSessionClock();
       myRenderTask = newTask;
+    }
+    if (oldTask != null) {
+      try {
+        oldTask.dispose();
+      } catch (Throwable t) {
+        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+      }
     }
   }
 
@@ -785,18 +788,20 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
     }
 
+    RenderTask currentTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(null);
-      }
-      return myRenderTask.layout()
-        .thenAccept(result -> {
-          if (result != null && !isDisposed.get()) {
-            updateHierarchy(result);
-            notifyListenersModelLayoutComplete(animate);
-          }
-        });
+      currentTask = myRenderTask;
     }
+    if (currentTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return currentTask.layout()
+      .thenAccept(result -> {
+        if (result != null && !isDisposed.get()) {
+          updateHierarchy(result);
+          notifyListenersModelLayoutComplete(animate);
+        }
+      });
   }
 
   @Nullable
@@ -1187,31 +1192,35 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private CompletableFuture<RenderResult> renderImplAsync(AtomicBoolean reverseUpdate) {
     return inflateAsync(myForceInflate.getAndSet(false), reverseUpdate)
       .thenCompose(inflateResult -> {
+        if (inflateResult != null && !inflateResult.getRenderResult().isSuccess()) {
+          getDesignSurface().updateErrorDisplay();
+          return CompletableFuture.completedFuture(null);
+        }
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
-
+        RenderTask currentTask;
         synchronized (myRenderingTaskLock) {
-          if (myRenderTask == null || (inflateResult != null && !inflateResult.getRenderResult().isSuccess())) {
-            getDesignSurface().updateErrorDisplay();
-            return CompletableFuture.completedFuture(null);
-          }
-          if (elapsedFrameTimeMs != -1) {
-            myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
-          }
-          // Make sure that the task's quality is up-to-date before rendering
-          final float currentQuality = quality;
-          myRenderTask.setQuality(quality);
-          return myRenderTask.render().thenApply(result -> {
-            if (result != null && result.getRenderResult().isSuccess()) {
-              lastRenderQuality = currentQuality;
-            }
-            // When the layout was inflated in this same call, we do not have to update the hierarchy again
-            if (result != null && !inflated) {
-              reverseUpdate.set(reverseUpdate.get() || updateHierarchy(result));
-            }
-            return result;
-          });
+          currentTask = myRenderTask;
         }
+        if (currentTask == null) {
+          return CompletableFuture.completedFuture(null);
+        }
+        if (elapsedFrameTimeMs != -1) {
+          currentTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
+        }
+        // Make sure that the task's quality is up-to-date before rendering
+        final float currentQuality = quality;
+        currentTask.setQuality(currentQuality);
+        return currentTask.render().thenApply(result -> {
+          if (result != null && result.getRenderResult().isSuccess()) {
+            lastRenderQuality = currentQuality;
+          }
+          // When the layout was inflated in this same call, we do not have to update the hierarchy again
+          if (result != null && !inflated) {
+            reverseUpdate.set(reverseUpdate.get() || updateHierarchy(result));
+          }
+          return result;
+        });
       })
       .handle((result, exception) -> {
         if (exception != null) {
@@ -1269,13 +1278,14 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
-
+    RenderTask currentTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
-      }
-      return myRenderTask.executeCallbacks(currentTimeNanos());
+      currentTask = myRenderTask;
     }
+    if (currentTask == null) {
+      return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
+    }
+    return currentTask.executeCallbacks(currentTimeNanos());
   }
 
   /**
@@ -1292,14 +1302,14 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @NotNull
   public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block, long timeout, TimeUnit timeUnit) {
+    RenderTask currentTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask != null) {
-        return myRenderTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
-      }
-      else {
-        return CompletableFuture.completedFuture(null);
-      }
+      currentTask = myRenderTask;
     }
+    if (currentTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
   }
 
   private long currentTimeNanos() {
@@ -1342,13 +1352,15 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
+    RenderTask currentTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(null);
-      }
-      myInteractiveEventsCounter.incrementAndGet();
-      return myRenderTask.triggerTouchEvent(type, x, y, currentTimeNanos());
+      currentTask = myRenderTask;
     }
+    if (currentTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    myInteractiveEventsCounter.incrementAndGet();
+    return currentTask.triggerTouchEvent(type, x, y, currentTimeNanos());
   }
 
   /**
@@ -1362,13 +1374,15 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
+    RenderTask currentTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(null);
-      }
-      myInteractiveEventsCounter.incrementAndGet();
-      return myRenderTask.triggerKeyEvent(event, currentTimeNanos());
+      currentTask = myRenderTask;
     }
+    if (currentTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    myInteractiveEventsCounter.incrementAndGet();
+    return currentTask.triggerKeyEvent(event, currentTimeNanos());
   }
 
   /**
