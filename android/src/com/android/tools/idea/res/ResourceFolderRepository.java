@@ -648,7 +648,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
+        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).runInWolfQueue(() ->
           WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
         );
       }
@@ -660,7 +660,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
+        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).runInWolfQueue(() ->
           WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
         );
       }
@@ -795,7 +795,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
    * All update actions are executed in the same order they were scheduled.
    */
   private void scheduleUpdate(@NotNull Runnable updateAction) {
-    ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).scheduleUpdate(this, updateAction);
+    ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).runInUpdateQueue(this, updateAction);
   }
 
   @Override
@@ -1064,7 +1064,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
    * with the given file.
    */
   private void getAndroidTargetDataThenRun(@NotNull VirtualFile file, @NotNull Consumer<AndroidTargetData> consumer) {
-    ResourceFolderRepositoryBackgroundActions.executeOnPooledThread(() -> {
+    ResourceFolderRepositoryBackgroundActions.runInBackground(() -> {
       if (myFacet.isDisposed()) {
         return;
       }
@@ -1991,7 +1991,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       if (source != null) {
         removeSource(file, source);
       }
-      ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
+      ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).runInWolfQueue(() ->
         WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this)
       );
     }
