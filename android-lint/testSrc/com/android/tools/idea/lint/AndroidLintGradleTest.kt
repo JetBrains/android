@@ -21,6 +21,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
 import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
+import com.android.tools.idea.lint.inspections.AndroidLintDuplicateActivityInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
@@ -224,6 +225,23 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       "androidx-core-ktx = { group = \"androidx.|core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\n",
       """
         No warnings.
+      """
+        .trimIndent(),
+    )
+  }
+
+  fun testDuplicateActivityInspection() {
+    loadProject(TestProjectPaths.TEST_LINT_DUPLICATE_ACTIVITY)
+    val appBuildFile = myFixture.loadFile("app/src/main/AndroidManifest.xml")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintDuplicateActivityInspection(),
+      "android:name=\".Main|Activity\"> <!-- second -->",
+      """
+      Error: Duplicate registration for activity `com.example.myapplication.MainActivity`
+                  android:name=".MainActivity"> <!-- second -->
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          Fix: Suppress: Add tools:ignore="DuplicateActivity" attribute
       """
         .trimIndent(),
     )

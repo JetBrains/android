@@ -625,6 +625,14 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @Nullable
     @Override
     public String getPackage() {
+      LintModelVariant variant = getBuildVariant();
+      if (variant != null) {
+        String pkg = variant.getPackage();
+        if (pkg != null) {
+          return pkg;
+        }
+      }
+
       String manifestPackage = super.getPackage();
       if (manifestPackage != null) {
         return manifestPackage;
