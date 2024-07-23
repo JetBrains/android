@@ -80,7 +80,7 @@ data class GradleSyncStudioFlags(
   val studioFlagBuildRuntimeClasspathForLibraryUnitTests: Boolean,
   val studioFlagBuildRuntimeClasspathForLibraryScreenshotTests: Boolean,
   val studioFlagSupportFutureAgpVersions: Boolean,
-  val studioFlagUseNewDependencyGraphModel: Boolean,
+  val studioFlagUseFlatDependencyGraphModel: Boolean,
   val studioFlagFetchKotlinModelsInParallel: Boolean
 ) : Serializable
 
