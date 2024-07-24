@@ -194,6 +194,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
@@ -2430,6 +2431,7 @@ fun Project.requestSyncAndWait(
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
     }
   }
+  IndexingTestUtil.waitUntilIndexesAreReady(this);
 }
 
 /**
