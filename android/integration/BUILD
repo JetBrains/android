@@ -146,7 +146,12 @@ iml_studio_test(
     timeout = "long",
     data = editor_performance_test_data,
     module = ":intellij.android.core.integration",
-    tags = ["perfgate"],
+    tags = [
+        "ci:perfgate-linux",
+        "ci:perfgate-win",
+        "noci:studio-linux",
+        "noci:studio-win",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.EditorPerformanceTest",
