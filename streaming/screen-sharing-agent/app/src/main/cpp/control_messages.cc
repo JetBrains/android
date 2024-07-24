@@ -17,6 +17,7 @@
 #include "control_messages.h"
 
 #include "log.h"
+#include "string_printf.h"
 
 namespace screensharing {
 
@@ -264,9 +265,18 @@ void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(device_state_id_ + 1);  // Offset by 1 to efficiently represent -1.
 }
 
-void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {
+void DisplayAddedOrChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(display_id_);
+  stream.WriteInt32(logical_size_.width);
+  stream.WriteInt32(logical_size_.height);
+  stream.WriteInt32(rotation_);
+  stream.WriteInt32(type_);
+}
+
+string DisplayAddedOrChangedNotification::ToDebugString() const {
+  return StringPrintf("DisplayAddedOrChangedNotification(%d, %dx%d, %d, type=%d)",
+                      display_id_, logical_size_.width, logical_size_.height, rotation_, type_);
 }
 
 void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {

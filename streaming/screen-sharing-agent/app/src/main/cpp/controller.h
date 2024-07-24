@@ -74,7 +74,7 @@ private:
   };
 
   struct DisplayEvent {
-    enum Type { ADDED, REMOVED };
+    enum Type { ADDED, CHANGED, REMOVED };
 
     DisplayEvent(int32_t displayId, Type type)
         : display_id(displayId),
@@ -161,10 +161,10 @@ private:
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
+  std::map<int32_t, DisplayInfo> current_displays_;
 
   UiSettings ui_settings_;
 
-  std::map<int32_t, DisplayInfo> current_displays_;
   std::chrono::steady_clock::time_point poll_displays_until_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
