@@ -774,7 +774,7 @@ void Controller::SendPendingDisplayEvents() {
       }
     } else {
       DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
-      if (display_info.logical_size.width > 0 && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+      if (display_info.IsValid() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
         auto it = current_displays_.find(display_id);
         bool significant_change = it == current_displays_.end() || it->second.logical_size != display_info.logical_size ||
             it->second.rotation != display_info.rotation || it->second.type != display_info.type;
