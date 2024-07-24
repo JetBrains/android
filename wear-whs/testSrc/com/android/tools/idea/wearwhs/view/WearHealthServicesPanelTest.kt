@@ -37,6 +37,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.nio.file.Path
@@ -45,6 +46,7 @@ import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JTextField
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
@@ -59,6 +61,7 @@ class WearHealthServicesPanelTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
+    val TEST_STATE_STALENESS_THRESHOLD = 2.seconds
   }
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -88,9 +91,10 @@ class WearHealthServicesPanelTest {
 
     stateManager =
       WearHealthServicesStateManagerImpl(
-          deviceManager,
+          deviceManager = deviceManager,
           pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
           workerScope = testWorkerScope,
+          stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
@@ -523,6 +527,31 @@ class WearHealthServicesPanelTest {
         }
       }
     }
+
+  @Test
+  fun `stale data is shown as a warning icon`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+    val label =
+      fakeUi.waitForDescendant<JLabel> {
+        it.icon == StudioIcons.Common.INFO &&
+          it.text == message("wear.whs.panel.test.data.inactive")
+      }
+
+    // once the syncs start failing, then the state will eventually become stale
+    deviceManager.failState = true
+    waitForCondition(5.seconds) {
+      label.icon == StudioIcons.Common.WARNING &&
+        label.toolTipText == message("wear.whs.panel.stale.data")
+    }
+
+    // when the sync succeeds again, then the state will no longer be warned as stale
+    deviceManager.failState = false
+    waitForCondition(5.seconds) {
+      label.icon == StudioIcons.Common.INFO &&
+        label.toolTipText != message("wear.whs.panel.stale.data")
+    }
+  }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
