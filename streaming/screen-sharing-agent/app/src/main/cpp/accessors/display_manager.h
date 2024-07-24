@@ -38,6 +38,7 @@ public:
     virtual void OnDisplayChanged(int32_t display_id) = 0;
   };
 
+  // If the requested display does not exist, returns a DisplayInfo structure with zero logical_size.
   static DisplayInfo GetDisplayInfo(Jni jni, int32_t display_id);
   static std::vector<int32_t> GetDisplayIds(Jni jni);
   static void AddDisplayListener(Jni jni, DisplayListener* listener);
