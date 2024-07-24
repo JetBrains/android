@@ -20,12 +20,9 @@ import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.layout.SceneViewAlignment;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
-import com.android.tools.idea.common.layout.scroller.ReferencePointScroller;
-import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller;
 import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -57,7 +54,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
@@ -83,9 +79,6 @@ public class NlDesignSurface extends NlSurface {
 
   private final AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final DesignerAnalyticsManager myAnalyticsManager;
-
-  // To scroll to correct viewport position when its size is changed.
-  @Nullable private DesignSurfaceViewportScroller myViewportScroller = null;
 
   @Nullable private final LayoutScannerControl myScannerControl;
 
@@ -121,8 +114,8 @@ public class NlDesignSurface extends NlSurface {
     myVisualLintIssueProvider = issueProviderFactory.invoke(this);
 
     getViewport().addChangeListener(e -> {
-      DesignSurfaceViewportScroller scroller = myViewportScroller;
-      myViewportScroller = null;
+      DesignSurfaceViewportScroller scroller = getViewportScroller();
+      setViewportScroller(null);
       if (scroller != null) {
         scroller.scroll(getViewport());
       }
@@ -256,19 +249,19 @@ public class NlDesignSurface extends NlSurface {
     boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
 
     if (isGroupedListLayout) {
-      myViewportScroller = createScrollerForGroupedSurfaces(
+      setViewportScroller(createScrollerForGroupedSurfaces(
         port,
         update,
         scrollPosition,
         new Point(scrollPosition.x, Math.max(0, focusPoint.y))
-      );
+      ));
     } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
-      myViewportScroller = createScrollerForGroupedSurfaces(
+      setViewportScroller(createScrollerForGroupedSurfaces(
         port,
         update,
         scrollPosition,
         scrollPosition
-      );
+      ));
     }
     else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
       Point zoomCenterInView;
@@ -280,79 +273,7 @@ public class NlDesignSurface extends NlSurface {
       }
       zoomCenterInView = new Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y);
 
-      myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
-    }
-  }
-
-  @Override
-  public DesignSurfaceViewportScroller createScrollerForGroupedSurfaces(
-    DesignSurfaceViewport port,
-    @NotNull ScaleChange update,
-    Point oldScrollPosition,
-    Point newScrollPosition
-  ) {
-    SceneView focusedSceneView = getFocusedSceneView();
-    Point focusPoint = update.getFocusPoint();
-    if (focusedSceneView != null) {
-      focusPoint = new Point(focusedSceneView.getX(), focusedSceneView.getY());
-    }
-    if (focusPoint.x < 0 || focusPoint.y < 0) {
-      // zoom with top-left of the visible area as anchor
-      return new TopLeftCornerScroller(
-        new Dimension(port.getViewSize()),
-        newScrollPosition,
-        update.getPreviousScale(),
-        update.getNewScale()
-      );
-    }
-    else {
-      // zoom with mouse position as anchor, and considering its relative position to the existing scene views
-      return new ReferencePointScroller(
-        new Dimension(port.getViewSize()),
-        new Point(oldScrollPosition),
-        focusPoint,
-        update.getPreviousScale(),
-        update.getNewScale(),
-        findSceneViewRectangles(),
-        (SceneView sceneView) -> getSceneViewPanel().findMeasuredSceneViewRectangle(sceneView, getExtentSize())
-      );
-    }
-  }
-
-  public final void zoomAndCenter(@NotNull SceneView sceneView,
-                                  @NotNull @SwingCoordinate Rectangle rectangle) {
-    if (getScrollPane() == null) {
-      Logger
-        .getInstance(NlDesignSurface.class)
-        .warn("The scroll pane is null, cannot zoom and center.");
-      return;
-    }
-    // Calculate the scaleChangeNeeded so that after zooming,
-    // the given rectangle with a given offset fits tight in the scroll panel.
-    Dimension offset = getScrollToVisibleOffset();
-    Dimension availableSize = getExtentSize();
-    Dimension curSize = new Dimension(rectangle.width, rectangle.height);
-    // Make sure both dimensions fit, and at least one of them is as tight
-    // as possible (respecting the offset).
-    double scaleChangeNeeded = Math.min(
-      (availableSize.getWidth() - 2 * offset.width) / curSize.getWidth(),
-      (availableSize.getHeight() - 2 * offset.height) / curSize.getHeight()
-    );
-    // Adjust the scale change to keep the new scale between the lower and upper bounds.
-    double curScale = myZoomController.getScale();
-    double boundedNewScale = myZoomController.getBoundedScale(curScale * scaleChangeNeeded);
-    scaleChangeNeeded = boundedNewScale / curScale;
-    // The rectangle size and its coordinates relative to the sceneView have
-    // changed due to the scale change.
-    rectangle.setRect(rectangle.x * scaleChangeNeeded, rectangle.y * scaleChangeNeeded,
-                      rectangle.width * scaleChangeNeeded, rectangle.height * scaleChangeNeeded);
-
-    if (myZoomController.setScale(boundedNewScale)) {
-      myViewportScroller = port -> scrollToCenter(sceneView, rectangle);
-    }
-    else {
-      // If scale hasn't changed, then just scroll to center
-      scrollToCenter(sceneView, rectangle);
+      setViewportScroller(new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView));
     }
   }
 
