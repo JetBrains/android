@@ -80,7 +80,7 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   }
 
   @Test
-  fun testInsidePluginBlockCompletion() {
+  fun testInsideApplicationBlockCompletion() {
     writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
       androidApplication{
@@ -89,6 +89,34 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
       """) { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
         "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
+      )
+    }
+  }
+
+  @Test
+  fun testInsideApplicationBlockCompletionNoTyping() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doTest("""
+      androidApplication {
+        $caret
+      }
+      """) { suggestions ->
+      assertThat(suggestions.toList()).containsExactly(
+        "applicationId", "buildTypes", "compileSdk", "coreLibraryDesugaring", "dependencies",
+        "jdkVersion", "minSdk", "namespace", "versionCode", "versionName"
+      )
+    }
+  }
+
+  @Test
+  fun testInsideFileCompletionNoTyping() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doTest("""
+        $caret
+      """) { suggestions ->
+      assertThat(suggestions.toList()).containsExactly(
+        "androidApplication", "androidLibrary", "javaApplication", "javaLibrary", "jvmApplication", "jvmLibrary", "kotlinApplication",
+        "kotlinJvmApplication", "kotlinJvmLibrary", "kotlinLibrary"
       )
     }
   }
@@ -105,7 +133,7 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
         applicationId = "$caret"
       }
       """)
-    }
+  }
 
   @Test
   fun testCompletionBlock() {
@@ -134,8 +162,6 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
           }
         }""".trimIndent())
   }
-
-
 
   @Test
   fun testCompletionInt() {
