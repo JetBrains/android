@@ -21,9 +21,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
-import com.android.tools.idea.common.layout.option.SurfaceLayoutManager;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
-import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -37,31 +35,20 @@ import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
-import com.android.tools.idea.common.surface.ScaleChange;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.ZoomControlsPolicy;
-import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager;
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import kotlin.jvm.functions.Function1;
@@ -210,73 +197,6 @@ public class NlDesignSurface extends NlSurface {
     super.deactivate();
   }
 
-  @NotNull
-  @Override
-  public CompletableFuture<Void> forceUserRequestedRefresh() {
-    // When the user initiates the refresh, give some feedback via progress indicator.
-    BackgroundableProcessIndicator refreshProgressIndicator = new BackgroundableProcessIndicator(
-      getProject(),
-      "Refreshing...",
-      "",
-      "",
-      false
-    );
-    return requestSequentialRender(manager -> {
-      manager.forceReinflate();
-      return manager.requestUserInitiatedRenderAsync();
-    }).whenComplete((r, t) -> refreshProgressIndicator.processFinish());
-  }
-
-  @Override
-  public @NotNull Map<SceneView, Rectangle> findSceneViewRectangles() {
-    return getSceneViewPanel().findSceneViewRectangles();
-  }
-
-  @Override
-  public void onScaleChange(@NotNull ScaleChange update) {
-    super.onScaleChange(update);
-
-    DesignSurfaceViewport port = getViewport();
-    Point scrollPosition = getPannable().getScrollPosition();
-    Point focusPoint = update.getFocusPoint();
-
-    @SuppressWarnings("deprecation")
-    SurfaceLayoutManager layoutManager = getSceneViewLayoutManager().getCurrentLayout().getValue().getLayoutManager();
-
-    // If layout is a vertical list layout
-    boolean isGroupedListLayout = layoutManager instanceof GroupedListSurfaceLayoutManager || layoutManager instanceof ListLayoutManager;
-    // If layout is grouped grid layout.
-    boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
-
-    if (isGroupedListLayout) {
-      setViewportScroller(createScrollerForGroupedSurfaces(
-        port,
-        update,
-        scrollPosition,
-        new Point(scrollPosition.x, Math.max(0, focusPoint.y))
-      ));
-    } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
-      setViewportScroller(createScrollerForGroupedSurfaces(
-        port,
-        update,
-        scrollPosition,
-        scrollPosition
-      ));
-    }
-    else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
-      Point zoomCenterInView;
-      if (focusPoint.x < 0 || focusPoint.y < 0) {
-        focusPoint = new Point(
-          port.getViewportComponent().getWidth() / 2,
-          port.getViewportComponent().getHeight() / 2
-        );
-      }
-      zoomCenterInView = new Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y);
-
-      setViewportScroller(new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView));
-    }
-  }
-
   @Override
   public void scrollToCenter(List<? extends NlComponent> list) {
     SceneView view = getFocusedSceneView();
@@ -337,5 +257,4 @@ public class NlDesignSurface extends NlSurface {
   public VisualLintIssueProvider getVisualLintIssueProvider() {
     return myVisualLintIssueProvider;
   }
-
 }
