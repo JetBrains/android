@@ -33,6 +33,7 @@ import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -69,6 +70,7 @@ class WearHealthServicesStateManagerTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
+    val TEST_STATE_STALENESS_THRESHOLD = 2.seconds
   }
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -87,10 +89,11 @@ class WearHealthServicesStateManagerTest {
     deviceManager = FakeDeviceManager(capabilities)
     stateManager =
       WearHealthServicesStateManagerImpl(
-          deviceManager,
-          logger,
-          testWorkerScope,
-          TEST_POLLING_INTERVAL_MILLISECONDS,
+          deviceManager = deviceManager,
+          eventLogger = logger,
+          workerScope = testWorkerScope,
+          pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+          stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also {
           it.serialNumber = "test"
@@ -480,5 +483,20 @@ class WearHealthServicesStateManagerTest {
       stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       fail("Value should not reset if the communication with the device is lost")
     } catch (_: AssertionError) {}
+  }
+
+  @Test
+  fun `the state will become stale when sync fails`(): Unit = runBlocking {
+    // after a successful sync the state should not be state
+    deviceManager.failState = false
+    stateManager.isStateStale.waitForValue(false)
+
+    // when the state can't sync then it should eventually become stale
+    deviceManager.failState = true
+    stateManager.isStateStale.waitForValue(true)
+
+    // once it's possible to sync again, then it the state should no longer be stale
+    deviceManager.failState = false
+    stateManager.isStateStale.waitForValue(false)
   }
 }

@@ -59,6 +59,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -321,18 +322,28 @@ private fun createWearHealthServicesPanelHeader(
         override fun isFocusable(): Boolean = true
       }
       .apply { toolTipText = message("wear.whs.panel.trigger.events") }
+
   val statusLabel =
     JLabel(message("wear.whs.panel.test.data.inactive")).apply {
-      icon = StudioIcons.Common.INFO
-      stateManager.ongoingExercise
-        .onEach {
-          if (it) {
-            this.text = message("wear.whs.panel.test.data.active")
-            this.toolTipText = message("wear.whs.panel.press.apply.for.overrides")
-          } else {
-            this.text = message("wear.whs.panel.test.data.inactive")
-            this.toolTipText = message("wear.whs.panel.press.apply.for.toggles")
-          }
+      // setting a minimum width to prevent the label from being cropped when the text
+      // changes
+      minimumSize = Dimension(140, 0)
+      combine(stateManager.ongoingExercise, stateManager.isStateStale) {
+          ongoingExercise,
+          isStateStale ->
+          ongoingExercise to isStateStale
+        }
+        .onEach { (isOngoingExercise, isStateStale) ->
+          icon = if (isStateStale) StudioIcons.Common.WARNING else StudioIcons.Common.INFO
+          text =
+            if (isOngoingExercise) message("wear.whs.panel.test.data.active")
+            else message("wear.whs.panel.test.data.inactive")
+          toolTipText =
+            when {
+              isStateStale -> message("wear.whs.panel.stale.data")
+              isOngoingExercise -> message("wear.whs.panel.press.apply.for.overrides")
+              else -> message("wear.whs.panel.press.apply.for.toggles")
+            }
         }
         .launchIn(uiScope)
     }

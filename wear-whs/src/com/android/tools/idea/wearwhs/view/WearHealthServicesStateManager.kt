@@ -73,6 +73,12 @@ internal interface WearHealthServicesStateManager {
 
   /** Used to get/set the serial number of the currently running emulator. */
   var serialNumber: String?
+
+  /**
+   * Indicates whether the state is stale or not. The state is stale if a sync with the device
+   * hasn't succeeded for over a given time period.
+   */
+  val isStateStale: StateFlow<Boolean>
 }
 
 /**

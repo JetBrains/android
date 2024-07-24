@@ -25,9 +25,13 @@ import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
+import java.time.Duration as JavaDuration
+import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -45,6 +49,9 @@ import org.jetbrains.annotations.VisibleForTesting
 private val MAX_WAIT_TIME_FOR_POLL_UPDATE = 5.seconds
 private val MAX_WAIT_TIME_FOR_MODIFICATION = 10.seconds
 
+private val STATE_STALENESS_THRESHOLD = 1.minutes
+private val STALENESS_POLL_UPDATE = 1.seconds
+
 internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
@@ -52,6 +59,7 @@ internal class WearHealthServicesStateManagerImpl(
   @VisibleForTesting
   private val pollingIntervalMillis: Long =
     StudioFlags.WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS.get(),
+  private val stateStalenessThreshold: Duration = STATE_STALENESS_THRESHOLD,
 ) : WearHealthServicesStateManager, Disposable {
 
   override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
@@ -68,6 +76,11 @@ internal class WearHealthServicesStateManagerImpl(
 
   private val _ongoingExercise = MutableStateFlow(false)
   override val ongoingExercise = _ongoingExercise
+
+  private val _isStateStale = MutableStateFlow(true)
+  override val isStateStale = _isStateStale
+
+  private var lastSuccessfulSync: Instant = Instant.MIN
 
   override var serialNumber: String? = null
     set(value) {
@@ -108,37 +121,47 @@ internal class WearHealthServicesStateManagerImpl(
         }
       }
     }
+    workerScope.launch {
+      while (true) {
+        _isStateStale.value =
+          JavaDuration.between(lastSuccessfulSync, Instant.now()) >=
+            stateStalenessThreshold.toJavaDuration()
+        delay(STALENESS_POLL_UPDATE)
+      }
+    }
   }
 
   private suspend fun updateState() {
     runWithStatus(WhsStateManagerStatus.Busy, MAX_WAIT_TIME_FOR_POLL_UPDATE) {
-      val activeExerciseResult =
-        deviceManager.loadActiveExercise().map { activeExercise ->
-          _ongoingExercise.value = activeExercise
-        }
-      if (activeExerciseResult.isFailure) {
-        // Return early on failure
-        activeExerciseResult
-      } else {
-        deviceManager.loadCurrentCapabilityStates().map { deviceStates ->
-          // Go through all capabilities, not just the ones returned by the device
-          capabilityUpdatesLock.withLock {
-            capabilityToState.forEach { (capability, currentState) ->
-              if (currentState.value.synced) {
-                currentState.value =
-                  currentState.value.copy(
-                    // If content provider doesn't return a capability, that means the capability is
-                    // enabled with no overrides
-                    capabilityState =
-                      deviceStates[capability.dataType]
-                        ?: CapabilityState.enabled(capability.dataType)
-                  )
+        val activeExerciseResult =
+          deviceManager.loadActiveExercise().map { activeExercise ->
+            _ongoingExercise.value = activeExercise
+          }
+        if (activeExerciseResult.isFailure) {
+          // Return early on failure
+          activeExerciseResult
+        } else {
+          deviceManager.loadCurrentCapabilityStates().map { deviceStates ->
+            // Go through all capabilities, not just the ones returned by the device
+            capabilityUpdatesLock.withLock {
+              capabilityToState.forEach { (capability, currentState) ->
+                if (currentState.value.synced) {
+                  currentState.value =
+                    currentState.value.copy(
+                      // If content provider doesn't return a capability, that means the capability
+                      // is
+                      // enabled with no overrides
+                      capabilityState =
+                        deviceStates[capability.dataType]
+                          ?: CapabilityState.enabled(capability.dataType)
+                    )
+                }
               }
             }
           }
         }
       }
-    }
+      .onSuccess { lastSuccessfulSync = Instant.now() }
   }
 
   /**
