@@ -769,7 +769,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       taskBuilder.useTransparentBackground();
     }
 
-    if (!getDesignSurface().getPreviewWithToolsVisibilityAndPosition()) {
+    if (!getDesignSurface().getLayoutPreviewHandler().getPreviewWithToolsVisibilityAndPosition()) {
       taskBuilder.disableToolsVisibilityAndPosition();
     }
 
