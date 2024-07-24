@@ -634,10 +634,6 @@ abstract class DesignSurface<T : SceneManager>(
   /** When not null, returns a [JPanel] to be rendered next to the primary panel of the editor. */
   open val accessoryPanel: JPanel? = null
 
-  open fun getLayoutScannerControl(): LayoutScannerControl? {
-    return null
-  }
-
   /**
    * Scroll to the center of a list of given components. Usually the center of the area containing
    * these elements.

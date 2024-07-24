@@ -28,7 +28,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
@@ -142,25 +141,6 @@ public class NlDesignSurface extends NlSurface {
     return myScannerControl;
   }
 
-  public void setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
-    // TODO(b/160021437): Make ScreenViewProvider a property of SceneManager instead, the way is currently implemented, changes made to
-    //  DesignSurface properties affect previews from all NlModels, that's not always the desired behavior like in this case
-    if (setAsDefault && screenViewProvider instanceof NlScreenViewProvider) {
-      NlScreenViewProvider.Companion.savePreferredMode((NlScreenViewProvider)screenViewProvider);
-    }
-
-    if (screenViewProvider != getScreenViewProvider()) {
-      getScreenViewProvider().onViewProviderReplaced();
-      setScreenViewProvider(screenViewProvider);
-
-      for (SceneManager manager : getSceneManagers()) {
-        manager.updateSceneView();
-        manager.requestLayoutAndRenderAsync();
-      }
-      revalidateScrollArea();
-    }
-  }
-
   @NotNull
   @Override
   public AccessoryPanel getAccessoryPanel() {
@@ -237,19 +217,6 @@ public class NlDesignSurface extends NlSurface {
     if (myZoomController.getScale() > fitScale) {
       // Scale down to fit selection.
       myZoomController.setScale(fitScale, targetSwingX, targetSwingY);
-    }
-  }
-
-  public void setRenderSynchronously(boolean enabled) {
-    setRenderingSynchronously(enabled);
-    // If animation is enabled, scanner must be paused.
-    if (myScannerControl != null) {
-      if (enabled) {
-        myScannerControl.pause();
-      }
-      else {
-        myScannerControl.resume();
-      }
     }
   }
 
