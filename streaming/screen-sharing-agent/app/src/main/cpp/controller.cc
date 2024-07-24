@@ -21,9 +21,11 @@
 #include <sys/socket.h>
 
 #include "accessors/device_state_manager.h"
+#include "accessors/display_control.h"
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
+#include "accessors/surface_control.h"
 #include "agent.h"
 #include "flags.h"
 #include "jvm.h"
@@ -147,7 +149,7 @@ void Controller::Initialize() {
 
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
-  if ((Agent::flags() & START_VIDEO_STREAM) != 0) {
+  if ((Agent::flags() & START_VIDEO_STREAM) != 0 && (Agent::flags() & TURN_OFF_DISPLAY_WHILE_MIRRORING) == 0) {
     WakeUpDevice();
   }
 
@@ -578,7 +580,9 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
 void Controller::StartVideoStream(const StartVideoStreamMessage& message) {
   if (CheckVideoSize(message.max_video_size())) {
     Agent::StartVideoStream(message.display_id(), message.max_video_size());
-    WakeUpDevice();
+    if ((Agent::flags() & TURN_OFF_DISPLAY_WHILE_MIRRORING) == 0) {
+      WakeUpDevice();
+    }
   }
 }
 
@@ -596,6 +600,29 @@ void Controller::StopAudioStream([[maybe_unused]] const StopAudioStreamMessage& 
 
 void Controller::WakeUpDevice() {
   ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+}
+
+bool Controller::ControlDisplayPower(Jni jni, int state) {
+  if (Agent::feature_level() >= 35) {
+    return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
+    // TODO: Turn off secondary physical displays.
+  } else {
+    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
+    vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+    if (display_ids.empty()) {
+      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+      if (display_token.IsNull()) {
+        return false;
+      }
+      SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+    } else {
+      for (int64_t display_id: display_ids) {
+        JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+        SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+      }
+    }
+  }
+  return true;
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
@@ -775,6 +802,11 @@ void Controller::SendPendingDisplayEvents() {
     } else {
       DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
       if (display_info.IsValid() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+        if ((Agent::flags() & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0 && display_info.IsOn()) {
+          // Turn the display off if it was turned on for whatever reason.
+          Log::D("Display %d turned on. Turning it off again.", display_id);
+          ControlDisplayPower(jni_, DisplayInfo::STATE_OFF);
+        }
         auto it = current_displays_.find(display_id);
         bool significant_change = it == current_displays_.end() || it->second.logical_size != display_info.logical_size ||
             it->second.rotation != display_info.rotation || it->second.type != display_info.type;
