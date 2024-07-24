@@ -115,7 +115,7 @@ class AndroidRunConfigurations {
 
     val wearRunConfigurationsToAdd = mutableListOf<RunnerAndConfigurationSettings>()
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-      runReadAction {
+      DumbService.getInstance(project).runReadActionInSmartMode {
         if (!project.isDisposed) {
           wearRunConfigurationsToAdd += createWearConfigurations(it.module)
         }
