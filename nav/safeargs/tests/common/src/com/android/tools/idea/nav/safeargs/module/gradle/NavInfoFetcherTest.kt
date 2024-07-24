@@ -2,6 +2,8 @@
 // Apache 2.0 license.
 package com.android.tools.idea.nav.safeargs.module.gradle
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
@@ -18,11 +20,13 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,6 +37,8 @@ class NavInfoFetcherTest {
   val projectRule = AndroidGradleProjectRule()
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @get:Rule val flagRule = FlagRule(StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK)
 
   private val changeReasons: MutableSet<NavInfoChangeReason> =
     EnumSet.noneOf(NavInfoChangeReason::class.java)
@@ -175,7 +181,9 @@ class NavInfoFetcherTest {
   }
 
   @Test
-  fun updatesOnDumbModeChange() = runBlocking {
+  fun updatesOnDumbModeChange_dumbModeCheckOn() = runBlocking {
+    StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.override(false)
+
     DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
       assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
       assertThat(fetcher.isEnabled).isTrue()
@@ -184,6 +192,18 @@ class NavInfoFetcherTest {
 
     assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
     assertThat(fetcher.getCurrentNavInfo()).isNotNull()
+  }
+
+  @Test
+  fun updatesOnDumbModeChange_dumbModeCheckOff() = runBlocking {
+    StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.override(true)
+
+    DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
+      assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
+      assertThat(fetcher.isEnabled).isTrue()
+
+      assertThrows(IndexNotReadyException::class.java) { fetcher.getCurrentNavInfo() }
+    }
   }
 
   private fun assertModified(vararg changeReasons: NavInfoChangeReason) {

@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,6 +35,8 @@ import org.junit.Test
 class DumbModeTest {
   @get:Rule val safeArgsRule = SafeArgsRule()
 
+  @get:Rule val flagRule = FlagRule(StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK)
+
   @Before
   fun setUp() {
     NavigationResourcesModificationListener.ensureSubscribed(safeArgsRule.project)
@@ -38,6 +44,8 @@ class DumbModeTest {
 
   @Test
   fun indexWhenDumbMode() {
+    StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.override(false)
+
     val project = safeArgsRule.project
     val xmlContent =
       // language=XML
@@ -80,6 +88,59 @@ class DumbModeTest {
       }
       // still 1 NavArgumentData due to dumb mode --previously cached results are returned
       assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
+    }
+
+    // fresh results are generated since smart mode
+    assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
+  }
+
+  @Test
+  fun indexWhenDumbMode_checkSkipped() {
+    StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.override(true)
+
+    val project = safeArgsRule.project
+    val xmlContent =
+      // language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment"
+              android:name="test.safeargs.Fragment"
+              android:label="Fragment1">
+
+              <argument
+                  android:name="arg1"
+                  app:argType="string" />
+          </fragment>
+        </navigation>
+      """
+        .trimIndent()
+    val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
+    safeArgsRule.waitForPendingUpdates()
+    val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
+    // 1 NavArgumentData
+    assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
+
+    // enter dumb mode and update this newly added nav file by adding another argument
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      val replaceXmlContent =
+        """
+            <argument
+                android:name="arg2"
+                app:argType="integer" />
+          </fragment>
+        """
+          .trimIndent()
+      WriteCommandAction.runWriteCommandAction(project) {
+        navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
+      }
+
+      // Fetching nav info during dumb mode is not allowed
+      assertThrows(IndexNotReadyException::class.java) { moduleCache.args }
     }
 
     // fresh results are generated since smart mode

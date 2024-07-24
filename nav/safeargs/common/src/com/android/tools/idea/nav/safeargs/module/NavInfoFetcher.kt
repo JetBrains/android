@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
@@ -189,17 +190,19 @@ class NavInfoFetcher(
     val facet = androidFacetIfEnabled ?: return null
     val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
 
-    if (DumbService.getInstance(module.project).isDumb) {
-      thisLogger()
-        .warn(
-          "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now. (${this.simpleId}"
-        )
-      returnedStaleResults.set(true)
-      return null
-    }
+    if (!StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.get()) {
+      if (DumbService.getInstance(module.project).isDumb) {
+        thisLogger()
+          .warn(
+            "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now. (${this.simpleId}"
+          )
+        returnedStaleResults.set(true)
+        return null
+      }
 
-    if (returnedStaleResults.getAndSet(false)) {
-      thisLogger().warn("Safe Args results returned after indexing completed. (${this.simpleId}")
+      if (returnedStaleResults.getAndSet(false)) {
+        thisLogger().warn("Safe Args results returned after indexing completed. (${this.simpleId}")
+      }
     }
 
     // Save version and modification count _before_ reading resources - in the event of a change,
