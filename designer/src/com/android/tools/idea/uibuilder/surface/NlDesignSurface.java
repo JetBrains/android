@@ -15,26 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.ZoomController;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -45,9 +37,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import kotlin.jvm.functions.Function1;
@@ -175,49 +164,6 @@ public class NlDesignSurface extends NlSurface {
     myErrorQueue.deactivate(getIssueModel());
     myVisualLintIssueProvider.clear();
     super.deactivate();
-  }
-
-  @Override
-  public void scrollToCenter(List<? extends NlComponent> list) {
-    SceneView view = getFocusedSceneView();
-    if (list.isEmpty() || view == null) {
-      return;
-    }
-    Scene scene = view.getScene();
-    @AndroidDpCoordinate Rectangle componentsArea = new Rectangle(0, 0, -1, -1);
-    @AndroidDpCoordinate Rectangle componentRect = new Rectangle();
-    list.stream().filter(nlComponent -> !nlComponent.isRoot()).forEach(nlComponent -> {
-      SceneComponent component = scene.getSceneComponent(nlComponent);
-      if (component == null) {
-        return;
-      }
-      component.fillRect(componentRect);
-
-      if (componentsArea.width < 0) {
-        componentsArea.setBounds(componentRect);
-      }
-      else {
-        componentsArea.add(componentRect);
-      }
-    });
-
-    @SwingCoordinate Rectangle areaToCenter = Coordinates.getSwingRectDip(view, componentsArea);
-    if (areaToCenter.isEmpty() || getLayeredPane().getVisibleRect().contains(areaToCenter)) {
-      // No need to scroll to components if they are all fully visible on the surface.
-      return;
-    }
-
-    @SwingCoordinate Dimension swingViewportSize = getExtentSize();
-    @SwingCoordinate int targetSwingX = (int)areaToCenter.getCenterX();
-    @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
-    // Center to position.
-    setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    @SurfaceScale double fitScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, areaToCenter.getSize());
-
-    if (myZoomController.getScale() > fitScale) {
-      // Scale down to fit selection.
-      myZoomController.setScale(fitScale, targetSwingX, targetSwingY);
-    }
   }
 
   @NotNull
