@@ -36,6 +36,8 @@ import com.android.utils.XmlUtils.toXmlAttributeValue
 import com.google.common.base.Joiner
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
+import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.codeInspection.InspectionEP
 import com.intellij.psi.PsiElement
 import java.io.File
 import java.lang.Boolean.getBoolean
@@ -461,14 +463,40 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       val registered: MutableSet<String> = HashSet(400)
       val fullRegistry = LintIdeIssueRegistry.get()
       val allIssues = fullRegistry.issues
+
+      val inspectionRegistrations =
+        InspectionEP.GLOBAL_INSPECTION.extensionList
+          .mapNotNull { it: InspectionEP ->
+            val shortName = it.shortName
+            if (shortName != null && shortName.startsWith("AndroidLint")) {
+              Pair(shortName.removePrefix("AndroidLint"), it)
+            } else null
+          }
+          .toMap()
+
       for (issue in allIssues) {
         if (!AndroidLintIdeIssueRegistry().isRelevant(issue)) {
           continue
         }
         val c = findInspectionClass(issue) ?: continue
-        val provider = c.getDeclaredConstructor().newInstance() as AndroidLintInspectionBase
-        registered.add(provider.issue.id)
+        val inspection = c.getDeclaredConstructor().newInstance() as AndroidLintInspectionBase
+        registered.add(inspection.issue.id)
+
+        checkConsistent(issue, inspection, inspectionRegistrations[issue.id])
       }
+
+      val allIssueIds = allIssues.map { it.id }.toSet()
+      for ((id, ep) in inspectionRegistrations) {
+        if (id == "LintBaseline" || id == "LintBaselineFixed") {
+          continue
+        }
+        if (!allIssueIds.contains(id)) {
+          error(
+            "Unexpected issue registration: $id for ${ep.instantiateTool().javaClass.simpleName}"
+          )
+        }
+      }
+
       val missing = ArrayList<Issue>()
       for (issue in allIssues) {
         if (!AndroidLintIdeIssueRegistry().isRelevant(issue) || registered.contains(issue.id)) {
@@ -509,6 +537,105 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       }
 
       return missing
+    }
+
+    private fun sameSeverity(severity: Severity, level: HighlightDisplayLevel): Boolean {
+      val issueLevel = AndroidLintInspectionBase.toHighlightDisplayLevel(severity)
+      if (issueLevel == level) {
+        return true
+      }
+      if (issueLevel == HighlightDisplayLevel.WEAK_WARNING && level == HighlightDisplayLevel.INFO) {
+        return true
+      }
+
+      return false
+    }
+
+    /** Makes sure the given [inspection] registration is consistent with the given [issue]] */
+    private fun checkConsistent(
+      issue: Issue,
+      inspection: AndroidLintInspectionBase,
+      inspectionEP: InspectionEP?,
+    ) {
+      val inspectionEnabled = inspection.isEnabledByDefault
+      val inspectionSummary = inspection.displayName.removeSurrounding("\"")
+      val inspectionSeverity = inspection.defaultLevel
+      val inspectionSummaryXml = inspectionEP?.displayName
+      val inspectionAndroidSpecific = inspectionEP?.projectType == "Android"
+      // Can't see source of registration (all gets flattened into the Android plugin descriptor)
+      // but using associated bundle as a proxy
+      val inAndroidPluginXml = inspectionEP?.bundle == "messages.AndroidLintBundle"
+
+      val issueEnabled = issue.isEnabledByDefault()
+      if (issueEnabled != inspectionEnabled) {
+        error(
+          "ERROR: Inconsistent enabled-by-default status for ${issue.id}; " +
+            "lint=$issueEnabled, inspection=$inspectionEnabled"
+        )
+      }
+      val issueSummary = issue.getBriefDescription(TextFormat.TEXT)
+      if (
+        issueSummary != inspectionSummary &&
+          // This one causes trouble with the embedded & which is specially interpreted
+          // by the bundle machinery; we've manually verified this is fine
+          issue.id != "CutPasteId"
+      ) {
+        error(
+          "ERROR: Inconsistent message summary (in Bundle.properties) for ${issue.id}; " +
+            "lint=\"$issueSummary\", inspection=\"$inspectionSummary\""
+        )
+      }
+      if (issueSummary != inspectionSummaryXml) {
+        error(
+          "ERROR: Inconsistent message summary (in plugin.xml) for ${issue.id}; " +
+            "lint=\"$issueSummary\", inspection=\"$inspectionSummaryXml\""
+        )
+      }
+      val issueSeverity = issue.defaultSeverity
+      if (!sameSeverity(issueSeverity, inspectionSeverity)) {
+        error(
+          "ERROR: Inconsistent severity for ${issue.id}; " +
+            "lint=\"${issueSeverity}\", inspection=\"$inspectionSeverity\""
+        )
+      }
+      if (
+        inspectionEP != null &&
+          !sameSeverity(issueSeverity, inspectionEP.defaultLevel) &&
+          // Deliberately set to error in the IDE while remaining warning from CI
+          (issue.id != "ExpiringTargetSdkVersion" ||
+            inspectionEP.defaultLevel != HighlightDisplayLevel.ERROR)
+      ) {
+        error(
+          "ERROR: Inconsistent severity for ${issue.id}; " +
+            "lint=\"${issueSeverity}\", inspection=\"$${inspectionEP.defaultLevel}\""
+        )
+      }
+
+      val issueAndroidSpecific = issue.isAndroidSpecific()
+      if (issueAndroidSpecific != inspectionAndroidSpecific) {
+        error(
+          "ERROR: Inconsistent is-Android-specific for ${issue.id}; " +
+            "lint=\"${issueAndroidSpecific}\", inspection=\"$inspectionAndroidSpecific\""
+        )
+      }
+
+      if (issueAndroidSpecific != inAndroidPluginXml) {
+        error(
+          "The registration for ${issue.id} is in the wrong plugin xml file; " +
+            "should be in ${if (issueAndroidSpecific) "android-" else ""}-lint-plugin.xml"
+        )
+      }
+
+      if (inspectionEP != null) {
+        val category = AndroidLintInspectionBase.getGroupDisplayName(issue.category)
+        val inspectionCategory = inspectionEP.groupDisplayName
+        if (category != inspectionCategory) {
+          error(
+            "ERROR: Inconsistent issue category for ${issue.id}; " +
+              "lint=\"${category}\", inspection=\"$inspectionCategory\""
+          )
+        }
+      }
     }
 
     private fun findInspectionClass(issue: Issue): Class<*>? {
