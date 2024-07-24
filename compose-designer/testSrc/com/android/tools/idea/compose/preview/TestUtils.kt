@@ -27,19 +27,15 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlin.coroutines.resume
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
@@ -103,17 +99,6 @@ internal fun getRepresentationForFile(
   runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
 }
-
-/** Suspendable version of [DumbService.waitForSmartMode]. */
-suspend fun waitForSmartMode(project: Project, logger: Logger? = null) =
-  suspendCancellableCoroutine<Unit> {
-    val dumbService = DumbService.getInstance(project)
-    dumbService.runWhenSmart {
-      logger?.info("waitForSmartMode: ${dumbService.isDumb}")
-      it.resume(Unit)
-    }
-    logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
-  }
 
 internal data class DebugStatus(
   val status: ComposePreviewManager.Status,
