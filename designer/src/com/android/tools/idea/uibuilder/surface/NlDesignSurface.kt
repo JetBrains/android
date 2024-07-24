@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
 import com.android.tools.idea.common.diagnostics.NlDiagnosticKey
 import com.android.tools.idea.common.editor.ActionManager
@@ -131,7 +133,12 @@ internal constructor(
         }
     }
 
-  abstract fun onLayoutUpdated(layoutOption: SurfaceLayoutOption)
+  @UiThread
+  fun onLayoutUpdated(layoutOption: SurfaceLayoutOption) {
+    setSceneViewAlignment(layoutOption.sceneViewAlignment)
+    setScrollPosition(0, 0)
+    revalidateScrollArea()
+  }
 
   /**
    * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned.
@@ -140,13 +147,19 @@ internal constructor(
    *
    * @param isResizing true to enable the resize mode
    */
-  abstract fun setResizeMode(isResizing: Boolean)
+  fun setResizeMode(isResizing: Boolean) {
+    isCanvasResizing = isResizing
+    // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
+    setSurfaceAutoscrolls(isResizing)
+  }
 
   /**
    * When true, the surface will autoscroll when the mouse gets near the edges. See
    * [JScrollPane.setAutoscrolls]
    */
-  abstract fun setSurfaceAutoscrolls(enabled: Boolean)
+  private fun setSurfaceAutoscrolls(enabled: Boolean) {
+    scrollPane?.autoscrolls = enabled
+  }
 
   abstract fun setScreenViewProvider(screenViewProvider: ScreenViewProvider, setAsDefault: Boolean)
 
@@ -154,7 +167,14 @@ internal constructor(
    * Update the color-blind mode in the [ScreenViewProvider] for this surface and make sure to
    * update all the SceneViews in this surface to reflect the change.
    */
-  abstract fun setColorBlindMode(mode: ColorBlindMode)
+  fun setColorBlindMode(mode: ColorBlindMode) {
+    screenViewProvider.colorBlindFilter = mode
+    for (manager in sceneManagers) {
+      manager.updateSceneView()
+      manager.requestLayoutAndRenderAsync()
+    }
+    revalidateScrollArea()
+  }
 
   override fun shouldRenderErrorsPanel(): Boolean {
     return shouldRenderErrorsPanel
@@ -166,7 +186,12 @@ internal constructor(
    *
    * @param value if true, force painting
    */
-  abstract fun forceLayersPaint(value: Boolean)
+  fun forceLayersPaint(value: Boolean) {
+    for (view in sceneViews) {
+      view.setForceLayersRepaint(value)
+    }
+    repaint()
+  }
 
   /**
    * The offsets to the left and top edges when scrolling to a component by calling
@@ -269,4 +294,16 @@ internal constructor(
    * content size is less than the minimum size allowed. See [SceneViewPanel].
    */
   abstract fun setSceneViewAlignment(sceneViewAlignment: SceneViewAlignment)
+
+  override fun getData(dataId: String): Any? {
+    delegateDataProvider?.getData(dataId)?.let {
+      return@getData it
+    }
+
+    if (LAYOUT_PREVIEW_HANDLER_KEY.`is`(dataId)) {
+      return layoutPreviewHandler
+    }
+
+    return super.getData(dataId)
+  }
 }
