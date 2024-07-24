@@ -44,6 +44,7 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -58,6 +59,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -149,6 +151,13 @@ internal constructor(
     revalidateScrollArea()
   }
 
+  override fun forceRefresh(): CompletableFuture<Void> {
+    return requestSequentialRender {
+      it.forceReinflate()
+      it.requestRenderAsync()
+    }
+  }
+
   /**
    * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned.
    * This can be disabled to avoid moving the screens around when the user is resizing the canvas.
@@ -220,6 +229,9 @@ internal constructor(
   }
 
   override fun notifyComponentActivate(component: NlComponent, x: Int, y: Int) {
+    val handler = component.getViewHandler {}
+
+    handler?.onActivateInDesignSurface(component, x, y)
     super.notifyComponentActivate(component, x, y)
   }
 
@@ -229,7 +241,13 @@ internal constructor(
    */
   abstract fun updateErrorDisplay()
 
-  abstract fun modelRendered()
+  fun modelRendered() {
+    updateErrorDisplay()
+
+    // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs
+    // to be called on the UI thread.
+    UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
+  }
 
   override fun deactivate() {
     super.deactivate()
@@ -237,6 +255,15 @@ internal constructor(
 
   override fun activate() {
     super.activate()
+    updateErrorDisplay()
+  }
+
+  override fun useSmallProgressIcon(): Boolean {
+    if (focusedSceneView == null) {
+      return false
+    }
+
+    return sceneManagers.any { it.renderResult != null }
   }
 
   abstract fun findSceneViewRectangles(): Map<SceneView, Rectangle?>
