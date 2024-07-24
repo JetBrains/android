@@ -39,6 +39,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.common.surface.Interactable
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.LayoutScannerControl
 import com.android.tools.idea.common.surface.ScaleChange
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPanel
@@ -57,6 +58,7 @@ import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
@@ -128,6 +130,18 @@ internal constructor(
   NlDiagnosticKey {
 
   var screenViewProvider: ScreenViewProvider = loadPreferredMode()
+    private set(value) {
+      if (field != value) {
+        field.onViewProviderReplaced()
+        field = value
+
+        for (manager in sceneManagers) {
+          manager.updateSceneView()
+          manager.requestLayoutAndRenderAsync()
+        }
+        revalidateScrollArea()
+      }
+    }
 
   /** Returns whether this surface is currently in resize mode or not. See [setResizeMode] */
   var isCanvasResizing: Boolean = false
@@ -154,6 +168,8 @@ internal constructor(
           }
         }
     }
+
+  abstract val layoutScannerControl: LayoutScannerControl?
 
   /** To scroll to correct viewport position when its size is changed. */
   protected var viewportScroller: DesignSurfaceViewportScroller? = null
@@ -193,7 +209,12 @@ internal constructor(
     scrollPane?.autoscrolls = enabled
   }
 
-  abstract fun setScreenViewProvider(screenViewProvider: ScreenViewProvider, setAsDefault: Boolean)
+  fun setScreenViewProvider(newScreenViewProvider: ScreenViewProvider, setAsDefault: Boolean) {
+    (newScreenViewProvider as? NlScreenViewProvider)?.let {
+      if (setAsDefault) savePreferredMode(it)
+    }
+    screenViewProvider = newScreenViewProvider
+  }
 
   /**
    * Update the color-blind mode in the [ScreenViewProvider] for this surface and make sure to
@@ -435,7 +456,12 @@ internal constructor(
    * When the surface is in "Animation Mode", the error display is not updated. This allows for the
    * surface to render results faster without triggering updates of the issue panel per frame.
    */
-  abstract fun setRenderSynchronously(enabled: Boolean)
+  fun setRenderSynchronously(enabled: Boolean) {
+    isRenderingSynchronously = enabled
+
+    // If animation is enabled, scanner must be paused.
+    layoutScannerControl?.let { if (enabled) it.pause() else it.resume() }
+  }
 
   /** Return whenever surface is rotating. */
   val isRotating: Boolean
