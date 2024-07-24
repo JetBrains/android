@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -28,6 +29,7 @@ import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroll
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller
 import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller
 import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
@@ -45,6 +47,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
+import com.android.tools.idea.common.surface.getFitContentIntoWindowScale
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
@@ -318,6 +321,48 @@ internal constructor(
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher
+
+  override fun scrollToCenter(list: List<NlComponent>) {
+    val view = focusedSceneView ?: return
+    if (list.isEmpty()) {
+      return
+    }
+    val scene = view.scene
+    @AndroidDpCoordinate val componentsArea = Rectangle(0, 0, -1, -1)
+    @AndroidDpCoordinate val componentRect = Rectangle()
+    list
+      .filter { !it.isRoot }
+      .forEach {
+        val component = scene.getSceneComponent(it) ?: return@forEach
+        component.fillRect(componentRect)
+        if (componentsArea.width < 0) {
+          componentsArea.bounds = componentRect
+        } else {
+          componentsArea.add(componentRect)
+        }
+      }
+
+    @SwingCoordinate val areaToCenter = Coordinates.getSwingRectDip(view, componentsArea)
+    if (areaToCenter.isEmpty || layeredPane.visibleRect.contains(areaToCenter)) {
+      // No need to scroll to components if they are all fully visible on the surface.
+      return
+    }
+
+    @SwingCoordinate val swingViewportSize = extentSize
+    @SwingCoordinate val targetSwingX = areaToCenter.centerX.toInt()
+    @SwingCoordinate val targetSwingY = areaToCenter.centerY.toInt()
+    // Center to position.
+    setScrollPosition(
+      targetSwingX - swingViewportSize.width / 2,
+      targetSwingY - swingViewportSize.height / 2,
+    )
+    @SurfaceScale val fitScale = this.getFitContentIntoWindowScale(areaToCenter.size)
+
+    if (zoomController.scale > fitScale) {
+      // Scale down to fit selection.
+      zoomController.setScale(fitScale, targetSwingX, targetSwingY)
+    }
+  }
 
   /**
    * Creates a [ReferencePointScroller] that scrolls a given focus point of [NlDesignSurface]. The
