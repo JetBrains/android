@@ -130,7 +130,7 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
     myDrawableBackgroundLayer = backgroundLayer
     val borderLayer = BorderLayer(screenView, isRotating = { surface.isRotating })
     val screenViewLayer =
-      ScreenViewLayer(screenView, colorBlindFilter, surface, surface::getRotateSurfaceDegree)
+      ScreenViewLayer(screenView, colorBlindFilter, surface, surface::rotateSurfaceDegree)
     return ImmutableList.of(backgroundLayer, borderLayer, screenViewLayer)
   }
 }
