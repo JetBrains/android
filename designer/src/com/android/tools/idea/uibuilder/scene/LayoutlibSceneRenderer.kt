@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.scene
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.diagnostic.Logger
@@ -29,6 +31,10 @@ import kotlin.concurrent.withLock
 internal class LayoutlibSceneRenderer(private val model: NlModel) {
   private val updateHierarchyLock = ReentrantLock()
   private val renderTaskLock = ReentrantLock()
+  private val renderResultLock = ReentrantLock()
+
+  /** If true, when a new RenderResult is an error it will retain the last successful image. */
+  var cacheSuccessfulRenderImage = false
 
   // TODO(b/335424569): make this field private, or at least its setter
   @GuardedBy("renderTaskLock")
@@ -54,6 +60,36 @@ internal class LayoutlibSceneRenderer(private val model: NlModel) {
   var sessionClock: SessionClock = RealTimeSessionClock()
     get() = renderTaskLock.withLock { field }
     private set
+
+  // TODO(b/335424569): make this field private, or at least its setter
+  var renderResult: RenderResult? = null
+    get() = renderResultLock.withLock { field }
+    set(newResult) {
+      val oldResult: RenderResult?
+      renderResultLock.withLock {
+        if (field === newResult) return
+        oldResult = field
+        field =
+          if (
+            cacheSuccessfulRenderImage &&
+              newResult.isErrorResult() &&
+              oldResult.containsValidImage()
+          ) {
+            // newResult can not be null if isErrorResult is true
+            // oldResult can not be null if containsValidImage is true
+            newResult!!.copyWithNewImageAndRootViewDimensions(
+              StudioRenderService.Companion.getInstance(newResult.project)
+                .sharedImagePool
+                .copyOf(oldResult!!.getRenderedImage().copy),
+              oldResult.rootViewDimensions,
+            )
+          } else newResult
+      }
+      oldResult?.dispose()
+    }
+
+  private fun RenderResult?.containsValidImage() =
+    this?.renderedImage?.let { it.width > 1 && it.height > 1 } ?: false
 
   // TODO(b/335424569): make this method private
   fun updateHierarchy(result: RenderResult?): Boolean {
