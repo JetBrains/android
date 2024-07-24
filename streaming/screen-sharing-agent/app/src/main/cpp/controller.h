@@ -49,6 +49,10 @@ public:
   // Stops the controller asynchronously. The controller can't be restarted one stopped.
   // May be called on any thread.
   void Stop();
+  // Requests to power the display OFF or reset it to a power state it supposed to have. Requires API 35+.
+  // The state parameter is one of DisplayInfo::STATE_OFF (to turn display off), DisplayInfo::STATE_UNKNOWN
+  // (to reset the display to its default state). Returns true if successful, false otherwise.
+  static bool ControlDisplayPower(Jni jni, int state);
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {
