@@ -18,6 +18,7 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.adblib.ClosedSessionException
 import com.android.adblib.DeviceAddress
 import com.android.adblib.DeviceSelector
+import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
@@ -25,6 +26,7 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -42,12 +44,19 @@ class DeviceManagerTest {
   private var adbSessionProvider = { adbSession }
   private val serialNumber: String = "12345"
 
-  @Before fun setUp() = runBlocking { adbSession.hostServices.connect(DeviceAddress(serialNumber)) }
+  @Before
+  fun setUp() = runBlocking {
+    adbSession.hostServices.connect(DeviceAddress(serialNumber))
+    // Wait for device to show up in `connectedDevicesTracker`
+    adbSession.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }
+    Unit
+  }
 
   @After
   fun tearDown() = runBlocking {
     try {
       adbSession.hostServices.disconnect(DeviceAddress(serialNumber))
+      adbSession.close()
     } catch (_: ClosedSessionException) {
       // Already closed during test, ignore
     }
@@ -56,6 +65,8 @@ class DeviceManagerTest {
   @Test
   fun `test adb commands are not sent if the device is disconnected`() = runBlocking {
     adbSession.hostServices.disconnect(DeviceAddress(serialNumber))
+    // Wait for device to be removed from `connectedDevicesTracker`
+    adbSession.connectedDevicesTracker.connectedDevices.first { it.isEmpty() }
 
     val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
     deviceManager.setSerialNumber(serialNumber)
@@ -878,7 +889,12 @@ class DeviceManagerTest {
     currentAdbSession.close()
 
     // Create and redirect to the new adb session
-    val newAdbSession = FakeAdbSession().apply { hostServices.connect(DeviceAddress(serialNumber)) }
+    val newAdbSession =
+      FakeAdbSession().apply {
+        hostServices.connect(DeviceAddress(serialNumber))
+        // Wait for device to show up in `connectedDevicesTracker`
+        connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }
+      }
     currentAdbSession = newAdbSession
 
     assertDeviceManagerFunctionSendsAdbCommand(
