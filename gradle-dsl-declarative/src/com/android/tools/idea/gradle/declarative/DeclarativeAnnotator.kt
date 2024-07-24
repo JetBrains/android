@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.declarative
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeElement
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierOwner
 import com.intellij.lang.annotation.AnnotationHolder
@@ -49,7 +46,7 @@ class DeclarativeAnnotator : Annotator {
     if (element is DeclarativeIdentifier) {
       val schema = getSchema() ?: return
       val path = getPath(element)
-      val result = searchForType(path, schema)
+      val result = searchForType(path, schema, element.containingFile.name)
       if (result.isEmpty()) {
         showUnknownName(holder)
       }
@@ -59,7 +56,7 @@ class DeclarativeAnnotator : Annotator {
       val identifier = element.findIdentifier() ?: return
       val path = getPath(identifier)
       val schema = getSchema() ?: return
-      val result = searchForType(path, schema)
+      val result = searchForType(path, schema, element.containingFile.name)
       if (result.isEmpty()) return
       val types = result.mapNotNull { it.toElementType() }
       val foundType = types.any { it == element.getElementType() }
@@ -69,41 +66,40 @@ class DeclarativeAnnotator : Annotator {
     }
   }
 
-
   private fun Project.getSchema(): DeclarativeSchema? {
     val service = DeclarativeService.getInstance(this)
-    return service.getSchema() ?: return null
+    return service.getSchema()
   }
 
+  // psi element that has identifier we can build path to the root element
   private fun PsiElement.isMainLevelElement() =
-    this is DeclarativeBlock || this is DeclarativeAssignment || this is DeclarativeFactory
+    this is DeclarativeIdentifierOwner
 
   private fun PsiElement.findIdentifier() =
     when (this) {
-      is DeclarativeIdentifierOwner -> this.identifier
+      is DeclarativeIdentifierOwner -> identifier
       else -> null
     }
 
-  abstract sealed class SearchResult {
+  sealed class SearchResult {
     fun toElementType(): ElementType? {
       return when (this) {
         is FoundFunction -> ElementType.FACTORY
         is FoundClass -> ElementType.BLOCK
-        is FoundProperty -> getType(this.type)
+        is FoundProperty -> getType(type)
         else -> null
       }
     }
   }
-
   data class FoundClass(val type: DataClass) : SearchResult()
   data class FoundFunction(val type: DataMemberFunction) : SearchResult()
   data class FoundProperty(val type: DataType) : SearchResult()
-  data object NDOC : SearchResult()
+  data object NDOC : SearchResult() // dynamic naming - we cannot verify it for now
 
-  private fun searchForType(path: List<String>, schema: DeclarativeSchema): List<SearchResult> {
+  private fun searchForType(path: List<String>, schema: DeclarativeSchema, fileName: String): List<SearchResult> {
     if (path.isEmpty()) return listOf()
 
-    var currentReceiver: List<Receiver> = getTopLevelReceiversByName(path[0], schema)
+    var currentReceiver: List<Receiver> = getTopLevelReceiversByName(path[0], schema, fileName)
     var hasNdocFlag = hasNDOC(currentReceiver, schema)
     val last = path.size - 1
     for (index in 1..last) {
@@ -115,6 +111,7 @@ class DeclarativeAnnotator : Annotator {
 
       currentReceiver = currentReceiver.flatMap { element ->
         when (element) {
+          // TODO need to verify type of function parameter
           is Function -> when(val receiver = element.type.receiver){
             // assumption is that receiver is the same as for parent function for example `implementation(project(...))`
             // TODO need to make it universal (b/355179149)
@@ -123,23 +120,23 @@ class DeclarativeAnnotator : Annotator {
             } ?: listOf()
             is DataTypeRef.Type -> listOf() // no children for simple type
           }
-          is Object -> getAllMembersByName(element, name, schema)
+          is ObjectRef -> getAllMembersByName(element, name, schema)
           is SimpleType -> listOf() // no children for simple type
         }
       }
       if (currentReceiver.isNotEmpty()) hasNdocFlag = hasNDOC(currentReceiver, schema)
     }
 
-    return currentReceiver.flatMap {
-      when (it) {
-        is Function -> listOf(FoundFunction(it.type))
-        is Object -> schema.getDataClassesByFqName()[it.fqName]?.let { listOf(FoundClass(it)) } ?: listOf()
-        is SimpleType -> listOf(FoundProperty(it.type))
+    return currentReceiver.flatMap { receiver ->
+      when (receiver) {
+        is Function -> listOf(FoundFunction(receiver.type))
+        is ObjectRef -> schema.getDataClassesByFqName()[receiver.fqName]?.let { listOf(FoundClass(it)) } ?: listOf()
+        is SimpleType -> listOf(FoundProperty(receiver.type))
       }
     }
   }
 
-  private fun getAllMembersByName(o: Object, memberName: String, schema: DeclarativeSchema): List<Receiver> {
+  private fun getAllMembersByName(o: ObjectRef, memberName: String, schema: DeclarativeSchema): List<Receiver> {
     val dataClass = schema.getDataClassesByFqName()[o.fqName] ?: return listOf()
     return getAllMembersByName(dataClass, memberName)
   }
@@ -147,7 +144,7 @@ class DeclarativeAnnotator : Annotator {
   private fun hasNDOC(receivers: List<Receiver>, schema: DeclarativeSchema): Boolean =
     receivers.any { element ->
       when (element) {
-        is Object -> {
+        is ObjectRef -> {
           schema.getDataClassesByFqName()[element.fqName]?.let { isNDOC(it) } ?: false
         }
         else -> false
@@ -156,7 +153,6 @@ class DeclarativeAnnotator : Annotator {
 
   private fun isNDOC(parentDataClass: DataClass?) =
     parentDataClass?.supertypes?.contains(DefaultFqName("org.gradle.api", "NamedDomainObjectContainer")) == true
-
 
   private fun showUnknownName(holder: AnnotationHolder) {
     holder.newAnnotation(HighlightSeverity.ERROR, "Unknown identifier").create()

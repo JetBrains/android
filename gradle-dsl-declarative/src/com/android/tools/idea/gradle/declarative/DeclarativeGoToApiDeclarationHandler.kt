@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
