@@ -26,6 +26,16 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
+        "SantaTrackerKotlinBenchmark_k2": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinK2Benchmark",
+            "tags": [
+                "cpu:3",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
+        },
         "tests": {
             "test_filter": "com.android.tools.idea.benchmarks.tests",
             "timeout": "long",
