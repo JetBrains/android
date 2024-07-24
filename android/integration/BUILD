@@ -201,10 +201,14 @@ iml_studio_test(
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "noci:studio-linux",
+    ],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.DebuggerTest",
 )
