@@ -106,8 +106,7 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
             buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
             filePointer,
             diffDisposable,
-            // TODO: upgrade to gemini
-            ModelType.EXPERIMENTAL_VISION,
+            ModelType.EXPERIMENTAL_LONG_CONTEXT,
           )
         }
       }
