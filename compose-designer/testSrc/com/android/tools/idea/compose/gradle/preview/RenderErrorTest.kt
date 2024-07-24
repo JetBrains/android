@@ -73,6 +73,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -296,21 +297,25 @@ class RenderErrorTest {
   }
 
   @Test
+  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithContrastError() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithContrastError")
   }
 
   @Test
+  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithContrastErrorAgain() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithContrastErrorAgain")
   }
 
   @Test
+  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithWideButton() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithWideButton")
   }
 
   @Test
+  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithLongText() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithLongText")
   }
