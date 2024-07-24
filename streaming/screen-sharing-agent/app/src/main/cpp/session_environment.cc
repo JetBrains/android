@@ -16,9 +16,7 @@
 
 #include "session_environment.h"
 
-#include "accessors/display_control.h"
-#include "accessors/surface_control.h"
-#include "agent.h"
+#include "controller.h"
 #include "log.h"
 #include "num_to_string.h"
 #include "settings.h"
@@ -45,29 +43,6 @@ void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
-bool ControlDisplayPower(Jni jni, int state) {
-  if (Agent::feature_level() >= 35) {
-    return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
-    // TODO: Turn off secondary physical displays.
-  } else {
-    DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
-    vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
-    if (display_ids.empty()) {
-      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-      if (display_token.IsNull()) {
-        return false;
-      }
-      SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
-    } else {
-      for (int64_t display_id: display_ids) {
-        JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
-        SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
-      }
-    }
-  }
-  return true;
-}
-
 }  // namespace
 
 SessionEnvironment::SessionEnvironment(bool turn_off_display)
@@ -80,7 +55,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
   if (turn_off_display) {
     // Turn off display.
     Jni jni = Jvm::GetJni();
-    if (ControlDisplayPower(jni, DisplayInfo::STATE_OFF)) {
+    if (Controller::ControlDisplayPower(jni, DisplayInfo::STATE_OFF)) {
       Log::D("Device display has been turned off");
       restore_normal_display_power_mode_ = true;
     } else {
@@ -94,7 +69,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
     Jni jni = Jvm::GetJni();
-    if (!ControlDisplayPower(jni, DisplayInfo::STATE_UNKNOWN)) {
+    if (!Controller::ControlDisplayPower(jni, DisplayInfo::STATE_UNKNOWN)) {
       Log::W(jni.GetAndClearException(), "Unable to restore display power");
     }
   }
