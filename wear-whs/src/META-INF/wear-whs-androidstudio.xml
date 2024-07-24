@@ -20,4 +20,7 @@
       <add-to-group group-id="android.emulator.wear.health.services"/>
     </action>
   </actions>
+  <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup id="Wear Health Services Notification" displayType="BALLOON" bundle="messages.WearWhsBundle" key="wear.whs.panel.title"/>
+  </extensions>
 </idea-plugin>

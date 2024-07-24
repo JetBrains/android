@@ -158,9 +158,7 @@ internal class WearHealthServicesStateManagerImpl(
         _status.value = status
         block()
           .onSuccess { _status.value = WhsStateManagerStatus.Idle }
-          .onFailure {
-            _status.value = WhsStateManagerStatus.ConnectionLost
-          }
+          .onFailure { _status.value = WhsStateManagerStatus.ConnectionLost }
       }
     } catch (exception: TimeoutCancellationException) {
       _status.value = WhsStateManagerStatus.Timeout

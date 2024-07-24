@@ -18,11 +18,14 @@ package com.android.tools.idea.wearwhs.view
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
-import com.android.tools.idea.wearwhs.WearWhsBundle
+import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
+import com.intellij.notification.Notification
+import com.intellij.notification.Notifications
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -48,9 +51,14 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -64,6 +72,8 @@ private val floatPattern = Regex("^(0|0?[1-9]\\d*)?(\\.[0-9]*)?\$")
 
 private const val PADDING = 15
 private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
+private const val NOTIFICATION_GROUP_ID = "Wear Health Services Notification"
+private val TEMPORARY_MESSAGE_DISPLAY_DURATION = 2.seconds
 
 private fun createCenterPanel(
   stateManager: WearHealthServicesStateManager,
@@ -79,8 +89,7 @@ private fun createCenterPanel(
     .onEach {
       elementsToDisableDuringExercise.forEach { element ->
         element.isEnabled = !it
-        element.toolTipText =
-          if (it) WearWhsBundle.message("wear.whs.panel.disabled.during.exercise") else null
+        element.toolTipText = if (it) message("wear.whs.panel.disabled.during.exercise") else null
       }
       elementsToDisplayDuringExercise.forEach { element -> element.isVisible = it }
     }
@@ -90,15 +99,13 @@ private fun createCenterPanel(
     add(
       JPanel(BorderLayout()).apply {
         add(
-          JLabel(WearWhsBundle.message("wear.whs.panel.sensor")).apply {
-            font = font.deriveFont(Font.BOLD)
-          },
+          JLabel(message("wear.whs.panel.sensor")).apply { font = font.deriveFont(Font.BOLD) },
           BorderLayout.CENTER,
         )
         add(
           JPanel(FlowLayout()).apply {
             add(
-              JLabel(WearWhsBundle.message("wear.whs.panel.override")).apply {
+              JLabel(message("wear.whs.panel.override")).apply {
                 elementsToDisplayDuringExercise.add(this)
                 font = font.deriveFont(Font.BOLD)
               }
@@ -113,7 +120,7 @@ private fun createCenterPanel(
         JPanel(BorderLayout()).apply {
           preferredSize = Dimension(0, 35)
           val label =
-            JLabel(WearWhsBundle.message(capability.label)).also { label ->
+            JLabel(message(capability.label)).also { label ->
               val plainFont = label.font.deriveFont(Font.PLAIN)
               val italicFont = label.font.deriveFont(Font.ITALIC)
               stateManager
@@ -122,10 +129,10 @@ private fun createCenterPanel(
                 .onEach { synced ->
                   if (!synced) {
                     label.font = italicFont
-                    label.text = "${WearWhsBundle.message(capability.label)}*"
+                    label.text = "${message(capability.label)}*"
                   } else {
                     label.font = plainFont
-                    label.text = WearWhsBundle.message(capability.label)
+                    label.text = message(capability.label)
                   }
                 }
                 .launchIn(uiScope)
@@ -238,7 +245,7 @@ private fun createCenterPanel(
                 }
               )
               add(
-                JLabel(WearWhsBundle.message(capability.unit)).also { label ->
+                JLabel(message(capability.unit)).also { label ->
                   checkBox.selected.addListener { label.isEnabled = it }
                   label.isVisible = capability.isOverrideable
                   label.preferredSize = JBUI.size(75, 25)
@@ -257,11 +264,10 @@ private fun createWearHealthServicesPanelHeader(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
+  notifyUser: (String, MessageType) -> Unit,
 ): JPanel = panel {
   row(
-    JBLabel(WearWhsBundle.message("wear.whs.panel.title")).apply {
-      foreground = UIUtil.getInactiveTextColor()
-    }
+    JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
   ) {}
   separator()
 
@@ -275,7 +281,7 @@ private fun createWearHealthServicesPanelHeader(
     .onEach {
       capabilitiesComboBox.isEnabled = !it
       capabilitiesComboBox.toolTipText =
-        if (it) WearWhsBundle.message("wear.whs.panel.disabled.during.exercise") else null
+        if (it) message("wear.whs.panel.disabled.during.exercise") else null
     }
     .launchIn(uiScope)
   val eventTriggersDropDownButton =
@@ -288,7 +294,22 @@ private fun createWearHealthServicesPanelHeader(
                   addChildrenActions(
                     eventTriggerGroup.eventTriggers.map { eventTrigger ->
                       CommonAction(eventTrigger.eventLabel, null) {
-                        workerScope.launch { stateManager.triggerEvent(eventTrigger) }
+                        workerScope.launch {
+                          stateManager
+                            .triggerEvent(eventTrigger)
+                            .onSuccess {
+                              notifyUser(
+                                message("wear.whs.event.trigger.success"),
+                                MessageType.INFO,
+                              )
+                            }
+                            .onFailure {
+                              notifyUser(
+                                message("wear.whs.event.trigger.failure"),
+                                MessageType.ERROR,
+                              )
+                            }
+                        }
                       }
                     }
                   )
@@ -299,18 +320,18 @@ private fun createWearHealthServicesPanelHeader(
         ) {
         override fun isFocusable(): Boolean = true
       }
-      .apply { toolTipText = WearWhsBundle.message("wear.whs.panel.trigger.events") }
+      .apply { toolTipText = message("wear.whs.panel.trigger.events") }
   val statusLabel =
-    JLabel(WearWhsBundle.message("wear.whs.panel.test.data.inactive")).apply {
+    JLabel(message("wear.whs.panel.test.data.inactive")).apply {
       icon = StudioIcons.Common.INFO
       stateManager.ongoingExercise
         .onEach {
           if (it) {
-            this.text = WearWhsBundle.message("wear.whs.panel.test.data.active")
-            this.toolTipText = WearWhsBundle.message("wear.whs.panel.press.apply.for.overrides")
+            this.text = message("wear.whs.panel.test.data.active")
+            this.toolTipText = message("wear.whs.panel.press.apply.for.overrides")
           } else {
-            this.text = WearWhsBundle.message("wear.whs.panel.test.data.inactive")
-            this.toolTipText = WearWhsBundle.message("wear.whs.panel.press.apply.for.toggles")
+            this.text = message("wear.whs.panel.test.data.inactive")
+            this.toolTipText = message("wear.whs.panel.press.apply.for.toggles")
           }
         }
         .launchIn(uiScope)
@@ -336,11 +357,41 @@ data class WearHealthServicesPanel(
   val onUserApplyChangesFlow: Flow<Unit>,
 )
 
+private sealed class PanelInformation(val message: String) {
+  class Message(message: String) : PanelInformation(message)
+
+  class TemporaryMessage(
+    message: String,
+    val duration: Duration = TEMPORARY_MESSAGE_DISPLAY_DURATION,
+  ) : PanelInformation(message)
+
+  data object EmptyMessage : PanelInformation("")
+}
+
 internal fun createWearHealthServicesPanel(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
 ): WearHealthServicesPanel {
+
+  // Display current state e.g. we encountered an error, if there's work in progress, or if an
+  // action was successful
+  val informationFlow = MutableStateFlow<PanelInformation>(PanelInformation.EmptyMessage)
+  val informationLabel = JLabel()
+
+  fun notifyUser(message: String, type: MessageType) {
+    uiScope.launch {
+      val isPanelShowing = informationLabel.topLevelAncestor != null
+      if (isPanelShowing) {
+        informationFlow.value = PanelInformation.TemporaryMessage(message)
+      } else {
+        Notifications.Bus.notify(
+          Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
+        )
+      }
+    }
+  }
+
   val content =
     JBScrollPane().apply {
       setViewportView(
@@ -352,38 +403,37 @@ internal fun createWearHealthServicesPanel(
   val footer =
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
-      // Display current state e.g. we encountered an error or if there's work in progress
+
+      add(informationLabel)
       add(
-        JLabel().apply {
-          stateManager.status
-            .onEach {
-              text =
-                when (it) {
-                  is WhsStateManagerStatus.Syncing ->
-                    WearWhsBundle.message("wear.whs.panel.capabilities.syncing")
-                  is WhsStateManagerStatus.Timeout ->
-                    WearWhsBundle.message("wear.whs.panel.connection.timeout")
-                  is WhsStateManagerStatus.ConnectionLost ->
-                    WearWhsBundle.message("wear.whs.panel.connection.lost")
-                  else -> ""
+        JButton(message("wear.whs.panel.reset")).apply {
+          addActionListener {
+            workerScope.launch {
+              stateManager
+                .reset()
+                .onSuccess { notifyUser(message("wear.whs.panel.reset.success"), MessageType.INFO) }
+                .onFailure {
+                  notifyUser(message("wear.whs.panel.reset.failure"), MessageType.ERROR)
                 }
             }
-            .launchIn(uiScope)
+          }
         }
       )
       add(
-        JButton(WearWhsBundle.message("wear.whs.panel.reset")).apply {
-          addActionListener { workerScope.launch { stateManager.reset() } }
-        }
-      )
-      add(
-        JButton(WearWhsBundle.message("wear.whs.panel.apply")).apply {
+        JButton(message("wear.whs.panel.apply")).apply {
           addActionListener {
             isEnabled = false
             workerScope.launch {
               try {
                 onApplyChangesChannel.send(Unit)
-                stateManager.applyChanges()
+                stateManager
+                  .applyChanges()
+                  .onSuccess {
+                    notifyUser(message("wear.whs.panel.apply.success"), MessageType.INFO)
+                  }
+                  .onFailure {
+                    notifyUser(message("wear.whs.panel.apply.failure"), MessageType.ERROR)
+                  }
               } finally {
                 uiScope.launch { isEnabled = true }
               }
@@ -392,11 +442,41 @@ internal fun createWearHealthServicesPanel(
         }
       )
     }
+
+  stateManager.status
+    .onEach {
+      when (it) {
+        is WhsStateManagerStatus.Syncing ->
+          informationFlow.value =
+            PanelInformation.Message(message("wear.whs.panel.capabilities.syncing"))
+        is WhsStateManagerStatus.ConnectionLost ->
+          informationFlow.value =
+            PanelInformation.Message(message("wear.whs.panel.connection.lost"))
+        is WhsStateManagerStatus.Idle ->
+          if (informationFlow.value.message == message("wear.whs.panel.connection.lost")) {
+            // the connection is restored
+            informationFlow.value = PanelInformation.EmptyMessage
+          }
+        else -> {}
+      }
+    }
+    .launchIn(uiScope)
+
+  uiScope.launch {
+    informationFlow.collectLatest {
+      informationLabel.text = it.message
+      if (it is PanelInformation.TemporaryMessage) {
+        delay(it.duration)
+        informationFlow.value = PanelInformation.EmptyMessage
+      }
+    }
+  }
+
   return WearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
         add(
-          createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope),
+          createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope, ::notifyUser),
           BorderLayout.NORTH,
         )
         add(content, BorderLayout.CENTER)
