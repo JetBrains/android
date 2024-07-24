@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
+import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.diagnostics.NlDiagnosticKey
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
@@ -50,6 +52,7 @@ import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.getFitContentIntoWindowScale
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
@@ -73,6 +76,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.ui.scale.JBUIScale.sysScale
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
@@ -90,11 +94,11 @@ import kotlin.math.min
  * @param sceneManagerProvider Allows customizing the generation of [SceneManager]s
  * @param delegateDataProvider See [NlSurfaceBuilder.setDelegateDataProvider]
  */
-abstract class NlSurface
+class NlDesignSurface
 internal constructor(
   project: Project,
   parentDisposable: Disposable,
-  protected val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
+  private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
   defaultLayoutOption: SurfaceLayoutOption,
   actionManagerProvider:
     (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
@@ -105,10 +109,10 @@ internal constructor(
   @SurfaceScale minScale: Double,
   @SurfaceScale maxScale: Double,
   actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler,
-  protected val delegateDataProvider: DataProvider?,
+  private val delegateDataProvider: DataProvider?,
   selectionModel: SelectionModel,
-  zoomControlsPolicy: ZoomControlsPolicy?,
-  protected val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
+  zoomControlsPolicy: ZoomControlsPolicy,
+  private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
   private val shouldRenderErrorsPanel: Boolean,
   maxZoomToFitLevel: Double,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
@@ -128,9 +132,17 @@ internal constructor(
     },
     actionHandlerProvider,
     selectionModel,
-    zoomControlsPolicy!!,
+    zoomControlsPolicy,
   ),
   NlDiagnosticKey {
+
+  init {
+    viewport.addChangeListener {
+      val scroller = viewportScroller
+      viewportScroller = null
+      scroller?.scroll(viewport)
+    }
+  }
 
   var screenViewProvider: ScreenViewProvider = loadPreferredMode()
     private set(value) {
@@ -149,7 +161,7 @@ internal constructor(
   /** Returns whether this surface is currently in resize mode or not. See [setResizeMode] */
   var isCanvasResizing: Boolean = false
 
-  val renderListener = RenderListener { modelRendered() }
+  private val renderListener = RenderListener { modelRendered() }
 
   var isRenderingSynchronously: Boolean = false
 
@@ -158,7 +170,7 @@ internal constructor(
   /** The rotation degree of the surface to simulate the phone rotation. */
   var rotateSurfaceDegree: Float = Float.NaN
 
-  protected val sceneViewLayoutManager: NlDesignSurfacePositionableContentLayoutManager
+  private val sceneViewLayoutManager: NlDesignSurfacePositionableContentLayoutManager
     get() = sceneViewPanel.layout as NlDesignSurfacePositionableContentLayoutManager
 
   val layoutPreviewHandler =
@@ -172,10 +184,39 @@ internal constructor(
         }
     }
 
-  abstract val layoutScannerControl: LayoutScannerControl?
+  private val layoutScannerControl: LayoutScannerControl = NlLayoutScanner(this)
+
+  override val analyticsManager: DesignerAnalyticsManager = NlAnalyticsManager(this)
+
+  override val zoomController: ZoomController =
+    NlDesignSurfaceZoomController(
+        {
+          sceneViewLayoutManager.getFitIntoScale(
+            sceneViewPanel.positionableContent,
+            viewport.extentSize,
+          )
+        },
+        analyticsManager,
+        selectionModel,
+        this,
+        maxZoomToFitLevel,
+      )
+      .apply {
+        setOnScaleListener(this@NlDesignSurface)
+        this@apply.maxScale = maxScale
+        this@apply.minScale = minScale
+        screenScalingFactor = sysScale(this@NlDesignSurface).toDouble()
+      }
+
+  val visualLintIssueProvider = issueProviderFactory(this)
+
+  private val errorQueue = ErrorQueue(this, project)
+
+  override val accessoryPanel: AccessoryPanel =
+    AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true).apply { setSurface(this@NlDesignSurface) }
 
   /** To scroll to correct viewport position when its size is changed. */
-  protected var viewportScroller: DesignSurfaceViewportScroller? = null
+  private var viewportScroller: DesignSurfaceViewportScroller? = null
 
   @UiThread
   fun onLayoutUpdated(layoutOption: SurfaceLayoutOption) {
@@ -189,6 +230,12 @@ internal constructor(
       it.forceReinflate()
       it.requestRenderAsync()
     }
+  }
+
+  override fun createSceneManager(model: NlModel): LayoutlibSceneManager {
+    val manager = sceneManagerProvider(this, model)
+    manager.addRenderListener(renderListener)
+    return manager
   }
 
   /**
@@ -254,15 +301,16 @@ internal constructor(
    * [scrollToVisible]
    */
   @get:SwingCoordinate
-  override val scrollToVisibleOffset: Dimension
-    get() =
-      Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
+  override val scrollToVisibleOffset =
+    Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
 
   override fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+    accessoryPanel.setModel(model)
     return super.setModel(newModel)
   }
 
   override fun dispose() {
+    accessoryPanel.setSurface(null)
     super.dispose()
   }
 
@@ -277,9 +325,22 @@ internal constructor(
    * Notifies the design surface that the given screen view (which must be showing in this design
    * surface) has been rendered (possibly with errors)
    */
-  abstract fun updateErrorDisplay()
+  fun updateErrorDisplay() {
+    if (isRenderingSynchronously) {
+      // No errors update while we are in the middle of playing an animation
+      return
+    }
 
-  fun modelRendered() {
+    errorQueue.updateErrorDisplay(
+      layoutScannerControl,
+      visualLintIssueProvider,
+      this,
+      issueModel,
+      this::sceneManagers,
+    )
+  }
+
+  private fun modelRendered() {
     updateErrorDisplay()
 
     // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs
@@ -288,6 +349,8 @@ internal constructor(
   }
 
   override fun deactivate() {
+    errorQueue.deactivate(issueModel)
+    visualLintIssueProvider.clear()
     super.deactivate()
   }
 
@@ -375,7 +438,7 @@ internal constructor(
    * @param oldScrollPosition the previous scroll position
    * @return A [ReferencePointScroller] to apply to this [NlDesignSurface].
    */
-  fun createScrollerForGroupedSurfaces(
+  private fun createScrollerForGroupedSurfaces(
     port: DesignSurfaceViewport,
     update: ScaleChange,
     oldScrollPosition: Point,
