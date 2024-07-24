@@ -17,6 +17,8 @@ package org.jetbrains.android.dom.navigation;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.AndroidProjectTypes;
 import com.android.AndroidXConstants;
@@ -137,7 +139,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     }
 
     expected.putAll(NavGraphElement.class, Arrays.asList(GROUPS));
-    expected.put(NavGraphElement.class, "include");
+    expected.put(NavInclude.class, TAG_INCLUDE);
     expected.putAll(ConcreteDestinationElement.class, Arrays.asList(LEAF_DESTINATIONS));
     expected.putAll(FragmentDestinationElement.class, Arrays.asList(FRAGMENTS));
     expected.putAll(ActivityDestinationElement.class, Arrays.asList(ACTIVITIES));
