@@ -95,12 +95,12 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUsingHttp" groupName="Android Lint: Security" displayName="Using HTTP instead of HTTPS" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUsingHttpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" groupName="Android Lint: Correctness" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" groupName="Android Lint: Internationalization" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongCommentType" groupName="Android Lint: Correctness" displayName="Wrong Comment Type" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWrongCommentTypeInspection"/>
 
     <notificationGroup id="Wrote Baseline" displayType="BALLOON"/>
 
     <lang.inspectionSuppressor
         language="Groovy"
         implementationClass="com.android.tools.idea.lint.common.AndroidLintJcenterInspectionSuppressor"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongCommentType" groupName="Android Lint: Correctness" displayName="Wrong Comment Type" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWrongCommentTypeInspection"/>
   </extensions>
 </idea-plugin>
