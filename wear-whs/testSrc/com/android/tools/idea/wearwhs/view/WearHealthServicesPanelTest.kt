@@ -49,7 +49,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class WearHealthServicesContentPanelTest {
+class WearHealthServicesPanelTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
