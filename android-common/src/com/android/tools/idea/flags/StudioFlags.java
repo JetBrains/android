@@ -1893,6 +1893,12 @@ public final class StudioFlags {
                 "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
                     ChannelDefault.enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_PROJECT_FACTS_CONTEXT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "project.facts.context.enabled",
+                    "Enable sending project facts with chat queries.",
+                    "When enabled, chat queries will attach summarized facts about the project.",
+                    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "gradle.error.context.enabled",
                     "Enable sending contents of Gradle build files with applicable sync/build error queries.",
