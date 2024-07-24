@@ -93,8 +93,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class NlDesignSurface extends NlSurface {
 
-  private boolean myPreviewWithToolsVisibilityAndPosition = true;
-
   @NotNull
   @Override
   public ZoomController getZoomController() {
@@ -576,23 +574,10 @@ public class NlDesignSurface extends NlSurface {
     }
 
     if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
-      return this;
+      return getLayoutPreviewHandler();
     }
 
     return super.getData(dataId);
-  }
-
-  @Override
-  public boolean getPreviewWithToolsVisibilityAndPosition() {
-    return myPreviewWithToolsVisibilityAndPosition;
-  }
-
-  @Override
-  public void setPreviewWithToolsVisibilityAndPosition(boolean isPreviewWithToolsVisibilityAndPosition) {
-    if (myPreviewWithToolsVisibilityAndPosition != isPreviewWithToolsVisibilityAndPosition) {
-      myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
-      forceRefresh();
-    }
   }
 
   @NotNull
