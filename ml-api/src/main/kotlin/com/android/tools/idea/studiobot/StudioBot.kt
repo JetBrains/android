@@ -119,10 +119,6 @@ enum class ModelType {
   // Currently, these models cannot be served in production and are for experimental
   // purposes only.
 
-  // Gemini 1.0 Pro Vision model via the Gemini API. This requires an API key to use.
-  // It does not support multi-turn conversations or a system message in the prompt.
-  EXPERIMENTAL_VISION,
-
   // Gemini 1.5 Pro Long Context model via the Gemini API. This requires an API key to use.
   EXPERIMENTAL_LONG_CONTEXT,
 }
