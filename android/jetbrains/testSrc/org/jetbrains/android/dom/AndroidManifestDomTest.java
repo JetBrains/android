@@ -866,6 +866,52 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + "AddUsesFeature_after.xml");
   }
 
+  public void testProviderHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=XML
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        package=\"p1.p2\" >\n" +
+      "  <application>\n" +
+      "    <provider android:name=\"<error>UNRESOLVED</error>\" android:authorities=\"UNRESOLVED\">\n" +
+      "      <property android:name=\"android.cts.PROPERTY_PROVIDER\" android:value=\"foo\" />\n" +
+      "      <meta-data />\n" +
+      "      <grant-uri-permission />\n" +
+      "      <intent-filter />\n" +
+      "      <path-permission />\n" +
+      "    </provider>\n" +
+      "  </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testProviderCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=XML
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        package=\"p1.p2\" >\n" +
+      "  <application>\n" +
+      "    <provider android:name=\"<error>UNRESOLVED</error>\" android:authorities=\"UNRESOLVED\">\n" +
+      "      <<caret>\n" +
+      "    </provider>\n" +
+      "  </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    assertThat(myFixture.getLookupElementStrings()).containsExactly(
+      "grant-uri-permission",
+      "intent-filter",
+      "meta-data",
+      "path-permission",
+      "property"
+    );
+  }
+
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
