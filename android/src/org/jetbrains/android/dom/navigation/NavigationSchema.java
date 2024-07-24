@@ -877,7 +877,7 @@ public class NavigationSchema implements Disposable {
             }
           }
         });
-        result.put(NavGraphElement.class, TAG_INCLUDE);
+        result.put(NavInclude.class, TAG_INCLUDE);
       }
       if (type != ACTIVITY) {
         result.put(NavActionElement.class, TAG_ACTION);
