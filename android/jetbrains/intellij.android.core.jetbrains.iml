@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="library" scope="TEST" name="javaslang" level="project" />
+    <orderEntry type="library" scope="TEST" name="vavr" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
