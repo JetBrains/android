@@ -38,6 +38,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -56,12 +57,36 @@ public final class StudioFlags {
     Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
     if (app != null && !app.isUnitTestMode()) {
-      userOverrides = StudioFlagSettings.getInstance();
+      userOverrides = new LazyStudioFlagSettings();
     }
     else {
       userOverrides = new DefaultFlagOverrides();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
+  }
+
+  // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.
+  private static class LazyStudioFlagSettings implements FlagOverrides {
+    @Override
+    public void clear() {
+      StudioFlagSettings.getInstance().clear();
+    }
+
+    @Override
+    public void put(@NotNull Flag<?> flag, @NotNull String value) {
+      StudioFlagSettings.getInstance().put(flag, value);
+    }
+
+    @Override
+    public void remove(@NotNull Flag<?> flag) {
+      StudioFlagSettings.getInstance().remove(flag);
+    }
+
+    @Nullable
+    @Override
+    public String get(@NotNull Flag<?> flag) {
+      return StudioFlagSettings.getInstance().get(flag);
+    }
   }
 
   @TestOnly
