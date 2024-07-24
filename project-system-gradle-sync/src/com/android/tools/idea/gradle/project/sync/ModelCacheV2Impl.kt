@@ -771,7 +771,7 @@ internal fun modelCacheV2Impl(
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
-      isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
+      isTestArtifact = name == IdeArtifactName.ANDROID_TEST || name == IdeArtifactName.TEST_FIXTURES,
       privacySandboxSdkInfo = if (modelVersions[ModelFeature.HAS_PRIVACY_SANDBOX_SDK_INFO])
         artifact.privacySandboxSdkInfo?.let {
           IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.additionalApkSplitTask, it.additionalApkSplitFile, it.taskLegacy,

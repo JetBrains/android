@@ -2731,7 +2731,7 @@ MODULE                        : project.lib
                 Name                          : TEST_FIXTURES
                 CompileTaskName               : compileDebugTestFixturesSources
                 AssembleTaskName              : assembleDebugTestFixtures
-                IsTestArtifact                : false
+                IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugTestFixturesSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugTestFixtures/R.jar [-]
