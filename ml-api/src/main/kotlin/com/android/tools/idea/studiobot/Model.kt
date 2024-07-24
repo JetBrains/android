@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.studiobot.prompts.FileWithSelection
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.intellij.openapi.util.TextRange
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +27,29 @@ interface Model {
   fun config(): ModelConfig
 
   /**
+   * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
+   * generateCode endpoint.
+   *
+   * Use the samples parameter of [GenerationConfig] to request a certain number of generations.
+   *
+   * @param userQuery An optional explicit query from the user to guide the generation process.
+   * @param fileContext The file containing selected code; also specifies generation language.
+   * @param language The language to generate code in.
+   * @param config Configuration options for the backend.
+   * @param history Previous prompts and generated code.
+   * @return a list of generated code samples. The list may contain up to [nSamples] elements.
+   * @throws [StatusRuntimeException] if the model endpoint throws an exception.
+   */
+  suspend fun generateCode(
+    userQuery: String,
+    fileContext: FileWithSelection?,
+    language: MimeType,
+    config: GenerationConfig,
+    history: Prompt? = null,
+    legacyClientSidePrompt: Prompt? = null,
+  ): List<Content>
+
+  /**
    * Sends a query to the model and returns the raw response.
    *
    * @param prompt The prompt to generate code for.
@@ -33,24 +57,6 @@ interface Model {
    * @throws StatusRuntimeException if the model endpoint throws an exception.
    */
   fun generateContent(prompt: Prompt, config: GenerationConfig = GenerationConfig()): Flow<Content>
-
-  /**
-   * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
-   * generateCode endpoint.
-   *
-   * Use the samples parameter of [GenerationConfig] to request a certain number of generations.
-   *
-   * @param prompt The prompt to generate code for.
-   * @param language The language to generate code in.
-   * @param config Configuration options for the backend.
-   * @return a list of generated code samples. The list may contain up to [nSamples] elements.
-   * @throws [StatusRuntimeException] if the model endpoint throws an exception.
-   */
-  suspend fun generateCode(
-    prompt: Prompt,
-    language: MimeType,
-    config: GenerationConfig = GenerationConfig(candidateCount = 4),
-  ): List<Content>
 }
 
 /**
@@ -159,6 +165,12 @@ open class StubModel : Model {
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
 
-  override suspend fun generateCode(prompt: Prompt, language: MimeType, config: GenerationConfig) =
-    emptyList<Content>()
+  override suspend fun generateCode(
+    userQuery: String,
+    fileContext: FileWithSelection?,
+    language: MimeType,
+    config: GenerationConfig,
+    history: Prompt?,
+    legacyClientSidePrompt: Prompt?,
+  ): List<Content> = emptyList()
 }

@@ -37,7 +37,6 @@ import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -62,9 +61,11 @@ internal fun transformAndShowDiff(
         studioBot
           .model(project, modelType)
           .generateCode(
-            prompt = prompt,
+            legacyClientSidePrompt = prompt,
             language = MimeType.KOTLIN,
             config = GenerationConfig(candidateCount = 1),
+            userQuery = "",
+            fileContext = null,
           )
           .first()
           .text
