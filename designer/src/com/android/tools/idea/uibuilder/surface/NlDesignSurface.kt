@@ -125,7 +125,7 @@ internal constructor(
 
   var isRenderingSynchronously: Boolean = false
 
-  var isInAnimationScrubbing: Boolean = false
+  var isAnimationScrubbing: Boolean = false
 
   /** The rotation degree of the surface to simulate the phone rotation. */
   var rotateSurfaceDegree: Float = Float.NaN
@@ -307,8 +307,6 @@ internal constructor(
    */
   abstract fun setRenderSynchronously(enabled: Boolean)
 
-  abstract fun setAnimationScrubbing(value: Boolean)
-
   /** Return whenever surface is rotating. */
   val isRotating: Boolean
     get() = !java.lang.Float.isNaN(rotateSurfaceDegree)
@@ -356,7 +354,9 @@ internal constructor(
    * Sets the [SceneViewAlignment] for the [SceneView]s. This only applies to [SceneView]s when the
    * content size is less than the minimum size allowed. See [SceneViewPanel].
    */
-  abstract fun setSceneViewAlignment(sceneViewAlignment: SceneViewAlignment)
+  fun setSceneViewAlignment(sceneViewAlignment: SceneViewAlignment) {
+    sceneViewPanel.sceneViewAlignment = sceneViewAlignment.alignmentX
+  }
 
   override fun getData(dataId: String): Any? {
     delegateDataProvider?.getData(dataId)?.let {
