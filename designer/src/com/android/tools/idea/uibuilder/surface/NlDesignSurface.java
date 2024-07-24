@@ -412,17 +412,9 @@ public class NlDesignSurface extends NlSurface {
     }
   }
 
-  public void setAnimationScrubbing(boolean value) {
-    setInAnimationScrubbing(value);
-  }
-
   @NotNull
   public VisualLintIssueProvider getVisualLintIssueProvider() {
     return myVisualLintIssueProvider;
   }
 
-  @Override
-  public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
-    getSceneViewPanel().setSceneViewAlignment(sceneViewAlignment.getAlignmentX());
-  }
 }
