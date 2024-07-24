@@ -45,6 +45,7 @@ import com.intellij.testFramework.RunsInEdt
 import java.awt.Rectangle
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -221,6 +222,7 @@ class ResourceLookupResolverTest {
       .isEqualTo("#FF0000")
   }
 
+  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testColorValueFromTextStyleMaterialBody1() {
     val data = Data(projectRule.testRootDisposable)
@@ -260,6 +262,7 @@ class ResourceLookupResolverTest {
       .isEqualTo("#DD000000")
   }
 
+  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testColorValueFromTextStyleMaterialWithLimit() {
     val data = Data(projectRule.testRootDisposable)
