@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -25,6 +28,32 @@ import kotlin.concurrent.withLock
 //   out of LayoutlibSceneManager. Add proper class description later.
 internal class LayoutlibSceneRenderer(private val model: NlModel) {
   private val updateHierarchyLock = ReentrantLock()
+  private val renderTaskLock = ReentrantLock()
+
+  // TODO(b/335424569): make this field private, or at least its setter
+  @GuardedBy("renderTaskLock")
+  var renderTask: RenderTask? = null
+    get() = renderTaskLock.withLock { field }
+    set(newTask) {
+      val oldTask: RenderTask?
+      renderTaskLock.withLock {
+        oldTask = field
+        // TODO(b/168445543): move session clock to RenderTask
+        sessionClock = RealTimeSessionClock()
+        field = newTask
+      }
+      try {
+        oldTask?.dispose()
+      } catch (t: Throwable) {
+        Logger.getInstance(LayoutlibSceneManager::class.java).warn(t)
+      }
+    }
+
+  // TODO(b/335424569): make this field private
+  @GuardedBy("renderTaskLock")
+  var sessionClock: SessionClock = RealTimeSessionClock()
+    get() = renderTaskLock.withLock { field }
+    private set
 
   // TODO(b/335424569): make this method private
   fun updateHierarchy(result: RenderResult?): Boolean {
