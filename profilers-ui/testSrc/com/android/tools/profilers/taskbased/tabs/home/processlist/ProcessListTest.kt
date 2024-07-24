@@ -18,7 +18,6 @@ package com.android.tools.profilers.taskbased.tabs.home.processlist
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -42,13 +41,14 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class ProcessListTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -116,9 +116,7 @@ class ProcessListTest {
   @Test
   fun `device dropdown selection sets and renders the selected device's processes`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        ProcessList(processListModel)
-      }
+      ProcessList(processListModel)
     }
 
     // Assert no device selection is registered in the data model.
@@ -147,13 +145,11 @@ class ProcessListTest {
   fun `process selection reflects in data model`() {
     val device = TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
-        TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
-        ProcessList(processListModel)
-      }
+      TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                       device.deviceId), myTransportService, myTimer)
+      TaskModelTestUtils.addDeviceWithProcess(device, TaskModelTestUtils.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                       device.deviceId), myTransportService, myTimer)
+      ProcessList(processListModel)
     }
 
     // Select the device
@@ -177,9 +173,7 @@ class ProcessListTest {
   @Test
   fun testNoDevicesTitleAndMessage() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        ProcessList(processListModel)
-      }
+      ProcessList(processListModel)
     }
 
     processListModel.setSelectedDevicesCount(0)
@@ -192,9 +186,7 @@ class ProcessListTest {
   @Test
   fun testMultipleDevicesTitleAndMessage() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        ProcessList(processListModel)
-      }
+      ProcessList(processListModel)
     }
 
     processListModel.setSelectedDevicesCount(6)

@@ -19,25 +19,22 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import org.junit.Rule
 import org.junit.Test
 
 class DeviceTableTest {
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun toggleGoogleOem() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        val source = TestDeviceSource()
-        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-        DeviceTable(source.profiles)
-      }
+      val source = TestDeviceSource()
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+      DeviceTable(source.profiles)
     }
 
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsDisplayed()
@@ -52,11 +49,9 @@ class DeviceTableTest {
   @Test
   fun textSearch() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        val source = TestDeviceSource()
-        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-        DeviceTable(source.profiles)
-      }
+      val source = TestDeviceSource()
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+      DeviceTable(source.profiles)
     }
 
     composeTestRule.onNode(hasSetTextAction()).performTextReplacement("sam")
@@ -69,11 +64,9 @@ class DeviceTableTest {
   @Test
   fun formFactorFilter() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        val source = TestDeviceSource()
-        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-        DeviceTable(source.profiles)
-      }
+      val source = TestDeviceSource()
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+      DeviceTable(source.profiles)
     }
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()

@@ -20,7 +20,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -49,13 +48,14 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class RecordingScreenTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -147,11 +147,9 @@ class RecordingScreenTest {
   fun `test stoppable (CPU) recording screen`() {
     val stage = CpuProfilerStage(myProfilers)
     composeTestRule.setContent {
-      StudioTestTheme {
-        setupRecording(isStoppable = true)
-        val recordingScreenModel = stage.recordingScreenModel!!
-        RecordingScreen(recordingScreenModel)
-      }
+      setupRecording(isStoppable = true)
+      val recordingScreenModel = stage.recordingScreenModel!!
+      RecordingScreen(recordingScreenModel)
     }
 
     composeTestRule.onNodeWithTag("RecordingScreenMessage").assertTextEquals(TaskBasedUxStrings.RECORDING_IN_PROGRESS).assertIsDisplayed()
@@ -165,11 +163,9 @@ class RecordingScreenTest {
   @Test
   fun `test non stoppable (memory) recording screen`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        setupRecording(isStoppable = false)
-        val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
-        RecordingScreen(recordingScreenModel)
-      }
+      setupRecording(isStoppable = false)
+      val recordingScreenModel = MainMemoryProfilerStage(myProfilers).recordingScreenModel!!
+      RecordingScreen(recordingScreenModel)
     }
 
     composeTestRule.onNodeWithTag("RecordingScreenMessage").assertTextEquals("Saving a heap dump...").assertIsDisplayed()
@@ -181,10 +177,8 @@ class RecordingScreenTest {
     val stage = CpuProfilerStage(myProfilers)
     val recordingScreenModel = stage.recordingScreenModel!!
     composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        setupRecording(isStoppable = false)
-        RecordingScreen(recordingScreenModel)
-      }
+      setupRecording(isStoppable = false)
+      RecordingScreen(recordingScreenModel)
     }
 
     composeTestRule.onNodeWithText(TaskBasedUxStrings.RECORDING_IN_PROGRESS).assertIsDisplayed().assertExists()

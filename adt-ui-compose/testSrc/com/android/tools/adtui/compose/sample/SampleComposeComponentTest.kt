@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample
+package com.android.tools.adtui.compose.sample
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import org.junit.Rule
 import org.junit.Test
+import sample.SampleComposeComponent
 
 /**
  * The following test class and test serve as an example of how we can test the content and behavior
@@ -33,11 +33,13 @@ import org.junit.Test
  * code.
  */
 class SampleComposeComponentTest {
-  @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun sampleComposeComponentTest() {
-    composeTestRule.setContent { StudioTestTheme { SampleComposeComponent() } }
+    composeTestRule.setContent { SampleComposeComponent() }
 
     // Make sure that the "Displayed Text" text is not in the component tree yet.
     composeTestRule.onNodeWithText("Displayed Text").assertDoesNotExist()

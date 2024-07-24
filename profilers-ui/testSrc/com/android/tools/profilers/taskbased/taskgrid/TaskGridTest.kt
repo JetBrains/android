@@ -20,13 +20,13 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.isEnabled
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -53,7 +53,7 @@ class TaskGridTest {
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -141,9 +141,7 @@ class TaskGridTest {
   fun `correct number of task grid items are displayed and clickable`() {
     // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-      }
+      TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
     }
 
     composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
@@ -160,9 +158,7 @@ class TaskGridTest {
   @Test
   fun `clicking task registers task type selection in model`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
-      }
+      TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
     }
 
     composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
@@ -176,13 +172,11 @@ class TaskGridTest {
   @Test
   fun `only supported tasks show up on recording selection (single supported task)`() {
     composeTestRule.setContent {
-      StudioTestTheme {
-        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
-                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
-        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
-                                                                 listOf(heapDumpArtifact))
-        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
-      }
+      val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
+                                                                             Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+      val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
+                                                               listOf(heapDumpArtifact))
+      TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
     }
 
     // Heap dump recording only has one supported task (Heap Dump task).
