@@ -23,6 +23,7 @@ import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
@@ -171,7 +172,7 @@ internal class DeviceToolWindowPanel(
                 removeDeviceStateListener(deviceStateListener)
               }
               addDisplayListener(displayConfigurator)
-              displayConfigurator.onDisplaysChanged()
+              displayConfigurator.initialize()
               addDeviceStateListener(deviceStateListener)
             }
           }
@@ -235,20 +236,11 @@ internal class DeviceToolWindowPanel(
 
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 
-    var displayDescriptors = emptyList<DisplayDescriptor>()
+    /** Display descriptors sorted by display ID. */
+    var displayDescriptors: List<DisplayDescriptor> = displayPanels.values.map { DisplayDescriptor(it.displayId, 0, 0) }
 
     @AnyThread
-    override fun onDisplayAdded(displayId: Int) {
-      onDisplaysChanged()
-    }
-
-    @AnyThread
-    override fun onDisplayRemoved(displayId: Int) {
-      onDisplaysChanged()
-    }
-
-    @AnyThread
-    fun onDisplaysChanged() {
+    fun initialize() {
       contentDisposable?.let {
         AndroidCoroutineScope(it).launch {
           val displays = try {
@@ -265,6 +257,38 @@ internal class DeviceToolWindowPanel(
             if (contentDisposable != null) {
               reconfigureDisplayPanels(displays)
             }
+          }
+        }
+      }
+    }
+
+    @AnyThread
+    override fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType) {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        if (contentDisposable != null) {
+          val newDisplays = displayDescriptors.toMutableList()
+          val pos = newDisplays.binarySearch { it.displayId.compareTo(displayId) }
+          if (pos >= 0) {
+            newDisplays[pos].width = width
+            newDisplays[pos].height = height
+            newDisplays[pos].orientation = rotation
+            newDisplays[pos].type = displayType
+          }
+          else {
+            newDisplays.add(pos.inv(), DisplayDescriptor(displayId, width, height, rotation, displayType))
+          }
+          reconfigureDisplayPanels(newDisplays)
+        }
+      }
+    }
+
+    @AnyThread
+    override fun onDisplayRemoved(displayId: Int) {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        if (contentDisposable != null) {
+          if (displayDescriptors.find { it.displayId == displayId } != null) {
+            val newDisplays = displayDescriptors.filterTo(mutableListOf()) { it.displayId != displayId }
+            reconfigureDisplayPanels(newDisplays)
           }
         }
       }
@@ -359,7 +383,7 @@ internal class DeviceToolWindowPanel(
       if (centerPanel.componentCount > 0) {
         val panel = centerPanel.getComponent(0)
         if (panel is SplitPanel) {
-          return MultiDisplayState(displayDescriptors.toMutableList(), panel.getState())
+          return MultiDisplayState(displayDescriptors, panel.getState())
         }
       }
       return null
@@ -367,13 +391,13 @@ internal class DeviceToolWindowPanel(
   }
 
   /**
-   * Persistent multi-display state corresponding to a single AVD.
+   * Persistent multi-display state corresponding to a single device.
    * The no-argument constructor is used by the XML deserializer.
    */
   class MultiDisplayState() {
 
-    constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
-      this.displayDescriptors = displayDescriptors
+    constructor(displayDescriptors: Collection<DisplayDescriptor>, panelState: PanelState) : this() {
+      this.displayDescriptors = displayDescriptors.toMutableList()
       this.panelState = panelState
     }
 

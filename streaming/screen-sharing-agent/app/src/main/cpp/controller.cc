@@ -168,6 +168,7 @@ void Controller::Initialize() {
   }
 
   DisplayManager::AddDisplayListener(jni_, this);
+  current_displays_ = GetDisplays();
 
   Agent::InitializeSessionEnvironment();
 }
@@ -674,17 +675,10 @@ void Controller::SendDeviceStateNotification() {
 }
 
 void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& request) {
-  vector<int32_t> display_ids = DisplayManager::GetDisplayIds(jni_);
-  vector<pair<int32_t, DisplayInfo>> displays;
-  displays.reserve(display_ids.size());
-  for (auto display_id : display_ids) {
-    DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
-    if (display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
-      Log::D("Returning display configuration: displayId=%d state=%d flags=0x%2x size=%dx%d orientation=%d",
-             display_id, display_info.state, display_info.flags, display_info.logical_size.width, display_info.logical_size.height,
-             display_info.rotation);
-      displays.emplace_back(display_id, display_info);
-    }
+  auto displays = GetDisplays();
+  current_displays_ = displays;
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("Returning display configuration: %s", DisplayInfo::ToDebugString(displays).c_str());
   }
   DisplayConfigurationResponse response(request.request_id(), std::move(displays));
   response.Serialize(output_stream_);
@@ -755,6 +749,8 @@ void Controller::OnDisplayRemoved(int32_t display_id) {
 }
 
 void Controller::OnDisplayChanged(int32_t display_id) {
+  unique_lock lock(display_events_mutex_);
+  pending_display_events_.emplace_back(display_id, DisplayEvent::Type::CHANGED);
 }
 
 void Controller::SendPendingDisplayEvents() {
@@ -764,39 +760,46 @@ void Controller::SendPendingDisplayEvents() {
     swap(display_events, pending_display_events_);
   }
 
-  for (auto event : display_events) {
-    if (event.type == DisplayEvent::Type::ADDED) {
-      DisplayAddedNotification notification(event.display_id);
-      notification.Serialize(output_stream_);
-      output_stream_.Flush();
-      Log::D("Sent DisplayAddedNotification(%d)", event.display_id);
-    }
-    else if (event.type == DisplayEvent::Type::REMOVED) {
-      virtual_touchscreens_.erase(event.display_id);
-
-      DisplayRemovedNotification notification(event.display_id);
-      notification.Serialize(output_stream_);
-      output_stream_.Flush();
-      Log::D("Sent DisplayRemovedNotification(%d)", event.display_id);
+  for (DisplayEvent event : display_events) {
+    int32_t display_id = event.display_id;
+    if (event.type == DisplayEvent::Type::REMOVED) {
+      auto it = current_displays_.find(display_id);
+      if (it != current_displays_.end()) {
+        current_displays_.erase(display_id);
+        virtual_touchscreens_.erase(display_id);
+        DisplayRemovedNotification notification(display_id);
+        notification.Serialize(output_stream_);
+        output_stream_.Flush();
+        Log::D("Sent DisplayRemovedNotification(%d)", display_id);
+      }
+    } else {
+      DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
+      if (display_info.logical_size.width > 0 && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+        auto it = current_displays_.find(display_id);
+        bool significant_change = it == current_displays_.end() || it->second.logical_size != display_info.logical_size ||
+            it->second.rotation != display_info.rotation || it->second.type != display_info.type;
+        current_displays_.insert_or_assign(display_id, display_info);
+        if (significant_change) {
+          DisplayAddedOrChangedNotification notification(display_id, display_info.logical_size, display_info.rotation, display_info.type);
+          notification.Serialize(output_stream_);
+          output_stream_.Flush();
+          if (Log::IsEnabled(Log::Level::DEBUG)) {
+            Log::D("Sent %s", notification.ToDebugString().c_str());
+          }
+        }
+      }
     }
   }
 }
 
 void Controller::StartDisplayPolling() {
-  auto displays = GetDisplays();
-  for (auto display : displays) {
-    // Due to uncertain timing of events we have to assume that the display was both added and changed.
-    DisplayManager::OnDisplayAdded(jni_, display.first);
-    DisplayManager::OnDisplayChanged(jni_, display.first);
-  }
-  current_displays_ = displays;
   Log::D("Controller::StartDisplayPolling current_displays_: %s", DisplayInfo::ToDebugString(current_displays_).c_str());
   poll_displays_until_ = steady_clock::now() + DISPLAY_POLLING_DURATION;
+  PollDisplays();
 }
 
 void Controller::StopDisplayPolling() {
   Log::D("Controller::StopDisplayPolling");
-  current_displays_.clear();
   poll_displays_until_ = steady_clock::time_point();
 }
 
@@ -840,7 +843,7 @@ map<int32_t, DisplayInfo> Controller::GetDisplays() {
   map<int32_t, DisplayInfo> displays;
   for (auto display_id: display_ids) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
-    if ((display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+    if (display_info.logical_size.width > 0 && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
       displays[display_id] = display_info;
     }
   }
