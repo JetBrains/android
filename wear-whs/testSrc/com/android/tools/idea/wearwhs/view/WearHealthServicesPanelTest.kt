@@ -26,14 +26,19 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
+import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.awt.Dimension
+import java.awt.event.ActionEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -41,6 +46,7 @@ import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JTextField
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -61,6 +67,12 @@ class WearHealthServicesPanelTest {
 
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
+
+  private val notifications
+    get() =
+      NotificationsManager.getNotificationsManager()
+        .getNotificationsOfType(Notification::class.java, projectRule.project)
+        .toList()
 
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
@@ -330,6 +342,187 @@ class WearHealthServicesPanelTest {
 
     userApplyChanges.take(1).collect {}
   }
+
+  @Test
+  fun `test successful apply changes shows in information label when panel is showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+      applyButton.doClick()
+
+      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+
+      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+    }
+
+  @Test
+  fun `test failed apply changes shows in information label when panel is showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+      deviceManager.failState = true
+
+      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+      applyButton.doClick()
+
+      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+
+      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+    }
+
+  @Test
+  fun `test user is notified of successful apply changes when panel is not showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+      applyButton.doClick()
+
+      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.apply.success") &&
+            it.type == NotificationType.INFORMATION
+        }
+      }
+    }
+
+  @Test
+  fun `test user is notified of failed apply changes when panel is not showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+      deviceManager.failState = true
+
+      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+      applyButton.doClick()
+
+      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.apply.failure") && it.type == NotificationType.ERROR
+        }
+      }
+    }
+
+  @Test
+  fun `test successful reset shows in information label when panel is showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+      val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
+      resetButton.doClick()
+
+      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.success") }
+    }
+
+  @Test
+  fun `test failed reset shows in information label when panel is showing`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+    deviceManager.failState = true
+
+    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
+    resetButton.doClick()
+
+    fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.failure") }
+  }
+
+  @Test
+  fun `test user is notified of successful reset when panel is not showing`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
+    resetButton.doClick()
+
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any {
+        it.content == message("wear.whs.panel.reset.success") &&
+          it.type == NotificationType.INFORMATION
+      }
+    }
+  }
+
+  @Test
+  fun `test user is notified of failed reset when panel is not showing`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+    deviceManager.failState = true
+
+    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
+    resetButton.doClick()
+
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any {
+        it.content == message("wear.whs.panel.reset.failure") && it.type == NotificationType.ERROR
+      }
+    }
+  }
+
+  @Test
+  fun `test successful trigger event shows in information label when panel is showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
+    }
+
+  @Test
+  fun `test failed trigger event shows in information label when panel is showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
+
+      deviceManager.failState = true
+
+      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
+    }
+
+  @Test
+  fun `test user is notified of successful trigger event when panel is not showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.event.trigger.success") &&
+            it.type == NotificationType.INFORMATION
+        }
+      }
+    }
+
+  @Test
+  fun `test user is notified of failed trigger event when panel is not showing`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+
+      deviceManager.failState = true
+
+      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.event.trigger.failure") &&
+            it.type == NotificationType.ERROR
+        }
+      }
+    }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
