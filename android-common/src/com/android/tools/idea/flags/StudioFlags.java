@@ -1380,6 +1380,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<String> COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS = new StringFlag(
+    COMPOSE, "deploy.live.edit.deploy.compiler.flags",
+    "LiveEdit: Set custom kotlin compiler flags",
+    "If enabled, the flags passed to the Kotlin compiler in Live Edit will be replaced with the list of flags provided",
+    ""
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK = new BooleanFlag(
     COMPOSE, "deploy.live.edit.allow.multiple.min.api.dex.markers.in.apk",
     "LiveEdit: Allow multiple min api dex markers in apk",
