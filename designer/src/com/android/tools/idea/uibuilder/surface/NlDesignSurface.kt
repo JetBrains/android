@@ -27,6 +27,7 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller
 import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller
+import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
@@ -44,13 +45,19 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
+import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.google.common.collect.ImmutableList
@@ -59,6 +66,7 @@ import com.google.common.collect.Iterables
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -67,6 +75,7 @@ import java.awt.Rectangle
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import java.util.stream.Collectors
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -271,7 +280,20 @@ internal constructor(
     return sceneManagers.any { it.renderResult != null }
   }
 
-  abstract fun findSceneViewRectangles(): Map<SceneView, Rectangle?>
+  override fun forceUserRequestedRefresh(): CompletableFuture<Void> {
+    // When the user initiates the refresh, give some feedback via progress indicator.
+    val refreshProgressIndicator =
+      BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
+    return requestSequentialRender {
+        it.forceReinflate()
+        it.requestUserInitiatedRenderAsync()
+      }
+      .whenComplete { _, _ -> refreshProgressIndicator.processFinish() }
+  }
+
+  fun findSceneViewRectangles(): Map<SceneView, Rectangle?> {
+    return sceneViewPanel.findSceneViewRectangles()
+  }
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher
@@ -368,6 +390,44 @@ internal constructor(
     } else {
       // If scale hasn't changed, then just scroll to center
       scrollToCenter(sceneView, rectangle)
+    }
+  }
+
+  override fun onScaleChange(update: ScaleChange) {
+    super.onScaleChange(update)
+
+    val port = viewport
+    val scrollPosition = pannable.scrollPosition
+    var focusPoint = update.focusPoint
+
+    val layoutManager = sceneViewLayoutManager.currentLayout.value.layoutManager
+
+    // If layout is a vertical list layout
+    val isGroupedListLayout =
+      layoutManager is GroupedListSurfaceLayoutManager || layoutManager is ListLayoutManager
+    // If layout is grouped grid layout.
+    val isGroupedGridLayout =
+      layoutManager is GroupedGridSurfaceLayoutManager || layoutManager is GridLayoutManager
+
+    if (isGroupedListLayout) {
+      viewportScroller =
+        createScrollerForGroupedSurfaces(
+          port,
+          update,
+          scrollPosition,
+          Point(scrollPosition.x, max(0.0, focusPoint.y.toDouble()).toInt()),
+        )
+    } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
+      viewportScroller =
+        createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
+    } else if (layoutManager !is GridSurfaceLayoutManager) {
+      if (focusPoint.x < 0 || focusPoint.y < 0) {
+        focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
+      }
+      val zoomCenterInView = Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y)
+
+      viewportScroller =
+        ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
     }
   }
 
