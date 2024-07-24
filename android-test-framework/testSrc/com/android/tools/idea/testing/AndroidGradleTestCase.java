@@ -493,6 +493,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
     AndroidGradleTests.syncProject(getProject(), request, it -> AndroidGradleTests.checkSyncStatus(getProject(), it));
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
   }
 
   @Override
