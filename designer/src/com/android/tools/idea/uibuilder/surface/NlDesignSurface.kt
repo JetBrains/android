@@ -26,6 +26,9 @@ import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller
+import com.android.tools.idea.common.model.DnDTransferComponent
+import com.android.tools.idea.common.model.DnDTransferItem
+import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
@@ -41,20 +44,26 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.model.h
+import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Iterables
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
+import java.util.stream.Collectors
 
 /**
  * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or
@@ -287,6 +296,33 @@ internal constructor(
   var scrollableViewMinSize: Dimension = Dimension()
     set(value) {
       field.size = value
+    }
+
+  override val selectableComponents: List<NlComponent>
+    get() {
+      val root = models.flatMap { it.treeReader.components }.firstOrNull() ?: return emptyList()
+      return root.flatten().collect(Collectors.toList())
+    }
+
+  override val selectionAsTransferable: ItemTransferable
+    get() {
+      val components =
+        selectionModel.selection
+          .stream()
+          .filter { it.tag != null }
+          .map { DnDTransferComponent(it.tagName, it.tag!!.text, it.w, it.h) }
+          .collect(ImmutableList.toImmutableList())
+
+      val selectedModels =
+        selectionModel.selection.stream().map { it.model }.collect(ImmutableSet.toImmutableSet())
+
+      if (selectedModels.size != 1) {
+        Logger.getInstance(NlDesignSurface::class.java)
+          .warn("Elements from multiple models were selected.")
+      }
+
+      val selectedModel = Iterables.getFirst(selectedModels, null)
+      return ItemTransferable(DnDTransferItem(selectedModel?.treeWriter?.id ?: 0, components))
     }
 
   /**
