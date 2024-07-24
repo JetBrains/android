@@ -51,7 +51,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.ShowFixFactory;
@@ -110,7 +109,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -135,11 +133,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
   private boolean myUseCustomInflater = true;
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
-  // Protects all read/write accesses to the myRenderResult reference
-  private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
-  @GuardedBy("myRenderResultLock")
-  @Nullable
-  private RenderResult myRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
   private long myElapsedFrameTimeMs = -1;
@@ -249,11 +242,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /** Counter for user events during the interactive session. */
   private final AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
-
-  /**
-   * If true, this {@link LayoutlibSceneManager} will retain the last successful image even if the new result is an error.
-   */
-  private boolean myCacheSuccessfulRenderImage = false;
 
   /**
    * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
@@ -422,12 +410,12 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
         myRenderTaskDisposerExecutor.execute(() -> {
           myLayoutlibSceneRenderer.setRenderTask(null);
-          updateCachedRenderResult(null);
+          myLayoutlibSceneRenderer.setRenderResult(null);
         });
       }
       else {
         myLayoutlibSceneRenderer.setRenderTask(null);
-        updateCachedRenderResult(null);
+        myLayoutlibSceneRenderer.setRenderResult(null);
       }
     }
   }
@@ -747,20 +735,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * Setting this flag has no effect in metrics and the actual result will be reported.
    */
   public void setCacheSuccessfulRenderImage(boolean enabled) {
-    myCacheSuccessfulRenderImage = enabled;
+    myLayoutlibSceneRenderer.setCacheSuccessfulRenderImage(enabled);
   }
 
   public void invalidateCachedResponse() {
-    RenderResult toDispose = getRenderResult();
-    if (toDispose != null) {
-      toDispose.dispose();
-      myRenderResultLock.writeLock().lock();
-      try {
-        myRenderResult = null;
-      } finally {
-        myRenderResultLock.writeLock().unlock();
-      }
-    }
+    myLayoutlibSceneRenderer.setRenderResult(null);
   }
 
   @Override
@@ -785,13 +764,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   @Nullable
   public RenderResult getRenderResult() {
-    myRenderResultLock.readLock().lock();
-    try {
-      return myRenderResult;
-    }
-    finally {
-      myRenderResultLock.readLock().unlock();
-    }
+    return myLayoutlibSceneRenderer.getRenderResult();
   }
 
   @VisibleForTesting
@@ -880,7 +853,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       })
       .thenApply(result -> {
         if (!project.isDisposed() && result != null) {
-          updateCachedRenderResult(result);
+          myLayoutlibSceneRenderer.setRenderResult(result);
           if (result.getRenderResult().isSuccess()) {
             reverseUpdate.set(myLayoutlibSceneRenderer.updateHierarchy(result));
           }
@@ -906,34 +879,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         .withTopic(myRenderingTopic)
         .setUseCustomInflater(myUseCustomInflater);
     return setupRenderTaskBuilder(renderTaskBuilder).build();
-  }
-
-  @Nullable
-  private RenderResult updateCachedRenderResult(@Nullable RenderResult result) {
-    myRenderResultLock.writeLock().lock();
-    try {
-      if (myRenderResult != null && myRenderResult != result) {
-        if (
-          myCacheSuccessfulRenderImage
-          // The previous result was valid
-          && myRenderResult.getRenderedImage().getWidth() > 1 && myRenderResult.getRenderedImage().getHeight() > 1
-          // The new result is an error
-          && RenderResultUtilKt.isErrorResult(result)
-        ) {
-          assert result != null; // result can not be null if isErrorResult is true
-          result = result.copyWithNewImageAndRootViewDimensions(
-            StudioRenderService.getInstance(result.getProject()).getSharedImagePool()
-              .copyOf(myRenderResult.getRenderedImage().getCopy()),
-            myRenderResult.getRootViewDimensions());
-        }
-        invalidateCachedResponse();
-      }
-      myRenderResult = result;
-      return result;
-    }
-    finally {
-      myRenderResultLock.writeLock().unlock();
-    }
   }
 
   @VisibleForTesting
@@ -1036,7 +981,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       return renderImplAsync(reverseUpdate)
         .thenApply(result -> {
           if (result != null) {
-            updateCachedRenderResult(result);
+            myLayoutlibSceneRenderer.setRenderResult(result);
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             // In an unlikely event when result is disposed we can still safely request the size of the image
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
@@ -1348,7 +1293,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       clearAndCancelPendingFutures();
       completeRender();
       myLayoutlibSceneRenderer.setRenderTask(null);
-      updateCachedRenderResult(null);
+      myLayoutlibSceneRenderer.setRenderResult(null);
     }
 
     return deactivated;
