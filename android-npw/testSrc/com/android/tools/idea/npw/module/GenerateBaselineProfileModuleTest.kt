@@ -141,11 +141,12 @@ class GenerateBaselineProfileModuleTest {
     sourceCodeLanguage: Language,
     useGradleKts: Boolean,
     useGmd: Boolean,
-    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor
+    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    androidApi: Int = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
   ): Pair<File, File> {
     val name = "baselineprofile"
-    val buildApi = ApiVersion(34, "34")
-    val targetApi = ApiVersion(34, "34")
+    val buildApi = ApiVersion(androidApi, "$androidApi")
+    val targetApi = ApiVersion(androidApi, "$androidApi")
     val minApi = ApiVersion(34, "34")
     val kotlinVersion = "1.9.0"
     val packageName = "com.test.packagename"
@@ -243,7 +244,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk 34
+        targetSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -293,7 +294,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = 34
+        targetSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -304,9 +305,9 @@ android {
     // To use GMD please invoke generation through the command line:
     // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api34") {
+        create<ManagedVirtualDevice>("pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}") {
             device = "Pixel 6"
-            apiLevel = 34
+            apiLevel = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
             systemImageSource = "google"
         }
     }
@@ -315,7 +316,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-managedDevices += "pixel6Api34"
+managedDevices += "pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"
 useConnectedDevices = false
 }
 
@@ -667,7 +668,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk 34
+        targetSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -707,7 +708,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = 34
+        targetSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -718,9 +719,9 @@ android {
     // To use GMD please invoke generation through the command line:
     // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api34") {
+        create<ManagedVirtualDevice>("pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}") {
             device = "Pixel 6"
-            apiLevel = 34
+            apiLevel = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
             systemImageSource = "google"
         }
     }
@@ -729,7 +730,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-managedDevices += "pixel6Api34"
+managedDevices += "pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"
 useConnectedDevices = false
 }
 
