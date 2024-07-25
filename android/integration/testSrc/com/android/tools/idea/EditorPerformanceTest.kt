@@ -57,11 +57,18 @@ class EditorPerformanceTest {
   }
 
   private fun checkCompletionTestCase(studio: AndroidStudio, completionPosition: CompletionPosition, isWarmup: Boolean) {
-    studio.openFile(null, completionPosition.path, completionPosition.line, completionPosition.column, isWarmup)
-    studio.completeCode(isWarmup, completionPosition.completionSymbol)
+    studio.openFile(null, completionPosition.path, completionPosition.line, completionPosition.column, false, isWarmup)
+    if (isWarmup)
+      studio.completeCode(isWarmup)
+    else
+      studio.completeCode(isWarmup, completionPosition.completionSymbol)
+
     studio.executeEditorAction("GotoDeclarationOnly", isWarmup)
     if (completionPosition.checkFindUsages) {
-      studio.findUsages(isWarmup, completionPosition.path, completionPosition.line)
+      if (isWarmup)
+        studio.findUsages(isWarmup)
+      else
+        studio.findUsages(isWarmup, completionPosition.path, completionPosition.line)
     }
     studio.closeAllEditorTabs()
   }
