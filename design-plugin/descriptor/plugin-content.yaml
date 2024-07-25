@@ -1,0 +1,35 @@
+- name: lib/design-tools.jar
+  projectLibraries:
+  - name: asm-tools
+    files:
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
+    reason: <- intellij.android.layoutlib
+  - name: layoutlib
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/14/layoutlib-14.jar
+    reason: withProjectLibrary
+  modules:
+  - name: intellij.android.compose-designer
+    libraries:
+      ui-animation-tooling-internal:
+      - name: $PROJECT_DIR$/community/android/compose-designer/lib/ui-animation-tooling-internal.jar
+  - name: intellij.android.design-plugin.descriptor
+  - name: intellij.android.designer
+  - name: intellij.android.designer.customview
+  - name: intellij.android.glance-designer
+  - name: intellij.android.layoutlib
+  - name: intellij.android.motion-editor
+  - name: intellij.android.nav.editor
+    libraries:
+      eclipse-layout-kernel:
+      - name: $MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.common.compaction/0/org.eclipse.elk.alg.common.compaction-0.jar
+      - name: $MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.layered/0/org.eclipse.elk.alg.layered-0.jar
+      - name: $MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.core/0/org.eclipse.elk.core-0.jar
+      - name: $MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.graph/0/org.eclipse.elk.graph-0.jar
+      - name: $MAVEN_REPOSITORY$/org/eclipse/emf/org.eclipse.emf.common/2/org.eclipse.emf.common-2.jar
+      - name: $MAVEN_REPOSITORY$/org/eclipse/emf/org.eclipse.emf.ecore/2/org.eclipse.emf.ecore-2.jar
+  - name: intellij.android.nav.editor.gradle
+  - name: intellij.android.preview-designer
+  - name: intellij.android.wear-designer

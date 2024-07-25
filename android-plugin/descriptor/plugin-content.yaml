@@ -1,0 +1,246 @@
+- name: lib/adt-ui.jar
+  modules:
+  - name: intellij.android.adt.ui
+  - name: intellij.android.adt.ui.compose
+    libraries:
+      jetbrains-jewel-markdown-laf-bridge-styling:
+      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0/jewel-markdown-core-241-0.jar
+      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0/jewel-markdown-ide-laf-bridge-styling-241-0.jar
+  - name: intellij.android.adt.ui.model
+- name: lib/android-common.jar
+  modules:
+  - name: intellij.android.common
+  - name: intellij.android.jps.model
+- name: lib/android-extensions-ide.jar
+  modules:
+  - name: intellij.android.kotlin.extensions.common
+- name: lib/android-gradle.jar
+  modules:
+  - name: intellij.android.gradle-tooling.api
+  - name: intellij.android.gradle-tooling.impl
+  - name: intellij.android.projectSystem.gradle.sync
+- name: lib/android-kotlin-extensions-tooling.jar
+  modules:
+  - name: intellij.android.kotlin.extensions.tooling
+- name: lib/android-kotlin.jar
+  modules:
+  - name: intellij.android.kotlin.extensions
+  - name: intellij.android.kotlin.idea
+  - name: intellij.android.kotlin.idea.common
+  - name: intellij.android.kotlin.idea.k1
+  - name: intellij.android.kotlin.idea.k2
+  - name: intellij.android.kotlin.output.parser
+- name: lib/android-profilers.jar
+  projectLibraries:
+  - name: sqlite
+    files:
+    - name: $MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3/sqlite-jdbc-3.jar
+    reason: <- intellij.android.transportDatabase
+  modules:
+  - name: intellij.android.profilers
+  - name: intellij.android.profilers.atrace
+  - name: intellij.android.profilers.ui
+  - name: intellij.android.transportDatabase
+- name: lib/android-project-system-gradle-models.jar
+  modules:
+  - name: intellij.android.projectSystem.gradle.models
+- name: lib/android.jar
+  projectLibraries:
+  - name: HdrHistogram
+    files:
+    - name: $MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2/HdrHistogram-2.jar
+    reason: withProjectLibrary
+  - name: aapt-proto
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/build/aapt2-proto/8/aapt2-proto-8.jar
+    reason: withProjectLibrary
+  - name: asm-tools
+    files:
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
+    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
+    reason: withProjectLibrary
+  - name: google-baksmali
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3/smali-baksmali-3.jar
+    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3/smali-util-3.jar
+    reason: withProjectLibrary
+  - name: google-dexlib2
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-dexlib2/3/smali-dexlib2-3.jar
+    reason: withProjectLibrary
+  - name: google.protobuf.java.util
+    files:
+    - name: $MAVEN_REPOSITORY$/com/google/protobuf/protobuf-java-util/3/protobuf-java-util-3.jar
+    reason: <- intellij.android.app-inspection.inspector.api
+  - name: grpc-core
+    files:
+    - name: $MAVEN_REPOSITORY$/com/google/android/annotations/4/annotations-4.jar
+    - name: $MAVEN_REPOSITORY$/io/grpc/grpc-api/1/grpc-api-1.jar
+    - name: $MAVEN_REPOSITORY$/io/grpc/grpc-context/1/grpc-context-1.jar
+    - name: $MAVEN_REPOSITORY$/io/grpc/grpc-core/1/grpc-core-1.jar
+    - name: $MAVEN_REPOSITORY$/io/perfmark/perfmark-api/0/perfmark-api-0.jar
+    - name: $MAVEN_REPOSITORY$/org/codehaus/mojo/animal-sniffer-annotations/1/animal-sniffer-annotations-1.jar
+    reason: <- intellij.android.app-inspection.api
+  - name: javapoet
+    files:
+    - name: $MAVEN_REPOSITORY$/com/squareup/javapoet/1/javapoet-1.jar
+    reason: <- intellij.android.core
+  - name: javax-inject
+    files:
+    - name: $MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar
+    reason: withProjectLibrary
+  - name: kotlinx-coroutines-guava
+    files:
+    - name: $MAVEN_REPOSITORY$/com/intellij/platform/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
+    reason: withProjectLibrary
+  - name: ktor-client
+    files:
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-client-core-jvm/2/ktor-client-core-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-events-jvm/2/ktor-events-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-http-jvm/2/ktor-http-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-io-jvm/2/ktor-io-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-serialization-jvm/2/ktor-serialization-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-utils-jvm/2/ktor-utils-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-websocket-serialization-jvm/2/ktor-websocket-serialization-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-websockets-jvm/2/ktor-websockets-jvm-2.jar
+    reason: <- intellij.android.layout-inspector
+  - name: ktor-client-cio
+    files:
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-client-cio-jvm/2/ktor-client-cio-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-http-cio-jvm/2/ktor-http-cio-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-network-jvm/2/ktor-network-jvm-2.jar
+    - name: $MAVEN_REPOSITORY$/io/ktor/ktor-network-tls-jvm/2/ktor-network-tls-jvm-2.jar
+    reason: <- intellij.android.app-inspection.inspectors.network.view
+  - name: kxml2
+    files:
+    - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
+    reason: withProjectLibrary
+  - name: layoutlib
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/14/layoutlib-14.jar
+    reason: <- intellij.android.rendering
+  - name: studio-platform
+    files:
+    - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/studio-platform/2024/studio-platform-2024.jar
+    reason: withProjectLibrary
+  - name: zxing-core
+    files:
+    - name: $MAVEN_REPOSITORY$/com/google/zxing/core/3/core-3.jar
+    reason: <- intellij.android.adb
+  modules:
+  - name: intellij.android.adb
+  - name: intellij.android.adb.ui
+  - name: intellij.android.analytics
+  - name: intellij.android.android-material
+  - name: intellij.android.apkanalyzer
+  - name: intellij.android.app-inspection.api
+  - name: intellij.android.app-inspection.ide
+  - name: intellij.android.app-inspection.ide.gradle
+  - name: intellij.android.app-inspection.inspector.api
+  - name: intellij.android.app-inspection.inspector.ide
+  - name: intellij.android.app-inspection.inspectors.backgroundtask.ide
+  - name: intellij.android.app-inspection.inspectors.backgroundtask.model
+  - name: intellij.android.app-inspection.inspectors.backgroundtask.view
+  - name: intellij.android.app-inspection.inspectors.database
+  - name: intellij.android.app-inspection.inspectors.network.ide
+  - name: intellij.android.app-inspection.inspectors.network.model
+  - name: intellij.android.app-inspection.inspectors.network.view
+  - name: intellij.android.assistant
+  - name: intellij.android.avd
+  - name: intellij.android.build-attribution
+  - name: intellij.android.codenavigation
+  - name: intellij.android.completion
+  - name: intellij.android.compose-common
+  - name: intellij.android.core
+  - name: intellij.android.dagger
+  - name: intellij.android.databinding
+  - name: intellij.android.debuggers
+  - name: intellij.android.deploy
+  - name: intellij.android.device
+  - name: intellij.android.device-explorer
+  - name: intellij.android.device-explorer-common
+  - name: intellij.android.device-explorer-files
+  - name: intellij.android.device-explorer-monitor
+  - name: intellij.android.device-manager
+  - name: intellij.android.device-manager-v2
+  - name: intellij.android.execution.common
+  - name: intellij.android.lang
+  - name: intellij.android.lang-databinding
+  - name: intellij.android.layout-inspector
+  - name: intellij.android.layout-inspector.gradle
+  - name: intellij.android.layout-ui
+  - name: intellij.android.lint
+  - name: intellij.android.logcat
+  - name: intellij.android.ml-api
+  - name: intellij.android.mlkit
+  - name: intellij.android.native-symbolizer
+  - name: intellij.android.native-symbolizer.gradle
+  - name: intellij.android.nav.safeargs
+  - name: intellij.android.nav.safeargs.common
+  - name: intellij.android.nav.safeargs.common.gradle
+  - name: intellij.android.nav.safeargs.k1
+  - name: intellij.android.nav.safeargs.k2
+  - name: intellij.android.navigator
+  - name: intellij.android.newProjectWizard
+  - name: intellij.android.observable
+  - name: intellij.android.observable.ui
+  - name: intellij.android.plugin.descriptor
+  - name: intellij.android.preview-elements
+  - name: intellij.android.preview-fast-compile
+  - name: intellij.android.profilersAndroid
+  - name: intellij.android.profilersAndroid.gradle
+  - name: intellij.android.projectSystem
+  - name: intellij.android.projectSystem.apk
+  - name: intellij.android.projectSystem.gradle
+  - name: intellij.android.projectSystem.gradle.psd
+  - name: intellij.android.projectSystem.gradle.repositorySearch
+  - name: intellij.android.projectSystem.gradle.upgrade
+  - name: intellij.android.render-resources
+  - name: intellij.android.rendering
+  - name: intellij.android.room
+  - name: intellij.android.safemode
+  - name: intellij.android.sdkUpdates
+  - name: intellij.android.server-flags
+  - name: intellij.android.streaming
+  - name: intellij.android.templates
+  - name: intellij.android.threading-checker
+  - name: intellij.android.transport
+  - name: intellij.android.wear-pairing
+  - name: intellij.android.wear-whs
+  - name: intellij.android.wizard
+  - name: intellij.android.wizard.model
+- name: lib/artwork.jar
+  modules:
+  - name: intellij.android.artwork
+  - name: intellij.android.artwork-compose
+- name: lib/build-common.jar
+  modules:
+  - name: intellij.android.buildCommon
+- name: lib/ffmpeg-6.0-1.5.9.jar
+- name: lib/ffmpeg-linux-x64-6.0-1.5.9.jar
+- name: lib/ffmpeg-windows-x64-6.0-1.5.9.jar
+- name: lib/inspectors-common.jar
+  modules:
+  - name: intellij.android.inspectors-common.api
+  - name: intellij.android.inspectors-common.api-ide
+  - name: intellij.android.inspectors-common.ui
+- name: lib/instantapps-api.jar
+- name: lib/javacpp-1.5.9.jar
+- name: lib/javacpp-linux-x64-1.5.9.jar
+- name: lib/javacpp-windows-x64-1.5.9.jar
+- name: lib/jb-r8.jar
+- name: lib/jewel-ide-laf-bridge.jar
+- name: lib/jewel-int-ui-standalone.jar
+- name: lib/layoutlib-loader.jar
+  modules:
+  - name: intellij.android.layoutlib-loader
+- name: lib/lint-ide.jar
+  modules:
+  - name: intellij.android.lint.common
+- name: lib/memory-usage.jar
+  modules:
+  - name: intellij.android.memory-usage
+- name: lib/utp.jar
+  modules:
+  - name: intellij.android.utp

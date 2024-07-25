@@ -1,0 +1,11 @@
+- name: lib/android-gradle-dsl.jar
+  modules:
+  - name: intellij.android.gradle.dsl
+  contentModules:
+  - name: intellij.android.gradle.dsl.toml
+- name: lib/modules/intellij.android.gradle.dsl.declarative.jar
+  contentModules:
+  - name: intellij.android.gradle.dsl.declarative
+- name: lib/modules/intellij.android.gradle.dsl.kotlin.jar
+  contentModules:
+  - name: intellij.android.gradle.dsl.kotlin
