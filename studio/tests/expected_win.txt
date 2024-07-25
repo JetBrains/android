@@ -1411,6 +1411,7 @@ android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
+android-studio/plugins/android/lib/titan_java_proto.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
 android-studio/plugins/android/lib/transport_java_proto.jar

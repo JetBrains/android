@@ -31,5 +31,14 @@
     <orderEntry type="library" name="gradle-shared-proto" level="project" />
     <orderEntry type="library" name="google-api-client" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common"/>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../bazel-bin/tools/adt/idea/app-quality-insights/api/proto/titan_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

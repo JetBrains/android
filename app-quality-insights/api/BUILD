@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -30,5 +31,13 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
     ],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "titan_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto.jar"],
+    visibility = ["//visibility:public"],
 )
