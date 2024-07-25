@@ -44,7 +44,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,7 +51,6 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
-import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
@@ -320,7 +318,6 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
-  @Ignore("b/341660003")
   fun testDeployPreview() {
     val composablePackageName = "google.simpleapplication"
     val composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
