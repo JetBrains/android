@@ -147,11 +147,17 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         }
         val messageKey = getMessageKey(issue)
         val desc = StringBuilder()
+        val escapedMessage =
+          SdkUtils.escapePropertyValue(getBriefDescription(issue))
+            // Turns out ampersands need to be escaped in IntelliJ message catalogs; this
+            // isn't a standard Bundle.properties thing, but IntelliJ is specially interpreting
+            // these as indicating mnemonics
+            .replace("&", "\\&")
         desc
           .append("android.lint.inspections.")
           .append(messageKey)
           .append("=")
-          .append(SdkUtils.escapePropertyValue(getBriefDescription(issue)))
+          .append(escapedMessage)
           .append("\n")
         var performed = false
         if (root != null) {
