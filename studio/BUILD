@@ -96,6 +96,7 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/logcat/proto:logcat-proto",
