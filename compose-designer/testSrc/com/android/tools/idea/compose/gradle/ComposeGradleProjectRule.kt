@@ -35,6 +35,7 @@ import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.io.File
@@ -73,6 +74,8 @@ private class ComposeGradleProjectRuleImpl(
         isBuildSuccessful,
       )
     }
+
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
 
   override fun after(description: Description) {
