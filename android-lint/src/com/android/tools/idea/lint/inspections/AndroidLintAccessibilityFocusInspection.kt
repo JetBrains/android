@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint.common
+package com.android.tools.idea.lint.inspections
 
-import com.android.tools.idea.lint.common.LintBundle.Companion.message
-import com.android.tools.lint.checks.AccessibilityWindowStateChangedDetector
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.lint.checks.AccessibilityForceFocusDetector
 
-class AndroidLintAccessibilityWindowStateChangedEventInspection :
+class AndroidLintAccessibilityFocusInspection :
   AndroidLintInspectionBase(
-    message("android.lint.inspections.accessibility.window.state.changed.event"),
-    AccessibilityWindowStateChangedDetector.ISSUE,
+    message("android.lint.inspections.accessibility.focus"),
+    AccessibilityForceFocusDetector.ISSUE,
   )
