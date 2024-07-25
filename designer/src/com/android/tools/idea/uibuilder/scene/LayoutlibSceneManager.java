@@ -940,29 +940,24 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           return CompletableFuture.completedFuture(RenderResults.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
       })
-      .thenApply(this::updateCachedRenderResultIfNotNull)
       .thenApply(result -> {
-        // Updates hierarchy if applicable or noop
-        if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
-          return result;
+        if (!project.isDisposed() && result != null) {
+          updateCachedRenderResult(result);
+          if (result.getRenderResult().isSuccess()) {
+            reverseUpdate.set(updateHierarchy(result));
+          }
         }
-
-        reverseUpdate.set(updateHierarchy(result));
-
         return result;
       })
-      .thenApply(result -> {
-        return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
-      })
-      .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, AppExecutorUtil.getAppExecutorService());
-  }
-
-  @Nullable
-  private RenderResult updateCachedRenderResultIfNotNull(@Nullable RenderResult result) {
-    if (result != null) {
-      return updateCachedRenderResult(result);
-    }
-    return null;
+      .whenCompleteAsync((RenderResult result, Throwable throwable) -> {
+        if (throwable != null) {
+          Logger.getInstance(LayoutlibSceneManager.class).warn(throwable);
+        }
+        if (result != null && result.getRenderResult().isSuccess()) {
+          getModel().notifyListenersModelDerivedDataChanged();
+          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE);
+        }
+      }, AppExecutorUtil.getAppExecutorService());
   }
 
   @Nullable
@@ -1039,21 +1034,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     return taskBuilder;
   }
 
-  private void notifyModelUpdateIfSuccessful(@Nullable RenderResult result, @Nullable Throwable exception) {
-    if (exception != null) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
-    }
-    if (result != null && result.getRenderResult().isSuccess()) {
-      notifyListenersModelUpdateComplete();
-    }
-  }
-
   private void notifyListenersModelLayoutComplete(boolean animate) {
     getModel().notifyListenersModelChangedOnLayout(animate);
-  }
-
-  private void notifyListenersModelUpdateComplete() {
-    getModel().notifyListenersModelDerivedDataChanged();
   }
 
   private void logConfigurationChange(@NotNull DesignSurface<?> surface) {
@@ -1076,16 +1058,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         analyticsManager.trackDeviceChange();
       }
     }
-  }
-
-  @Nullable
-  private RenderResult logIfSuccessful(@Nullable RenderResult result,
-                                       @Nullable LayoutEditorRenderResult.Trigger trigger,
-                                       @NotNull CommonUsageTracker.RenderResultType resultType) {
-    if (result != null && result.getRenderResult().isSuccess()) {
-      CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, resultType);
-    }
-    return result;
   }
 
   /**
@@ -1114,10 +1086,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImplAsync(reverseUpdate)
-        .thenApply(result -> logIfSuccessful(result, trigger, CommonUsageTracker.RenderResultType.RENDER))
-        .thenApply(this::updateCachedRenderResultIfNotNull)
         .thenApply(result -> {
           if (result != null) {
+            updateCachedRenderResult(result);
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             // In an unlikely event when result is disposed we can still safely request the size of the image
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
@@ -1125,7 +1096,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                                                         result.getRenderedImage().getHeight() *
                                                                         4L);
           }
-
           return result;
         })
         .thenApplyAsync(result -> {
@@ -1136,6 +1106,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           return result;
         }, EdtExecutorService.getInstance())
         .thenApplyAsync(result -> {
+          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, CommonUsageTracker.RenderResultType.RENDER);
           fireOnRenderComplete();
           completeRender();
 
