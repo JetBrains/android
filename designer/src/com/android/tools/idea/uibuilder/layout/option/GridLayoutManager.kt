@@ -39,9 +39,6 @@ import kotlin.math.sqrt
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
 
-/** The minumum height x width what should be available for the preview. */
-private const val minumumPreviewSpacePx = 100 * 100
-
 /**
  * Experimental grid layout. All previews are organized in groups.
  *
@@ -135,18 +132,12 @@ class GridLayoutManager(
       return 1.0
     }
 
-    var maxNumberOfPreviews =
-      (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding) /
-        minumumPreviewSpacePx
-
-    maxNumberOfPreviews = min(maxNumberOfPreviews, content.size)
-
     // Use binary search to find the proper zoom-to-fit value.
 
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
-      content.take(maxNumberOfPreviews).map {
+      content.map {
         val contentSize = it.contentSize
         val margin = it.getMargin(1.0)
         Dimension(
@@ -187,7 +178,7 @@ class GridLayoutManager(
     }
 
     return getMaxZoomToFitScale(
-      content.take(maxNumberOfPreviews),
+      content,
       lowerBound,
       upperBound,
       availableWidth,
