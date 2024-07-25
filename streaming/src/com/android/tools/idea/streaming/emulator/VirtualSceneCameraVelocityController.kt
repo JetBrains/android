@@ -29,6 +29,13 @@ import com.intellij.openapi.Disposable
  *   W - backward along Z axis
  * ```
  * For AZERTY keyboard the keys are ZQSDAE.
+ *
+ * The coordinate system is right-handed and is defined as follows:
+ * ```
+ *   X axis is pointing right
+ *   Y axis is pointing up
+ *   Z axis is pointing towards the viewer
+ * ```
  */
 internal class VirtualSceneCameraVelocityController(
   private val emulator: EmulatorController,
