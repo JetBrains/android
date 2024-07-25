@@ -277,6 +277,9 @@ iml_studio_test(
     module = ":intellij.android.compose-designer.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "noci:studio-win",  # TODO(b/355511927): flaky timeouts on Windows with IntelliJ 2024.2.
+    ],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )
