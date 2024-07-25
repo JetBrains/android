@@ -330,7 +330,7 @@ public class AvdManagerConnection {
         skin = skin.subpath(1, skin.getNameCount());
       }
 
-      DeviceSkinUpdater.updateSkin(skin, null);
+      DeviceSkinUpdater.updateSkin(skin);
     }
 
     return Futures.transformAsync(
