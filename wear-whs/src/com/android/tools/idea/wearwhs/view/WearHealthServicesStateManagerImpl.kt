@@ -151,17 +151,20 @@ internal class WearHealthServicesStateManagerImpl(
     status: WhsStateManagerStatus,
     timeout: Duration,
     block: suspend () -> Result<Unit>,
-  ) {
-    try {
+  ): Result<Unit> {
+    return try {
       withTimeout(timeout) {
         _status.takeWhile { !it.idle }.collect {}
         _status.value = status
         block()
           .onSuccess { _status.value = WhsStateManagerStatus.Idle }
-          .onFailure { _status.value = WhsStateManagerStatus.ConnectionLost }
+          .onFailure {
+            _status.value = WhsStateManagerStatus.ConnectionLost
+          }
       }
     } catch (exception: TimeoutCancellationException) {
       _status.value = WhsStateManagerStatus.Timeout
+      Result.failure(exception)
     }
   }
 
