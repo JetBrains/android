@@ -534,8 +534,7 @@ class WearHealthServicesPanelTest {
 
     val label =
       fakeUi.waitForDescendant<JLabel> {
-        it.icon == StudioIcons.Common.INFO &&
-          it.text == message("wear.whs.panel.test.data.inactive")
+        it.icon == StudioIcons.Common.INFO && it.text == message("wear.whs.panel.exercise.inactive")
       }
 
     // once the syncs start failing, then the state will eventually become stale
