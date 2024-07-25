@@ -553,6 +553,21 @@ class WearHealthServicesPanelTest {
     }
   }
 
+  @Test
+  fun `the apply button has tooltip texts`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    deviceManager.activeExercise = false
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    assertThat(applyButton.toolTipText)
+      .isEqualTo(message("wear.whs.panel.apply.tooltip.no.exercise"))
+
+    deviceManager.activeExercise = true
+    waitForCondition(5.seconds) {
+      applyButton.toolTipText == message("wear.whs.panel.apply.tooltip.during.exercise")
+    }
+  }
+
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
       checkbox.hasLabel(text) && checkbox.isSelected == selected
