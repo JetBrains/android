@@ -271,7 +271,7 @@ final public class RenderService implements Disposable {
     @Nullable private RenderXmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
-    private boolean isSecurityManagerEnabled = true;
+    private boolean isSecurityManagerEnabled = false; // is not supported for JDK 21
     private float myQuality = 1f;
     private boolean showDecorations = true;
     private boolean showWithToolsVisibilityAndPosition = true;
