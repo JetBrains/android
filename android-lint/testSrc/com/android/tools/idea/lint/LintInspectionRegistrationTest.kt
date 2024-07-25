@@ -319,7 +319,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
         val severityString =
           if (issue.defaultSeverity === Severity.ERROR || issue.defaultSeverity === Severity.FATAL)
             "ERROR"
-          else if (issue.defaultSeverity === Severity.WARNING) "WARNING" else "INFO"
+          else if (issue.defaultSeverity === Severity.WARNING) "WARNING" else "WEAK WARNING"
         desc.append(severityString)
         val packagePrefix =
           if (androidSpecific) "com.android.tools.idea.lint.inspections."
