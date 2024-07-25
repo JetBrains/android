@@ -48,6 +48,11 @@ object DeviceSkinUpdater {
   @JvmOverloads
   @Slow
   fun updateSkin(skin: Path, image: SystemImageDescription? = null): Path {
+    return updateSkin(skin, if (image == null) emptyList() else image.skins)
+  }
+
+  @Slow
+  fun updateSkin(skin: Path, imageSkins: Collection<Path>): Path {
     if (skin.isAbsolute) {
       return skin
     }
@@ -55,8 +60,6 @@ object DeviceSkinUpdater {
     if (skinName.isEmpty() || skinName == "_no_skin") {
       return skin
     }
-
-    val imageSkins: Collection<Path> = image?.skins ?: emptyList()
 
     val studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
     val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler()
