@@ -261,9 +261,11 @@ internal class WearHealthServicesStateManagerImpl(
         eventLogger.logApplyChangesFailure()
         return@runWithStatus Result.failure(it)
       }
-      deviceManager.overrideValues(overrideUpdates).onFailure {
-        eventLogger.logApplyChangesFailure()
-        return@runWithStatus Result.failure(it)
+      if (ongoingExercise.value) {
+        deviceManager.overrideValues(overrideUpdates).onFailure {
+          eventLogger.logApplyChangesFailure()
+          return@runWithStatus Result.failure(it)
+        }
       }
       capabilityUpdatesLock.withLock {
         capabilityToState.entries.forEach {
