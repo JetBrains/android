@@ -849,20 +849,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @NotNull
   private CompletableFuture<RenderResult> inflateAsync(boolean force, AtomicBoolean reverseUpdate) {
-    Configuration configuration = getModel().getConfiguration();
-
     Project project = getModel().getProject();
     if (project.isDisposed() || isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
-
-    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
-
-    // Some types of files must be saved to disk first, because layoutlib doesn't
-    // delegate XML parsers for non-layout files (meaning layoutlib will read the
-    // disk contents, so we have to push any edits to disk before rendering)
-    PsiFileUtil.saveFileIfNecessary(getModel().getFile());
-
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
@@ -870,9 +860,16 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       }
     }
 
+    // Some types of files must be saved to disk first, because layoutlib doesn't
+    // delegate XML parsers for non-layout files (meaning layoutlib will read the
+    // disk contents, so we have to push any edits to disk before rendering)
+    PsiFileUtil.saveFileIfNecessary(getModel().getFile());
+
     // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
     // external changes
     AndroidFacet facet = getModel().getFacet();
+    Configuration configuration = getModel().getConfiguration();
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
@@ -888,14 +885,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         if (newTask != null) {
           newTask.setDefaultForegroundColor('#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
           return newTask.inflate().whenComplete((result, inflateException) -> {
-            Throwable exception = null;
-            if (inflateException != null) {
-              exception = inflateException;
-            }
-            else {
-              if (result != null) {
-                exception = result.getRenderResult().getException();
-              }
+            Throwable exception = inflateException;
+            if (exception == null && result != null) {
+              exception = result.getRenderResult().getException();
             }
 
             if (exception != null) {
@@ -914,18 +906,14 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
-            // If the result is not valid, we do not need the task. Also if the project was already disposed
-            // while we were creating the task, avoid adding it.
+            // If the result is not valid or the project was already disposed, then we do not need the task.
+            // Also remove the previous task if the render has finished but was not a success.
             if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess() || isDisposed.get()) {
               newTask.dispose();
+              updateRenderTask(null);
             }
             else {
               updateRenderTask(newTask);
-            }
-            if (result != null && !result.getRenderResult().isSuccess()) {
-              // Erase the previously cached result in case the render has finished, but was not a success. Otherwise, we might end up
-              // in a state where the user thinks the render was successful, but it actually failed.
-              updateRenderTask(null);
             }
           })
             .handle((result, exception) -> {
