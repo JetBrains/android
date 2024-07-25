@@ -432,6 +432,14 @@ internal fun createWearHealthServicesPanel(
       )
       add(
         JButton(message("wear.whs.panel.apply")).apply {
+          stateManager.ongoingExercise
+            .onEach {
+              toolTipText =
+                if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
+                else message("wear.whs.panel.apply.tooltip.no.exercise")
+            }
+            .launchIn(uiScope)
+
           addActionListener {
             isEnabled = false
             workerScope.launch {
