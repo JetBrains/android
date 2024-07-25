@@ -324,7 +324,7 @@ private fun createWearHealthServicesPanelHeader(
       .apply { toolTipText = message("wear.whs.panel.trigger.events") }
 
   val statusLabel =
-    JLabel(message("wear.whs.panel.test.data.inactive")).apply {
+    JLabel(message("wear.whs.panel.exercise.inactive")).apply {
       // setting a minimum width to prevent the label from being cropped when the text
       // changes
       minimumSize = Dimension(140, 0)
@@ -333,15 +333,15 @@ private fun createWearHealthServicesPanelHeader(
           isStateStale ->
           ongoingExercise to isStateStale
         }
-        .onEach { (isOngoingExercise, isStateStale) ->
+        .onEach { (isActiveExercise, isStateStale) ->
           icon = if (isStateStale) StudioIcons.Common.WARNING else StudioIcons.Common.INFO
           text =
-            if (isOngoingExercise) message("wear.whs.panel.test.data.active")
-            else message("wear.whs.panel.test.data.inactive")
+            if (isActiveExercise) message("wear.whs.panel.exercise.active")
+            else message("wear.whs.panel.exercise.inactive")
           toolTipText =
             when {
               isStateStale -> message("wear.whs.panel.stale.data")
-              isOngoingExercise -> message("wear.whs.panel.press.apply.for.overrides")
+              isActiveExercise -> message("wear.whs.panel.press.apply.for.overrides")
               else -> message("wear.whs.panel.press.apply.for.toggles")
             }
         }
