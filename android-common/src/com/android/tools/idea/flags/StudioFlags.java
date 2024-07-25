@@ -157,6 +157,11 @@ public final class StudioFlags {
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.",
     false);
+
+  public static final Flag<Integer> NPW_COMPILE_SDK_VERSION = new IntFlag(
+    NPW, "new.project.compile.sdk", "New project Compile SDK version",
+    "SDK version to be used for compileSdk for newly created project.",
+    34);
   //endregion
 
   //region Memory Usage Reporting

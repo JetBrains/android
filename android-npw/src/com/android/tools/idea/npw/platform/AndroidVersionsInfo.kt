@@ -35,6 +35,7 @@ import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.platform.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.sdk.AndroidSdks
@@ -48,6 +49,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -204,18 +206,19 @@ class AndroidVersionsInfo {
 
     companion object {
       fun fromAndroidVersion(version: AndroidVersion): VersionItem {
-        // For preview versions or if the requested target is newer than HIGHEST_KNOWN_STABLE_API,
+        val newProjectsCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+        // For preview versions or if the requested target is newer than NPW_COMPILE_SDK_VERSION,
         // use build and target as the given version
-        val futureVersion = version.isPreview || version.apiLevel > HIGHEST_KNOWN_STABLE_API
+        val futureVersion = version.isPreview || version.apiLevel > newProjectsCompileSdkVersion
 
         return VersionItem(
           label = getLabel(version, null),
           androidTarget = null,
           minApiLevel = version.featureLevel,
           minApiLevelStr = version.apiString,
-          buildApiLevel = if (futureVersion) version.featureLevel else HIGHEST_KNOWN_STABLE_API,
-          buildApiLevelStr = if (futureVersion) version.toBuildApiString() else HIGHEST_KNOWN_STABLE_API.toString(),
-          targetApiLevelStr = if(futureVersion) version.apiString else HIGHEST_KNOWN_STABLE_API.toString(),
+          buildApiLevel = if (futureVersion) version.featureLevel else newProjectsCompileSdkVersion,
+          buildApiLevelStr = if (futureVersion) version.toBuildApiString() else newProjectsCompileSdkVersion.toString(),
+          targetApiLevelStr = if (futureVersion) version.apiString else newProjectsCompileSdkVersion.toString(),
         )
       }
 
