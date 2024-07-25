@@ -21,6 +21,6 @@ import com.android.tools.lint.checks.PrivateApiDetector;
 
 public class AndroidLintDiscouragedPrivateApiInspection extends AndroidLintInspectionBase {
   public AndroidLintDiscouragedPrivateApiInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.DISCOURAGED_PRIVATE_API);
+    super(AndroidLintBundle.message("android.lint.inspections.discouraged.private.api"), PrivateApiDetector.DISCOURAGED_PRIVATE_API);
   }
 }
