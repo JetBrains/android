@@ -118,6 +118,24 @@ class EmulatorAdbReadyServiceTest {
     delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { button.isEnabled }
   }
 
+  @Test
+  fun testMainToolbarUpdateOnDisconnect() = runBlocking {
+    val emulator = createFakeEmulator()
+    val serialNumber = emulator.serialNumber
+    val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    deviceHandle.connectToMockDevice(serialNumber)
+    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { isReadyForAdbCommands(project, serialNumber) }
+
+    val panel = createWindowPanel()
+    val ui = runInEdtAndGet { createUi(panel, emulator) }
+    val button = ui.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
+    assertThat(button.isEnabled).isTrue()
+
+    deviceHandle.disconnect()
+    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !button.isEnabled }
+  }
+
   private fun FakeDeviceHandle.connectToMockDevice(serialNumber: String) {
     mock<ConnectedDevice>().also { mockDevice ->
       whenever(mockDevice.deviceInfoFlow)
