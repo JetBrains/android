@@ -31,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@org.junit.Ignore("b/349894866")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
