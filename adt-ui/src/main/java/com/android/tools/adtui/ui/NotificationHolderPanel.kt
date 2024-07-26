@@ -17,7 +17,6 @@ package com.android.tools.adtui.ui
 
 import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -144,13 +143,13 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
   }
 
   private fun startFadeOutAnimation() {
-    animator?.let(Disposer::dispose)
+    animator?.dispose()
     fadeOutNotificationPopup?.alpha = 1.0F
     animator = FadeOutAnimator().apply { resume() }
   }
 
   private fun stopFadeOutAnimation() {
-    animator?.let(Disposer::dispose)
+    animator?.dispose()
     animator = null
   }
 
@@ -200,7 +199,7 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
       if (!skipAnimation()) {
         hideFadeOutNotificationPopup()
       }
-      Disposer.dispose(this)
+      dispose()
     }
 
     override fun dispose() {
