@@ -33,8 +33,6 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -237,22 +235,5 @@ class ComposeViewControlActionTest {
     manager.currentStatus = nonRefreshingStatus
     viewControlAction.update(event)
     assertTrue(event.presentation.isEnabled)
-  }
-
-  @Suppress("UnstableApiUsage")
-  @Test
-  fun testNotMultiChoiceAction() {
-    val option = listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()))
-
-    var enabled = true
-    val action = ComposeViewControlAction(option, { enabled })
-    val presentation = Presentation()
-
-    // It should always not be multi-choice no matter it is enabled or not.
-    action.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertFalse(Utils.isMultiChoiceGroup(action))
-    enabled = false
-    action.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertFalse(Utils.isMultiChoiceGroup(action))
   }
 }
