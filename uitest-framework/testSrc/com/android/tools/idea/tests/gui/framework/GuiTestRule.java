@@ -45,6 +45,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.ui.UISettings;
@@ -58,6 +59,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testFramework.RegistryKeyRule;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
+import com.intellij.ui.BalloonImpl;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -175,6 +177,10 @@ public class GuiTestRule implements TestRule {
           if (!TestUtils.runningFromBazel()) {
             restartIdeIfWelcomeFrameNotShowing();
           }
+          // Clear all notifications in welcome screen.
+          // Welcome screen buttons are partially covered by notification balloons
+          // and are blocking the mouse clicks in tests.
+          clearAllNotificationsInWelcomeScreen();
           setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
           try {
@@ -199,6 +205,19 @@ public class GuiTestRule implements TestRule {
       };
     }
   }
+
+  private void clearAllNotificationsInWelcomeScreen(){
+      List<BalloonImpl.ActionButton> allNotificationActions =
+        Lists.newArrayList(robot().finder().findAll(welcomeFrame().target(), Matchers.byType(BalloonImpl.ActionButton.class)));
+        if (allNotificationActions.size() > 0) {
+            for (BalloonImpl.ActionButton closeAction : allNotificationActions) {
+                if (closeAction.isShowing()) {
+                    robot().click(closeAction);
+                  }
+             }
+         }
+   }
+
 
   private void restartIdeIfWelcomeFrameNotShowing() {
     boolean welcomeFrameNotShowing = false;
