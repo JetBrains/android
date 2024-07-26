@@ -141,7 +141,7 @@ class DeviceToolWindowPanelTest {
 
     // Check appearance.
     waitForFrame()
-    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
+    assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
 

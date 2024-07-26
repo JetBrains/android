@@ -163,7 +163,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
     assertAppearance(ui, "AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
     // Check EmulatorPowerButtonAction.
@@ -381,7 +381,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 300)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 271")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 265")
     assertAppearance(ui, "AutomotiveToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     // Check that the buttons not applicable to Automotive devices are hidden.
@@ -418,7 +418,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(500, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 565")
     assertAppearance(ui, "DisplayModesPhone", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
 
     // Set the foldable display mode.
@@ -466,7 +466,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(200, 400)
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 327")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 321")
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
@@ -492,7 +492,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 347")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 341")
     waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     panel.waitForFrame(ui, ++frameNumber, 2.seconds)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
@@ -526,7 +526,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -571,7 +571,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(200, 400)
     ui.layoutAndDispatchEvents()
     val call1 = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 312")
+    assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 307")
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(168)
     assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isFalse()
@@ -684,7 +684,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
 
     emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
                                             DisplayConfiguration.newBuilder().setDisplay(2).setWidth(2048).setHeight(1536).build()))
