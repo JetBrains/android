@@ -47,7 +47,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
                 return null
             }
 
-            val containingClassName = field.callableIdIfNonLocal?.classId?.shortClassName?.asString() ?: return null
+            val containingClassName = field.callableId?.classId?.shortClassName?.asString() ?: return null
             return ResourceType.fromClassName(containingClassName)
         }
 
@@ -55,7 +55,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
          * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
          */
         private fun KtAnalysisSession.getResourceReferenceType(field: KtJavaFieldSymbol): ResourceReferenceType {
-            val containingClassId = field.callableIdIfNonLocal?.classId ?: return ResourceReferenceType.NONE
+            val containingClassId = field.callableId?.classId ?: return ResourceReferenceType.NONE
             val rClassName = containingClassId.parentClassId?.shortClassName ?: return ResourceReferenceType.NONE
 
             if (SdkConstants.R_CLASS == rClassName.asString()) {
