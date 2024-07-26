@@ -17,6 +17,7 @@ package org.jetbrains.kotlin.android.quickfix
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -60,6 +61,7 @@ class K2AndroidViewConstructorFix(
                 return null
             }
 
+            @OptIn(KaExperimentalApi::class)
             val superConstructors = superType.scope?.getConstructors() ?: return null
             val superConstructorClassSignatures = superConstructors.map { constructor ->
                 constructor.valueParameters.map { param ->
