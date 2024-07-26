@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+import "task_completion_message.proto";
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "TaskCompletionResultProto";
+
+// Output format for task completion/multi-turn chat.
+message TaskCompletionOutput {
+  // The task completion/chat result generated from given message.
+  repeated TaskCompletionMessage messages = 1;
+}
