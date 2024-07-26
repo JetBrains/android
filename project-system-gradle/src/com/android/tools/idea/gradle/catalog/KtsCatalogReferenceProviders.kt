@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.util.findCatalogKey
 import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceBase
-import org.jetbrains.kotlin.idea.references.KotlinFirReferenceContributor
 import org.jetbrains.kotlin.idea.references.KotlinPsiReferenceRegistrar
 import org.jetbrains.kotlin.idea.references.KotlinReferenceProviderContributor
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -37,8 +36,9 @@ class K10KtsAndroidReferenceProviderContributor : KotlinReferenceProviderContrib
 }
 
 // Wrapper for reference provider contributor to add reference provider for Kts to Catalog
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER") // TODO(b/349906318): avoid accessing internal class KotlinFirReferenceContributor.
 class FirKtsAndroidReferenceProviderContributor : KotlinReferenceProviderContributor {
-  val contributor = KotlinFirReferenceContributor()
+  private val contributor = org.jetbrains.kotlin.analysis.api.fir.references.KotlinFirReferenceContributor()
   override fun registerReferenceProviders(registrar: KotlinPsiReferenceRegistrar) {
     contributor.registerReferenceProviders(registrar)
     registerProvider(registrar)
