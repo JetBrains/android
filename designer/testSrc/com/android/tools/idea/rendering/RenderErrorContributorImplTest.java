@@ -59,11 +59,15 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     RenderTestUtil.beforeRenderTestCase();
+    RenderLogger.ignoreFidelityWarning("The current rendering only supports APIs up to 34. You may encounter " +
+                                       "crashes if using with higher APIs. To avoid, you can set a lower API for " +
+                                       "your previews.");
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
+      RenderLogger.resetFidelityErrorsFilters();
       RenderTestUtil.afterRenderTestCase();
     }
     finally {
