@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.AndroidTestCase
 
@@ -40,7 +41,8 @@ class VisualizationActionManagerTest : AndroidTestCase() {
       VisualizationActionManager(NlSurfaceBuilder.build(project, testRootDisposable)) {
         EmptyModelsProvider
       }
-    val actions = actionManager.getPopupMenuActions(null).getChildren(null)
+    val popupMenuGroup = actionManager.getPopupMenuActions(null)
+    val actions = popupMenuGroup.getChildren(ActionManager.getInstance())
     assertTrue(actions[0] is ZoomInAction)
     assertTrue(actions[1] is ZoomOutAction)
     assertTrue(actions[2] is ZoomToFitAction)

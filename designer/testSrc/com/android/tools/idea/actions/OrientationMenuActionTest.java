@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
@@ -54,7 +55,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testAction() {
     OrientationMenuAction action = new OrientationMenuAction(true);
     action.updateActions(myDataContext);
-    AnAction[] actions = action.getChildren(null);
+    AnAction[] actions = action.getChildren(ActionManager.getInstance());
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
@@ -66,7 +67,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testActionWithoutUIMode() {
     OrientationMenuAction action = new OrientationMenuAction(false);
     action.updateActions(myDataContext);
-    AnAction[] actions = action.getChildren(null);
+    AnAction[] actions = action.getChildren(ActionManager.getInstance());
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
@@ -78,7 +79,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     waitForResourceRepositoryUpdates();
     OrientationMenuAction action = new OrientationMenuAction(true);
     action.updateActions(myDataContext);
-    AnAction[] actions = action.getChildren(null);
+    AnAction[] actions = action.getChildren(ActionManager.getInstance());
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class,
@@ -94,7 +95,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     waitForResourceRepositoryUpdates();
     OrientationMenuAction action = new OrientationMenuAction(true);
     action.updateActions(myDataContext);
-    AnAction[] actions = action.getChildren(null);
+    AnAction[] actions = action.getChildren(ActionManager.getInstance());
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class,
