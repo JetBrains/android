@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -1200,31 +1199,6 @@ class ComposeCompletionContributorTest {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.completeBasic()
 
-    // TODO(b/352595203): Remove old path after 2024.2 merge.
-    val expectedClass =
-      if (ApplicationInfo.getInstance().build.baselineVersion >= 242) {
-        // language=kotlin
-        """
-        class MyComposablesImpl : MyComposables {
-            @Composable
-            override fun FoobarOne() {
-                TODO("Not yet implemented")
-            }
-        }
-        """
-          .trimIndent()
-      } else {
-        // language=kotlin
-        """
-        class MyComposablesImpl : MyComposables {
-            override fun FoobarOne() {
-                TODO("Not yet implemented")
-            }
-        }
-        """
-          .trimIndent()
-      }
-
     // Then:
     myFixture.checkResult(
       // language=kotlin
@@ -1238,8 +1212,15 @@ class ComposeCompletionContributorTest {
           @Composable
           fun FoobarOne()
       }
+
+      class MyComposablesImpl : MyComposables {
+          @Composable
+          override fun FoobarOne() {
+              TODO("Not yet implemented")
+          }
+      }
       """
-        .trimIndent() + "\n\n$expectedClass"
+        .trimIndent()
     )
   }
 
