@@ -25,11 +25,10 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
@@ -84,8 +83,9 @@ class K2AndroidViewConstructorFix(
             return K2AndroidViewConstructorFix(superTypeEntry, useThreeParameterConstructor)
         }
 
-        val FACTORY: KotlinDiagnosticFixFactory<SupertypeNotInitialized> =
-            diagnosticFixFactory(SupertypeNotInitialized::class) { listOfNotNull(createForDiagnostic(it)) }
+        val FACTORY = KotlinQuickFixFactory.IntentionBased<SupertypeNotInitialized> { diagnostic ->
+            listOfNotNull(createForDiagnostic(diagnostic))
+        }
 
         private fun KtAnalysisSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classIdIfNonLocal
         private fun KtAnalysisSession.isAndroidView(type: KtType): Boolean =
@@ -95,6 +95,6 @@ class K2AndroidViewConstructorFix(
 
 class K2AndroidViewConstructorFixRegistrar : KotlinQuickFixRegistrar() {
     override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-        registerApplicator(K2AndroidViewConstructorFix.FACTORY)
+        registerFactory(K2AndroidViewConstructorFix.FACTORY)
     }
 }

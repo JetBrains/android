@@ -28,8 +28,7 @@ import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtCompilerPluginDiagnos
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
@@ -129,17 +128,16 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
   }
 
   companion object {
-    val k2DiagnosticFixFactory: KotlinDiagnosticFixFactory<KtCompilerPluginDiagnostic0> =
-      diagnosticFixFactory(KtCompilerPluginDiagnostic0::class) { diagnostic ->
-        val psiElement = diagnostic.psi
-        listOfNotNull(
-          when (diagnostic.factoryName) {
-            "COMPOSABLE_INVOCATION" -> ComposableInvocationFactory.createAction(psiElement)
-            "COMPOSABLE_EXPECTED" -> ComposableExpectedFactory.createAction(psiElement)
-            else -> null
-          }
-        )
-      }
+    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased<KtCompilerPluginDiagnostic0> { diagnostic ->
+      val psiElement = diagnostic.psi
+      listOfNotNull(
+        when (diagnostic.factoryName) {
+          "COMPOSABLE_INVOCATION" -> ComposableInvocationFactory.createAction(psiElement)
+          "COMPOSABLE_EXPECTED" -> ComposableExpectedFactory.createAction(psiElement)
+          else -> null
+        }
+      )
+    }
 
     private fun KtModifierListOwner.toDisplayText(): String? =
       when (this) {
