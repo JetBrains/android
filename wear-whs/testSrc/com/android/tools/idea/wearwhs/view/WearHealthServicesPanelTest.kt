@@ -30,6 +30,7 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -566,6 +568,33 @@ class WearHealthServicesPanelTest {
       applyButton.toolTipText == message("wear.whs.panel.apply.tooltip.during.exercise")
     }
   }
+
+  @Test
+  fun `while ongoing exercise location has note explaining that it cannot be overridden`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component)
+      deviceManager.activeExercise = true
+      stateManager.forceUpdateState()
+
+      val locationLabel =
+        fakeUi.waitForDescendant<JLabel> {
+          it.text == message("wear.whs.capability.location.label")
+        }
+
+      waitForCondition(5.seconds) {
+        val siblingComponents = locationLabel.parent.components
+        siblingComponents
+          .filterIsInstance<JPanel>()
+          .single()
+          .components
+          .filterIsInstance<JLabel>()
+          .any {
+            it.icon == AllIcons.General.Note &&
+              it.toolTipText == message("wear.whs.capability.override.not.supported") &&
+              it.isVisible
+          }
+      }
+    }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
