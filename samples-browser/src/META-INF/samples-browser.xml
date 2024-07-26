@@ -25,6 +25,7 @@
             class="com.google.gct.studio.samples.SampleImportAction"
             text="Import Sample...">
       <add-to-group group-id="NewProjectOrModuleGroup" relative-to-action="ImportModule" anchor="after"/>
+      <add-to-group group-id="ProjectWidget.Actions" anchor="after" relative-to-action="ProjectFromVersionControl"/>
     </action>
     <action id="WelcomeScreen.GoogleCloudTools.SampleImport"
             class="com.google.gct.studio.samples.SampleImportAction"
