@@ -22,20 +22,29 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KaConstantInitializerValue
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaInitializerValue
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.singleVariableAccessCall
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.psi
+import org.jetbrains.kotlin.analysis.api.symbols.psiSafe
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
@@ -58,11 +67,14 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -225,11 +237,54 @@ fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): K
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
+/**
+ * Evaluate a property expression with a constant initializer.
+ *
+ * The Analysis API's constant evaluator will only evaluate constants that are legal for use in a
+ * `const val` context - in particular, the expressions can only make references to other `const`
+ * variables, and any reference to a non-`const` variable will prevent constant evaluation, even
+ * if that variable has an initializer that would otherwise allow it to be `const`. This behavior
+ * diverges from FE1.0's constant evaluator, which will allow any "effectively final" constant
+ * references to be evaluated.
+ *
+ * To partially work around this limitation, we need to translate references to variables into
+ * references to their initializers, so that we can perform constant evaluation directly on the
+ * initializer expression. This misses some cases of more-complex initializer expressions, but
+ * should cover most common cases in Android code.
+ *
+ * This workaround should be removed if the Analysis API reintroduces the "constant-like expression
+ * evaluation" mode that was previously available in prerelease API versions.
+ */
+@OptIn(KaExperimentalApi::class)
+tailrec fun KaSession.evaluatePossiblePropertyExpression(expression: KtExpression): KaConstantValue? {
+  if (expression is KtSimpleNameExpression) {
+    val variableSymbol =
+      expression.resolveToCall()
+        ?.singleVariableAccessCall()
+        ?.symbol
+        ?.takeIf { it.isVal }
+
+    val initializerPsi =
+      when (val initializer = (variableSymbol as? KaPropertySymbol)?.initializer) {
+        is KaConstantInitializerValue -> return initializer.constant
+        is KaInitializerValue -> initializer.initializerPsi
+        else -> null
+      }
+      ?: variableSymbol?.psiSafe<KtVariableDeclaration>()?.initializer
+
+    if (initializerPsi != null) {
+      return evaluatePossiblePropertyExpression(initializerPsi)
+    }
+  }
+
+  return expression.evaluate()
+}
+
 inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      evaluate()
-        ?.takeUnless { it is KaErrorConstantValue }
+      evaluatePossiblePropertyExpression(this@evaluateConstant)
+        ?.takeUnless { it is KaConstantValue.ErrorValue }
         ?.value as? T
     }
   } else {
