@@ -670,6 +670,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -681,11 +685,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -788,6 +787,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             javalib1                      : :javalib1 (DefaultExternalProject)
                 path                          : :javalib1 [-]
                 identityPath                  : :javalib1 [-]
@@ -798,9 +803,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/javalib1
                 buildDir                      : <ROOT>/javalib1/build [-]
                 buildFile                     : <ROOT>/javalib1/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :javalib1:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -816,8 +818,8 @@ MODULE                        : project
                         compileOnlyApi                : <empty>
                         default                       : <empty>
                         implementation                : <empty>
-                        - mainSourceElements          : <ROOT>/javalib1/src/main/java
                         - mainSourceElements          : <ROOT>/javalib1/src/main/resources [-]
+                        - mainSourceElements          : <ROOT>/javalib1/src/main/java
                         runtimeClasspath              : <empty>
                         - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         runtimeOnly                   : <empty>
@@ -872,6 +874,7 @@ MODULE                        : project
                             - dependencies                : apiElements (DefaultExternalProjectDependency)
                                 projectPath                   : :javalib2
                                 - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                                - projectDependencyArtifactsSources     : <ROOT>/javalib2/src/main/java
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -894,6 +897,10 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/javalib1/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :javalib1:test
             javalib2                      : :javalib2 (DefaultExternalProject)
                 path                          : :javalib2 [-]
                 identityPath                  : :javalib2 [-]
@@ -904,9 +911,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/javalib2
                 buildDir                      : <ROOT>/javalib2/build [-]
                 buildFile                     : <ROOT>/javalib2/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :javalib2:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -922,8 +926,8 @@ MODULE                        : project
                         compileOnlyApi                : <empty>
                         default                       : <empty>
                         implementation                : <empty>
-                        - mainSourceElements          : <ROOT>/javalib2/src/main/java
                         - mainSourceElements          : <ROOT>/javalib2/src/main/resources [-]
+                        - mainSourceElements          : <ROOT>/javalib2/src/main/java
                         runtimeClasspath              : <empty>
                         - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         runtimeOnly                   : <empty>
@@ -973,6 +977,10 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/javalib2/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/javalib2/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :javalib2:test
             library1                      : :library1 (DefaultExternalProject)
                 path                          : :library1 [-]
                 identityPath                  : :library1 [-]
@@ -983,11 +991,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/library1
                 buildDir                      : <ROOT>/library1/build [-]
                 buildFile                     : <ROOT>/library1/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :library1:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :library1:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1086,6 +1089,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :library1:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :library1:testReleaseUnitTest
             library2                      : :library2 (DefaultExternalProject)
                 path                          : :library2 [-]
                 identityPath                  : :library2 [-]
@@ -1096,11 +1105,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/library2
                 buildDir                      : <ROOT>/library2/build [-]
                 buildFile                     : <ROOT>/library2/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :library2:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :library2:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1199,11 +1203,14 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :library2:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :library2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.2

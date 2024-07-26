@@ -759,6 +759,10 @@ MODULE                        : MainActivity
         name                          : MainActivity
         qName                         : MainActivity
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -770,15 +774,6 @@ MODULE                        : MainActivity
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testLocalDebugUnitTest
-                    testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testLocalReleaseUnitTest
-                    testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testRemoteDebugUnitTest
-                    testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testRemoteReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1301,6 +1296,16 @@ MODULE                        : MainActivity
                         testRuntimeOnlyDependenciesMetadata     : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testLocalDebugUnitTest
+                        testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testLocalReleaseUnitTest
+                        testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testRemoteDebugUnitTest
+                        testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testRemoteReleaseUnitTest
             javaLib                       : :javaLib (DefaultExternalProject)
                 path                          : :javaLib [-]
                 identityPath                  : :javaLib [-]
@@ -1311,9 +1316,6 @@ MODULE                        : MainActivity
                 projectDir                    : <ROOT>/javaLib
                 buildDir                      : <ROOT>/javaLib/build
                 buildFile                     : <ROOT>/javaLib/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :javaLib:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : 1.7
@@ -1456,6 +1458,10 @@ MODULE                        : MainActivity
                                     outputDir                     : <ROOT>/javaLib/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/javaLib/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :javaLib:test
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -1466,11 +1472,6 @@ MODULE                        : MainActivity
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1524,8 +1525,8 @@ MODULE                        : MainActivity
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
-                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         compile                       : <empty>
                         compileOnly                   : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
@@ -1683,11 +1684,14 @@ MODULE                        : MainActivity
                         testRuntimeOnlyDependenciesMetadata     : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 4.1.0
@@ -2344,8 +2348,8 @@ MODULE                        : MainActivity.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -2376,8 +2380,8 @@ MODULE                        : MainActivity.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -2408,8 +2412,8 @@ MODULE                        : MainActivity.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -2496,8 +2500,8 @@ MODULE                        : MainActivity.javaLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2531,8 +2535,8 @@ MODULE                        : MainActivity.javaLib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3137,8 +3141,8 @@ MODULE                        : MainActivity.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3158,8 +3162,8 @@ MODULE                        : MainActivity.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3179,8 +3183,8 @@ MODULE                        : MainActivity.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

@@ -1153,11 +1153,6 @@ MODULE                        : project
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
-        tasks
-            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                qName                         : :testDebugUnitTest
-            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                qName                         : :testReleaseUnitTest
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1265,6 +1260,12 @@ MODULE                        : project
                 testRuntimeOnly               : <empty>
                 testWearApp                   : <empty>
                 wearApp                       : <empty>
+        taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :testReleaseUnitTest
 MODULE                        : project.androidTest
 MODULE                        : project.main
 MODULE                        : project.unitTest

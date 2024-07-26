@@ -569,6 +569,10 @@ MODULE                        : MultiFlavor
         name                          : MultiFlavor
         qName                         : MultiFlavor
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -580,23 +584,6 @@ MODULE                        : MultiFlavor
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                    testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
-                    testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondXyzDebugUnitTest
-                    testFirstAbcSecondXyzReleaseUnitTest    : testFirstAbcSecondXyzReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondXyzReleaseUnitTest
-                    testFirstXyzSecondAbcDebugUnitTest      : testFirstXyzSecondAbcDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstXyzSecondAbcDebugUnitTest
-                    testFirstXyzSecondAbcReleaseUnitTest    : testFirstXyzSecondAbcReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstXyzSecondAbcReleaseUnitTest
-                    testFirstXyzSecondXyzDebugUnitTest      : testFirstXyzSecondXyzDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstXyzSecondXyzDebugUnitTest
-                    testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1028,11 +1015,26 @@ MODULE                        : MultiFlavor
                         testSecondXyzWearApp          : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                        testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
+                        testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondXyzDebugUnitTest
+                        testFirstAbcSecondXyzReleaseUnitTest    : testFirstAbcSecondXyzReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondXyzReleaseUnitTest
+                        testFirstXyzSecondAbcDebugUnitTest      : testFirstXyzSecondAbcDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstXyzSecondAbcDebugUnitTest
+                        testFirstXyzSecondAbcReleaseUnitTest    : testFirstXyzSecondAbcReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstXyzSecondAbcReleaseUnitTest
+                        testFirstXyzSecondXyzDebugUnitTest      : testFirstXyzSecondXyzDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstXyzSecondXyzDebugUnitTest
+                        testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 8.0.2
