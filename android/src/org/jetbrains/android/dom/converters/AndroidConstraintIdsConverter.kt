@@ -39,7 +39,7 @@ import com.intellij.util.xml.converters.DelimitedListConverter
  * SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
  */
 class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(", ") {
-  override fun convertString(string: String?, context: ConvertContext?): ResourceReference? {
+  override fun convertString(string: String?, context: ConvertContext): ResourceReference? {
     if (string == null) {
       return null
     }
@@ -49,10 +49,10 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
   override fun toString(value: ResourceReference?): String? = value?.name
 
   override fun getReferenceVariants(
-    context: ConvertContext?,
+    context: ConvertContext,
     genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?,
   ): Array<Any> {
-    val file = context?.file ?: return EMPTY_ARRAY
+    val file = context.file
     return findIdUrlsInFile(file)
       .stream()
       .map { url ->
@@ -64,9 +64,9 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
 
   override fun resolveReference(
     resourceReference: ResourceReference?,
-    context: ConvertContext?,
+    context: ConvertContext,
   ): PsiElement? {
-    if (resourceReference == null || context == null || context.referenceXmlElement == null) {
+    if (resourceReference == null || context.referenceXmlElement == null) {
       return null
     }
     val facet = context.module?.androidFacet ?: return null
