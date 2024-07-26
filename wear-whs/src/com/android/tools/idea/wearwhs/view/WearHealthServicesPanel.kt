@@ -248,8 +248,12 @@ private fun createCenterPanel(
               add(
                 JLabel(message(capability.unit)).also { label ->
                   checkBox.selected.addListener { label.isEnabled = it }
-                  label.isVisible = capability.isOverrideable
                   label.preferredSize = JBUI.size(75, 25)
+
+                  if (!capability.isOverrideable) {
+                    label.icon = AllIcons.General.Note
+                    label.toolTipText = message("wear.whs.capability.override.not.supported")
+                  }
                 }
               )
             },
