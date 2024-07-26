@@ -41,15 +41,15 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(
   ): SourceCodeEditorWithMultiRepresentationPreviewState =
     SourceCodeEditorWithMultiRepresentationPreviewState(
       super.getState(level),
-      textEditor.getState(level),
+      myEditor.getState(level),
       preview.getState(level),
-      if (isPureTextEditor) null else layout,
+      if (isPureTextEditor) null else getLayout(),
     )
 
   override fun setState(state: FileEditorState) {
     if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
       super.setState(state.parentState)
-      textEditor.setState(state.editorState)
+      myEditor.setState(state.editorState)
       preview.setState(state.previewState)
 
       setLayoutExplicitly(state.selectedLayout)

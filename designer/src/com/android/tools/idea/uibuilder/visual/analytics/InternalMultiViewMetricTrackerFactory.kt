@@ -67,8 +67,7 @@ internal class InternalMultiViewMetricTrackerFactory {
  * @param surface - key used by [UsageTracker] for session info
  * @param myConsumer - Consumer that eventually calls [UsageTracker.log]
  */
-private class MultiViewMetricTrackerImpl
-internal constructor(
+private class MultiViewMetricTrackerImpl(
   private val myExecutor: Executor,
   private val surface: DesignSurface<*>?,
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>,
@@ -77,8 +76,8 @@ internal constructor(
   /**
    * Returns the [MultiViewEvent.AssociatedSplitEditorMode] for the associated editor to track it.
    */
-  private fun getAssociatedEditorMode(): MultiViewEvent.AssociatedSplitEditorMode =
-    when ((surface?.fileEditorDelegate as? DesignToolsSplitEditor)?.layout) {
+  private fun getAssociatedEditorMode(): MultiViewEvent.AssociatedSplitEditorMode {
+    return when ((surface?.fileEditorDelegate as? DesignToolsSplitEditor)?.getLayout()) {
       TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW ->
         MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
       TextEditorWithPreview.Layout.SHOW_EDITOR -> MultiViewEvent.AssociatedSplitEditorMode.TEXT_MODE
@@ -86,6 +85,7 @@ internal constructor(
         MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
       else -> MultiViewEvent.AssociatedSplitEditorMode.UNKNOWN_MODE
     }
+  }
 
   override fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType) {
     try {
