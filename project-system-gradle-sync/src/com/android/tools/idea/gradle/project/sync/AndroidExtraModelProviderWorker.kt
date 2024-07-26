@@ -29,7 +29,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import java.io.File
 
 internal class BuildInfo(
@@ -68,7 +68,7 @@ internal class AndroidExtraModelProviderWorker(
   private val syncCounters: SyncCounters,
   private val syncOptions: SyncActionOptions,
   private val buildInfo: BuildInfo,
-  private val consumer: ProjectImportModelProvider.BuildModelConsumer
+  private val consumer: GradleModelConsumer
 ) {
   private val safeActionRunner =
     SyncActionRunner.create(controller, syncCounters, syncOptions.flags.studioFlagParallelSyncEnabled)
@@ -110,7 +110,7 @@ internal class AndroidExtraModelProviderWorker(
           }
           is NativeVariantsSyncActionOptions -> {
             // Native sync may run with just a subset of resolvers, so make sure to fetch  IdeaProject and ExternalProject directly
-            consumer.consume(
+            consumer.consumeBuildModel(
               buildInfo.rootBuild,
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
               safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
@@ -129,7 +129,7 @@ internal class AndroidExtraModelProviderWorker(
       modelCollections.forEach { it.deliverModels(consumer) }
     }
     catch (e: AndroidSyncException) {
-      consumer.consume(
+      consumer.consumeBuildModel(
         buildInfo.rootBuild,
         IdeAndroidSyncError(
           type = e.type,

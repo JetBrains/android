@@ -23,11 +23,12 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDebugInfoImpl
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import java.io.File
 import java.net.URLClassLoader
 import java.time.Instant
@@ -51,13 +52,13 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer
-  ) = impl.populateBuildModels(controller, buildModel, consumer)
+    modelConsumer: GradleModelConsumer
+  ) = impl.populateBuildModels(controller, buildModel, modelConsumer)
 
   override fun populateProjectModels(
     controller: BuildController,
-    projectModel: Model,
-    modelConsumer: ProjectImportModelProvider.ProjectModelConsumer
+    projectModel: BasicGradleProject,
+    modelConsumer: GradleModelConsumer
   ) = impl.populateProjectModels(controller, projectModel, modelConsumer)
 }
 
@@ -77,7 +78,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
   fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.BuildModelConsumer
+    consumer: GradleModelConsumer
   ) {
     recordCheckpointData(MeasurementCheckpoint.ANDROID_STARTED)
     // Flatten the platform's handling of included builds. We need all models together to resolve cross `includeBuild` dependencies
@@ -85,7 +86,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     // by any test attempting to sync a composite build.
     val buildModelsAndMap = this.buildModelsAndMap ?: syncCounters.buildInfoPhase {
       val buildModelsAndMap = buildModelsAndMap(buildModel, controller)
-      consumer.consume(buildModel, buildModelsAndMap.map, IdeCompositeBuildMap::class.java)
+      consumer.consumeBuildModel(buildModel, buildModelsAndMap.map, IdeCompositeBuildMap::class.java)
       this.buildModelsAndMap = buildModelsAndMap
       buildModelsAndMap
     }
@@ -140,21 +141,19 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
 
   fun populateProjectModels(
     controller: BuildController,
-    projectModel: Model,
-    modelConsumer: ProjectImportModelProvider.ProjectModelConsumer
+    projectModel: BasicGradleProject,
+    modelConsumer: GradleModelConsumer
   ) {
-    controller.findModel(projectModel, GradlePluginModel::class.java)
-      ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
+    val pluginModel = controller.findModel(projectModel, GradlePluginModel::class.java) ?: return
+    modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java)
   }
 
-  private fun populateDebugInfo(buildModel: GradleBuild,
-                                consumer: ProjectImportModelProvider.BuildModelConsumer) {
+  private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
-    if(classLoader is URLClassLoader) {
+    if (classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
-      consumer.consume(buildModel,
-                       IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath)),
-                       IdeDebugInfo::class.java)
+      val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
+      consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)
     }
   }
 }
