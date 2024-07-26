@@ -40,6 +40,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
@@ -288,6 +290,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val symbolWithVisibility =
         elementToAnalyze.symbol as? KtSymbolWithVisibility ?: return true
 
+      @OptIn(KaExperimentalApi::class)
       return isVisible(
         symbolWithVisibility,
         useSiteFile = ktFile.getFileSymbol(),
@@ -414,6 +417,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         listOf(receiverType),
       )
       .filter {
+        @OptIn(KaExperimentalApi::class)
         isVisible(it as KtSymbolWithVisibility, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
@@ -565,6 +569,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, endOffset)
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        @OptIn(KaIdeApi::class)
         shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
       }
       if (ktFile.importDirectives.all { it.importedFqName != FqName(COMPOSE_MODIFIER_FQN) }) {

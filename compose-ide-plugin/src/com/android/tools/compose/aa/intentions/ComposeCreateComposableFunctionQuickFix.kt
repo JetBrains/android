@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
@@ -132,6 +133,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 val paramName =
                   if (isLastLambdaArgument) "content"
                   else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+                @OptIn(KaExperimentalApi::class)
                 param(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
