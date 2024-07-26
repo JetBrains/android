@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
@@ -39,6 +38,7 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -132,7 +132,7 @@ class ComposePreviewFakeUiGradleRule(
       fakeUi.root.validate()
     }
 
-    waitForSmartMode(project)
+    IndexingTestUtil.suspendUntilIndexesAreReady(project)
 
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()

@@ -28,7 +28,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.PsiCodeFileUpToDateStatusRecorder
@@ -54,6 +53,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
@@ -130,7 +130,8 @@ class ComposePreviewRepresentationGradleTest {
             if (result.isSuccess) compileDeferred.complete(result)
           }
         }
-      waitForSmartMode(project, logger)
+      logger.info("runAndWaitForFastRefresh: waiting for smart mode")
+      IndexingTestUtil.suspendUntilIndexesAreReady(project)
       logger.info("runAndWaitForFastRefresh: Waiting for any previous compilations to complete")
       delayUntilCondition(delayPerIterationMs = 500, timeout = 30.seconds) {
         !FastPreviewManager.getInstance(project).isCompiling
