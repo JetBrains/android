@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.annotations.concurrency.GuardedBy
 import com.android.utils.TraceUtils.getStackTrace
 import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
@@ -26,16 +25,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.util.application
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.ArrayDeque
-import java.util.Deque
 import java.util.concurrent.RejectedExecutionException
 
 /**
  * Module service responsible for managing background actions taken by [ResourceFolderRepository].
  */
 class ResourceFolderRepositoryBackgroundActions : Disposable {
-
-  @GuardedBy("updateQueue") private val updateQueue: Deque<Pair<Runnable, String>> = ArrayDeque()
 
   private val updateExecutor =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRepository", 1)
@@ -51,31 +46,20 @@ class ResourceFolderRepositoryBackgroundActions : Disposable {
     val repositorySimpleId = repository.simpleId
     ResourceUpdateTracer.log { "$repositorySimpleId.scheduleUpdate scheduling $updateAction" }
 
-    synchronized(updateQueue) {
-      val wasEmpty = updateQueue.isEmpty()
-      updateQueue.add(Pair(updateAction, repositorySimpleId))
-      if (!wasEmpty) return
-    }
-
     try {
       updateExecutor.execute {
-        while (true) {
-          val (action, repositorySimpleId) =
-            synchronized(updateQueue) { updateQueue.poll() } ?: return@execute
-
-          ResourceUpdateTracer.log { "$repositorySimpleId: Update $action started" }
-          try {
-            ReadAction.nonBlocking(action).expireWith(this).executeSynchronously()
-            ResourceUpdateTracer.log { "$repositorySimpleId: Update $action finished" }
-          } catch (e: ProcessCanceledException) {
-            ResourceUpdateTracer.log { "$repositorySimpleId: Update $action was canceled" }
-            // The current update action has been canceled. Proceed to the next one in the queue.
-          } catch (e: Throwable) {
-            ResourceUpdateTracer.log {
-              "$repositorySimpleId: Update $action finished with exception $e\n${getStackTrace(e)}"
-            }
-            thisLogger().error(e)
+        ResourceUpdateTracer.log { "$repositorySimpleId: Update $updateAction started" }
+        try {
+          ReadAction.nonBlocking(updateAction).expireWith(this).executeSynchronously()
+          ResourceUpdateTracer.log { "$repositorySimpleId: Update $updateAction finished" }
+        } catch (e: ProcessCanceledException) {
+          ResourceUpdateTracer.log { "$repositorySimpleId: Update $updateAction was canceled" }
+          // The current update action has been canceled. Proceed to the next one in the queue.
+        } catch (e: Throwable) {
+          ResourceUpdateTracer.log {
+            "$repositorySimpleId: Update $updateAction finished with exception $e\n${getStackTrace(e)}"
           }
+          thisLogger().error(e)
         }
       }
     } catch (ignore: RejectedExecutionException) {
