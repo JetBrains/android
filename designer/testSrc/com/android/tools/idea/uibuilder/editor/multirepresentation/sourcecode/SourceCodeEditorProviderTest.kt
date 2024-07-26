@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -30,7 +31,10 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.components.serviceAsync
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileTypes.FileType
@@ -44,6 +48,7 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jdom.Element
@@ -63,6 +68,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
   enum class EditorCreationMode {
     /** Synchronous deprecated mode. */
     SYNC,
+
     /** Asynchronous mode. */
     ASYNC,
   }
@@ -75,6 +81,9 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
 
   private val ideInfo: IdeInfo = mock(IdeInfo::class.java)
 
+  /** Scope passed to the editor provider to run editor initializations. */
+  private lateinit var editorScope: CoroutineScope
+
   private suspend fun buildEditor(
     provider: SourceCodeEditorProvider,
     project: Project,
@@ -82,11 +91,12 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
   ): FileEditor {
     return when (asyncMode) {
       EditorCreationMode.SYNC -> withContext(uiThread) { provider.createEditor(project, file) }
-      EditorCreationMode.ASYNC -> {
-        val builder =
-          withContext(workerThread) { provider.createEditorBuilder(project, file, document = null) }
-        withContext(uiThread) { builder.build() }
-      }
+      EditorCreationMode.ASYNC ->
+        withContext(workerThread) {
+          val fileDocumentManager = serviceAsync<FileDocumentManager>()
+          val document = readAction { fileDocumentManager.getDocument(file) }
+          provider.createFileEditor(project, file, document, editorScope)
+        }
     }.also { Disposer.register(projectRule.testRootDisposable, it) }
   }
 
@@ -96,6 +106,7 @@ class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {
     whenever(ideInfo.isAndroidStudio).thenReturn(true)
     whenever(ideInfo.isGameTools).thenReturn(false)
     projectRule.replaceService(IdeInfo::class.java, ideInfo)
+    editorScope = AndroidCoroutineScope(projectRule.testRootDisposable)
   }
 
   @Test
