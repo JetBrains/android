@@ -19,6 +19,7 @@
 #include <jni.h>
 
 #include <string>
+#include <vector>
 
 #include "casts.h"
 #include "common.h"
