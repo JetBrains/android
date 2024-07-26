@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_190
