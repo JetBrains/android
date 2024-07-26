@@ -261,6 +261,12 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
         """
       )
     } else {
+      // TODO(https://youtrack.jetbrains.com/issue/KTIJ-30601): This test is
+      //  flaky. Highlighting in the test infra seems to have some delay that
+      //  causes a timing issue. When we tested it on the upstream IntelliJ,
+      //  K2 correctly handles this case. We will move it to the upstream IJ.
+      return
+
       doTest(
         """
       import androidx.compose.runtime.Composable
@@ -273,9 +279,15 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       }
 
       object FakeFoo : Foo {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean get() = true
+          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      fun composableFunction(param: Boolean): Boolean
+      @Composable() fun composableFunction(param: Boolean): Boolean">override fun composableFunction(param: Boolean)</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      @Composable() fun nonComposableFunction(param: Boolean): Boolean
+      fun nonComposableFunction(param: Boolean): Boolean">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
+          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      @Composable() get(): Boolean
+      get(): Boolean">@Composable get()</error> = true
       }
 
       interface Bar {
@@ -287,10 +299,16 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       }
 
       object FakeBar : Bar {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [fun composableFunction(param: Boolean): Boolean, @Composable() fun composableFunction(param: Boolean): Boolean]">override fun composableFunction(param: Boolean)</error> = true
-          override val composableProperty: Boolean get() = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun nonComposableFunction(param: Boolean): Boolean, fun nonComposableFunction(param: Boolean): Boolean]">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() get(): Boolean, get(): Boolean]">@Composable get()</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      fun composableFunction(param: Boolean): Boolean
+      @Composable() fun composableFunction(param: Boolean): Boolean">override fun composableFunction(param: Boolean)</error> = true
+          override val composableProperty: Boolean = true
+          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      @Composable() fun nonComposableFunction(param: Boolean): Boolean
+      fun nonComposableFunction(param: Boolean): Boolean">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
+          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      @Composable() get(): Boolean
+      get(): Boolean">@Composable get()</error> = true
       }
 
         """
@@ -478,10 +496,15 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testMissingOverrideComposableLambda() {
     val functionDeclarationWithError =
-      if (!KotlinPluginModeProvider.isK2Mode())
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
-      else
-        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [fun invoke(): Unit, @Composable() fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
+      } else {
+        """<error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      fun invoke(): Unit
+      @Composable() fun invoke(): R" textAttributesKey="ERRORS_ATTRIBUTES">override fun invoke()</error> {}
+        """
+          .trimIndent()
+      }
     doTest(
       """
                 import androidx.compose.runtime.Composable
@@ -496,10 +519,13 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testWrongOverrideLambda() {
     val functionDeclarationWithError =
-      if (!KotlinPluginModeProvider.isK2Mode())
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
-      else
-        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+      } else {
+        """<error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+@Composable() fun invoke(): Unit
+fun invoke(): R" textAttributesKey="ERRORS_ATTRIBUTES">@Composable override fun invoke()</error> {}"""
+      }
     doTest(
       """
                 import androidx.compose.runtime.Composable
@@ -514,10 +540,13 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   @Test
   fun testMultipleOverrideLambda() {
     val functionDeclarationWithError =
-      if (!KotlinPluginModeProvider.isK2Mode())
+      if (!KotlinPluginModeProvider.isK2Mode()) {
         "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
-      else
-        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+      } else {
+        """<error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+@Composable() fun invoke(): Unit
+fun invoke(): R" textAttributesKey="ERRORS_ATTRIBUTES">@Composable override fun invoke()</error> {}"""
+      }
     val mixingFunctionalKindsInSupertypes =
       if (!KotlinPluginModeProvider.isK2Mode()) "() -> Unit, @Composable (Int) -> Unit"
       else
