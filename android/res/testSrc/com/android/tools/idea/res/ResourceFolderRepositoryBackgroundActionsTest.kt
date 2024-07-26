@@ -48,7 +48,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_actionRunWithinReadLock() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val hasReadLock = AtomicBoolean(false)
     backgroundActions.scheduleUpdate(Any()) { hasReadLock.set(application.isReadAccessAllowed) }
@@ -59,7 +59,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_actionsRunInOrder() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val semaphore1 = Semaphore(0)
     val semaphore2 = Semaphore(0)
@@ -94,7 +94,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_throwingActionDoesNotPreventFutureActions() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
@@ -109,7 +109,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_writeActionCanPreempt() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val actionStarted = AtomicInteger()
     val actionFinished = AtomicInteger()
@@ -147,7 +147,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_disposedDuringExecution() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val actionStarted = Semaphore(0)
     val actionFinished = AtomicBoolean()
@@ -181,7 +181,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun updateQueue_queuingAfterDisposal() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
     Disposer.dispose(backgroundActions)
 
     // Should be able to call [scheduleUpdate] without an exception.
@@ -194,7 +194,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun wolfQueue_actionNotRunWithinReadLock() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val hasReadLock = AtomicBoolean(true)
     backgroundActions.submitToWolfQueue { hasReadLock.set(application.isReadAccessAllowed) }
@@ -205,7 +205,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun wolfQueue_actionsRunInOrder() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val semaphore1 = Semaphore(0)
     val semaphore2 = Semaphore(0)
@@ -241,7 +241,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun wolfQueue_throwingActionDoesNotPreventFutureActions() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
@@ -256,7 +256,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   @Test
   fun wolfQueue_queuingAfterDisposal() {
-    val backgroundActions = ResourceFolderRepositoryBackgroundActions(fixture.testRootDisposable)
+    val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
     Disposer.dispose(backgroundActions)
 
     // It's unclear if this is desired behavior or not, but the test is documenting what the current

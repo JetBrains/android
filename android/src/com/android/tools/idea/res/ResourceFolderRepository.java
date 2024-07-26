@@ -218,9 +218,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   @NotNull private final PsiNameHelper myPsiNameHelper;
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
-  // Repository updates have to be applied in FIFO order to produce correct results.
-  private final @NotNull ResourceFolderRepositoryBackgroundActions backgroundActions;
-
   private final @NotNull Object scanLock = new Object();
   @GuardedBy("scanLock")
   private final @NotNull Set<VirtualFile> pendingScans = new HashSet<>();
@@ -288,7 +285,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
                     : psiListener;
 
     myLoader = new Loader(this, cachingData);
-    backgroundActions = new ResourceFolderRepositoryBackgroundActions(myFacet);
     ResourceUpdateTracer.logDirect(() ->
       TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
     );
@@ -652,7 +648,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        backgroundActions.submitToWolfQueue(() ->
+        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
           WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
         );
       }
@@ -664,7 +660,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        backgroundActions.submitToWolfQueue(() ->
+        ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
           WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this)
         );
       }
@@ -795,11 +791,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
   }
 
   /**
-   * Runs the given update action on {@link #backgroundActions} in a read action.
+   * Runs the given update action on {@link #ResourceFolderRepositoryBackgroundActions} in a read action.
    * All update actions are executed in the same order they were scheduled.
    */
   private void scheduleUpdate(@NotNull Runnable updateAction) {
-    backgroundActions.scheduleUpdate(this, updateAction);
+    ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).scheduleUpdate(this, updateAction);
   }
 
   @Override
@@ -1995,7 +1991,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       if (source != null) {
         removeSource(file, source);
       }
-      backgroundActions.submitToWolfQueue(() ->
+      ResourceFolderRepositoryBackgroundActions.getInstance(myFacet.getModule()).submitToWolfQueue(() ->
         WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this)
       );
     }
