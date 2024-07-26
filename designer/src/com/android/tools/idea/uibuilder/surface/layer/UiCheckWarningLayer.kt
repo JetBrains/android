@@ -43,8 +43,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
 
   private var isAnimating = false
   private var borderWidth: Int = BORDER_WIDTH_MAX
-  private val animator =
-    BorderAnimator().apply { Disposer.register(this@UiCheckWarningLayer, this) }
+  private val animator = BorderAnimator().apply { Disposer.register(this@UiCheckWarningLayer, { dispose() }) }
 
   private val borderUpdateListener =
     object : IssueListener {

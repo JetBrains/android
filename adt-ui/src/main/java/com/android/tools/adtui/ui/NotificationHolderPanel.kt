@@ -17,7 +17,6 @@ package com.android.tools.adtui.ui
 
 import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -48,7 +47,6 @@ private const val TOTAL_FRAMES = 150
  * A panel that can display a notification at the top.
  */
 class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane() {
-
   private val fadeOutNotificationContent = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
   private val fadeOutNotificationPopup = NotificationPopup(fadeOutNotificationContent)
   private var animator: Animator? = null
@@ -139,13 +137,13 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
   }
 
   private fun startFadeOutAnimation() {
-    animator?.let(Disposer::dispose)
+    animator?.dispose()
     fadeOutNotificationPopup.alpha = 1.0F
     animator = FadeOutAnimator().apply { resume() }
   }
 
   private fun stopFadeOutAnimation() {
-    animator?.let(Disposer::dispose)
+    animator?.dispose()
     animator = null
   }
 
@@ -177,8 +175,12 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     }
   }
 
-  private inner class FadeOutAnimator : Animator("FadeOutAnimator", TOTAL_FRAMES, FADEOUT_TIME_MILLIS, false) {
-
+  private inner class FadeOutAnimator : Animator(
+    name = "FadeOutAnimator",
+    totalFrames = TOTAL_FRAMES,
+    cycleDuration = FADEOUT_TIME_MILLIS,
+    isRepeatable = false,
+  ) {
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
       val alpha = cos(0.5 * PI * frame / totalFrames).toFloat()
       if (abs(alpha - fadeOutNotificationPopup.alpha) >= 0.005) {
@@ -188,12 +190,12 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     }
 
     override fun paintCycleEnd() {
-      // In a headless or a test environment paintCycleEnd is called by the Animator's constructor.
+      // In a headless or a test environment, paintCycleEnd is called by the Animator's constructor.
       // Don't hide the notification is that case.
       if (!skipAnimation()) {
         hideFadeOutNotificationPopup()
       }
-      Disposer.dispose(this)
+      dispose()
     }
 
     override fun dispose() {
