@@ -17,11 +17,14 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeIrGenerationExtension
+import androidx.compose.compiler.plugins.kotlin.FeatureFlag
+import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.IncompatibleComposeRuntimeVersionException
 import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
@@ -33,12 +36,13 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
       ComposeIrGenerationExtension(
-          reportsDestination = null,
-          metricsDestination = null,
-          generateFunctionKeyMetaClasses = true,
-          intrinsicRememberEnabled = false,
-          useK2 = KotlinPluginModeProvider.isK2Mode(),
-        )
+        generateFunctionKeyMetaClasses = true,
+        useK2 = KotlinPluginModeProvider.isK2Mode(),
+        messageCollector = MessageCollector.NONE,
+        featureFlags = FeatureFlags().apply {
+          setFeature(FeatureFlag.IntrinsicRemember, false)
+        },
+      )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {
       // From ProcessCanceledException javadoc: "Usually, this exception should not be caught,
