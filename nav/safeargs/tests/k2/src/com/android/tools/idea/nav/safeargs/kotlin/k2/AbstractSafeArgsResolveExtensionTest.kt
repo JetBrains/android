@@ -28,14 +28,14 @@ import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.xml.XmlFile
 import kotlin.reflect.full.declaredMemberProperties
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.KtDeclarationRenderer
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KtParameterDefaultValueRenderer
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KaParameterDefaultValueRenderer
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KtValueParameterSymbolRenderer
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KaValueParameterSymbolRenderer
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
@@ -72,7 +72,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
       safeArgsRule.fixture.configureFromExistingVirtualFile(it.virtualFile)
     } as KtFile
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   protected inline fun <reified TSymbol : KtSymbol, TResult> analyzeFileContent(
     @Language("kotlin") fileContent: String,
     fileName: String = "analyzedFile.kt",
@@ -147,8 +147,8 @@ abstract class AbstractSafeArgsResolveExtensionTest {
 
     val RENDERER =
       KtDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
-        valueParameterRenderer = KtValueParameterSymbolRenderer.AS_SOURCE
-        parameterDefaultValueRenderer = KtParameterDefaultValueRenderer.THREE_DOTS
+        valueParameterRenderer = KaValueParameterSymbolRenderer.AS_SOURCE
+        parameterDefaultValueRenderer = KaParameterDefaultValueRenderer.THREE_DOTS
       }
   }
 }

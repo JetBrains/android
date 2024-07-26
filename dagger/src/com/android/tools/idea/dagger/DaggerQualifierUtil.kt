@@ -25,7 +25,7 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
@@ -35,8 +35,8 @@ import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
-import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
@@ -155,8 +155,8 @@ private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
     }
     is KtConstantAnnotationValue -> {
       when (value.constantValue) {
-        is KtConstantValue.KtStringConstantValue ->
-          (value.constantValue as KtConstantValue.KtStringConstantValue).value
+        is KaConstantValue.KaStringConstantValue ->
+          (value.constantValue as KaConstantValue.KaStringConstantValue).value
         else -> value.constantValue.renderAsKotlinConstant()
       }
     }
@@ -232,7 +232,7 @@ private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK1(): QualifierInfo? {
   return null
 }
 
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK2(): QualifierInfo? {
   allowAnalysisOnEdt {
     analyze(this) {
