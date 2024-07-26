@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffset
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
-import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
@@ -34,7 +35,6 @@ import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
@@ -51,9 +51,9 @@ class GridLayoutManager(
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   /** The list of all the [GridLayoutGroup]s applied in this manager. */
-  private val currentLayoutGroups: MutableList<GridLayoutGroup> = mutableListOf()
+  private var cachedLayoutGroups: List<GridLayoutGroup>? = null
 
-  /** When this value is true it should update [currentLayoutGroups]. */
+  /** When this value is true it should update [cachedLayoutGroups]. */
   private var currentAvailableWidth: Int? = null
 
   /** Get the total required size to layout the [content] with the given conditions. */
@@ -64,19 +64,44 @@ class GridLayoutManager(
     availableWidth: Int,
     dimension: Dimension?,
   ): Dimension {
-    val dim = dimension ?: Dimension()
-
-    val groups =
-      transform(content).map { group ->
-        createLayoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
-      }
-
+    val groups = createLayoutGroups(transform(content), scaleFunc, availableWidth, sizeFunc)
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
     val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
     val requiredHeight = groupSizes.sumOf { it.height }
+    return Dimension(requiredWidth, max(0, padding.canvasTopPadding + requiredHeight))
+  }
 
-    dim.setSize(requiredWidth, max(0, padding.canvasTopPadding + requiredHeight))
-    return dim
+  /**
+   * Creates a layout from the given [PositionableGroup]s considering the available width, it can
+   * return a cached value if the content of the Groups hasn't changed.
+   */
+  @VisibleForTesting
+  fun createLayoutGroups(
+    groups: List<PositionableGroup>,
+    scaleFunc: PositionableContent.() -> Double,
+    availableWidth: Int,
+    sizeFunc: PositionableContent.() -> Dimension,
+  ): List<GridLayoutGroup> {
+    val isSameWidth = currentAvailableWidth == availableWidth
+    currentAvailableWidth = availableWidth
+
+    val cachedGroups = cachedLayoutGroups
+    // We skip creating a new layout group if the content hasn't changed, in this way we keep the
+    // same size and layout group order when zooming in or when resizing the window.
+    val canUseCachedGroups =
+      groups.all { group: PositionableGroup ->
+        cachedGroups
+          ?.takeIf { StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() && isSameWidth }
+          ?.any { it.content() == group.content } ?: false
+      }
+    return if (canUseCachedGroups && cachedGroups != null) {
+      cachedGroups
+    } else {
+      val newGroup =
+        groups.map { createLayoutGroup(it, scaleFunc, availableWidth) { sizeFunc().width } }
+      cachedLayoutGroups = newGroup
+      newGroup
+    }
   }
 
   /**
@@ -91,7 +116,7 @@ class GridLayoutManager(
     var groupRequiredWidth = 0
     var groupRequiredHeight = 0
     layoutGroup.header?.let {
-      val scale = scaleFunc(it)
+      val scale = it.scaleFunc()
       val margin = it.getMargin(scale)
       groupRequiredWidth =
         it.sizeFunc().width + margin.horizontal + padding.previewRightPadding(scale, it)
@@ -103,13 +128,15 @@ class GridLayoutManager(
       var rowX = 0
       var currentHeight = 0
       row.forEach { view ->
-        val scale = scaleFunc(view)
+        val scale = view.scaleFunc()
         val margin = view.getMargin(scale)
         rowX += view.sizeFunc().width + margin.horizontal + padding.previewRightPadding(scale, view)
         currentHeight =
           max(
             currentHeight,
-            view.sizeFunc().height + margin.vertical + padding.previewBottomPadding(scale, view),
+            view.calculateHeightWithOffset(view.sizeFunc().height, scale) +
+              margin.vertical +
+              padding.previewBottomPadding(scale, view),
           )
       }
 
@@ -177,14 +204,7 @@ class GridLayoutManager(
       return lowerBound
     }
 
-    return getMaxZoomToFitScale(
-      content,
-      lowerBound,
-      upperBound,
-      availableWidth,
-      availableHeight,
-      Dimension(),
-    )
+    return getMaxZoomToFitScale(content, lowerBound, upperBound, availableWidth, availableHeight)
   }
 
   /** Binary search to find the largest scale for [width] x [height] space. */
@@ -195,23 +215,33 @@ class GridLayoutManager(
     @SurfaceScale max: Double,
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
-    cache: Dimension,
     depth: Int = 0,
   ): Double {
+    // We need to reset the cached layout to recreate a new one that fits the content.
+    cachedLayoutGroups = null
     if (depth >= MAX_ITERATION_TIMES) {
-      return min
+      // because we want to show the content as wide as possible we return max even in case we reach
+      // the max iteration, and we haven't found the perfect zoom to fit value.
+      // It could be that the resulting zoom to fit is a bit higher than the available height. For a
+      // better granularity we can increase MAX_ITERATION_TIMES
+      return max
     }
     if (max - min <= SCALE_UNIT) {
-      // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, width, cache)
-      return if (dim.width <= width && dim.height <= height) max else min
+      // max and min are minor than the unit scale, because we want to show the content as wide as
+      // possible we return max
+      // It could be that the resulting zoom to fit is a bit higher than the available height.
+      return max
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, width, cache)
+    // We get the sizes of the content with the new scale applied.
+    val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
     return if (dim.height <= height) {
-      getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
+      // We want the resulting content fitting into the height we try to lower the scale
+      getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
     } else {
-      getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
+      // We want can increase the scale as the scaled dimension results on a lower height than the
+      // available height
+      getMaxZoomToFitScale(content, min, scale, width, height, depth + 1)
     }
   }
 
@@ -220,28 +250,15 @@ class GridLayoutManager(
    * [PositionableContent]. The [widthFunc] is for getting the preferred widths of
    * [PositionableContent]s when filling the horizontal spaces.
    */
-  @VisibleForTesting
-  fun createLayoutGroup(
+  private fun createLayoutGroup(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): GridLayoutGroup {
-    val isSameWidth = currentAvailableWidth == availableWidth
-    currentAvailableWidth = availableWidth
-
     if (group.content.isEmpty()) {
       return GridLayoutGroup(group.header, emptyList())
     }
-
-    // We skip creating a new layout group if the content hasn't changed, in this way we keep the
-    // same size and layout group order when zooming in or when resizing the window.
-    currentLayoutGroups
-      .takeIf { StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() }
-      ?.firstOrNull { it.content() == group.content && it.header == group.header && isSameWidth }
-      ?.let {
-        return it
-      }
 
     // Need to take into account canvas padding and group offset
     val width =
@@ -266,7 +283,7 @@ class GridLayoutManager(
     }
 
     if (columnList.isNotEmpty()) gridList.add(columnList)
-    return GridLayoutGroup(group.header, gridList).apply { currentLayoutGroups.add(this) }
+    return GridLayoutGroup(group.header, gridList)
   }
 
   override fun measure(
@@ -287,15 +304,14 @@ class GridLayoutManager(
       return mapOf(singleContent to point)
     }
 
-    val groups = transform(content)
+    val groups =
+      createLayoutGroups(transform(content), { scale }, availableWidth, { scaledContentSize })
     var nextY = padding.canvasTopPadding
     var nextX = 0
     var maxYInRow = 0
     val positionMap = mutableMapOf<PositionableContent, Point>()
 
-    groups.forEach { group ->
-      val layoutGroup =
-        createLayoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
+    groups.forEach { layoutGroup ->
       val groupOffsetX = if (layoutGroup.header != null) padding.groupLeftPadding else 0
 
       fun measure(view: PositionableContent) {
@@ -309,7 +325,6 @@ class GridLayoutManager(
             nextY + view.margin.vertical + view.scaledContentSize.height + framePaddingY,
           )
       }
-
       layoutGroup.header?.let {
         nextX = padding.canvasLeftPadding
         measure(it)

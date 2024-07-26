@@ -96,6 +96,9 @@ class SceneViewPeerPanel(
       override val isFocusedContent: Boolean
         get() = sceneView.isFocusedScene
 
+      override val topPanelHeight: Int
+        get() = sceneViewTopPanel.minimumSize.height + BOTTOM_BORDER_HEIGHT
+
       override fun getMargin(scale: Double): Insets {
         val contentSize = getContentSize(null).scaleBy(scale)
         val sceneViewMargin =
