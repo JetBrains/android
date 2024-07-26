@@ -157,4 +157,18 @@ internal class DelayedLruActionQueueTest {
     Disposer.dispose(parentDisposable)
     assertEquals(0, lruActionQueue.queueSize())
   }
+
+  @Test
+  fun `handle already disposed parent`() {
+    val scheduler = VirtualTimeScheduler()
+    val lruActionQueue = DelayedLruActionQueue(3, Duration.ofMinutes(2), scheduler)
+    val parentDisposable = Disposer.newDisposable(testDisposable, "test")
+    Disposer.dispose(parentDisposable)
+
+    var executionCount = 0
+    lruActionQueue.addDelayedAction(parentDisposable) { executionCount++ }
+    lruActionQueue.addDelayedAction(parentDisposable) { executionCount++ }
+    assertEquals(0, lruActionQueue.queueSize())
+    assertEquals(0, executionCount)
+  }
 }
