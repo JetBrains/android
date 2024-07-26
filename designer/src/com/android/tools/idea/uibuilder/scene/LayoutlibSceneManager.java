@@ -22,11 +22,9 @@ import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_P
 import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
-import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -52,15 +50,11 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.rendering.RenderResults;
-import com.android.tools.idea.rendering.RenderServiceUtilsKt;
-import com.android.tools.idea.rendering.ShowFixFactory;
-import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.io.PsiFileUtil;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -75,7 +69,6 @@ import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
-import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
@@ -87,9 +80,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColorUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -109,7 +100,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -131,7 +121,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
   private boolean myUseCustomInflater = true;
-  private ResourceNotificationManager.ResourceVersion myRenderedVersion;
   // Variables to track previous values of the configuration bar for tracking purposes
   private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
   private long myElapsedFrameTimeMs = -1;
@@ -264,7 +253,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
-    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model);
+    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, this::createRenderTask);
     myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
 
@@ -618,7 +607,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRenderAsync() {
     // Don't re-render if we're just showing the blueprint
-    if (myRenderedVersion != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
+    if (myLayoutlibSceneRenderer.getRenderedVersion() != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
       return requestLayoutAsync(false);
     }
 
@@ -751,105 +740,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @VisibleForTesting
   protected RenderModelModule wrapRenderModule(RenderModelModule core) {
     return core;
-  }
-
-  /**
-   * Synchronously inflates the model and updates the view hierarchy
-   *
-   * @param force forces the model to be re-inflated even if a previous version was already inflated
-   * @return A {@link CompletableFuture} containing the {@link RenderResult} of the inflate operation or containing null
-   * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
-   */
-  @NotNull
-  private CompletableFuture<RenderResult> inflateAsync(boolean force, AtomicBoolean reverseUpdate) {
-    Project project = getModel().getProject();
-    if (project.isDisposed() || isDisposed.get()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    if (myLayoutlibSceneRenderer.getRenderTask() != null && !force) {
-      // No need to inflate
-      return CompletableFuture.completedFuture(null);
-    }
-
-    // Some types of files must be saved to disk first, because layoutlib doesn't
-    // delegate XML parsers for non-layout files (meaning layoutlib will read the
-    // disk contents, so we have to push any edits to disk before rendering)
-    PsiFileUtil.saveFileIfNecessary(getModel().getFile());
-
-    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
-    // external changes
-    AndroidFacet facet = getModel().getFacet();
-    Configuration configuration = getModel().getConfiguration();
-    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
-    myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
-
-    RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? RenderServiceUtilsKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
-    return createRenderTask(configuration, renderService, logger).thenCompose(newTask -> {
-        if (newTask != null) {
-          newTask.setDefaultForegroundColor('#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
-          return newTask.inflate().whenComplete((result, inflateException) -> {
-            Throwable exception = inflateException;
-            if (exception == null && result != null) {
-              exception = result.getRenderResult().getException();
-            }
-
-            if (exception != null) {
-              if (result == null || !result.getRenderResult().isSuccess()) {
-                // Do not ignore ClassNotFoundException on inflate
-                if (exception instanceof ClassNotFoundException) {
-                  logger.addMessage(RenderProblem.createHtml(ERROR,
-                                                             "Error inflating the preview",
-                                                             facet.getModule().getProject(),
-                                                             logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
-                }
-                else {
-                  logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", exception, null, null);
-                }
-              }
-              Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
-            }
-
-            // If the result is not valid or the project was already disposed, then we do not need the task.
-            // Also remove the previous task if the render has finished but was not a success.
-            if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess() || isDisposed.get()) {
-              newTask.dispose();
-              myLayoutlibSceneRenderer.setRenderTask(null);
-            }
-            else {
-              myLayoutlibSceneRenderer.setRenderTask(newTask);
-            }
-          })
-            .handle((result, exception) -> {
-              if (project.isDisposed()) return null;
-              return result != null ? result : RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
-            });
-        }
-        else {
-          myLayoutlibSceneRenderer.setRenderTask(null);
-
-          if (project.isDisposed()) return CompletableFuture.completedFuture(null);
-          return CompletableFuture.completedFuture(RenderResults.createRenderTaskErrorResult(getModel().getFile(), logger));
-        }
-      })
-      .thenApply(result -> {
-        if (!project.isDisposed() && result != null) {
-          myLayoutlibSceneRenderer.setRenderResult(result);
-          if (result.getRenderResult().isSuccess()) {
-            reverseUpdate.set(myLayoutlibSceneRenderer.updateHierarchy(result));
-          }
-        }
-        return result;
-      })
-      .whenCompleteAsync((RenderResult result, Throwable throwable) -> {
-        if (throwable != null) {
-          Logger.getInstance(LayoutlibSceneManager.class).warn(throwable);
-        }
-        if (result != null && result.getRenderResult().isSuccess()) {
-          getModel().notifyListenersModelDerivedDataChanged();
-          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE);
-        }
-      }, AppExecutorUtil.getAppExecutorService());
   }
 
   private CompletableFuture<RenderTask> createRenderTask(Configuration configuration, RenderService renderService, RenderLogger logger) {
@@ -1035,7 +925,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   @NotNull
   private CompletableFuture<RenderResult> renderImplAsync(AtomicBoolean reverseUpdate) {
-    return inflateAsync(myForceInflate.getAndSet(false), reverseUpdate)
+    return myLayoutlibSceneRenderer.inflateAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate)
       .thenCompose(inflateResult -> {
         if (inflateResult != null && !inflateResult.getRenderResult().isSuccess()) {
           getDesignSurface().updateErrorDisplay();
@@ -1257,7 +1147,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
-      if (!version.equals(myRenderedVersion)) {
+      if (!version.equals(myLayoutlibSceneRenderer.getRenderedVersion())) {
         forceReinflate();
       }
       requestLayoutAndRenderAsync();
