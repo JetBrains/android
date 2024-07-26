@@ -44,7 +44,7 @@ class DeclarativePsiFactory(private val project: Project) {
     createFromText("placeholder = $value") ?: error("Failed to create Declarative literal from text \"$value\"")
 
   fun createLiteral(value: Any?): DeclarativeLiteral =
-    when(value) {
+    when (value) {
       is String -> createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
@@ -71,7 +71,7 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createNewline(): PsiElement = createToken("\n")
 
-  fun createComma(): LeafPsiElement =  createFile(",").descendantOfType()!!
+  fun createComma(): LeafPsiElement = createFile(",").descendantOfType()!!
 
   private fun createToken(token: String): PsiElement =
     PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)

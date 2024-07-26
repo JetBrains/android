@@ -28,7 +28,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 
-class DeclarativeHighlighter: SyntaxHighlighterBase() {
+class DeclarativeHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = DeclarativeHighlightingLexer()
 
 

@@ -84,6 +84,7 @@ class DeclarativeFormatBlock(
         ASSIGNMENT, FACTORY, BLOCK, LINE_COMMENT -> Indent.getNormalIndent()
         else -> Indent.getNoneIndent()
       }
+
       else -> Indent.getNoneIndent()
     }
   }

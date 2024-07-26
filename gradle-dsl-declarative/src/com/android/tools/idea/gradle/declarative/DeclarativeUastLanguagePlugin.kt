@@ -78,7 +78,9 @@ class DeclarativeUastLanguagePlugin : UastLanguagePlugin {
   private fun makeUParent(element: PsiElement) =
     element.parents(false).mapNotNull { convertElementWithParent(it, null) }.firstOrNull()
 
-  private fun convertElementWithParentProvider(element: PsiElement, parentProvider: () -> UElement?, requiredType: Class<out UElement>?): UElement? {
+  private fun convertElementWithParentProvider(element: PsiElement,
+                                               parentProvider: () -> UElement?,
+                                               requiredType: Class<out UElement>?): UElement? {
     return when (element) {
       is DeclarativeFile -> DeclarativeUFile(element, this)
       is DeclarativeAssignment -> DeclarativeUAssignment(element, parentProvider)
@@ -123,7 +125,8 @@ class DeclarativeUFile(override val sourcePsi: DeclarativeFile, override val lan
 
 interface DeclarativeUEntry : UExpression
 
-class DeclarativeUFactory(override val sourcePsi: DeclarativeFactory, parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
+class DeclarativeUFactory(override val sourcePsi: DeclarativeFactory,
+                          parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
   override val classReference: UReferenceExpression? = null
   override val kind: UastCallKind = UastCallKind.METHOD_CALL
   override val methodIdentifier: UIdentifier? = UIdentifier(sourcePsi.identifier, this)
@@ -136,7 +139,8 @@ class DeclarativeUFactory(override val sourcePsi: DeclarativeFactory, parentProv
   override val typeArguments: List<PsiType> = listOf()
   override val uAnnotations: List<UAnnotation> = listOf()
   override val uastParent: UElement? by lazy(parentProvider)
-  override val valueArguments: List<UExpression> = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) } ?: listOf()
+  override val valueArguments: List<UExpression> = sourcePsi.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) }
+                                                   ?: listOf()
   override val valueArgumentCount: Int = valueArguments.size
   override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)
   override fun resolve(): PsiMethod? = null
@@ -166,7 +170,7 @@ class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider
   override fun asRenderString(): String {
     val name = methodName ?: methodIdentifier?.name ?: "<noref>"
     val argumentString = valueArguments.dropLast(1).takeIf { it.isNotEmpty() }
-      ?.joinToString(prefix = "(", postfix = ")") ?: ""
+                           ?.joinToString(prefix = "(", postfix = ")") ?: ""
     val lambdaString = valueArguments.last().asRenderString()
     return "$name$argumentString $lambdaString"
   }
@@ -192,7 +196,8 @@ class DeclarativeUAction(entries: List<DeclarativeEntry>, override val uastParen
   override val uAnnotations: List<UAnnotation> = listOf()
 }
 
-class DeclarativeUAssignment(override val sourcePsi: DeclarativeAssignment, parentProvider: () -> UElement?) : DeclarativeUEntry, UBinaryExpression {
+class DeclarativeUAssignment(override val sourcePsi: DeclarativeAssignment,
+                             parentProvider: () -> UElement?) : DeclarativeUEntry, UBinaryExpression {
   override val leftOperand: UExpression = DeclarativeUSimpleProperty(sourcePsi.identifier, this)
   override val operator: UastBinaryOperator = UastBinaryOperator.ASSIGN
   override val operatorIdentifier: UIdentifier? = null
@@ -209,18 +214,22 @@ fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpressio
   when (this) {
     is DeclarativeLiteral -> DeclarativeULiteral(this, uastParent)
     is DeclarativeFactory -> DeclarativeUFactory(this) { uastParent }
-    is DeclarativeProperty -> receiver?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(this.field, uastParent)
+    is DeclarativeProperty -> receiver?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
+      this.field, uastParent)
+
     else -> error("Unexpected DeclarativeValue: $this")
   }
 
-class DeclarativeULiteral(override val sourcePsi: DeclarativeLiteral, override val uastParent: UElement?): ULiteralExpression {
+class DeclarativeULiteral(override val sourcePsi: DeclarativeLiteral, override val uastParent: UElement?) : ULiteralExpression {
   override val psi: PsiElement? = sourcePsi
   override val uAnnotations: List<UAnnotation> = listOf()
   override val value: Any? = sourcePsi.value
   override fun evaluate(): Any? = value
 }
 
-class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeProperty, override val uastParent: UElement?, receiver: DeclarativeProperty): UQualifiedReferenceExpression {
+class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeProperty,
+                                    override val uastParent: UElement?,
+                                    receiver: DeclarativeProperty) : UQualifiedReferenceExpression {
   override val accessType: UastQualifiedExpressionAccessType = UastQualifiedExpressionAccessType.SIMPLE
   override val psi: PsiElement? = sourcePsi
   override val receiver: UExpression = receiver.toDeclarativeUExpression(this)
@@ -230,7 +239,8 @@ class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeProperty,
   override fun resolve(): PsiElement? = null
 }
 
-class DeclarativeUSimpleProperty(override val sourcePsi: DeclarativeIdentifier, override val uastParent: UElement?): USimpleNameReferenceExpression {
+class DeclarativeUSimpleProperty(override val sourcePsi: DeclarativeIdentifier,
+                                 override val uastParent: UElement?) : USimpleNameReferenceExpression {
   override val identifier: String = sourcePsi.name ?: "<noref>"
   override val psi: PsiElement? = sourcePsi
   override val resolvedName: String? = null
