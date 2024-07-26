@@ -40,8 +40,8 @@ import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
-class SafeArgsResolveExtensionModuleService(private val module: Module) :
-  KtResolveExtension(), Disposable.Default {
+class SafeArgsResolveExtensionModuleService(private val module: Module) : KtResolveExtension() {
+
   private data class Status(
     val args: List<ArgsClassResolveExtensionFile>,
     val directions: List<DirectionsClassResolveExtensionFile>,
