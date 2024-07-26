@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.dagger
 
+import com.intellij.testFramework.IndexingTestUtil
+
 class GoToRelatedDaggerItemsActionTest : DaggerTestCase() {
   fun testAction() {
     myFixture.configureByText(
@@ -32,6 +34,7 @@ class GoToRelatedDaggerItemsActionTest : DaggerTestCase() {
         .trimIndent(),
     )
 
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     myFixture.performEditorAction("GoToRelatedDaggerItemsAction")
 
     myFixture.checkResult(
