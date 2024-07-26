@@ -224,7 +224,7 @@ class AddTargetVersionCheckQuickFix(
     val used = allowAnalysisOnEdt {
       @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
       allowAnalysisFromWriteAction {
-        analyze(element) { (element as? KtExpression)?.isUsedAsExpression() ?: false }
+        analyze(element) { (element as? KtExpression)?.isUsedAsExpression ?: false }
       }
     }
     return if (used) {

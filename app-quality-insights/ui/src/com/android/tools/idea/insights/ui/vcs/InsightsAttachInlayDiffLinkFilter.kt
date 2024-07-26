@@ -255,7 +255,7 @@ class InsightsTextInlayPresentation(
     // We assume this will be a better approximation to a real line height for a given font
     val fontHeight = ceil(font.createGlyphVector(context, "H").visualBounds.height).toInt()
 
-    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType)
+    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType, UISettings.getInstance().ideScale)
   }
 
   private fun getCurrentContext(editorComponent: JComponent): FontRenderContext {

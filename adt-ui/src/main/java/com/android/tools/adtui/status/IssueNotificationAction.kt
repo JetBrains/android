@@ -62,7 +62,7 @@ val REFRESH_BUTTON =
 
 internal fun chipBorder(color: Color): Border = object: RoundedLineBorder(
   UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS) {
-  override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
+  override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
     // Slightly hack RoundedLineBorder since it has a rendering bug in HiDPI modes.
     // Will need to properly fix this by overriding the underlying component's paint method to
     // use a filled Path instead of line rendering for border drawing.

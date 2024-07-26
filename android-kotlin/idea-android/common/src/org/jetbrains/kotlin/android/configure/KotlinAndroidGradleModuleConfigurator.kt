@@ -341,7 +341,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                   languageLevel -> module.name to languageLevel.toJavaVersion().toString() }
               }
               .toMap()
-            val changedFiles = configureWithVersion(project, modules, version, collector, emptyMap(), modulesAndJvmTargets)
+            val (_, changedFiles) = configureWithVersion(project, modules, version, collector, emptyMap(), modulesAndJvmTargets)
 
             for (file in changedFiles.getChangedFiles()) {
                 OpenFileAction.openFile(file.virtualFile, project)

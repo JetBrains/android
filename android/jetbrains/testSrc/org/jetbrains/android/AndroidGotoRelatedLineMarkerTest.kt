@@ -256,7 +256,7 @@ class AndroidGotoRelatedLineMarkerTest {
     val e = TestActionEvent.createTestEvent(action)
     ActionUtil.performDumbAwareUpdate(action, e, false)
     assertThat(e.presentation.isEnabledAndVisible).isTrue()
-    return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
+    return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor)
   }
 
   private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>,

@@ -32,9 +32,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopesCore
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
-import org.jetbrains.kotlin.analysis.providers.topics.KotlinTopics
 import org.jetbrains.kotlin.idea.base.util.parentsWithSelf
 import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.kotlin.name.ClassId
@@ -104,7 +104,7 @@ class SafeArgsResolveExtensionModuleService(private val module: Module) :
       // NavStatusCache even if we're not currently acting as a KtResolveExtension.
       && NavInfoFetcher.isSafeArgsModule(module, SafeArgsMode.KOTLIN)
     ) {
-      module.fireEvent(KotlinTopics.MODULE_OUT_OF_BLOCK_MODIFICATION) { onModification(it) }
+      module.fireEvent(KotlinModificationTopics.MODULE_OUT_OF_BLOCK_MODIFICATION) { onModification(it) }
     }
   }
 
