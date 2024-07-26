@@ -117,7 +117,8 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
     val button = waitUntilShowing(
       robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
-        return text == component.action.templateText
+        return text == component.action.templateText ||
+               (component.presentation.description?.startsWith(text) ?: false)
       }
     })
     return ActionButtonFixture(robot(), button)
