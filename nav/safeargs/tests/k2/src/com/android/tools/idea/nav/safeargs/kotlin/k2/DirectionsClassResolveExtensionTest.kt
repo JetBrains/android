@@ -32,13 +32,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolVisibility
 import org.jetbrains.kotlin.analysis.api.symbols.psi
-import org.jetbrains.kotlin.analysis.api.types.KtErrorType
-import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
@@ -108,11 +108,11 @@ class DirectionsClassResolveExtensionTest(
         val x: ${caret}Fragment1Directions = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
-      assertThat(symbol.classIdIfNonLocal?.asFqNameString())
-        .isEqualTo("test.safeargs.Fragment1Directions")
-      assertThat(getPrimaryConstructorSymbol(symbol).visibility).isEqualTo(Visibilities.Private)
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Directions")
+      assertThat(getPrimaryConstructorSymbol(symbol).visibility)
+        .isEqualTo(KaSymbolVisibility.PRIVATE)
       assertThat(getRenderedMemberFunctions(symbol, RENDERER)).isEmpty()
       assertThat(getRenderedMemberFunctions(symbol.companionObject!!, RENDERER))
         .containsExactly(
@@ -162,7 +162,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
 
@@ -182,7 +182,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}someOtherAction
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
   }
@@ -227,8 +227,8 @@ class DirectionsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType).isNotInstanceOf(KtErrorType::class.java)
+    ) { symbol: KaPropertySymbol ->
+      assertThat(symbol.returnType).isNotInstanceOf(KaErrorType::class.java)
     }
 
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.NONE
@@ -241,8 +241,8 @@ class DirectionsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType).isInstanceOf(KtErrorType::class.java)
+    ) { symbol: KaPropertySymbol ->
+      assertThat(symbol.returnType).isInstanceOf(KaErrorType::class.java)
     }
 
     // Change should be picked up after we change modes again.
@@ -263,7 +263,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}someOtherAction
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
   }
@@ -364,7 +364,7 @@ class DirectionsClassResolveExtensionTest(
         val x: ${caret}Fragment1Directions = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(getRenderedMemberFunctions(symbol.companionObject!!, RENDERER))
         .containsExactly(
           "fun actionScalar(" +
@@ -433,7 +433,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2(" +
@@ -487,7 +487,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2(argument: kotlin.Int = ...): androidx.navigation.NavDirections"
@@ -541,7 +541,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       val argumentBody =
         if (navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
           "argumentBefore: kotlin.Int, argumentAfter: kotlin.Int, argumentWithDefault: kotlin.Int = ..."
@@ -626,7 +626,7 @@ class DirectionsClassResolveExtensionTest(
         ${this}
       """
         .trimIndent()
-    ) { symbol: KtSymbol ->
+    ) { symbol: KaSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol))
         .containsExactlyElementsIn(listOfNotNull(target))
     }

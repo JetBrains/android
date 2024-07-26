@@ -19,10 +19,10 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
-import org.jetbrains.kotlin.analysis.project.structure.KtModule
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 
-internal fun <T : Any> Module.fireEvent(topic: Topic<T>, callEventHandler: T.(KtModule) -> Unit) =
+internal fun <T : Any> Module.fireEvent(topic: Topic<T>, callEventHandler: T.(KaModule) -> Unit) =
   runWriteAction {
     val publisher = project.analysisMessageBus.syncPublisher(topic)
     this@fireEvent.toKaModulesForModificationEvents().forEach { publisher.callEventHandler(it) }
