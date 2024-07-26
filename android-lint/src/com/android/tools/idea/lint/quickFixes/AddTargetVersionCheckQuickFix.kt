@@ -16,40 +16,33 @@
 package com.android.tools.idea.lint.quickFixes
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.codeInspection.JavaSuppressionUtil
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.ScrollType
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiBasedModCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiExpression
-import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.IncorrectOperationException
+import com.intellij.psi.util.endOffset
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder
-import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtContainerNode
@@ -66,79 +59,52 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 /** Fix which surrounds an API warning with a version check */
 class AddTargetVersionCheckQuickFix(
   project: Project,
+  element: PsiElement,
   private val api: Int,
   private val sdkId: Int,
   private val minSdk: ApiConstraint,
-) :
-  DefaultLintQuickFix(
+) : PsiBasedModCommandAction<PsiElement>(element) {
+
+  private val name: String =
     if (sdkId == ANDROID_SDK_ID)
-      "Surround with if (VERSION.SDK_INT >= ${getVersionField(api, false).let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }}) { ... }"
+      "Surround with if (VERSION.SDK_INT >= ${
+        getVersionField(api, false).let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }
+      }) { ... }"
     else
       "Surround with if (SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)})) >= $api) { ... }"
-  ) {
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean {
+  override fun getFamilyName(): String = "AddTargetVersionCheckQuickFix"
+
+  override fun getPresentation(context: ActionContext, element: PsiElement): Presentation? {
     // Don't offer this unless we're in an Android module
-    if (AndroidFacet.getInstance(endElement) == null) {
-      return false
+    if (AndroidFacet.getInstance(element) == null) {
+      return null
     }
 
-    return when (startElement.language) {
+    return when (element.language) {
       JavaLanguage.INSTANCE -> {
-        val expression = PsiTreeUtil.getParentOfType(startElement, PsiExpression::class.java, false)
-        expression != null
+        PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false)?.let {
+          Presentation.of(name)
+        }
       }
       KotlinLanguage.INSTANCE -> {
-        getKotlinTargetExpression(startElement) != null
+        getKotlinTargetExpression(element)?.let { Presentation.of(name) }
       }
-      else -> false
+      else -> null
     }
   }
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
-    if (!prepareElementForWrite(startElement)) {
-      return
+  override fun perform(context: ActionContext, element: PsiElement): ModCommand =
+    when (element.language) {
+      JavaLanguage.INSTANCE -> handleJava(element, context)
+      KotlinLanguage.INSTANCE -> handleKotlin(element, context)
+      else -> ModCommand.nop()
     }
-    when (startElement.language) {
-      JavaLanguage.INSTANCE -> handleJava(startElement, context)
-      KotlinLanguage.INSTANCE -> handleKotlin(startElement, context)
-    }
-  }
 
-  private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
-    val targetExpression = getKotlinTargetExpression(element) ?: return
+  private fun handleKotlin(element: PsiElement, context: ActionContext): ModCommand {
+    val targetExpression = getKotlinTargetExpression(element) ?: return ModCommand.nop()
     val project = targetExpression.project
-    targetExpression.findExistingEditor()
-    val editor = context.getEditor(targetExpression.containingFile) ?: return
-    val file = targetExpression.containingFile
-    val documentManager = PsiDocumentManager.getInstance(project)
-    val document = editor.document
-    if (!prepareElementForWrite(file)) {
-      return
-    }
 
-    val surrounder =
-      if (sdkId == ANDROID_SDK_ID) {
-        getKotlinSurrounder(
-          targetExpression,
-          "\"VERSION.SDK_INT < ${getVersionField(api, false)}\"",
-        )
-      } else {
-        getKotlinSurrounder(
-          targetExpression,
-          "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\"",
-        )
-      }
-    val conditionRange =
-      surrounder.surroundElements(project, editor, arrayOf(targetExpression)) ?: return
     val conditionText =
       if (sdkId == ANDROID_SDK_ID)
         "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
@@ -146,14 +112,13 @@ class AddTargetVersionCheckQuickFix(
         "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
       }
 
-    document.replaceString(conditionRange.startOffset, conditionRange.endOffset, conditionText)
-    documentManager.commitDocument(document)
+    val todoText =
+      if (sdkId == ANDROID_SDK_ID) "\"VERSION.SDK_INT < ${getVersionField(api, false)}\""
+      else
+        "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\""
 
-    ShortenReferencesFacility.getInstance()
-      .shorten(
-        documentManager.getPsiFile(document) as KtFile,
-        TextRange.from(conditionRange.startOffset, conditionText.length),
-      )
+    return getKotlinSurrounder(targetExpression, conditionText, todoText)
+      .surroundElements(context, arrayOf(targetExpression))
   }
 
   private fun getExtensionCheckPrefix(): String {
@@ -165,45 +130,38 @@ class AddTargetVersionCheckQuickFix(
     else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
   }
 
-  private fun handleJava(element: PsiElement, context: AndroidQuickfixContexts.Context) {
+  private fun handleJava(element: PsiElement, context: ActionContext): ModCommand {
+    val project = element.project
     val expression =
-      PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return
-    val editor = context.getEditor(expression.containingFile) ?: return
+      PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false)
+        ?: return ModCommand.nop()
     val anchorStatement =
-      PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return
-    val project = expression.project
-    val document = editor.document
+      PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return ModCommand.nop()
 
-    val owner = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, false)
     var elements = arrayOf<PsiElement>(anchorStatement)
     val prev = PsiTreeUtil.skipWhitespacesBackward(anchorStatement)
     if (prev is PsiComment && JavaSuppressionUtil.getSuppressedInspectionIdsIn(prev) != null) {
       elements = arrayOf(prev, anchorStatement)
     }
-    try {
-      val textRange = JavaWithIfSurrounder().surroundElements(project, editor, elements) ?: return
-      val newText =
-        if (sdkId == ANDROID_SDK_ID)
-          "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
-        else
-          "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
-      document.replaceString(textRange.startOffset, textRange.endOffset, newText)
-      val documentManager = PsiDocumentManager.getInstance(project)
-      documentManager.commitDocument(document)
 
-      editor.caretModel.moveToOffset(textRange.endOffset + newText.length)
-      editor.scrollingModel.scrollToCaret(ScrollType.RELATIVE)
+    val newText =
+      if (sdkId == ANDROID_SDK_ID)
+        "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
+      else
+        "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
 
-      if (
-        owner != null &&
-          owner.isValid &&
-          // Unit tests: "JavaDummyHolder" doesn't work
-          !ApplicationManager.getApplication().isUnitTestMode
-      ) {
-        JavaCodeStyleManager.getInstance(project).shortenClassReferences(owner)
-      }
-    } catch (e: IncorrectOperationException) {
-      Logger.getInstance(AddTargetVersionCheckQuickFix::class.java).error(e)
+    return ModCommand.psiUpdate(context) { updater ->
+      val statement =
+        JavaWithIfSurrounder()
+          .surroundStatements(
+            project,
+            updater.getWritable(anchorStatement.parent),
+            elements.map { updater.getWritable(it) }.toTypedArray(),
+            newText,
+          )
+
+      JavaCodeStyleManager.getInstance(project).shortenClassReferences(statement)
+      updater.moveCaretTo(statement.lParenth?.endOffset ?: statement.textOffset)
     }
   }
 
@@ -219,20 +177,36 @@ class AddTargetVersionCheckQuickFix(
     return current
   }
 
-  @OptIn(KaAllowAnalysisOnEdt::class)
-  private fun getKotlinSurrounder(element: KtElement, todoText: String?): KotlinIfSurrounder {
-    val used = allowAnalysisOnEdt {
-      @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-      allowAnalysisFromWriteAction {
-        analyze(element) { (element as? KtExpression)?.isUsedAsExpression ?: false }
+  private fun getKotlinSurrounder(
+    element: KtElement,
+    conditionText: String,
+    todoText: String,
+  ): KotlinIfSurrounder {
+    val used = analyze(element) { (element as? KtExpression)?.isUsedAsExpression ?: false }
+
+    return object : KotlinIfSurrounder() {
+      override fun getCodeTemplate(): String =
+        if (used) "if (a) { \n} else {\nTODO($todoText)\n}" else super.getCodeTemplate()
+
+      override fun surroundStatements(
+        context: ActionContext,
+        container: PsiElement,
+        statements: Array<out PsiElement>,
+        updater: ModPsiUpdater,
+      ) {
+        super.surroundStatements(context, container, statements, updater)
+
+        // [KotlinIfSurrounderBase] removes the condition and leaves the caret in its place,
+        // so we have to continue editing manually for now...
+        val file = container.containingFile
+        val document = file.fileDocument
+        PsiDocumentManager.getInstance(container.project)
+          .doPostponedOperationsAndUnblockDocument(document)
+        document.insertString(updater.caretOffset, conditionText)
+        PsiDocumentManager.getInstance(container.project).commitDocument(document)
+        ShortenReferencesFacility.getInstance()
+          .shorten(file as KtFile, TextRange.from(updater.caretOffset, conditionText.length))
       }
-    }
-    return if (used) {
-      object : KotlinIfSurrounder() {
-        override fun getCodeTemplate(): String = "if (a) { \n} else {\nTODO(${todoText ?: ""})\n}"
-      }
-    } else {
-      KotlinIfSurrounder()
     }
   }
 
