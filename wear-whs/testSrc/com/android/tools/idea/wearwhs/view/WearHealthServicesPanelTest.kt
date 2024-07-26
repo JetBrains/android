@@ -52,7 +52,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -301,33 +300,34 @@ class WearHealthServicesPanelTest {
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
 
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
       // Heart Rate
       stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
       stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
       stateManager.applyChanges()
-
-      deviceManager.activeExercise = true
 
       fakeUi.waitForCheckbox("Heart rate", true)
       fakeUi.waitForDescendant<JTextField> { it.text == "50" && it.isVisible && it.isEnabled }
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
     }
 
-  @Ignore("b/342411390")
   @Test
   fun `test disabled sensors have disabled override value fields and units during exercise`() =
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
+
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
 
       // Heart Rate
       stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
       stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
       stateManager.applyChanges()
 
-      deviceManager.activeExercise = true
-
       fakeUi.waitForCheckbox("Heart rate", false)
-      fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }
+      fakeUi.waitForDescendant<JTextField> { it.text == "50" && it.isVisible && !it.isEnabled }
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
     }
 
