@@ -25,13 +25,16 @@ val DeclarativeLiteral.kind: DeclarativeLiteralKind?
   }
 
 sealed class DeclarativeLiteralKind(val node: ASTNode) {
-  abstract val value:Any?
+  abstract val value: Any?
+
   class Boolean(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.Boolean = node.text == "true"
   }
+
   class Number(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.Number? = node.text.toIntOrNull(10)
   }
+
   class String(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.String = node.text.trim('\"')
   }

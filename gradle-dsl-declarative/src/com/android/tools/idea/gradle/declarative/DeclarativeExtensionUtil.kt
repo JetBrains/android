@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFactory
-import com.intellij.psi.PsiElement
-import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import com.android.tools.idea.gradle.declarative.ElementType.BLOCK
 import com.android.tools.idea.gradle.declarative.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.declarative.ElementType.FACTORY
 import com.android.tools.idea.gradle.declarative.ElementType.INTEGER
 import com.android.tools.idea.gradle.declarative.ElementType.LONG
 import com.android.tools.idea.gradle.declarative.ElementType.STRING
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeFactory
+import com.intellij.psi.PsiElement
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 
 enum class ElementType(val str: String) {
   STRING("String"),
