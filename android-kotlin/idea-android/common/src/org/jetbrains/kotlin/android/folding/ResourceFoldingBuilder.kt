@@ -24,6 +24,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.getConfiguredValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.folding.AndroidFoldingSettings
+import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
@@ -35,6 +36,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UElement
@@ -242,17 +244,22 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
                 if (number > 0 && number < args.size) {
                     val argExpression = args[number]
-                    var value: Any? = argExpression.evaluate()
-
-                    if (value == null) {
-                        value = args[number].asSourceString()
-                    }
+                    val value =
+                        argExpression.evaluate()?.toString()
+                            // Work around issue where UAST constant evaluation on K2 won't recurse
+                            // into local variable references. We use `tryEvaluateConstantAsText`
+                            // directly on the KtExpression reference instead, which already has
+                            // code to work around the underlying constant evaluator issue.
+                            // TODO(KTIJ-30649): Remove this workaround.
+                            ?: (argExpression.sourcePsi as? KtExpression)
+                                ?.tryEvaluateConstantAsText()
+                            ?: argExpression.asSourceString()
 
                     for (i in start until matchStart) {
                         sb.append(formatString[i])
                     }
 
-                    sb.append("{")
+                    sb.append('{')
                     sb.append(value)
                     sb.append('}')
                     start = index
