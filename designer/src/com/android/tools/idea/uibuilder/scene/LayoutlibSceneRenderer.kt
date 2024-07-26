@@ -16,20 +16,45 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.rendering.ShowFixFactory
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createHtmlLogger
+import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.rendering.isErrorResult
+import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion
+import com.android.tools.idea.uibuilder.io.saveFileIfNecessary
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.rendering.ProblemSeverity
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.ColorUtil
+import com.intellij.util.ui.UIUtil
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import org.jetbrains.android.facet.AndroidFacet
 
 // TODO(b/335424569): this class is meant to be used for extracting the rendering responsibilities
 //   out of LayoutlibSceneManager. Add proper class description later.
@@ -37,7 +62,11 @@ internal class LayoutlibSceneRenderer(
   parentDisposable: Disposable,
   private val disposeExecutor: Executor,
   private val model: NlModel,
+  private val surface: NlDesignSurface,
+  private val renderTaskFactory:
+    (Configuration, RenderService, RenderLogger) -> CompletableFuture<RenderTask?>,
 ) : Disposable {
+  private val scope = AndroidCoroutineScope(this)
   private val isDisposed = AtomicBoolean(false)
   private val updateHierarchyLock = ReentrantLock()
   private val renderTaskLock = ReentrantLock()
@@ -45,6 +74,10 @@ internal class LayoutlibSceneRenderer(
 
   /** If true, when a new RenderResult is an error it will retain the last successful image. */
   var cacheSuccessfulRenderImage = false
+
+  /** The version of Android resources when the last inflation was done. See [ResourceVersion] */
+  var renderedVersion: ResourceVersion? = null
+    private set
 
   init {
     Disposer.register(parentDisposable, this)
@@ -101,6 +134,123 @@ internal class LayoutlibSceneRenderer(
       }
       oldResult?.dispose()
     }
+
+  /**
+   * Inflates the model and updates the view hierarchy
+   *
+   * @param force forces the model to be re-inflated even if a previous version was already inflated
+   * @return A [CompletableFuture] containing the [RenderResult] of the inflate operation or
+   *   containing null if the model did not need to be re-inflated or could not be re-inflated (like
+   *   the project been disposed).
+   */
+  // TODO(b/335424569): remove this method, directly use the suspendable inflate
+  fun inflateAsync(
+    force: Boolean,
+    logRenderErrors: Boolean,
+    reverseUpdate: AtomicBoolean,
+  ): CompletableFuture<RenderResult?> =
+    scope.async { inflate(force, logRenderErrors, reverseUpdate) }.asCompletableFuture()
+
+  private suspend fun inflate(
+    force: Boolean,
+    logRenderErrors: Boolean,
+    reverseUpdate: AtomicBoolean,
+  ): RenderResult? {
+    val project: Project = model.project
+    if (project.isDisposed || isDisposed.get()) {
+      return null
+    }
+    if (renderTask != null && !force) {
+      // No need to inflate
+      return null
+    }
+
+    // Some types of files must be saved to disk first, because layoutlib doesn't
+    // delegate XML parsers for non-layout files (meaning layoutlib will read the
+    // disk contents, so we have to push any edits to disk before rendering)
+    model.file.saveFileIfNecessary()
+
+    // Record the current version we're rendering from; we'll use that in #activate to make sure
+    // we're picking up any
+    // external changes
+    val facet: AndroidFacet = model.facet
+    val configuration: Configuration = model.configuration
+    val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
+    renderedVersion =
+      resourceNotificationManager.getCurrentVersion(facet, model.file, configuration)
+
+    val renderService = StudioRenderService.getInstance(model.project)
+    val logger =
+      if (logRenderErrors) renderService.createHtmlLogger(project) else renderService.nopLogger
+
+    var result: RenderResult?
+    try {
+      val newTask =
+        renderTaskFactory(configuration, renderService, logger)
+          .await() // await is the suspendable version of join
+      result =
+        if (newTask != null) doInflate(newTask, logger)
+        else createRenderTaskErrorResult(model.file, logger)
+    } catch (throwable: Throwable) {
+      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
+      result = createRenderTaskErrorResult(model.file, throwable)
+    }
+    result?.let {
+      renderResult = it
+      if (it.renderResult.isSuccess) {
+        reverseUpdate.set(updateHierarchy(result))
+        // Do more updates async
+        scope.launch(workerThread) {
+          model.notifyListenersModelDerivedDataChanged()
+          CommonUsageTracker.getInstance(surface)
+            .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
+        }
+      }
+    }
+    return result
+  }
+
+  private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult? {
+    newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
+    var result: RenderResult? = null
+    try {
+      result = newTask.inflate().await() // await is the suspendable version of join
+      // If the result is not valid or the project was already disposed, then we do not need the
+      // task.
+      // Also remove the previous task if the render has finished but was not a success.
+      if (
+        model.module.isDisposed ||
+          result == null ||
+          !result.renderResult.isSuccess ||
+          isDisposed.get()
+      ) {
+        newTask.dispose()
+        renderTask = null
+      } else renderTask = newTask
+      result?.renderResult?.exception?.let { throw it }
+    } catch (throwable: Throwable) {
+      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
+      if (result == null || !result.renderResult.isSuccess) {
+        // Do not ignore ClassNotFoundException on inflate
+        if (throwable is ClassNotFoundException) {
+          logger.addMessage(
+            RenderProblem.createHtml(
+              ProblemSeverity.ERROR,
+              "Error inflating the preview",
+              model.project,
+              logger.linkManager,
+              throwable,
+              ShowFixFactory,
+            )
+          )
+        } else {
+          logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", throwable, null, null)
+        }
+      }
+      result = result ?: createRenderTaskErrorResult(model.file, throwable)
+    }
+    return result
+  }
 
   private fun RenderResult?.containsValidImage() =
     this?.renderedImage?.let { it.width > 1 && it.height > 1 } ?: false

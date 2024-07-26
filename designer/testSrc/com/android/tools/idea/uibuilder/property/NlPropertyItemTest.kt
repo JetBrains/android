@@ -120,7 +120,6 @@ class NlPropertyItemTest {
       fileOpenRule,
       EdtRule(),
       AndroidExecutorsRule(
-        workerThreadExecutor = testDispatcher.asExecutor(),
         diskIoThreadExecutor = testDispatcher.asExecutor(),
         uiThreadExecutor = { _, runnable -> testScope.launch { runnable.run() } },
       ),
