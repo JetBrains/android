@@ -889,6 +889,17 @@ class DeviceManagerTest {
     )
   }
 
+  @Test
+  fun `disabled capabilities of a known type that don't have a value are parsed correctly`() {
+    assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
+      """
+       Row: 0 data_type=LOCATION, is_enabled=false, override_value=0
+      """
+        .trimIndent(),
+      mapOf(WhsDataType.LOCATION to CapabilityState.disabled(WhsDataType.LOCATION)),
+    )
+  }
+
   private fun <T> assertFailure(result: Result<T>) {
     assertThat(result.isFailure).isTrue()
   }
