@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +45,13 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     // Enabling tracing ensures all the log lines show up in the test log, and that there aren't any
     // exceptions there.
     ResourceUpdateTracer.getInstance().startTracing()
+  }
+
+  @After
+  fun tearDown() {
+    val resourceUpdateTracer = ResourceUpdateTracer.getInstance()
+    resourceUpdateTracer.dumpTrace("ResourceFolderRepositoryBackgroundActionsTest")
+    resourceUpdateTracer.stopTracing()
   }
 
   @Test
