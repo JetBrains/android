@@ -22,12 +22,10 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
-import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Before
@@ -59,7 +57,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val hasReadLock = AtomicBoolean(false)
-    backgroundActions.scheduleUpdate(Any()) { hasReadLock.set(application.isReadAccessAllowed) }
+    backgroundActions.runInUpdateQueue(Any()) { hasReadLock.set(application.isReadAccessAllowed) }
 
     backgroundActions.waitForUpdateQueue()
     assertThat(hasReadLock.get()).isTrue()
@@ -75,17 +73,17 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
-    backgroundActions.scheduleUpdate(Any()) {
+    backgroundActions.runInUpdateQueue(Any()) {
       semaphore1.acquire()
       synchronized(lock) { actionsCompleted.add(1) }
     }
 
-    backgroundActions.scheduleUpdate(Any()) {
+    backgroundActions.runInUpdateQueue(Any()) {
       semaphore2.acquire()
       synchronized(lock) { actionsCompleted.add(2) }
     }
 
-    backgroundActions.scheduleUpdate(Any()) {
+    backgroundActions.runInUpdateQueue(Any()) {
       semaphore3.acquire()
       synchronized(lock) { actionsCompleted.add(3) }
     }
@@ -106,9 +104,9 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
-    backgroundActions.scheduleUpdate(Any()) { synchronized(lock) { actionsCompleted.add(1) } }
-    backgroundActions.scheduleUpdate(Any()) { throw IllegalStateException() }
-    backgroundActions.scheduleUpdate(Any()) { synchronized(lock) { actionsCompleted.add(3) } }
+    backgroundActions.runInUpdateQueue(Any()) { synchronized(lock) { actionsCompleted.add(1) } }
+    backgroundActions.runInUpdateQueue(Any()) { throw IllegalStateException() }
+    backgroundActions.runInUpdateQueue(Any()) { synchronized(lock) { actionsCompleted.add(3) } }
 
     backgroundActions.waitForUpdateQueue()
 
@@ -124,7 +122,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
     val continueBackgroundAction = AtomicBoolean()
 
-    backgroundActions.scheduleUpdate(Any()) {
+    backgroundActions.runInUpdateQueue(Any()) {
       actionStarted.incrementAndGet()
 
       waitForCondition(10.seconds) {
@@ -160,7 +158,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val actionStarted = Semaphore(0)
     val actionFinished = AtomicBoolean()
 
-    backgroundActions.scheduleUpdate(Any()) {
+    backgroundActions.runInUpdateQueue(Any()) {
       actionStarted.release()
 
       waitForCondition(10.seconds) {
@@ -194,7 +192,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
     // Should be able to call [scheduleUpdate] without an exception.
     val updateHasRun = AtomicBoolean()
-    backgroundActions.scheduleUpdate(Any()) { updateHasRun.set(true) }
+    backgroundActions.runInUpdateQueue(Any()) { updateHasRun.set(true) }
 
     Thread.sleep(1000)
     assertThat(updateHasRun.get()).isFalse()
@@ -205,7 +203,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
 
     val hasReadLock = AtomicBoolean(true)
-    backgroundActions.submitToWolfQueue { hasReadLock.set(application.isReadAccessAllowed) }
+    backgroundActions.runInWolfQueue { hasReadLock.set(application.isReadAccessAllowed) }
 
     backgroundActions.waitForWolfQueue()
     assertThat(hasReadLock.get()).isFalse()
@@ -222,17 +220,17 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
 
-    backgroundActions.submitToWolfQueue {
+    backgroundActions.runInWolfQueue {
       semaphore1.acquire()
       synchronized(lock) { actionsCompleted.add(1) }
     }
 
-    backgroundActions.submitToWolfQueue {
+    backgroundActions.runInWolfQueue {
       semaphore2.acquire()
       synchronized(lock) { actionsCompleted.add(2) }
     }
 
-    backgroundActions.submitToWolfQueue {
+    backgroundActions.runInWolfQueue {
       semaphore3.acquire()
       synchronized(lock) { actionsCompleted.add(3) }
     }
@@ -253,9 +251,9 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
     val lock = Any()
     val actionsCompleted: MutableList<Int> = mutableListOf()
-    backgroundActions.submitToWolfQueue { synchronized(lock) { actionsCompleted.add(1) } }
-    backgroundActions.submitToWolfQueue { throw IllegalStateException() }
-    backgroundActions.submitToWolfQueue { synchronized(lock) { actionsCompleted.add(3) } }
+    backgroundActions.runInWolfQueue { synchronized(lock) { actionsCompleted.add(1) } }
+    backgroundActions.runInWolfQueue { throw IllegalStateException() }
+    backgroundActions.runInWolfQueue { synchronized(lock) { actionsCompleted.add(3) } }
 
     backgroundActions.waitForWolfQueue()
 
@@ -267,9 +265,12 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     val backgroundActions = ResourceFolderRepositoryBackgroundActions.getInstance(fixture.module)
     Disposer.dispose(backgroundActions)
 
-    // It's unclear if this is desired behavior or not, but the test is documenting what the current
-    // behavior actually is.
-    assertFailsWith<RejectedExecutionException> { backgroundActions.submitToWolfQueue {} }
+    // Should be able to call [runInWolfQueue] without an exception.
+    val updateHasRun = AtomicBoolean()
+    backgroundActions.runInWolfQueue { updateHasRun.set(true) }
+
+    Thread.sleep(1000)
+    assertThat(updateHasRun.get()).isFalse()
   }
 
   @Test
@@ -281,17 +282,17 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
       val lock = Any()
       val actionsCompleted: MutableList<Int> = mutableListOf()
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         semaphore1.acquire()
         synchronized(lock) { actionsCompleted.add(1) }
       }
 
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         semaphore2.acquire()
         synchronized(lock) { actionsCompleted.add(2) }
       }
 
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         semaphore3.acquire()
         synchronized(lock) { actionsCompleted.add(3) }
       }
@@ -316,7 +317,7 @@ class ResourceFolderRepositoryBackgroundActionsTest {
       val exceptionThrown = Semaphore(0)
 
       val actionCompletedCount = AtomicInteger()
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         try {
           throw IllegalStateException()
         } finally {
@@ -326,13 +327,13 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
       exceptionThrown.acquire()
       Thread.sleep(1000)
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         actionCompletedCount.incrementAndGet()
       }
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         actionCompletedCount.incrementAndGet()
       }
-      ResourceFolderRepositoryBackgroundActions.executeOnPooledThread {
+      ResourceFolderRepositoryBackgroundActions.runInBackground {
         actionCompletedCount.incrementAndGet()
       }
 
@@ -342,13 +343,13 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
   private fun ResourceFolderRepositoryBackgroundActions.waitForUpdateQueue() {
     val actionsCompleteSemaphore = Semaphore(0)
-    scheduleUpdate(Any()) { actionsCompleteSemaphore.release() }
+    runInUpdateQueue(Any()) { actionsCompleteSemaphore.release() }
     assertThat(actionsCompleteSemaphore.tryAcquire(10L, TimeUnit.SECONDS)).isTrue()
   }
 
   private fun ResourceFolderRepositoryBackgroundActions.waitForWolfQueue() {
     val actionsCompleteSemaphore = Semaphore(0)
-    submitToWolfQueue { actionsCompleteSemaphore.release() }
+    runInWolfQueue { actionsCompleteSemaphore.release() }
     assertThat(actionsCompleteSemaphore.tryAcquire(10L, TimeUnit.SECONDS)).isTrue()
   }
 }
