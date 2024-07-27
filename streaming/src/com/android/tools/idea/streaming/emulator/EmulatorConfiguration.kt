@@ -84,14 +84,11 @@ class EmulatorConfiguration private constructor(
         else -> SkinRotation.PORTRAIT
       }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
-      val tagId = configIni["tag.id"]
-      val deviceType = when {
-        tagId?.startsWith("android-automotive") == true -> DeviceType.AUTOMOTIVE
-        tagId == "google-tv" -> DeviceType.TV
-        tagId == "android-tv" -> DeviceType.TV
-        tagId == "android-wear" -> DeviceType.WEAR
-        tagId == "android-desktop" -> DeviceType.DESKTOP
-        else -> DeviceType.HANDHELD
+      val deviceType = when (val tagId = configIni["tag.id"]) {
+        "google-tv", "android-tv" -> DeviceType.TV
+        "android-wear" -> DeviceType.WEAR
+        "android-desktop" -> DeviceType.DESKTOP
+        else -> if (tagId?.startsWith("android-automotive") == true) DeviceType.AUTOMOTIVE else DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
