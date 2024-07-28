@@ -147,6 +147,7 @@ public class AndroidStudioInstallation {
     vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
     vmOptions.append(String.format("-Didea.plugins.path=%s/plugins%n", configDir));
     vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));
+    vmOptions.append(String.format("-Djava.io.tmpdir=%s%n", Files.createTempDirectory(workDir, "tmp")));
     // Prevent our crash metrics from going to the production URL
     vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
     // Work around b/247532990, which is that libnotify.so.4 is missing on our
