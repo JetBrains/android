@@ -69,10 +69,14 @@ internal class ContentProviderDeviceManager(
 
       for (match in contentProviderEntryMatches) {
         val dataType = match.groupValues[1].toDataType()
-        if (dataType.overrideDataType == WhsDataValue.NoValue::class) {
+        if (dataType == WhsDataType.DATA_TYPE_UNKNOWN) {
           continue
         }
         val isEnabled = match.groupValues[2].toBoolean()
+        if (dataType.overrideDataType == WhsDataValue.NoValue::class) {
+          capabilities[dataType] = CapabilityState.withNoValue(isEnabled, dataType)
+          continue
+        }
         val dataValue = dataType.valueFromString(match.groupValues[3])
         val isZero =
           (dataValue is WhsDataValue.IntValue && dataValue.value == 0) ||
