@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
+        "//prebuilts/tools/common/m2:commonmark-0.22.0",
     ],
 )
 
@@ -56,5 +57,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
+        "//prebuilts/tools/common/m2:commonmark-0.22.0[test]",
     ],
 )
