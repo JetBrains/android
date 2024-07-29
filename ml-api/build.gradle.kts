@@ -17,21 +17,24 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   kotlin("jvm")
-  id("org.jetbrains.intellij")
+  id("org.jetbrains.intellij.platform.module")
 }
 
-version = properties("pluginVersion")
-
-repositories { mavenCentral() }
+repositories {
+  mavenCentral()
+  intellijPlatform {
+    defaultRepositories()
+  }
+}
 
 kotlin { jvmToolchain(17) }
 
-intellij {
-  version.set(properties("platformVersion"))
-  type.set(properties("platformType"))
-
-  // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-  plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
+dependencies {
+  intellijPlatform {
+    intellijIdeaCommunity("2024.1")
+    instrumentationTools()
+    bundledPlugin("org.jetbrains.kotlin")
+  }
 }
 
 sourceSets {
