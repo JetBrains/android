@@ -128,7 +128,7 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
 }
 
 /**
- * This function is exactly same as the above [KtAnnotationEntry.getQualifiedName] function for K2, but it can run
+ * This function is like the function [KtAnnotationEntry.getQualifiedName] above, but for K2. It can run
  * on write-action. Please be aware that this function must be used only when we cannot avoid calling this function
  * on write-action. Otherwise, the above [KtAnnotationEntry.getQualifiedName] function must be used. The analysis
  * API use on a write-action can cause IDE freeze. However, we have some cases like code-format or
@@ -138,10 +138,10 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
  * code-format and reference-shortener on a write-action.
  */
 @OptIn(KaAllowAnalysisFromWriteAction::class, KaAllowAnalysisOnEdt::class)
-fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(analysisSession: KtAnalysisSession): String? =
+fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
   allowAnalysisFromWriteAction {
     allowAnalysisOnEdt {
-      analysisSession.applyOrAnalyze(this) {
+      analyze(this) {
         resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
       }
     }
