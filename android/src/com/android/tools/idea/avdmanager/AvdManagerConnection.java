@@ -121,8 +121,6 @@ public class AvdManagerConnection {
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
 
-  public static final String HW_LCD_DENSITY = "hw.lcd.density";
-
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
 
   private static @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> ourConnectionFactory =
