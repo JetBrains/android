@@ -41,11 +41,13 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.SlowOperations
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -207,7 +209,9 @@ private class RenderingBuildStatusManagerImpl(
 
 
             fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
-              preparedMarkUpToDateAction.markUpToDate(scope)
+              SlowOperations.allowSlowOperations(ThrowableComputable {
+                preparedMarkUpToDateAction.markUpToDate(scope)
+              })
               // Clear the resources out of date flag
               areResourcesOutOfDateFlow.value = false
               return ProjectBuildStatus.Built
