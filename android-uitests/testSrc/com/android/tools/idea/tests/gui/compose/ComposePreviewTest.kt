@@ -74,9 +74,10 @@ class ComposePreviewTest {
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
     fixture.invokeAndWaitForBuildAction("Build", "Make Project")
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
 
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
     return editor.getSplitEditorFixture().apply {
       setSplitMode()
       waitForRenderToFinish()
@@ -296,6 +297,7 @@ class ComposePreviewTest {
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
     fixture.editor.open(animations1Relative)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
     assertNull(composePreview.findAnimationInspector())
 
