@@ -95,6 +95,16 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   }
 
   @Test
+  fun testAfterPropertyCompletion() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doNoSuggestionTest("""
+      androidLibrary {
+          compileSdk = 1$caret
+        }""".trimIndent()
+      )
+  }
+
+  @Test
   fun testInsideApplicationBlockCompletionNoTyping() {
     writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
@@ -235,6 +245,14 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
       it.lookupString
     }
     check.invoke(list)
+  }
+
+  private fun doNoSuggestionTest(declarativeFile: String) {
+    val buildFile = fixture.addFileToProject(
+      "build.gradle.dcl", declarativeFile)
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
+    assertThat(fixture.lookup).isNull()
   }
 
   private fun doCompletionTest(declarativeFile: String, fileAfter: String) {

@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.declarative.ElementType.FACTORY
 import com.android.tools.idea.gradle.declarative.ElementType.INTEGER
 import com.android.tools.idea.gradle.declarative.ElementType.LONG
 import com.android.tools.idea.gradle.declarative.ElementType.STRING
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -39,6 +41,7 @@ import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PsiElementPattern
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
@@ -48,13 +51,25 @@ private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
 }
 
 // works when user start typing
-private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement().with(declarativeFlag).andOr(
+private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement().with(declarativeFlag)
+ .andOr(
   psiElement().withParent(DeclarativeBlockGroup::class.java),
   psiElement().withParent(DeclarativeFile::class.java),
 )
 
+private val AFTER_ASSIGNMENT_LITERAL = psiElement().with(
+  object : PatternCondition<PsiElement>("afterAssignment") {
+    override fun accepts(character: PsiElement, context: ProcessingContext): Boolean =
+      character.parent.prevSibling is DeclarativeAssignment
+  }
+)
+
 //works when user just press ctrl+space
-private val DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement().with(declarativeFlag).andOr(
+private val DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
+  .with(declarativeFlag)
+  .withParent(PsiErrorElement::class.java)
+  .andNot(AFTER_ASSIGNMENT_LITERAL)
+  .andOr(
   psiElement().withSuperParent(2, DeclarativeBlockGroup::class.java),
   psiElement().withSuperParent(2, DeclarativeFile::class.java),
 )
