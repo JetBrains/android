@@ -30,7 +30,6 @@ import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationTyp
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
@@ -60,7 +59,6 @@ class AndroidRunConfigurationsTest {
   fun `set default activity launch for simple app`() {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
       val configurationFactory = AndroidRunConfigurationType.getInstance().factory
 
       val configurations = RunManager.getInstance(project).getConfigurationsList(configurationFactory.type)
@@ -75,7 +73,6 @@ class AndroidRunConfigurationsTest {
   fun `set default activity launch for app with activity declared not in the main module`() {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.APP_WITH_ACTIVITY_IN_LIB)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
       val configurationFactory = AndroidRunConfigurationType.getInstance().factory
 
       val configurations = RunManager.getInstance(project).getConfigurationsList(configurationFactory.type)
@@ -90,7 +87,6 @@ class AndroidRunConfigurationsTest {
   fun `run configuration deploys to local device`() {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
       val configurationFactory = AndroidRunConfigurationType.getInstance().factory
 
       val configurations = RunManager.getInstance(project).getConfigurationsList(configurationFactory.type)
@@ -101,14 +97,11 @@ class AndroidRunConfigurationsTest {
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations get added`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
-
       val runManager = RunManager.getInstance(project)
 
       val watchFaceConfigurations = runManager.getConfigurationsList(AndroidWatchFaceConfigurationType())
@@ -146,7 +139,6 @@ class AndroidRunConfigurationsTest {
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if their component is not declared in the manifest`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -182,7 +174,6 @@ class AndroidRunConfigurationsTest {
           class ComplicationNotInManifest : ComplicationDataSourceService()
       """.trimIndent())
 
-      project.requestSyncAndWait()
       val wearComponentNames = RunManager.getInstance(project).allConfigurationsList
         .filterIsInstance<AndroidWearConfiguration>()
         .mapNotNull { it.componentLaunchOptions.componentName }
@@ -192,7 +183,6 @@ class AndroidRunConfigurationsTest {
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if the component is already used in a configuration`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -213,8 +203,6 @@ class AndroidRunConfigurationsTest {
         componentName = "com.example.myface.MyWatchFace"
       )
 
-      project.requestSyncAndWait()
-
       val configurations = runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()
       assertThat(configurations.map { it.name }).containsExactly(
         "ExistingTileConfig",
@@ -224,31 +212,24 @@ class AndroidRunConfigurationsTest {
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added when flag is disabled`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(false)
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
-
       assertThat(RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if they breach maximum limit`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.override(2)
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
     preparedProject.open { project ->
-      project.requestSyncAndWait()
-
       assertThat(RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
     }
   }
 
-  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if there is no required watch feature`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -258,7 +239,6 @@ class AndroidRunConfigurationsTest {
 
       removeWatchFeatureRequirement(project)
       runManager.removeExistingRunConfigurations()
-      project.requestSyncAndWait()
 
       assertThat(runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
     }

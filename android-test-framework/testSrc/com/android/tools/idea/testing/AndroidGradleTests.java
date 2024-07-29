@@ -29,7 +29,6 @@ import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescri
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.application.ActionsKt.invokeAndWaitIfNeeded;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -47,11 +46,13 @@ import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.concurrency.CoroutinesTestUtilsKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -99,13 +100,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,8 +122,6 @@ public class AndroidGradleTests {
    */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_SOURCES_FOLDER_UPDATES_MILLIS = 1000;
-
-  private static final long DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS = 120000;
   private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
@@ -150,13 +147,15 @@ public class AndroidGradleTests {
   }
 
   public static void waitForCreateRunConfigurations(@NotNull Project project) throws Exception {
-    waitForCreateRunConfigurations(project, null);
+    AndroidRunConfigurationsManager.getInstance(project).consumeBulkOperationsState((job) -> {
+      CoroutinesTestUtilsKt.waitCoroutinesBlocking(job);
+      return null;
+    });
   }
 
-  public static void waitForCreateRunConfigurations(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
-    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_CREATE_RUN_CONFIGURATIONS_MILLIS : timeoutMillis;
-    AndroidRunConfigurationsManager.getInstance(project).consumeBulkOperationsState((Future<?> future) -> {
-      PlatformTestUtil.waitForFuture(future, timeout);
+  public static void waitForProjectStructureUsageTracker(@NotNull Project project) throws Exception {
+    ProjectStructureUsageTrackerManager.getInstance(project).consumeBulkOperationsState((job) -> {
+      CoroutinesTestUtilsKt.waitCoroutinesBlocking(job);
       return null;
     });
   }

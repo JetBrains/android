@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.model.queryUsedFeaturesFromManifestIndex
+import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -42,39 +44,35 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Ref
 import com.intellij.util.concurrency.ThreadingAssertions
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.Future
 
 class ProjectStructureUsageTrackerManager(private val project: Project) {
 
-  private val operationsStates = mutableListOf<Future<*>>()
+  private val operationsStates= mutableListOf<Job>()
 
   fun trackProjectStructure() {
-    val futureTaskOperation = ApplicationManager.getApplication().executeOnPooledThread {
-      try {
-        doTrackProjectStructure()
-      } catch(e: ProcessCanceledException) {
-        throw e
-      } catch (e: Throwable) {
-        // Any errors in project tracking should not be displayed to the user.
-        LOG.warn("Failed to track project structure", e)
+    project.coroutineScope().async {
+      doTrackProjectStructure()
+    }.also {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        synchronized(operationsStates) {
+          operationsStates.removeIf { it.isCompleted }
+          operationsStates.add(it)
+        }
       }
-    }
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      operationsStates.removeIf { it.isDone }
-      operationsStates.add(futureTaskOperation)
     }
   }
 
-  private fun doTrackProjectStructure() {
+  private suspend fun doTrackProjectStructure() {
     val allModules = ModuleManager
       .getInstance(project)
       .modules
@@ -222,12 +220,12 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
     UsageTracker.log(event.withProjectId(project))
   }
 
-  private fun isWatchHardwareRequired(facet: AndroidFacet): Boolean {
+  private suspend fun isWatchHardwareRequired(facet: AndroidFacet): Boolean {
     try {
-      return DumbService.getInstance(project).runReadActionInSmartMode<Boolean> {
+      return project.runReadActionInSmartModeWithIndexes {
         val usedFeatures = facet.queryUsedFeaturesFromManifestIndex()
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
-          || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
+         || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
       }
     } catch (e : ProcessCanceledException) {
       throw e
@@ -283,10 +281,14 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
 
   @TestOnly
   @Throws(Exception::class)
-  fun consumeBulkOperationsState(stateConsumer: (Future<*>) -> Unit) {
+  fun consumeBulkOperationsState(stateConsumer: (Job) -> Unit) {
     ThreadingAssertions.assertEventDispatchThread()
     assert(ApplicationManager.getApplication().isUnitTestMode)
-    for (operationsState in operationsStates) {
+
+    // operationsStates could be modified in separate thread
+    // create list copy to iterate on
+    val statesCopy = synchronized(operationsStates) { operationsStates.toList() }
+    for (operationsState in statesCopy) {
       stateConsumer.invoke(operationsState)
     }
   }
