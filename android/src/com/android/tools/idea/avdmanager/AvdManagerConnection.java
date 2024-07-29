@@ -53,6 +53,7 @@ import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorComm
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -475,7 +476,8 @@ public class AvdManagerConnection {
 
   /** Checks whether the emulator can be launched in the Running Device tool window. */
   private static boolean canLaunchInToolWindow(@NotNull AvdInfo avd, @Nullable Project project) {
-    return project != null && ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null;
+    return project != null && ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
+           (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrDevice());
   }
 
   public static boolean isFoldable(@NotNull AvdInfo avd) {

@@ -1019,6 +1019,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
     "Enables Gesture Navigation setting in Device UI Shortcuts",
     false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_AVD = new BooleanFlag(
+    EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
+    "Enables running an XR AVD in the Running Devices tool window",
+    false);
   //endregion
 
   //region Device Mirroring

@@ -955,7 +955,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     return withContext(Dispatchers.IO) {
       val runningAvdFolders = RunningEmulatorCatalog.getInstance().emulators.map { it.emulatorId.avdFolder }.toSet()
       val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-      avdManager.getAvds(false).filter { it.dataFolderPath !in runningAvdFolders }
+      avdManager.getAvds(false).filter {
+        it.dataFolderPath !in runningAvdFolders && (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !it.isXrDevice)
+      }
     }
   }
 
