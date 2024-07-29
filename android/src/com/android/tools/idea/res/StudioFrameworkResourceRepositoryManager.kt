@@ -19,10 +19,8 @@ import com.android.resources.aar.FrameworkResourceRepository
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.res.FrameworkResourceRepositoryManagerImpl
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.CachedSingletonsRegistry
 import com.intellij.openapi.application.PathManager
 import java.util.concurrent.Executor
-import java.util.function.Supplier
 
 /**
  * Studio-specific Application service for caching and reusing instances of
@@ -36,17 +34,9 @@ class StudioFrameworkResourceRepositoryManager :
     else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor(),
   ) {
   companion object {
-    /**
-     * [FrameworkResourceRepository] is heavily used in editing so we cache the instance to avoid
-     * the expensive service lookup on every [getInstance] request.
-     */
-    @Suppress("UnstableApiUsage")
-    private val instanceSupplier: Supplier<FrameworkResourceRepositoryManagerImpl> =
-      CachedSingletonsRegistry.lazy {
-        ApplicationManager.getApplication()
-          .getService(FrameworkResourceRepositoryManagerImpl::class.java)!!
-      }
-
-    @JvmStatic fun getInstance() = instanceSupplier.get()
+    @JvmStatic
+    fun getInstance() =
+      ApplicationManager.getApplication()
+        .getService(FrameworkResourceRepositoryManagerImpl::class.java)!!
   }
 }
