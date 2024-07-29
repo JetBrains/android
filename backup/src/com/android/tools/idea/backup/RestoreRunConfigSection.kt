@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.backup
 
-import com.android.backup.RestoreHandler
+import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -91,7 +91,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     }
 
     try {
-      val fileApplicationId = RestoreHandler.validateBackupFile(path)
+      val fileApplicationId = BackupService.validateBackupFile(path)
       val packageName = projectSystem.getApplicationIdProvider(runConfiguration)?.packageName
       if (packageName != null && fileApplicationId != packageName) {
         return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))
