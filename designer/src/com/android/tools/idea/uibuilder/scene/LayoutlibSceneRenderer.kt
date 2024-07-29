@@ -46,7 +46,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -77,6 +79,13 @@ internal class LayoutlibSceneRenderer(
 
   /** The version of Android resources when the last inflation was done. See [ResourceVersion] */
   var renderedVersion: ResourceVersion? = null
+    private set
+
+  /**
+   * The quality used the last time the content of this scene manager was successfully rendered.
+   * Defaults to 0 until a successful render happens.
+   */
+  var lastRenderQuality = 0f
     private set
 
   init {
@@ -135,6 +144,62 @@ internal class LayoutlibSceneRenderer(
       oldResult?.dispose()
     }
 
+  // TODO(b/335424569): remove this method, directly use the suspendable render
+  fun renderAsync(
+    forceInflate: Boolean,
+    logRenderErrors: Boolean,
+    reverseUpdate: AtomicBoolean,
+    elapsedFrameTimeMs: Long,
+    quality: Float,
+  ): CompletableFuture<RenderResult?> =
+    scope
+      .async { render(forceInflate, logRenderErrors, reverseUpdate, elapsedFrameTimeMs, quality) }
+      .asCompletableFuture()
+
+  private suspend fun render(
+    forceInflate: Boolean,
+    logRenderErrors: Boolean,
+    reverseUpdate: AtomicBoolean,
+    elapsedFrameTimeMs: Long,
+    quality: Float,
+  ): RenderResult? {
+    var result: RenderResult? = null
+    try {
+      // Inflate only if needed
+      val inflateResult =
+        if (renderTask != null && !forceInflate) null else inflate(logRenderErrors, reverseUpdate)
+      if (inflateResult?.renderResult?.isSuccess == false) {
+        surface.updateErrorDisplay()
+        return null
+      }
+      renderTask?.let {
+        if (elapsedFrameTimeMs != -1L) {
+          it.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs))
+        }
+        // Make sure that the task's quality is up-to-date before rendering
+        it.setQuality(quality)
+        result = it.render().await() // await is the suspendable version of join
+        if (result?.renderResult?.isSuccess == true) {
+          lastRenderQuality = quality
+          // When the layout was inflated in this same call, we do not have to update the hierarchy
+          // again
+          if (inflateResult != null) reverseUpdate.set(updateHierarchy(result))
+        }
+      }
+    } catch (throwable: Throwable) {
+      if (!model.isDisposed) {
+        result =
+          createRenderTaskErrorResult(
+            model.file,
+            (throwable as? CompletionException)?.cause ?: throwable,
+          )
+      }
+    }
+
+    result?.let { renderResult = result }
+    return result
+  }
+
   /**
    * Inflates the model and updates the view hierarchy
    *
@@ -143,25 +208,12 @@ internal class LayoutlibSceneRenderer(
    *   containing null if the model did not need to be re-inflated or could not be re-inflated (like
    *   the project been disposed).
    */
-  // TODO(b/335424569): remove this method, directly use the suspendable inflate
-  fun inflateAsync(
-    force: Boolean,
-    logRenderErrors: Boolean,
-    reverseUpdate: AtomicBoolean,
-  ): CompletableFuture<RenderResult?> =
-    scope.async { inflate(force, logRenderErrors, reverseUpdate) }.asCompletableFuture()
-
   private suspend fun inflate(
-    force: Boolean,
     logRenderErrors: Boolean,
     reverseUpdate: AtomicBoolean,
   ): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
-      return null
-    }
-    if (renderTask != null && !force) {
-      // No need to inflate
       return null
     }
 
@@ -171,8 +223,7 @@ internal class LayoutlibSceneRenderer(
     model.file.saveFileIfNecessary()
 
     // Record the current version we're rendering from; we'll use that in #activate to make sure
-    // we're picking up any
-    // external changes
+    // we're picking up any external changes
     val facet: AndroidFacet = model.facet
     val configuration: Configuration = model.configuration
     val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
@@ -216,8 +267,7 @@ internal class LayoutlibSceneRenderer(
     try {
       result = newTask.inflate().await() // await is the suspendable version of join
       // If the result is not valid or the project was already disposed, then we do not need the
-      // task.
-      // Also remove the previous task if the render has finished but was not a success.
+      // task. Also remove the previous task if the render has finished but was not a success.
       if (
         model.module.isDisposed ||
           result == null ||
