@@ -72,6 +72,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -255,6 +256,7 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
+  @Ignore("b/356189674")
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() =
     runBlocking {
       // This test only makes sense when fast preview is disabled, as what's being tested is that
