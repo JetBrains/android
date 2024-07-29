@@ -19,8 +19,18 @@ import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.sdklib.SystemImageTags
+import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
+import com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG
+import com.android.sdklib.SystemImageTags.DESKTOP_TAG
+import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
+import com.android.sdklib.SystemImageTags.WEAR_TAG
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
+import com.android.utils.asSeparatedListContains
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.diagnostic.thisLogger
@@ -84,11 +94,16 @@ class EmulatorConfiguration private constructor(
         else -> SkinRotation.PORTRAIT
       }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
-      val deviceType = when (val tagId = configIni["tag.id"]) {
-        "google-tv", "android-tv" -> DeviceType.TV
-        "android-wear" -> DeviceType.WEAR
-        "android-desktop" -> DeviceType.DESKTOP
-        else -> if (tagId?.startsWith("android-automotive") == true) DeviceType.AUTOMOTIVE else DeviceType.HANDHELD
+      val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]
+      val deviceType = when {
+        tagIds == null -> DeviceType.HANDHELD
+        tagIds.asSeparatedListContains(AUTOMOTIVE_TAG.id) ||
+            tagIds.asSeparatedListContains(AUTOMOTIVE_PLAY_STORE_TAG.id) ||
+            tagIds.asSeparatedListContains(AUTOMOTIVE_DISTANT_DISPLAY_TAG.id) -> DeviceType.AUTOMOTIVE
+        tagIds.asSeparatedListContains(DESKTOP_TAG.id) -> DeviceType.DESKTOP
+        tagIds.asSeparatedListContains(GOOGLE_TV_TAG.id) || tagIds.asSeparatedListContains(ANDROID_TV_TAG.id) -> DeviceType.TV
+        tagIds.asSeparatedListContains(WEAR_TAG.id) -> DeviceType.WEAR
+        else -> DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
