@@ -1771,6 +1771,15 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
+  public static final Flag<String> APP_INSIGHTS_AI_INSIGHT_ENDPOINT =
+    new StringFlag(
+      APP_INSIGHTS,
+      "app.insights.ai.insight.endpoint",
+      "App insights AI insight endpoint",
+      "Endpoint for getting AI insight",
+      "cloudaicompanion.googleapis.com"
+    );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
