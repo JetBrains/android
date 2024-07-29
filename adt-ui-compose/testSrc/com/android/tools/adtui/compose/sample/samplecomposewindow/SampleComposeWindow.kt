@@ -80,9 +80,9 @@ fun main() {
 
     IntUiTheme(themeDefinition, ComponentStyling.provide { arrayOf() }, swingCompat) {
       val windowBackground = if (isDark) {
-        JewelTheme.colorPalette.grey(1)
+        JewelTheme.colorPalette.gray(1)
       } else {
-        JewelTheme.colorPalette.grey(14)
+        JewelTheme.colorPalette.gray(14)
       }
 
       Column(Modifier.fillMaxSize().background(windowBackground)) {
