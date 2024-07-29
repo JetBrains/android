@@ -771,9 +771,7 @@ MODULE                        : project
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
                         screenshotTestAnnotationProcessor       : <empty>
-                        screenshotTestApi             : <empty>
                         screenshotTestCompileOnly     : <empty>
-                        screenshotTestCompileOnlyApi  : <empty>
                         screenshotTestDebugAnnotationProcessor  : <empty>
                         screenshotTestDebugCompileOnly          : <empty>
                         screenshotTestDebugImplementation       : <empty>
@@ -1961,9 +1959,9 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugScreenshotTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/debugScreenshotTest/compileDebugScreenshotTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugScreenshotTest/compileDebugScreenshotTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/kotlinc/debugScreenshotTest/compileDebugScreenshotTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/unit_test_config_directory/debugScreenshotTest/generateDebugScreenshotTestConfig/out [-]
                 Dependencies
                     compileClasspath
