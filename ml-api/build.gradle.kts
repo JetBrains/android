@@ -31,7 +31,7 @@ kotlin { jvmToolchain(17) }
 
 dependencies {
   intellijPlatform {
-    intellijIdeaCommunity("2024.1")
+    intellijIdeaCommunity(libs.versions.idea)
     instrumentationTools()
     bundledPlugin("org.jetbrains.kotlin")
   }
