@@ -122,6 +122,10 @@ public final class DeviceSelectorFixture {
     myIdeFrameFixture.invokeMenuPath("Run", "Record Espresso Test");
   }
 
+  public void recordEspressoTest() {
+    myIdeFrameFixture.invokeMenuPath("Run", "Record Espresso Test");
+  }
+
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
     myIdeFrameFixture.selectApp(appName);
     selectItem(deviceName);
