@@ -77,6 +77,12 @@ data class AppInsightsState(
   /** Access level of the currently logged-in user has on the insights API */
   val permission: Permission = Permission.NONE,
   val mode: ConnectionMode = ConnectionMode.ONLINE,
+
+  /**
+   * AI generated insight whose state depends on the issue selection and is loaded asynchronously
+   * over the network.
+   */
+  val currentInsight: LoadingState<AiInsight?> = LoadingState.Ready(null),
 ) {
   val selectedIssue: AppInsightsIssue?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
