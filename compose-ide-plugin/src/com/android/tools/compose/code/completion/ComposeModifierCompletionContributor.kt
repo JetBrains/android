@@ -409,7 +409,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val fileSymbol = file.symbol
 
     return KtSymbolFromIndexProvider.createForElement(file)
-      .getTopLevelExtensionCallableSymbolsByNameFilter(
+      .getExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
         listOf(receiverType),
       )
