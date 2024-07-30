@@ -52,7 +52,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -164,7 +166,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     if (!modulePaths().contains(modulePath)) {
       return null;
     }
-    return moduleDirectoryNoCheck(modulePath);
+    return moduleDirectoryNoCheck(modulePath, new HashMap<>());
   }
 
   /**
@@ -217,9 +219,13 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   }
 
   @Nullable
-  private File moduleDirectoryNoCheck(String modulePath) {
+  private File moduleDirectoryNoCheck(String modulePath, Map<String, File> processedModulePath) {
+    if (processedModulePath.containsKey(modulePath)) {
+      return processedModulePath.get(modulePath);
+    }
     File rootDirPath = virtualToIoFile(myGradleDslFile.getFile().getParent());
     if (modulePath.equals(":")) {
+      processedModulePath.put(modulePath, rootDirPath);
       return rootDirPath;
     }
 
@@ -228,6 +234,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     if (projectProperties != null) {
       File projectDir = projectProperties.projectDir();
       if (projectDir != null) {
+        processedModulePath.put(modulePath, projectDir);
         return projectDir;
       }
     }
@@ -239,19 +246,23 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     else {
       String parentModule = parentModuleNoCheck(modulePath);
       if (parentModule == null) {
+        processedModulePath.put(modulePath, null);
         return null;
       }
-      parentDir = moduleDirectoryNoCheck(parentModule);
+      parentDir = moduleDirectoryNoCheck(parentModule, processedModulePath);
     }
     String moduleName = modulePath.substring(modulePath.lastIndexOf(':') + 1);
-    return new File(parentDir, moduleName);
+    File result = new File(parentDir, moduleName);
+    processedModulePath.put(modulePath, result);
+    return result;
   }
 
   @Nullable
   @Override
   public String moduleWithDirectory(@NotNull File moduleDir) {
+    Map<String, File> processedModulePath = new HashMap<>();
     for (String modulePath : modulePaths()) {
-      if (filesEqual(moduleDir, moduleDirectoryNoCheck(modulePath))) {
+      if (filesEqual(moduleDir, moduleDirectoryNoCheck(modulePath, processedModulePath))) {
         return modulePath;
       }
     }
