@@ -26,6 +26,7 @@ import com.intellij.testFramework.replaceService
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Ignore
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
@@ -92,6 +93,7 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
                          "or with an ANDROID_NDK_HOME environment variable.")
   }
 
+  @Ignore("b/356225801")
   fun testNotInstalledNoPreferred() {
     val spyIdeSdks = spy(IdeSdks.getInstance())
     doReturn(null).whenever(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
