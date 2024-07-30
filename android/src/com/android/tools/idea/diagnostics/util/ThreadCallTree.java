@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.util;
 
 import java.lang.management.ThreadInfo;
+import org.jetbrains.annotations.NotNull;
 
 public class ThreadCallTree {
   private long myThreadId;
@@ -25,10 +26,12 @@ public class ThreadCallTree {
     return myThreadName;
   }
 
+  @NotNull
   public FrameInfo getRootFrame() {
     return myRootFrame;
   }
 
+  @NotNull
   private final FrameInfo myRootFrame;
 
   public ThreadCallTree(long threadId, String threadName) {
