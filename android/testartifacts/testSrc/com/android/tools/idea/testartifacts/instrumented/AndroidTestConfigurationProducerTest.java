@@ -29,6 +29,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.testartifacts.TestConfigurationTesting;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
 import com.intellij.execution.Location;
@@ -53,7 +54,9 @@ import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration;
 
 /**
  * Test for {@link AndroidTestConfigurationProducer}
@@ -363,5 +366,34 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(androidRunConfig.PACKAGE_NAME).isEmpty();
     assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest");
     assertThat(androidRunConfig.METHOD_NAME).isEqualTo("testActivityThatPasses");
+  }
+
+  public void testCreateAndroidAndGradleConfigurationsFromSrcDirectory() throws Exception {
+    loadSimpleApplication();
+    PsiElement element = TestConfigurationTesting.getPsiElement(getProject(), "app/src", true);
+    List<ConfigurationFromContext> runConfigs = TestConfigurationTesting.createConfigurationsFromPsiElement(getProject(), element);
+
+    assertNotNull(runConfigs);
+    assertFalse(runConfigs.isEmpty());
+    assertThat(runConfigs.size()).isEqualTo(2);
+    List<RunConfiguration> configurations = runConfigs.stream().map(ConfigurationFromContext::getConfiguration).toList();
+
+    // Check we have a AndroidRunConfiguration created from this context.
+    AndroidTestRunConfiguration androidRunConfig =
+      (AndroidTestRunConfiguration)configurations.stream().filter(it -> it instanceof AndroidTestRunConfiguration).findFirst().orElse(null);
+    assertNotNull(androidRunConfig);
+    assertEmpty(androidRunConfig.checkConfiguration(myAndroidFacet));
+    assertThat(androidRunConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
+    assertThat(androidRunConfig.PACKAGE_NAME).isEmpty();
+    assertThat(androidRunConfig.CLASS_NAME).isEmpty();
+    assertThat(androidRunConfig.METHOD_NAME).isEmpty();
+    assertThat(androidRunConfig.TEST_NAME_REGEX).isEmpty();
+
+    // Check that we also have a unit test Run config created too.
+    GradleRunConfiguration unitTestConfig =
+      (GradleRunConfiguration)configurations.stream().filter(it -> it instanceof GradleRunConfiguration).findFirst().orElse(null);
+    assertNotNull(unitTestConfig);
+    assertTrue(unitTestConfig.isRunAsTest());
   }
 }
