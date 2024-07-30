@@ -1,0 +1,42 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+0 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 28
+Build.MANUFACTURER: unknown
+LeakCanary version: 2.11
+App process name: android.com.java.profilertester
+Class count: 12943
+Instance count: 146881
+Primitive array count: 115776
+Object array count: 18082
+Thread count: 18
+Heap total bytes: 32981943
+Bitmap count: 6
+Bitmap total bytes: 108168
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Stats: LruCache[maxSize=3000,hits=30337,misses=73706,hitRate=29%] RandomAccess[bytes=3449937,reads=73706,travel=20699452094,range=20805336,size=42172386]
+Analysis duration: 1435 ms
+Heap dump file path: /Users/addivya/bin/leakcanary/2024-02-24_20-54-55_520-android.com.java.profilertester.hprof
+Heap dump timestamp: 1708836902715
+Heap dump duration: Unknown
+====================================
