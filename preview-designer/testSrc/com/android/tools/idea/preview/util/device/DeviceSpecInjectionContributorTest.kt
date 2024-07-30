@@ -35,7 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-internal class DeviceSpecInjectorTest {
+internal class DeviceSpecInjectionContributorTest {
   @get:Rule val rule = AndroidProjectRule.inMemory()
 
   val fixture
