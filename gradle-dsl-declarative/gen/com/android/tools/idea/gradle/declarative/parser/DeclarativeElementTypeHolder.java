@@ -40,6 +40,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
   IElementType LINE_COMMENT = new DeclarativeTokenType("line_comment");
+  IElementType MULTILINE_STRING = new DeclarativeTokenType("multiline_string");
   IElementType NULL = new DeclarativeTokenType("null");
   IElementType NUMBER = new DeclarativeTokenType("number");
   IElementType OP_COMMA = new DeclarativeTokenType(",");

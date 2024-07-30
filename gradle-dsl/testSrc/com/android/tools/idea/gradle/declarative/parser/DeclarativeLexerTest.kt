@@ -200,6 +200,28 @@ class DeclarativeLexerTest : LexerTestCase() {
       """.trimIndent())
   }
 
+  fun testMultilineString() {
+    val quotes = "\"\"\""
+    doTest(
+      "a=$quotes my string $quotes",
+      """
+        DeclarativeTokenType.token ('a')
+        DeclarativeTokenType.= ('=')
+        DeclarativeTokenType.multiline_string ('$quotes my string $quotes')
+      """.trimIndent())
+
+    doTest(
+      """
+        $quotes
+        my
+        string
+        $quotes
+      """.trimIndent(),
+      """
+        DeclarativeTokenType.multiline_string ('$quotes\nmy\nstring\n$quotes')
+      """.trimIndent())
+  }
+
   override fun createLexer() = DeclarativeParserDefinition().createLexer(null)
   override fun getDirPath() = ""
 
