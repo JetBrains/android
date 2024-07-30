@@ -252,6 +252,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listEventsCall = CallInProgress<LoadingState.Done<EventPage>>()
+  private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
@@ -353,4 +354,10 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   suspend fun completeDeleteNoteCallWith(value: LoadingState.Done<Unit>) {
     deleteNoteCall.completeWith(value)
   }
+
+  override suspend fun fetchInsight(
+    connection: Connection,
+    issue: AppInsightsIssue,
+    state: AppInsightsState,
+  ) = fetchInsightCall.initiateCall()
 }
