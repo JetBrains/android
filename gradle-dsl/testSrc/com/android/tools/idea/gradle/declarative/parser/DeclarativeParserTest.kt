@@ -157,6 +157,45 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       )
   }
 
+  fun testMultiLineString() {
+    val quotes = "\"\"\""
+    assertThat(
+      """
+          foo = ${quotes}some string$quotes
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+          FILE
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('foo')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.multiline_string)('${quotes}some string$quotes')
+          """.trimIndent()
+      )
+  }
+
+  fun testMultiLineStringNoClosingQuotes() {
+    val quotes = "\"\"\""
+    assertThat(
+      """
+          foo = ${quotes}some string
+          bar = 3
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+          FILE
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('foo')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.multiline_string)('${quotes}some string\nbar = 3')
+        """.trimIndent()
+      )
+  }
+
   fun testZeroArgumentFactory() {
     assertThat(
       """

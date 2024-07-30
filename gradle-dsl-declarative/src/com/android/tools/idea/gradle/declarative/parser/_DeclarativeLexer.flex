@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.declarative.parser;
 
+import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
@@ -36,6 +37,7 @@ BLOCK_COMMENT_START="/*"
 BLOCK_COMMENT_END="*/"
 NUMBER=[0-9]([0-9]|_+[0-9])*[Ll]?
 STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
+MULTILINE_STRING=\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?
 BOOLEAN=(true|false)
 TOKEN=[a-z][a-zA-Z0-9]*
 
@@ -50,23 +52,25 @@ TOKEN=[a-z][a-zA-Z0-9]*
 }
 
 <YYINITIAL> {
-  {WHITE_SPACE}        { return WHITE_SPACE; }
+  {WHITE_SPACE}            { return WHITE_SPACE; }
 
-  "="                  { return OP_EQ; }
-  "."                  { return OP_DOT; }
-  "{"                  { return OP_LBRACE; }
-  "}"                  { return OP_RBRACE; }
-  "("                  { return OP_LPAREN; }
-  ")"                  { return OP_RPAREN; }
-  ","                  { return OP_COMMA; }
-  "null"               { return NULL; }
+  "="                      { return OP_EQ; }
+  "."                      { return OP_DOT; }
+  "{"                      { return OP_LBRACE; }
+  "}"                      { return OP_RBRACE; }
+  "("                      { return OP_LPAREN; }
+  ")"                      { return OP_RPAREN; }
+  ","                      { return OP_COMMA; }
+  "BLOCK_COMMENT"          { return BLOCK_COMMENT; }
+  "null"                   { return NULL; }
 
-  {LINE_COMMENT}       { return LINE_COMMENT; }
-  "/*"                 { startBlockComment(); }
-  {NUMBER}             { return NUMBER; }
-  {STRING}             { return STRING; }
-  {BOOLEAN}            { return BOOLEAN; }
-  {TOKEN}              { return TOKEN; }
+  {LINE_COMMENT}           { return LINE_COMMENT; }
+  "/*"                     { startBlockComment(); }
+  {NUMBER}                 { return NUMBER; }
+  {STRING}                 { return STRING; }
+  {MULTILINE_STRING}       { return MULTILINE_STRING; }
+  {BOOLEAN}                { return BOOLEAN; }
+  {TOKEN}                  { return TOKEN; }
 
 }
 

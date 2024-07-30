@@ -53,6 +53,12 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
 
   @Override
   @Nullable
+  public PsiElement getMultilineString() {
+    return findPsiChildByType(MULTILINE_STRING);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getNumber() {
     return findPsiChildByType(NUMBER);
   }
