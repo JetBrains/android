@@ -29,7 +29,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdNameVerifier;
+import com.android.sdklib.internal.avd.AvdNames;
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater;
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService;
 import com.android.tools.idea.avdmanager.SkinUtils;
@@ -151,7 +151,7 @@ public class AvdWizardUtils {
    * @return The modified filename.
    */
   public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
-    candidateBase = AvdNameVerifier.stripBadCharactersAndCollapse(candidateBase);
+    candidateBase = AvdNames.stripBadCharactersAndCollapse(candidateBase);
     if (candidateBase.isEmpty()) {
       candidateBase = "myavd";
     }
