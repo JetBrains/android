@@ -62,6 +62,10 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     RenderLogger.ignoreFidelityWarning("The current rendering only supports APIs up to 34. You may encounter " +
                                        "crashes if using with higher APIs. To avoid, you can set a lower API for " +
                                        "your previews.");
+    // re-opened b/355186854
+    RenderLogger.ignoreFidelityWarning("The current rendering only supports APIs up to ٣٤. You may encounter " +
+                                       "crashes if using with higher APIs. To avoid, you can set a lower API for " +
+                                       "your previews.");
   }
 
   @Override
