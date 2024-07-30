@@ -17,7 +17,6 @@ package com.android.tools.profilers.integration.taskbased
 
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -41,7 +40,6 @@ class SystemTraceTaskTest : ProfilersTestBase() {
    *  5. Verify if the capture is parsed successfully.
    *  6. Verify UI components after capture is parsed.
    */
-  @Ignore("b/355647718")
   @Test
   fun test() {
     taskBasedProfiling(
