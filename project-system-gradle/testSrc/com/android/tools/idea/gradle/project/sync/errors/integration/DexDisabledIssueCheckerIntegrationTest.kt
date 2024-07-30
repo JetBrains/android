@@ -25,14 +25,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.Ignore
 import org.junit.Test
 
-@Ignore("b/328075538")
 class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   @Test
   fun testDependencyLibraryLambdaCausesBuildIssue() {
@@ -55,7 +53,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     addJarDependency(dependency)
 
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListenerAdapter() {
+    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
       override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
         generatedExceptions.add(e)
       }
