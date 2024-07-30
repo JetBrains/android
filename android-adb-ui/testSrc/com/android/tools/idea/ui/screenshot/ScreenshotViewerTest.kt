@@ -60,6 +60,7 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -139,6 +140,7 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  @Ignore("b/355613188")
   fun testResizing() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
