@@ -66,14 +66,15 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -297,25 +298,21 @@ class RenderErrorTest {
   }
 
   @Test
-  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithContrastError() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithContrastError")
   }
 
   @Test
-  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithContrastErrorAgain() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithContrastErrorAgain")
   }
 
   @Test
-  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithWideButton() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithWideButton")
   }
 
   @Test
-  @Ignore("b/355166832")
   fun testVisualLintErrorsForPreviewWithLongText() = runBlocking {
     runVisualLintErrorsForModel("PreviewWithLongText")
   }
@@ -376,8 +373,13 @@ class RenderErrorTest {
   }
 
   private suspend fun stopUiCheck() {
-    composePreviewRepresentation.setMode(PreviewMode.Default())
     waitForAllRefreshesToFinish(1.minutes)
+
+    val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    composePreviewRepresentation.setMode(PreviewMode.Default())
+    try {
+      withTimeout(1.minutes) { onRefreshCompletable.join() }
+    } catch (_: TimeoutCancellationException) {}
   }
 
   private suspend fun visualLintRenderIssues(
