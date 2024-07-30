@@ -36,10 +36,11 @@ private const val WORKBENCH_NAME = "NAV_EDITOR"
 const val NAV_EDITOR_ID = "nav-designer"
 
 private fun getDefaultSurfaceState(): DesignerEditorPanel.State =
-  when (AndroidEditorSettings.getInstance().globalState.preferredEditorMode) {
+  when (AndroidEditorSettings.getInstance().globalState.preferredResourcesEditorMode) {
     AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
     AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
-    else -> DesignerEditorPanel.State.FULL
+    AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+    null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
 
 open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
