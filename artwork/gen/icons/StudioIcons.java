@@ -291,6 +291,16 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon PALM = load("studio/icons/emulator/wear/palm.svg", -1981716285, 2);
       /** 16x16 */ public static final @NotNull Icon TILT = load("studio/icons/emulator/wear/tilt.svg", -296893865, 2);
     }
+
+    public static final class XR {
+      /** 16x16 */ public static final @NotNull Icon DOLLY = load("studio/icons/emulator/xr/dolly.svg", 628842988, 2);
+      /** 16x16 */ public static final @NotNull Icon EYE_GAZE = load("studio/icons/emulator/xr/eye-gaze.svg", 1143477700, 2);
+      /** 16x16 */ public static final @NotNull Icon HAND_TRACKING = load("studio/icons/emulator/xr/hand-tracking.svg", -703037275, 2);
+      /** 16x16 */ public static final @NotNull Icon PAN = load("studio/icons/emulator/xr/pan.svg", 1508546105, 2);
+      /** 16x16 */ public static final @NotNull Icon RESET_POSITION = load("studio/icons/emulator/xr/reset-position.svg", 317141982, 2);
+      /** 16x16 */ public static final @NotNull Icon ROTATE = load("studio/icons/emulator/xr/rotate.svg", 2102946050, 2);
+      /** 16x16 */ public static final @NotNull Icon TASKBAR = load("studio/icons/emulator/xr/taskbar.svg", 1483123195, 2);
+    }
   }
 
   public static final class GutterIcons {
