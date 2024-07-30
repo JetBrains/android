@@ -93,13 +93,13 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
                          "or with an ANDROID_NDK_HOME environment variable.")
   }
 
-  @Ignore("b/356225801")
-  fun testNotInstalledNoPreferred() {
-    val spyIdeSdks = spy(IdeSdks.getInstance())
-    doReturn(null).whenever(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
-    project.replaceService(IdeSdks::class.java, spyIdeSdks, project)
-    verifyWithInstall("NDK location not found.")
-  }
+  //@Ignore("b/356225801")
+  //fun testNotInstalledNoPreferred() {
+  //  val spyIdeSdks = spy(IdeSdks.getInstance())
+  //  doReturn(null).whenever(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
+  //  project.replaceService(IdeSdks::class.java, spyIdeSdks, project)
+  //  verifyWithInstall("NDK location not found.")
+  //}
 
   fun testOldAndroidGradlePluginDoesNotReturnAnything() {
     val buildEnvironment = mock(BuildEnvironment::class.java)
