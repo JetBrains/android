@@ -469,17 +469,15 @@ public class AvdManagerConnection {
       .setAvdHome(myAvdManager.getBaseAvdFolder())
       .setEmulatorSupportsSnapshots(EmulatorFeatures.getEmulatorFeatures(getEmulator()).contains(EmulatorAdvancedFeatures.FAST_BOOT))
       .setStudioParams(writeParameterFile().orElse(null))
-      .setLaunchInToolWindow(forceLaunchInToolWindow || shouldLaunchInToolWindow(project))
+      .setLaunchInToolWindow(canLaunchInToolWindow(avd, project) &&
+                             (forceLaunchInToolWindow || EmulatorSettings.getInstance().getLaunchInToolWindow()))
       .addAllStudioEmuParams(params.orElse(Collections.emptyList()))
       .build();
   }
 
-  /**
-   * Checks whether the emulator should launch in a tool window or standalone.
-   */
-  private static boolean shouldLaunchInToolWindow(@Nullable Project project) {
-    return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
-           project != null && ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null;
+  /** Checks whether the emulator can be launched in the Running Device tool window. */
+  private static boolean canLaunchInToolWindow(@NotNull AvdInfo avd, @Nullable Project project) {
+    return project != null && ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null;
   }
 
   public static boolean isFoldable(@NotNull AvdInfo avd) {
