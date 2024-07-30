@@ -44,9 +44,8 @@ sealed class Classifier {
    * If this Classifier is a terminal classifier, and instances will not be further classified.
    */
   val isTerminalClassifier: Boolean get() = this is Id
-  val allClassifierSets get() = classifierSetSequence.toList()
   val filteredClassifierSets get() = classifierSetSequence.filter { !it.isFiltered }.toList()
-  protected abstract val classifierSetSequence: Sequence<ClassifierSet>
+  internal abstract val classifierSetSequence: Sequence<ClassifierSet>
 
   /**
    * Retrieve the next-level ClassifierSet that the given `instance` belongs to. If none exists and `createIfAbsent` is true,
