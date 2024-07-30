@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.wear-designer",
     srcs = ["src"],
+    generate_k2_tests = True,
     iml_files = ["intellij.android.wear-designer.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
