@@ -124,7 +124,10 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         row(message("android.uibuilder.nloptionsconfigurable.resource")) {
           editorModeComboBox()
             .bindItem(
-              { state.preferredResourcesEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              {
+                state.preferredResourcesEditorMode
+                  ?: AndroidEditorSettings.DEFAULT_PREFERRED_RESOURCE_EDITOR_MODE
+              },
               state::setPreferredResourcesEditorMode,
             )
             .apply { preferredResourcesEditorMode = component }
@@ -132,8 +135,11 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         row(message("android.uibuilder.nloptionsconfigurable.kotlin")) {
           editorModeComboBox()
             .bindItem(
-              { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredKotlinEditorMode,
+              {
+                state.preferredEditorMode
+                  ?: AndroidEditorSettings.DEFAULT_PREFERRED_CODE_EDITOR_MODE
+              },
+              state::setPreferredEditorMode,
             )
             .apply { preferredEditorMode = component }
         }
@@ -182,7 +188,10 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         row(message("android.uibuilder.nloptionsconfigurable.view.mode")) {
           editorPreviewLayoutModeComboBox()
             .bindItem(
-              { state.preferredPreviewLayoutMode ?: AndroidEditorSettings.LayoutType.GRID },
+              {
+                state.preferredPreviewLayoutMode
+                  ?: AndroidEditorSettings.DEFAULT_PREFERRED_PREVIEW_LAYOUT_TYPE
+              },
               state::setPreferredPreviewLayoutMode,
             )
             .apply { myPreferredLayoutType = this.component }

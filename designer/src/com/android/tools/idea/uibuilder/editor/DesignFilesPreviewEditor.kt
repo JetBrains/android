@@ -411,5 +411,5 @@ fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() =
     AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
     AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
     AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
-    else -> DesignerEditorPanel.State.SPLIT // default
+    null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
