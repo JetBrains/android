@@ -22,6 +22,8 @@ import com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOp
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -33,12 +35,13 @@ class NlOptionConfigurableSearchableOptionContributorTest {
 
   @Test
   fun testCanFindMagnifyOptionsOnMacWhenMouseGestureEnabled() {
-    val magnifySupported =
-      SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
+    val magnifySupported = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
     if (magnifySupported) {
       val contributor = NlOptionConfigurableSearchableOptionContributor()
       val processor = TestSearchableOptionProcessor()
-      contributor.processOptions(processor)
+      runBlocking(Dispatchers.Default) {
+        contributor.contribute(processor)
+      }
 
       assertTrue(processor.getHits("track").contains(LABEL_TRACK_PAD))
       assertTrue(processor.getHits("pAd").contains(LABEL_TRACK_PAD))
