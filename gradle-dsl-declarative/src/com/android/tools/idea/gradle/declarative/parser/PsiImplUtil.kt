@@ -21,10 +21,10 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeBare
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeEntry
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeValue
 import com.android.tools.idea.gradle.declarative.psi.unescape

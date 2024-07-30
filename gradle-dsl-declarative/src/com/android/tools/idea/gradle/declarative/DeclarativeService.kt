@@ -101,7 +101,7 @@ fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? 
 
 abstract sealed class Receiver
 data class Function(val type: DataMemberFunction) : Receiver()
-data class ObjectRef(val fqName: FqName): Receiver()
+data class ObjectRef(val fqName: FqName) : Receiver()
 data class SimpleType(val type: DataType) : Receiver()
 
 fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema, fileName: String): List<Receiver> {
@@ -114,10 +114,10 @@ fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema, fileName
   else emptyList()
 }
 
-private fun getSettingsWrapper():FqName =
+private fun getSettingsWrapper(): FqName =
   DefaultFqName("org.gradle.api.internal", "SettingsInternal")
 
-private fun getSettingsReceivers(schema: DeclarativeSchema, name: String):List<Receiver> {
+private fun getSettingsReceivers(schema: DeclarativeSchema, name: String): List<Receiver> {
   // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
   // to have all settingsInternal attributes in rootMembers
   schema.getDataClassesByFqName()[getSettingsWrapper()]?.let {
@@ -126,7 +126,7 @@ private fun getSettingsReceivers(schema: DeclarativeSchema, name: String):List<R
   return listOf()
 }
 
-fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver> {
+fun getAllMembersByName(dataClass: DataClass, memberName: String): List<Receiver> {
   val result = mutableListOf<Receiver>()
 
   // object/simple types
@@ -146,6 +146,7 @@ fun getAllMembersByName(dataClass: DataClass, memberName: String):List<Receiver>
         it.semantics is FunctionSemantics.AccessAndConfigure -> {
           (it.semantics as FunctionSemantics.AccessAndConfigure).accessor.objectType.fqName()?.let { ObjectRef(it) }
         }
+
         else -> null
       }
     })
@@ -160,7 +161,7 @@ fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>?
   (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor?.let {
     return it.objectType.fqName()
   }
-  if(!dataMemberFunction.isFunction()) dataMemberFunction.receiver.fqName()?.let { return it }
+  if (!dataMemberFunction.isFunction()) dataMemberFunction.receiver.fqName()?.let { return it }
   return null
 }
 

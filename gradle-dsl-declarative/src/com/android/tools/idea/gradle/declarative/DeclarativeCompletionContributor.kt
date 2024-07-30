@@ -44,80 +44,77 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
-  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
+  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
 }
 
 // works when user start typing
-private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
-  .with(declarativeFlag)
-  .andOr(
-    psiElement().withParent(DeclarativeBlockGroup::class.java),
-    psiElement().withParent(DeclarativeFile::class.java),
-  )
+private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement().with(declarativeFlag).andOr(
+  psiElement().withParent(DeclarativeBlockGroup::class.java),
+  psiElement().withParent(DeclarativeFile::class.java),
+)
 
 //works when user just press ctrl+space
-private val DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
-  .with(declarativeFlag)
-  .andOr(
-      psiElement().withSuperParent(2, DeclarativeBlockGroup::class.java),
-      psiElement().withSuperParent(2, DeclarativeFile::class.java),
-    )
+private val DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement().with(declarativeFlag).andOr(
+  psiElement().withSuperParent(2, DeclarativeBlockGroup::class.java),
+  psiElement().withSuperParent(2, DeclarativeFile::class.java),
+)
 
 private data class Suggestion(val name: String, val type: ElementType)
 
 class DeclarativeCompletionContributor : CompletionContributor() {
   init {
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN,
-           createCompletionProvider{parameters:CompletionParameters -> parameters.position.parent })
+           createCompletionProvider { parameters: CompletionParameters -> parameters.position.parent })
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN,
-           createCompletionProvider{parameters:CompletionParameters -> parameters.position.parent.parent })
+           createCompletionProvider { parameters: CompletionParameters -> parameters.position.parent.parent })
   }
 
-  private fun createCompletionProvider(getElement:(CompletionParameters) -> PsiElement): CompletionProvider<CompletionParameters> {
+  private fun createCompletionProvider(getElement: (CompletionParameters) -> PsiElement): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
         val service = DeclarativeService.getInstance(project)
         val schema = service.getSchema() ?: return
         result.addAllElements(getSuggestionList(getElement(parameters), schema).map {
-          val element = LookupElementBuilder.create(it.name)
-            .withTypeText(it.type.str, null, true)
+          val element = LookupElementBuilder.create(it.name).withTypeText(it.type.str, null, true)
           element.withInsertHandler(insert(it.type))
         })
       }
     }
   }
 
-  private fun insert(type: ElementType): InsertHandler<LookupElement?> =
-    InsertHandler { context: InsertionContext, _: LookupElement ->
-      val editor = context.editor
-      val document = editor.document
-      context.commitDocument()
-      when(type){
-        STRING -> {
-          document.insertString(context.tailOffset, " = \"\"")
-          editor.caretModel.moveToOffset(context.tailOffset - 1)
-        }
-        BLOCK -> {
-          val text = document.text
-          val lineStartOffset = text.substring(0, context.tailOffset).indexOfLast { it == '\n'} + 1
-          val whiteSpace = " ".repeat(context.startOffset - lineStartOffset)
-
-          document.insertString(context.tailOffset, " {\n$whiteSpace  \n$whiteSpace}")
-          editor.caretModel.moveToOffset(context.tailOffset - whiteSpace.length - 2)
-        }
-        FACTORY -> {
-          document.insertString(context.tailOffset, "()")
-          editor.caretModel.moveToOffset(context.tailOffset - 1)
-        }
-        INTEGER, LONG, BOOLEAN -> {
-          document.insertString(context.tailOffset, " = ")
-          editor.caretModel.moveToOffset(context.tailOffset)
-        }
-        else -> editor.caretModel.moveToOffset(context.tailOffset)
+  private fun insert(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
+    val editor = context.editor
+    val document = editor.document
+    context.commitDocument()
+    when (type) {
+      STRING -> {
+        document.insertString(context.tailOffset, " = \"\"")
+        editor.caretModel.moveToOffset(context.tailOffset - 1)
       }
+
+      BLOCK -> {
+        val text = document.text
+        val lineStartOffset = text.substring(0, context.tailOffset).indexOfLast { it == '\n' } + 1
+        val whiteSpace = " ".repeat(context.startOffset - lineStartOffset)
+
+        document.insertString(context.tailOffset, " {\n$whiteSpace  \n$whiteSpace}")
+        editor.caretModel.moveToOffset(context.tailOffset - whiteSpace.length - 2)
+      }
+
+      FACTORY -> {
+        document.insertString(context.tailOffset, "()")
+        editor.caretModel.moveToOffset(context.tailOffset - 1)
+      }
+
+      INTEGER, LONG, BOOLEAN -> {
+        document.insertString(context.tailOffset, " = ")
+        editor.caretModel.moveToOffset(context.tailOffset)
+      }
+
+      else -> editor.caretModel.moveToOffset(context.tailOffset)
     }
+  }
 
   private fun getSuggestionList(parent: PsiElement, schema: DeclarativeSchema): List<Suggestion> {
     val path = getPath(parent)
@@ -131,17 +128,17 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       val dataClass = schema.getDataClassesByFqName()[currentName] ?: return emptyList()
       currentName = getReceiverByName(path[index], dataClass.memberFunctions)
     }
-    val element = schema.getDataClassesByFqName()[currentName]  ?: return emptyList()
-    return element.properties.map { Suggestion(it.name, getType(it.valueType)) } +
-           element.memberFunctions.map { Suggestion(it.simpleName, if(it.isFunction()) FACTORY else BLOCK) }
+    val element = schema.getDataClassesByFqName()[currentName] ?: return emptyList()
+    return element.properties.map { Suggestion(it.name, getType(it.valueType)) } + element.memberFunctions.map {
+      Suggestion(it.simpleName, if (it.isFunction()) FACTORY else BLOCK)
+    }
   }
 
   // create path - list of identifiers from root element to parent
   private fun getPath(parent: PsiElement): List<String> {
     if (parent is DeclarativeFile) return listOf()
     val result = mutableListOf<String>()
-    var current = parent.parent
-    // TODO need to make this iteration Identifier oriented
+    var current = parent.parent // TODO need to make this iteration Identifier oriented
     // to go bubble up through all elements with name
     while (current != null && current.parent != null && current is DeclarativeBlock) {
       current.identifier?.name?.let { result.add(it) }
@@ -154,8 +151,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
 class EnableAutoPopupInDeclarativeCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
-    return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement) ||
-               DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN.accepts(contextElement)) ThreeState.NO
+    return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement) || DECLARATIVE_IN_BLOCK_NO_TYPING_PATTERN.accepts(
+        contextElement)) ThreeState.NO
     else ThreeState.UNSURE
   }
 }

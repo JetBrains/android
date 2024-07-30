@@ -91,6 +91,7 @@ class DeclarativeAnnotator : Annotator {
       }
     }
   }
+
   data class FoundClass(val type: DataClass) : SearchResult()
   data class FoundFunction(val type: DataMemberFunction) : SearchResult()
   data class FoundProperty(val type: DataType) : SearchResult()
@@ -112,14 +113,16 @@ class DeclarativeAnnotator : Annotator {
       currentReceiver = currentReceiver.flatMap { element ->
         when (element) {
           // TODO need to verify type of function parameter
-          is Function -> when(val receiver = element.type.receiver){
+          is Function -> when (val receiver = element.type.receiver) {
             // assumption is that receiver is the same as for parent function for example `implementation(project(...))`
             // TODO need to make it universal (b/355179149)
             is DataTypeRef.Name -> schema.getDataClassesByFqName()[receiver.fqName]?.let {
               getAllMembersByName(it, name)
             } ?: listOf()
+
             is DataTypeRef.Type -> listOf() // no children for simple type
           }
+
           is ObjectRef -> getAllMembersByName(element, name, schema)
           is SimpleType -> listOf() // no children for simple type
         }
@@ -147,6 +150,7 @@ class DeclarativeAnnotator : Annotator {
         is ObjectRef -> {
           schema.getDataClassesByFqName()[element.fqName]?.let { isNDOC(it) } ?: false
         }
+
         else -> false
       }
     }

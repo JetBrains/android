@@ -22,7 +22,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.annotations.NonNls
 
-abstract class DeclarativeIdentifierMixin(type: IElementType): CompositePsiElement(type), DeclarativeIdentifier {
+abstract class DeclarativeIdentifierMixin(type: IElementType) : CompositePsiElement(type), DeclarativeIdentifier {
 
   @Throws(IncorrectOperationException::class)
   override fun setName(@NonNls name: String): PsiElement {

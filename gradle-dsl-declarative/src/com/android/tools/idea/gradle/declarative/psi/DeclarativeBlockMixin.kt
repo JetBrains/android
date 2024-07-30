@@ -19,7 +19,7 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 
-abstract class DeclarativeBlockMixin(type: IElementType): CompositePsiElement(type) {
+abstract class DeclarativeBlockMixin(type: IElementType) : CompositePsiElement(type) {
 
   fun getEntries(): List<DeclarativeEntry> {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, DeclarativeEntry::class.java)
