@@ -24,6 +24,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.AndroidSdks
@@ -33,7 +34,6 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
@@ -55,6 +55,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Test for [EmptyStatePanel].
@@ -118,6 +119,7 @@ class EmptyStatePanelTest {
     EmulatorSettings.getInstance().launchInToolWindow = true
     emulatorPackage.setRevision(Revision(35, 1, 2))
     val htmlComponent = ui.getComponent<JEditorPane>()
+    waitForCondition(2.seconds) { htmlComponent.normalizedText.contains("install Android Emulator") }
     assertThat(htmlComponent.normalizedText).contains(
         "To launch virtual devices in this window, install Android Emulator 35.1.3 or higher." +
         " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
