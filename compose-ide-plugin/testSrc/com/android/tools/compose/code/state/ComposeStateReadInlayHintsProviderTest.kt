@@ -35,6 +35,7 @@ import com.intellij.codeInsight.hints.declarative.InlayTreeSink
 import com.intellij.codeInsight.hints.declarative.InlineInlayPosition
 import com.intellij.codeInsight.hints.declarative.PresentationTreeBuilder
 import com.intellij.codeInsight.hints.declarative.PsiPointerInlayActionPayload
+import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.refactoring.suggested.range
@@ -58,6 +59,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
+import java.awt.event.MouseEvent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunsInEdt
@@ -244,7 +246,9 @@ class ComposeStateReadInlayHintsProviderTest {
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
     val handler = ComposeStateReadInlayActionHandler(testScope)
-    handler.handleClick(fixture.editor, payload)
+    val editor = fixture.editor
+    val event = MouseEvent(editor.getContentComponent(), 0, 0, 0, 0, 0, 0, false, 0)
+    handler.handleClick(EditorMouseEvent(editor, event, editor.getMouseEventArea(event)), payload)
     scheduler.advanceUntilIdle()
 
     assertHighlighted(foo)
@@ -264,7 +268,9 @@ class ComposeStateReadInlayHintsProviderTest {
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
     val handler = ComposeStateReadInlayActionHandler(testScope)
-    handler.handleClick(fixture.editor, payload)
+    val editor = fixture.editor
+    val event = MouseEvent(editor.getContentComponent(), 0, 0, 0, 0, 0, 0, false, 0)
+    handler.handleClick(EditorMouseEvent(editor, event, editor.getMouseEventArea(event)), payload)
     scheduler.advanceUntilIdle()
 
     fixture.editor.caretModel.run { moveToOffset(currentCaret.offset + 1) }
@@ -285,7 +291,9 @@ class ComposeStateReadInlayHintsProviderTest {
     val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
     val handler = ComposeStateReadInlayActionHandler(testScope)
-    handler.handleClick(fixture.editor, payload)
+    val editor = fixture.editor
+    val event = MouseEvent(editor.getContentComponent(), 0, 0, 0, 0, 0, 0, false, 0)
+    handler.handleClick(EditorMouseEvent(editor, event, editor.getMouseEventArea(event)), payload)
     // Nothing yet.
     assertNotHighlighted(foo)
     repeat(HIGHLIGHT_FLASH_COUNT) {
