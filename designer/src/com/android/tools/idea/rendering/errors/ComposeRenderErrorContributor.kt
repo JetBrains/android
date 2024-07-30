@@ -21,7 +21,6 @@ import com.android.tools.rendering.RenderLogger
 import com.android.utils.HtmlBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
 
@@ -103,7 +102,6 @@ object ComposeRenderErrorContributor {
     logger: RenderLogger,
     linkManager: HtmlLinkManager,
     linkHandler: HyperlinkListener,
-    project: Project,
   ): List<RenderErrorModel.Issue> =
     logger.messages
       .mapNotNull {
