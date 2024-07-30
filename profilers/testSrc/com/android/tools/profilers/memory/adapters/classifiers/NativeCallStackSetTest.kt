@@ -83,8 +83,8 @@ class NativeCallStackSetTest {
     whenever(callStackInstance.allocationCallStack).thenReturn(allocationStack)
     val callStackSet = classifier.getClassifierSet(callStackInstance, true)!!
     assertThat(callStackSet.addDeltaInstanceObject(leafInstance)).isTrue()
-    assertThat(classifier.allClassifierSets).containsExactly(leafSet, callStackSet)
-    assertThat(classifier.filteredClassifierSets).containsExactlyElementsIn(classifier.allClassifierSets)
+    assertThat(classifier.classifierSetSequence.toList()).containsExactly(leafSet, callStackSet)
+    assertThat(classifier.filteredClassifierSets).containsExactlyElementsIn(classifier.classifierSetSequence.toList())
     val filter = Filter("Exclude Test")
     leafSet.applyFilter(filter, true)
     assertThat(classifier.filteredClassifierSets).containsExactly(callStackSet)
