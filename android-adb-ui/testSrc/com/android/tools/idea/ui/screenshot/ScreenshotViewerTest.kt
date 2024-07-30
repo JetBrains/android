@@ -205,6 +205,7 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Display Shape")
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
+    waitForCondition(2.seconds) { ui.getComponent<ImageComponent>().document.value != null }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
@@ -223,7 +224,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -245,7 +246,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -305,7 +306,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -328,7 +329,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
