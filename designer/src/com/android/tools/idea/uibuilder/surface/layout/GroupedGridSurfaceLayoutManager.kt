@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffset
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
-import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
@@ -108,7 +109,7 @@ open class GroupedGridSurfaceLayoutManager(
       val margin = it.getMargin(scale)
       val framePadding = padding.previewPaddingProvider(scale)
       groupRequiredWidth = 2 * framePadding + it.sizeFunc().width + margin.horizontal
-      groupRequiredHeight = 2 * framePadding + it.sizeFunc().height + margin.vertical
+      groupRequiredHeight = 2 * framePadding + it.calculateHeightWithOffset(it.sizeFunc().height, scale)  + margin.vertical
     }
 
     for (row in layoutGroup.rows) {
@@ -218,12 +219,12 @@ open class GroupedGridSurfaceLayoutManager(
     }
     if (max - min <= SCALE_UNIT) {
       // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, width, cache)
+      val dim = getSize(content, { contentSize.scaleOf(max) }, { max }, width, cache)
       return if (dim.width <= width && dim.height <= height) max else min
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, width, cache)
-    return if (dim.width <= width && dim.height <= height) {
+    val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, cache)
+    return if (dim.height <= height) {
       getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
     } else {
       getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
