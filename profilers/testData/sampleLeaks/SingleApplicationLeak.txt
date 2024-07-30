@@ -1,0 +1,97 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+1 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+2228 bytes retained by leaking objects
+Signature: 2d8918c3076020f19fa7ab4b6ca5cb4423772b20
+┬───
+│ GC Root: System class
+│
+├─ android.app.ActivityThread class
+│    Leaking: NO (ActivityThread↓ is not leaking and a class is never leaking)
+│    ↓ static ActivityThread.sCurrentActivityThread
+├─ android.app.ActivityThread instance
+│    Leaking: NO (MainActivity↓ is not leaking and ActivityThread is a singleton)
+│    mInitialApplication instance of com.amaze.filemanager.application.AppConfig
+│    mSystemContext instance of android.app.ContextImpl
+│    ↓ ActivityThread.mActivities
+├─ android.util.ArrayMap instance
+│    Leaking: NO (MainActivity↓ is not leaking)
+│    ↓ ArrayMap.mArray
+├─ java.lang.Object[] array
+│    Leaking: NO (MainActivity↓ is not leaking)
+│    ↓ Object[1]
+├─ android.app.ActivityThread$ActivityClientRecord instance
+│    Leaking: NO (MainActivity↓ is not leaking)
+│    activity instance of com.amaze.filemanager.ui.activities.MainActivity with mDestroyed = false
+│    ↓ ActivityThread$ActivityClientRecord.activity
+├─ com.amaze.filemanager.ui.activities.MainActivity instance
+│    Leaking: NO (TabFragment↓ is not leaking and Activity#mDestroyed is false)
+│    mainActivity instance of com.amaze.filemanager.ui.activities.MainActivity with mDestroyed = false
+│    mApplication instance of com.amaze.filemanager.application.AppConfig
+│    mBase instance of androidx.appcompat.view.ContextThemeWrapper
+│    ↓ ComponentActivity.mOnConfigurationChangedListeners
+├─ java.util.concurrent.CopyOnWriteArrayList instance
+│    Leaking: NO (TabFragment↓ is not leaking)
+│    ↓ CopyOnWriteArrayList[2]
+├─ androidx.fragment.app.FragmentManager$$ExternalSyntheticLambda0 instance
+│    Leaking: NO (TabFragment↓ is not leaking)
+│    ↓ FragmentManager$$ExternalSyntheticLambda0.f$0
+├─ androidx.fragment.app.FragmentManagerImpl instance
+│    Leaking: NO (TabFragment↓ is not leaking)
+│    ↓ FragmentManager.mParent
+├─ com.amaze.filemanager.ui.fragments.TabFragment instance
+│    Leaking: NO (Fragment.mLifecycleRegistry.state is CREATED)
+│    ↓ TabFragment.rootView
+│                  ~~~~~~~~
+╰→ androidx.constraintlayout.widget.ConstraintLayout instance
+​     Leaking: YES (ObjectWatcher was watching this because com.amaze.filemanager.ui.fragments.TabFragment received Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 2.2 kB in 43 objects
+​     key = fc9ece2c-b4e6-489a-b0a9-c36942c65878
+​     watchDurationMillis = 87899
+​     retainedDurationMillis = 82899
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.amaze.filemanager.ui.activities.MainActivity with mDestroyed = false
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 34
+Build.MANUFACTURER: Google
+LeakCanary version: 2.11
+App process name: com.amaze.filemanager.debug
+Class count: 30628
+Instance count: 239139
+Primitive array count: 161586
+Object array count: 30757
+Thread count: 41
+Heap total bytes: 31909095
+Bitmap count: 17
+Bitmap total bytes: 1784528
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Db 1: open /data/user/0/com.amaze.filemanager.debug/databases/explorer.db
+Db 2: open /data/user/0/com.amaze.filemanager.debug/databases/utilities.db
+Stats: LruCache[maxSize=3000,hits=134648,misses=226197,hitRate=37%] RandomAccess[bytes=12344967,reads=226197,travel=86535836374,range=38677846,size=47597018]
+Analysis duration: 2019 ms
+Heap dump file path: /Users/addivya/bin/leakcanary/shark/shark-cli/src/main/java/shark/data/1.hprof
+Heap dump timestamp: 1710721451888
+Heap dump duration: Unknown
+====================================
