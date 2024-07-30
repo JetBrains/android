@@ -37,6 +37,7 @@ import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
+import com.android.tools.idea.diagnostics.typing.TypingEventWatcher;
 import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
@@ -57,6 +58,7 @@ import com.google.wireless.android.sdk.stats.UIActionStats;
 import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
 import com.intellij.ExtensionPoints;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.diagnostic.EventWatcher;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.MessagePool;
@@ -148,6 +150,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import kotlin.Suppress;
 import org.HdrHistogram.SingleWriterRecorder;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -471,6 +474,19 @@ public final class AndroidStudioSystemHealthMonitor {
         !ApplicationManager.getApplication().isHeadlessEnvironment() &&
         !ApplicationManager.getApplication().isUnitTestMode()) {
       HeapSnapshotTraverseService.getInstance().addMemoryReportCollectionRequest();
+    }
+    if (ServerFlagService.Companion.getInstance()
+          .getProtoOrNull(TypingEventWatcher.TYPING_LATENCY_SERVER_FLAG_NAME,
+                          MemoryUsageReportConfiguration.getDefaultInstance()) != null &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
+      //noinspection UnstableApiUsage
+      EventWatcher eventWatcher = ApplicationManager.getApplication().getService(EventWatcher.class);
+      if (eventWatcher instanceof TypingEventWatcher) {
+        ((TypingEventWatcher)eventWatcher).collectTypingLatencyDumpsAndSendReport();
+        //noinspection UnstableApiUsage
+        eventWatcher.reset();
+      }
     }
 
     List<DiagnosticReport> reports = myReportsDatabase.reapReports();
