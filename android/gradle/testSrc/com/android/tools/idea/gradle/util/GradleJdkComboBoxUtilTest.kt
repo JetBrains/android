@@ -23,6 +23,7 @@ import com.intellij.openapi.projectRoots.impl.UnknownSdkType
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.common.ThreadLeakTracker
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.jetbrains.kotlin.utils.filterIsInstanceMapNotNull
@@ -35,6 +36,12 @@ class GradleJdkComboBoxUtilTest : LightPlatformTestCase() {
   private val androidSdk by lazy { createSdk(AndroidSdkType.getInstance()) }
   private val kotlinSdk by lazy { createSdk(KotlinSdkType.INSTANCE) }
   private val unknownSdk by lazy { createSdk(UnknownSdkType.getInstance("unknown")) }
+
+  override fun setUp() {
+    super.setUp()
+    // Temporary workaround for b/355561908: false-positive thread leak due to platform bug (IJPL-159321).
+    ThreadLeakTracker.longRunningThreadCreated(testRootDisposable, "DefaultDispatcher-worker")
+  }
 
   @Test
   fun testCreateJdkComboBoxItemsWithEmptyModel() {
