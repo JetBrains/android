@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.psi.KtProperty
 
 /** Returns the [PsiFile] associated with a given lint [Context]. */
@@ -45,8 +45,7 @@ fun Context.getPsiFile(): PsiFile? {
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 internal fun KtProperty.hasBackingField(): Boolean {
   analyze(this) {
-    val propertySymbol =
-      this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+    val propertySymbol = this@hasBackingField.symbol as? KaPropertySymbol ?: return false
     return propertySymbol.hasBackingField
   }
 }
