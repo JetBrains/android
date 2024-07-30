@@ -9,7 +9,7 @@ IntelliJ's progress is a tool for controlling long-running operations. This may 
 cancelled when e.g. a dialog or the whole project is closed.
 * Running a long operation on the UI thread (with the write lock held), while still pumping AWT messages from time to time.
 
-Start by reading the [official docs](https://plugins.jetbrains.com/docs/intellij/general-threading-rules.html)
+Start by reading the [official docs](https://plugins.jetbrains.com/docs/intellij/threading-model.html)
 on the subject, see below for more in-depth details.
 
 ## Progress Indicator
