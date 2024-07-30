@@ -40,8 +40,8 @@ class WidgetConstraintModelTest : SceneTest() {
   }
 
   override fun tearDown() {
-    super.tearDown()
     defaultLocale?.let { Locale.setDefault(it) }
+    super.tearDown()
   }
 
   override fun createModel(): ModelBuilder {
