@@ -21,9 +21,6 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -50,6 +47,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
