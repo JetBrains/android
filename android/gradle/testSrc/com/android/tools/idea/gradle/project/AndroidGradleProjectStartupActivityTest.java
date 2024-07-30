@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,11 +58,13 @@ public class AndroidGradleProjectStartupActivityTest {
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
   private GradleSyncInvoker.Request myRequest;
+  private Project myProject;
+  private Disposable myTestRootDisposable;
 
   @Before
   public void setUp() throws Exception {
-    Project project = myProjectRule.getProject();
-    Disposable testRootDisposable = myProjectRule.getTestRootDisposable();
+    myProject = myProjectRule.getProject();
+    myTestRootDisposable = myProjectRule.getTestRootDisposable();
     mySyncInvoker = new GradleSyncInvoker.FakeInvoker() {
       @Override
       public void requestProjectSync(@NotNull Project project,
@@ -74,10 +75,8 @@ public class AndroidGradleProjectStartupActivityTest {
         myRequest = request;
       }
     };
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, testRootDisposable);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, myTestRootDisposable);
     myInfo = mock(Info.class);
-    ServiceContainerUtil.replaceService(project, Info.class, myInfo, testRootDisposable);
-
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
@@ -92,12 +91,11 @@ public class AndroidGradleProjectStartupActivityTest {
     if (!IdeInfo.getInstance().isAndroidStudio()) return;
 
     when(myInfo.isBuildWithGradle()).thenReturn(true);
-
-    Project project = myProjectRule.getProject();
+    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
 
     try {
       BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
     }
     catch(InterruptedException ignored) { }
 
@@ -109,11 +107,11 @@ public class AndroidGradleProjectStartupActivityTest {
   public void testRunActivityWithExistingGradleProject() {
     when(myInfo.isBuildWithGradle()).thenReturn(true);
     when(myInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(myProjectRule.getTestRootDisposable())));
+    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
 
-    Project project = myProjectRule.getProject();
     try {
       BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
     }
     catch(InterruptedException ignored) { }
 
@@ -124,11 +122,11 @@ public class AndroidGradleProjectStartupActivityTest {
   @Test
   public void testRunActivityWithNonGradleProject() {
     when(myInfo.isBuildWithGradle()).thenReturn(false);
+    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
 
-    Project project = myProjectRule.getProject();
     try {
       BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(project, continuation));
+                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
     }
     catch(InterruptedException ignored) { }
 
@@ -137,8 +135,7 @@ public class AndroidGradleProjectStartupActivityTest {
 
   @Test
   public void testJunitProducersAreIgnored() {
-    Project project = myProjectRule.getProject();
-    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(project).getState().ignoredProducers;
+    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
     assertThat(ignoredProducersService.size()).isEqualTo(4);
 
     Set<ClassLoader> classLoaders = PluginManager.getLoadedPlugins().stream().map(PluginDescriptor::getClassLoader).collect(Collectors.toSet());
