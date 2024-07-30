@@ -73,18 +73,24 @@ internal class LocalVirtualDeviceSource(
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
     nextAction = WizardAction {
-      pushPage { ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice()) }
+      pushPage {
+        ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice(), null, ::add)
+      }
     }
     finishAction = WizardAction.Disabled
   }
 
   @Composable
-  internal fun WizardPageScope.ConfigurationPage(device: VirtualDevice) {
+  internal fun WizardPageScope.ConfigurationPage(
+    device: VirtualDevice,
+    image: SystemImage?,
+    finish: suspend (VirtualDevice, SystemImage) -> Boolean,
+  ) {
     val images = systemImages.filter { it.matches(device) }.toImmutableList()
 
     // TODO: http://b/342003916
     val configureDevicePanelState =
-      remember(device) { ConfigureDevicePanelState(device, skins, images.first()) }
+      remember(device) { ConfigureDevicePanelState(device, skins, image ?: images.first()) }
 
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
@@ -114,20 +120,33 @@ internal class LocalVirtualDeviceSource(
 
     finishAction = WizardAction {
       coroutineScope.launch {
-        val wasAdded =
-          add(
-            configureDevicePanelState.device,
-            configureDevicePanelState.systemImageTableSelectionState.selection!!,
-            parent,
-          )
-        if (wasAdded) {
-          close()
+        val selectedDevice = configureDevicePanelState.device
+        val selectedImage = configureDevicePanelState.systemImageTableSelectionState.selection!!
+
+        if (ensureSystemImageIsPresent(selectedImage, parent)) {
+          if (finish(selectedDevice, selectedImage)) {
+            close()
+          }
         }
       }
     }
   }
 
-  private suspend fun add(device: VirtualDevice, image: SystemImage, parent: Component): Boolean {
+  private suspend fun add(device: VirtualDevice, image: SystemImage): Boolean {
+    withContext(AndroidDispatchers.diskIoThread) {
+      VirtualDevices().add(device, image)
+      provisioner.refreshDevices()
+    }
+    return true
+  }
+
+  /**
+   * Prompts the user to download the system image if it is not present.
+   *
+   * @return true if the system image is present (either because it was already there or it was
+   *   downloaded successfully).
+   */
+  private suspend fun ensureSystemImageIsPresent(image: SystemImage, parent: Component): Boolean {
     if (image.isRemote) {
       val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
 
@@ -141,9 +160,6 @@ internal class LocalVirtualDeviceSource(
         return false
       }
     }
-
-    VirtualDevices().add(device, image)
-    provisioner.refreshDevices()
     return true
   }
 
