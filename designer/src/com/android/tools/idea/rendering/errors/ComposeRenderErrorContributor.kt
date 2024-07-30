@@ -19,7 +19,6 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.rendering.HtmlLinkManager
 import com.android.tools.rendering.RenderLogger
 import com.android.utils.HtmlBuilder
-import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
@@ -74,8 +73,10 @@ object ComposeRenderErrorContributor {
    * error to load their PreviewParameterProvider.
    */
   private fun isFailToLoadPreviewParameterProvider(throwable: Throwable?): Boolean {
+    val providerClass = "${'$'}FailToLoadPreviewParameterProvider"
     return throwable is NoSuchMethodException &&
-      throwable.message?.endsWith("${'$'}FailToLoadPreviewParameterProvider") == true
+      (throwable.message?.endsWith(providerClass) == true ||
+        throwable.message?.endsWith("$providerClass not found") == true)
   }
 
   /**
@@ -178,13 +179,15 @@ object ComposeRenderErrorContributor {
             RenderErrorModel.Issue.builder()
               .setSeverity(HighlightSeverity.ERROR)
               .setSummary("Fail to load PreviewParameterProvider")
-              .addMessageTip(
-                AllIcons.General.Error,
+              .setHtmlContent(
                 HtmlBuilder()
-                  .add(
-                    "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the " +
-                      "values property implementation. The IDE logs should contain the full exception stack trace."
-                  ),
+                  .addLink(
+                    "There was problem to load the ",
+                    "PreviewParameterProvider",
+                    " defined. Please double-check its constructor and the values property implementation. The IDE logs should contain" +
+                      " the full exception stack trace.",
+                    "https://developer.android.com/develop/ui/compose/tooling/previews#preview-data",
+                  )
               )
           }
           isTimeoutToLoadPreview(it.throwable) -> {
