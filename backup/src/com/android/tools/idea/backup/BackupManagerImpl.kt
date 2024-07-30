@@ -16,13 +16,12 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
-import com.android.backup.BackupHandler
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupProgressListener.Step
 import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
-import com.android.backup.RestoreHandler
+import com.android.backup.BackupService
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
@@ -47,18 +46,23 @@ import com.intellij.platform.ide.progress.TaskCancellation.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
-import java.nio.file.Path
-import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
+import kotlin.io.path.pathString
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
 private const val NOTIFICATION_GROUP = "Backup"
 
+private val logger: Logger = Logger.getInstance(BackupManager::class.java)
+
 /** Implementation of [BackupManager] */
-internal class BackupManagerImpl(private val project: Project) : BackupManager {
-  private val adbSession = AdbLibService.getSession(project)
-  private val logger: Logger = Logger.getInstance(BackupManager::class.java)
+internal class BackupManagerImpl private constructor(
+  private val project: Project,
+  private val backupService: BackupService,
+) : BackupManager {
+  @Suppress("unused") // Used by the plugin XML
+  constructor(project: Project) : this(project, BackupService.getInstance(AdbLibService.getSession(project), logger))
 
   @UiThread
   override fun backupModal(
@@ -76,9 +80,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        val handler =
-          BackupHandler(adbSession, serialNumber, logger, listener, backupFile, applicationId)
-        val result = handler.backup()
+        val result = backupService.backup(serialNumber, applicationId, backupFile, listener)
         val operation = message("backup")
         if (notify) {
           result.notify(operation, backupFile)
@@ -118,8 +120,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
         else -> Path.of(project.basePath ?: "", backupFile.pathString)
       }
     logger.debug("Restoring from $path on '${serialNumber}'")
-    val handler = RestoreHandler(adbSession, logger, serialNumber, listener, path)
-    val result = handler.restore()
+    val result = backupService.restore(serialNumber, backupFile, listener)
     val operation = message("restore")
     if (notify) {
       result.notify(operation)
@@ -154,7 +155,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
 
   override suspend fun getApplicationId(backupFile: Path): String? {
     try {
-      return RestoreHandler.validateBackupFile(backupFile)
+      return BackupService.validateBackupFile(backupFile)
     } catch (e: Exception) {
       logger.warn("File ${backupFile.pathString} is not a valid backup file")
       return null
