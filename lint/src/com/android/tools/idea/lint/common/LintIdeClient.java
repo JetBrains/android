@@ -231,7 +231,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
     // In order to prevent UI freezes due to long-running Lint read actions,
     // we cancel incremental Lint sessions if a write action is running, pending, or later requested.
-    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html#preventing-ui-freezes
+    // See https://plugins.jetbrains.com/docs/intellij/threading-model.html#avoiding-ui-freezes
 
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
