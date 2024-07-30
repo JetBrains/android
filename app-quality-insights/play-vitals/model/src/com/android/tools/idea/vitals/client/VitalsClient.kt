@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.vitals.client
 
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
@@ -215,6 +217,14 @@ class VitalsClient(
   }
 
   override suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit> {
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
+  }
+
+  override suspend fun fetchInsight(
+    connection: Connection,
+    issue: AppInsightsIssue,
+    state: AppInsightsState,
+  ): LoadingState.Done<AiInsight> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
