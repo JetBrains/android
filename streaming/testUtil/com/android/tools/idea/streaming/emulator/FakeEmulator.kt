@@ -50,7 +50,6 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
-import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.repository.targets.SystemImageManager
@@ -1541,6 +1540,99 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           SystemImage.GpuSupport=true
           SystemImage.TagId=android-wear
           SystemImage.TagDisplay=Wear OS
+          """.trimIndent()
+
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
+    /** Creates a fake XR AVD. */
+    @JvmStatic
+    fun createXrAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 34): Path {
+      val avdId = "XR_Device_API_$api"
+      val abi = "x86_64"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-xr/$abi/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=true
+          abi.type=$abi
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=6G
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=None
+          hw.camera.front=None
+          hw.cpu.arch=$abi
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name=xr_device
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.keyboard.lid=yes
+          hw.lcd.density = 320
+          hw.lcd.width = 2368
+          hw.lcd.height = 2560
+          hw.mainKeys = no
+          hw.ramSize = 2048
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=yes
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.size=512M
+          showDeviceFrame=yes
+          skin.dynamic=yes
+          skin.name = 2560x2368
+          skin.path = _no_skin
+          tag.displaynames = Android XR System Image
+          tag.ids=android-xr
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = $abi
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.density=320
+          hw.lcd.width=2560
+          hw.lcd.height=2368
+          hw.initialOrientation = landscape
+          hw.ramSize = 3072
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = false
+          hw.accelerometer = false
+          hw.gyroscope = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = true
+          hw.sdCard.path = $avdFolder/sdcard.img
+          android.sdk.root = $sdkFolder
+          """.trimIndent()
+
+      val sourceProperties = """
+          Pkg.Desc=Android XR SDK System Image $abi
+          Pkg.UserSrc=false
+          Pkg.Revision=2
+          AndroidVersion.ApiLevel=$api
+          SystemImage.Abi=$abi
+          SystemImage.GpuSupport=true
+          SystemImage.TagId=android-xr
+          SystemImage.TagDisplay=Android XR System Image
           """.trimIndent()
 
       createSystemImage(systemImageFolder, api, sourceProperties)

@@ -143,6 +143,32 @@ class EmulatorConfigurationTest {
   }
 
   @Test
+  fun testXr() {
+    // Prepare.
+    val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, api = 34)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config?.avdFolder).isEqualTo(avdFolder)
+    assertThat(config?.avdName).isEqualTo("XR Device API 34")
+    assertThat(config?.displayWidth).isEqualTo(2560)
+    assertThat(config?.displayHeight).isEqualTo(2368)
+    assertThat(config?.density).isEqualTo(320)
+    assertThat(config?.additionalDisplays).isEmpty()
+    assertThat(config?.skinFolder?.toString()).isNull()
+    assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.deviceType).isEqualTo(DeviceType.XR)
+    assertThat(config?.hasOrientationSensors).isTrue()
+    assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
+    assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).isEmpty()
+    assertThat(config?.api).isEqualTo(34)
+  }
+
+  @Test
   fun testFoldable() {
     // Prepare.
     val avdFolder = FakeEmulator.createFoldableAvd(avdParentFolder, sdkFolder)
