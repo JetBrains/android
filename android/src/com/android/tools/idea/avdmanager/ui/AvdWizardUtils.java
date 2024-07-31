@@ -28,8 +28,6 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.sdklib.internal.avd.AvdNames;
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater;
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService;
 import com.android.tools.idea.avdmanager.SkinUtils;
@@ -49,7 +47,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,30 +136,6 @@ public class AvdWizardUtils {
    */
   public static int getMaxCpuCores() {
     return Runtime.getRuntime().availableProcessors() / 2;
-  }
-
-  /**
-   * Get a version of {@code candidateBase} modified such that it is a valid filename. Invalid characters will be
-   * removed, and if requested the name will be made unique.
-   *
-   * @param candidateBase the name on which to base the avd name.
-   * @param uniquify      if true, _n will be appended to the name if necessary to make the name unique, where n is the first
-   *                      number that makes the filename unique.
-   * @return The modified filename.
-   */
-  public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
-    candidateBase = AvdNames.stripBadCharactersAndCollapse(candidateBase);
-    if (candidateBase.isEmpty()) {
-      candidateBase = "myavd";
-    }
-    String candidate = candidateBase;
-    if (uniquify) {
-      int i = 1;
-      while (connection.avdExists(candidate)) {
-        candidate = String.format(Locale.US, "%1$s_%2$d", candidateBase, i++);
-      }
-    }
-    return candidate;
   }
 
   /**

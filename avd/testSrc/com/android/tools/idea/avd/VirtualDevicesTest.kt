@@ -54,6 +54,7 @@ class VirtualDevicesTest {
     val autoDevice = allDevices.first { it.id == "automotive_1080p_landscape" }
 
     whenever(connection.avdExists(any())).thenReturn(false)
+    whenever(connection.cleanAvdName(any(), any())).thenReturn("Automotive_1080p_landscape_")
 
     VirtualDevices(
         connection,
@@ -114,6 +115,7 @@ class VirtualDevicesTest {
       )
 
     val image = mockSystemImage("system-images;android-31;google_apis;x86_64")
+    whenever(connection.cleanAvdName(any(), any())).thenReturn("Pixel 6")
 
     // Act
     devices.add(device, image)

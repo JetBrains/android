@@ -987,7 +987,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public String get() {
         String displayName = getModel().avdDisplayName().get();
         getModel().avdId().set(StringUtil.isNotEmpty(displayName) ?
-                               AvdWizardUtils.cleanAvdName(connection, displayName, !displayName.equals(myOriginalName)) : "");
+                               connection.cleanAvdName(displayName, !displayName.equals(myOriginalName)) : "");
         return getModel().avdId().get();
       }
     });
