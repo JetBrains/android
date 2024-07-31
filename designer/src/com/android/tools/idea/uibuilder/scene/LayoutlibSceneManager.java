@@ -107,7 +107,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -135,14 +134,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
   private boolean myUseCustomInflater = true;
-  @GuardedBy("myRenderingTaskLock")
-  private RenderTask myRenderTask;
-  @GuardedBy("myRenderingTaskLock")
-  private SessionClock mySessionClock;
-  // Protects read and write accesses to myRenderTask.
-  // Executing RenderTask methods do not need to be protected as the corresponding
-  // synchronization needed is done in RenderTask.
-  private final Object myRenderingTaskLock = new Object();
   private ResourceNotificationManager.ResourceVersion myRenderedVersion;
   // Protects all read/write accesses to the myRenderResult reference
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
@@ -430,30 +421,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
         myRenderTaskDisposerExecutor.execute(() -> {
-          updateRenderTask(null);
+          myLayoutlibSceneRenderer.setRenderTask(null);
           updateCachedRenderResult(null);
         });
       }
       else {
-        updateRenderTask(null);
+        myLayoutlibSceneRenderer.setRenderTask(null);
         updateCachedRenderResult(null);
-      }
-    }
-  }
-
-  private void updateRenderTask(@Nullable RenderTask newTask) {
-    RenderTask oldTask;
-    synchronized (myRenderingTaskLock) {
-      oldTask = myRenderTask;
-      // TODO(b/168445543): move session clock to RenderTask
-      mySessionClock = new RealTimeSessionClock();
-      myRenderTask = newTask;
-    }
-    if (oldTask != null) {
-      try {
-        oldTask.dispose();
-      } catch (Throwable t) {
-        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
       }
     }
   }
@@ -796,10 +770,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask;
-    synchronized (myRenderingTaskLock) {
-      currentTask = myRenderTask;
-    }
+    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -841,11 +812,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     if (project.isDisposed() || isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
-    synchronized (myRenderingTaskLock) {
-      if (myRenderTask != null && !force) {
-        // No need to inflate
-        return CompletableFuture.completedFuture(null);
-      }
+    if (myLayoutlibSceneRenderer.getRenderTask() != null && !force) {
+      // No need to inflate
+      return CompletableFuture.completedFuture(null);
     }
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
@@ -898,10 +867,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
             // Also remove the previous task if the render has finished but was not a success.
             if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess() || isDisposed.get()) {
               newTask.dispose();
-              updateRenderTask(null);
+              myLayoutlibSceneRenderer.setRenderTask(null);
             }
             else {
-              updateRenderTask(newTask);
+              myLayoutlibSceneRenderer.setRenderTask(newTask);
             }
           })
             .handle((result, exception) -> {
@@ -910,7 +879,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
             });
         }
         else {
-          updateRenderTask(null);
+          myLayoutlibSceneRenderer.setRenderTask(null);
 
           if (project.isDisposed()) return CompletableFuture.completedFuture(null);
           return CompletableFuture.completedFuture(RenderResults.createRenderTaskErrorResult(getModel().getFile(), logger));
@@ -1145,10 +1114,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         }
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
-        RenderTask currentTask;
-        synchronized (myRenderingTaskLock) {
-          currentTask = myRenderTask;
-        }
+        RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
         if (currentTask == null) {
           return CompletableFuture.completedFuture(null);
         }
@@ -1225,10 +1191,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
-    RenderTask currentTask;
-    synchronized (myRenderingTaskLock) {
-      currentTask = myRenderTask;
-    }
+    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
     }
@@ -1249,10 +1212,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @NotNull
   public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block, long timeout, TimeUnit timeUnit) {
-    RenderTask currentTask;
-    synchronized (myRenderingTaskLock) {
-      currentTask = myRenderTask;
-    }
+    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1260,9 +1220,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   private long currentTimeNanos() {
-    synchronized (myRenderingTaskLock) {
-      return mySessionClock.getTimeNanos();
-    }
+    return myLayoutlibSceneRenderer.getSessionClock().getTimeNanos();
   }
 
   /**
@@ -1270,9 +1228,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @Override
   public void pauseSessionClock() {
-    synchronized (myRenderingTaskLock) {
-      mySessionClock.pause();
-    }
+    myLayoutlibSceneRenderer.getSessionClock().pause();
   }
 
   /**
@@ -1280,9 +1236,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @Override
   public void resumeSessionClock() {
-    synchronized (myRenderingTaskLock) {
-      mySessionClock.resume();
-    }
+    myLayoutlibSceneRenderer.getSessionClock().resume();
   }
 
   /**
@@ -1299,10 +1253,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask;
-    synchronized (myRenderingTaskLock) {
-      currentTask = myRenderTask;
-    }
+    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1321,10 +1272,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask;
-    synchronized (myRenderingTaskLock) {
-      currentTask = myRenderTask;
-    }
+    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1396,7 +1344,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderingQueue.deactivate();
       clearAndCancelPendingFutures();
       completeRender();
-      updateRenderTask(null);
+      myLayoutlibSceneRenderer.setRenderTask(null);
       updateCachedRenderResult(null);
     }
 
