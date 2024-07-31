@@ -11,7 +11,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "@intellij//:com.intellij.java",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/backup:studio.android.sdktools.backup[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -41,7 +43,10 @@ iml_module(
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
