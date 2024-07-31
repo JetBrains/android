@@ -335,10 +335,19 @@ class ComposeRenderErrorContributorTest {
 
   @Test
   fun `compose preview parameter provider fails to load`() {
+    checkPreviewParameterProviderFailsToLoad(false)
+  }
+
+  @Test
+  fun `compose preview parameter provider fails to load not found suffix`() {
+    checkPreviewParameterProviderFailsToLoad(true)
+  }
+
+  private fun checkPreviewParameterProviderFailsToLoad(notFoundSuffix: Boolean) {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.NoSuchMethodException: com.example.demo.DownloadPreviewParameterProvider.${'$'}FailToLoadPreviewParameterProvider
+      java.lang.NoSuchMethodException: com.example.demo.DownloadPreviewParameterProvider.${'$'}FailToLoadPreviewParameterProvider${if (notFoundSuffix) " not found" else ""}
       	at androidx.compose.ui.tooling.ComposableInvoker.findComposableMethod(ComposableInvoker.kt:83)
       	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:190)
       	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1$${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:590)
@@ -375,14 +384,12 @@ class ComposeRenderErrorContributorTest {
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
-
-    assertBottomPanelEquals(
-      issues[0],
-      MessageTip(
-        AllIcons.General.Error,
-        "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
-          "implementation. The IDE logs should contain the full exception stack trace.",
-      ),
+    assertEquals(
+      "There was problem to load the " +
+        "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-data\">PreviewParameterProvider</A> defined. " +
+        "Please double-check its constructor and the values property implementation. " +
+        "The IDE logs should contain the full exception stack trace.",
+      issues[0].htmlContent,
     )
   }
 
