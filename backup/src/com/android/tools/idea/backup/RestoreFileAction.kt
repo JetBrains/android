@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.BackupBundle.message
+import com.android.tools.idea.backup.BackupManager.Source.PROJECT_VIEW
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Invalid
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Valid
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -109,7 +110,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
 
   private suspend fun Valid.restore(project: Project) {
     withContext(uiThread) {
-      BackupManager.getInstance(project).restoreModal(serialNumber, backupFile)
+      BackupManager.getInstance(project).restoreModal(serialNumber, backupFile, PROJECT_VIEW)
     }
   }
 }

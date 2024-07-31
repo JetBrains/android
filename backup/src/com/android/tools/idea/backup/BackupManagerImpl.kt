@@ -28,7 +28,9 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
+import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -46,10 +48,11 @@ import com.intellij.platform.ide.progress.TaskCancellation.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
 private const val NOTIFICATION_GROUP = "Backup"
@@ -57,18 +60,21 @@ private const val NOTIFICATION_GROUP = "Backup"
 private val logger: Logger = Logger.getInstance(BackupManager::class.java)
 
 /** Implementation of [BackupManager] */
-internal class BackupManagerImpl private constructor(
-  private val project: Project,
-  private val backupService: BackupService,
-) : BackupManager {
+internal class BackupManagerImpl
+@VisibleForTesting
+internal constructor(private val project: Project, private val backupService: BackupService) :
+  BackupManager {
   @Suppress("unused") // Used by the plugin XML
-  constructor(project: Project) : this(project, BackupService.getInstance(AdbLibService.getSession(project), logger))
+  constructor(
+    project: Project
+  ) : this(project, BackupService.getInstance(AdbLibService.getSession(project), logger))
 
   @UiThread
   override fun backupModal(
     serialNumber: String,
     applicationId: String,
     backupFile: Path,
+    source: Source,
     notify: Boolean,
   ): BackupResult {
     logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
@@ -88,13 +94,19 @@ internal class BackupManagerImpl private constructor(
         if (result is Error) {
           logger.warn(message("notification.error", operation), result.throwable)
         }
+        BackupUsageTracker.logBackup(D2D, source, result)
         result
       }
     }
   }
 
   @UiThread
-  override fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean): BackupResult {
+  override fun restoreModal(
+    serialNumber: String,
+    backupFile: Path,
+    source: Source,
+    notify: Boolean,
+  ): BackupResult {
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
     return runWithModalProgressBlocking(
       ModalTaskOwner.project(project),
@@ -103,7 +115,7 @@ internal class BackupManagerImpl private constructor(
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        restore(serialNumber, backupFile, listener, notify)
+        restore(serialNumber, backupFile, source, listener, notify)
       }
     }
   }
@@ -111,6 +123,7 @@ internal class BackupManagerImpl private constructor(
   override suspend fun restore(
     serialNumber: String,
     backupFile: Path,
+    source: Source,
     listener: BackupProgressListener?,
     notify: Boolean,
   ): BackupResult {
@@ -128,6 +141,7 @@ internal class BackupManagerImpl private constructor(
     if (result is Error) {
       logger.warn(message("notification.error", operation), result.throwable)
     }
+    BackupUsageTracker.logRestore(source, result)
     return result
   }
 

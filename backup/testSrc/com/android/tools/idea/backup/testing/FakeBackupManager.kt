@@ -34,19 +34,26 @@ internal class FakeBackupManager : BackupManager {
     serialNumber: String,
     applicationId: String,
     backupFile: Path,
+    source: BackupManager.Source,
     notify: Boolean,
   ): BackupResult {
     actions.add(BackupModal(serialNumber, applicationId, backupFile, notify))
     return BackupResult.Success
   }
 
-  override fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean): BackupResult {
+  override fun restoreModal(
+    serialNumber: String,
+    backupFile: Path,
+    source: BackupManager.Source,
+    notify: Boolean,
+  ): BackupResult {
     TODO("Not yet implemented")
   }
 
   override suspend fun restore(
     serialNumber: String,
     backupFile: Path,
+    source: BackupManager.Source,
     listener: BackupProgressListener?,
     notify: Boolean,
   ): BackupResult {
