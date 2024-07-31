@@ -83,8 +83,7 @@ class ComposeRenderErrorContributorTest {
         error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
       }
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate Composition Local", issues[0].summary)
@@ -129,8 +128,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.WARNING, issues[0].severity)
     assertEquals("Unable to find @Preview 'Not provided'", issues[0].summary)
@@ -192,8 +190,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
@@ -253,8 +250,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
@@ -323,8 +319,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("PreviewParameterProvider/@Preview type mismatch.", issues[0].summary)
@@ -376,8 +371,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
@@ -408,8 +402,7 @@ class ComposeRenderErrorContributorTest {
       }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues =
-      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Timeout error", issues[0].summary)
