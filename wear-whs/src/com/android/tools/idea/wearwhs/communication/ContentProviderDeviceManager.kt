@@ -18,7 +18,9 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.adblib.AdbSession
 import com.android.adblib.ClosedSessionException
 import com.android.adblib.DeviceSelector
-import com.android.adblib.DeviceState
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.device
+import com.android.adblib.isOnline
 import com.android.adblib.shellAsText
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
@@ -27,7 +29,6 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.reflect.full.isSuperclassOf
-import kotlinx.coroutines.flow.take
 
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
@@ -190,11 +191,8 @@ internal class ContentProviderDeviceManager(
 
     // Wrap adbSession interactions with a try, as it can fail anywhere if it's closed
     return try {
-      var deviceOnline = false
-      adbSession.hostServices.trackDevices().take(1).collect { devices ->
-        deviceOnline =
-          devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
-      }
+      val deviceOnline =
+        adbSession.connectedDevicesTracker.device(serialNumber!!)?.isOnline ?: false
       if (!deviceOnline) {
         return loggedFailure(ConnectionLostException("Device is not online"))
       }
