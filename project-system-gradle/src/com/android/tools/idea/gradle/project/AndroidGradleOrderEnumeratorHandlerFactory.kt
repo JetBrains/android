@@ -123,6 +123,7 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
     private fun addFoldersFromAndroidArtifact(artifact: IdeAndroidArtifact): Sequence<String> {
       return foldersFromBaseArtifact(artifact) +
         artifact.generatedResourceFolders.asSequence().map(FilePaths::pathToIdeaUrl)
+        artifact.generatedAssetFolders.asSequence().map(FilePaths::pathToIdeaUrl)
     }
   }
 }

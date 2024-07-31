@@ -125,6 +125,57 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
   }
 
+  public void testGeneratedAssets() throws Exception {
+    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
+    Files.append(
+      """
+       
+       abstract class AssetGenerator extends DefaultTask {
+           @OutputDirectory
+           abstract DirectoryProperty getOutputDirectory();
+           @TaskAction
+           void run() {
+               def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
+               new FileWriter(outputFile).with {
+                   write("some text")
+                   flush()
+               }
+           }
+       }
+
+       def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
+       androidComponents {
+           onVariants(selector().all(),  { variant ->
+               variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
+           })
+       }""",
+      new File(projectRoot, "app/build.gradle"),
+      StandardCharsets.UTF_8);
+    requestSyncAndWait();
+
+    Module appModule = TestModuleUtil.findAppModule(getProject());
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
+    File generatedAssetsFolder = androidModel.getMainArtifact()
+      .getGeneratedAssetFolders()
+      .stream()
+      .filter(f -> f.getPath().contains("createAssets"))
+      .findFirst()
+      .orElse(null);
+    assertThat(generatedAssetsFolder).named("createAssets folder").isNotNull();
+
+    File assetFile = FileUtils.join(generatedAssetsFolder, "raw", "createAssets");
+    Files.createParentDirs(assetFile);
+    Files.write("\nsample text", assetFile, StandardCharsets.UTF_8);
+
+    refreshProjectFiles();
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    Set<List<String>> allNodes = getAllNodes(structure);
+    assertThat(allNodes).contains(Arrays.asList("app (Android)", "assets (generated)", "raw", "createAssets"));
+  }
+
   public void testShowVisibilityIconsWhenOptionIsSelected() {
     ProjectViewState projectViewState = getProject().getService(ProjectViewState.class);
     projectViewState.setShowVisibilityIcons(true);

@@ -147,6 +147,7 @@ private fun collectContentRootDataForArtifact(
   generatedSourceFolderPaths.processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
   if (artifact is IdeAndroidArtifactCore) {
     artifact.generatedResourceFolders.processAs(if (artifact.isTestArtifact) TEST_RESOURCE_GENERATED else RESOURCE_GENERATED)
+    artifact.generatedAssetFolders.processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)
   }
 
   return newContentRoots

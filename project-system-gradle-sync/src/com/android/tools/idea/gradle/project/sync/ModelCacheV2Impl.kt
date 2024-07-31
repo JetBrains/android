@@ -782,6 +782,7 @@ internal fun modelCacheV2Impl(
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS]) artifact.generatedClassPaths else emptyMap(),
       bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels() else null,
+      generatedAssetFolders = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) artifact.generatedAssetsFolders.deduplicateFiles().distinct() else listOf()
     )
   }
 

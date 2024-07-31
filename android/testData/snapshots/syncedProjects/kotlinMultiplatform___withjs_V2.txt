@@ -938,7 +938,8 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
+            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/assets [-]
