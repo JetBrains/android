@@ -101,7 +101,6 @@ internal constructor(
     selectionModel,
     zoomControlsPolicy!!,
   ),
-  LayoutPreviewHandler,
   NlDiagnosticKey {
 
   var screenViewProvider: ScreenViewProvider = loadPreferredMode()
@@ -120,6 +119,17 @@ internal constructor(
 
   protected val sceneViewLayoutManager: NlDesignSurfacePositionableContentLayoutManager
     get() = sceneViewPanel.layout as NlDesignSurfacePositionableContentLayoutManager
+
+  val layoutPreviewHandler =
+    object : LayoutPreviewHandler {
+      override var previewWithToolsVisibilityAndPosition = true
+        set(value) {
+          if (field != value) {
+            field = value
+            forceRefresh()
+          }
+        }
+    }
 
   abstract fun onLayoutUpdated(layoutOption: SurfaceLayoutOption)
 

@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.actions.LayoutPreviewHandler
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
@@ -72,6 +73,12 @@ object DesignSurfaceTestUtil {
     if (surface is NlDesignSurface) {
       whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
       whenever(surface.actionManager).thenReturn(NlActionManager(surface))
+      whenever(surface.layoutPreviewHandler)
+        .thenReturn(
+          object : LayoutPreviewHandler {
+            override var previewWithToolsVisibilityAndPosition = true
+          }
+        )
     } else {
       whenever(surface.actionManager)
         .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
@@ -116,6 +123,12 @@ object DesignSurfaceTestUtil {
     if (surface is NlDesignSurface) {
       whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
       whenever(surface.actionHandlerProvider).thenReturn { defaultActionHandlerProvider(it) }
+      whenever(surface.layoutPreviewHandler)
+        .thenReturn(
+          object : LayoutPreviewHandler {
+            override var previewWithToolsVisibilityAndPosition = true
+          }
+        )
     }
 
     val sceneManager = sceneManagerFactory(surface, model)
