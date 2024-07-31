@@ -133,6 +133,11 @@ sealed class Action {
       cancelIf(reasons) { it is DeleteNote && it.noteId == noteId }
   }
 
+  /** Fetch AI generated insight */
+  data class FetchInsight(override val id: IssueId) : IssueAction() {
+    override fun maybeDoCancel(reasons: List<Single>) = cancelIf(reasons, ::shouldCancelFetch)
+  }
+
   /** Cancel all outstanding fetches. */
   object CancelFetches : Single() {
     override fun maybeDoCancel(reasons: List<Single>) = cancelIf(reasons, ::shouldCancelFetch)

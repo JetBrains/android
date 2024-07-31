@@ -80,6 +80,12 @@ data class SelectedIssueChanged(
           } else {
             LoadingState.Ready(null)
           },
+        currentInsight =
+          if (issue != null && state.issues is LoadingState.Ready) {
+            LoadingState.Loading
+          } else {
+            LoadingState.Ready(null)
+          },
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)

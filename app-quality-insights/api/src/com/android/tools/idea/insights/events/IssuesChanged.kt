@@ -132,6 +132,8 @@ data class IssuesChanged(
           else LoadingState.Ready(null),
         currentNotes =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentInsight =
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
