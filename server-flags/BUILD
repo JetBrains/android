@@ -12,6 +12,7 @@ iml_module(
     name = "intellij.android.server-flags",
     srcs = ["src"],
     iml_files = ["intellij.android.server-flags.iml"],
+    resources = ["resources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
