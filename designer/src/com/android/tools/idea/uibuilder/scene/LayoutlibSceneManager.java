@@ -86,7 +86,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
@@ -143,12 +142,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final LinkedList<CompletableFuture<Void>> myPendingFutures = new LinkedList<>();
   @NotNull private final ViewEditor myViewEditor;
   private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
-  /**
-   * {@code Executor} to run the {@code Runnable} that disposes {@code RenderTask}s. This allows
-   * {@code SyncLayoutlibSceneManager} to use a different strategy to dispose the tasks that does not involve using
-   * pooled threads.
-   */
-  @NotNull private final Executor myRenderTaskDisposerExecutor;
 
   /**
    * Helper class in charge of some render related responsibilities
@@ -271,8 +264,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
-    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(model);
-    myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
+    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model);
     myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
 
@@ -406,17 +398,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
     finally {
       super.dispose();
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-        // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-        myRenderTaskDisposerExecutor.execute(() -> {
-          myLayoutlibSceneRenderer.setRenderTask(null);
-          myLayoutlibSceneRenderer.setRenderResult(null);
-        });
-      }
-      else {
-        myLayoutlibSceneRenderer.setRenderTask(null);
-        myLayoutlibSceneRenderer.setRenderResult(null);
-      }
     }
   }
 
@@ -1292,8 +1273,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderingQueue.deactivate();
       clearAndCancelPendingFutures();
       completeRender();
-      myLayoutlibSceneRenderer.setRenderTask(null);
-      myLayoutlibSceneRenderer.setRenderResult(null);
+      myLayoutlibSceneRenderer.deactivate();
     }
 
     return deactivated;

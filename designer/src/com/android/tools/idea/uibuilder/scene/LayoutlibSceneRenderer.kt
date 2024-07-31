@@ -22,19 +22,33 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
+import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 // TODO(b/335424569): this class is meant to be used for extracting the rendering responsibilities
 //   out of LayoutlibSceneManager. Add proper class description later.
-internal class LayoutlibSceneRenderer(private val model: NlModel) {
+internal class LayoutlibSceneRenderer(
+  parentDisposable: Disposable,
+  private val disposeExecutor: Executor,
+  private val model: NlModel,
+) : Disposable {
+  private val isDisposed = AtomicBoolean(false)
   private val updateHierarchyLock = ReentrantLock()
   private val renderTaskLock = ReentrantLock()
   private val renderResultLock = ReentrantLock()
 
   /** If true, when a new RenderResult is an error it will retain the last successful image. */
   var cacheSuccessfulRenderImage = false
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   // TODO(b/335424569): make this field private, or at least its setter
   @GuardedBy("renderTaskLock")
@@ -105,5 +119,19 @@ internal class LayoutlibSceneRenderer(private val model: NlModel) {
       }
     } catch (ignored: InterruptedException) {}
     return reverseUpdate
+  }
+
+  fun deactivate() {
+    renderTask = null
+    renderResult = null
+  }
+
+  override fun dispose() {
+    if (isDisposed.getAndSet(true)) return
+    if (ApplicationManager.getApplication().isReadAccessAllowed) {
+      // dispose is called by the project close using the read lock. Invoke the render task dispose
+      // later without the lock.
+      disposeExecutor.execute(::deactivate)
+    } else deactivate()
   }
 }
