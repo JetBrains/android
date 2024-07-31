@@ -103,7 +103,7 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
       }
 
     val displayName = avdManager.getDefaultDeviceDisplayName(d, systemImageDescription.version)
-    val internalName = AvdWizardUtils.cleanAvdName(avdManager, displayName, true)
+    val internalName = avdManager.cleanAvdName(displayName, true)
     val abi = Abi.getEnum(systemImageDescription.primaryAbiType)
     val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1

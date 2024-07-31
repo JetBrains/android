@@ -22,7 +22,6 @@ import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 
@@ -40,7 +39,7 @@ internal class VirtualDevices(
 
     val definition = device.device
 
-    val id = AvdWizardUtils.cleanAvdName(avdManagerConnection, device.name, /* uniquify= */ true)
+    val id = avdManagerConnection.cleanAvdName(device.name, /* uniquify= */ true)
     val skin = device.skin.path()
 
     val sdklibImage = manager.images.first { it.`package`.path == image.path }
