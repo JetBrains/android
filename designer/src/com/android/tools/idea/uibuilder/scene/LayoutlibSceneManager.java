@@ -836,49 +836,35 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderFutures.addAll(myPendingFutures);
       myPendingFutures.clear();
     }
-    try {
-      NlDesignSurface surface = getDesignSurface();
-      logConfigurationChange(surface);
-      getModel().resetLastChange();
+    NlDesignSurface surface = getDesignSurface();
+    logConfigurationChange(surface);
+    getModel().resetLastChange();
 
-      fireOnRenderStart();
-      long renderStartTimeMs = System.currentTimeMillis();
-      return myLayoutlibSceneRenderer.renderAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate, myElapsedFrameTimeMs, quality)
-        .thenApply(result -> {
-          if (result != null) {
-            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-            // In an unlikely event when result is disposed we can still safely request the size of the image
-            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                        result.getRenderedImage().getWidth() *
-                                                                        result.getRenderedImage().getHeight() *
-                                                                        4L);
-          }
-          return result;
-        })
-        .thenApplyAsync(result -> {
-          if (!isDisposed.get()) {
-            update();
-          }
+    fireOnRenderStart();
+    long renderStartTimeMs = System.currentTimeMillis();
+        return myLayoutlibSceneRenderer.renderAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate, myElapsedFrameTimeMs, quality)
+      .thenApplyAsync(result -> {
+        if (!isDisposed.get()) {
+          update();
+        }
 
-          return result;
-        }, EdtExecutorService.getInstance())
-        .thenApplyAsync(result -> {
+        return result;
+      }, EdtExecutorService.getInstance())
+      .thenApplyAsync(result -> {
+        if (result != null) {
+          long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+          // In an unlikely event when result is disposed we can still safely request the size of the image
+          NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                      result.getRenderedImage().getWidth() *
+                                                                      result.getRenderedImage().getHeight() *
+                                                                      4L);
           CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, CommonUsageTracker.RenderResultType.RENDER);
-          fireOnRenderComplete();
-          completeRender();
-
-          return result;
-        }, AppExecutorUtil.getAppExecutorService());
-    }
-    catch (Throwable e) {
-      if (!getModel().getFacet().isDisposed()) {
-        fireOnRenderFail(e);
+        }
+        fireOnRenderComplete();
         completeRender();
-        throw e;
-      }
-    }
-    completeRender();
-    return CompletableFuture.completedFuture(null);
+
+        return result;
+      }, AppExecutorUtil.getAppExecutorService());
   }
 
   private boolean hasPendingRenders() {
