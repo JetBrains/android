@@ -85,4 +85,5 @@
   <xi:include href="/META-INF/native-symbolizer.xml"/>
   <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
   <xi:include href="/META-INF/aiplugin-api.xml"/>
+  <xi:include href="/META-INF/server-flags.xml"/>
 </idea-plugin>
