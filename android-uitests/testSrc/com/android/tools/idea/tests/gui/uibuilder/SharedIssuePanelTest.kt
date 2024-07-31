@@ -19,8 +19,8 @@ import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture
-import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -63,24 +63,24 @@ class SharedIssuePanelTest {
     problemsPane.activate()
 
     editor.open(LAYOUT_FILE_PATH).layoutEditor.waitForRenderToFinish()
-    assertWithMessage("The '$LAYOUT_TAB_TITLE' should be visible after opening a layout")
-      .that(problemsPane.doesTabExist(LAYOUT_TAB_TITLE)).isTrue()
+    Wait.seconds(2).expecting("The '$LAYOUT_TAB_TITLE' should be visible after opening a layout")
+      .until { problemsPane.doesTabExist(LAYOUT_TAB_TITLE) }
 
     editor.open(JAVA_FILE_PATH)
-    assertWithMessage("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is open in the background")
-      .that(problemsPane.doesTabExist(LAYOUT_TAB_TITLE)).isFalse()
+    Wait.seconds(2).expecting("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is open in the background")
+      .until { !problemsPane.doesTabExist(LAYOUT_TAB_TITLE) }
 
     // Test switching back. The tab should appear but the selected tab is still "Current File" tab because the layout file is opened
     // already.
     editor.open(LAYOUT_FILE_PATH).layoutEditor.waitForRenderToFinish()
-    assertWithMessage("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is open in the background")
-      .that(problemsPane.doesTabExist(LAYOUT_TAB_TITLE)).isTrue()
+    Wait.seconds(2).expecting("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is open in the background")
+      .until { problemsPane.doesTabExist(LAYOUT_TAB_TITLE) }
 
     editor.closeFile(LAYOUT_FILE_PATH)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     guiTest.robot().waitForIdle()
-    assertWithMessage("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is closed")
-      .that(problemsPane.doesTabExist(LAYOUT_TAB_TITLE)).isFalse()
+    Wait.seconds(2).expecting("The '$LAYOUT_TAB_TITLE' should not be visible if the layout file is closed")
+      .until { !problemsPane.doesTabExist(LAYOUT_TAB_TITLE) }
 
     editor.closeFile(LAYOUT_FILE_PATH).closeFile(JAVA_FILE_PATH)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
