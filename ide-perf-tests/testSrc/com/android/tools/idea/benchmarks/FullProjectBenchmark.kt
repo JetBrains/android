@@ -542,7 +542,7 @@ abstract class FullProjectBenchmark {
     )
 
     // Perfgate
-    val metric = Metric("${projectName}_${fileType.description}")
+    val metric = Metric("${projectName}_Lint_Inspection_${fileType.description}")
     metric.addSamples(lintInspectionBenchmark, *samples.toTypedArray())
     metric.commit()
   }
