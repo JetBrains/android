@@ -831,14 +831,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? RenderServiceUtilsKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder =
-      taskBuilder(renderService, getModel().getBuildTarget(), configuration, logger, this::wrapRenderModule)
-      .withPsiFile(new PsiXmlFile(getModel().getFile()))
-      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
-      .withTopic(myRenderingTopic)
-      .setUseCustomInflater(myUseCustomInflater);
-    return setupRenderTaskBuilder(renderTaskBuilder).build()
-      .thenCompose(newTask -> {
+    return createRenderTask(configuration, renderService, logger).thenCompose(newTask -> {
         if (newTask != null) {
           newTask.setDefaultForegroundColor('#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
           return newTask.inflate().whenComplete((result, inflateException) -> {
@@ -903,6 +896,16 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE);
         }
       }, AppExecutorUtil.getAppExecutorService());
+  }
+
+  private CompletableFuture<RenderTask> createRenderTask(Configuration configuration, RenderService renderService, RenderLogger logger) {
+    RenderService.RenderTaskBuilder renderTaskBuilder =
+      taskBuilder(renderService, getModel().getBuildTarget(), configuration, logger, this::wrapRenderModule)
+        .withPsiFile(new PsiXmlFile(getModel().getFile()))
+        .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
+        .withTopic(myRenderingTopic)
+        .setUseCustomInflater(myUseCustomInflater);
+    return setupRenderTaskBuilder(renderTaskBuilder).build();
   }
 
   @Nullable
