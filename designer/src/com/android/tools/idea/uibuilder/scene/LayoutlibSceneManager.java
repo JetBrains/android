@@ -195,12 +195,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private float quality = 1f;
 
   /**
-   * The quality used the last time the content of this scene manager was successfully rendered.
-   * Defaults to 0 until a successful render happens.
-   */
-  private float lastRenderQuality = 0f;
-
-  /**
    * If true, the rendering will report when the user classes used by this {@link SceneManager} are out of date and have been modified
    * after the last build. The reporting will be done via the rendering log.
    * Compose has its own mechanism to track out of date files so it will disable this reporting.
@@ -684,7 +678,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public float getQuality() { return quality; }
 
   public float getLastRenderQuality() {
-    return this.lastRenderQuality;
+    return myLayoutlibSceneRenderer.getLastRenderQuality();
   }
 
   public void setLogRenderErrors(boolean enabled) {
@@ -849,10 +843,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImplAsync(reverseUpdate)
+      return myLayoutlibSceneRenderer.renderAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate, myElapsedFrameTimeMs, quality)
         .thenApply(result -> {
           if (result != null) {
-            myLayoutlibSceneRenderer.setRenderResult(result);
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             // In an unlikely event when result is disposed we can still safely request the size of the image
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
@@ -921,49 +914,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     synchronized (myFuturesLock) {
       return myIsCurrentlyRendering;
     }
-  }
-
-  @NotNull
-  private CompletableFuture<RenderResult> renderImplAsync(AtomicBoolean reverseUpdate) {
-    return myLayoutlibSceneRenderer.inflateAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate)
-      .thenCompose(inflateResult -> {
-        if (inflateResult != null && !inflateResult.getRenderResult().isSuccess()) {
-          getDesignSurface().updateErrorDisplay();
-          return CompletableFuture.completedFuture(null);
-        }
-        boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
-        long elapsedFrameTimeMs = myElapsedFrameTimeMs;
-        RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
-        if (currentTask == null) {
-          return CompletableFuture.completedFuture(null);
-        }
-        if (elapsedFrameTimeMs != -1) {
-          currentTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
-        }
-        // Make sure that the task's quality is up-to-date before rendering
-        final float currentQuality = quality;
-        currentTask.setQuality(currentQuality);
-        return currentTask.render().thenApply(result -> {
-          if (result != null && result.getRenderResult().isSuccess()) {
-            lastRenderQuality = currentQuality;
-          }
-          // When the layout was inflated in this same call, we do not have to update the hierarchy again
-          if (result != null && !inflated) {
-            reverseUpdate.set(reverseUpdate.get() || myLayoutlibSceneRenderer.updateHierarchy(result));
-          }
-          return result;
-        });
-      })
-      .handle((result, exception) -> {
-        if (exception != null) {
-          if (exception instanceof CompletionException && exception.getCause() != null) {
-            exception = exception.getCause();
-          }
-          if (getModel().isDisposed()) return null;
-          return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
-        }
-        return result;
-      });
   }
 
   public void setElapsedFrameTimeMs(long ms) {
