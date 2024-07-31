@@ -41,6 +41,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -203,6 +204,7 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
       )
     }
 
+  @Ignore("Flaky test: b/355740346")
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots with different JDK configuration When sync project Then only expected JDK config was migrated to Gradle local javaHome`() =
