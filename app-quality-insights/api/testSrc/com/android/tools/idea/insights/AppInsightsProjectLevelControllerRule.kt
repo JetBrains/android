@@ -128,6 +128,7 @@ class AppInsightsProjectLevelControllerRule(
     eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
+    insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
     isTransitionToOnlineMode: Boolean = false,
   ): AppInsightsState {
     client.completeIssuesCallWith(state)
@@ -148,6 +149,8 @@ class AppInsightsProjectLevelControllerRule(
         consumeNext()
         consumeNext()
         client.completeListNotesCallWith(notesState)
+        consumeNext()
+        client.completeFetchInsightCallWith(insightState)
       }
       resultState = consumeNext()
     }
@@ -360,4 +363,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     issue: AppInsightsIssue,
     state: AppInsightsState,
   ) = fetchInsightCall.initiateCall()
+
+  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
+    fetchInsightCall.completeWith(value)
 }

@@ -54,6 +54,7 @@ class SelectedIssueChangedTest {
       assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentEvents).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentInsight).isEqualTo(LoadingState.Loading)
 
       assertThat((action as Action.Multiple).actions)
         .containsExactly(
@@ -61,6 +62,7 @@ class SelectedIssueChangedTest {
           Action.FetchDetails(ISSUE2.id),
           Action.FetchNotes(ISSUE2.id),
           Action.ListEvents(ISSUE2.id, null, null),
+          Action.FetchInsight(ISSUE2.id),
         )
     }
   }

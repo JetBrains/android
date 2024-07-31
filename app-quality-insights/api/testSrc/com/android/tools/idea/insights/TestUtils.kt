@@ -421,6 +421,8 @@ val ISSUE_VARIANT2 =
     eventsCount = 1,
   )
 
+val DEFAULT_AI_INSIGHT = AiInsight("")
+
 // Used for testing cached issues because their counts are zeroed out.
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
 
