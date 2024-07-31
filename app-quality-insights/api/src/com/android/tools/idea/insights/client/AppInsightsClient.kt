@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
@@ -92,4 +94,10 @@ interface AppInsightsClient {
   ): LoadingState.Done<Note>
 
   suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit>
+
+  suspend fun fetchInsight(
+    connection: Connection,
+    issue: AppInsightsIssue,
+    state: AppInsightsState,
+  ): LoadingState.Done<AiInsight>
 }
