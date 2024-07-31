@@ -54,7 +54,7 @@ class JetNewsBenchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectLintInspection() {
-    super.fullProjectLintInspection(listOf(KotlinFileType.INSTANCE, TomlFileType), PROJECT_NAME)
+    super.fullProjectLintInspection(PROJECT_NAME)
   }
 
   @Test
