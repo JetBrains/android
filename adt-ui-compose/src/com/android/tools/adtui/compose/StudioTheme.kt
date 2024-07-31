@@ -17,7 +17,9 @@ package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.bridge.theme.retrieveDefaultTextStyle
 import org.jetbrains.jewel.bridge.theme.retrieveEditorTextStyle
@@ -47,8 +49,13 @@ fun StudioTheme(content: @Composable () -> Unit) {
       LocalMarkdownStyling provides markdownStyling,
       LocalMarkdownProcessor provides markdownProcessor,
       LocalMarkdownBlockRenderer provides blockRenderer,
+      LocalIsInUiTest provides false,
     ) {
       content()
     }
   }
+}
+
+val LocalIsInUiTest: ProvidableCompositionLocal<Boolean> = staticCompositionLocalOf {
+  error("No isInUiTest provided. Have you forgotten the theme?")
 }
