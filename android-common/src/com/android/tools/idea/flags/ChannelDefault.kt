@@ -25,7 +25,7 @@ import com.google.common.annotations.VisibleForTesting
  * Example usage: `ChannelDefault.enabledUpTo(CANARY)` would return true for dev, nightly and canary, but false for beta, release-candidate
  * and stable versions of Studio.
  */
-internal class ChannelDefault private constructor(private val value: Boolean, explanation: String): FlagDefault<Boolean>(explanation) {
+class ChannelDefault private constructor(private val value: Boolean, explanation: String): FlagDefault<Boolean>(explanation) {
   override fun get(): Boolean = value
 
   companion object {
@@ -34,7 +34,7 @@ internal class ChannelDefault private constructor(private val value: Boolean, ex
 
 
     @VisibleForTesting
-    internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : ChannelDefault {
+    fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : ChannelDefault {
       check(leastStableChannel <= IdeChannel.Channel.CANARY || leastStableChannel == IdeChannel.Channel.STABLE) {
         "Flags must not be conditional between Beta, RC and Stable"
       }
