@@ -2,12 +2,12 @@ package com.android.tools.idea.tests.gui.cpp
 
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.NewFilePopupFixture
 import com.android.tools.idea.tests.util.WizardUtils
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton.RIGHT_BUTTON
 import org.fest.swing.exception.LocationUnavailableException
@@ -26,7 +26,7 @@ class ShowFilesUnknownToCMakeActionTest {
   fun actionShouldToggleVisibilityOfUnusedFiles() {
     // Set up a normal C++ project
     WizardUtils.createCppProject(guiTest, FormFactor.MOBILE, "Native C++", Language.Java)
-    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
+    IndexingTestUtil.waitUntilIndexesAreReady(guiTest.ideFrame().project)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     val ideFrame = guiTest.ideFrame()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -55,9 +55,8 @@ class ShowFilesUnknownToCMakeActionTest {
     ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     // Add a new file inside the IDE
-    ideFrame.projectView
-      .selectAndroidPane()
-      .clickPath(RIGHT_BUTTON, "app", "cpp")
+    ideFrame.focus()
+    androidPane.clickPath(RIGHT_BUTTON, "app", "cpp")
       .openFromContextualMenu(NewFilePopupFixture::find, "New", "File")
       .setFilePath("unused.c")
       .pressEnter()
@@ -73,7 +72,7 @@ class ShowFilesUnknownToCMakeActionTest {
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
 
     // And the new file should be hidden after sync since it's not used.
-    ideFrame.requestProjectSync()
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isFalse()
