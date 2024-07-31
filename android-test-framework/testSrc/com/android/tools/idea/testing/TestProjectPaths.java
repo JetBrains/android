@@ -105,6 +105,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION_PLUGINS_DSL = "projects/simpleApplicationPluginsDsl";
   public static final String SIMPLE_APPLICATION_VERSION_CATALOG = "projects/simpleApplicationVersionCatalog";
   public static final String MINIMAL_CATALOG_APPLICATION = "projects/minimalCatalogProject";
+  public static final String SIMPLE_APPLICATION_GENERATED_ASSETS = "projects/simpleApplicationGeneratedAssets";
   public static final String SIMPLE_APPLICATION_MULTI_VERSION_CATALOG = "projects/simpleApplicationMultiVersionCatalog";
   public static final String SIMPLE_APPLICATION_VERSION_CATALOG_KTS = "projects/simpleApplicationVersionCatalogKts";
   public static final String SIMPLE_APPLICATION_SCHEMA_KTS = "projects/simpleApplicationDeclarativeSchemaKts";
