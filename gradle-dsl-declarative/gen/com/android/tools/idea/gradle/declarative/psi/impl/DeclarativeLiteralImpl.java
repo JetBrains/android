@@ -53,20 +53,38 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
 
   @Override
   @Nullable
+  public PsiElement getIntegerLiteral() {
+    return findPsiChildByType(INTEGER_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getLongLiteral() {
+    return findPsiChildByType(LONG_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getMultilineString() {
     return findPsiChildByType(MULTILINE_STRING);
   }
 
   @Override
   @Nullable
-  public PsiElement getNumber() {
-    return findPsiChildByType(NUMBER);
+  public PsiElement getString() {
+    return findPsiChildByType(STRING);
   }
 
   @Override
   @Nullable
-  public PsiElement getString() {
-    return findPsiChildByType(STRING);
+  public PsiElement getUnsignedInteger() {
+    return findPsiChildByType(UNSIGNED_INTEGER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getUnsignedLong() {
+    return findPsiChildByType(UNSIGNED_LONG);
   }
 
   @Override

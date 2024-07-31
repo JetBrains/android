@@ -98,7 +98,10 @@ class PsiImplUtil {
     fun getValue(literal: DeclarativeLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.string != null -> literal.string?.text?.unquote()?.unescape()
-      literal.number != null -> literal.number?.text?.toIntegerOrNull()
+      literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
+      literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
+      literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
+      literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
       else -> null
     }
 
@@ -106,14 +109,26 @@ class PsiImplUtil {
     private fun String.removeSuffixIfPresent(suffix: String) = if (this.endsWith(suffix)) this.dropLast(suffix.length) else this
     private fun String.toIntegerOrNull(): Any? {
       if (isEmpty()) return null
+      var str = this.replace("_", "")
       val longIndicator = last().lowercaseChar() == 'l'
-      if (longIndicator) return dropLast(1).replace("_", "").toLongOrNull()
-      return when (val answer = replace("_", "").toLongOrNull()) {
-        null -> null
-        in Int.MIN_VALUE..Int.MAX_VALUE -> answer.toInt()
-        else -> answer
+      if (longIndicator) {
+        str = dropLast(1)
+        return if (str.last().lowercaseChar() == 'u') str.dropLast(1).toULong()
+        else str.toLongOrNull()
       }
-
+      return if (str.last().lowercaseChar() == 'u') {
+        when (val answer = str.dropLast(1).toULong()) {
+          null -> null
+          in UInt.MIN_VALUE..UInt.MAX_VALUE -> answer.toUInt()
+          else -> answer
+        }
+      }
+      else
+        when (val answer = str.toLongOrNull()) {
+          null -> null
+          in Int.MIN_VALUE..Int.MAX_VALUE -> answer.toInt()
+          else -> answer
+        }
     }
   }
 }

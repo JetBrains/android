@@ -42,7 +42,7 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
                 PsiElement(DeclarativeTokenType.token)('foo')
               PsiElement(DeclarativeTokenType.=)('=')
               PsiElement(LITERAL)
-                PsiElement(DeclarativeTokenType.number)('3')
+                PsiElement(DeclarativeTokenType.integer_literal)('3')
         """.trimIndent()
       )
   }
@@ -134,7 +134,7 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
                 PsiElement(DeclarativeTokenType.token)('bar')
               PsiElement(DeclarativeTokenType.=)('=')
               PsiElement(LITERAL)
-                PsiElement(DeclarativeTokenType.number)('3')
+                PsiElement(DeclarativeTokenType.integer_literal)('3')
               """.trimIndent()
       )
   }
@@ -325,6 +325,100 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       )
   }
 
+  fun testNumbers() {
+    assertThat(
+      """
+        a=1
+        a=23
+        a=7_8
+        a=9__10L
+        a=1_000_000
+        a=0xFFFF
+        a=0xFFFFL
+        a=9012_3456L
+        a=0b110_01
+        a=42u
+        a=0xFFFF_FFFF_FFFFu
+        a=1UL
+      """.toParseTreeText()).isEqualTo(
+      """
+       FILE
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('1')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('23')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('7_8')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.long_literal)('9__10L')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('1_000_000')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('0xFFFF')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.long_literal)('0xFFFFL')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.long_literal)('9012_3456L')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.integer_literal)('0b110_01')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.unsigned_integer)('42u')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.unsigned_integer)('0xFFFF_FFFF_FFFFu')
+         PsiElement(ASSIGNMENT)
+           PsiElement(IDENTIFIER)
+             PsiElement(DeclarativeTokenType.token)('a')
+           PsiElement(DeclarativeTokenType.=)('=')
+           PsiElement(LITERAL)
+             PsiElement(DeclarativeTokenType.unsigned_long)('1UL')
+           """.trimIndent()
+    )
+  }
+
   fun testMultiArgumentFactory() {
     assertThat(
       """
@@ -346,10 +440,10 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
                   PsiElement(DeclarativeTokenType.string)('"foo"')
                 PsiElement(DeclarativeTokenType.,)(',')
                 PsiElement(LITERAL)
-                  PsiElement(DeclarativeTokenType.number)('123')
+                  PsiElement(DeclarativeTokenType.integer_literal)('123')
                 PsiElement(DeclarativeTokenType.,)(',')
                 PsiElement(LITERAL)
-                  PsiElement(DeclarativeTokenType.number)('456')
+                  PsiElement(DeclarativeTokenType.integer_literal)('456')
                 PsiElement(DeclarativeTokenType.,)(',')
                 PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.boolean)('true')
