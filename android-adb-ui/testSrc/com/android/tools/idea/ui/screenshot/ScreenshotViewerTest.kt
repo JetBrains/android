@@ -45,6 +45,7 @@ import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -60,7 +61,7 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
-import org.junit.Ignore
+import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -140,8 +141,8 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  @Ignore("b/355613188")
   fun testResizing() {
+    assumeFalse(SystemInfo.isWindows) // b/355613188
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -157,6 +158,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
+    assumeFalse(SystemInfo.isWindows) // b/355613188
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
