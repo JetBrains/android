@@ -99,6 +99,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -821,6 +822,7 @@ class NlPropertyItemTest {
     assertThat(property.value).isEqualTo("@string/demo")
   }
 
+  @Ignore("b/356584506")
   @Test
   fun testLazyResolverLoading() =
     testScope.runTest {
