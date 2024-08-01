@@ -25,6 +25,7 @@ import org.jetbrains.jewel.intui.markdown.bridge.create
 import org.jetbrains.jewel.intui.markdown.standalone.ProvideMarkdownStyling
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
+import org.jetbrains.jewel.intui.standalone.theme.createEditorTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.dark
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.standalone.theme.light
@@ -39,9 +40,8 @@ import org.jetbrains.jewel.ui.ComponentStyling
 fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
   val defaultTextStyle = JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.InterForTests)
   val editorTextStyle =
-    JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.JetBrainsMonoForTests)
+    JewelTheme.createEditorTextStyle(fontFamily = FontFamily.JetBrainsMonoForTests)
 
-  // TODO bring in JetBrains Mono and the editor text style, too, when Jewel 0.19.5 is available
   val themeDefinition =
     if (darkMode) {
       JewelTheme.darkThemeDefinition(
