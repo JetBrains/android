@@ -22,6 +22,7 @@ import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.model.LintModelModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.DependencyScope;
@@ -31,6 +32,7 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.Nullable;
@@ -191,15 +192,21 @@ public class LintIdeProject extends Project {
    */
   public static boolean processFileFilter(@NonNull Module module, @Nullable List<VirtualFile> files, @NonNull Project project) {
     if (files != null && !files.isEmpty()) {
-      ListIterator<VirtualFile> iterator = files.listIterator();
-      while (iterator.hasNext()) {
-        VirtualFile file = iterator.next();
-        if (module.getModuleContentScope().accept(file)) {
-          project.addFile(VfsUtilCore.virtualToIoFile(file));
-          iterator.remove();
+
+      boolean allMatched = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+        boolean matched = true;
+        for (VirtualFile file : files) {
+          if (module.getModuleContentScope().accept(file)) {
+            project.addFile(VfsUtilCore.virtualToIoFile(file));
+          }
+          else {
+            matched = false;
+          }
         }
-      }
-      if (files.isEmpty()) {
+        return matched;
+      });
+
+      if (allMatched) {
         // We're only scanning a subset of files (typically the current file in the editor);
         // in that case, don't initialize all the libraries etc
         project.setDirectLibraries(Collections.emptyList());
