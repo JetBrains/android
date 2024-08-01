@@ -635,8 +635,6 @@
         implementation="com.android.tools.idea.editors.AndroidCodeVisionSettingsDefaults"
         order="first" />
 
-    <iconMapper mappingFile="StudioIntUiIconMappings.json"/>
-
     <projectService
         serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
         serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
