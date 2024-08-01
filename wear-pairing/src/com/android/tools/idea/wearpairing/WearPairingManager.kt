@@ -27,7 +27,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
-import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
