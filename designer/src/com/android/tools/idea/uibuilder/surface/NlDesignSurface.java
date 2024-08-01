@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.surface;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.layout.SceneViewAlignment;
@@ -64,7 +62,6 @@ import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -169,16 +166,6 @@ public class NlDesignSurface extends NlSurface {
     return manager;
   }
 
-  @UiThread
-  @Override
-  public void onLayoutUpdated(SurfaceLayoutOption layoutOption) {
-    if (getSceneViewPanel() != null && getViewport() != null) {
-      setSceneViewAlignment(layoutOption.getSceneViewAlignment());
-      setScrollPosition(0, 0);
-      revalidateScrollArea();
-    }
-  }
-
   @NotNull
   @Override
   public DesignerAnalyticsManager getAnalyticsManager() {
@@ -188,20 +175,6 @@ public class NlDesignSurface extends NlSurface {
   @Override
   public @Nullable LayoutScannerControl getLayoutScannerControl() {
     return myScannerControl;
-  }
-
-  @Override
-  public void setResizeMode(boolean isResizing) {
-    setCanvasResizing(isResizing);
-    // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
-    setSurfaceAutoscrolls(isResizing);
-  }
-
-  @Override
-  public void setSurfaceAutoscrolls(boolean enabled) {
-    if (getScrollPane() != null) {
-      getScrollPane().setAutoscrolls(enabled);
-    }
   }
 
   public void setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
@@ -221,24 +194,6 @@ public class NlDesignSurface extends NlSurface {
       }
       revalidateScrollArea();
     }
-  }
-
-  @Override
-  public void setColorBlindMode(ColorBlindMode mode) {
-    getScreenViewProvider().setColorBlindFilter(mode);
-    for (SceneManager manager : getSceneManagers()) {
-      manager.updateSceneView();
-      manager.requestLayoutAndRenderAsync();
-    }
-    revalidateScrollArea();
-  }
-
-  @Override
-  public void forceLayersPaint(boolean value) {
-    for (SceneView view : getSceneViews()) {
-      view.setForceLayersRepaint(value);
-    }
-    repaint();
   }
 
   @NotNull
@@ -564,20 +519,6 @@ public class NlDesignSurface extends NlSurface {
 
   public void setAnimationScrubbing(boolean value) {
     setInAnimationScrubbing(value);
-  }
-
-  @Override
-  public Object getData(@NotNull String dataId) {
-    Object data = getDelegateDataProvider() != null ? getDelegateDataProvider().getData(dataId) : null;
-    if (data != null) {
-      return data;
-    }
-
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
-      return getLayoutPreviewHandler();
-    }
-
-    return super.getData(dataId);
   }
 
   @NotNull
