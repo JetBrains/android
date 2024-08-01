@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Toolkit
 import java.awt.dnd.DnDConstants
@@ -42,7 +43,6 @@ import java.awt.event.MouseWheelEvent
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import org.intellij.lang.annotations.JdkConstants
 
 /**
  * Handles the interaction events of [DesignSurface]. The events are dispatched from

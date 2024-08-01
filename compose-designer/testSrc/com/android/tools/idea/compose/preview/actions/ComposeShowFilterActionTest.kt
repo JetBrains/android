@@ -21,10 +21,16 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 
 class ComposeShowFilterActionTest {
 
@@ -34,11 +40,16 @@ class ComposeShowFilterActionTest {
   fun testShowFilter() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.getData(COMPOSE_PREVIEW_MANAGER.name)).thenReturn(manager)
+    whenever(surface.dataSnapshot(Mockito.any())).thenAnswer(object : Answer<Unit> {
+      override fun answer(invocation: InvocationOnMock) {
+        val sink = invocation.arguments[0] as DataSink
+        sink[COMPOSE_PREVIEW_MANAGER] = manager
+      }
+    })
     manager.isFilterEnabled = false
 
     val action = ComposeShowFilterAction()
-    action.actionPerformed(createTestEvent { surface.getData(it) })
+    action.actionPerformed(createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)))
 
     assertTrue(manager.isFilterEnabled)
   }

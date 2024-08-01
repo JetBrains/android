@@ -45,13 +45,14 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.LayoutManager
@@ -73,7 +74,6 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
-import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
@@ -87,7 +87,7 @@ abstract class PreviewSurface<T : SceneManager>(
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
 ) :
-  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, DataProvider {
+  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, DataSnapshotProvider {
 
   abstract val guiInputHandler: GuiInputHandler
 
