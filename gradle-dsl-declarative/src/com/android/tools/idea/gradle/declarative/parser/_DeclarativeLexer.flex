@@ -35,11 +35,10 @@ WHITE_SPACE=\s+
 LINE_COMMENT="//".*
 BLOCK_COMMENT_START="/*"
 BLOCK_COMMENT_END="*/"
-STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
-MULTILINE_STRING=\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?
 BOOLEAN=(true|false)
 NUMBER_LITERAL=([1-9]([0-9]|_)*[0-9])|[0-9]
-HEX_LITERAL=0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?
+HEX_DIGIT=[0-9a-fA-F]
+HEX_LITERAL=0[xX] {HEX_DIGIT} ([0-9a-fA-F_]* {HEX_DIGIT})?
 BIN_LITERAL=0[bB][0,1]([0,1_]*[0,1])?
 INTEGER_LITERAL={NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}
 LONG_LITERAL=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [lL]
@@ -48,6 +47,13 @@ UNSIGNED_INTEGER=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU]
 LETTER=[a-zA-Z]
 TOKEN=({LETTER} | "_") ({LETTER} | "_" | [0-9])* | `[^\r\n`]+`
 
+STRING_LITERAL={MULTILINE_STRING_LITERAL} | {LINE_STRING_LITERAL}
+LINE_STRING_LITERAL=\" {LINE_STRING_CONTENT}* \"?
+MULTILINE_STRING_LITERAL=\"\"\" {MULTILINE_STRING_CONTENT}* (\"\"\")?
+LINE_STRING_CONTENT=[^\\\"\r\n]+ | {ESCAPE_IDENTIFIER} | {UNI_CHARACTER_LITERAL}
+MULTILINE_STRING_CONTENT=[^\"]|(\"[^\"])|(\"\"[^\"])
+ESCAPE_IDENTIFIER=\\[tbrn\'\"\\$]
+UNI_CHARACTER_LITERAL=\\u {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT}
 %state IN_BLOCK_COMMENT
 
 %%
@@ -73,8 +79,7 @@ TOKEN=({LETTER} | "_") ({LETTER} | "_" | [0-9])* | `[^\r\n`]+`
 
   {LINE_COMMENT}           { return LINE_COMMENT; }
   "/*"                     { startBlockComment(); }
-  {STRING}                 { return STRING; }
-  {MULTILINE_STRING}       { return MULTILINE_STRING; }
+  {STRING_LITERAL}         { return STRING_LITERAL; }
   {BOOLEAN}                { return BOOLEAN; }
   {TOKEN}                  { return TOKEN; }
   {INTEGER_LITERAL}        { return INTEGER_LITERAL; }

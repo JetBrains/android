@@ -97,7 +97,7 @@ class PsiImplUtil {
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
-      literal.string != null -> literal.string?.text?.unquote()?.unescape()
+      literal.stringLiteral != null -> literal.stringLiteral?.text?.unquote()?.unescape()
       literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
       literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
       literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
