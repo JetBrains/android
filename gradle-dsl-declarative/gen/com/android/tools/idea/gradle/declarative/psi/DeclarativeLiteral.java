@@ -27,6 +27,9 @@ public interface DeclarativeLiteral extends DeclarativeValue {
   PsiElement getBoolean();
 
   @Nullable
+  PsiElement getMultilineString();
+
+  @Nullable
   PsiElement getNumber();
 
   @Nullable

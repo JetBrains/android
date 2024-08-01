@@ -300,12 +300,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // string | number | boolean
+  // multiline_string | string | number | boolean
   public static boolean literal(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL, "<literal>");
-    r = consumeToken(b, STRING);
+    r = consumeToken(b, MULTILINE_STRING);
+    if (!r) r = consumeToken(b, STRING);
     if (!r) r = consumeToken(b, NUMBER);
     if (!r) r = consumeToken(b, BOOLEAN);
     exit_section_(b, l, m, r, false, null);
