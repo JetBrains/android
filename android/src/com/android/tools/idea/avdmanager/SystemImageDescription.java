@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
-
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
@@ -31,10 +28,9 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Preconditions;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,20 +38,21 @@ import org.jetbrains.annotations.Nullable;
  * Information on a system image. Used internally by the avd manager.
  */
 public final class SystemImageDescription {
-  private ISystemImage mySystemImage;
-  private RemotePackage myRemotePackage;
+  private final @NotNull ISystemImage systemImage;
+  private final @Nullable RemotePackage remotePackage;
 
-  public static final Set<IdDisplay> TV_TAGS = ImmutableSet.of(ANDROID_TV_TAG, GOOGLE_TV_TAG);
+  private SystemImageDescription(@NotNull ISystemImage systemImage, @Nullable RemotePackage remotePackage) {
+    Preconditions.checkArgument(remotePackage == null || hasSystemImage(remotePackage));
+    this.systemImage = systemImage;
+    this.remotePackage = remotePackage;
+  }
 
   public SystemImageDescription(@NotNull ISystemImage systemImage) {
-    mySystemImage = systemImage;
+    this(systemImage, null);
   }
 
   public SystemImageDescription(@NotNull RemotePackage remotePackage) {
-    this.myRemotePackage = remotePackage;
-
-    assert hasSystemImage(remotePackage);
-    mySystemImage = new RemoteSystemImage(remotePackage);
+    this(new RemoteSystemImage(remotePackage), remotePackage);
   }
 
   public static boolean hasSystemImage(RepoPackage p) {
@@ -82,24 +79,23 @@ public final class SystemImageDescription {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mySystemImage, myRemotePackage);
+    return Objects.hashCode(systemImage, remotePackage);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof SystemImageDescription)) {
+    if (!(obj instanceof SystemImageDescription other)) {
       return false;
     }
-    SystemImageDescription other = (SystemImageDescription)obj;
-    return Objects.equal(mySystemImage, other.mySystemImage) &&
-           Objects.equal(myRemotePackage, other.myRemotePackage);
+    return Objects.equal(systemImage, other.systemImage) &&
+           Objects.equal(remotePackage, other.remotePackage);
   }
 
   /**
    * Checks if this corresponds to the downloaded system image of obj.
    */
   public boolean downloadedFrom(@NotNull SystemImageDescription other) {
-    if (other.getRemotePackage() == null || myRemotePackage != null) {
+    if (other.getRemotePackage() == null || remotePackage != null) {
       return false;
     }
     return Objects.equal(this.getName(), other.getName()) &&
@@ -109,44 +105,40 @@ public final class SystemImageDescription {
            Objects.equal(this.getTags(), other.getTags());
   }
 
-  @NotNull
-  public AndroidVersion getVersion() {
-    return mySystemImage.getAndroidVersion();
+  public @NotNull AndroidVersion getVersion() {
+    return systemImage.getAndroidVersion();
   }
 
-  @Nullable
-  public RepoPackage getRemotePackage() {
-    return myRemotePackage;
+  public @Nullable RepoPackage getRemotePackage() {
+    return remotePackage;
   }
 
   public boolean isRemote() {
-    return myRemotePackage != null;
+    return remotePackage != null;
   }
 
   public boolean obsolete() {
-    return mySystemImage.obsolete();
+    return systemImage.obsolete();
   }
 
-  public String getPrimaryAbiType() {
-    return mySystemImage.getPrimaryAbiType();
+  public @NotNull String getPrimaryAbiType() {
+    return systemImage.getPrimaryAbiType();
   }
 
-  @NotNull
-  public List<String> getAbiTypes() {
-    return mySystemImage.getAbiTypes();
+  public @NotNull List<@NotNull String> getAbiTypes() {
+    return systemImage.getAbiTypes();
   }
 
-  public List<String> getTranslatedAbiTypes() {
-    return mySystemImage.getTranslatedAbiTypes();
+  public @NotNull List<@NotNull String> getTranslatedAbiTypes() {
+    return systemImage.getTranslatedAbiTypes();
   }
 
-  @NotNull
-  public List<IdDisplay> getTags() {
-    return mySystemImage.getTags();
+  public @NotNull List<@NotNull IdDisplay> getTags() {
+    return systemImage.getTags();
   }
 
   public boolean hasGoogleApis() {
-    return mySystemImage.hasGoogleApis();
+    return systemImage.hasGoogleApis();
   }
 
   public boolean isWearImage() {
@@ -157,32 +149,31 @@ public final class SystemImageDescription {
     return SystemImageTags.isTvImage(getTags());
   }
 
-  public String getName() {
+  public @NotNull String getName() {
     String versionString = SdkVersionInfo.getVersionString(getVersion().getFeatureLevel());
-    return String.format("Android %s", versionString == null ? "API " + getVersion().getApiString() : versionString);
+    return String.format("Android %s", versionString == null ? "API " + getVersion().getApiStringWithExtension() : versionString);
   }
 
-  public String getVendor() {
-    if (mySystemImage.getAddonVendor() != null) {
-      return mySystemImage.getAddonVendor().getDisplay();
+  public @NotNull String getVendor() {
+    if (systemImage.getAddonVendor() != null) {
+      return systemImage.getAddonVendor().getDisplay();
     }
     return PlatformTarget.PLATFORM_VENDOR;
   }
 
-  public String getVersionName() {
-    return SdkVersionInfo.getVersionString(mySystemImage.getAndroidVersion().getApiLevel());
+  public @NotNull String getVersionName() {
+    return SdkVersionInfo.getVersionString(systemImage.getAndroidVersion().getApiLevel());
   }
 
-  @Nullable
-  public Revision getRevision() {
-    return mySystemImage.getRevision();
+  public @NotNull Revision getRevision() {
+    return systemImage.getRevision();
   }
 
-  public List<Path> getSkins() {
-    return mySystemImage.getSkins();
+  public @NotNull List<@NotNull Path> getSkins() {
+    return systemImage.getSkins();
   }
 
-  public ISystemImage getSystemImage() {
-    return mySystemImage;
+  public @NotNull ISystemImage getSystemImage() {
+    return systemImage;
   }
 }
