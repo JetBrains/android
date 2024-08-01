@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.declarative
 
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING_LITERAL
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeLexer
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeParser
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
@@ -49,6 +49,6 @@ class DeclarativeParserDefinition : ParserDefinition {
   companion object {
     val FILE_ELEMENT_TYPE = IFileElementType(DeclarativeLanguage.INSTANCE)
     val COMMENT_TOKENS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT)
-    val STRING_LITERAL_TOKENS = TokenSet.create(STRING)
+    val STRING_LITERAL_TOKENS = TokenSet.create(STRING_LITERAL)
   }
 }

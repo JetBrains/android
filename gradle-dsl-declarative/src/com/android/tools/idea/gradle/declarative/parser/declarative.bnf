@@ -45,11 +45,10 @@
     BLOCK_COMMENT = "BLOCK_COMMENT"
 
     line_comment = "regexp://.*"
-    string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
-    multiline_string = "regexp:\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?"
     boolean = "regexp:(true|false)"
     null = "null"
     token
+    string_literal
 
     // Numbers
     integer_literal
@@ -93,7 +92,7 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= multiline_string | string | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+literal ::= string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
 methods=[getValue]
 }
 private rvalue ::= factory | property | literal

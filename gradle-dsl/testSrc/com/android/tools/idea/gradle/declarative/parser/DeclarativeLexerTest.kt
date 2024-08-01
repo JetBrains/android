@@ -42,7 +42,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -55,7 +55,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/** foo */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -70,7 +70,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/*\n * foo\n */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -83,7 +83,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo // bar */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -99,7 +99,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo\n   bar /* baz */\n   quux\n */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -113,11 +113,11 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
       DeclarativeTokenType.BLOCK_COMMENT ('/**/')
       WHITE_SPACE (' ')
-      DeclarativeTokenType.string ('"abc"')
+      DeclarativeTokenType.string_literal ('"abc"')
       WHITE_SPACE ('\n')
       DeclarativeTokenType.BLOCK_COMMENT ('/***/')
       WHITE_SPACE (' ')
-      DeclarativeTokenType.string ('"def"')
+      DeclarativeTokenType.string_literal ('"def"')
       """.trimIndent()
     )
   }
@@ -125,12 +125,18 @@ class DeclarativeLexerTest : LexerTestCase() {
   fun testString() {
     doTest(
       """
-        "abc" "def"
+        "abc" "def" "\t\n" "\uF0FF" "$"
       """.trimIndent(),
       """
-        DeclarativeTokenType.string ('"abc"')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"def"')
+      DeclarativeTokenType.string_literal ('"abc"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string_literal ('"def"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string_literal ('"\t\n"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string_literal ('"\uF0FF"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.string_literal ('"$"')
       """.trimIndent()
     )
   }
@@ -141,10 +147,10 @@ class DeclarativeLexerTest : LexerTestCase() {
         "foo", "bar"
       """.trimIndent(),
       """
-        DeclarativeTokenType.string ('"foo"')
+        DeclarativeTokenType.string_literal ('"foo"')
         DeclarativeTokenType., (',')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"bar"')
+        DeclarativeTokenType.string_literal ('"bar"')
       """.trimIndent()
     )
   }
@@ -202,6 +208,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         DeclarativeTokenType.boolean ('false')
       """.trimIndent()
     )
+    """""""""""".trimIndent()
   }
 
   fun testNull() {
@@ -260,13 +267,19 @@ class DeclarativeLexerTest : LexerTestCase() {
 
   fun testMultilineString() {
     val quotes = "\"\"\""
-    doTest(
-      "a=$quotes my string $quotes",
+    doTest("""
+      a=$quotes my string $quotes
+      b=$quotes this is ""the"" "link" $quotes
+      """.trimIndent(),
       """
         DeclarativeTokenType.token ('a')
         DeclarativeTokenType.= ('=')
-        DeclarativeTokenType.multiline_string ('$quotes my string $quotes')
-      """.trimIndent())
+        DeclarativeTokenType.string_literal ('$quotes my string $quotes')
+        WHITE_SPACE ('\n')
+        DeclarativeTokenType.token ('b')
+        DeclarativeTokenType.= ('=')
+        DeclarativeTokenType.string_literal ('$quotes this is ""the"" "link" $quotes')
+       """.trimIndent())
 
     doTest(
       """
@@ -276,7 +289,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         $quotes
       """.trimIndent(),
       """
-        DeclarativeTokenType.multiline_string ('$quotes\nmy\nstring\n$quotes')
+        DeclarativeTokenType.string_literal ('$quotes\nmy\nstring\n$quotes')
       """.trimIndent())
   }
 
