@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesi
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
@@ -40,6 +41,7 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -47,11 +49,10 @@ import javax.swing.JComponent
  */
 class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEditor>) :
   ComponentFixture<SplitEditorFixture, JComponent>(SplitEditorFixture::class.java, robot, editor.component) {
-  private fun setMode(modeName: String) = findActionButtonByText(modeName).click()
 
-  fun setCodeMode() = setMode("Code")
-  fun setSplitMode() = setMode("Split")
-  fun setDesignMode() = setMode("Design")
+  fun setCodeMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
+  fun setSplitMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
+  fun setDesignMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
 
   fun setRepresentation(name: String) {
     val representationSelector = ActionButtonFixture.findByIcon(StudioIcons.LayoutEditor.Palette.LIST_VIEW, robot, target())
@@ -115,15 +116,13 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
 
   fun findActionButtonByText(text: String): ActionButtonFixture {
     val button = waitUntilShowing(
-      robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+      robot(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
-        return text == component.action.templateText ||
-               (component.presentation.description?.startsWith(text) ?: false)
+        return text == component.action.templateText
       }
     })
     return ActionButtonFixture(robot(), button)
   }
-
 }
 
 /**
