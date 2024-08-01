@@ -604,24 +604,32 @@ void Controller::WakeUpDevice() {
 
 bool Controller::ControlDisplayPower(Jni jni, int state) {
   if (Agent::feature_level() >= 35) {
+    if (Agent::device_manufacturer() == HONOR) TRACE;
     return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
     // TODO: Turn off secondary physical displays.
   } else {
     DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
+    if (Agent::device_manufacturer() == HONOR) TRACE;
     vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
     if (display_ids.empty()) {
+      if (Agent::device_manufacturer() == HONOR) TRACE;
       JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
       if (display_token.IsNull()) {
+        if (Agent::device_manufacturer() == HONOR) TRACE;
         return false;
       }
+      if (Agent::device_manufacturer() == HONOR) TRACE;
       SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
     } else {
       for (int64_t display_id: display_ids) {
+        if (Agent::device_manufacturer() == HONOR) TRACE;
         JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+        if (Agent::device_manufacturer() == HONOR) TRACE;
         SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
       }
     }
   }
+  if (Agent::device_manufacturer() == HONOR) TRACE;
   return true;
 }
 
