@@ -38,7 +38,6 @@ BLOCK_COMMENT_END="*/"
 STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
 MULTILINE_STRING=\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?
 BOOLEAN=(true|false)
-TOKEN=[a-z][a-zA-Z0-9]*
 NUMBER_LITERAL=([1-9]([0-9]|_)*[0-9])|[0-9]
 HEX_LITERAL=0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?
 BIN_LITERAL=0[bB][0,1]([0,1_]*[0,1])?
@@ -46,6 +45,8 @@ INTEGER_LITERAL={NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}
 LONG_LITERAL=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [lL]
 UNSIGNED_LONG=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU] [lL]
 UNSIGNED_INTEGER=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU]
+LETTER=[a-zA-Z]
+TOKEN=({LETTER} | "_") ({LETTER} | "_" | [0-9])* | `[^\r\n`]+`
 
 %state IN_BLOCK_COMMENT
 

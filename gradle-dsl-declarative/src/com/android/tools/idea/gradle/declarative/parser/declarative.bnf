@@ -49,7 +49,7 @@
     multiline_string = "regexp:\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?"
     boolean = "regexp:(true|false)"
     null = "null"
-    token = "regexp:[a-z][a-zA-Z0-9]*"
+    token
 
     // Numbers
     integer_literal

@@ -222,6 +222,42 @@ class DeclarativeLexerTest : LexerTestCase() {
       """.trimIndent())
   }
 
+  fun testToken2() {
+    doTest(
+      """
+        name age _count student1 calculateArea `_name_` `$%&^%&^`
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.token ('name')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('age')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('_count')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('student1')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('calculateArea')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`_name_`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`$%&^%&^`')
+      """.trimIndent())
+  }
+
+  fun testWrongIdentifier() {
+    doTest(
+      """
+        1name ``
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.integer_literal ('1')
+      DeclarativeTokenType.token ('name')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('`')
+      BAD_CHARACTER ('`')
+      """.trimIndent())
+  }
+
   fun testMultilineString() {
     val quotes = "\"\"\""
     doTest(
