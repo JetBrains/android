@@ -64,7 +64,10 @@ fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) 
     val markdownProcessor = remember { MarkdownProcessor() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 
-    CompositionLocalProvider(LocalMarkdownStylingProvider provides provider) {
+    CompositionLocalProvider(
+      LocalMarkdownStylingProvider provides provider,
+      LocalIsInUiTest provides true,
+    ) {
       ProvideMarkdownStyling(
         JewelTheme.isDark,
         markdownStyling,
