@@ -26,7 +26,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.ui.components.JBLabel
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -46,7 +47,7 @@ open class IconWithFocusBorder(
   private val expandAction: () -> AnAction? = { null },
   private val collapseAction: () -> AnAction? = { null },
   private val activateAction: () -> AnAction?,
-) : JBLabel(), DataProvider {
+) : JBLabel(), UiDataProvider {
 
   init {
     background = secondaryPanelBackground
@@ -113,7 +114,7 @@ open class IconWithFocusBorder(
     }
   }
 
-  override fun getData(dataId: String): Any? {
-    return (parent as? DataProvider)?.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    DataSink.uiDataSnapshot(sink, parent)
   }
 }

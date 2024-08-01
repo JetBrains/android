@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceSection
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -110,7 +111,7 @@ interface ResourceExplorerListViewModel {
   /**
    * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
    */
-  fun getData(dataId: String?, selectedAssets: List<Asset>): Any?
+  fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>)
 
   /**
    * Returns a map of some specific resource details, typically: name, reference, type, configuration, value.

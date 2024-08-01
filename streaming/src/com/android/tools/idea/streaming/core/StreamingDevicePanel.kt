@@ -24,8 +24,9 @@ import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
@@ -46,7 +47,7 @@ abstract class StreamingDevicePanel(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String,
-) : BorderLayoutPanel(), DataProvider, Disposable {
+) : BorderLayoutPanel(), UiDataProvider, Disposable {
 
   /** Plain text name of the device. */
   internal abstract val title: String
@@ -110,14 +111,12 @@ abstract class StreamingDevicePanel(
   internal abstract fun destroyContent(): UiState
   internal abstract fun setDeviceFrameVisible(visible: Boolean)
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDisplayView
-      SERIAL_NUMBER_KEY.name -> id.serialNumber
-      STREAMING_CONTENT_PANEL_KEY.name -> centerPanel
-      DEVICE_ID_KEY.name -> id
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DISPLAY_VIEW_KEY] = primaryDisplayView
+    sink[ZOOMABLE_KEY] = primaryDisplayView
+    sink[SERIAL_NUMBER_KEY] = id.serialNumber
+    sink[STREAMING_CONTENT_PANEL_KEY] = centerPanel
+    sink[DEVICE_ID_KEY] = id
   }
 
   override fun dispose() {

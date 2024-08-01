@@ -26,9 +26,8 @@ import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.psi.PsiElement
@@ -50,48 +49,42 @@ private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.str
 /**
  * Helper class to deal with [DataContext] and copy/paste behavior from the resource explorer.
  */
-class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
+class ResourceDataManager(var facet: AndroidFacet) {
 
-  private var selectedItems: List<Asset>? = null
-
-  fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
-    this.selectedItems = selectedAssets
-    return when (dataId) {
-      PlatformDataKeys.COPY_PROVIDER.name -> this
-      RESOURCE_DESIGN_ASSETS_KEY.name -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
-      else -> null
-    }
-  }
-
-  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
-    LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
-    LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
-    UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
-    else -> null
-  }
-
-  override fun performCopy(dataContext: DataContext) {
-    selectedItems?.let {
-      if (it.isNotEmpty()) {
-        val designAsset = it.first()
+  fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>) {
+    sink[PlatformDataKeys.COPY_PROVIDER] = object : CopyProvider {
+      override fun performCopy(dataContext: DataContext) {
+        val designAsset = selectedAssets.firstOrNull() ?: return
         CopyPasteManager.getInstance().setContents(createTransferable(designAsset))
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+      override fun isCopyVisible(dataContext: DataContext): Boolean = isCopyEnabled(dataContext)
+
+      override fun isCopyEnabled(dataContext: DataContext): Boolean = selectedAssets.isNotEmpty()
+    }
+    sink[RESOURCE_DESIGN_ASSETS_KEY] = selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
+
+    sink.lazy(LangDataKeys.PSI_ELEMENT) {
+      if (selectedAssets.size != 1) null
+      else assetsToArrayPsiElements(selectedAssets).firstOrNull()
+    }
+    sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
+      assetsToArrayPsiElements(selectedAssets)
+    }
+    sink.lazy(UsageView.USAGE_TARGETS_KEY) {
+      getUsageTargets(assetsToArrayPsiElements(selectedAssets))
     }
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
-  override fun isCopyVisible(dataContext: DataContext): Boolean = isCopyEnabled(dataContext)
-
-  override fun isCopyEnabled(dataContext: DataContext): Boolean = !selectedItems.isNullOrEmpty()
-
-  private fun assetsToArrayPsiElements(): Array<out PsiElement> =
-    selectedItems
-      ?.mapNotNull(Asset::resourceItem)
-      ?.mapNotNull(this::findPsiElement)
-      ?.filter { it.manager.isInProject(it) }
-      ?.toTypedArray() ?: emptyArray()
+  private fun assetsToArrayPsiElements(assets: List<Asset>): Array<out PsiElement> =
+    assets.asSequence()
+      .mapNotNull(Asset::resourceItem)
+      .mapNotNull(this::findPsiElement)
+      .filter { it.manager.isInProject(it) }
+      .toList()
+      .toTypedArray()
 
   /**
    * Try to find the psi element that this [ResourceItem] represents.
@@ -108,11 +101,6 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
       psiElement = getItemPsiFile(facet.module.project, resourceItem)
     }
     return psiElement
-  }
-
-  private fun assetsToSingleElement(): PsiElement? {
-    if (selectedItems?.size != 1) return null
-    return assetsToArrayPsiElements().firstOrNull()
   }
 
   private fun getUsageTargets(chosenElements: Array<out PsiElement>?): Array<UsageTarget?> {

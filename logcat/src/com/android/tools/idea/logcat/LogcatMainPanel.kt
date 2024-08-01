@@ -118,9 +118,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runInEdt
@@ -142,6 +143,17 @@ import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Cursor
 import java.awt.Point
 import java.awt.event.ComponentAdapter
@@ -161,17 +173,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.io.path.pathString
 import kotlin.math.max
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
 private const val MAX_TAGS = 1000
@@ -251,7 +252,7 @@ constructor(
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
   zoneId: ZoneId = ZoneId.systemDefault(),
-) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, UiDataProvider, Disposable {
 
   constructor(
     project: Project,
@@ -866,28 +867,25 @@ constructor(
     return if (ApplicationManager.getApplication().isUnitTestMode) true else super.isShowing()
   }
 
-  override fun getData(dataId: String): Any? {
+  override fun uiDataSnapshot(sink: DataSink) {
     val device = connectedDevice.get()
-    return when (dataId) {
-      LOGCAT_PRESENTER_ACTION.name -> this
-      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-        device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
-      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
-        device?.let {
-          ScreenRecorderAction.Parameters(
-            it.name,
-            it.serialNumber,
-            it.featureLevel,
-            if (it.isEmulator) it.deviceId else null,
-            this,
-          )
-        }
-      CONNECTED_DEVICE.name -> device
-      // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in
-      // the hierarchy
-      LogcatPresenter.EDITOR.name -> editor
-      else -> null
-    }
+    sink[LOGCAT_PRESENTER_ACTION] = this
+    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
+      device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
+      device?.let {
+        ScreenRecorderAction.Parameters(
+          it.name,
+          it.serialNumber,
+          it.featureLevel,
+          if (it.isEmulator) it.deviceId else null,
+          this,
+        )
+      }
+    sink[CONNECTED_DEVICE] = device
+    // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in
+    // the hierarchy
+    sink[LogcatPresenter.EDITOR] = editor
   }
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()

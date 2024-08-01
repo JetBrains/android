@@ -27,18 +27,14 @@ import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
-import com.intellij.ide.CopyProvider
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.testFramework.runInEdtAndGet
-import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import org.junit.Before
 import org.junit.Rule
@@ -65,21 +61,27 @@ class ResourceDataManagerTest {
     ResourceFile.createSingle(File("source"), attrResource, "")
     val colorAttributeAsset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
 
-    dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAttributeAsset))
-    dataManager.performCopy(DataContext.EMPTY_CONTEXT)
-    val resourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
-    Truth.assertThat(resourceUrl).isNotNull()
-    Truth.assertThat(resourceUrl!!.toString()).isEqualTo("?attr/my_attr")
+    runReadAction {
+      PlatformDataKeys.COPY_PROVIDER.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
+        dataManager.uiDataSnapshot(sink, listOf(colorAttributeAsset))
+      })?.performCopy(DataContext.EMPTY_CONTEXT)
 
-    val toolsResource = ResourceMergerItem("my_sample", ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, null, null, null)
-    ResourceFile.createSingle(File("sample"), toolsResource, "")
-    val drawableSample = Asset.fromResourceItem(toolsResource, ResourceType.DRAWABLE)
+      val resourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
+      Truth.assertThat(resourceUrl).isNotNull()
+      Truth.assertThat(resourceUrl!!.toString()).isEqualTo("?attr/my_attr")
 
-    dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(drawableSample))
-    dataManager.performCopy(DataContext.EMPTY_CONTEXT)
-    val sampleResourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
-    Truth.assertThat(sampleResourceUrl).isNotNull()
-    Truth.assertThat(sampleResourceUrl!!.toString()).isEqualTo("@tools:sample/my_sample")
+      val toolsResource = ResourceMergerItem("my_sample", ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, null, null, null)
+      ResourceFile.createSingle(File("sample"), toolsResource, "")
+      val drawableSample = Asset.fromResourceItem(toolsResource, ResourceType.DRAWABLE)
+
+      PlatformDataKeys.COPY_PROVIDER.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
+        dataManager.uiDataSnapshot(sink, listOf(drawableSample))
+      })?.performCopy(DataContext.EMPTY_CONTEXT)
+
+      val sampleResourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
+      Truth.assertThat(sampleResourceUrl).isNotNull()
+      Truth.assertThat(sampleResourceUrl!!.toString()).isEqualTo("@tools:sample/my_sample")
+    }
   }
 
   @Test
@@ -92,23 +94,22 @@ class ResourceDataManagerTest {
     val colorAsset = Asset.fromResourceItem(colorItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val psiArray = runInEdtAndGet {
-      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
-      slowDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement>
+    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
+      dataManager.uiDataSnapshot(sink, listOf(colorAsset))
     }
-    assertEquals("colorPrimary", runInEdtAndGet { (psiArray[0] as XmlAttributeValue).value })
+    runReadAction {
+      val psiArray = LangDataKeys.PSI_ELEMENT_ARRAY.getData(context)!!
+      assertEquals("colorPrimary", (psiArray[0] as XmlAttributeValue).value)
 
-    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
-    assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
+      val copyProvider = PlatformDataKeys.COPY_PROVIDER.getData(context)!!
+      assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
-    val usageTargetKey = runInEdtAndGet {
-      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
-      slowDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?>
+      val usageTargetKey = UsageView.USAGE_TARGETS_KEY.getData(context)!!
+      assertTrue { usageTargetKey.isNotEmpty() }
+
+      copyProvider.performCopy(DataContext.EMPTY_CONTEXT)
+      assertEquals("@color/colorPrimary", CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)!!.toString())
     }
-    assertTrue { usageTargetKey.isNotEmpty() }
-
-    dataManager.performCopy(DataContext.EMPTY_CONTEXT)
-    assertEquals("@color/colorPrimary", CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)!!.toString())
   }
 
   @Test
@@ -117,19 +118,18 @@ class ResourceDataManagerTest {
     val colorAsset = Asset.fromResourceItem(pngItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val psiArray = runInEdtAndGet {
-      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
-      slowDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement>
+    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
+      dataManager.uiDataSnapshot(sink, listOf(colorAsset))
     }
-    assertEquals(pngItem.getSourceAsVirtualFile(), runInEdtAndGet { PsiUtil.getVirtualFile(psiArray[0].containingFile)!! })
+    runReadAction {
+      val psiArray = LangDataKeys.PSI_ELEMENT_ARRAY.getData(context)!!
+      assertEquals(pngItem.getSourceAsVirtualFile(), PsiUtil.getVirtualFile(psiArray[0].containingFile)!!)
 
-    val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
-    assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
+      val copyProvider = PlatformDataKeys.COPY_PROVIDER.getData(context)!!
+      assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
-    val usageTargetKey = runInEdtAndGet {
-      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
-      slowDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?>
+      val usageTargetKey = UsageView.USAGE_TARGETS_KEY.getData(context)!!
+      assertTrue { usageTargetKey.isNotEmpty() }
     }
-    assertTrue { usageTargetKey.isNotEmpty() }
   }
 }

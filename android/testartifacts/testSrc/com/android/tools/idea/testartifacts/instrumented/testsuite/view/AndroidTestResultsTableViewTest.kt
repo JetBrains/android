@@ -38,11 +38,12 @@ import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.lang.jvm.JvmMethod
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -54,7 +55,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.dualView.TreeTableView
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -795,7 +795,7 @@ class AndroidTestResultsTableViewTest {
 
     val table = AndroidTestResultsTableView(
       mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
-    assertThat(table.getTableViewForTesting()).isInstanceOf(DataProvider::class.java)
+    assertThat(table.getTableViewForTesting()).isInstanceOf(UiDataProvider::class.java)
 
     val device1 = device("deviceId1", "deviceName1")
     table.addTestCase(device1, AndroidTestCase("testid1", "myTestMethodName", "mytestclass", "mytestpackage"))
@@ -804,13 +804,12 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
     run {
-      val dataProvider = PlatformCoreDataKeys.BGT_DATA_PROVIDER.getData(table.getTableViewForTesting() as DataProvider)!!
-      val data = CommonDataKeys.PSI_ELEMENT.getData(dataProvider)
+      val dataContext = IdeUiService.getInstance().createUiDataContext(table.getTableViewForTesting())
+      val data = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
       assertThat(data).isInstanceOf(JvmMethod::class.java)
       assertThat((data as JvmMethod).name).isEqualTo("myTestMethodName")
 
-      val dataProviderLocation = PlatformCoreDataKeys.BGT_DATA_PROVIDER.getData(table.getTableViewForTesting() as DataProvider)!!
-      val location = Location.DATA_KEY.getData(dataProviderLocation)
+      val location = Location.DATA_KEY.getData(dataContext)
       assertThat(location).isInstanceOf(PsiLocation::class.java)
       assertThat((location as PsiLocation<*>).psiElement).isSameAs(mockPsiMethod)
     }
@@ -818,23 +817,25 @@ class AndroidTestResultsTableViewTest {
     // Select the test class.
     table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
     run {
-      val dataProvider = PlatformCoreDataKeys.BGT_DATA_PROVIDER.getData(table.getTableViewForTesting() as DataProvider)!!
-      val dataForClass = CommonDataKeys.PSI_ELEMENT.getData(dataProvider)
+      val dataContext = IdeUiService.getInstance().createUiDataContext(table.getTableViewForTesting())
+      val dataForClass = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
       assertThat(dataForClass).isInstanceOf(PsiClass::class.java)
       assertThat((dataForClass as PsiClass).name).isEqualTo("myTestClassName")
 
-      val dataProviderLocation = PlatformCoreDataKeys.BGT_DATA_PROVIDER.getData(table.getTableViewForTesting() as DataProvider)!!
-      val locationForClass = Location.DATA_KEY.getData(dataProviderLocation)
+      val locationForClass = Location.DATA_KEY.getData(dataContext)
       assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
       assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
-      val runConfiguration = RunConfiguration.DATA_KEY.getData(table.getTableViewForTesting() as DataProvider)
+      val runConfiguration = RunConfiguration.DATA_KEY.getData(dataContext)
       assertThat(runConfiguration).isInstanceOf(AndroidTestRunConfiguration::class.java)
     }
 
     // Clear the selection.
     table.clearSelection()
-    assertThat(CommonDataKeys.PSI_ELEMENT.getData(table.getTableViewForTesting() as DataProvider)).isNull()
-    assertThat(Location.DATA_KEY.getData(table.getTableViewForTesting() as DataProvider)).isNull()
+    run {
+      val dataContext = IdeUiService.getInstance().createUiDataContext(table.getTableViewForTesting())
+      assertThat(CommonDataKeys.PSI_ELEMENT.getData(dataContext)).isNull()
+      assertThat(Location.DATA_KEY.getData(dataContext)).isNull()
+    }
   }
 
   @Test

@@ -23,14 +23,15 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.assertInstanceOf
-import java.awt.Point
-import java.awt.event.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Point
+import java.awt.event.KeyEvent
 
 private class TestInteractableSurface(private val sceneView: SceneView? = null) :
   InteractableScenesSurface {
@@ -48,7 +49,8 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
   override val isPannable = true
   override var scrollPosition = Point(0, 0)
 
-  override fun getData(dataId: String) = null
+  override fun dataSnapshot(sink: DataSink) {
+  }
 
   override fun getSceneViewAtOrPrimary(x: Int, y: Int) = sceneView
 

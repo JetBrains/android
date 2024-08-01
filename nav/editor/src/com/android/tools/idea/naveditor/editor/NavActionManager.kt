@@ -49,10 +49,11 @@ import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.util.SystemInfo
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -129,7 +130,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    orientationAction.updateActionsImmediately(mySurface::getData)
+    orientationAction.updateActionsImmediately(
+      CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, mySurface))
 
     group.add(selectAllAction)
 

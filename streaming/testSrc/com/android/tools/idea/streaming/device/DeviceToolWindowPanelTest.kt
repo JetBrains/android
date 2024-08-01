@@ -16,11 +16,11 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
+import com.android.test.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -47,6 +47,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -520,7 +521,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private val DeviceToolWindowPanel.isConnected
-    get() = (getData(DEVICE_VIEW_KEY.name) as? DeviceView)?.isConnected ?: false
+    get() = IdeUiService.getInstance().createUiDataContext(this).getData(DEVICE_VIEW_KEY)?.isConnected == true
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
     if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }

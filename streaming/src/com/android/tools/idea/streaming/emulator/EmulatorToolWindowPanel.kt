@@ -50,6 +50,7 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -291,14 +292,12 @@ internal class EmulatorToolWindowPanel(
     mainToolbar.updateActionsAsync()
   }
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      EMULATOR_CONTROLLER_KEY.name -> emulator
-      EMULATOR_VIEW_KEY.name -> primaryDisplayView
-      NUMBER_OF_DISPLAYS_KEY.name -> displayPanels.size
-      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> getScreenRecorderParameters()
-      else -> super.getData(dataId)
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[EMULATOR_CONTROLLER_KEY] = emulator
+    sink[EMULATOR_VIEW_KEY] = primaryDisplayView
+    sink[NUMBER_OF_DISPLAYS_KEY] = displayPanels.size
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
   }
 
   private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {

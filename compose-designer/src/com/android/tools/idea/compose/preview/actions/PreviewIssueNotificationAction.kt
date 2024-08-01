@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.flags.StudioFlags
@@ -68,7 +67,7 @@ private class HideIfFiltersEnabledWrapper(
   override fun update(e: AnActionEvent) {
     super.update(e)
     if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
-      val manager = e.getData(DESIGN_SURFACE)?.let { COMPOSE_PREVIEW_MANAGER.getData(it) } ?: return
+      val manager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
       e.presentation.isVisible = !manager.isFilterEnabled
     }
   }

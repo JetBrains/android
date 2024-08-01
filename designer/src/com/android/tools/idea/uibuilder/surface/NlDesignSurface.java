@@ -92,6 +92,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
@@ -1167,17 +1168,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
-  public Object getData(@NotNull String dataId) {
-    Object data = myDelegateDataProvider != null ? myDelegateDataProvider.getData(dataId) : null;
-    if (data != null) {
-      return data;
-    }
-
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
-      return this;
-    }
-
-    return super.getData(dataId);
+  public void dataSnapshot(@NotNull DataSink sink) {
+    super.dataSnapshot(sink);
+    sink.set(LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY, this);
+    DataSink.uiDataSnapshot(sink, myDelegateDataProvider);
   }
 
   @NotNull

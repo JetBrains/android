@@ -22,9 +22,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.test.testutils.TestUtils
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -93,6 +93,8 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
@@ -107,6 +109,11 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import junit.framework.TestCase
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -121,12 +128,7 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
-import junit.framework.TestCase
 import kotlin.time.Duration.Companion.seconds
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -253,12 +255,11 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { dataId ->
-      when {
-        LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId) -> inspectorRule.inspector
-        else -> panel.getData(dataId)
-      }
+    val provider = EdtNoGetDataProvider { sink ->
+      sink[LAYOUT_INSPECTOR_DATA_KEY] = inspectorRule.inspector
+      DataSink.uiDataSnapshot(sink, panel)
     }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
   }
 
   @Test

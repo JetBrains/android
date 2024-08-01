@@ -38,6 +38,7 @@ import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -49,9 +50,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -63,6 +61,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -120,14 +121,12 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val previewGroupManager =
-        preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
+      val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
+      val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("groupA")
       assertThat(preview.previewView.mainSurface.models).hasSize(2)
-
-      val dataContext = DataContext { preview.previewView.mainSurface.getData(it) }
 
       // Select preview group "groupA"
       run {
@@ -255,10 +254,10 @@ class WearTilePreviewRepresentationTest {
   }
 
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
+    get() = PreviewModeManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = previewView.mainSurface.getData(PreviewFlowManager.KEY.name) as PreviewFlowManager<*>
+    get() = PreviewFlowManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {

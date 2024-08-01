@@ -43,6 +43,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -216,19 +217,17 @@ internal class DeviceToolWindowPanel(
     return uiState
   }
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      DEVICE_VIEW_KEY.name -> primaryDisplayView
-      DEVICE_CLIENT_KEY.name -> deviceClient
-      DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
-      DEVICE_HANDLE_KEY.name -> deviceHandle
-      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDisplayView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
-      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
-          deviceClient.deviceController?.let {
-            ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
-          }
-      else -> super.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[DEVICE_VIEW_KEY] = primaryDisplayView
+    sink[DEVICE_CLIENT_KEY] = deviceClient
+    sink[DEVICE_CONTROLLER_KEY] = deviceClient.deviceController
+    sink[DEVICE_HANDLE_KEY] = deviceHandle
+    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = primaryDisplayView?.let {
+      if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null
+    }
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceClient.deviceController?.let {
+      ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
     }
   }
 

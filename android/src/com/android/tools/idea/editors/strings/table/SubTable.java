@@ -19,8 +19,9 @@ import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
@@ -36,9 +37,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class SubTable<M extends TableModel> extends JBTable implements DataProvider, PasteProvider {
+final class SubTable<M extends TableModel> extends JBTable implements UiDataProvider, PasteProvider {
   private final FrozenColumnTable<M> myFrozenColumnTable;
 
   SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable<M> frozenColumnTable) {
@@ -167,10 +167,9 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     return map;
   }
 
-  @Nullable
   @Override
-  public Object getData(@NotNull String dataId) {
-    return PlatformDataKeys.PASTE_PROVIDER.is(dataId) ? this : null;
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    sink.set(PlatformDataKeys.PASTE_PROVIDER, this);
   }
 
   @NotNull

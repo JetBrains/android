@@ -24,6 +24,7 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_TEMPLATE_KEY
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataSink
 import javax.swing.Icon
 
 /**
@@ -128,12 +129,10 @@ internal data class DeviceRowData(
 
 internal val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
 
-internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
-  when {
-    DEVICE_ROW_DATA_KEY.`is`(dataId) -> row
-    DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
-    DEVICE_TEMPLATE_KEY.`is`(dataId) -> row.template
-    else -> null
-  }
+internal fun provideRowData(sink: DataSink, row: DeviceRowData) {
+  sink[DEVICE_ROW_DATA_KEY] = row
+  sink[DEVICE_HANDLE_KEY] = row.handle
+  sink[DEVICE_TEMPLATE_KEY] = row.template
+}
 
 internal fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }

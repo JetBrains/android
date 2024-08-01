@@ -25,15 +25,13 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -81,16 +79,14 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Test
   fun getData() {
-    assertThat(viewModel.getData(PlatformCoreDataKeys.MODULE.name)).isEqualTo(rule.module)
-    assertThat(viewModel.getData(CommonDataKeys.PROJECT.name)).isEqualTo(rule.project)
+    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, viewModel)
+    assertThat(PlatformCoreDataKeys.MODULE.getData(context)).isEqualTo(rule.module)
+    assertThat(CommonDataKeys.PROJECT.getData(context)).isEqualTo(rule.project)
 
     val resFolder = rule.fixture.copyDirectoryToProject("res/", "res")
     val drawableDir = resFolder.findChild("drawable")
     val psiDrawableDir = PsiDirectoryFactory.getInstance(rule.project).createDirectory(drawableDir!!)
-    runInEdtAndWait {
-      val slowDataProvider = viewModel.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name) as DataProvider
-      assertThat((slowDataProvider.getData(CommonDataKeys.PSI_ELEMENT.name) as PsiElement)).isEqualTo(psiDrawableDir)
-    }
+    assertThat(CommonDataKeys.PSI_ELEMENT.getData(context)).isEqualTo(psiDrawableDir)
   }
 
   @Test

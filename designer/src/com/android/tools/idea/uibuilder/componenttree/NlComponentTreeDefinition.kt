@@ -60,7 +60,9 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -76,6 +78,8 @@ import com.intellij.util.ui.tree.TreeUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Rectangle
@@ -85,8 +89,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.tree.TreeCellRenderer
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
-import org.jetbrains.android.facet.AndroidFacet
 
 /** The delay used to minimize updates */
 private const val UPDATE_DELAY_MILLISECONDS = 250
@@ -152,7 +154,7 @@ private class ComponentTreePanel(
         .withNodeType(NlComponentNodeType { repaint() })
         .withNodeType(NlComponentReferenceNodeType())
         .withAutoScroll()
-        .withDataProvider { dataId -> getData(dataId) }
+        .withDataProvider { dataId -> EdtNoGetDataProvider { sink -> uiDataSnapshot(sink) } }
         .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
         .withBadgeSupport(IssueBadgeColumn())
         .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
@@ -305,14 +307,14 @@ private class ComponentTreePanel(
    *
    * Otherwise simply delegate to whatever the surface is offering.
    */
-  private fun getData(dataId: String): Any? {
+  private fun uiDataSnapshot(sink: DataSink) {
     val referencesOnly =
       componentTree.selectionModel.currentSelection.all { it is NlComponentReference }
-    if (referencesOnly && PlatformDataKeys.DELETE_ELEMENT_PROVIDER.`is`(dataId)) {
+    if (referencesOnly) {
       // Provide a way to delete a reference from a helper
-      return referenceDeleteProvider
+      sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = referenceDeleteProvider
     }
-    return surface?.getData(dataId)
+    DataSink.uiDataSnapshot(sink, surface)
   }
 
   /** The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface. */

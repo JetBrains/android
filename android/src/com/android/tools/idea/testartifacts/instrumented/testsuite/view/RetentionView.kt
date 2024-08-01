@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
-import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.internal.avd.getEmulatorPackage
@@ -53,7 +51,8 @@ import com.intellij.ide.HelpTooltip
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
@@ -111,7 +110,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
                     = RetentionUsageLogReporterImpl,
                     private val executor: Executor
                     = AndroidExecutors.getInstance().diskIoThreadExecutor) {
-  private inner class RetentionPanel : JPanel(), DataProvider {
+  private inner class RetentionPanel : JPanel(), UiDataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+)(.tar(.gz)?)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
     private var snapshotFile: File? = null
@@ -135,18 +134,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       return snapshotFile
     }
 
-    override fun getData(dataId: String): Any? {
-      return when (dataId) {
-        EMULATOR_SNAPSHOT_ID_KEY.name -> snapshotId
-        EMULATOR_SNAPSHOT_FILE_KEY.name -> snapshotFile
-        EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> snapshotProto?.launchParametersList
-        PACKAGE_NAME_KEY.name -> retentionInfo?.appPackage?:classPackageName
-        RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> true
-        RETENTION_ON_FINISH_KEY.name -> Runnable { myRetentionDebugButton.isEnabled = true }
-        AVD_NAME_KEY.name -> androidDevice!!.avdName
-        IS_MANAGED_DEVICE.name -> androidDevice!!.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
-        else -> null
-      }
+    override fun uiDataSnapshot(sink: DataSink) {
+      sink[EMULATOR_SNAPSHOT_ID_KEY] = snapshotId
+      sink[EMULATOR_SNAPSHOT_FILE_KEY] = snapshotFile
+      sink[EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS] = snapshotProto?.launchParametersList
+      sink[PACKAGE_NAME_KEY] = appName
+      sink[RETENTION_AUTO_CONNECT_DEBUGGER_KEY] = true
+      sink[RETENTION_ON_FINISH_KEY] = Runnable { myRetentionDebugButton.isEnabled = true }
+      sink[AVD_NAME_KEY] = androidDevice!!.avdName
+      sink[IS_MANAGED_DEVICE] = androidDevice!!.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
     }
   }
 
@@ -256,7 +252,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
   // Get the name of the APP being tested.
   @VisibleForTesting
-  val appName: String get() = myRetentionPanel.getData(PACKAGE_NAME_KEY.name) as String
+  val appName: String get() = retentionInfo?.appPackage ?: classPackageName
 
   fun setPackageName(packageName: String) {
     this.classPackageName = packageName

@@ -16,16 +16,14 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.test.testutils.TestUtils
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
-import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
-import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
@@ -174,7 +172,4 @@ class DeviceFileDropHandlerTest {
     waitForCondition(5, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel
   }
-
-  private val EmulatorToolWindowPanel.primaryEmulatorView
-    get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 }

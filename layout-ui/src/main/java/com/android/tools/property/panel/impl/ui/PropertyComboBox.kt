@@ -23,6 +23,7 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -30,7 +31,8 @@ import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.ui.ClientProperty
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
@@ -147,7 +149,7 @@ class PropertyComboBox(
 }
 
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: EditorContext) :
-  CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model), DataProvider {
+  CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model), UiDataProvider {
   private val textField = editor.editorComponent as CommonTextField<*>
   private var inSetup = false
 
@@ -344,8 +346,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     return null
   }
 
-  override fun getData(dataId: String): Any? {
-    return model.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = model.property
   }
 
   // Hack: This method is called to update the text editor with the content of the

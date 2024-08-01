@@ -39,14 +39,14 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ModalityState
@@ -148,7 +148,7 @@ class ResourceExplorerListView(
   private val summaryView: DetailedPreview?,
   private val withDetailView: Boolean = true,
   private val multiSelection: Boolean = true
-) : JPanel(BorderLayout()), Disposable, DataProvider {
+) : JPanel(BorderLayout()), Disposable, UiDataProvider {
 
   private var updatePending = false
 
@@ -748,8 +748,8 @@ class ResourceExplorerListView(
     }
   }
 
-  override fun getData(dataId: String): Any? {
-    return viewModel.getData(dataId, getSelectedAssets())
+  override fun uiDataSnapshot(sink: DataSink) {
+    return viewModel.uiDataSnapshot(sink, getSelectedAssets())
   }
 
   override fun dispose() {

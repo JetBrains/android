@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSnapshotProvider
 
 /**
  * This defines an interface of the [LayoutlibInteractionHandler] downstream client.
@@ -26,8 +27,8 @@ import com.intellij.openapi.actionSystem.DataProvider
  * directly to the [Scene]s. [DataProvider] is only required to support [Pannable] delegating.
  *
  * TODO(b/228294269): Consider expanding this to generic [InteractionHandler] use. This interface
- *   should not extend [DataProvider]. This is only done so because of [Pannable] can be obtained
+ *   should not extend [DataSnapshotProvider]. This is only done so because of [Pannable] can be obtained
  *   with [PANNABLE_KEY].
  */
 interface InteractableScenesSurface :
-  Pannable, DataProvider, ScenesOwner, HoverableSurface, ZoomControllableSurface
+  Pannable, DataSnapshotProvider, ScenesOwner, HoverableSurface, ZoomControllableSurface

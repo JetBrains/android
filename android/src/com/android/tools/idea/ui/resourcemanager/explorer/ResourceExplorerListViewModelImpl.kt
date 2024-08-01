@@ -45,6 +45,7 @@ import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.openFileWithPsiElement
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
@@ -215,8 +216,8 @@ class ResourceExplorerListViewModelImpl(
     return resources
   }
 
-  override fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
-    return dataManager.getData(dataId, selectedAssets)
+  override fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>) {
+    dataManager.uiDataSnapshot(sink, selectedAssets)
   }
 
   override fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>> {

@@ -20,7 +20,8 @@ import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import java.awt.Dimension
 
 /**
@@ -33,7 +34,7 @@ class EmulatorDisplayPanel(
   displaySize: Dimension?,
   zoomToolbarVisible: Boolean,
   deviceFrameVisible: Boolean = false,
-) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), DataProvider {
+) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), UiDataProvider {
 
   init {
     displayView = EmulatorView(this, emulator, displayId, displaySize, deviceFrameVisible)
@@ -44,11 +45,10 @@ class EmulatorDisplayPanel(
     }
   }
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      EMULATOR_CONTROLLER_KEY.name -> displayView.emulator
-      EMULATOR_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[EMULATOR_CONTROLLER_KEY] = displayView.emulator
+    sink[EMULATOR_VIEW_KEY] = displayView
+    sink[DISPLAY_VIEW_KEY] = displayView
+    sink[ZOOMABLE_KEY] = displayView
   }
 }

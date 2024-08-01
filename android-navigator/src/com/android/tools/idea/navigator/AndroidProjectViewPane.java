@@ -34,7 +34,6 @@ import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
-import com.intellij.ide.DataManager;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -52,7 +51,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -76,7 +75,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -372,17 +370,12 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   private class MyProjectViewTree extends ProjectViewTree {
     MyProjectViewTree(DefaultTreeModel treeModel) {
       super(treeModel);
-      DataProvider parentProvider = DataManager.getDataProvider(this);
-      DataManager.removeDataProvider(this);
-      DataManager.registerDataProvider(this, new DataProvider() {
-        @Override
-        public @Nullable Object getData(@NotNull @NonNls String dataId) {
-          Object result = AndroidProjectViewPane.this.getData(dataId);
-          if (result != null) return result;
-          if (parentProvider != null) parentProvider.getData(dataId);
-          return null;
-        }
-      });
+    }
+
+    @Override
+    public void uiDataSnapshot(@NotNull DataSink sink) {
+      super.uiDataSnapshot(sink);
+      DataSink.uiDataSnapshot(sink, AndroidProjectViewPane.this);
     }
   }
 

@@ -59,6 +59,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -70,9 +71,6 @@ import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.concurrent.CountDownLatch
-import kotlin.test.assertFails
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -86,6 +84,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFails
+import kotlin.time.Duration.Companion.seconds
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
@@ -262,13 +263,14 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
+      val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)
 
-      assertTrue(surface.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
-      assertThat(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
-      assertThat(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
-      assertThat(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
-      assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
-      assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
+      assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
+      assertThat(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
+      assertThat(PreviewGroupManager.KEY.getData(context) is PreviewGroupManager)
+      assertThat(PreviewFlowManager.KEY.getData(context) is PreviewFlowManager<*>)
+      assertTrue(FastPreviewSurface.KEY.getData(context) is FastPreviewSurface)
+      assertTrue(PreviewInvalidationManager.KEY.getData(context) is PreviewInvalidationManager)
 
       preview.onDeactivate()
     }

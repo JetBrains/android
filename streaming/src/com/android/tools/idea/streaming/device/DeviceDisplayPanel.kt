@@ -20,7 +20,8 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 
 /**
@@ -33,7 +34,7 @@ internal class DeviceDisplayPanel(
   initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
-) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), DataProvider {
+) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), UiDataProvider {
 
   init {
     displayView = DeviceView(this, deviceClient, displayId, initialDisplayOrientation, project)
@@ -42,13 +43,12 @@ internal class DeviceDisplayPanel(
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.
   }
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      DEVICE_CLIENT_KEY.name -> displayView.deviceClient
-      DEVICE_CONTROLLER_KEY.name -> displayView.deviceController
-      DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
-      SERIAL_NUMBER_KEY.name -> displayView.deviceClient.deviceSerialNumber
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+      sink[DEVICE_CLIENT_KEY] = displayView.deviceClient
+      sink[DEVICE_CONTROLLER_KEY] = displayView.deviceController
+      sink[DEVICE_VIEW_KEY] = displayView
+      sink[DISPLAY_VIEW_KEY] = displayView
+      sink[ZOOMABLE_KEY] = displayView
+      sink[SERIAL_NUMBER_KEY] = displayView.deviceClient.deviceSerialNumber
   }
 }

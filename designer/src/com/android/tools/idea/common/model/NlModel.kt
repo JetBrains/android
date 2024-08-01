@@ -75,6 +75,8 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
+  // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
+  //   A data-context must not be queried during another data-context creation.
   override var dataContext: DataContext,
 ) : ModificationTracker, DataContextHolder {
 

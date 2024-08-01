@@ -40,6 +40,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -68,7 +70,7 @@ class ResourceExplorerToolbarViewModel(
   initialResourceType: ResourceType,
   private val importersProvider: ImportersProvider,
   private val filterOptions: FilterOptions)
-  : DataProvider, IdeView {
+  : DataSnapshotProvider, IdeView {
 
   /**
    * Callback added by the view to be called when data of this
@@ -221,17 +223,13 @@ class ResourceExplorerToolbarViewModel(
   /**
    * Implementation of [DataProvider] needed for [CreateResourceFileAction]
    */
-  override fun getData(dataId: String): Any? = when (dataId) {
-    CommonDataKeys.PROJECT.name -> facet.module.project
-    PlatformCoreDataKeys.MODULE.name -> facet.module
-    LangDataKeys.IDE_VIEW.name -> this
-    PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
-    else -> null
-  }
-
-  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
-    CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
-    else -> null
+  override fun dataSnapshot(sink: DataSink) {
+    sink[CommonDataKeys.PROJECT] = facet.module.project
+    sink[PlatformCoreDataKeys.MODULE] = facet.module
+    sink[LangDataKeys.IDE_VIEW] = this
+    sink.lazy(CommonDataKeys.PSI_ELEMENT) {
+      getPsiDirForResourceType()
+    }
   }
 
   /**

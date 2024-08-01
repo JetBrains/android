@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.PANNABLE_KEY
-import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
@@ -31,6 +30,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import org.intellij.lang.annotations.JdkConstants
@@ -340,7 +341,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     val keyCode = keyEvent.keyCode
     if (keyCode == DesignSurfaceShortcut.PAN.keyCode) {
-      return PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
+      val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)
+      return PanInteraction(PANNABLE_KEY.getData(dataContext) ?: surface)
     }
 
     // The deletion only applies without modifier keys.

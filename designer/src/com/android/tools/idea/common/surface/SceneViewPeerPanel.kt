@@ -32,14 +32,16 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
 @SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
@@ -61,7 +63,7 @@ class SceneViewPeerPanel(
   sceneViewLeftBar: JComponent?,
   sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
-) : JPanel(), PositionablePanel, DataProvider {
+) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
     scope.launch(uiThread) {
@@ -292,12 +294,13 @@ class SceneViewPeerPanel(
       sceneView.sceneManager.model.organizationGroup?.isOpened?.value ?: true
   }
 
-  override fun getData(dataId: String): Any? {
-    return if (SCENE_VIEW.`is`(dataId)) {
-      sceneView
-    } else {
-      sceneView.sceneManager.model.dataContext.getData(dataId)
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[SCENE_VIEW] = sceneView
+    DataSink.uiDataSnapshot(sink, DataProvider {
+      // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
+      //   A data-context must not be queried during another data-context creation.
+      dataId -> sceneView.sceneManager.model.dataContext.getData(dataId)
+    })
   }
 
   companion object {

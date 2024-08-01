@@ -53,9 +53,9 @@ import com.intellij.ide.actions.EditSourceAction
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ColorProgressBar
@@ -420,7 +420,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
                                                    private val scopes: TestArtifactSearchScopes?,
                                                    private val logger: AndroidTestSuiteLogger,
                                                    private val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?)
-  : TreeTableView(model), DataProvider {
+  : TreeTableView(model), UiDataProvider {
 
   private var myLastReportedResults: AndroidTestResults? = null
   private var myLastReportedDevice: AndroidDevice? = null
@@ -585,35 +585,17 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     prevSelectedObject?.let { addSelection(it) }
   }
 
-  override fun getData(dataId: String): Any? {
-    return when {
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
-        DataProvider { slowId -> getSlowData(slowId) }
-      }
-      CommonDataKeys.PROJECT.`is`(dataId) -> {
-        javaPsiFacade.project
-      }
-      RunConfiguration.DATA_KEY.`is`(dataId) -> {
-        return AndroidTestRunConfiguration(javaPsiFacade.project, AndroidTestRunConfigurationType.getInstance().factory)
-      }
-
-      else -> null
+  override fun uiDataSnapshot(sink: DataSink) {
+    val project = javaPsiFacade.project
+    sink[CommonDataKeys.PROJECT] = project
+    sink[RunConfiguration.DATA_KEY] = AndroidTestRunConfiguration(
+      project, AndroidTestRunConfigurationType.getInstance().factory)
+    val selectedTestResults = selectedObject ?: return
+    sink.lazy(CommonDataKeys.PSI_ELEMENT) {
+      getPsiElement(selectedTestResults)
     }
-  }
-
-   private fun getSlowData(dataId: String): Any? {
-    return when {
-      CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
-        val selectedTestResults = selectedObject ?: return null
-        getPsiElement(selectedTestResults)
-      }
-
-      Location.DATA_KEY.`is`(dataId) -> {
-        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
-        PsiLocation.fromPsiElement(psiElement, module)
-      }
-
-      else -> null
+    sink.lazy(Location.DATA_KEY) {
+      PsiLocation.fromPsiElement(getPsiElement(selectedTestResults), module)
     }
   }
 

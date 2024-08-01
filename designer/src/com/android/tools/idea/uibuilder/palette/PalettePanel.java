@@ -23,6 +23,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -34,7 +35,6 @@ import com.android.tools.idea.common.model.NlTreeWriter;
 import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
@@ -52,10 +52,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
@@ -101,7 +102,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -110,7 +110,7 @@ import org.jetbrains.annotations.TestOnly;
  * Top level Palette UI.
  */
 @UiThread
-public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataProvider, ToolContent<DesignSurface<?>> {
+public class PalettePanel extends AdtSecondaryPanel implements Disposable, UiDataProvider, ToolContent<DesignSurface<?>> {
   private static final int DOWNLOAD_WIDTH = 16;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
@@ -461,10 +461,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   public void dispose() {
   }
 
-  @Nullable
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
-    return PlatformDataKeys.COPY_PROVIDER.is(dataId) ? myCopyProvider : null;
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    sink.set(PlatformDataKeys.COPY_PROVIDER, myCopyProvider);
   }
 
   private class CopyProviderImpl implements CopyProvider {

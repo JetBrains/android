@@ -44,12 +44,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.MouseShortcut;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -93,13 +94,12 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
-                                                     DataProvider {
+public class NlComponentTree extends Tree
+  implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable, UiDataProvider {
   private  final static int UPDATE_DELAY_MSECS = 250;
 
   private final AtomicBoolean mySelectionIsUpdating;
@@ -663,20 +663,17 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  // ---- Implements DataProvider ----
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
-    TreePath path = getSelectionPath();
-    if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
-      if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
-        return createNonNlComponentDeleteProvider();
-      }
-    }
-    return mySurface == null ? null : mySurface.getData(dataId);
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    TreePath[] paths = getSelectionPaths();
+    if (paths == null || paths.length == 0) return;
+    if (paths[0].getLastPathComponent() instanceof NlComponent) return;
+    sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider(paths));
+    DataSink.uiDataSnapshot(sink, mySurface);
   }
 
   @NotNull
-  private DeleteProvider createNonNlComponentDeleteProvider() {
+  private DeleteProvider createNonNlComponentDeleteProvider(TreePath[] paths) {
     return new DeleteProvider() {
       @NotNull
       @Override
@@ -686,7 +683,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       @Override
       public void deleteElement(@NotNull DataContext dataContext) {
-        deleteNonNlComponent(getSelectionPaths());
+        deleteNonNlComponent(paths);
       }
 
       @Override

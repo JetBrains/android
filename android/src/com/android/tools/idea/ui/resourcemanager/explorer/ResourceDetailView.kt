@@ -31,7 +31,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -83,7 +84,7 @@ class ResourceDetailView(
   private val designAssetSet: ResourceAssetSet,
   private val viewModel: ResourceExplorerListViewModel,
   private val backCallback: (ResourceDetailView) -> Unit)
-  : JPanel(BorderLayout()), DataProvider {
+  : JPanel(BorderLayout()), UiDataProvider {
 
   private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.assets.size)
   private var lastFocusedAsset: AssetView? = null
@@ -260,9 +261,9 @@ class ResourceDetailView(
     viewModel.doSelectAssetAction(asset)
   }
 
-  override fun getData(dataId: String): Any? {
-    val assetList = viewToAsset[lastFocusedAsset]?.let { listOf(it) } ?: return null
-    return viewModel.getData(dataId, assetList)
+  override fun uiDataSnapshot(sink: DataSink) {
+    val assetList = viewToAsset[lastFocusedAsset]?.let { listOf(it) } ?: return
+    viewModel.uiDataSnapshot(sink, assetList)
   }
 
   override fun requestFocusInWindow(): Boolean {

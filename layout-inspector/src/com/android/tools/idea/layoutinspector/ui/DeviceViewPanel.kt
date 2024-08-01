@@ -35,14 +35,15 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.TestOnly
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
@@ -61,7 +62,6 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
-import kotlinx.coroutines.launch
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
@@ -71,11 +71,11 @@ private const val TOOLBAR_INSET = 14
 const val PERFORMANCE_WARNING_3D = "performance.warning.3d"
 const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 
-val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("Toggle3DActionButtonKey")
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("Toggle3DActionButtonKey")
 
 /** Panel that shows the device screen in the layout inspector. */
 class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Disposable) :
-  JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
+  JPanel(BorderLayout()), Zoomable, UiDataProvider, Pannable {
 
   private val renderSettings = layoutInspector.renderLogic.renderSettings
 
@@ -411,14 +411,10 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     renderSettings.scalePercent < 100 && canZoomIn() ||
       renderSettings.scalePercent > 100 && canZoomOut()
 
-  override fun getData(dataId: String): Any? {
-    if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
-      return this
-    }
-    if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
-      return floatingToolbarProvider.toggle3dActionButton
-    }
-    return null
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[ZOOMABLE_KEY] = this
+    sink[PANNABLE_KEY] = this
+    sink[TOGGLE_3D_ACTION_BUTTON_KEY] = floatingToolbarProvider.toggle3dActionButton
   }
 
   override val isPannable: Boolean

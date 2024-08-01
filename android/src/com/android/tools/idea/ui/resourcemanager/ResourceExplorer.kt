@@ -25,8 +25,9 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewMo
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -60,7 +61,7 @@ class ResourceExplorer private constructor(
   private val toolbarViewModel: ResourceExplorerToolbarViewModel,
   private val toolbar: ResourceExplorerToolbar,
   private val resourceImportDragTarget: ResourceImportDragTarget)
-  : JPanel(BorderLayout()), Disposable, DataProvider {
+  : JPanel(BorderLayout()), Disposable, UiDataProvider {
 
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
@@ -179,11 +180,9 @@ class ResourceExplorer private constructor(
   override fun dispose() {
   }
 
-  override fun getData(dataId: String): Any? =
-    when (dataId) {
-      PlatformCoreDataKeys.HELP_ID.name -> AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[PlatformCoreDataKeys.HELP_ID] = AndroidWebHelpProvider.HELP_PREFIX + "studio/write/resource-manager"
+  }
 
   /**
    * Selects an asset in the [ResourceExplorer] from the resource's [VirtualFile]. E.g: Select the 'main_activity' Layout resource from the

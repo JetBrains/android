@@ -21,7 +21,8 @@ import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import java.awt.BorderLayout
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -36,7 +37,7 @@ import javax.swing.JPanel
 class ActionButtonBinding(
   private val model: BasePropertyEditorModel,
   private val editor: JComponent,
-) : JPanel(BorderLayout()), DataProvider {
+) : JPanel(BorderLayout()), UiDataProvider {
 
   private val actionButtonModel
     get() = model.property.browseButton
@@ -67,11 +68,8 @@ class ActionButtonBinding(
     isVisible = model.visible
   }
 
-  override fun getData(dataId: String): Any? {
-    if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) {
-      return model.property
-    }
-    return null
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = model.property
   }
 
   override fun updateUI() {

@@ -16,9 +16,10 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.PANNABLE_KEY
-import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.KeyEvent
@@ -68,7 +69,8 @@ class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {
-      PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
+      val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)
+      PanInteraction(PANNABLE_KEY.getData(dataContext) ?: surface)
     } else {
       val view = surface.focusedSceneView ?: return null
       return LayoutlibInteraction(view)

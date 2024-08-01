@@ -64,8 +64,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -120,7 +119,6 @@ import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -1570,81 +1568,45 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || PANNABLE_KEY.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
-      return this;
-    }
-    if (ZOOMABLE_KEY.is(dataId)){
-      return getZoomController();
-    }
-    if (CONFIGURATIONS.is(dataId)) {
-      return getConfigurations();
-    }
-    if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
-      return myFileEditorDelegate.get();
-    }
-    else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
-             PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
-             PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
-             PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return getActionHandlerProvider().apply(this);
-    }
-    else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      NlComponent selection = getSelectionModel().getPrimary();
+  public void dataSnapshot(@NotNull DataSink sink) {
+    sink.set(DESIGN_SURFACE, this);
+    sink.set(PANNABLE_KEY, this);
+    sink.set(GuiInputHandler.CURSOR_RECEIVER, this);
+
+    sink.set(ZOOMABLE_KEY, getZoomController());
+    sink.set(CONFIGURATIONS, getConfigurations());
+    sink.set(PlatformCoreDataKeys.FILE_EDITOR, myFileEditorDelegate.get());
+
+    DesignSurfaceActionHandler handler = getActionHandlerProvider().apply(this);
+    sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, handler);
+    sink.set(PlatformDataKeys.CUT_PROVIDER, handler);
+    sink.set(PlatformDataKeys.COPY_PROVIDER, handler);
+    sink.set(PlatformDataKeys.PASTE_PROVIDER, handler);
+
+    SceneView view = getFocusedSceneView();
+    NlComponent primary = getSelectionModel().getPrimary();
+    List<NlComponent> selection = getSelectionModel().getSelection();
+    {
       Scene scene = getScene();
-      if (view == null || scene == null || selection == null) {
-        return null;
-      }
-      SceneComponent sceneComponent = scene.getSceneComponent(selection);
-      if (sceneComponent == null) {
-        return null;
-      }
-      return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
-                       Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
+      SceneComponent sceneComponent = view == null || scene == null || primary == null ? null : scene.getSceneComponent(primary);
+      sink.set(PlatformDataKeys.CONTEXT_MENU_POINT, sceneComponent == null ? null :
+               new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
+                         Coordinates.getSwingYDip(view, sceneComponent.getCenterY())));
     }
-    else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
-      return (DataProvider)this::getSlowData;
-    }
-    else {
-      NlModel model = getModel();
-      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
-        return model.getModule();
-      }
-    }
+    NlModel model = getModel();
+    sink.set(PlatformCoreDataKeys.MODULE, model == null ? null : model.getModule());
+    if (view == null) return;
+    sink.lazy(CommonDataKeys.PSI_ELEMENT, () -> {
+      return primary == null ? null : primary.getTagDeprecated();
+    });
 
-    return null;
-  }
-
-  /**
-   * The data which should be obtained from the background thread.
-   * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
-   */
-  @Nullable
-  private Object getSlowData(@NotNull String dataId) {
-    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        NlComponent primary = selectionModel.getPrimary();
-        if (primary != null) {
-          return primary.getTagDeprecated();
-        }
+    sink.lazy(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY, () -> {
+      List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
+      for (NlComponent component : selection) {
+        list.add(component.getTagDeprecated());
       }
-    }
-    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view != null) {
-        SelectionModel selectionModel = view.getSelectionModel();
-        List<NlComponent> selection = selectionModel.getSelection();
-        List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
-        for (NlComponent component : selection) {
-          list.add(component.getTagDeprecated());
-        }
-        return list.toArray(XmlTag.EMPTY);
-      }
-    }
-    return null;
+      return list.toArray(XmlTag.EMPTY);
+    });
   }
 
   @NotNull

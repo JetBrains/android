@@ -23,10 +23,11 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.primitives.Ints
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
@@ -82,9 +83,8 @@ class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEd
     val button = e.inputEvent?.component ?: return
 
     // Setup callback to reset the animated selector toolbar when state is changed.
-    val toolbar =
-      DataManager.getDataProvider(surface)?.let { ANIMATION_TOOLBAR.getData(it) }
-        as? AnimatedSelectorToolbar
+    val toolbar = ANIMATION_TOOLBAR.getData(CustomizedDataContext.withSnapshot(
+      DataContext.EMPTY_CONTEXT, surface)) as? AnimatedSelectorToolbar
     val callback: () -> Unit = { toolbar?.setNoTransition() }
 
     val menu = StateListMenu(surface, callback)
