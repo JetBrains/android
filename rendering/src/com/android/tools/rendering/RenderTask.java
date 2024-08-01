@@ -238,6 +238,7 @@ public class RenderTask {
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
+             @NotNull Collection<String> immediateClassesToPreload,
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
              boolean useCustomInflater,
@@ -285,6 +286,13 @@ public class RenderTask {
                                                          onNewModuleClassLoader);
     }
     ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+    immediateClassesToPreload.forEach(clazz -> {
+      try {
+        moduleClassLoader.loadClass(clazz);
+      }
+      catch (ClassNotFoundException ignored) {
+      }
+    });
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
