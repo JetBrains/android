@@ -56,6 +56,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.RegistryKeyRule;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
@@ -610,6 +611,7 @@ public class GuiTestRule implements TestRule {
   }
 
   public void waitForAllBackgroundTasksToBeCompleted() {
+    IndexingTestUtil.waitUntilIndexesAreReady(ideFrame().getProject());
     waitForBackgroundTasks();
     robot().waitForIdle();
   }
