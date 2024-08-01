@@ -28,6 +28,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
@@ -114,7 +115,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   }
 
   @NotNull
-  public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @NotNull Container container) {
+  public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @Nullable Container container) {
     ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
@@ -130,6 +131,11 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
       }
     });
     return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
+  public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot) {
+    return findByIcon(icon, robot, null);
   }
 
   public ActionButtonFixture(@NotNull Robot robot, @NotNull ActionButton target) {
