@@ -77,7 +77,7 @@ public class ScreenView extends ScreenViewBase {
   /**
    * Default {@link Layer} provider to be used if no other is supplied.
    */
-  private static final Function<ScreenView, ImmutableList<Layer>> DEFAULT_LAYERS_PROVIDER = (screenView) -> {
+  static final Function<ScreenView, ImmutableList<Layer>> DEFAULT_LAYERS_PROVIDER = (screenView) -> {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
@@ -107,110 +107,13 @@ public class ScreenView extends ScreenViewBase {
   };
 
   /**
-   * A {@link ScreenView} builder.
-   */
-  public static class Builder {
-    @NotNull final NlDesignSurface mySurface;
-    @NotNull final LayoutlibSceneManager myManager;
-    boolean isResizeable = false;
-    boolean hasBorderLayer;
-    @Nullable ColorSet myColorSet = null;
-    @NotNull Function<ScreenView, ImmutableList<Layer>> myLayersProvider = DEFAULT_LAYERS_PROVIDER;
-    @NotNull private ContentSizePolicy myContentSizePolicy = DEVICE_CONTENT_SIZE_POLICY;
-    @NotNull private ShapePolicy myShapePolicy = DEVICE_CONFIGURATION_SHAPE_POLICY;
-
-    private Builder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-      this.mySurface = surface;
-      this.myManager = manager;
-      hasBorderLayer = manager.getModel().getType() instanceof LayoutEditorFileType;
-    }
-
-    /**
-     * If called, the {@link ScreenView} will display the resize layer.
-     */
-    @NotNull
-    public Builder resizeable() {
-      isResizeable = true;
-      return this;
-    }
-
-    /**
-     * Sets a non-default {@link ColorSet} for the {@link ScreenView}
-     */
-    @NotNull
-    public Builder withColorSet(@NotNull ColorSet colorSet) {
-      this.myColorSet = colorSet;
-      return this;
-    }
-
-    /**
-     * Sets a new provider that will determine the {@link Layer}s to be used.
-     */
-    @NotNull
-    public Builder withLayersProvider(@NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider) {
-      this.myLayersProvider = layersProvider;
-      return this;
-    }
-
-    /**
-     * Sets a new {@link ContentSizePolicy}.
-     */
-    @NotNull
-    public Builder withContentSizePolicy(@NotNull ContentSizePolicy contentSizePolicy) {
-      this.myContentSizePolicy = contentSizePolicy;
-      return this;
-    }
-
-    /**
-     * Sets a new {@link ContentSizePolicy}.
-     */
-    @NotNull
-    public Builder withShapePolicy(@NotNull ShapePolicy shapePolicy) {
-      this.myShapePolicy = shapePolicy;
-      return this;
-    }
-
-    /**
-     * Sets a new {@link ContentSizePolicy}. The method receives the current policy and returns a new one that can wrap it.
-     * Use this method if you want to decorate the current policy and not simply replace it.
-     */
-    @NotNull
-    public Builder decorateContentSizePolicy(@NotNull Function<ContentSizePolicy, ContentSizePolicy> contentSizePolicyProvider) {
-      this.myContentSizePolicy = contentSizePolicyProvider.apply(myContentSizePolicy);
-      return this;
-    }
-
-    /**
-     * Disables the visible border.
-     */
-    @NotNull
-    public Builder disableBorder() {
-      hasBorderLayer = false;
-      return this;
-    }
-
-    @NotNull
-    public ScreenView build() {
-      return new ScreenView(
-        mySurface,
-        myManager,
-        myShapePolicy,
-        isResizeable,
-        hasBorderLayer,
-        myColorSet == null ? new AndroidColorSet() : myColorSet,
-        myLayersProvider,
-        myContentSizePolicy);
-    }
-  }
-
-  /**
-   * Returns a new {@link ScreenView.Builder}
+   * Returns a new {@link ScreenViewBuilder}
    * @param surface The {@link NlDesignSurface}.
    * @param manager The {@link LayoutlibSceneManager}.
    */
   @NotNull
-  public static Builder newBuilder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    return new Builder(surface, manager);
+  public static ScreenViewBuilder newBuilder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    return new ScreenViewBuilder(surface, manager);
   }
 
   /**
@@ -239,7 +142,7 @@ public class ScreenView extends ScreenViewBase {
   /**
    * Creates a new {@link ScreenView}.
    */
-  private ScreenView(
+  ScreenView(
     @NotNull NlDesignSurface surface,
     @NotNull LayoutlibSceneManager manager,
     @NotNull ShapePolicy shapePolicy,
