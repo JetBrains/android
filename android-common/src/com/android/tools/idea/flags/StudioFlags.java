@@ -1800,13 +1800,13 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
-  public static final Flag<Boolean> CRASHLYTICS_SHOW_INSIGHT =
+  public static final Flag<Boolean> CRASHLYTICS_INSIGHT_IN_TOOLWINDOW =
     new BooleanFlag(
       APP_INSIGHTS,
-      "crashlytics.show.insight",
-      "Show insight for Crashlytics",
-      "Show AI generated insights for Crashlytics issue",
-      true
+      "crashlytics.show.insight.tool.window",
+      "Show insight toolwindow in Crashlytics",
+      "Show AI generated insights for Crashlytics issue in insight toolwindow",
+      false
     );
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
