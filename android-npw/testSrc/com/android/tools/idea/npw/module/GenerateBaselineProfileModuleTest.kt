@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -142,7 +143,7 @@ class GenerateBaselineProfileModuleTest {
     useGradleKts: Boolean,
     useGmd: Boolean,
     projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-    androidApi: Int = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+    androidApi: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
   ): Pair<File, File> {
     val name = "baselineprofile"
     val buildApi = ApiVersion(androidApi, "$androidApi")
