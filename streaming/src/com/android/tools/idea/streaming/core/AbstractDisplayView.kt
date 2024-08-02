@@ -217,7 +217,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   private fun findLoadingPanel(): StreamingLoadingPanel? = findContainingComponent()
 
-  protected fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
+  internal fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
 
   /**
    * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of
