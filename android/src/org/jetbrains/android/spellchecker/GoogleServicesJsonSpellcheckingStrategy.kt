@@ -17,6 +17,7 @@ package org.jetbrains.android.spellchecker
 
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
+import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.spellchecker.inspections.PlainTextSplitter
@@ -27,7 +28,7 @@ import com.intellij.spellchecker.tokenizer.Tokenizer
 /**
  * Custom spellchecking strategy for Json files, takes precedence over [com.intellij.json.JsonSpellcheckerStrategy]
  */
-class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy() {
+class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware {
 
   companion object {
     val IGNORE_SUFFIX: List<String> = listOf("_url", "_bucket", "_id", "_hash", "_key")

@@ -17,6 +17,7 @@ package org.jetbrains.kotlin.android.spellchecker
 
 import com.android.SdkConstants
 import com.intellij.lang.Language
+import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.PsiElement
 import com.intellij.spellchecker.tokenizer.LanguageSpellchecking
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy
@@ -24,7 +25,7 @@ import com.intellij.spellchecker.tokenizer.Tokenizer
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 
-class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy() {
+class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware {
   private val kotlinSpellcheckingStrategy by lazy {
     Language.findLanguageByID("kotlin")?.let { language ->
       LanguageSpellchecking.INSTANCE.allForLanguage(language)

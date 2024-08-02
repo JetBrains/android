@@ -23,6 +23,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.detector.api.Lint;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -58,7 +59,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
+public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy implements DumbAware {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
 
   private final Tokenizer<XmlAttributeValue> myAttributeValueRenamingTokenizer = new Tokenizer<XmlAttributeValue>() {

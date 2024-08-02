@@ -15,9 +15,17 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_WIN;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_RESOURCE_TEXT;
+
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -27,15 +35,13 @@ import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.*;
-
 /**
  * Spelling strategy for text and property files which is used to mask out typos in
  * specific files that we know we don't want to spell check, such as the "gradlew"
  * launcher script and various property files. In a default project, you end up with
  * over 80 spelling errors from these files!
  */
-public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
+public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy implements DumbAware {
   private static final Key<Boolean> mySpellcheckingIgnoredStateKey = Key.create("android.spellchecking.ignored.state");
 
   @Override

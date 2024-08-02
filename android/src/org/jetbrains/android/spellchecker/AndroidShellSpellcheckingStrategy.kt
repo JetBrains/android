@@ -16,6 +16,7 @@
 package org.jetbrains.android.spellchecker
 
 import com.android.SdkConstants
+import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.PsiElement
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy
 import com.intellij.spellchecker.tokenizer.Tokenizer
@@ -26,7 +27,7 @@ import com.intellij.spellchecker.tokenizer.Tokenizer
  * This strategy only ignores "gradlew" files, otherwise spell checking for shell files is handled by
  * [com.intellij.sh.spellchecker.ShSpellcheckingStrategy]
  */
-class AndroidShellSpellcheckingStrategy : SpellcheckingStrategy() {
+class AndroidShellSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware {
 
   override fun isMyContext(element: PsiElement) = SdkConstants.FN_GRADLE_WRAPPER_UNIX == element.containingFile?.name
 
