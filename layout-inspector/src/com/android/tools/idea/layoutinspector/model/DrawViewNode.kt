@@ -25,7 +25,6 @@ import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_MITER
 import java.awt.Color
-import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.Image
 import java.awt.Rectangle
@@ -280,16 +279,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 
     // Draw gradient for recomposition highlights
     if (showHighlight) {
-      val rect = bounds.bounds2D
-      g2.paint =
-        GradientPaint(
-          rect.x.toFloat(),
-          rect.y.toFloat(),
-          heatmapColor(model, highlightCount, viewSettings),
-          (rect.x + rect.width).toFloat(),
-          (rect.y + rect.height).toFloat(),
-          heatmapColor(model, 0f, viewSettings),
-        )
+      g2.paint = heatmapColor(model, highlightCount, viewSettings)
       g2.fill(bounds)
     }
   }
