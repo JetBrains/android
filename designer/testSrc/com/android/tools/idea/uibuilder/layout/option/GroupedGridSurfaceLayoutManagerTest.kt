@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.surface.layout.EMPTY_PADDING
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -728,6 +729,7 @@ class GroupedGridSurfaceLayoutManagerTest {
         listOf(PositionableGroup(contents.toList()))
       }
 
+    manager.useCachedLayoutGroups(MutableStateFlow(emptyList()))
     val content = createContent(1.0)
 
     // Width change never changes because it will cause re-layout whenever we shrink the window.
@@ -762,6 +764,50 @@ class GroupedGridSurfaceLayoutManagerTest {
 
       assertEquals(proportionAfterFirstScaleChange, proportionAfterSecondScaleChange)
       assertEquals(proportionAfterInit, proportionAfterSecondScaleChange)
+    }
+
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
+  }
+
+  @Test
+  fun testManagerKeepProportionsWhenWidthChange() {
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
+
+    val framePadding = 50
+    val manager =
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * framePadding).toInt() }) { contents
+        ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+
+    manager.useCachedLayoutGroups(MutableStateFlow(emptyList()))
+
+    val content = createContent(1.0)
+
+    // The change of the width shouldn't affect the layout in any ways
+    var width = 500
+
+    // The change of the height shouldn't affect the layout in any ways
+    var height = 700
+
+    run {
+      // We re-layout when loading the layout for the first time
+      val sizeAfterInit = manager.getRequiredSize(content, width, height, null)
+
+      // We simulate the change of the height of the layout
+      height += 200
+      val sizeAfterHeightChange = manager.getRequiredSize(content, width, height, null)
+      val proportionAfterInit = sizeAfterInit.width / sizeAfterInit.height
+      val proportionAfterHeightChange = sizeAfterHeightChange.width / sizeAfterHeightChange.height
+
+      assertEquals(proportionAfterInit, proportionAfterHeightChange)
+
+      // We simulate the change of the height of the layout
+      width -= 200
+      val sizeAfterWidthChange = manager.getRequiredSize(content, width, height, null)
+      val proportionAfterWidthChange = sizeAfterWidthChange.width / sizeAfterWidthChange.height
+
+      assertEquals(proportionAfterHeightChange, proportionAfterWidthChange)
     }
 
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()

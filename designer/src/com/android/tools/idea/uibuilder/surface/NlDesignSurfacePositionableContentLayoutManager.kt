@@ -23,6 +23,7 @@ import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import java.awt.Dimension
@@ -46,12 +47,19 @@ class NlDesignSurfacePositionableContentLayoutManager(
 
   override val currentLayout = MutableStateFlow(layoutOption)
 
+  /**
+   * The current [GridLayoutGroup] applied in the layout manager. This state is only used to store
+   * group layouts, and it doesn't apply on list layout.
+   */
+  private val cachedLayoutGroups = MutableStateFlow(listOf<GridLayoutGroup>())
+
   init {
     scope.launch(uiThread) { currentLayout.collect { surface.onLayoutUpdated(it) } }
   }
 
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
+    currentLayout.value.layoutManager.useCachedLayoutGroups(cachedLayoutGroups)
     currentLayout.value.layoutManager.layout(
       content,
       availableSize.width,
@@ -72,11 +80,17 @@ class NlDesignSurfacePositionableContentLayoutManager(
     )
   }
 
+  /** Performs a refresh of the layout manager by emptying its cached values. */
+  fun clearCachedGroups() {
+    cachedLayoutGroups.value = emptyList()
+  }
+
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
   ): Dimension {
     availableSize.size = surface.extentSize
+    currentLayout.value.layoutManager.useCachedLayoutGroups(cachedLayoutGroups)
     val dimension =
       currentLayout.value.layoutManager.getRequiredSize(
         content,
