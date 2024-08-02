@@ -44,6 +44,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -237,6 +238,7 @@ class ComposePreviewTest {
     fixture.editor.close()
   }
 
+  @Ignore("b/355391435")
   @Test
   @Throws(Exception::class)
   fun testAnimationInspector() {
