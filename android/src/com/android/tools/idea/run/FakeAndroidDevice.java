@@ -33,7 +33,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -204,12 +203,6 @@ public final class FakeAndroidDevice implements AndroidDevice {
       myDeviceModel = DevicePropertyUtil.getModel(myDevice, "");
     }
     return myDeviceModel;
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    return getLaunchedDevice();
   }
 
   @NotNull
