@@ -435,6 +435,10 @@ public class RenderTask {
     RenderSession renderSessionToDispose = myRenderSession;
     myRenderSession = null;
 
+    if (renderSessionToDispose != null) {
+      renderSessionToDispose.releaseRender();
+    }
+
     return ourDisposeService.submit(() -> {
       try {
         // Wait for all current running operations to complete
