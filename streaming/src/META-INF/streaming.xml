@@ -117,6 +117,34 @@
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.emulator.xr.app.interaction.mode"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$AppInteraction"
+              icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW"
+              text="Interact with Apps" description="Use keyboard and mouse to interact with apps">
+        <keyboard-shortcut first-keystroke="control shift I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.view.direction.mode"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
+              icon="StudioIcons.Emulator.XR.ROTATE"
+              text="View Direction" description="Use keyboard and mouse to control view direction">
+      </action>
+      <action id="android.emulator.xr.location.in.space.mode"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpace"
+              icon="StudioIcons.Emulator.XR.PAN"
+              text="Location in Space" description="Use keyboard and mouse to control location in virtual space">
+      </action>
+      <action id="android.emulator.xr.recenter"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
+              icon="StudioIcons.Emulator.XR.RESET_POSITION"
+              text="Reset View" description="Reset the view to the default">
+      </action>
+      <action id="android.emulator.xr.show.taskbar"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrShowTaskbarAction"
+              icon="StudioIcons.Emulator.XR.TASKBAR"
+              text="Show Taskbar" description="Show the taskbar">
+      </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
         <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
@@ -183,6 +211,12 @@
         <reference ref="android.emulator.display.mode.tablet"/>
         <separator/>
       </group>
+      <reference ref="android.emulator.xr.app.interaction.mode"/>
+      <reference ref="android.emulator.xr.view.direction.mode"/>
+      <reference ref="android.emulator.xr.location.in.space.mode"/>
+      <separator/>
+      <reference ref="android.emulator.xr.recenter"/>
+      <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
       <reference ref="android.device.power.button"/>
       <reference ref="android.device.volume.up.button"/>

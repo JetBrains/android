@@ -32,6 +32,7 @@ import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
@@ -54,6 +55,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMo
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -349,6 +351,7 @@ class EmulatorView(
     }
 
   private var virtualSceneCameraVelocityController: VirtualSceneCameraVelocityController? = null
+  private var xrInputController: EmulatorXrInputController? = null
   private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
 
   init {
@@ -463,9 +466,15 @@ class EmulatorView(
           }
         }
       }
+      if (emulatorConfig.deviceType == DeviceType.XR) {
+        xrInputController = EmulatorXrInputController.getInstance(emulator)
+      }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       lastScreenshot = null
+      if (xrInputController != null) {
+        xrInputController = null
+      }
       hideLongRunningOperationIndicatorInstantly()
       showDisconnectedStateMessage("Disconnected from the Emulator")
     }

@@ -41,6 +41,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDi
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
+import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
@@ -358,6 +360,55 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
 
     val streamScreenshotCall = emulator.getNextGrpcCall(2.seconds)
+    panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testXrToolbarActions() {
+    val avdFolder = FakeEmulator.createXrAvd(emulatorRule.avdRoot, api = 34)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+    assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Interact with Apps" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "View Direction" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Location in Space" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
+
+    // Check that the buttons not applicable to XR devices are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Down" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Left" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Back" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
+
+    val xrInputController = EmulatorXrInputController.getInstance(panel.primaryEmulatorView!!.emulator)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.APP_INTERACTION)
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "View Direction" })
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Location in Space" })
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE)
+
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)

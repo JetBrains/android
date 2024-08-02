@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
+import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -51,6 +52,11 @@ internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
 internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? {
   val controller = getEmulatorController(event)
   return if (controller?.connectionState == EmulatorController.ConnectionState.CONNECTED) controller.emulatorConfig else null
+}
+
+internal fun getEmulatorXrInputController(event: AnActionEvent): EmulatorXrInputController? {
+  val controller = getEmulatorController(event) ?: return null
+  return EmulatorXrInputController.getInstance(controller)
 }
 
 internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =
