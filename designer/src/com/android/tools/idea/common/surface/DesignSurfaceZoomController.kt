@@ -29,6 +29,7 @@ import javax.swing.JViewport
 import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @SurfaceScale private const val MIN_SCALE: Double = 0.03
 
@@ -65,6 +66,9 @@ abstract class DesignSurfaceZoomController(
   private val scenesOwner: ScenesOwner?,
   override val maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
+
+  /** Emits an event of [ZoomType] before the given zoom is applied. */
+  val beforeZoomChange = MutableStateFlow<ZoomType?>(null)
 
   override var storeId: String? = null
 
@@ -212,6 +216,10 @@ abstract class DesignSurfaceZoomController(
     var newY = y
     // track user triggered change
     designerAnalyticsManager?.trackZoom(type)
+
+    // We notify which zoom is going to be applied
+    beforeZoomChange.tryEmit(type)
+
     val view = getFocusedSceneView()
     if (
       type == ZoomType.IN &&

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.ZoomController
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -86,6 +87,7 @@ import java.util.function.Supplier
 import java.util.stream.Collectors
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 /**
  * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or
@@ -200,6 +202,14 @@ internal constructor(
         maxZoomToFitLevel,
       )
       .apply {
+        zoomControllerScope.launch {
+          beforeZoomChange.collect { zoomType ->
+            if (zoomType == ZoomType.FIT) {
+              sceneViewLayoutManager.clearCachedGroups()
+            }
+          }
+        }
+        // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
         this@apply.maxScale = maxScale
         this@apply.minScale = minScale

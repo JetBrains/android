@@ -50,12 +50,23 @@ class NlDesignSurfaceZoomController(
 
   override var maxScale: Double = super.maxScale
 
-  override fun getFitScale(): Double = minOf(maxZoomToFitScale, fitScaleProvider())
+  override fun getFitScale(): Double {
+    val fitScale = fitScaleProvider()
+    return minOf(maxZoomToFitScale, fitScale)
+  }
 
   override val shouldShowZoomAnimation: Boolean = StudioFlags.PREVIEW_ZOOM_ANIMATION.get()
 
   override fun canZoomToActual(): Boolean {
     @SurfaceScale val scaleOfActual = 1.0 / screenScalingFactor
     return (scale > scaleOfActual && canZoomOut()) || (scale < scaleOfActual && canZoomIn())
+  }
+
+  override fun canZoomToFit(): Boolean {
+    if (StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
+      // TODO(b/361721504) The button should be grayed out even with the flag enabled.
+      return true
+    }
+    return super.canZoomToFit()
   }
 }
