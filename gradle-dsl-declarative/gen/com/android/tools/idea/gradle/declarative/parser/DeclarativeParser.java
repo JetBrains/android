@@ -127,6 +127,12 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // BLOCK_COMMENT
+  static boolean block_comment(PsiBuilder b, int l) {
+    return consumeToken(b, BLOCK_COMMENT);
+  }
+
+  /* ********************************************************** */
   // !'}' entry
   static boolean block_entry(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_entry")) return false;

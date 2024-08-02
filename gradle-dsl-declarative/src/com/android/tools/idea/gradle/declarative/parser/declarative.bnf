@@ -42,7 +42,7 @@
     OP_LPAREN = "("
     OP_RPAREN = ")"
     OP_COMMA = ","
-    BLOCK_COMMENT = "BLOCK_COMMENT"
+    BLOCK_COMMENT = "BLOCK_COMMENT" // only for declaring this in ElementTypeHolder
 
     line_comment = "regexp://.*"
     boolean = "regexp:(true|false)"
