@@ -72,7 +72,7 @@ editor_performance_test_data = [
     ":architectureSamplesScenarioScripts",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:platform-tools",
-    "//tools/base/build-system:gradle-distrib-8.6",
+    INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
 maven_repository(
@@ -369,10 +369,10 @@ iml_studio_test(
 
 create_project_test_data = [
     ":createproject_deps",
-    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
     "//prebuilts/studio/sdk:platforms/latest",
-    "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
+    "//tools/base/build-system:gradle-distrib-8.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
 iml_studio_test(
@@ -416,19 +416,32 @@ maven_repository(
         "@maven//:androidx.navigation.navigation-ui-ktx_2.4.1",
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.3",
-        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.1",
-        "@maven//:com.android.library.com.android.library.gradle.plugin_7.4.1",
-        "@maven//:com.android.tools.build.aapt2_7.4.1-8841542",
-        "@maven//:com.android.tools.build.gradle_7.4.1",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.1.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_8.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.jvm.org.jetbrains.kotlin.jvm.gradle.plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kapt.org.jetbrains.kotlin.kapt.gradle.plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-annotation-processing-gradle_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
