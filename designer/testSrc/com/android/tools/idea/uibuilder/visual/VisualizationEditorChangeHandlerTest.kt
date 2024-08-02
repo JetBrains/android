@@ -20,6 +20,7 @@ import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -27,7 +28,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.EdtRule
-import javax.swing.JComponent
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -35,6 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import javax.swing.JComponent
 
 @RunWith(JUnit4::class)
 class VisualizationEditorChangeHandlerTest {
@@ -120,7 +121,9 @@ object TestVisualizationContentProvider : VisualizationContentProvider {
     val panel = object : JComponent(), VisualizationContent by TestVisualizationContent() {}
     with(toolWindow.contentManager) {
       val content = factory.createContent(panel, "Test Validation Tool", true)
-      addDataProvider { if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else null }
+      addDataProvider(EdtNoGetDataProvider { sink ->
+        sink[VisualizationContent.VISUALIZATION_CONTENT] = panel
+      })
       val context = (DataManager.getInstance() as HeadlessDataManager).dataContext
       (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
         if (VisualizationContent.VISUALIZATION_CONTENT.`is`(it)) panel else context.getData(it)

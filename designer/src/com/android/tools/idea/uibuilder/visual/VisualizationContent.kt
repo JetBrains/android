@@ -19,12 +19,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -79,23 +77,13 @@ object VisualizationFormProvider : VisualizationContentProvider {
       VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
-    contentManager.addDataProvider { dataId: String? ->
-      if (
-        PlatformCoreDataKeys.MODULE.`is`(dataId) ||
-          LangDataKeys.IDE_VIEW.`is`(dataId) ||
-          CommonDataKeys.VIRTUAL_FILE.`is`(dataId)
-      ) {
-        val fileEditor = visualizationForm.editor
-        if (fileEditor != null) {
-          return@addDataProvider DataManager.getDataProvider(fileEditor.component)
-            ?.getData(dataId!!)
-        }
+    contentManager.addDataProvider(EdtNoGetDataProvider { sink ->
+      val fileEditor = visualizationForm.editor
+      if (fileEditor != null) {
+        DataSink.uiDataSnapshot(sink, fileEditor.component)
       }
-      if (VisualizationContent.VISUALIZATION_CONTENT.`is`(dataId)) {
-        return@addDataProvider visualizationForm
-      }
-      null
-    }
+      sink[VisualizationContent.VISUALIZATION_CONTENT] = visualizationForm
+    })
     val content = contentManager.factory.createContent(contentPanel, null, false)
     content.setDisposer(visualizationForm)
     content.isCloseable = false
