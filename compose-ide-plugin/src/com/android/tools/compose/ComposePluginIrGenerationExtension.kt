@@ -21,9 +21,12 @@ import androidx.compose.compiler.plugins.kotlin.FeatureFlag
 import androidx.compose.compiler.plugins.kotlin.FeatureFlags
 import androidx.compose.compiler.plugins.kotlin.IncompatibleComposeRuntimeVersionException
 import com.android.tools.idea.run.deployment.liveedit.CompileScope
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -33,16 +36,16 @@ private val liveEditPackageName = "${CompileScope::class.java.packageName}."
 @Suppress("INVISIBLE_REFERENCE", "EXPERIMENTAL_IS_NOT_ENABLED")
 @OptIn(org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints::class)
 class ComposePluginIrGenerationExtension : IrGenerationExtension {
+  private val messageCollector = ComposePluginMessageCollector()
+
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
       ComposeIrGenerationExtension(
-        generateFunctionKeyMetaClasses = true,
-        useK2 = KotlinPluginModeProvider.isK2Mode(),
-        messageCollector = MessageCollector.NONE,
-        featureFlags = FeatureFlags().apply {
-          setFeature(FeatureFlag.IntrinsicRemember, false)
-        },
-      )
+          generateFunctionKeyMetaClasses = true,
+          useK2 = KotlinPluginModeProvider.isK2Mode(),
+          messageCollector = messageCollector,
+          featureFlags = FeatureFlags().apply { setFeature(FeatureFlag.IntrinsicRemember, false) },
+        )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {
       // From ProcessCanceledException javadoc: "Usually, this exception should not be caught,
@@ -59,6 +62,38 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
       versionError.printStackTrace()
     } catch (t: Throwable) {
       t.printStackTrace()
+    }
+  }
+
+  private class ComposePluginMessageCollector : MessageCollector {
+    private val logger = Logger.getInstance(ComposePluginIrGenerationExtension::class.java)
+    private var hasError = false
+
+    override fun clear() {
+      hasError = false
+    }
+
+    override fun hasErrors(): Boolean = hasError
+
+    override fun report(
+      severity: CompilerMessageSeverity,
+      message: String,
+      location: CompilerMessageSourceLocation?,
+    ) {
+      val messageWithLocation =
+        location?.let { "$message (${it.path}: ${it.line}, ${it.column})" } ?: message
+      when (severity) {
+        CompilerMessageSeverity.OUTPUT,
+        CompilerMessageSeverity.LOGGING,
+        CompilerMessageSeverity.INFO -> logger.info(messageWithLocation)
+        CompilerMessageSeverity.WARNING,
+        CompilerMessageSeverity.STRONG_WARNING -> logger.warn(messageWithLocation)
+        CompilerMessageSeverity.EXCEPTION,
+        CompilerMessageSeverity.ERROR -> {
+          logger.error(messageWithLocation)
+          hasError = true
+        }
+      }
     }
   }
 }
