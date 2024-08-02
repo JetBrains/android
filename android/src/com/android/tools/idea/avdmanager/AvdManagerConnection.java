@@ -35,6 +35,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.AvdNames;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
@@ -791,7 +792,7 @@ public class AvdManagerConnection {
   public @NotNull String getDefaultDeviceDisplayName(@NotNull Device device, @NotNull AndroidVersion version) {
     // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
     // a display name. Ensure that the display name does not include any forbidden characters.
-    return uniquifyDisplayName(AvdNameVerifier.stripBadCharacters(device.getDisplayName()) + " API " + version.getApiStringWithExtension());
+    return uniquifyDisplayName(AvdNames.stripBadCharacters(device.getDisplayName()) + " API " + version.getApiStringWithExtension());
   }
 
   public String uniquifyDisplayName(@NotNull String name) {
