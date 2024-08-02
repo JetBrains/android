@@ -36,6 +36,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.AvdNames;
+import com.android.sdklib.internal.avd.AvdNamesKt;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
@@ -790,26 +791,30 @@ public class AvdManagerConnection {
    * Computes a reasonable display name for a newly-created AVD with the given device and version.
    */
   public @NotNull String getDefaultDeviceDisplayName(@NotNull Device device, @NotNull AndroidVersion version) {
-    // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
-    // a display name. Ensure that the display name does not include any forbidden characters.
-    return uniquifyDisplayName(AvdNames.stripBadCharacters(device.getDisplayName()) + " API " + version.getApiStringWithExtension());
-  }
-
-  public String uniquifyDisplayName(@NotNull String name) {
-    int suffix = 1;
-    String result = name;
-    while (findAvdWithDisplayName(result)) {
-      result = String.format(Locale.US, "%1$s %2$d", name, ++suffix);
+    initIfNecessary();
+    String name = AvdNames.getDefaultDeviceDisplayName(device, version);
+    if (myAvdManager != null) {
+      name = AvdNamesKt.uniquifyDisplayName(myAvdManager, name);
     }
-    return result;
+    return name;
   }
 
   public boolean findAvdWithDisplayName(@NotNull String name) {
-    for (AvdInfo avd : getAvds(false)) {
-      if (avd.getDisplayName().equals(name)) {
-        return true;
-      }
-    }
-    return false;
+    initIfNecessary();
+    return myAvdManager != null && myAvdManager.findAvdWithDisplayName(name) != null;
+  }
+
+  /**
+   * Get a version of {@code candidateBase} modified such that it is a valid filename. Invalid characters will be
+   * removed, and if requested the name will be made unique.
+   *
+   * @param candidateBase the name on which to base the avd name.
+   * @param uniquify      if true, _n will be appended to the name if necessary to make the name unique, where n is the first
+   *                      number that makes the filename unique.
+   * @return The modified filename.
+   */
+  public String cleanAvdName(@NotNull String candidateBase, boolean uniquify) {
+    String cleaned = AvdNames.cleanAvdName(candidateBase);
+    return uniquify && myAvdManager != null ? AvdNamesKt.uniquifyAvdName(myAvdManager, cleaned) : cleaned;
   }
 }
