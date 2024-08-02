@@ -28,6 +28,7 @@ import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.EnterOnlineMode
@@ -129,6 +130,7 @@ class ActionDispatcher(
       is Action.DeleteNote -> deleteNote(connection, action)
       is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
       is Action.ListEvents -> listEvents(currentState, action)
+      is Action.FetchInsight -> fetchInsight(connection, currentState, action)
     }
   }
 
@@ -340,6 +342,20 @@ class ActionDispatcher(
             )
           }
         )
+      }
+      .toToken(action)
+  }
+
+  private fun fetchInsight(
+    connection: Connection,
+    state: AppInsightsState,
+    action: Action.FetchInsight,
+  ): CancellationToken {
+    return scope
+      .launch {
+        val selectedIssue = state.selectedIssue ?: return@launch
+        val fetchedInsight = appInsightsClient.fetchInsight(connection, selectedIssue, state)
+        eventEmitter(AiInsightFetched(fetchedInsight))
       }
       .toToken(action)
   }
