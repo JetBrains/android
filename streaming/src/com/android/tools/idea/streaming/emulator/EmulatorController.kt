@@ -73,6 +73,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
@@ -94,7 +95,7 @@ import kotlin.time.DurationUnit
 /**
  * Controls a running Emulator.
  */
-class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
+class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
       EmulatorControllerGrpc.getStreamScreenshotMethod().requestMarshaller, imageResponseMarshaller).build()
