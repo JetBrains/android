@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
