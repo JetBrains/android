@@ -125,7 +125,14 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         ArchiveTreeStructure
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
-        refreshTree();
+        try {
+          refreshTree();
+        } catch (Exception e) {
+          // Ignore exceptions if the archive was disposed (b/351919218)
+          if (!myArchiveDisposed) {
+            throw e;
+          }
+        }
       }
     }, EdtExecutorService.getInstance());
 
@@ -246,14 +253,13 @@ public class ApkViewPanel implements TreeSelectionListener {
         return (double)entry.getData().getDownloadFileSize() / rootEntry.getData().getDownloadFileSize();
       }
     };
-
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("File")
                    .setPreferredWidth(600)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new NameRenderer(treeSpeedSearch)))
+                   .setRenderer(new NameRenderer(myApkParser, treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
                    .setPreferredWidth(150)
@@ -289,12 +295,18 @@ public class ApkViewPanel implements TreeSelectionListener {
   }
 
   private void setRootNode(@Nullable ArchiveNode root) {
-    myTreeModel = new DefaultTreeModel(root);
-    if (root != null) {
-      myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
+    try {
+      myTreeModel = new DefaultTreeModel(root);
+      if (root != null) {
+        myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
+      }
+      myTree.setModel(myTreeModel);
+    } catch (Exception e) {
+      // Ignore exceptions if the archive was disposed (b/351919218)
+      if (!myArchiveDisposed) {
+        throw e;
+      }
     }
-    myTree.setRootVisible(false);
-    myTree.setModel(myTreeModel);
   }
 
   private void refreshTree() {
@@ -395,9 +407,11 @@ public class ApkViewPanel implements TreeSelectionListener {
   }
 
   public static class NameRenderer extends ColoredTreeCellRenderer {
+    private final ApkParser myApkParser;
     private final TreeSpeedSearch mySpeedSearch;
 
-    public NameRenderer(@NotNull TreeSpeedSearch speedSearch) {
+    public NameRenderer(@NotNull ApkParser apkParser, @NotNull TreeSpeedSearch speedSearch) {
+      myApkParser = apkParser;
       mySpeedSearch = speedSearch;
     }
 
@@ -409,18 +423,25 @@ public class ApkViewPanel implements TreeSelectionListener {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (!(value instanceof ArchiveNode)) {
-        append(value.toString());
-        return;
-      }
+      try {
+        if (!(value instanceof ArchiveNode)) {
+          append(value.toString());
+          return;
+        }
 
-      ArchiveEntry entry = ((ArchiveNode)value).getData();
-      setIcon(getIconFor(entry));
-      String name = entry.getNodeDisplayString();
-      SimpleTextAttributes attr = entry instanceof ArchiveErrorEntry ? SimpleTextAttributes.ERROR_ATTRIBUTES
-                                                                     : SimpleTextAttributes.REGULAR_ATTRIBUTES;
-      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
-                                 attr.getBgColor(), this);
+        ArchiveEntry entry = ((ArchiveNode)value).getData();
+        setIcon(getIconFor(entry));
+        String name = entry.getNodeDisplayString();
+        SimpleTextAttributes attr = entry instanceof ArchiveErrorEntry ? SimpleTextAttributes.ERROR_ATTRIBUTES
+                                                                       : SimpleTextAttributes.REGULAR_ATTRIBUTES;
+        SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
+                                   attr.getBgColor(), this);
+      } catch (Exception e) {
+        // Ignore exceptions if the file doesn't exist (b/351919218)
+        if (Files.exists(myApkParser.getArchive().getPath())) {
+          throw e;
+        }
+      }
     }
 
     @NotNull

@@ -118,10 +118,13 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         String basePath = myBaseFile.getPath();
+        String contents = safeReadContents(myBaseFile.toNioPath());
         for (VFileEvent event : events) {
           if (FileUtil.pathsEqual(basePath, event.getPath())) {
             if (myBaseFile.isValid()) { // If the file is deleted, the editor is automatically closed.
-              refreshApk(baseFile);
+              if (!contents.equals(safeReadContents(Path.of(event.getPath())))) {
+                refreshApk(baseFile);
+              }
             }
           }
         }
@@ -130,6 +133,15 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     refreshApk(myBaseFile);
     mySplitter.setSecondComponent(new JPanel());
+  }
+
+  private static String safeReadContents(Path path) {
+    try {
+      return Files.readString(path);
+    }
+    catch (IOException e) {
+      return "";
+    }
   }
 
   @NotNull
