@@ -45,7 +45,8 @@ class InsightMainPanel(
 
   private var isShowingInsight = false
 
-  private val mainContentPanel = InsightContentPanel(scope, controller.state, parentDisposable)
+  private val mainContentPanel =
+    InsightContentPanel(scope, controller.state.map { it.currentInsight }, parentDisposable)
 
   private val emptyStateText =
     AppInsightsStatusText(this) { !isShowingInsight }

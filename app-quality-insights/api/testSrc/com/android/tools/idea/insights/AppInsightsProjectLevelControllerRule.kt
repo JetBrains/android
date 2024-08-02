@@ -173,6 +173,7 @@ class AppInsightsProjectLevelControllerRule(
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION),
+    insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
   ): AppInsightsState {
     connections.emit(connectionsState)
     val loadingState = consumeNext()
@@ -182,7 +183,15 @@ class AppInsightsProjectLevelControllerRule(
     assertThat(loadingState.currentIssueVariants).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
-    return consumeFetchState(state, issueVariantsState, eventsState, detailsState, notesState)
+    assertThat(loadingState.currentInsight).isEqualTo(LoadingState.Ready(null))
+    return consumeFetchState(
+      state,
+      issueVariantsState,
+      eventsState,
+      detailsState,
+      notesState,
+      insightState,
+    )
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
