@@ -23,6 +23,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -115,7 +116,7 @@ class FakeEmulatorRule : TestRule {
   private inner class TestAvdManagerConnection(
     sdkHandler: AndroidSdkHandler,
     avdHomeFolder: Path,
-  ) : AvdManagerConnection(sdkHandler, avdHomeFolder, MoreExecutors.newDirectExecutorService()) {
+  ) : AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder), MoreExecutors.newDirectExecutorService()) {
 
     override fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
       return super.getAvds(true) // Always refresh in tests.

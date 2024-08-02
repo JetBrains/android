@@ -101,7 +101,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdManager, MoreExecutors.newDirectExecutorService());
   }
 
   @Override

@@ -48,6 +48,9 @@ internal class AvdManagerCacheImpl(
   @Throws(AndroidLocationsException::class)
   override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager =
     synchronized(avdManagers) {
+      if (sdkHandler.location == null) {
+        throw AndroidLocationsException("SDK path is not set")
+      }
       val key = AvdManagerCacheKey(sdkHandler, avdHomeDir)
       return avdManagers.computeIfAbsent(key) {
         AvdManager.createInstance(
@@ -67,9 +70,6 @@ object IdeAvdManagers : AvdManagerCache {
   private val logger = LogWrapper(AvdManager::class.java)
   private val impl = AvdManagerCacheImpl(logger, DeviceManagers.cache)
 
-  // We don't use "by AvdManagerCacheImpl" because Kotlin doesn't preserve @Throws on the resulting
-  // delegate methods.
-  @Throws(AndroidLocationsException::class)
   override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager =
     impl.getAvdManager(sdkHandler, avdHomeDir)
 }
