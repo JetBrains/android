@@ -28,10 +28,12 @@ import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -100,34 +102,26 @@ class SceneViewPeerPanel(
         get() = sceneViewTopPanel.minimumSize.height + BOTTOM_BORDER_HEIGHT
 
       override fun getMargin(scale: Double): Insets {
-        val contentSize = getContentSize(null).scaleBy(scale)
-        val sceneViewMargin =
-          sceneView.margin.also {
-            // Extend top to account for the top toolbar
-            it.top += sceneViewTopPanel.preferredSize.height
-            it.bottom += BOTTOM_BORDER_HEIGHT
-            it.left += sceneViewLeftPanel.preferredSize.width
-            it.right += sceneViewRightPanel.preferredSize.width
-            if (sceneViewErrorsPanel?.isVisible == true) {
-              it.bottom += sceneViewCenterPanel.preferredSize.height
-            }
-          }
+        val margin =
+          JBInsets(
+            /* top */ sceneViewTopPanel.preferredSize.height,
+            /* left */ sceneViewLeftPanel.preferredSize.width,
+            /* bottom */ BOTTOM_BORDER_HEIGHT,
+            /* right */ sceneViewRightPanel.preferredSize.width,
+          )
 
-        return if (contentSize.width < minimumSize.width) {
+        if (sceneViewErrorsPanel?.isVisible == true) {
+          margin.bottom += sceneViewCenterPanel.preferredSize.height
+        }
+
+        val contentSize = getContentSize(null).scaleBy(scale)
+        if (contentSize.width < minimumSize.width) {
           // If there is no content, or the content is smaller than the minimum size,
           // pad the margins horizontally to occupy the empty space.
-          val horizontalPadding = (minimumSize.width - contentSize.width).coerceAtLeast(0)
-
-          JBUI.insets(
-            sceneViewMargin.top,
-            sceneViewMargin.left,
-            sceneViewMargin.bottom,
-            // The content is aligned on the left
-            sceneViewMargin.right + horizontalPadding,
-          )
-        } else {
-          sceneViewMargin
+          // The content is aligned on the left
+          margin.right += (minimumSize.width - contentSize.width).coerceAtLeast(0)
         }
+        return margin
       }
 
       override fun getContentSize(dimension: Dimension?): Dimension =
@@ -270,8 +264,8 @@ class SceneViewPeerPanel(
       val height =
         if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.height else it.height
 
-      it.width = width + positionableAdapter.margin.left + positionableAdapter.margin.right
-      it.height = height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
+      it.width = width + positionableAdapter.margin.horizontal
+      it.height = height + positionableAdapter.margin.vertical
     }
 
   override fun getMinimumSize(): Dimension {
