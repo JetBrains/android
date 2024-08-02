@@ -48,6 +48,8 @@ class DeclarativePsiFactory(private val project: Project) {
       is String -> createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
+      is ULong -> createULongLiteral(value)
+      is UInt -> createUIntLiteral(value)
       is Boolean -> createBooleanLiteral(value)
       else -> error("Failed to create Declarative literal with type ${value?.javaClass ?: "null"}")
     }
@@ -62,6 +64,17 @@ class DeclarativePsiFactory(private val project: Project) {
     val text = when (value) {
       in Int.MIN_VALUE..Int.MAX_VALUE -> "${value}L"
       else -> "$value"
+    }
+    return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
+  }
+
+  fun createUIntLiteral(value: UInt): DeclarativeLiteral =
+    createFromText("placeholder = ${value}U") ?: error("Failed to create Declarative Int from $value")
+
+  fun createULongLiteral(value: ULong): DeclarativeLiteral {
+    val text = when (value) {
+      in UInt.MIN_VALUE..UInt.MAX_VALUE -> "${value}UL"
+      else -> "${value}UL"
     }
     return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
   }

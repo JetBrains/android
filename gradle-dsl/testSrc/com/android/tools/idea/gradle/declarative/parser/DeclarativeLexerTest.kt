@@ -122,25 +122,6 @@ class DeclarativeLexerTest : LexerTestCase() {
     )
   }
 
-  fun testNumber() {
-    doTest(
-      """
-        1 23 456 7_8 9__10L
-      """.trimIndent(),
-      """
-        DeclarativeTokenType.number ('1')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('23')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('456')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('7_8')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('9__10L')
-      """.trimIndent()
-    )
-  }
-
   fun testString() {
     doTest(
       """
@@ -164,6 +145,47 @@ class DeclarativeLexerTest : LexerTestCase() {
         DeclarativeTokenType., (',')
         WHITE_SPACE (' ')
         DeclarativeTokenType.string ('"bar"')
+      """.trimIndent()
+    )
+  }
+
+  fun testNumbers() {
+    doTest(
+      """
+        1
+        123
+        123_123
+        123L
+        123UL
+        0xFFF
+        0xFFFU
+        0xFFFUL
+        0b0111
+        0b0111L
+        0b0111UL
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.integer_literal ('1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('123')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('123_123')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.long_literal ('123L')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('123UL')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('0xFFF')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_integer ('0xFFFU')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('0xFFFUL')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('0b0111')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.long_literal ('0b0111L')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('0b0111UL')
       """.trimIndent()
     )
   }

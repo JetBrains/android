@@ -72,6 +72,30 @@ class DeclarativeLiteralTest : LightPlatformTestCase() {
     assertThat(literal.value).isEqualTo(42)
   }
 
+  fun testLiteralUIntegerValue() {
+    val literal = DeclarativePsiFactory(project).createLiteral(42U)
+    assertThat(literal.value).isInstanceOf(UInt::class.java)
+    assertThat(literal.value).isEqualTo(42U)
+  }
+
+  fun testLiteralULongValue() {
+    val literal = DeclarativePsiFactory(project).createLiteral(42UL)
+    assertThat(literal.value).isInstanceOf(ULong::class.java)
+    assertThat(literal.value).isEqualTo(42UL)
+  }
+
+  fun testLiteralHexValue() {
+    val literal = DeclarativePsiFactory(project).createLiteral(0xFF)
+    assertThat(literal.value).isInstanceOf(java.lang.Integer::class.java)
+    assertThat(literal.value).isEqualTo(0xFF)
+  }
+
+  fun testLiteralBinValue() {
+    val literal = DeclarativePsiFactory(project).createLiteral(0x0111)
+    assertThat(literal.value).isInstanceOf(java.lang.Integer::class.java)
+    assertThat(literal.value).isEqualTo(0x0111)
+  }
+
   fun testLiteralLargeLongValue() {
     val literal = DeclarativePsiFactory(project).createLiteral(281474976710656)
     assertThat(literal.value).isInstanceOf(java.lang.Long::class.java)

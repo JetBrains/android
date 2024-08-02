@@ -35,11 +35,17 @@ WHITE_SPACE=\s+
 LINE_COMMENT="//".*
 BLOCK_COMMENT_START="/*"
 BLOCK_COMMENT_END="*/"
-NUMBER=[0-9]([0-9]|_+[0-9])*[Ll]?
 STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
 MULTILINE_STRING=\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?
 BOOLEAN=(true|false)
 TOKEN=[a-z][a-zA-Z0-9]*
+NUMBER_LITERAL=([1-9]([0-9]|_)*[0-9])|[0-9]
+HEX_LITERAL=0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?
+BIN_LITERAL=0[bB][0,1]([0,1_]*[0,1])?
+INTEGER_LITERAL={NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}
+LONG_LITERAL=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [lL]
+UNSIGNED_LONG=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU] [lL]
+UNSIGNED_INTEGER=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU]
 
 %state IN_BLOCK_COMMENT
 
@@ -66,12 +72,14 @@ TOKEN=[a-z][a-zA-Z0-9]*
 
   {LINE_COMMENT}           { return LINE_COMMENT; }
   "/*"                     { startBlockComment(); }
-  {NUMBER}                 { return NUMBER; }
   {STRING}                 { return STRING; }
   {MULTILINE_STRING}       { return MULTILINE_STRING; }
   {BOOLEAN}                { return BOOLEAN; }
   {TOKEN}                  { return TOKEN; }
-
+  {INTEGER_LITERAL}        { return INTEGER_LITERAL; }
+  {LONG_LITERAL}           { return LONG_LITERAL; }
+  {UNSIGNED_LONG}          { return UNSIGNED_LONG; }
+  {UNSIGNED_INTEGER}       { return UNSIGNED_INTEGER; }
 }
 
 [^] { return BAD_CHARACTER; }

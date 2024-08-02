@@ -34,7 +34,10 @@ class DeclarativeHighlighterTest {
   @Test
   fun getTokenHighlights() {
     checkMapping(DeclarativeElementTypeHolder.STRING, DeclarativeColor.STRING)
-    checkMapping(DeclarativeElementTypeHolder.NUMBER, DeclarativeColor.NUMBER)
+    checkMapping(DeclarativeElementTypeHolder.INTEGER_LITERAL, DeclarativeColor.NUMBER)
+    checkMapping(DeclarativeElementTypeHolder.LONG_LITERAL, DeclarativeColor.NUMBER)
+    checkMapping(DeclarativeElementTypeHolder.UNSIGNED_INTEGER, DeclarativeColor.NUMBER)
+    checkMapping(DeclarativeElementTypeHolder.UNSIGNED_LONG, DeclarativeColor.NUMBER)
     checkMapping(DeclarativeElementTypeHolder.LINE_COMMENT, DeclarativeColor.COMMENT)
     checkMapping(DeclarativeElementTypeHolder.NULL, DeclarativeColor.NULL)
     checkMapping(DeclarativeElementTypeHolder.BOOLEAN, DeclarativeColor.BOOLEAN)

@@ -45,12 +45,17 @@
     BLOCK_COMMENT = "BLOCK_COMMENT"
 
     line_comment = "regexp://.*"
-    number = "regexp:\d(\d|_+\d)*[Ll]?"
     string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
     multiline_string = "regexp:\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*(\"\"\")?"
     boolean = "regexp:(true|false)"
     null = "null"
     token = "regexp:[a-z][a-zA-Z0-9]*"
+
+    // Numbers
+    integer_literal
+    long_literal
+    unsigned_long
+    unsigned_integer
   ]
 
   implements("assignment|block|factory")=[
@@ -87,7 +92,10 @@ identifier ::= token {
    ]
    mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin"
 }
-literal ::= multiline_string | string | number | boolean {methods=[getValue]}
+
+literal ::= multiline_string | string | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+methods=[getValue]
+}
 private rvalue ::= factory | property | literal
 property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}
