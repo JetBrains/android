@@ -32,9 +32,6 @@ import com.android.tools.idea.common.layout.scroller.ReferencePointScroller;
 import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller;
 import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -63,7 +60,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
@@ -77,12 +73,10 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
@@ -202,31 +196,6 @@ public class NlDesignSurface extends NlSurface {
     return myAccessoryPanel;
   }
 
-  @Override
-  @NotNull
-  public ItemTransferable getSelectionAsTransferable() {
-    ImmutableList<DnDTransferComponent> components =
-      getSelectionModel().getSelection().stream()
-        .filter(component -> component.getTag() != null)
-        .map(component ->
-               new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
-                                        NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
-        .collect(toImmutableList());
-
-    ImmutableSet<NlModel> selectedModels = getSelectionModel().getSelection()
-      .stream()
-      .map(NlComponent::getModel)
-      .collect(toImmutableSet());
-
-    if (selectedModels.size() != 1) {
-      Logger
-        .getInstance(NlDesignSurface.class)
-        .warn("Elements from multiple models were selected.");
-    }
-
-    NlModel selectedModel = Iterables.getFirst(selectedModels, null);
-    return new ItemTransferable(new DnDTransferItem(selectedModel != null ? selectedModel.getTreeWriter().getId() : 0, components));
-  }
 
   @Override
   public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
@@ -487,21 +456,6 @@ public class NlDesignSurface extends NlSurface {
       // Scale down to fit selection.
       myZoomController.setScale(fitScale, targetSwingX, targetSwingY);
     }
-  }
-
-  @NotNull
-  @Override
-  public List<NlComponent> getSelectableComponents() {
-    NlComponent root = getModels()
-      .stream()
-      .flatMap((model) -> model.getTreeReader().getComponents().stream())
-      .findFirst()
-      .orElse(null);
-    if (root == null) {
-      return Collections.emptyList();
-    }
-
-    return root.flatten().collect(Collectors.toList());
   }
 
   public void setRenderSynchronously(boolean enabled) {
