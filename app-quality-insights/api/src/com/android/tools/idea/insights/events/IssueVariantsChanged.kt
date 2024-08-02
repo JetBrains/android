@@ -37,6 +37,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
             variants.map { Selection(null, it) }
           }
       ),
-      Action.NONE,
+      if (state.selectedIssue != null) Action.FetchInsight(state.selectedIssue!!.id)
+      else Action.NONE,
     )
 }

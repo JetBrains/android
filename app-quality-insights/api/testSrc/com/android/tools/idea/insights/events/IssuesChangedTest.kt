@@ -133,8 +133,7 @@ class IssuesChangedTest {
           Action.FetchDetails(ISSUE1.id) and
             Action.FetchIssueVariants(ISSUE1.id) and
             Action.FetchNotes(ISSUE1.id) and
-            Action.ListEvents(ISSUE1.id, null, null) and
-            Action.FetchInsight(ISSUE1.id)
+            Action.ListEvents(ISSUE1.id, null, null)
         )
     }
   }
@@ -175,8 +174,7 @@ class IssuesChangedTest {
           Action.FetchDetails(ISSUE2.id) and
             Action.FetchIssueVariants(ISSUE2.id) and
             Action.FetchNotes(ISSUE2.id) and
-            Action.ListEvents(ISSUE2.id, null, null) and
-            Action.FetchInsight(ISSUE2.id)
+            Action.ListEvents(ISSUE2.id, null, null)
         )
     }
   }
