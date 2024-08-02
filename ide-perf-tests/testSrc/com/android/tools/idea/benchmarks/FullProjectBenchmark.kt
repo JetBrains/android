@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInspection.ex.GlobalInspectionContextBase
+import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.undo.UndoManager
@@ -454,25 +455,17 @@ abstract class FullProjectBenchmark {
                              doLogging: Boolean = true) {
     // Setup
     val project = gradleRule.project
-    val context = createGlobalContextForTool(AnalysisScope(project), project)
     val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).take(maxFiles)
     assert(files.isNotEmpty())
 
-    // Configure inspection for Android Lint
     val profileManager = InspectionProjectProfileManager.getInstance(project)
-    val profile = profileManager.currentProfile
-
-    // Non-Lint inspection tools to be re-enabled after run
-    val disabledTools = mutableListOf<String>()
-
-    for (tool in profile.getAllEnabledInspectionTools(project)) {
-      if (!tool.tool.groupDisplayName.contains("Android Lint")) {
-        val name = tool.tool.shortName
-        profile.setToolEnabled(name, false, project)
-        disabledTools.add(name)
+    val toolWrappers = mutableListOf<InspectionToolWrapper<*, *>>()
+    for (tool in profileManager.currentProfile.getAllEnabledInspectionTools(project)) {
+      if (tool.tool.groupDisplayName.contains("Android Lint")) {
+        toolWrappers.add(tool.tool)
       }
     }
-
+    val context = createGlobalContextForTool(AnalysisScope(project), project, toolWrappers)
     // Warmup
     if (doWarmup) {
       for (file in files) {
@@ -507,11 +500,6 @@ abstract class FullProjectBenchmark {
       samples.add(Metric.MetricSample(System.currentTimeMillis(), timeMs))
       timePerFile.add(Pair(file.name, timeMs))
       totalTimeMs += timeMs
-    }
-
-    // Reset inspection profile
-    for (name in disabledTools) {
-      profile.setToolEnabled(name, true, project)
     }
 
     if (!doLogging) return
