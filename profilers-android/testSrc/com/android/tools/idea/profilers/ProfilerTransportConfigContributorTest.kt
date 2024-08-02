@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.profilers.commands.LeakCanaryLogcatCommandHandler
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportConfigContributor
@@ -28,6 +29,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.HeavyPlatformTestCase
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
@@ -156,5 +158,9 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
     ProfilerTransportConfigContributor().customizeProxyService(mockProxy)
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
     verify(mockProxy, times(1)).registerEventPreprocessor(any())
+    verify(mockProxy, times(1))
+      .registerProxyCommandHandler(eq(Commands.Command.CommandType.STOP_LOGCAT_TRACKING), any(LeakCanaryLogcatCommandHandler::class.java))
+    verify(mockProxy, times(1))
+      .registerProxyCommandHandler(eq(Commands.Command.CommandType.START_LOGCAT_TRACKING), any(LeakCanaryLogcatCommandHandler::class.java))
   }
 }
