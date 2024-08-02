@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.options.Configurable;
@@ -54,12 +55,15 @@ public final class AndroidStudioPreferences {
     // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
     // TODO(b/353550539): this code throws an error with IntelliJ 2024.2 when Kotlin K2 is enabled.
     if (KotlinPluginModeProvider.Companion.isK1Mode()) {
-      ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
-        KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
-        if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
-          settings.setAutoReloadConfigurations(scriptDefinition, false);
-        }
-      });
+      // Tests do not rely on this but it causes test flakiness as it can be executed after test finish during project disposal.
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
+          KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
+          if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
+            settings.setAutoReloadConfigurations(scriptDefinition, false);
+          }
+        });
+      }
     }
 
     // Note: This unregisters the extensions when the predicate returns False.
