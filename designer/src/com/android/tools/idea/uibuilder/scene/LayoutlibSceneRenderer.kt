@@ -52,10 +52,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
 // TODO(b/335424569): this class is meant to be used for extracting the rendering responsibilities
@@ -234,14 +236,16 @@ internal class LayoutlibSceneRenderer(
     val logger =
       if (logRenderErrors) renderService.createHtmlLogger(project) else renderService.nopLogger
 
-    var result: RenderResult?
+    var result: RenderResult? = null
     try {
-      val newTask =
-        renderTaskFactory(configuration, renderService, logger)
-          .await() // await is the suspendable version of join
-      result =
-        if (newTask != null) doInflate(newTask, logger)
-        else createRenderTaskErrorResult(model.file, logger)
+      withContext(NonCancellable) {
+        val newTask =
+          renderTaskFactory(configuration, renderService, logger)
+            .await() // await is the suspendable version of join
+        result =
+          if (newTask != null) doInflate(newTask, logger)
+          else createRenderTaskErrorResult(model.file, logger)
+      }
     } catch (throwable: Throwable) {
       Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       result = createRenderTaskErrorResult(model.file, throwable)
@@ -254,7 +258,7 @@ internal class LayoutlibSceneRenderer(
         scope.launch(workerThread) {
           model.notifyListenersModelDerivedDataChanged()
           CommonUsageTracker.getInstance(surface)
-            .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
+            .logRenderResult(null, it, CommonUsageTracker.RenderResultType.INFLATE)
         }
       }
     }
