@@ -45,6 +45,11 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
           useK2 = KotlinPluginModeProvider.isK2Mode(),
           messageCollector = messageCollector,
           featureFlags = FeatureFlags().apply { setFeature(FeatureFlag.IntrinsicRemember, false) },
+          // Loading the compose version class from the compose runtime will cause an exception for
+          // a non-compose module because of the missing dependency on compose runtime. This option
+          // prevents the compose compiler plugin from throwing an exception when the compose
+          // version class is not found.
+          skipIfRuntimeNotFound = true,
         )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {
