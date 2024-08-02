@@ -37,6 +37,7 @@ import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.TemporaryDirectoryRule;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
@@ -386,8 +387,8 @@ public final class AndroidVirtualDeviceTest {
     if (!avdCreator.isAvdCreationNeeded(sdkHandler)) {
       return null;
     }
-    Path avdFolder = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
-    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
+    AvdManagerConnection connection =
+      new AvdManagerConnection(sdkHandler, IdeAvdManagers.INSTANCE.getAvdManager(sdkHandler), MoreExecutors.newDirectExecutorService());
     Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));
     avdCreator.init(progressStep);
     InstallContext context = new InstallContext(tempDirectoryRule.newPath().toFile(), progressStep);
