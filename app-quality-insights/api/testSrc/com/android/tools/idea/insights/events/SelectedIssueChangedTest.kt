@@ -62,7 +62,6 @@ class SelectedIssueChangedTest {
           Action.FetchDetails(ISSUE2.id),
           Action.FetchNotes(ISSUE2.id),
           Action.ListEvents(ISSUE2.id, null, null),
-          Action.FetchInsight(ISSUE2.id),
         )
     }
   }
