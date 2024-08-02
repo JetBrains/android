@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.LoadingState
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -25,19 +25,26 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.CardLayout
+import java.awt.Graphics
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
+
+private const val CONTENT_CARD = "content"
+private const val EMPTY_CARD = "empty"
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
   scope: CoroutineScope,
-  currentInsightFlow: Flow<AppInsightsState>,
+  currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
-) : JPanel(BorderLayout()), Disposable {
+) : JPanel(), Disposable {
+
+  private val cardLayout = CardLayout()
 
   private val insightContentPanel = InsightTextPane()
 
@@ -64,32 +71,104 @@ class InsightContentPanel(
       add(insightPanel)
     }
 
+  private val emptyOrErrorPanel: JPanel =
+    object : JPanel() {
+      override fun paint(g: Graphics) {
+        super.paint(g)
+        emptyStateText.paint(this, g)
+      }
+    }
+
+  private var isEmptyStateTextVisible = false
+  @VisibleForTesting
+  val emptyStateText = AppInsightsStatusText(emptyOrErrorPanel) { isEmptyStateTextVisible }
+
   init {
     Disposer.register(parentDisposable, this)
+    layout = cardLayout
     border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
 
-    add(loadingPanel, BorderLayout.CENTER)
+    add(loadingPanel, CONTENT_CARD)
+    add(emptyOrErrorPanel, EMPTY_CARD)
 
     scope.launch {
-      currentInsightFlow
-        .map { it.currentInsight }
-        .distinctUntilChanged()
-        .collect { state ->
-          when (state) {
-            is LoadingState.Failure -> {
-              // TODO(b/356449524): Handle the failure states gracefully
-            }
-            is LoadingState.Ready -> {
-              loadingPanel.stopLoading()
-              insightContentPanel.text = state.value?.rawInsight ?: ""
-            }
-            is LoadingState.Loading -> {
-              loadingPanel.startLoading()
-              insightContentPanel.text = ""
+      currentInsightFlow.distinctUntilChanged().collect { aiInsight ->
+        when (aiInsight) {
+          is LoadingState.Ready -> {
+            when (aiInsight.value) {
+              null -> {
+                emptyStateText.apply {
+                  clear()
+                  appendText(
+                    "Transient state (\"fetch insight\" action is not fired yet), should recover shortly."
+                  )
+                }
+                showEmptyCard()
+              }
+              else -> {
+                val insight = aiInsight.value!!
+                if (insight.rawInsight.isEmpty()) {
+                  emptyStateText.apply {
+                    clear()
+                    appendText("No insights", EMPTY_STATE_TITLE_FORMAT)
+                    appendLine(
+                      "There are no insights available for this issue",
+                      EMPTY_STATE_TEXT_FORMAT,
+                      null,
+                    )
+                  }
+                  showEmptyCard()
+                } else {
+                  insightContentPanel.text = insight.rawInsight
+                  showContentCard()
+                }
+              }
             }
           }
+          is LoadingState.Loading -> {
+            insightContentPanel.text = ""
+            showContentCard(true)
+          }
+          // Permission denied message is confusing. Provide a generic message
+          is LoadingState.PermissionDenied -> {
+            emptyStateText.apply {
+              clear()
+              appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+              appendLine(
+                "You do not have permission to fetch insights",
+                EMPTY_STATE_TEXT_FORMAT,
+                null,
+              )
+            }
+            showEmptyCard()
+          }
+          is LoadingState.Failure -> {
+            val cause =
+              aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"
+            emptyStateText.apply {
+              clear()
+              appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+              appendLine(cause, EMPTY_STATE_TEXT_FORMAT, null)
+            }
+            showEmptyCard()
+          }
         }
+      }
     }
+  }
+
+  private fun showEmptyCard() = showCard(EMPTY_CARD, false).also { isEmptyStateTextVisible = true }
+
+  private fun showContentCard(startLoading: Boolean = false) =
+    showCard(CONTENT_CARD, startLoading).also { isEmptyStateTextVisible = false }
+
+  private fun showCard(card: String, startLoading: Boolean) {
+    if (startLoading) {
+      loadingPanel.startLoading()
+    } else {
+      loadingPanel.stopLoading()
+    }
+    cardLayout.show(this, card)
   }
 
   override fun dispose() = Unit
