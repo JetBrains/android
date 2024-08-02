@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.concurrency.asCollection
@@ -54,7 +53,8 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
-      return e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher?.currentLayout?.value == option
+      val manager = e.dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return false
+      return manager.mode.value.layoutOption == option
     }
 
     override fun update(e: AnActionEvent) {
