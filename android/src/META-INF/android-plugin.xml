@@ -17,6 +17,7 @@
 
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
+  <depends>com.intellij.modules.json</depends>
   <depends>intellij.webp</depends>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
