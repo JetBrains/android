@@ -16,7 +16,7 @@
 package com.android.tools.idea.studiobot
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.tools.tests.IdeaTestSuiteBase
+import com.android.tools.idea.studiobot.testing.bazel.AipluginTestSuite
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class) class MlApiTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class MlApiTestSuite : AipluginTestSuite()
