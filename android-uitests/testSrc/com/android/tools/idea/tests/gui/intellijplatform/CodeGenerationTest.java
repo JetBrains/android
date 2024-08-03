@@ -96,16 +96,21 @@ public class CodeGenerationTest {
     }
 
     ideFrame.invokeMenuPath("Code", "Surround With...");
-    getList(POPUPLIST_CLASS).clickItem("_1. if");
-    assertThat(editor.getCurrentLine().contains("if () {")).isTrue();
+    getList(POPUPLIST_CLASS).clickItem(".*if");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    // Waiting for error analysis to finish to add extra wait for the file to refresh.
+    editor.waitUntilErrorAnalysisFinishes();
+    assertThat(editor.getCurrentFileContents().contains("if () {")).isTrue();
 
     ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
     getList(JBLIST_CLASS).clickItem("Unwrap 'if...'");
-    assertThat(editor.getCurrentLine().contains("if () {")).isFalse();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(editor.getCurrentFileContents().contains("if () {")).isFalse();
 
     ideFrame.invokeMenuPath("Code", "Surround With...");
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_4);
-    assertThat(editor.getCurrentLine().contains("while (true);")).isTrue();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(editor.getCurrentFileContents().contains("while (true);")).isTrue();
 
     // Generate constructor
     ideFrame.getEditor().open(PERSON_CLASS)
