@@ -23,6 +23,7 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.InheritanceUtil
@@ -72,7 +73,7 @@ class WearTilePreviewContextComesFromParameter : WearTilePreviewInspectionBase()
 }
 
 private class InvalidContextUsageWithinUMethodVisitor(
-  private val contextFromPreviewParameter: UParameter?,
+  private val contextFromMethodParameter: UParameter?,
   private val manager: InspectionManager,
   private val isOnTheFly: Boolean,
 ) : AbstractUastVisitor() {
@@ -87,21 +88,7 @@ private class InvalidContextUsageWithinUMethodVisitor(
         return@forEach
       }
 
-      val contextSourcePsi = contextFromPreviewParameter?.sourcePsi
-      val resolvedArgument = argument.tryResolve()
-
-      // TODO: depending on https://youtrack.jetbrains.com/issue/KT-68158,
-      //  source PSI equivalence check can be fully covered by LC-level equivalence check.
-      //  (ULC does, while SLC doesn't for now.)
-      val contextUsedIsFromPreviewMethod =
-        // LC-level equivalence check
-        psiManager.areElementsEquivalent(contextSourcePsi, resolvedArgument) ||
-          // Source PSI equivalence check
-          (resolvedArgument as? KtLightElement<*, *>)
-            ?.kotlinOrigin
-            ?.isEquivalentTo(contextSourcePsi) == true
-
-      if (contextUsedIsFromPreviewMethod) {
+      if (argument.tryResolve().isContextFromMethodParameter()) {
         return@forEach
       }
 
@@ -129,12 +116,15 @@ private class InvalidContextUsageWithinUMethodVisitor(
       } == true
 
     // If we are accessing methods from a class that comes from android or androidx, it means we are
-    // probably using the context class
-    // in the wrong way. If the selector is coming from a user-declared method, it might be valid.
-    // In this case it's better to let
-    // the view adapter try to render the preview and surface any errors if it was used in the wrong
-    // way.
+    // probably using the context class  in the wrong way. If the selector is coming from a
+    // user-declared method, it might be valid.
+    // In this case it's better to let the view adapter try to render the preview and surface any
+    // errors if it was used in the wrong way.
     if (!isSelectorFromAndroidOrAndroidx) {
+      return super.visitQualifiedReferenceExpression(node)
+    }
+
+    if (node.receiver.tryResolve().isContextFromMethodParameter()) {
       return super.visitQualifiedReferenceExpression(node)
     }
 
@@ -149,6 +139,22 @@ private class InvalidContextUsageWithinUMethodVisitor(
         )
     }
     return super.visitQualifiedReferenceExpression(node)
+  }
+
+  /**
+   * This method checks that the given [PsiElement] is the same as the Context provided in the
+   * Preview method's parameter.
+   */
+  private fun PsiElement?.isContextFromMethodParameter(): Boolean {
+    val contextSourcePsi = contextFromMethodParameter?.sourcePsi
+
+    // TODO: depending on https://youtrack.jetbrains.com/issue/KT-68158,
+    //  source PSI equivalence check can be fully covered by LC-level equivalence check.
+    //  (ULC does, while SLC doesn't for now.)
+    // LC-level equivalence check
+    return psiManager.areElementsEquivalent(contextSourcePsi, this) ||
+      // Source PSI equivalence check
+      (this as? KtLightElement<*, *>)?.kotlinOrigin?.isEquivalentTo(contextSourcePsi) == true
   }
 }
 
