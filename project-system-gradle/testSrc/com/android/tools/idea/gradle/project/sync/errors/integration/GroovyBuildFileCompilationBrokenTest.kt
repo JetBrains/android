@@ -32,7 +32,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
     expectedErrorNodeNameVerifier: (String) -> Unit
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
-    verifySyncViewEvents = { buildEvents ->
+    verifySyncViewEvents = { _, buildEvents ->
       // Expect single MessageEvent on Sync Output
       buildEvents.filterIsInstance<MessageEvent>().let { events ->
         expect.that(events).hasSize(1)
