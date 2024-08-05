@@ -28,14 +28,18 @@ import com.android.tools.idea.logcat.util.FilterHint.Level
 import com.android.tools.idea.logcat.util.FilterHint.Tag
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.command.undo.UndoUtil
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import java.time.ZoneId
 import kotlin.test.fail
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -44,8 +48,10 @@ class EditorUtilsTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 logcatEditorRule, EdtRule())
+  @get:Rule
+  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
+
+  private val editors = mutableListOf<Editor>()
 
   private val editor
     get() = logcatEditorRule.editor
@@ -55,10 +61,16 @@ class EditorUtilsTest {
 
   private val formattingOptions = FormattingOptions()
 
+  @After
+  fun tearDown() {
+    val editorFactory = EditorFactory.getInstance()
+    editors.forEach { editorFactory.releaseEditor(it) }
+  }
+
   @RunsInEdt
   @Test
-  fun createLogcatEditor() {
-    val editor = createLogcatEditor(projectRule.project)
+  fun createLogcatEditor_correctSettings() {
+    val editor = createLogcatEditor()
     assertThat(editor.gutterComponentEx.isPaintBackground).isFalse()
 
     assertThat(UndoUtil.isUndoDisabledFor(editor.document)).isTrue()
@@ -80,8 +92,6 @@ class EditorUtilsTest {
       editor.document.insertString(0, "\r\n")
     } catch (e: AssertionError) {
       fail("Document should acceptSlashR")
-    } finally {
-      EditorFactory.getInstance().releaseEditor(editor)
     }
   }
 
@@ -151,10 +161,29 @@ class EditorUtilsTest {
       .isNotEqualTo(expected)
   }
 
+  @Test
+  fun scaledUi() {
+    val uiSettings = UISettings.getInstance()
+    try {
+      val baseFontSize = createLogcatEditor().colorsScheme.consoleFontSize
+
+      uiSettings.ideScale = 2.0f
+      val scaledFontSize = createLogcatEditor().colorsScheme.consoleFontSize
+
+      assertThat(scaledFontSize).isEqualTo(baseFontSize * 2)
+    } finally {
+      uiSettings.ideScale = 1.0f
+    }
+  }
+
   private fun appendMessage(logcatMessage: LogcatMessage, formattingOptions: FormattingOptions) {
     val messageFormatter = MessageFormatter(LogcatColors(), ZoneId.systemDefault())
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(formattingOptions, textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)
+  }
+
+  private fun createLogcatEditor(): EditorEx {
+    return createLogcatEditor(projectRule.project).also { editors.add(it) }
   }
 }
