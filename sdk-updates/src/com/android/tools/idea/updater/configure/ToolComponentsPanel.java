@@ -128,7 +128,7 @@ public class ToolComponentsPanel {
                         .thenComparing(node -> node.getPackage().getPath().endsWith("latest"))
                         .reversed());
       for (UpdatablePackage info : versions) {
-        PackageNodeModel model = new PackageNodeModel(info);
+        PackageNodeModel model = new PackageNodeModel(info, true);
         if (model.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
         }
@@ -146,7 +146,7 @@ public class ToolComponentsPanel {
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
-      PackageNodeModel holder = new PackageNodeModel(info);
+      PackageNodeModel holder = new PackageNodeModel(info, false);
       if (holder.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
         continue;
       }

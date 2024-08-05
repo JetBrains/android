@@ -40,22 +40,23 @@ class PackageNodeModel {
   private SelectedState myState;
   private final String myTitle;
 
-  public PackageNodeModel(@NotNull UpdatablePackage pkg) {
+  public PackageNodeModel(@NotNull UpdatablePackage pkg, boolean stripPrefix) {
     RepoPackage representative = pkg.getRepresentative();
     String name = representative.getDisplayName();
-    String suffix = representative.getPath().substring(representative.getPath().lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
-    String shortRevision;
-    try {
-      shortRevision = Revision.parseRevision(suffix).toShortString();
+    if (stripPrefix) {
+      String suffix = representative.getPath().substring(representative.getPath().lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
+      String shortRevision;
+      try {
+        shortRevision = Revision.parseRevision(suffix).toShortString();
+      }
+      catch (NumberFormatException ignore) {
+        shortRevision = null;
+      }
+      if (representative.getDisplayName().endsWith(suffix) ||
+          (shortRevision != null && representative.getDisplayName().endsWith(shortRevision))) {
+        name = suffix;
+      }
     }
-    catch (NumberFormatException ignore) {
-      shortRevision = null;
-    }
-    if (representative.getDisplayName().endsWith(suffix) ||
-        (shortRevision != null && representative.getDisplayName().endsWith(shortRevision))) {
-      name = suffix;
-    }
-
     myPkg = pkg;
     if (obsolete()) {
       name += " (Obsolete)";
