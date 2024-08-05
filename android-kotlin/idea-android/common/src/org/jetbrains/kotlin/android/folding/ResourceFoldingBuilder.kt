@@ -78,7 +78,12 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
-        if (root !is KtFile || quick && !UNIT_TEST_MODE || !isFoldingEnabled || AndroidFacet.getInstance(root) == null) {
+        if (root !is KtFile ||
+            root.isScript() ||
+            quick && !UNIT_TEST_MODE ||
+            !isFoldingEnabled ||
+            AndroidFacet.getInstance(root) == null
+        ) {
             return emptyArray()
         }
 
