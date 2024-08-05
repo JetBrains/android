@@ -120,6 +120,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.errors.integration",
             "tags": ["cpu:4"],
             "data": [
+                "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
                 "//tools/base/build-system:gradle-distrib",
