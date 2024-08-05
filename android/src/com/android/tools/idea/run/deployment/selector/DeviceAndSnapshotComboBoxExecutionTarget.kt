@@ -61,7 +61,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
     }
   }
 
-  private fun devices(): List<DeploymentTargetDevice> {
+  protected fun devices(): List<DeploymentTargetDevice> {
     return devicesService.loadedDevicesOrNull()?.filter { it.id in ids } ?: emptyList()
   }
 
