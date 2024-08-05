@@ -60,22 +60,24 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Test
   fun providedDeviceInId() {
-    fixture.completeDeviceSpec("id:pixel_8$caret")
+    fixture.completeDeviceSpec("id:pixel_9$caret")
 
-    assertEquals(3, fixture.lookupElementStrings!!.size)
-    assertEquals("pixel_8", fixture.lookupElementStrings!![0])
-    assertEquals("pixel_8_pro", fixture.lookupElementStrings!![1])
-    assertEquals("pixel_8a", fixture.lookupElementStrings!![2])
+    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals("pixel_9", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
+    assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
   }
 
   @Test
   fun providedDeviceInParent() {
-    fixture.completeDeviceSpec("spec:parent=pixel_8$caret")
+    fixture.completeDeviceSpec("spec:parent=pixel_9$caret")
 
-    assertEquals(3, fixture.lookupElementStrings!!.size)
-    assertEquals("pixel_8", fixture.lookupElementStrings!![0])
-    assertEquals("pixel_8_pro", fixture.lookupElementStrings!![1])
-    assertEquals("pixel_8a", fixture.lookupElementStrings!![2])
+    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals("pixel_9", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
+    assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
   }
 
   @Test
