@@ -95,7 +95,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
         CompilerMessageSeverity.STRONG_WARNING -> logger.warn(messageWithLocation)
         CompilerMessageSeverity.EXCEPTION,
         CompilerMessageSeverity.ERROR -> {
-          logger.error(messageWithLocation)
+          logger.warn(messageWithLocation)
           hasError = true
         }
       }
