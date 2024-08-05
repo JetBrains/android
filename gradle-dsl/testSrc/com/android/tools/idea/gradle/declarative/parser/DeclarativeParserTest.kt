@@ -29,6 +29,113 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
     addExplicitExtension(LanguageASTFactory.INSTANCE, myLanguage, DeclarativeASTFactory())
   }
 
+
+  fun testSemi() {
+    assertThat(
+      """
+          foo = true; bar = 4;
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+        FILE
+          PsiElement(ASSIGNMENT)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('foo')
+            PsiElement(DeclarativeTokenType.=)('=')
+            PsiElement(LITERAL)
+              PsiElement(DeclarativeTokenType.boolean)('true')
+          PsiElement(DeclarativeTokenType.;)(';')
+          PsiElement(ASSIGNMENT)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('bar')
+            PsiElement(DeclarativeTokenType.=)('=')
+            PsiElement(LITERAL)
+              PsiElement(DeclarativeTokenType.integer_literal)('4')
+          PsiElement(DeclarativeTokenType.;)(';')
+          """.trimIndent())
+
+    assertThat(
+      """
+          foo = true; bar = 4
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+        FILE
+          PsiElement(ASSIGNMENT)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('foo')
+            PsiElement(DeclarativeTokenType.=)('=')
+            PsiElement(LITERAL)
+              PsiElement(DeclarativeTokenType.boolean)('true')
+          PsiElement(DeclarativeTokenType.;)(';')
+          PsiElement(ASSIGNMENT)
+            PsiElement(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('bar')
+            PsiElement(DeclarativeTokenType.=)('=')
+            PsiElement(LITERAL)
+              PsiElement(DeclarativeTokenType.integer_literal)('4')
+          """.trimIndent())
+
+    assertThat(
+      """
+          bar = 4; bar = 4
+          bar = 4;
+          bar = 4;bar = 4;bar = 4;
+          bar = 4
+        """.toParseTreeText())
+      .isEqualTo(
+        """
+          FILE
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(DeclarativeTokenType.;)(';')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(DeclarativeTokenType.;)(';')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(DeclarativeTokenType.;)(';')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(DeclarativeTokenType.;)(';')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+            PsiElement(DeclarativeTokenType.;)(';')
+            PsiElement(ASSIGNMENT)
+              PsiElement(IDENTIFIER)
+                PsiElement(DeclarativeTokenType.token)('bar')
+              PsiElement(DeclarativeTokenType.=)('=')
+              PsiElement(LITERAL)
+                PsiElement(DeclarativeTokenType.integer_literal)('4')
+          """.trimIndent())
+  }
+
   fun testAssignment() {
     assertThat(
       """
