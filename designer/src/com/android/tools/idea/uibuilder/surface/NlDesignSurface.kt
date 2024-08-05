@@ -26,6 +26,7 @@ import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller
+import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
@@ -66,6 +67,7 @@ import java.awt.Rectangle
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import java.util.stream.Collectors
+import kotlin.math.min
 
 /**
  * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or
@@ -143,6 +145,9 @@ internal constructor(
           }
         }
     }
+
+  /** To scroll to correct viewport position when its size is changed. */
+  protected var viewportScroller: DesignSurfaceViewportScroller? = null
 
   @UiThread
   fun onLayoutUpdated(layoutOption: SurfaceLayoutOption) {
@@ -282,12 +287,36 @@ internal constructor(
    * @param oldScrollPosition the previous scroll position
    * @return A [ReferencePointScroller] to apply to this [NlDesignSurface].
    */
-  abstract fun createScrollerForGroupedSurfaces(
+  fun createScrollerForGroupedSurfaces(
     port: DesignSurfaceViewport,
     update: ScaleChange,
     oldScrollPosition: Point,
     newScrollPosition: Point,
-  ): DesignSurfaceViewportScroller
+  ): DesignSurfaceViewportScroller {
+    val focusPoint = focusedSceneView?.let { Point(it.x, it.y) } ?: update.focusPoint
+    return if (focusPoint.x < 0 || focusPoint.y < 0) {
+      // zoom with top-left of the visible area as anchor
+      TopLeftCornerScroller(
+        Dimension(port.viewSize),
+        newScrollPosition,
+        update.previousScale,
+        update.newScale,
+      )
+    } else {
+      // zoom with mouse position as anchor, and considering its relative position to the existing
+      // scene views
+      ReferencePointScroller(
+        Dimension(port.viewSize),
+        Point(oldScrollPosition),
+        focusPoint,
+        update.previousScale,
+        update.newScale,
+        findSceneViewRectangles(),
+      ) {
+        sceneViewPanel.findMeasuredSceneViewRectangle(it, extentSize)
+      }
+    }
+  }
 
   /**
    * Zoom (in or out) and move the scroll position to ensure that the given rectangle is fully
@@ -299,7 +328,48 @@ internal constructor(
    * @param rectangle the rectangle that should be visible, with its coordinates relative to the
    *   sceneView, and with its currentsize (before zooming).
    */
-  abstract fun zoomAndCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle)
+  fun zoomAndCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle) {
+    if (scrollPane == null) {
+      Logger.getInstance(NlDesignSurface::class.java)
+        .warn("The scroll pane is null, cannot zoom and center.")
+      return
+    }
+
+    // Calculate the scaleChangeNeeded so that after zooming,
+    // the given rectangle with a given offset fits tight in the scroll panel.
+    val offset = scrollToVisibleOffset
+    val availableSize = extentSize
+    val curSize = Dimension(rectangle.width, rectangle.height)
+
+    // Make sure both dimensions fit, and at least one of them is as tight
+    // as possible (respecting the offset).
+    var scaleChangeNeeded =
+      min(
+        (availableSize.getWidth() - 2 * offset.width) / curSize.getWidth(),
+        (availableSize.getHeight() - 2 * offset.height) / curSize.getHeight(),
+      )
+
+    // Adjust the scale change to keep the new scale between the lower and upper bounds.
+    val curScale: Double = zoomController.scale
+    val boundedNewScale: Double = zoomController.getBoundedScale(curScale * scaleChangeNeeded)
+    scaleChangeNeeded = boundedNewScale / curScale
+
+    // The rectangle size and its coordinates relative to the sceneView have
+    // changed due to the scale change.
+    rectangle.setRect(
+      rectangle.x * scaleChangeNeeded,
+      rectangle.y * scaleChangeNeeded,
+      rectangle.width * scaleChangeNeeded,
+      rectangle.height * scaleChangeNeeded,
+    )
+
+    if (zoomController.setScale(boundedNewScale)) {
+      viewportScroller = DesignSurfaceViewportScroller { scrollToCenter(sceneView, rectangle) }
+    } else {
+      // If scale hasn't changed, then just scroll to center
+      scrollToCenter(sceneView, rectangle)
+    }
+  }
 
   /**
    * When the surface is in "Animation Mode", the error display is not updated. This allows for the
