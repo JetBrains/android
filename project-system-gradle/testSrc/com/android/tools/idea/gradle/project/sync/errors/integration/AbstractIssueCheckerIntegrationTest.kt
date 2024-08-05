@@ -23,17 +23,18 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
+import com.intellij.openapi.project.Project
 
 abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrationTest() {
   protected fun runSyncAndCheckBuildIssueFailure(
     preparedProject: PreparedTestProject,
-    verifyBuildIssue: (BuildIssue) -> Unit,
+    verifyBuildIssue: (Project, BuildIssue) -> Unit,
     expectedFailureReported: AndroidStudioEvent.GradleSyncFailure,
     expectedPhasesReported: String?
   ) {
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
-      verifySyncViewEvents = { buildEvents ->
+      verifySyncViewEvents = { project, buildEvents ->
         // Make sure no additional error build events are generated
         expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
         expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
@@ -42,7 +43,7 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
           (finishBuildEvent.result as FailureResult).failures.let { failures ->
             expect.that(failures).hasSize(1)
             (failures.firstOrNull()?.error as? BuildIssueException)?.let {
-               verifyBuildIssue(it.buildIssue)
+               verifyBuildIssue(project, it.buildIssue)
             } ?: expect.fail("%s not found in %s", BuildIssueException::class.java.name, FinishBuildEvent::class.java.name)
           }
         }
