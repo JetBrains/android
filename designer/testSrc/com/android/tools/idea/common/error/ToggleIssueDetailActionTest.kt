@@ -21,6 +21,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
@@ -72,12 +73,9 @@ class ToggleIssueDetailActionTest {
     }
 
     sharedPanel.sidePanelVisible = true
-    TestActionEvent.createTestEvent {
-        when {
-          PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
-          else -> dataContext.getData(it)
-        }
-      }
+    TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
+      sink[PlatformDataKeys.SELECTED_ITEM] = TestNode()
+    })
       .let { event ->
         action.update(event)
         assertEquals("Show Issue Detail", event.presentation.text)
@@ -85,12 +83,9 @@ class ToggleIssueDetailActionTest {
         assertFalse(event.presentation.isEnabled)
       }
 
-    TestActionEvent.createTestEvent {
-        when {
-          PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
-          else -> dataContext.getData(it)
-        }
-      }
+    TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
+      sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
+    })
       .let { event ->
         action.update(event)
         assertEquals("Show Issue Detail", event.presentation.text)
@@ -105,15 +100,10 @@ class ToggleIssueDetailActionTest {
     val dataContext = runInEdtAndGet {
       DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
     }
-    val event =
-      TestActionEvent.createTestEvent {
-        when (it) {
-          // Ensure that an element is "selected" to enable the action
-          PlatformDataKeys.SELECTED_ITEM.name -> TestIssueNode(TestIssue())
-          else -> dataContext.getData(it)
-        }
-      }
-
+    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
+      // Ensure that an element is "selected" to enable the action
+      sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
+    })
     val sharedPanel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     sharedPanel.sidePanelVisible = false
     assertFalse(action.isSelected(event))

@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -83,10 +84,12 @@ class SafeArgsKtFindingUsageTest {
     val file =
       appModuleMain.fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     fixture.configureFromExistingVirtualFile(file!!)
-    val targets =
-      UsageTargetUtil.findUsageTargets { (fixture.editor as EditorEx).dataContext.getData(it) }
-    val presentation =
-      fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+    val dataContext = (fixture.editor as EditorEx).dataContext
+    val editor = CommonDataKeys.EDITOR.getData(dataContext)
+    val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+    val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+    val targets = UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement)!!
+    val presentation = fixture.getUsageViewTreeTextRepresentation((targets[0] as PsiElementUsageTarget).element)
     assertThat(presentation)
       .isEqualTo(
         """
