@@ -64,7 +64,7 @@ private fun extractDeviceModel(value: String) = value.split('/').getOrElse(1) { 
 private fun extractMarketingName(manufacturer: String, model: String, value: String): String {
   val regex = Regex("^$manufacturer $model \\((.*)\\)$")
   val result = regex.matchEntire(value)
-  return result?.groupValues?.getOrNull(1) ?: value
+  return result?.groupValues?.getOrNull(1)?.ifEmpty { model } ?: value
 }
 
 /**
