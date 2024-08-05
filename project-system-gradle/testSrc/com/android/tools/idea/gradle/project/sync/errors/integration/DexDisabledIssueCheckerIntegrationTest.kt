@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssue
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
@@ -22,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -29,10 +31,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.Ignore
 import org.junit.Test
 
-@Ignore("b/328075538")
 class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   @Test
   fun testDependencyLibraryLambdaCausesBuildIssue() {
@@ -76,11 +76,19 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   }
 
   private fun addJarDependency(dependency: String) {
+    val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
+    runWriteAction {
+      gradlePropertiesFile.setBinaryContent("""
+          org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
+      """.trimIndent().toByteArray(Charsets.UTF_8))
+    }
+
     val appModule = project.findAppModule()
     val projectModel = ProjectBuildModel.get(project)
     val buildModel = projectModel.getModuleBuildModel(appModule)
     buildModel!!.android().compileOptions().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
     buildModel.android().compileOptions().targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
+    buildModel.java().toolchain().languageVersion().setVersion(17)
     val dependencyFile = myFixture.copyFileToProject("desugaringErrors/$dependency", "jarDependencies/$dependency")
     assertThat(dependencyFile).isNotNull()
     buildModel.dependencies().addFile("implementation", dependencyFile.path)
