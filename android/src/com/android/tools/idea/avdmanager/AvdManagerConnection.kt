@@ -57,7 +57,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.IdeAvdManagers.getAvdManager
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.streaming.EmulatorSettings.Companion.getInstance
 import com.android.utils.ILogger
 import com.android.utils.PathUtils
@@ -100,41 +100,24 @@ import org.jetbrains.ide.PooledThreadExecutor
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
  * with [AvdInfo] objects inside Android Studio.
+ *
+ * Much of what this class does is actually handle the case where the SDK location is not defined.
+ * In that case, the [NULL_CONNECTION] object, with null values for [sdkHandler] and [avdManager] is
+ * returned from the factory method. Many of the methods on this class are simple delegates to
+ * [AvdManager] that handle the null case.
+ *
+ * Both [sdkHandler] and [avdManager] will be set for all instances except [NULL_CONNECTION].
  */
 open class AvdManagerConnection
 @VisibleForTesting
 constructor(
   private val sdkHandler: AndroidSdkHandler?,
-  private val avdHomeFolder: Path?,
+  private val avdManager: AvdManager?,
   private val edtListeningExecutorService: ListeningExecutorService =
     MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()),
 ) {
-  private var avdManager: AvdManager? = null
-
   val emulator: EmulatorPackage?
     get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
-
-  /**
-   * Setup our static instances if required. If the instance already exists, then this is a no-op.
-   */
-  private fun getOrInitAvdManager(): AvdManager? {
-    if (avdManager == null) {
-      if (sdkHandler == null) {
-        return null
-      }
-      if (avdHomeFolder == null) {
-        IJ_LOG.warn("No AVD home folder")
-        return null
-      }
-      try {
-        avdManager = getAvdManager(sdkHandler, avdHomeFolder)
-      } catch (e: AndroidLocationsException) {
-        IJ_LOG.error(e)
-        return null
-      }
-    }
-    return avdManager
-  }
 
   /**
    * @param forceRefresh if true the manager will read the AVD list from disk. If false, the cached
@@ -143,7 +126,7 @@ constructor(
    */
   @Slow
   open fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
-    val avdManager = getOrInitAvdManager() ?: return ImmutableList.of()
+    avdManager ?: return ImmutableList.of()
     if (forceRefresh) {
       try {
         avdManager.reloadAvds()
@@ -157,13 +140,12 @@ constructor(
   /** Delete the given AVD if it exists. */
   @Slow
   fun deleteAvd(info: AvdInfo): Boolean {
-    val avdManager = getOrInitAvdManager() ?: return false
-    return avdManager.deleteAvd(info)
+    return avdManager?.deleteAvd(info) ?: false
   }
 
   @Slow
   fun isAvdRunning(avd: AvdInfo): Boolean {
-    val avdManager = getOrInitAvdManager() ?: return false
+    avdManager ?: return false
 
     return avdManager.getPid(avd).orNull()?.let { ProcessHandle.of(it).orElse(null) }?.isAlive
       ?: run {
@@ -174,8 +156,7 @@ constructor(
 
   @Slow
   fun stopAvd(info: AvdInfo) {
-    val avdManager = getOrInitAvdManager() ?: return
-    avdManager.stopAvd(info)
+    avdManager?.stopAvd(info)
   }
 
   /**
@@ -238,9 +219,8 @@ constructor(
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
   ): ListenableFuture<IDevice> {
-    val avdManager =
-      getOrInitAvdManager()
-        ?: return Futures.immediateFailedFuture(DeviceActionException("No Android SDK Found"))
+    avdManager
+      ?: return Futures.immediateFailedFuture(DeviceActionException("No Android SDK Found"))
     checkNotNull(sdkHandler)
 
     val skinPath = info.properties[SKIN_PATH]
@@ -330,7 +310,8 @@ constructor(
       return Futures.immediateFailedFuture(DeviceActionException("No emulator binary found"))
     }
 
-    avd = reloadAvd(avd) // Reload the AVD in case it was modified externally.
+    val avdManager = checkNotNull(avdManager)
+    avd = avdManager.reloadAvd(avd) // Reload the AVD in case it was modified externally.
     val avdName = avd.displayName
 
     // TODO: The emulator stores pid of the running process inside the .lock file
@@ -339,7 +320,6 @@ constructor(
     // the emulator provides a command to do that, or we learn about its internals
     // (qemu/android/utils/filelock.c) and perform the same action here. If it is not stale, then we
     // should show this error and if possible, bring that window to the front.
-    val avdManager = checkNotNull(avdManager)
     if (avdManager.isAvdRunning(avd)) {
       avdManager.logRunningAvdInfo(avd)
       return Futures.immediateFailedFuture(AvdIsAlreadyRunningException(avd))
@@ -559,7 +539,7 @@ constructor(
   ): AvdInfo? {
     var skinFolder = skinFolder
     val hardwareProperties = hardwareProperties.toMutableMap()
-    val avdManager = getOrInitAvdManager() ?: return null
+    avdManager ?: return null
     checkNotNull(sdkHandler)
 
     val avdFolder =
@@ -623,7 +603,7 @@ constructor(
   }
 
   open fun findAvd(avdId: String): AvdInfo? {
-    return getOrInitAvdManager()?.getAvd(avdId, false)
+    return avdManager?.getAvd(avdId, false)
   }
 
   fun avdExists(candidate: String): Boolean {
@@ -633,14 +613,9 @@ constructor(
   fun reloadAvd(avdId: String): AvdInfo? {
     val avd = findAvd(avdId)
     if (avd != null) {
-      return reloadAvd(avd)
+      return avdManager?.reloadAvd(avd)
     }
     return null
-  }
-
-  private fun reloadAvd(avdInfo: AvdInfo): AvdInfo {
-    checkNotNull(avdManager)
-    return avdManager!!.reloadAvd(avdInfo)
   }
 
   fun wipeUserDataAsync(avd: AvdInfo): ListenableFuture<Boolean> {
@@ -649,7 +624,7 @@ constructor(
 
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
-    val avdManager = getOrInitAvdManager() ?: return false
+    avdManager ?: return false
     checkNotNull(sdkHandler)
     // Delete the current user data file
     val path = avdInfo.dataFolderPath.resolve(AvdManager.USERDATA_QEMU_IMG)
@@ -674,11 +649,11 @@ constructor(
    */
   fun getDefaultDeviceDisplayName(device: Device, version: AndroidVersion): String {
     val name = AvdNames.getDefaultDeviceDisplayName(device, version)
-    return getOrInitAvdManager()?.uniquifyDisplayName(name) ?: name
+    return avdManager?.uniquifyDisplayName(name) ?: name
   }
 
   fun findAvdWithDisplayName(name: String): Boolean {
-    return getOrInitAvdManager()?.findAvdWithDisplayName(name) != null
+    return avdManager?.findAvdWithDisplayName(name) != null
   }
 
   /**
@@ -692,7 +667,7 @@ constructor(
    */
   fun cleanAvdName(candidateBase: String, uniquify: Boolean): String {
     val cleaned = cleanAvdName(candidateBase)
-    return if (uniquify && avdManager != null) avdManager!!.uniquifyAvdName(cleaned) else cleaned
+    return if (uniquify && avdManager != null) avdManager.uniquifyAvdName(cleaned) else cleaned
   }
 
   companion object {
@@ -705,34 +680,29 @@ constructor(
     private val ourAvdCache: MutableMap<Path?, AvdManagerConnection> = WeakHashMap()
 
     private var ourConnectionFactory: (AndroidSdkHandler, Path) -> AvdManagerConnection =
-      { sdkHandler, avdHomeFolder ->
-        AvdManagerConnection(sdkHandler, avdHomeFolder)
-      }
+      ::defaultConnectionFactory
+
+    private fun defaultConnectionFactory(sdkHandler: AndroidSdkHandler, avdHomeFolder: Path) =
+      AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder))
 
     @JvmStatic
     fun getDefaultAvdManagerConnection(): AvdManagerConnection {
-      val handler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      if (handler.location == null) {
-        return NULL_CONNECTION
-      }
-      return getAvdManagerConnection(handler)
+      return getAvdManagerConnection(AndroidSdks.getInstance().tryToChooseSdkHandler())
     }
 
     @Synchronized
     fun getAvdManagerConnection(handler: AndroidSdkHandler): AvdManagerConnection {
-      return ourAvdCache.computeIfAbsent(handler.location) {
-        try {
-          ourConnectionFactory(handler, AndroidLocationsSingleton.avdLocation)
-        } catch (e: AndroidLocationsException) {
-          IJ_LOG.warn(e)
-          NULL_CONNECTION
-        }
+      return ourAvdCache.computeIfAbsent(handler.location ?: return NULL_CONNECTION) {
+        ourConnectionFactory(handler, AndroidLocationsSingleton.avdLocation)
       }
     }
 
     /**
      * Sets the factory to be used for creating connections, so subclasses can be injected for
      * testing.
+     *
+     * Note that the passed path is always AndroidLocationsSingleton.avdLocation, but tests may
+     * ignore it and use their own AVD directory.
      */
     @JvmStatic
     @TestOnly
@@ -745,9 +715,7 @@ constructor(
     @JvmStatic
     @TestOnly
     fun resetConnectionFactory() {
-      setConnectionFactory { sdkHandler, avdHomeFolder ->
-        AvdManagerConnection(sdkHandler, avdHomeFolder)
-      }
+      setConnectionFactory(::defaultConnectionFactory)
     }
 
     /** Checks whether the emulator can be launched in the Running Device tool window. */

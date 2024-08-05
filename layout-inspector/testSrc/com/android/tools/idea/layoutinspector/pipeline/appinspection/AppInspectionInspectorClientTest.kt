@@ -83,6 +83,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
@@ -1214,7 +1215,10 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       object :
         AvdManagerConnection(
           sdkHandler,
-          sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
+          IdeAvdManagers.getAvdManager(
+            sdkHandler,
+            sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
+          ),
           MoreExecutors.newDirectExecutorService(),
         ) {
         fun setFactory() {
