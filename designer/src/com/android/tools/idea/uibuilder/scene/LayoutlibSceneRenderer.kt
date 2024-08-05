@@ -45,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.Executor
@@ -101,10 +102,14 @@ internal class LayoutlibSceneRenderer(
     set(newTask) {
       val oldTask: RenderTask?
       renderTaskLock.withLock {
-        oldTask = field
-        // TODO(b/168445543): move session clock to RenderTask
-        sessionClock = RealTimeSessionClock()
-        field = newTask
+        // If renderer already disposed, any new task should be immediately disposed
+        if (isDisposed.get() && newTask != null) oldTask = newTask
+        else {
+          oldTask = field
+          // TODO(b/168445543): move session clock to RenderTask
+          sessionClock = RealTimeSessionClock()
+          field = newTask
+        }
       }
       try {
         oldTask?.dispose()
@@ -126,22 +131,26 @@ internal class LayoutlibSceneRenderer(
       val oldResult: RenderResult?
       renderResultLock.withLock {
         if (field === newResult) return
-        oldResult = field
-        field =
-          if (
-            cacheSuccessfulRenderImage &&
-              newResult.isErrorResult() &&
-              oldResult.containsValidImage()
-          ) {
-            // newResult can not be null if isErrorResult is true
-            // oldResult can not be null if containsValidImage is true
-            newResult!!.copyWithNewImageAndRootViewDimensions(
-              StudioRenderService.Companion.getInstance(newResult.project)
-                .sharedImagePool
-                .copyOf(oldResult!!.getRenderedImage().copy),
-              oldResult.rootViewDimensions,
-            )
-          } else newResult
+        // If renderer already disposed, any new result should be immediately disposed
+        if (isDisposed.get() && newResult != null) oldResult = newResult
+        else {
+          oldResult = field
+          field =
+            if (
+              cacheSuccessfulRenderImage &&
+                newResult.isErrorResult() &&
+                oldResult.containsValidImage()
+            ) {
+              // newResult can not be null if isErrorResult is true
+              // oldResult can not be null if containsValidImage is true
+              newResult!!.copyWithNewImageAndRootViewDimensions(
+                StudioRenderService.Companion.getInstance(newResult.project)
+                  .sharedImagePool
+                  .copyOf(oldResult!!.getRenderedImage().copy),
+                oldResult.rootViewDimensions,
+              )
+            } else newResult
+        }
       }
       oldResult?.dispose()
     }
@@ -158,6 +167,18 @@ internal class LayoutlibSceneRenderer(
       .async { render(forceInflate, logRenderErrors, reverseUpdate, elapsedFrameTimeMs, quality) }
       .asCompletableFuture()
 
+  /**
+   * Render the model and update the view hierarchy.
+   *
+   * This method will also [inflate] the model when forced or needed (i.e. when [forceInflate] is
+   * true or when [renderTask] is null).
+   *
+   * Returns the [RenderResult] of the render operation, which might be an error result, or null if
+   * the model could not be rendered (e.g. because the inflation failed).
+   *
+   * Note that [CancellationException]s will be caught by this method and cause the returned
+   * [RenderResult] to be an error result.
+   */
   private suspend fun render(
     forceInflate: Boolean,
     logRenderErrors: Boolean,
@@ -189,6 +210,8 @@ internal class LayoutlibSceneRenderer(
         }
       }
     } catch (throwable: Throwable) {
+      // Note that CancellationExceptions are not being propagated here, but an error result is
+      // created instead when cancellations or other errors happen.
       if (!model.isDisposed) {
         result =
           createRenderTaskErrorResult(
@@ -203,12 +226,13 @@ internal class LayoutlibSceneRenderer(
   }
 
   /**
-   * Inflates the model and updates the view hierarchy
+   * Creates a new [RenderTask] using the [renderTaskFactory] and uses it to inflate the model and
+   * update the view hierarchy.
    *
-   * @param force forces the model to be re-inflated even if a previous version was already inflated
-   * @return A [CompletableFuture] containing the [RenderResult] of the inflate operation or
-   *   containing null if the model did not need to be re-inflated or could not be re-inflated (like
-   *   the project been disposed).
+   * Returns the [RenderResult] of the inflate operation, which might be an error result, or null if
+   * the model could not be inflated (e.g. because the project was disposed).
+   *
+   * It throws a [CancellationException] if cancelled midway.
    */
   private suspend fun inflate(
     logRenderErrors: Boolean,
@@ -236,74 +260,85 @@ internal class LayoutlibSceneRenderer(
     val logger =
       if (logRenderErrors) renderService.createHtmlLogger(project) else renderService.nopLogger
 
-    var result: RenderResult? = null
+    lateinit var result: RenderResult
+    var newTask: RenderTask? = null
     try {
       withContext(NonCancellable) {
-        val newTask =
-          renderTaskFactory(configuration, renderService, logger)
-            .await() // await is the suspendable version of join
-        result =
-          if (newTask != null) doInflate(newTask, logger)
-          else createRenderTaskErrorResult(model.file, logger)
+        // Avoid cancellation while waiting for render task creation to finish.
+        // This is needed to avoid leaks and make sure that it's correctly disposed when needed.
+        newTask = renderTaskFactory(configuration, renderService, logger).await()
       }
+      result =
+        newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(model.file, logger)
     } catch (throwable: Throwable) {
       Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       result = createRenderTaskErrorResult(model.file, throwable)
-    }
-    result?.let {
-      renderResult = it
-      if (it.renderResult.isSuccess) {
-        reverseUpdate.set(updateHierarchy(result))
-        // Do more updates async
-        scope.launch(workerThread) {
-          model.notifyListenersModelDerivedDataChanged()
-          CommonUsageTracker.getInstance(surface)
-            .logRenderResult(null, it, CommonUsageTracker.RenderResultType.INFLATE)
+      if (throwable is CancellationException) {
+        // Re-throw any CancellationException to correctly propagate cancellations upward
+        throw throwable
+      }
+    } finally {
+      // Make sure not to cancel the post-inflation work needed to keep this renderer in a
+      // consistent state
+      withContext(NonCancellable) {
+        renderResult = result
+        if (result.renderResult.isSuccess && !isDisposed.get()) {
+          renderTask = newTask
+          reverseUpdate.set(updateHierarchy(result))
+          // Do more updates async
+          scope.launch(workerThread) {
+            model.notifyListenersModelDerivedDataChanged()
+            CommonUsageTracker.getInstance(surface)
+              .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
+          }
+        } else {
+          // If the result is not successful or the renderer is disposed, then we discard the task.
+          newTask?.dispose()
+          renderTask = null
         }
       }
     }
     return result
   }
 
-  private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult? {
+  /**
+   * Perform the inflation of [newTask] and wait for its result.
+   *
+   * Returns the result if successful, or throws an exception if inflation fails or gets cancelled.
+   */
+  private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult {
     newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
-    var result: RenderResult? = null
     try {
-      result = newTask.inflate().await() // await is the suspendable version of join
-      // If the result is not valid or the project was already disposed, then we do not need the
-      // task. Also remove the previous task if the render has finished but was not a success.
-      if (
-        model.module.isDisposed ||
-          result == null ||
-          !result.renderResult.isSuccess ||
-          isDisposed.get()
-      ) {
-        newTask.dispose()
-        renderTask = null
-      } else renderTask = newTask
-      result?.renderResult?.exception?.let { throw it }
-    } catch (throwable: Throwable) {
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
-      if (result == null || !result.renderResult.isSuccess) {
-        // Do not ignore ClassNotFoundException on inflate
-        if (throwable is ClassNotFoundException) {
-          logger.addMessage(
-            RenderProblem.createHtml(
-              ProblemSeverity.ERROR,
-              "Error inflating the preview",
-              model.project,
-              logger.linkManager,
-              throwable,
-              ShowFixFactory,
-            )
+      val result = newTask.inflate().await() // await is the suspendable version of join
+      when {
+        result == null -> throw IllegalStateException("Inflate returned null RenderResult")
+        result.renderResult.exception != null -> throw result.renderResult.exception
+        !result.renderResult.isSuccess ->
+          throw IllegalStateException(
+            "Inflate returned unsuccessful RenderResult without an internal exception"
           )
-        } else {
-          logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", throwable, null, null)
-        }
       }
-      result = result ?: createRenderTaskErrorResult(model.file, throwable)
+      return result
+    } catch (throwable: Throwable) {
+      // Do some logging and re-throw
+      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
+      // Do not ignore ClassNotFoundException on inflate
+      if (throwable is ClassNotFoundException) {
+        logger.addMessage(
+          RenderProblem.createHtml(
+            ProblemSeverity.ERROR,
+            "Error inflating the preview",
+            model.project,
+            logger.linkManager,
+            throwable,
+            ShowFixFactory,
+          )
+        )
+      } else {
+        logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", throwable, null, null)
+      }
+      throw throwable
     }
-    return result
   }
 
   private fun RenderResult?.containsValidImage() =
