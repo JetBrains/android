@@ -5,8 +5,10 @@ import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.CustomizedDataContext;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.project.Project;
@@ -23,7 +25,6 @@ import com.intellij.psi.xml.XmlText;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,25 +166,16 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    final DataContext context = e.getDataContext();
-
-    final DataContext patchedContext = new DataContext() {
-      @Override
-      public Object getData(@NotNull @NonNls String dataId) {
-        final Object data = context.getData(dataId);
-        if (data != null) {
-          return data;
-        }
-        if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-          final XmlTag[] tags = getXmlTagsFromExternalContext(context);
-          return tags.length == 1 ? tags[0] : null;
-        }
-        else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-          return getXmlTagsFromExternalContext(context);
-        }
-        return null;
-      }
-    };
+    DataContext context = e.getDataContext();
+    DataContext patchedContext = CustomizedDataContext.withSnapshot(context, sink -> {
+      sink.lazy(CommonDataKeys.PSI_ELEMENT, () -> {
+        XmlTag[] tags = getXmlTagsFromExternalContext(context);
+        return tags.length == 1 ? tags[0] : null;
+      });
+      sink.lazy(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY, () -> {
+        return getXmlTagsFromExternalContext(context);
+      });
+    });
     super.update(e.withDataContext(patchedContext));
   }
 

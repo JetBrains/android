@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
@@ -119,10 +120,12 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
 
   fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture, scope: GlobalSearchScope?): Collection<UsageInfo?> {
     fixture.configureFromExistingVirtualFile(file!!)
-    val targets = UsageTargetUtil.findUsageTargets { dataId: String? ->
-      (fixture.editor as EditorEx).dataContext.getData(
-        dataId!!)
-    }
+    val dataContext = (fixture.editor as EditorEx).dataContext
+    val editor = CommonDataKeys.EDITOR.getData(dataContext)
+    val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+    val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+
+    val targets = UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement)
     assert(targets != null && targets.size > 0 && targets[0] is PsiElementUsageTarget)
     return (fixture as CodeInsightTestFixtureImpl).findUsages((targets!![0] as PsiElementUsageTarget).element, scope)
   }

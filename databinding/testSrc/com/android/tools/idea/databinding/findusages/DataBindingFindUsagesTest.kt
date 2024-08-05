@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.ex.EditorEx
@@ -357,11 +358,13 @@ class DataBindingFindUsagesTest() {
 
   private fun getUsagePresentationAtCursor(): String {
     val targets = runReadAction {
-      UsageTargetUtil.findUsageTargets { dataId ->
-        (fixture.editor as EditorEx).dataContext.getData(dataId)
-      }
+      val dataContext = (fixture.editor as EditorEx).dataContext
+      val editor = CommonDataKeys.EDITOR.getData(dataContext)
+      val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+      val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+      UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement)
     }
-
+    targets!!
     var presentation: String? = null
     ApplicationManager.getApplication().invokeAndWait {
       presentation =

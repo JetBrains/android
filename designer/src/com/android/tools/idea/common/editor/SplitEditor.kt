@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomShortcutSet
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
@@ -150,12 +150,8 @@ abstract class SplitEditor<P : FileEditor>(
   private fun getFakeActionEvent() =
     AnActionEvent(
       null,
-      DataContext {
-        if (PlatformCoreDataKeys.FILE_EDITOR.`is`(it)) {
-          return@DataContext this
-        } else {
-          return@DataContext DataManager.getInstance().getDataContext(component).getData(it)
-        }
+      CustomizedDataContext.withSnapshot(DataManager.getInstance().getDataContext(component)) { sink ->
+        sink[PlatformCoreDataKeys.FILE_EDITOR] = this
       },
       "",
       Presentation(),
