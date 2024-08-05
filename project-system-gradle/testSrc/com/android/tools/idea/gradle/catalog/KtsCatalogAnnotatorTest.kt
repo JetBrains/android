@@ -21,13 +21,11 @@ import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingProvider
 import com.intellij.lang.ExternalLanguageAnnotators
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,10 +49,6 @@ class KtsCatalogAnnotatorTest {
       override fun shouldProcessInBatch(file: PsiFile) = true
     }
 
-    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      Registry.get(AndroidTestBase.K2_KTS_KEY).setValue(true)
-    }
     fixture = projectRule.fixture
 
     ExtensionTestUtil.maskExtensions(DefaultHighlightingSettingProvider.EP_NAME, listOf(), disposableRule.disposable)
