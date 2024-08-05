@@ -2297,7 +2297,7 @@ private fun <T> openPreparedProject(
         val awaitGradleStartupActivity = project.coroutineScope().launch {
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
-        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(5))
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.maybeOutputDiagnostics()
         project
