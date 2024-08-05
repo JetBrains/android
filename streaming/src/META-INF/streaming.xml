@@ -121,29 +121,41 @@
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$AppInteraction"
               icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW"
               text="Interact with Apps" description="Use keyboard and mouse to interact with apps">
-        <keyboard-shortcut first-keystroke="control shift I" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X 10.5+"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.xr.view.direction.mode"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
               icon="StudioIcons.Emulator.XR.ROTATE"
               text="View Direction" description="Use keyboard and mouse to control view direction">
+        <keyboard-shortcut first-keystroke="control D" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.xr.location.in.space.mode"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpace"
               icon="StudioIcons.Emulator.XR.PAN"
               text="Location in Space" description="Use keyboard and mouse to control location in virtual space">
+        <keyboard-shortcut first-keystroke="control L" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.xr.recenter"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
               icon="StudioIcons.Emulator.XR.RESET_POSITION"
               text="Reset View" description="Reset the view to the default">
+        <keyboard-shortcut first-keystroke="control R" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.xr.show.taskbar"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrShowTaskbarAction"
               icon="StudioIcons.Emulator.XR.TASKBAR"
               text="Show Taskbar" description="Show the taskbar">
+        <keyboard-shortcut first-keystroke="control B" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
