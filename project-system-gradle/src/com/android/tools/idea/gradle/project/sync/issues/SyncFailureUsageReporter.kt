@@ -118,6 +118,10 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Invalid TOML catalog definition:") == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
       error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
         GradleSyncFailure.GROOVY_COMPILATION_ERROR
+      error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: 'com.android.") == true ->
+        GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID
+      error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: '") == true ->
+        GradleSyncFailure.UNKNOWN_PLUGIN_OTHER
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
   }
