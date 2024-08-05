@@ -123,7 +123,7 @@ public class PlatformComponentsPanel {
         if (pkg.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
         }
-        PackageNodeModel model = new PackageNodeModel(info);
+        PackageNodeModel model = new PackageNodeModel(info, false);
         myStates.add(model);
         UpdaterTreeNode node = new DetailsTreeNode(model, myModificationListener, myConfigurable);
         marker.add(node);
