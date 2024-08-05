@@ -43,7 +43,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
@@ -65,7 +64,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
 import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
 import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
@@ -83,9 +81,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
   private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
-  // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
-  public static final String K2_KTS_KEY = "kotlin.k2.scripting.enabled";
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -101,10 +96,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected void tearDown() throws Exception {
     myFixture = null;
     try {
-      // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
-      if (KotlinPluginModeProvider.Companion.isK2Mode()) {
-        Registry.get(K2_KTS_KEY).setValue(false);
-      }
       super.tearDown();
     } finally {
       // Clean up Mockito refs *after* super.tearDown() because project disposal may trigger new mock interactions.
