@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// Specifies the type of experiment to run.
+// This must match the corresponding enum in
+// google3/logs/proto/wireless/android/sdk/stats/studio_stats.proto
+enum ExperimentType {
+  EXPERIMENT_TYPE_UNSPECIFIED = 0;
+  CONTROL = 1;
+  TOP_SOURCE = 2;
+  TOP_THREE_SOURCES = 3;
+  ALL_SOURCES = 4;
+}
+
+message AqiExperimentsConfig {
+  optional ExperimentType experiment_type = 1;
+}
