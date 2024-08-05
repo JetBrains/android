@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -26,7 +23,6 @@ import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.layout.SceneViewAlignment;
 import com.android.tools.idea.common.layout.SurfaceLayoutOption;
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager;
-import com.android.tools.idea.common.layout.positionable.PositionableContent;
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.layout.scroller.ReferencePointScroller;
 import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller;
@@ -51,28 +47,23 @@ import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager;
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -139,7 +130,7 @@ public class NlDesignSurface extends NlSurface {
 
     myScannerControl = new NlLayoutScanner(this);
     myZoomController = new NlDesignSurfaceZoomController(
-      () -> getSceneViewLayoutManager().getFitIntoScale(getPositionableContent(), getViewport().getExtentSize()),
+      () -> getSceneViewLayoutManager().getFitIntoScale(getSceneViewPanel().getPositionableContent(), getViewport().getExtentSize()),
       getAnalyticsManager(),
       getSelectionModel(),
       this,
@@ -196,7 +187,6 @@ public class NlDesignSurface extends NlSurface {
     return myAccessoryPanel;
   }
 
-
   @Override
   public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
     myAccessoryPanel.setModel(model);
@@ -207,16 +197,6 @@ public class NlDesignSurface extends NlSurface {
   public void dispose() {
     myAccessoryPanel.setSurface(null);
     super.dispose();
-  }
-
-  @Override
-  public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> { });
-
-    if (handler != null) {
-      handler.onActivateInDesignSurface(component, x, y);
-    }
-    super.notifyComponentActivate(component, x, y);
   }
 
   @Override
@@ -231,23 +211,10 @@ public class NlDesignSurface extends NlSurface {
   }
 
   @Override
-  public void modelRendered() {
-    updateErrorDisplay();
-    // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
-    UIUtil.invokeLaterIfNeeded(this::revalidateScrollArea);
-  }
-
-  @Override
   public void deactivate() {
     myErrorQueue.deactivate(getIssueModel());
     myVisualLintIssueProvider.clear();
     super.deactivate();
-  }
-
-  @Override
-  public void activate() {
-    super.activate();
-    updateErrorDisplay();
   }
 
   @NotNull
@@ -265,32 +232,6 @@ public class NlDesignSurface extends NlSurface {
       manager.forceReinflate();
       return manager.requestUserInitiatedRenderAsync();
     }).whenComplete((r, t) -> refreshProgressIndicator.processFinish());
-  }
-
-  @NotNull
-  @Override
-  public CompletableFuture<Void> forceRefresh() {
-    return requestSequentialRender(manager -> {
-      manager.forceReinflate();
-      return manager.requestRenderAsync();
-    });
-  }
-
-  @Override
-  protected boolean useSmallProgressIcon() {
-    if (getFocusedSceneView() == null) {
-      return false;
-    }
-
-    return Iterables.any(getSceneManagers(), (sceneManager) -> sceneManager.getRenderResult() != null);
-  }
-
-  /**
-   * Returns all the {@link PositionableContent} in this surface.
-   */
-  @NotNull
-  protected Collection<PositionableContent> getPositionableContent() {
-    return getSceneViewPanel().getPositionableContent();
   }
 
   @Override
