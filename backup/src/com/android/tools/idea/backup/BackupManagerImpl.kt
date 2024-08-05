@@ -30,6 +30,7 @@ import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
@@ -67,7 +68,14 @@ internal constructor(private val project: Project, private val backupService: Ba
   @Suppress("unused") // Used by the plugin XML
   constructor(
     project: Project
-  ) : this(project, BackupService.getInstance(AdbLibService.getSession(project), logger))
+  ) : this(
+    project,
+    BackupService.getInstance(
+      AdbLibService.getSession(project),
+      logger,
+      StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get(),
+    ),
+  )
 
   @UiThread
   override fun backupModal(

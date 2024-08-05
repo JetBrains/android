@@ -2160,6 +2160,14 @@ public final class StudioFlags {
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
       false);
+
+  public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
+    new IntFlag(
+      BACKUP,
+      "gmscore.min.version",
+      "Minimum version of the GmsCore Backup module that is supported",
+      "Minimum version of the GmsCore Backup module that is supported",
+      Integer.MAX_VALUE); // TODO(b/356613310) Replace with actual version when available
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX
