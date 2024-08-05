@@ -32,19 +32,27 @@ import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.SourceTreeToPsiMap
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.name
+import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.uast.UCallExpression
-import org.jetbrains.uast.UElement
-import org.jetbrains.uast.UQualifiedReferenceExpression
-import org.jetbrains.uast.UReferenceExpression
-import org.jetbrains.uast.USimpleNameReferenceExpression
-import org.jetbrains.uast.toUElement
-import org.jetbrains.uast.visitor.AbstractUastVisitor
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import java.util.regex.Pattern
 
 
@@ -65,16 +73,22 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
     override fun getPlaceholderText(node: ASTNode): String? {
 
-        tailrec fun UElement.unwrapReferenceAndGetValue(resources: ResourceRepository): String? = when (this) {
-            is UQualifiedReferenceExpression -> selector.unwrapReferenceAndGetValue(resources)
-            is UCallExpression -> (valueArguments.firstOrNull() as? UReferenceExpression)?.getAndroidResourceValue(resources, this)
-            else -> (this as? UReferenceExpression)?.getAndroidResourceValue(resources)
+        tailrec fun KtElement.unwrapReferenceAndGetValue(
+          resources: ResourceRepository,
+          ktCallElement: KtCallElement? = null
+        ): String? = when (this) {
+            is KtDotQualifiedExpression ->
+                selectorExpression?.unwrapReferenceAndGetValue(resources, ktCallElement)
+            is KtCallElement ->
+                valueArguments.firstOrNull()?.getArgumentExpression()?.unwrapReferenceAndGetValue(resources, this)
+            else ->
+                (this as? KtReferenceExpression)?.getAndroidResourceValue(resources, ktCallElement)
         }
 
-        val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
+        val element = SourceTreeToPsiMap.treeElementToPsi(node) as? KtElement ?: return null
         // We force creation of the app resources repository when necessary to keep things deterministic.
         val appResources = StudioResourceRepositoryManager.getInstance(element)?.appResources ?: return null
-        return element.toUElement()?.unwrapReferenceAndGetValue(appResources)
+        return element.unwrapReferenceAndGetValue(appResources)
     }
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
@@ -87,35 +101,38 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
             return emptyArray()
         }
 
-        val file = root.toUElement()
         val result = arrayListOf<FoldingDescriptor>()
-        file?.accept(object : AbstractUastVisitor() {
-            override fun visitSimpleNameReferenceExpression(node: USimpleNameReferenceExpression): Boolean {
-                node.getFoldingDescriptor()?.let { result.add(it) }
-                return super.visitSimpleNameReferenceExpression(node)
-            }
-        })
+        root.accept(
+          object : KtTreeVisitorVoid() {
+              override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
+                  expression.getFoldingDescriptor()?.let { result.add(it) }
+                  super.visitSimpleNameExpression(expression)
+              }
+          }
+        )
 
         return result.toTypedArray()
     }
 
     override fun isCollapsedByDefault(node: ASTNode): Boolean = isFoldingEnabled
 
-    private fun UReferenceExpression.getFoldingDescriptor(): FoldingDescriptor? {
-        val resolved = resolve() ?: return null
-        val resourceType = resolved.getAndroidResourceType() ?: return null
-        if (resourceType !in RESOURCE_TYPES) return null
-
-        fun UElement.createFoldingDescriptor() = psi?.let { psi ->
-            val dependencies: Set<PsiElement> = setOf(psi)
-            FoldingDescriptor(psi.node, psi.textRange, null, dependencies)
+    private fun KtReferenceExpression.getFoldingDescriptor(): FoldingDescriptor? {
+        analyze(this) {
+            val symbol = mainReference.resolveToSymbol() ?: return null
+            val resourceType = getAndroidResourceType(symbol) ?: return null
+            if (resourceType !in RESOURCE_TYPES) return null
         }
 
-        val element = uastParent as? UQualifiedReferenceExpression ?: this
-        val getResourceValueCall = (element.uastParent as? UCallExpression)?.takeIf { it.isFoldableGetResourceValueCall() }
+        fun PsiElement.createFoldingDescriptor(): FoldingDescriptor {
+            val dependencies: Set<PsiElement> = setOf(this)
+            return FoldingDescriptor(node, textRange, null, dependencies)
+        }
+
+        val element = parent as? KtDotQualifiedExpression ?: this
+        val getResourceValueCall = element.parentOfType<KtCallElement>()?.takeIf { it.isFoldableGetResourceValueCall() }
         if (getResourceValueCall != null) {
-            val qualifiedCall = getResourceValueCall.uastParent as? UQualifiedReferenceExpression
-            if (qualifiedCall?.selector == getResourceValueCall) {
+            val qualifiedCall = getResourceValueCall.parent as? KtDotQualifiedExpression
+            if (qualifiedCall?.selectorExpression == getResourceValueCall) {
                 return qualifiedCall.createFoldingDescriptor()
             }
 
@@ -125,27 +142,49 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         return element.createFoldingDescriptor()
     }
 
-    private fun UCallExpression.isFoldableGetResourceValueCall(): Boolean {
-        return methodName == "getString" ||
-               methodName == "getText" ||
-               methodName == "getInteger" ||
-               methodName?.startsWith("getDimension") ?: false ||
-               methodName?.startsWith("getQuantityString") ?: false
+    private fun KtCallElement.isFoldableGetResourceValueCall(): Boolean {
+        return checkMethodName { methodName ->
+            methodName == "getString" ||
+            methodName == "getText" ||
+            methodName == "getInteger" ||
+            methodName.startsWith("getDimension") ||
+            methodName.startsWith("getQuantityString")
+        }
     }
 
-    private fun PsiElement.getAndroidResourceType(): ResourceType? {
-        val elementType = parent as? PsiClass ?: return null
-        val elementPackage = elementType.parent as? PsiClass ?: return null
-        if (R_CLASS != elementPackage.name) return null
-        if (elementPackage.qualifiedName != "$ANDROID_PKG.$R_CLASS") {
-            return elementType.name?.let(ResourceType::fromClassName)
+    private fun KtCallElement.checkMethodName(predicate: (String) -> Boolean): Boolean {
+        analyze(this) {
+            val symbol = resolveToCall()?.singleFunctionCallOrNull()?.symbol ?: return false
+            val methodName = symbol.callableId?.callableName?.identifier ?: return false
+            return predicate.invoke(methodName)
+        }
+    }
+
+    private fun KaSession.getAndroidResourceType(symbol: KaSymbol): ResourceType? {
+        val elementType = symbol.containingSymbol as? KaClassSymbol ?: return null
+        val classId = elementType.classId ?: return null
+        val outerClassId = classId.outerClassId ?: return null
+        if (R_CLASS != outerClassId.shortClassName.asString()) return null
+        if (outerClassId.asFqNameString() != "$ANDROID_PKG.$R_CLASS") {
+            return ResourceType.fromClassName(classId.shortClassName.identifier)
         }
 
         return null
     }
 
-    private fun UReferenceExpression.getAndroidResourceValue(resources: ResourceRepository, call: UCallExpression? = null): String? {
-        val resourceType = resolve()?.getAndroidResourceType() ?: return null
+    private fun KtReferenceExpression.getAndroidResourceValue(
+      resources: ResourceRepository,
+      call: KtCallElement? = null
+    ): String? {
+        val (resourceType, resolvedName) =
+          @OptIn(KaAllowAnalysisOnEdt::class)
+          allowAnalysisOnEdt {
+              analyze(this) {
+                  val symbol = mainReference.resolveToSymbol() ?: return null
+                  val resourceType = getAndroidResourceType(symbol) ?: return null
+                  resourceType to symbol.name?.identifier
+              }
+          }
         val referenceConfig = FolderConfiguration().apply { localeQualifier = LocaleQualifier("xx") }
         val key = resolvedName ?: return null
         val resourceValue = resources.getResourceValue(resourceType, key, referenceConfig) ?: return null
@@ -168,7 +207,8 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
       type: ResourceType,
       name: String,
       referenceConfig: FolderConfiguration,
-      processedValues: MutableSet<String>? = null): String? {
+      processedValues: MutableSet<String>? = null
+    ): String? {
         val value = getConfiguredValue(type, name, referenceConfig)?.value ?: return null
         if (!value.startsWith('@')) {
             return value
@@ -185,17 +225,18 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     // Converted from com.android.tools.idea.folding.InlinedResource#insertArguments
-    private fun formatArguments(callExpression: UCallExpression, formatString: String): String {
+    private fun formatArguments(callExpression: KtCallElement, formatString: String): String {
         if (!formatString.contains('%')) {
             return formatString
         }
 
         var args = callExpression.valueArguments
-        if (args.isEmpty() || !args.first().isPsiValid) {
+        if (args.isEmpty() || args.first().getArgumentExpression()?.isValid == false) {
             return formatString
         }
 
-        if (args.size >= 3 && "getQuantityString" == callExpression.methodName) {
+        val isGetQuantityString = callExpression.checkMethodName { it == "getQuantityString" }
+        if (args.size >= 3 && isGetQuantityString) {
             // There are two versions:
             // String getQuantityString (int id, int quantity)
             // String getQuantityString (int id, int quantity, Object... formatArgs)
@@ -248,17 +289,8 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
                 }
 
                 if (number > 0 && number < args.size) {
-                    val argExpression = args[number]
-                    val value =
-                        argExpression.evaluate()?.toString()
-                            // Work around issue where UAST constant evaluation on K2 won't recurse
-                            // into local variable references. We use `tryEvaluateConstantAsText`
-                            // directly on the KtExpression reference instead, which already has
-                            // code to work around the underlying constant evaluator issue.
-                            // TODO(KTIJ-30649): Remove this workaround.
-                            ?: (argExpression.sourcePsi as? KtExpression)
-                                ?.tryEvaluateConstantAsText()
-                            ?: argExpression.asSourceString()
+                    val argExpression = args[number].getArgumentExpression()
+                    val value = argExpression?.tryEvaluateConstantAsText() ?: argExpression?.text
 
                     for (i in start until matchStart) {
                         sb.append(formatString[i])
