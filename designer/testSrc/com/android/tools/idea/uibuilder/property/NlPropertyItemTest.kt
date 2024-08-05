@@ -97,7 +97,6 @@ import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -834,9 +833,9 @@ class NlPropertyItemTest {
         )
       val property =
         util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
-      assertNull(property.model.resolver)
+      // The resolver: "property.model.resolver" will usually be null at this point.
 
-      // Wait for the resolver to be loaded
+      // The resolver must eventually be loaded:
       delayUntilCondition(100L) { property.model.resolver != null }
     }
 
