@@ -75,6 +75,7 @@ UNI_CHARACTER_LITERAL=\\u {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT}
   ")"                      { return OP_RPAREN; }
   ","                      { return OP_COMMA; }
   "null"                   { return NULL; }
+  ";"                      { return SEMI; }
 
   {LINE_COMMENT}           { return LINE_COMMENT; }
   "/*"                     { startBlockComment(); }

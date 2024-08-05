@@ -50,6 +50,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType OP_LPAREN = new DeclarativeTokenType("(");
   IElementType OP_RBRACE = new DeclarativeTokenType("}");
   IElementType OP_RPAREN = new DeclarativeTokenType(")");
+  IElementType SEMI = new DeclarativeTokenType(";");
   IElementType STRING_LITERAL = new DeclarativeTokenType("string_literal");
   IElementType TOKEN = new DeclarativeTokenType("token");
   IElementType UNSIGNED_INTEGER = new DeclarativeTokenType("unsigned_integer");
