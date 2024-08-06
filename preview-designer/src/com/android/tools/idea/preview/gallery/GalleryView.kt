@@ -146,9 +146,10 @@ internal class GalleryView<Key : TitledKey>(
             true,
           )
           .also {
-            val location: Point = selectPreviewToolbar.locationOnScreen
-            location.translate(0, selectPreviewToolbar.height)
-            it.showInScreenCoordinates(selectPreviewToolbar, location)
+            val component = e.inputEvent?.component ?: selectPreviewToolbar
+            val location: Point = component.locationOnScreen
+            location.translate(0, component.height)
+            it.showInScreenCoordinates(component, location)
           }
     }
 
