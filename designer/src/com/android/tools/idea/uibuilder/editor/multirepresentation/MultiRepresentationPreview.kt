@@ -54,6 +54,13 @@ import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
 import com.jetbrains.rd.util.first
 import icons.StudioIcons
+import java.awt.BorderLayout
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import kotlin.concurrent.withLock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
@@ -63,13 +70,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.BorderLayout
-import java.util.concurrent.CancellationException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-import javax.swing.BorderFactory
-import javax.swing.JComponent
-import kotlin.concurrent.withLock
 
 /** Tag name used to persist the multi preview state. */
 internal const val MULTI_PREVIEW_STATE_TAG = "multi-preview-state"
@@ -127,7 +127,11 @@ open class MultiRepresentationPreview(
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer = runReadAction {
+    SlowOperations.allowSlowOperations(
+      ThrowableComputable { SmartPointerManager.createPointer(psiFile) }
+    )
+  }
   private var shortcutsApplicableComponent: JComponent? = null
 
   private var representationNeverShown = true
