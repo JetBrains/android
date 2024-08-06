@@ -101,8 +101,6 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     fun internalErrorFileOutsideModule(file: PsiFile) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE, "KtFile outside targeted module found in code generation", file.name, null)
 
-    fun nonCompose(file: PsiFile) = LiveEditUpdateException(Error.NON_COMPOSE, "Modified file does not belong to a Jetpack Compose module", file.name, cause = null)
-
     fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
 
