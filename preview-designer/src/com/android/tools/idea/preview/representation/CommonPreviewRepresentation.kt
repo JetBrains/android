@@ -75,7 +75,6 @@ import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
-import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
@@ -527,9 +526,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       try {
         refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
         val filePreviewElements =
-          previewFlowManager.filteredPreviewElementsFlow.value
-            .asCollection()
-            .sortByDisplayAndSourcePosition()
+          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
 
         val needsFullRefresh =
           request.refreshType != CommonPreviewRefreshType.QUALITY && invalidated.getAndSet(false)
@@ -900,4 +897,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private fun isFastPreviewAvailable() =
     FastPreviewManager.getInstance(project).isAvailable &&
       !PreviewEssentialsModeManager.isEssentialsModeEnabled
+
+  /**
+   * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.
+   * This method is for testing purposes only and should not be used outside of tests.
+   */
+  @TestOnly
+  fun renderedPreviewElementsFlowForTest() = previewFlowManager.renderedPreviewElementsFlow
 }
