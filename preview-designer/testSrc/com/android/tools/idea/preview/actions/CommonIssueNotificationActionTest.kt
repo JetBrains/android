@@ -33,7 +33,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.xml.util.XmlStringUtil
-import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -331,7 +330,7 @@ class CommonIssueNotificationActionTest {
 
         override fun hidePopup() {}
 
-        override fun showPopup(disposableParent: Disposable, event: InputEvent) {}
+        override fun showPopup(disposableParent: Disposable, owner: JComponent) {}
 
         override fun isVisible(): Boolean = false
 

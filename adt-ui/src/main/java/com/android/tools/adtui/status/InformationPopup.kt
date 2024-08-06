@@ -21,14 +21,15 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.ui.NewUI
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.AnActionLink
@@ -44,7 +45,6 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
@@ -71,12 +71,12 @@ interface InformationPopup : Disposable {
   fun hidePopup()
 
   /**
-   * Shows the popup from a parent view (like an action) from a given input event.
+   * Shows the popup from a parent view (like an action), anchored to the {@param owner}.
    *
    * @param disposableParent the [Disposable] parent that triggers the popup
-   * @param event the given [InputEvent] to position the popup
+   * @param owner the parent [JComponent]
    */
-  fun showPopup(disposableParent: Disposable, event: InputEvent)
+  fun showPopup(disposableParent: Disposable, owner: JComponent)
 
   fun isVisible(): Boolean
 
@@ -86,7 +86,7 @@ interface InformationPopup : Disposable {
  * If the underlying action creates a popup, its DataProvider should return true for
  * this data key to prevent closing the parent popup prematurely.
  */
-val POPUP_ACTION = DataKey.create<Boolean>("information_popup.popup_action")
+val POPUP_ACTION = Key<Boolean>("information_popup.popup_action")
 
 /**
  * The popup contains an optional `title` and `description` that can contain HTML contents.
@@ -142,17 +142,15 @@ class InformationPopupImpl(
     hidePopupTimer.stop()
   }
 
-  override fun showPopup(disposableParent: Disposable, event: InputEvent) {
-    val owner = event.component as JComponent
+  override fun showPopup(disposableParent: Disposable, owner: JComponent) {
     val size: Dimension = getPopupPreferredSize()
     val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(popupComponent, null)
       .setCancelOnClickOutside(true)
       .setCancelOnWindowDeactivation(true)
       .setCancelOnMouseOutCallback { e ->
         if (!hasEnteredPopup) {
-          val popupParent = event.component
-          val point = SwingUtilities.convertPoint(e.component, e.point, popupParent)
-          if (!point.isIntoArea(component = popupParent)) {
+          val point = SwingUtilities.convertPoint(e.component, e.point, owner)
+          if (!point.isIntoArea(component = owner)) {
             // Starts the timer count to close the popup when the mouse is not on the popup area.
             hidePopupTimer.start()
           }
@@ -234,7 +232,7 @@ class InformationPopupImpl(
     links.forEachIndexed { index, linkLabel ->
       if (index != 0) panel.add(Box.createHorizontalStrut(JBUI.scale(POPUP_LINK_SEPARATOR_WIDTH)))
       linkLabel.addActionListener {
-        if (linkLabel.getData(POPUP_ACTION.name) != true) {
+        if (linkLabel.getUserData(POPUP_ACTION) != true) {
           // Invoke later to avoid closing the tab before the action has executed.
           invokeLater {
             hidePopup()
