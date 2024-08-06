@@ -420,6 +420,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
+    assumeFalse(SystemInfo.isWindows) // b/356410902
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
