@@ -31,7 +31,7 @@ public enum ZoomType {
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%", "Zoom to Actual Size (100%)", AllIcons.General.ActualZoom),
+  ACTUAL("100%", "Zoom to Actual Size (100%)", AllIcons.Graph.ActualZoom),
 
   /**
    * Zoom in
