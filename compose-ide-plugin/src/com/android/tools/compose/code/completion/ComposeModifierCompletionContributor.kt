@@ -122,34 +122,36 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       extensionFunctionSymbols.partition {
         asFqName(it.returnType)?.asString() == COMPOSE_MODIFIER_FQN
       }
-    val lookupElementFactory = KotlinFirLookupElementFactory()
-    val importStrategyDetector =
-      ImportStrategyDetector(nameExpression.containingKtFile, nameExpression.project)
+    val importStrategyDetector = ImportStrategyDetector(
+      originalKtFile = nameExpression.containingKtFile,
+      project = nameExpression.project,
+    )
 
     val isNewModifier =
       !isMethodCalledOnImportedModifier &&
-        originalPosition.parentOfType<KtDotQualifiedExpression>() == null
+      originalPosition.parentOfType<KtDotQualifiedExpression>() == null
     // Prioritise functions that return Modifier over other extension function.
-    resultSet.addAllElements(
-      toLookupElements(
-        returnsModifier,
-        lookupElementFactory,
-        importStrategyDetector,
-        2.0,
-        insertModifier = isNewModifier,
-      )
-    )
-    // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
-    if (isMethodCalledOnImportedModifier) {
-      resultSet.addAllElements(
-        toLookupElements(
-          others,
-          lookupElementFactory,
-          importStrategyDetector,
-          0.0,
+    returnsModifier.asSequence()
+      .map {
+        toLookupElement(
+          symbol = it,
+          importStrategyDetector = importStrategyDetector,
+          weight = 2.0,
           insertModifier = isNewModifier,
         )
-      )
+      }.forEach(resultSet::addElement)
+
+    // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
+    if (isMethodCalledOnImportedModifier) {
+      others.asSequence()
+        .map {
+          toLookupElement(
+            symbol = it,
+            importStrategyDetector = importStrategyDetector,
+            weight = 0.0,
+            insertModifier = false,
+          )
+        }.forEach(resultSet::addElement)
     }
 
     ProgressManager.checkCanceled()
@@ -259,7 +261,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // https://youtrack.jetbrains.com/issue/KTIJ-23360 is resolved.
     val isOnInvisibleObject =
       suggestedKtFunction?.containingClassOrObject?.hasModifier(KtTokens.INTERNAL_KEYWORD) ==
-        true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
+      true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
 
     if (!alreadyAddedResult && !isOnInvisibleObject) {
       resultSet.passResult(completionResult)
@@ -308,22 +310,22 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   }
 
   @Suppress("UnstableApiUsage")
-  private fun KaSession.toLookupElements(
-    functionSymbols: List<KaCallableSymbol>,
-    lookupElementFactory: KotlinFirLookupElementFactory,
+  private fun KaSession.toLookupElement(
+    symbol: KaCallableSymbol,
     importStrategyDetector: ImportStrategyDetector,
     weight: Double,
     insertModifier: Boolean,
-  ) =
-    functionSymbols.map { symbol ->
-      with(lookupElementFactory) {
-        val lookupElement = createLookupElement(symbol as KaNamedSymbol, importStrategyDetector)
-        PrioritizedLookupElement.withPriority(
-          ModifierLookupElement(lookupElement, insertModifier),
-          weight,
-        )
-      }
-    }
+  ): LookupElement {
+    val lookupElement = KotlinFirLookupElementFactory.createLookupElement(
+      symbol = symbol as KaNamedSymbol,
+      importStrategyDetector = importStrategyDetector,
+    )
+
+    return PrioritizedLookupElement.withPriority(
+      ModifierLookupElement(lookupElement, insertModifier),
+      weight,
+    )
+  }
 
   /**
    * Creates LookupElementFactory that is similar to the one kotlin-plugin uses during completion
@@ -348,7 +350,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         moduleDescriptor,
         resolutionFacade,
         stableSmartCastsOnly =
-          true, /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
+        true,
+        /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
         withImplicitReceiversWhenExplicitPresent = true,
       )
 
@@ -382,7 +385,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         // See https://b.corp.google.com/issues/330760992#comment3 for more information.
         KtPsiFactory(originalFile.project)
           .createExpressionCodeFragment(newExpressionAsString, originalFile)
-      } else {
+      }
+      else {
         requireNotNull(
           KtPsiFactory.contextual(originalFile)
             .createFile("temp.kt", "val x = $newExpressionAsString")
@@ -470,7 +474,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
       val callee =
         callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
-          ?: return false
+        ?: return false
 
       val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
@@ -488,9 +492,9 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // Case Modifier.align().%this%, modifier.%this%
     val fqName =
       elementOnWhichMethodCalled.callReturnTypeFqName()
-        ?:
-        // Case Modifier.%this%
-        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
+      ?:
+      // Case Modifier.%this%
+      ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 
