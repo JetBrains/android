@@ -97,7 +97,7 @@ open class PerfgateComposeGradleTestBase {
         }
       }
     }
-    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
+    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
 
     composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {

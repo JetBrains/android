@@ -33,7 +33,10 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
-  /** Flow containing the filtered [T]s from [allPreviewElementsFlow]. */
+  /**
+   * Flow containing the filtered [T]s from [allPreviewElementsFlow]. These filtered [T]s are
+   * sorted.
+   */
   val filteredPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**

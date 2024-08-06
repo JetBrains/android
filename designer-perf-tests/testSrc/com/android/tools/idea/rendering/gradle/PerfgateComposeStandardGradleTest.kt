@@ -26,7 +26,7 @@ import org.junit.Test
 class PerfgateComposeStandardGradleTest: PerfgateComposeGradleTestBase() {
   @Test
   fun standardMode_5Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
+    Assert.assertEquals(1, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(
       4, 5, listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
@@ -41,7 +41,7 @@ class PerfgateComposeStandardGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun standardMode_30Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
+    Assert.assertEquals(1, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(
       29, 30, listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.

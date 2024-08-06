@@ -44,7 +44,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -86,7 +86,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -128,7 +128,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -180,7 +180,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
         },
         composePreviewRepresentation
-          .filteredPreviewElementsInstancesFlowForTest()
+          .renderedPreviewElementsInstancesFlowForTest()
           .value
           .asCollection()
           .first(),
