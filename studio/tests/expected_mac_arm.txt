@@ -433,6 +433,8 @@ Android Studio Preview.app/Contents/lib/jna/aarch64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/lib.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.libraries.grpc.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.libraries.grpc.netty.shaded.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.ktor.client.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.libraries.microba.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.clouds.jar
