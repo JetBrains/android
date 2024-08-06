@@ -42,7 +42,7 @@ class ModuleCompileTest {
 
   @Before
   fun setUp() {
-    setUpComposeInProjectFixture(projectRule)
+    setUpComposeInProjectFixture(projectRule, setOf(libModule2Name))
   }
 
   @Test

@@ -16,13 +16,11 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.isGradleFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonCompose
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.virtualFileNotExist
@@ -57,14 +55,6 @@ internal fun prebuildChecks(project: Project, changedFiles: List<PsiFile>) {
 internal fun checkIwiAvailable() {
   if (StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() == StudioFlags.OptimisticInstallSupportLevel.DISABLED) {
     throw compilationError("Cannot perform Live Edit without optimistic install support", null, null)
-  }
-}
-
-internal fun checkSupportedModule(project: Project, file: PsiFile) {
-  file.module?.let {
-    if (!ProjectSystemService.getInstance(project).projectSystem.getModuleSystem(it).usesCompose) {
-      throw nonCompose(file)
-    }
   }
 }
 
@@ -121,6 +111,5 @@ internal fun ReadActionPrebuildChecks(project: Project, file: PsiFile) {
     if (isAndroidSpecificTestSource || isTestSource) {
       throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
     }
-    checkSupportedModule(project, file)
   }
 }
