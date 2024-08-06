@@ -105,6 +105,9 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   var ALWAYS_INSTALL_WITH_PM = false
 
   @JvmField
+  var ALLOW_ASSUME_VERIFIED = false
+
+  @JvmField
   var CLEAR_APP_STORAGE = false
 
   @JvmField

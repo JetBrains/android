@@ -39,7 +39,8 @@ public class DeployTasksHelper {
                     packages,
                     deployOptions.getPmInstallFlags(),
                     deployOptions.getInstallOnAllUsers(),
-                    deployOptions.getAlwaysInstallWithPm())
+                    deployOptions.getAlwaysInstallWithPm(),
+                    deployOptions.getAllowAssumeVerified())
                 .run(launchContext.getDevice(), launchContext.getProgressIndicator());
       } catch (DeployerException e) {
         throw new AndroidExecutionException(e.getId(), e.getMessage());

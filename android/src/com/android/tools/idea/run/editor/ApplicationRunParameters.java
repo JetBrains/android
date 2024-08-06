@@ -3,9 +3,11 @@
 package com.android.tools.idea.run.editor;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.backup.BackupManager;
+import com.android.tools.idea.flags.ChannelDefault;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -52,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -74,8 +77,10 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;
   private JBCheckBox myAlwaysInstallWithPmCheckbox;
+  private JBCheckBox myAssumeVerified;
   private JBCheckBox myClearAppStorageCheckbox;
   private JPanel myRestorePanelWrapper;
+  private JCheckBox myCheckBox1;
 
   private final @Nullable RunConfigSection myRestoreRunConfigSection;
 
@@ -138,6 +143,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myInstantAppDeployCheckBox.setVisible(StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get());
     myAlwaysInstallWithPmCheckbox.setVisible(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() != StudioFlags.OptimisticInstallSupportLevel.DISABLED);
+    myAssumeVerified.setVisible(StudioFlags.INSTALL_WITH_ASSUME_VERIFIED.get());
 
     if (StudioFlags.BACKUP_ENABLED.get()) {
       myRestoreRunConfigSection = BackupManager.getInstance(project).getRestoreRunConfigSection(project);
@@ -238,6 +244,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
     myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
     myAlwaysInstallWithPmCheckbox.setSelected(configuration.ALWAYS_INSTALL_WITH_PM);
+    myAssumeVerified.setSelected(configuration.ALLOW_ASSUME_VERIFIED);
     myClearAppStorageCheckbox.setSelected(configuration.CLEAR_APP_STORAGE);
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
@@ -272,6 +279,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
     configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
     configuration.ALWAYS_INSTALL_WITH_PM = myAlwaysInstallWithPmCheckbox.isSelected();
+    configuration.ALLOW_ASSUME_VERIFIED = myAssumeVerified.isSelected();
     configuration.CLEAR_APP_STORAGE = myClearAppStorageCheckbox.isSelected();
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {

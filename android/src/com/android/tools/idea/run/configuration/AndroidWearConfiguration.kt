@@ -70,7 +70,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
 
   abstract val componentLaunchOptions: WearSurfaceLaunchOptions
 
-  val deployOptions: DeployOptions = DeployOptions(emptyList(), "", installOnAllUsers = true, alwaysInstallWithPm = true)
+  val deployOptions: DeployOptions = DeployOptions(emptyList(), "", installOnAllUsers = true, alwaysInstallWithPm = true, allowAssumeVerified = false)
 
   init {
     putUserData(DeployableToDevice.KEY, true)

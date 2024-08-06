@@ -93,7 +93,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
@@ -164,7 +164,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
@@ -227,7 +227,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }
@@ -307,7 +307,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
         componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
       }

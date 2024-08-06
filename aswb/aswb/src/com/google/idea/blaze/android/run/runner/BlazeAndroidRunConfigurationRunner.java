@@ -193,7 +193,7 @@ public final class BlazeAndroidRunConfigurationRunner
           @NotNull
           @Override
           public DeployOptions getDeployOptions() {
-            return new DeployOptions(Collections.emptyList(), "", true, true);
+            return new DeployOptions(Collections.emptyList(), "", true, true, false);
           }
 
           @NotNull
