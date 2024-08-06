@@ -311,7 +311,7 @@ class ComposePreviewRepresentationTest {
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
-    preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed set uiCheckMode",
       25.seconds,
     ) {
@@ -386,7 +386,7 @@ class ComposePreviewRepresentationTest {
 
         """
         .trimIndent(),
-      preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+      preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
         val configurationDeviceSpecText =
@@ -415,7 +415,7 @@ class ComposePreviewRepresentationTest {
     // Check that the surface zooms to fit when exiting UI check mode.
     assertEquals(1.0, mainSurface.zoomController.scale, 0.001)
 
-    preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",
       25.seconds,
     ) {
@@ -431,7 +431,7 @@ class ComposePreviewRepresentationTest {
 
         """
         .trimIndent(),
-      preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+      preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
         "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
@@ -808,7 +808,7 @@ class ComposePreviewRepresentationTest {
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Wear OS Devices")
-      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+      preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         25.seconds,
       ) {
@@ -834,7 +834,7 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+        preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
           "\n"
         ) {
           val configurationDeviceSpecText =
