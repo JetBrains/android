@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.project.Project;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -100,17 +99,12 @@ public interface AndroidDevice {
   default boolean getSupportsSdkRuntime() {
     return false;
   }
+
   /**
    * Returns the device name.
    */
   @NotNull
   String getName();
-
-  /**
-   * Returns the {@link IDevice} corresponding to this device, launching it if necessary.
-   */
-  @NotNull
-  ListenableFuture<IDevice> launch(@NotNull Project project);
 
   /**
    * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.

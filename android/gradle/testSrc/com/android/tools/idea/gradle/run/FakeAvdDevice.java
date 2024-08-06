@@ -167,17 +167,6 @@ public final class FakeAvdDevice implements AndroidDevice {
     }
   }
 
-  @Override
-  @NotNull
-  public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    synchronized (myLock) {
-      if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, RequestType.INDIRECT);
-      }
-      return myLaunchedEmulator;
-    }
-  }
-
   @NotNull
   @Override
   public ListenableFuture<IDevice> getLaunchedDevice() {

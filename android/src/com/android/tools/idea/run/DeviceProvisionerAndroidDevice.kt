@@ -67,8 +67,6 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   protected val scope = parentScope.createChildScope(isSupervisor = true)
   private val launchDeviceTask = AtomicReference<Deferred<IDevice>?>(null)
 
-  override fun launch(project: Project): ListenableFuture<IDevice> = bootDefault()
-
   /**
    * Boots the device in the default manner, if it is not already running, and returns the resulting
    * [IDevice]. This will cancel any existing boot operation and start a new one.
