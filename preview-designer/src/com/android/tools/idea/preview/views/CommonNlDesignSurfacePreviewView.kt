@@ -28,7 +28,8 @@ import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.ui.OnePixelSplitter
 import java.awt.BorderLayout
@@ -83,11 +84,11 @@ class CommonNlDesignSurfacePreviewView(
       .apply { firstComponent = editorPanel }
 
   private val workbench: WorkBench<DesignSurface<*>> =
-    object :
-        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
-        override fun getData(dataId: String): Any? =
-          if (DESIGN_SURFACE.`is`(dataId)) mainSurface else null
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
+      override fun uiDataSnapshot(sink: DataSink) {
+        sink[DESIGN_SURFACE] = mainSurface
       }
+    }
       .apply { init(mainPanelSplitter, mainSurface, listOf(), false) }
 
   @UiThread

@@ -22,7 +22,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -70,10 +71,10 @@ internal class CustomViewPreviewView(
 
   /** [WorkBench] used to contain all the preview elements. */
   internal val workbench: WorkBench<DesignSurface<*>> =
-    object :
-        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
-        override fun getData(dataId: String): Any? =
-          if (DESIGN_SURFACE.`is`(dataId)) surface else null
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
+      override fun uiDataSnapshot(sink: DataSink) {
+        sink[DESIGN_SURFACE] = surface
       }
+    }
       .apply { init(editorPanel, surface, listOf(), false) }
 }
