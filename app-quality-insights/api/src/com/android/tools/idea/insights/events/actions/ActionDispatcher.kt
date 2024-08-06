@@ -353,8 +353,16 @@ class ActionDispatcher(
   ): CancellationToken {
     return scope
       .launch {
-        val selectedIssue = state.selectedIssue ?: return@launch
-        val fetchedInsight = appInsightsClient.fetchInsight(connection, selectedIssue, state)
+        val timeFilter =
+          state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
+        val fetchedInsight =
+          appInsightsClient.fetchInsight(
+            connection,
+            action.id,
+            action.eventId,
+            action.variantId,
+            timeFilter,
+          )
         eventEmitter(AiInsightFetched(fetchedInsight))
       }
       .toToken(action)
