@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.adtui.status.POPUP_ACTION
 import com.android.tools.adtui.status.REFRESH_BUTTON
 import com.android.tools.idea.editors.liveedit.LiveEditAnActionListener
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.intellij.icons.AllIcons
@@ -34,7 +33,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -189,7 +187,7 @@ private class ConfigureLiveEditActionOption(text: String, val setSelected: () ->
   }
 }
 
-internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
+internal class ConfigureLiveEditAction : DefaultActionGroup() {
   lateinit var parentDisposable: Disposable
   lateinit var parentComponent: JComponent
 
@@ -258,9 +256,5 @@ internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
         { action -> (action as ConfigureLiveEditActionOption).getSelected() }
       )
       .show(RelativePoint(parentComponent, Point(0, parentComponent.height + JBUIScale.scale(4))))
-  }
-
-  override fun getData(dataId: String): Any? {
-    return if (POPUP_ACTION.`is`(dataId)) true else null
   }
 }

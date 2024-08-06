@@ -18,13 +18,15 @@ package com.android.tools.adtui.status
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.putUserData
+import com.intellij.openapi.util.Ref
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -43,6 +45,11 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.EventQueue.invokeLater
+import java.awt.event.InputEvent
+import java.awt.event.MouseEvent
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -155,25 +162,22 @@ class InformationPopupImplTest {
       listOf(),
       listOf(
         AnActionLink("Action 1", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
+          override fun actionPerformed(e: AnActionEvent) {}
         }),
-        object: AnActionLink("Action 2", object : AnAction(), DataContext {
-          override fun actionPerformed(e: AnActionEvent) {
-          }
-
-          override fun getData(dataId: String): Any? {
-            return if (POPUP_ACTION.`is`(dataId)) true else null
-          }
-        }) {}
+        object: AnActionLink("Action 2", object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }) {}.apply { putUserData(POPUP_ACTION, true) }
       )
     )
 
-    val fakeUi = FakeUi(JPanel().apply {
+    val parent = JPanel().apply {
       layout = BorderLayout()
       size = Dimension(200, 100)
       add(popup.popupComponent, BorderLayout.CENTER)
-    }, 1.0, true)
+    }
+
+    val fakeUi = FakeUi(parent, 1.0, true)
+    popup.showPopup({ }, parent)
 
     assertEquals(
       "Action 1, Action 2",
@@ -182,11 +186,17 @@ class InformationPopupImplTest {
 
     fakeUi.clickOn(fakeUi.findAllComponents<AnActionLink>().find { link -> link.text == "Action 2" }!!)
 
-    // Popup should still be showing.
-    assertEquals(
-      "Action 1, Action 2",
-      fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
-    )
+    val latch = CountDownLatch(1)
+    val visible = Ref<Boolean>(popup.isVisible())
+    assertTrue(visible.get())
+
+    invokeLater {
+      // Popup should still be showing.
+      visible.set(popup.isVisible())
+      latch.countDown()
+    }
+    latch.await(5, TimeUnit.SECONDS)
+    assertTrue(visible.get())
   }
 
   @Test

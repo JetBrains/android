@@ -29,7 +29,6 @@ import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.Alarm
-import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
@@ -93,7 +92,7 @@ fun createFakePopup(
 
     override fun hidePopup() = onHidePopup()
 
-    override fun showPopup(disposableParent: Disposable, event: InputEvent) = onShowPopup()
+    override fun showPopup(disposableParent: Disposable, owner: JComponent) = onShowPopup()
 
     override fun isVisible(): Boolean = isPopupVisible
 
