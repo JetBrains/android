@@ -21,11 +21,12 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.intellij.ide.DataManager
 import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_GRADLE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -103,12 +104,12 @@ class GradleRunTaskActionIntegrationTest {
     private fun createContextComponent(project: Project, fixture: CodeInsightTestFixture): JComponent {
       val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
       fixture.openFileInEditor(buildGradleFile!!)
-      val panel = JPanel().apply {
-        add(fixture.editor.component)
+      val panel = object : JPanel(), UiDataProvider {
+        override fun uiDataSnapshot(sink: DataSink) {
+          sink[CommonDataKeys.PROJECT] = project
+        }
       }
-      DataManager.registerDataProvider(panel) { dataId ->
-        if (CommonDataKeys.PROJECT.`is`(dataId)) project else null
-      }
+      panel.add(fixture.editor.component)
       return fixture.editor.contentComponent
     }
   }
