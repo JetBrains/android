@@ -62,18 +62,15 @@ class PrebuildChecksTest {
     }
   }
 
+  /**
+   * Legacy check for non-compose module check. This is now supported and should not expect an exception.
+   */
   @Test
   fun testNonComposeModule() {
     var file = projectRule.fixture.addFileToProject(
-      "buildSrc/src/java/com/example/Version.kt", "package com.example\n class Version {}")
+      "src/java/com/example/NonCompose.kt", "package com.example\n class NonCompose {}")
     ApplicationManager.getApplication().runReadAction {
-      try {
-        checkSupportedModule(myProject, file)
-        Assert.fail("Expecting Exception")
-      }
-      catch (e: LiveEditUpdateException) {
-        Assert.assertEquals(LiveEditUpdateException.Error.NON_COMPOSE, e.error)
-      }
+      prebuildChecks(myProject, listOf(file))
     }
   }
 }
