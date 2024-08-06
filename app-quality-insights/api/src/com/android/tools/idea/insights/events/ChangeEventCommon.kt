@@ -37,10 +37,7 @@ fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
     if (key == VITALS_KEY) {
       Action.NONE
     } else {
-      Action.FetchIssueVariants(id) and
-        Action.FetchNotes(id) and
-        Action.ListEvents(id, null, null) and
-        Action.FetchInsight(id)
+      Action.FetchIssueVariants(id) and Action.FetchNotes(id) and Action.ListEvents(id, null, null)
     }
 
 private fun useIssueSampleEvent(key: InsightsProviderKey) = key == VITALS_KEY
