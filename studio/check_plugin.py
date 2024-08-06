@@ -30,6 +30,9 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     print("Expected plugin.xml root item to be 'idea-plugin' but was %s" % element.tag)
     sys.exit(1)
 
+  # Disallow updates for bundled plugins. We enforce this even for JetBrains plugins, because
+  # we want to guarantee compatibility between plugins, and because we want platform plugins
+  # to always come from our own IntelliJ fork (which may have patches, for example).
   if element.attrib.get("allow-bundled-update", "false") != "false" and found_id != "org.jetbrains.kotlin":
       print("Bundled plugin update are not allowed for plugin: %s" % found_id)
       sys.exit(1)
