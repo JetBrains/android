@@ -77,6 +77,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
    * origin source file to allow for disambiguation.
    * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
+   *
+   * Implementations of this method should avoid performing read actions and grabbing the read lock
+   * to avoid deadlocks when class loading is performed in the render thread. If read actions are
+   * completely necessary, then they must be non-blocking.
    */
   fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
