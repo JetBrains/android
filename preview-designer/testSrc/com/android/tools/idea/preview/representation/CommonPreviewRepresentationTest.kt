@@ -71,9 +71,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.testFramework.waitUntil
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
@@ -113,7 +113,7 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
     configuration: Configuration,
   ) {}
 
-  override fun modelToElement(model: NlModel): PsiTestPreviewElement? = previewElement
+  override fun modelToElement(model: NlModel): PsiTestPreviewElement = previewElement
 
   override fun createDataContext(previewElement: PsiTestPreviewElement): DataContext =
     SimpleDataContext.EMPTY_CONTEXT
