@@ -60,8 +60,11 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
     val rotatedFrameRect = layout.frameRectangle.rotatedByQuadrants(displayOrientationQuadrants, layout.displaySize)
     val rotatedDisplaySize = layout.displaySize.rotatedByQuadrants(displayOrientationQuadrants)
+    val rotatedDisplayCornerSize = layout.displayCornerSize.rotatedByQuadrants(displayOrientationQuadrants)
     val scaleX = displayWidth.toDouble() / rotatedDisplaySize.width
     val scaleY = displayHeight.toDouble() / rotatedDisplaySize.height
+    val displayCornerWidth = rotatedDisplayCornerSize.width.scaled(scaleX)
+    val displayCornerHeight = rotatedDisplayCornerSize.height.scaled(scaleY)
     // To avoid visible seams between parts of the skin scale the frame margins separately from the display.
     val frameX = rotatedFrameRect.x.scaled(scaleX)
     val frameY = rotatedFrameRect.y.scaled(scaleY)
@@ -70,7 +73,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     val frameRect = Rectangle(frameX, frameY, frameWidth, frameHeight)
     val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
     val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
-    return SkinLayout(Dimension(displayWidth, displayHeight), frameRect, frameImages, maskImages)
+    return SkinLayout(Dimension(displayWidth, displayHeight), Dimension(displayCornerWidth, displayCornerHeight),
+                      frameRect, frameImages, maskImages)
   }
 
   /**
@@ -95,7 +99,12 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     return size.rotatedByQuadrants(displayRotationQuadrants)
   }
 
-  internal data class LayoutDescriptor(val displaySize: Dimension, val frameRectangle: Rectangle, val part: Part) {
+  internal data class LayoutDescriptor(
+    val displaySize: Dimension,
+    val displayCornerRadius: Int,
+    val frameRectangle: Rectangle,
+    val part: Part
+  ) {
 
     val backgroundFile: URL?
       get() = part.backgroundFile
@@ -127,7 +136,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       maskImages = mask?.let { disassembleMask(it, displaySize) } ?: emptyList()
 
       val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
-      return SkinLayout(displaySize, adjustedFrameRectangle, backgroundImages, maskImages)
+      return SkinLayout(displaySize, Dimension(displayCornerRadius, displayCornerRadius), adjustedFrameRectangle,
+                        backgroundImages, maskImages)
     }
 
     private fun readImage(url: URL): BufferedImage? {
@@ -186,6 +196,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       val skin = SkinLayoutDefinition.parseString(contents)
       var displayWidth = 0
       var displayHeight = 0
+      var cornerRadius = 0
       // Process part nodes. The "onion" and "controls" nodes are ignored because they don't
       // contribute to the device frame appearance.
       val partsByName = hashMapOf<String, Part>()
@@ -197,6 +208,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         if (name == "device" || name == "primary" || displayWidth == 0 || displayHeight == 0) {
           displayWidth = node.getValue("display.width")?.toInt() ?: 0
           displayHeight = node.getValue("display.height")?.toInt() ?: 0
+          cornerRadius = node.getValue("display.corner_radius")?.toInt() ?: 0
         }
         partsByName[name] = createPart(node, skinFolder)
       }
@@ -239,7 +251,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
         if (part != null) {
           val frameRectangle = Rectangle(frameX + partX, frameY + partY, width, height)
-          return LayoutDescriptor(Dimension(displayWidth, displayHeight), frameRectangle, part)
+          return LayoutDescriptor(Dimension(displayWidth, displayHeight), cornerRadius, frameRectangle, part)
         }
       }
       throw InvalidSkinException("Missing \"device\" part")
