@@ -856,6 +856,76 @@ class ComposePreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/353458840
+  @Test
+  fun multiPreviewsAreOrderedByNameWhenNotInUICheckMode() {
+    val testPsiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Preview(name = "1", group = "2")
+            @Preview(name = "2", group = "2")
+            @Preview(name = "3", group = "3")
+            @Preview(name = "4", group = "3")
+            @Preview(name = "5", group = "1")
+            @Preview(name = "6", group = "1")
+            annotation class MyMultiPreview
+
+            @Composable
+            @Preview
+            fun Preview() {
+            }
+
+            @Composable
+            @MyMultiPreview
+            fun MultiPreview() {
+            }
+          """
+          .trimIndent(),
+      )
+
+    runComposePreviewRepresentationTest(testPsiFile) {
+      val preview = createPreviewAndCompile()
+
+      assertEquals(
+        """
+          TestKt.Preview
+          PreviewDisplaySettings(name=Preview, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 1, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 2, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 3, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 4, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 5, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 6, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+        """
+          .trimIndent(),
+        preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
+          "${it.methodFqn}\n${it.displaySettings}\n"
+        },
+      )
+    }
+  }
+
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
