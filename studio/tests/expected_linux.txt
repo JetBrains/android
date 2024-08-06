@@ -424,6 +424,8 @@ android-studio/lib/jna/amd64/libjnidispatch.so
 android-studio/lib/jps-model.jar
 android-studio/lib/junit4.jar
 android-studio/lib/lib.jar
+android-studio/lib/modules/intellij.libraries.grpc.jar
+android-studio/lib/modules/intellij.libraries.grpc.netty.shaded.jar
 android-studio/lib/modules/intellij.libraries.ktor.client.jar
 android-studio/lib/modules/intellij.libraries.microba.jar
 android-studio/lib/modules/intellij.platform.clouds.jar
