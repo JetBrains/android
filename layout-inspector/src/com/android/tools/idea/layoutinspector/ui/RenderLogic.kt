@@ -57,21 +57,8 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
 
   /** Render Views borders from the device. */
   fun renderBorders(g: Graphics2D, component: Component, foregroundColor: Color) {
-    val parsedViewDrawInfo = parseViewDrawInfo(renderModel, inspectorModel)
-    parsedViewDrawInfo.viewDrawInfo.forEach { viewDrawInfo ->
-      if (
-        viewDrawInfo != parsedViewDrawInfo.selected && viewDrawInfo != parsedViewDrawInfo.hovered
-      ) {
-        renderBorders(g, viewDrawInfo, component, foregroundColor)
-      }
-    }
-
-    // Render selected and hovered nodes last, to avoid regular nodes drawing on top of them.
-    if (parsedViewDrawInfo.hovered != null) {
-      renderBorders(g, parsedViewDrawInfo.hovered, component, foregroundColor)
-    }
-    if (parsedViewDrawInfo.selected != null) {
-      renderBorders(g, parsedViewDrawInfo.selected, component, foregroundColor)
+    renderModel.hitRects.forEach { viewDrawInfo ->
+      renderBorders(g, viewDrawInfo, component, foregroundColor)
     }
   }
 
@@ -231,32 +218,4 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
       labelPosition.y + labelGraphics.fontMetrics.maxAscent,
     )
   }
-}
-
-private data class ParsedViewDrawInfo(
-  val selected: ViewDrawInfo?,
-  val hovered: ViewDrawInfo?,
-  /** All the [ViewDrawInfo], including selected and hovered nodes. */
-  val viewDrawInfo: List<ViewDrawInfo>,
-)
-
-/** Extracts the [ViewDrawInfo] associated with selected and hovered nodes. */
-private fun parseViewDrawInfo(
-  renderModel: RenderModel,
-  inspectorModel: InspectorModel,
-): ParsedViewDrawInfo {
-  var selectedNode: ViewDrawInfo? = null
-  var hoveredNode: ViewDrawInfo? = null
-
-  val viewDrawInfo = renderModel.hitRects
-  viewDrawInfo.forEach {
-    val viewNode = it.node.findFilteredOwner(renderModel.treeSettings)
-    if (viewNode == inspectorModel.hoveredNode) {
-      hoveredNode = it
-    } else if (viewNode == inspectorModel.selection) {
-      selectedNode = it
-    }
-  }
-
-  return ParsedViewDrawInfo(selectedNode, hoveredNode, viewDrawInfo)
 }

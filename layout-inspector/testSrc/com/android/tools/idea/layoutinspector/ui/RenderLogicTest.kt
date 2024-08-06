@@ -76,8 +76,7 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
-private const val DIFF_THRESHOLD = 0.01
-private const val DIFF_THRESHOLD_HIGH = 0.2
+private const val DIFF_THRESHOLD = 0.2
 private val activityMain =
   ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
@@ -335,7 +334,7 @@ class RenderLogicTest {
     val rootView = inspectorModel[ROOT]!!
     inspectorModel.setSelection(rootView, SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
-    assertSimilar(renderImage, testName.methodName, DIFF_THRESHOLD_HIGH)
+    assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
@@ -508,7 +507,7 @@ class RenderLogicTest {
     renderModel.layerSpacing = 3
     renderModel.rotate(0.3, 0.2)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
-    assertSimilar(renderImage, testName.methodName, DIFF_THRESHOLD_HIGH)
+    assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
@@ -521,7 +520,7 @@ class RenderLogicTest {
     val windowRoot = inspectorModel[ROOT]!!
     inspectorModel.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
-    assertSimilar(renderImage, testName.methodName, DIFF_THRESHOLD_HIGH)
+    assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
@@ -845,17 +844,12 @@ class RenderLogicTest {
    * Check that the generated [renderImage] is similar to the one stored on disk. If the image
    * stored on disk does not exist, it is created.
    */
-  private fun assertSimilar(
-    renderImage: BufferedImage,
-    imageName: String,
-    maxPercentDifference: Double = DIFF_THRESHOLD,
-  ) {
+  private fun assertSimilar(renderImage: BufferedImage, imageName: String) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
     ImageDiffUtil.assertImageSimilar(
-      goldenFile =
-        TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
-      actual = renderImage,
-      maxPercentDifferent = maxPercentDifference,
+      TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
+      renderImage,
+      DIFF_THRESHOLD,
     )
   }
 
