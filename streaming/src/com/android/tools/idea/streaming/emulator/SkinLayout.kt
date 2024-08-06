@@ -29,17 +29,19 @@ import java.awt.image.BufferedImage
  * Layout of the device frame and mask for a particular display orientation.
  *
  * @param displaySize the size of the display
+ * @param displayCornerSize the dimensions of the elliptical corner arc
  * @param frameRectangle the frame boundary rectangle relative to the upper left corner of the display
  * @param frameImages the images constituting the device frame
  * @param maskImages the images constituting the device display mask
  */
-class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
+class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, val frameRectangle: Rectangle,
                  val frameImages: List<AnchoredImage>, val maskImages: List<AnchoredImage>) {
 
   /**
    * Creates a layout without a frame or mask.
    */
-  constructor(width: Int, height: Int) : this(Dimension(width, height), Rectangle(0, 0, width, height), emptyList(), emptyList())
+  constructor(width: Int, height: Int) :
+      this(Dimension(width, height), Dimension(0, 0), Rectangle(0, 0, width, height), emptyList(), emptyList())
 
   /**
    * Draws frame and mask to the given graphics context. The [displayRectangle]  parameter defines
