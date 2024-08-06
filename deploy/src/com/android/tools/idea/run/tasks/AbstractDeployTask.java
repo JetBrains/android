@@ -82,6 +82,7 @@ public abstract class AbstractDeployTask {
                     EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY, ChangeType.RESOURCE));
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
+  protected final boolean myAllowAssumeVerified;
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
@@ -89,11 +90,13 @@ public abstract class AbstractDeployTask {
   public AbstractDeployTask(@NotNull Project project,
                             @NotNull Collection<ApkInfo> packages,
                             boolean rerunOnSwapFailure,
-                            boolean alwaysInstallWithPm) {
+                            boolean alwaysInstallWithPm,
+                            boolean allowAssumeVerified) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
+    myAllowAssumeVerified = allowAssumeVerified;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -141,6 +144,7 @@ public abstract class AbstractDeployTask {
     DeployerOption option = new DeployerOption.Builder().setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
       .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
       .setOptimisticInstallSupport(optimisticInstallSupport)
+      .setAllowAssumeVerified(myAllowAssumeVerified)
       .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
       .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()).build();

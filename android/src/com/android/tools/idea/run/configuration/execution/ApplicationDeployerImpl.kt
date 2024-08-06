@@ -48,7 +48,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       deployOptions.pmInstallFlags,
       deployOptions.installOnAllUsers,
-      deployOptions.alwaysInstallWithPm)
+      deployOptions.alwaysInstallWithPm,
+      deployOptions.allowAssumeVerified)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -62,7 +63,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
-      deployOptions.alwaysInstallWithPm)
+      deployOptions.alwaysInstallWithPm,
+      deployOptions.allowAssumeVerified)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -76,7 +78,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
-      deployOptions.alwaysInstallWithPm)
+      deployOptions.alwaysInstallWithPm,
+      deployOptions.allowAssumeVerified)
 
     return runDeployTask(app, deployTask, device, indicator)
   }

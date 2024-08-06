@@ -43,8 +43,8 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param rerunOnSwapFailure rerun the app when swap fails
    */
   public ApplyCodeChangesTask(
-    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
+    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm, boolean allowAssumeVerified) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified);
   }
 
   @NotNull

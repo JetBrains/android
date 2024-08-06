@@ -101,7 +101,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = TileLaunchOptions().apply {
         componentName = this@AndroidTileConfigurationExecutorTest.componentName
       }
@@ -174,7 +174,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = TileLaunchOptions().apply {
         componentName = this@AndroidTileConfigurationExecutorTest.componentName
       }
@@ -223,7 +223,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = TileLaunchOptions().apply {
         componentName = this@AndroidTileConfigurationExecutorTest.componentName
       }
@@ -291,7 +291,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = TileLaunchOptions().apply {
         componentName = this@AndroidTileConfigurationExecutorTest.componentName
       }
