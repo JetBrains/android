@@ -203,6 +203,8 @@ data class Event(
   companion object {
     val EMPTY = Event()
   }
+
+  val eventId = name.split("/").last()
 }
 
 /**

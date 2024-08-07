@@ -134,7 +134,8 @@ sealed class Action {
   }
 
   /** Fetch AI generated insight */
-  data class FetchInsight(override val id: IssueId) : IssueAction() {
+  data class FetchInsight(override val id: IssueId, val eventId: String, val variantId: String?) :
+    IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) = cancelIf(reasons, ::shouldCancelFetch)
   }
 

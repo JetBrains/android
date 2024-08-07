@@ -360,9 +360,11 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   override suspend fun fetchInsight(
     connection: Connection,
-    issue: AppInsightsIssue,
-    state: AppInsightsState,
-  ) = fetchInsightCall.initiateCall()
+    insightIssueId: IssueId,
+    eventId: String,
+    variantId: String?,
+    timeInterval: TimeIntervalFilter,
+  ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
     fetchInsightCall.completeWith(value)
