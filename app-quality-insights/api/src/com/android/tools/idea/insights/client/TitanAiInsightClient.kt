@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.protobuf.Any
+import com.android.tools.idea.protobuf.Message
 import com.google.cloud.cloudaicompanion.v1main.ExperienceContext
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionInput
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionMessage
@@ -50,10 +51,7 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
   private val taskCompletionService =
     TaskCompletionServiceGrpc.newBlockingStub(channel).withInterceptors(interceptor)
 
-  override suspend fun fetchCrashInsight(
-    projectId: String,
-    additionalContextFetcher: () -> Any,
-  ): AiInsight {
+  override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message): AiInsight {
     val request =
       TaskCompletionRequest.newBuilder()
         .apply {
@@ -61,7 +59,7 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
           experienceContext = CRASHLYTICS_EXPERIENCE_CONTEXT
           instance = String.format(INSTANCE_FORMAT, projectId)
           inputDataContext =
-            inputDataContextBuilder.apply { additionalContext = additionalContextFetcher() }.build()
+            inputDataContextBuilder.apply { additionalContext = Any.pack(additionalContextMsg) }.build()
         }
         .build()
     val response = taskCompletionService.completeTask(request)
