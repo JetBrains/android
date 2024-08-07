@@ -215,7 +215,14 @@ class WearTilePreviewElementFinderTest {
       assertThat(previewElements).hasSize(10)
 
       previewElements.elementAt(0).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreview",
+              baseName = "tilePreview",
+              parameterName = null,
+            )
+          )
         assertThat(it)
           .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
@@ -223,7 +230,14 @@ class WearTilePreviewElementFinderTest {
       }
 
       previewElements.elementAt(1).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "largeRoundTilePreview"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "largeRoundTilePreview",
+              baseName = "largeRoundTilePreview",
+              parameterName = null,
+            )
+          )
         assertThat(it)
           .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("largeRoundTilePreview"))
@@ -240,7 +254,13 @@ class WearTilePreviewElementFinderTest {
 
       previewElements.elementAt(2).let {
         assertThat(it)
-          .hasDisplaySettings(defaultDisplaySettings(name = "namedTilePreview - some name"))
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "namedTilePreview - some name",
+              baseName = "namedTilePreview",
+              parameterName = "some name",
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("namedTilePreview"))
         assertThat(it)
@@ -257,7 +277,12 @@ class WearTilePreviewElementFinderTest {
       previewElements.elementAt(3).let {
         assertThat(it)
           .hasDisplaySettings(
-            defaultDisplaySettings(name = "tilePreviewWithGroup", group = "some group")
+            defaultDisplaySettings(
+              name = "tilePreviewWithGroup",
+              baseName = "tilePreviewWithGroup",
+              parameterName = null,
+              group = "some group",
+            )
           )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithGroup"))
@@ -273,7 +298,14 @@ class WearTilePreviewElementFinderTest {
           )
       }
       previewElements.elementAt(4).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithLocale"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewWithLocale",
+              baseName = "tilePreviewWithLocale",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = "fr"))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithLocale"))
         assertThat(it)
@@ -287,7 +319,14 @@ class WearTilePreviewElementFinderTest {
           )
       }
       previewElements.elementAt(5).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithFontScale"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewWithFontScale",
+              baseName = "tilePreviewWithFontScale",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration(fontScale = 1.2f))
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithFontScale"))
         assertThat(it)
@@ -302,7 +341,13 @@ class WearTilePreviewElementFinderTest {
       }
       previewElements.elementAt(6).let {
         assertThat(it)
-          .hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithContextParameter"))
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewWithContextParameter",
+              baseName = "tilePreviewWithContextParameter",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it)
           .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithContextParameter"))
@@ -310,7 +355,13 @@ class WearTilePreviewElementFinderTest {
       }
       previewElements.elementAt(7).let {
         assertThat(it)
-          .hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewWithMultipleAnnotations",
+              baseName = "tilePreviewWithMultipleAnnotations",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it)
           .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
@@ -318,7 +369,13 @@ class WearTilePreviewElementFinderTest {
       }
       previewElements.elementAt(8).let {
         assertThat(it)
-          .hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations"))
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewWithMultipleAnnotations",
+              baseName = "tilePreviewWithMultipleAnnotations",
+              parameterName = null,
+            )
+          )
         assertThat(it)
           .hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
         assertThat(it)
@@ -328,7 +385,11 @@ class WearTilePreviewElementFinderTest {
       previewElements.elementAt(9).let {
         assertThat(it)
           .hasDisplaySettings(
-            defaultDisplaySettings(name = "tilePreviewWithMultipleAnnotations - some name")
+            defaultDisplaySettings(
+              name = "tilePreviewWithMultipleAnnotations - some name",
+              baseName = "tilePreviewWithMultipleAnnotations",
+              parameterName = "some name",
+            )
           )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it)
@@ -370,7 +431,14 @@ class WearTilePreviewElementFinderTest {
       assertThat(previewElements).hasSize(1)
 
       previewElements.first().let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreview",
+              baseName = "tilePreview",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
         assertThat(it).hasAnnotationDefinition("@PreviewAlias")
@@ -409,7 +477,14 @@ class WearTilePreviewElementFinderTest {
       assertThat(previewElements).hasSize(1)
 
       previewElements.elementAt(0).let {
-        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewInJavaFile"))
+        assertThat(it)
+          .hasDisplaySettings(
+            defaultDisplaySettings(
+              name = "tilePreviewInJavaFile",
+              baseName = "tilePreviewInJavaFile",
+              parameterName = null,
+            )
+          )
         assertThat(it).hasPreviewConfiguration(defaultConfiguration())
         assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewInJavaFile"))
         assertThat(it).hasAnnotationDefinition("@Preview")
@@ -498,45 +573,92 @@ class WearTilePreviewElementFinderTest {
     assertThat(previewElements).hasSize(7)
 
     previewElements.elementAt(0).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 1"))
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - AllWearDevices 1",
+            baseName = "tilePreview",
+            parameterName = "AllWearDevices 1",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(1).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 2"))
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - AllWearDevices 2",
+            baseName = "tilePreview",
+            parameterName = "AllWearDevices 2",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(2).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 3"))
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - AllWearDevices 3",
+            baseName = "tilePreview",
+            parameterName = "AllWearDevices 3",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(3).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 4"))
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - AllWearDevices 4",
+            baseName = "tilePreview",
+            parameterName = "AllWearDevices 4",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_rect"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(4).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - some preview"))
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - some preview",
+            baseName = "tilePreview",
+            parameterName = "some preview",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@Preview(name = \"some preview\")")
     }
     previewElements.elementAt(5).let {
       assertThat(it)
-        .hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - multipreview level 1"))
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - multipreview level 1",
+            baseName = "tilePreview",
+            parameterName = "multipreview level 1",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
     }
     previewElements.elementAt(6).let {
       assertThat(it)
-        .hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - multipreview level 2"))
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - multipreview level 2",
+            baseName = "tilePreview",
+            parameterName = "multipreview level 2",
+          )
+        )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
@@ -553,7 +675,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 1"
+            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 1",
+            baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
+            parameterName = "multipreview level 1",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -569,7 +693,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 2"
+            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 2",
+            baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
+            parameterName = "multipreview level 2",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -630,9 +756,16 @@ private class WearTilePreviewElementSubject(
   }
 }
 
-private fun defaultDisplaySettings(name: String, group: String? = null) =
+private fun defaultDisplaySettings(
+  name: String,
+  baseName: String,
+  parameterName: String?,
+  group: String? = null,
+) =
   PreviewDisplaySettings(
     name = name,
+    baseName = baseName,
+    parameterName = parameterName,
     group = group,
     showBackground = true,
     showDecoration = false,

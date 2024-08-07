@@ -49,7 +49,16 @@ class AnimationUtilsKtTest {
 
   private val previewElement: PsiWearTilePreviewElement =
     WearTilePreviewElement(
-      displaySettings = PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+      displaySettings =
+        PreviewDisplaySettings(
+          "some name",
+          "some base name",
+          "parameter name",
+          "some group",
+          false,
+          false,
+          "0xffabcd",
+        ),
       previewElementDefinition = mock<SmartPsiElementPointer<PsiElement>>(),
       previewBody = mock<SmartPsiElementPointer<PsiElement>>(),
       methodFqn = "someMethodFqn",

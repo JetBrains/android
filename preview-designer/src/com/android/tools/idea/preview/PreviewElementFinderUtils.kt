@@ -91,3 +91,12 @@ fun NodeInfo<UAnnotationSubtreeInfo>.buildPreviewName(
   else
     buildParentAnnotationInfo(parent, isPreviewAnnotation)?.let { "$methodName - $it" }
       ?: methodName
+
+/**
+ * Create the name to be displayed for a Preview by using the [nameParameter] when available, or
+ * otherwise trying to use some information from the [NodeInfo].
+ */
+fun NodeInfo<UAnnotationSubtreeInfo>.buildParameterName(
+  nameParameter: String?,
+  isPreviewAnnotation: UElement?.() -> Boolean,
+) = nameParameter ?: buildParentAnnotationInfo(parent, isPreviewAnnotation)
