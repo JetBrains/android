@@ -29,10 +29,7 @@ import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.flow.filteredPreviewElementsFlow
-import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
@@ -41,7 +38,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
@@ -51,41 +47,12 @@ import kotlinx.coroutines.launch
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
  * the render process and setting the current mode.
  */
-internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewElementInstance> {
-
-  private val log = Logger.getInstance(ComposePreviewFlowManager::class.java)
-
-  /**
-   * Flow containing all the [ComposePreviewElementInstance]s that have completed rendering. These
-   * are all the [filteredPreviewElementsFlow] that have rendered.
-   */
-  private val renderedPreviewElementsInstancesFlow:
-    MutableStateFlow<FlowableCollection<PsiComposePreviewElementInstance>> =
-    MutableStateFlow(FlowableCollection.Uninitialized)
-
+internal class ComposePreviewFlowManager(
+  private val log: Logger = Logger.getInstance(ComposePreviewFlowManager::class.java),
   /** Delegate [PreviewFlowManager] containing common flow logic with other types of previews. */
-  private val delegate = CommonPreviewFlowManager(renderedPreviewElementsInstancesFlow, log)
-
-  /**
-   * Flow containing all the [ComposePreviewElementInstance]s available in the current file. This
-   * flow is only updated when this Compose Preview representation is active.
-   */
-  override val allPreviewElementsFlow = delegate.allPreviewElementsFlow
-
-  override val availableGroupsFlow = delegate.availableGroupsFlow
-
-  override var groupFilter: PreviewGroup
-    get() = delegate.groupFilter
-    set(group) {
-      delegate.groupFilter = group
-    }
-
-  /**
-   * Flow containing all the [ComposePreviewElementInstance]s available in the current file to be
-   * rendered. These are all the previews in [allPreviewElementsFlow] filtered using [filterFlow].
-   * This flow is only updated when this Compose Preview representation is active.
-   */
-  override val filteredPreviewElementsFlow = delegate.filteredPreviewElementsFlow
+  private val delegate: CommonPreviewFlowManager<PsiComposePreviewElementInstance> =
+    CommonPreviewFlowManager(log),
+) : PreviewFlowManager<PsiComposePreviewElementInstance> by delegate {
 
   /**
    * Preview element provider corresponding to the current state of the Preview. Different modes
@@ -107,14 +74,6 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
     MutableSharedFlow(replay = 1)
 
   /**
-   * Filter that can be applied to select a single instance. Setting this filter will trigger a
-   * refresh.
-   */
-  override fun setSingleFilter(previewElement: PsiComposePreviewElementInstance?) {
-    delegate.setSingleFilter(previewElement)
-  }
-
-  /**
    * Gets the current filter applied to the flows as a [PreviewElementFilter.Group] or null if the
    * current filter is of another type.
    */
@@ -123,18 +82,18 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
 
   /**
    * Returns whether there are previews that have completed the render process, i.e. if
-   * [renderedPreviewElementsInstancesFlow] has elements.
+   * [renderedPreviewElementsFlow] has elements.
    */
   fun hasRenderedPreviewElements() =
-    (renderedPreviewElementsInstancesFlow.value as? FlowableCollection.Present<*>)
+    (renderedPreviewElementsFlow.value as? FlowableCollection.Present<*>)
       ?.collection
       ?.isNotEmpty() == true
 
   /**
    * Updates the value of [renderedPreviewElementsInstancesFlow] with the given list of previews.
    */
-  fun updateRenderedPreviews(previewElements: List<PsiComposePreviewElementInstance>) {
-    renderedPreviewElementsInstancesFlow.value = FlowableCollection.Present(previewElements)
+  override fun updateRenderedPreviews(previewElements: List<PsiComposePreviewElementInstance>) {
+    delegate.updateRenderedPreviews(previewElements)
   }
 
   /** Returns how many previews are available to be rendered in the current file. */
