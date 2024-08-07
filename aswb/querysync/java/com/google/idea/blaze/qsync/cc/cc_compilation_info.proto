@@ -1,0 +1,52 @@
+// Copyright 2023 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package bazel.intellij;
+
+option java_package = "com.google.idea.blaze.qsync.java.cc";
+
+import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts/build_artifact.proto";
+
+message CcToolchainInfo {
+  string compiler = 1;
+  string compiler_executable = 2;
+  string cpu = 3;
+  string target_name = 4;
+  repeated string built_in_include_directories = 5;
+  repeated string c_options = 6;
+  repeated string cpp_options = 7;
+  string id = 8;
+}
+
+message CcTargetInfo {
+  string label = 1;
+  repeated string defines = 2;
+  repeated string include_directories = 3;
+  repeated string quote_include_directories = 4;
+  repeated string system_include_directories = 5;
+  repeated string framework_include_directories = 6;
+  repeated OutputArtifact gen_hdrs = 7;
+  string toolchain_id = 8;
+}
+
+// This proto message represents the structure written by
+// build_dependencies.bzl%_encode_cc_info_proto
+// This proto message is only used to communicate between the aspect and the
+// IDE code. It is never persisted so backwards incompatible changes are ok.
+message CcCompilationInfo {
+  repeated CcTargetInfo targets = 1;
+  repeated CcToolchainInfo toolchains = 2;
+}

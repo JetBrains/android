@@ -1,0 +1,243 @@
+// Copyright 2015 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blaze;
+
+import "tools/adt/idea/aswb/proto/common.proto";
+
+// option java_api_version = 2;
+option java_package = "com.google.devtools.intellij.ideinfo";
+
+message JavaSourcePackage {
+  string package_string = 2;
+  ArtifactLocation artifact_location = 3;
+}
+
+message PackageManifest {
+  repeated JavaSourcePackage sources = 1;
+}
+
+message LibraryArtifact {
+  ArtifactLocation jar = 1;
+  ArtifactLocation interface_jar = 2;
+  ArtifactLocation source_jar = 3 [deprecated = true];
+  repeated ArtifactLocation source_jars = 4;
+}
+
+message JavaIdeInfo {
+  repeated LibraryArtifact jars = 1;
+  repeated LibraryArtifact generated_jars = 2;
+  ArtifactLocation package_manifest = 3;
+  repeated ArtifactLocation sources = 4;
+  ArtifactLocation jdeps = 5;
+  LibraryArtifact filtered_gen_jar = 6;
+  string main_class = 7;
+  string test_class = 8;
+  repeated LibraryArtifact plugin_processor_jars = 9;
+  // Pass transitive jar artifact location without parsing jdeps
+  repeated ArtifactLocation transitive_compile_time_jars = 10
+      [deprecated = true];
+}
+
+message CIdeInfo {
+  repeated ArtifactLocation source = 1;
+
+  repeated string transitive_include_directory = 3;
+  repeated string transitive_quote_include_directory = 4;
+  repeated string transitive_define = 5;
+  repeated string transitive_system_include_directory = 6;
+
+  repeated string target_copt = 7;
+  repeated ArtifactLocation header = 8;
+  repeated ArtifactLocation textual_header = 9;
+}
+
+message AndroidIdeInfo {
+  // resources contains the unique res folders. This field is deprecated in
+  // favor of res_folders which includes more information.
+  repeated ArtifactLocation resources = 1;
+  ArtifactLocation apk = 2;
+  repeated ArtifactLocation dependency_apk = 3;
+  ArtifactLocation manifest = 4;
+  string java_package = 5;
+  bool has_idl_sources = 6;
+  LibraryArtifact idl_jar = 7;
+  bool generate_resource_class = 8;
+  string legacy_resources = 9;
+  LibraryArtifact resource_jar = 10;
+  string idl_import_root = 11;
+  map<string, string> manifest_values = 12;
+
+  // Details about Android res folders: An android_library's resource_files attr
+  // takes in a list of labels. The resource merger expects that all the
+  // resources share the same basename (which is typically `res`), but these
+  // folders can reside outside the current package. We generate one
+  // `ResFolderLocation` message for each such folder.
+  repeated ResFolderLocation res_folders = 13;
+
+  // Label for the target android_binary to instrument.
+  string instruments = 14;
+  // Jar used for resolving render time dependencies. Contains all runtime
+  // dependencies of a binary without the desugared APIs. This field is not set
+  // for non-binary targets
+  ArtifactLocation render_resolve_jar = 15;
+}
+
+// Details about an Android res folder
+message ResFolderLocation {
+  // The res folder itself
+  ArtifactLocation root = 1;
+
+  // Relative paths to the specific res files underneath the root.
+  // Deprecated: we no longer return path to resources. Instead, resource files
+  // will be packed as an aar and stored in aar field
+  repeated string resources = 2 [deprecated = true];
+
+  // An aar containing all the resources included from within this folder.
+  ArtifactLocation aar = 3;
+}
+
+message AndroidSdkIdeInfo {
+  ArtifactLocation android_jar = 1;
+}
+
+message AndroidAarIdeInfo {
+  ArtifactLocation aar = 1;
+  string java_package = 2;
+}
+
+// Details about an android instrumentation test.
+message AndroidInstrumentationInfo {
+  // Label for the android_binary to use as instrumentor.
+  string test_app = 1;
+  // Label for device target image to use during this test.
+  string target_device = 2;
+}
+
+message PyIdeInfo {
+  enum PythonVersion {
+    UNKNOWN = 0;
+    PY2 = 1;
+    PY3 = 2;
+  }
+  enum PythonSrcsVersion {
+    SRC_UNKNOWN = 0;
+    SRC_PY2 = 1;
+    SRC_PY3 = 2;
+    SRC_PY2AND3 = 3;
+    SRC_PY2ONLY = 4;
+    SRC_PY3ONLY = 5;
+  }
+  repeated ArtifactLocation sources = 1;
+  string launcher = 2;
+  // the python version this target has been configured for
+  PythonVersion python_version = 3;
+  // the python versions this target is compatible with
+  PythonSrcsVersion srcs_version = 4;
+  repeated string args = 5;
+}
+
+message GoIdeInfo {
+  repeated ArtifactLocation sources = 1;
+  string import_path = 2;
+  string library_label = 3 [deprecated = true];
+  string library_kind = 4 [deprecated = true];
+  repeated string library_labels = 5;
+}
+
+message JsIdeInfo {
+  repeated ArtifactLocation sources = 1;
+}
+
+message TsIdeInfo {
+  repeated ArtifactLocation sources = 1;
+}
+
+message DartIdeInfo {
+  repeated ArtifactLocation sources = 1;
+}
+
+message CToolchainIdeInfo {
+  string target_name = 1;
+  repeated string cpp_option = 2;
+  repeated string c_option = 3;
+  string cpp_executable = 4;
+  repeated string built_in_include_directory = 5;
+}
+
+message TestInfo {
+  string size = 1;
+}
+
+message JavaToolchainIdeInfo {
+  string source_version = 1;
+  string target_version = 2;
+  repeated ArtifactLocation javac_jars = 4;
+}
+
+message KotlinToolchainIdeInfo {
+  string language_version = 1;
+  repeated string sdk_library_targets = 2;
+  repeated string kotlin_compiler_common_flags = 3;
+}
+
+message TargetKey {
+  string label = 1;
+  repeated string aspect_ids = 3;
+}
+
+message Dependency {
+  enum DependencyType {
+    COMPILE_TIME = 0;
+    RUNTIME = 1;
+  }
+
+  TargetKey target = 1;
+  DependencyType dependency_type = 2;
+}
+
+message TargetIdeInfo {
+  string kind_string = 1;
+  TargetKey key = 2;
+  ArtifactLocation build_file_artifact_location = 3;
+  repeated Dependency deps = 4;
+  repeated string tags = 5;
+  repeated string features = 6;
+  TestInfo test_info = 7;
+
+  // The time this target was most recently synced, in milliseconds since epoch.
+  // Not provided by the aspect directly; instead filled in by the plugin during
+  // sync.
+  int64 sync_time_millis = 20;
+
+  JavaIdeInfo java_ide_info = 100;
+  JavaToolchainIdeInfo java_toolchain_ide_info = 101;
+
+  AndroidIdeInfo android_ide_info = 110;
+  AndroidAarIdeInfo android_aar_ide_info = 111;
+  AndroidSdkIdeInfo android_sdk_ide_info = 112;
+  AndroidInstrumentationInfo android_instrumentation_info = 113;
+
+  CIdeInfo c_ide_info = 120;
+  CToolchainIdeInfo c_toolchain_ide_info = 121;
+
+  PyIdeInfo py_ide_info = 130;
+  GoIdeInfo go_ide_info = 140;
+  JsIdeInfo js_ide_info = 150;
+  TsIdeInfo ts_ide_info = 160;
+  DartIdeInfo dart_ide_info = 170;
+  KotlinToolchainIdeInfo kt_toolchain_ide_info = 180;
+}

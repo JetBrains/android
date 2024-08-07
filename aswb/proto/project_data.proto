@@ -1,0 +1,252 @@
+// Copyright 2018 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Protocol buffer representation of a BlazeProjectData.
+// We will be serializing and writing this to disk on sync, and reading it back
+// when user reopens their project.
+
+syntax = "proto3";
+
+package blaze;
+
+import "tools/adt/idea/aswb/third_party/bazel/src/main/protobuf/build.proto";
+import "tools/adt/idea/aswb/proto/common.proto";
+import "tools/adt/idea/aswb/proto/intellij_ide_info.proto";
+
+// option java_api_version = 2;
+option java_package = "com.google.devtools.intellij.model";
+
+message TargetMap {
+  repeated TargetIdeInfo targets = 1;
+}
+
+message BlazeInfo {
+  map<string, string> blaze_info = 1;
+}
+
+message BazelVersion {
+  int32 major = 1;
+  int32 minor = 2;
+  int32 bugfix = 3;
+}
+
+message BlazeVersionData {
+  int64 blaze_cl = 1;
+  int64 client_cl = 2;
+  BazelVersion bazel_version = 3;
+}
+
+message WorkspacePathResolver {
+  string workspace_root = 1;
+  string read_only_workspace_root = 2;
+  repeated string tracked_packages = 3;
+}
+
+message WorkspaceLanguageSettings {
+  string workspace_type = 1;
+  repeated string active_languages = 2;
+}
+
+message BlazeSourceDirectory {
+  string directory = 1;
+  bool is_generated = 2;
+  bool is_resource = 3;
+  string package_prefix = 4;
+}
+
+message BlazeContentEntry {
+  string content_root = 1;
+  repeated BlazeSourceDirectory sources = 2;
+}
+
+message EmptyJarTracker {
+  message Entry {
+    LocalFileOrOutputArtifact artifact = 1;
+    bool is_empty = 2;
+  }
+  repeated Entry entries = 1;
+}
+
+message BlazeJavaImportResult {
+  repeated BlazeContentEntry content_entries = 1;
+  map<string, BlazeLibrary> libraries = 2;
+  repeated ArtifactLocation build_output_jars = 3;
+  repeated ArtifactLocation java_source_files = 4;
+  string source_version = 5;
+  EmptyJarTracker empty_jar_tracker = 6;
+  // this field has been deprecated due to field type change, use
+  // plugin_processor_jar_artifacts instead
+  repeated BlazeLibrary plugin_processor_jars = 7 [deprecated = true];
+  repeated ArtifactLocation plugin_processor_jar_artifacts = 8;
+}
+
+message BlazeJavaSyncData {
+  BlazeJavaImportResult import_result = 1;
+  repeated string excluded_libraries = 2;
+}
+
+message TargetToJdepsMap {
+  message Entry {
+    TargetKey key = 1;
+    repeated string value = 2;
+    LocalFileOrOutputArtifact file = 3;
+  }
+  repeated Entry entries = 1;
+}
+
+message JdepsState {
+  reserved 1;
+  map<string, TargetKey> file_to_target = 2 [deprecated = true];
+  TargetToJdepsMap target_to_jdeps = 3;
+  repeated LocalFileOrOutputArtifact jdeps_files = 4 [deprecated = true];
+}
+
+message LanguageSpecResult {
+  blaze_query.BuildLanguage spec = 1;
+  int64 timestamp_millis = 2;
+}
+
+message BlazeIdeInterfaceState {
+  reserved 1;
+  map<string, TargetKey> file_to_target = 2;
+  reserved 3;
+  reserved 4;
+  repeated LocalFileOrOutputArtifact ide_info_files = 5;
+}
+
+message LocalFileOrOutputArtifact {
+  oneof output {
+    LocalFile local_file = 1;
+    OutputArtifact artifact = 2;
+  }
+}
+
+// an output artifact which exists on the local file system
+message LocalFile {
+  // the absolute file path. Deprecated: use relative_path instead, to be
+  // consistent with OutputArtifact
+  string path = 1 [deprecated = true];
+  // used to compare files with the same path
+  int64 timestamp = 2;
+  // the blaze-out-relative path of this artifact
+  string relative_path = 3;
+}
+
+// an output artifact not necessarily available on the local file system
+message OutputArtifact {
+  // the blaze-out-relative path of this artifact
+  string relative_path = 1;
+  // a string uniquely identifying this artifact. May be used to
+  // retrieve it from a remote caching service
+  string id = 2;
+  // the start time in milliseconds since epoch at which this artifact was
+  // synced. Used to choose between artifacts with the same path but different
+  // IDs artifacts from a more recently-started sync will take priority
+  int64 sync_start_time_millis = 3;
+  int64 file_length = 4;
+  // The digest of the artifact file; using the build tool's configured digest
+  // algorithm. It represents the content of the file and can be used to detect
+  // whether the content has changed.
+  string digest = 5;
+}
+
+message AndroidResourceModule {
+  TargetKey target_key = 1;
+  repeated ArtifactLocation resources = 2;
+  repeated ArtifactLocation transitive_resources = 3;
+  repeated string resource_library_keys = 4;  // added in 3.3
+  repeated TargetKey transitive_resource_dependencies = 5;
+  // targets that contribute resources to the AndroidResourceModule,
+  // including target_key
+  repeated TargetKey source_target_keys = 6;
+}
+
+message BlazeJarLibrary {
+  LibraryArtifact library_artifact = 1;
+  TargetKey target_key = 2;
+}
+
+message AarLibrary {
+  LibraryArtifact library_artifact = 1;
+  ArtifactLocation aar_artifact = 2;
+  string resource_package = 3;
+}
+
+message BlazeResourceLibrary {
+  repeated ArtifactLocation sources = 1;  // removed in 3.3
+  ArtifactLocation root = 2;
+  ArtifactLocation manifest = 3;
+  repeated string resources = 4;
+}
+
+message BlazeLibrary {
+  string library_key = 1;
+  oneof subclass {
+    BlazeJarLibrary blaze_jar_library = 2;
+    AarLibrary aar_library = 3;
+    BlazeResourceLibrary blaze_resource_library = 4;
+  }
+}
+
+message BlazeAndroidImportResult {
+  repeated AndroidResourceModule android_resource_modules = 1;
+  repeated BlazeLibrary resource_libraries = 2;  // single in 3.2
+  ArtifactLocation javac_jar = 3 [deprecated = true];
+  repeated BlazeLibrary aar_libraries = 4;
+  repeated ArtifactLocation javac_jars = 5 [deprecated = true];
+  repeated BlazeLibrary javac_jar_libraries = 6;
+  repeated BlazeLibrary resource_jars = 7;
+}
+
+message AndroidSdkPlatform {
+  string android_sdk = 1;
+  int32 android_min_sdk_level = 2;
+}
+
+message BlazeAndroidSyncData {
+  BlazeAndroidImportResult import_result = 1;
+  AndroidSdkPlatform android_sdk_platform = 2;
+}
+
+message RemoteOutputArtifacts {
+  repeated OutputArtifact artifacts = 1;
+}
+
+message TargetData {
+  TargetMap target_map = 1;
+  BlazeIdeInterfaceState ide_interface_state = 2;
+  RemoteOutputArtifacts remote_outputs = 3;
+}
+
+message SyncState {
+  BlazeJavaSyncData blaze_java_sync_data = 1;
+  BlazeAndroidSyncData blaze_android_sync_data = 2;
+  // reusing BlazeJavaSyncData, since it's a subset
+  BlazeJavaSyncData blaze_scala_sync_data = 3;
+  LanguageSpecResult language_spec_result = 4;
+  JdepsState jdeps_state = 5;
+  BlazeIdeInterfaceState blaze_ide_interface_state = 6 [deprecated = true];
+  RemoteOutputArtifacts remote_output_artifacts = 7 [deprecated = true];
+}
+
+message BlazeProjectData {
+  reserved 1;
+  TargetMap target_map = 2 [deprecated = true];
+  BlazeInfo blaze_info = 3;
+  BlazeVersionData blaze_version_data = 4;
+  WorkspacePathResolver workspace_path_resolver = 5;
+  WorkspaceLanguageSettings workspace_language_settings = 6;
+  SyncState sync_state = 7;
+  TargetData target_data = 8;
+}
