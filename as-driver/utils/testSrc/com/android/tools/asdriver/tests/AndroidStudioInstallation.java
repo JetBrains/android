@@ -52,6 +52,7 @@ public class AndroidStudioInstallation {
   private final Path vmOptionsPath;
   private final Path configDir;
   private final Path logsDir;
+  private final Path telemetryJsonFile;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
     return fromZip(testFileSystem, AndroidStudioFlavor.FOR_EXTERNAL_USERS);
@@ -112,6 +113,7 @@ public class AndroidStudioInstallation {
     vmOptionsPath = workDir.resolve("studio.vmoptions");
     configDir = workDir.resolve("config");
     Files.createDirectories(configDir);
+    telemetryJsonFile = logsDir.resolve("opentelemetry.json");
 
     setConsentGranted(true);
     createVmOptionsFile();
@@ -172,6 +174,7 @@ public class AndroidStudioInstallation {
     // used by the %assertFindUsagesEntryCommand to access the result of the last findUsages event.
     vmOptions.append(
       String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
+    vmOptions.append(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
 
     Files.writeString(vmOptionsPath, vmOptions.toString());
 
@@ -396,6 +399,10 @@ public class AndroidStudioInstallation {
 
   public Path getConfigDir() {
     return configDir;
+  }
+
+  public Path getTelemetryJsonFile() {
+    return telemetryJsonFile;
   }
 
   public Path getStudioDir() {
