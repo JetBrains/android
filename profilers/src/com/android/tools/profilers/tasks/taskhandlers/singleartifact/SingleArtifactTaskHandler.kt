@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
-import com.android.tools.profilers.InterimStage
+import com.android.tools.profilers.TaskStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
@@ -25,10 +25,10 @@ import com.google.common.annotations.VisibleForTesting
 
 /**
  * Building on/extending the ProfilerTaskHandler, this abstract class adds and enforces additional functionality catered towards tasks
- * backed by a single artifact. It augments the behavior of the ProfilerTaskHandler by introducing and enforcing the use of an InterimStage
+ * backed by a single artifact. It augments the behavior of the ProfilerTaskHandler by introducing and enforcing the use of an TaskStage
  * to facilitate the capture of the artifact.
  */
-abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: SessionsManager) : ProfilerTaskHandler(sessionsManager) {
+abstract class SingleArtifactTaskHandler<T : TaskStage>(sessionsManager: SessionsManager) : ProfilerTaskHandler(sessionsManager) {
 
   /**
    * To collect the single artifact, an interim stage instance is utilized.
