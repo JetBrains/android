@@ -18,30 +18,60 @@ package com.android.tools.idea.wear.preview.animation
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
-class TestDynamicTypeAnimator : DynamicTypeAnimator {
+class TestDynamicTypeAnimator(private val duration: Long = 100, private val startDelay: Long = 10) :
+  DynamicTypeAnimator {
   override var typeEvaluator: DynamicTypeAnimator.TypeEvaluator<*> =
     object : DynamicTypeAnimator.TypeEvaluator<Any> {
       override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any {
         return if (fraction == 0f) startValue else endValue
       }
     }
-  private var floatValues: FloatArray? = null
-  private var intValues: IntArray? = null
+
   private var animationFrameTime: Long = 0
-  override var propertyValuesHolders: Array<PropertyValuesHolder?>? = null
-  override var lastAnimatedValue: Any? = null
-  override var duration: Long = 0
-  override var startDelay: Long = 0
+
+  private var _floatValues: FloatArray = FloatArray(2)
 
   override fun setFloatValues(vararg values: Float) {
-    floatValues = values
+    _floatValues = values
   }
+
+  fun getFloatValues(): FloatArray {
+    return _floatValues.copyOf() // Return a copy to prevent external modification
+  }
+
+  private var _intValues: IntArray = IntArray(2)
 
   override fun setIntValues(vararg values: Int) {
-    intValues = values
+    _intValues = values
   }
 
-  override fun setAnimationFrameTime(newTime: Long) {
+  fun getIntValues(): IntArray {
+    return _intValues.copyOf() // Return a copy to prevent external modification
+  }
+
+  override fun advanceToAnimationTime(newTime: Long) {
     animationFrameTime = newTime
+  }
+
+  override fun getPropertyValuesHolders(): Array<PropertyValuesHolder?>? {
+    return null
+  }
+
+  private var _lastAnimatedValue: Any? = null
+
+  fun setLastAnimatedValue(newValue: Any?) {
+    _lastAnimatedValue = newValue
+  }
+
+  override fun getLastAnimatedValue(): Any? {
+    return _lastAnimatedValue
+  }
+
+  override fun getDurationMs(): Long {
+    return duration
+  }
+
+  override fun getStartDelayMs(): Long {
+    return startDelay
   }
 }

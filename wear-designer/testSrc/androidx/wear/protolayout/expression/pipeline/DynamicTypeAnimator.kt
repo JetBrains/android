@@ -15,7 +15,6 @@
  */
 package androidx.wear.protolayout.expression.pipeline
 
-import com.android.annotations.NonNull
 import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
 /** Interface that should match the one from the AndroidX library */
@@ -31,38 +30,54 @@ interface DynamicTypeAnimator {
    * Sets the float values that this animation will animate between.
    *
    * @param values The float values to animate between.
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
+   *   suitable [TypeEvaluator] for float values (e.g., [FloatEvaluator]).
    */
-  fun setFloatValues(@NonNull vararg values: Float)
+  fun setFloatValues(vararg values: Float)
 
   /**
    * Sets the integer values that this animation will animate between.
    *
    * @param values The integer values to animate between.
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
+   *   suitable [TypeEvaluator] for integer values (e.g., [IntEvaluator] or [ ]).
    */
-  fun setIntValues(@NonNull vararg values: Int)
+  fun setIntValues(vararg values: Int)
 
   /**
-   * Advances the animation to the specified time frame.
+   * Advances the animation to the specified time.
    *
-   * @param newTime The new time in milliseconds.
+   * @param newTime The new time in milliseconds from animation start.
    */
-  fun setAnimationFrameTime(newTime: Long)
+  fun advanceToAnimationTime(newTime: Long)
 
-  val propertyValuesHolders: Array<PropertyValuesHolder?>?
+  /**
+   * Gets a collection of PropertyValuesHolder objects, each of which holds information about a
+   * single animated property.
+   *
+   * @return A collection of PropertyValuesHolder objects or null if values animate between are not
+   *   set.
+   */
+  fun getPropertyValuesHolders(): Array<PropertyValuesHolder?>?
 
-  val lastAnimatedValue: Any?
+  /**
+   * Gets the last value of the animated property at the current time in the animation.
+   *
+   * @return The last calculated animated value.
+   */
+  fun getLastAnimatedValue(): Any?
 
   /**
    * Gets the duration of the animation, in milliseconds.
    *
    * @return The duration of the animation.
    */
-  val duration: Long
+  fun getDurationMs(): Long
 
   /**
    * Gets the start delay of the animation, in milliseconds.
    *
    * @return The start delay of the animation.
    */
-  val startDelay: Long
+  fun getStartDelayMs(): Long
 }
