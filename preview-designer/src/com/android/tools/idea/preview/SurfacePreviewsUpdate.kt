@@ -299,6 +299,8 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
       // Common configuration steps for new and reused models
       newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
+      newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
+      newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
       (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
@@ -306,7 +308,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           groups.getOrCreate(methodPreviewElement.methodFqn) {
             OrganizationGroup(
               methodPreviewElement.methodFqn,
-              methodPreviewElement.displaySettings.name,
+              methodPreviewElement.displaySettings.baseName,
             )
           }
       }
