@@ -55,7 +55,10 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
     return super.addTab(info).also { tabInfo ->
-      getTabLabel(tabInfo)!!.add(CloseButton(CloseActionListener(tabInfo, closeAction)), BorderLayout.EAST)
+      getTabLabel(tabInfo)!!.add(
+        CloseButton(CloseActionListener(tabInfo, closeAction)),
+        BorderLayout.EAST,
+      )
     }
   }
 
