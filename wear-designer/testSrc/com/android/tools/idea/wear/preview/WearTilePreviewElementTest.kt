@@ -62,7 +62,15 @@ class WearTilePreviewElementTest {
     val previewElement1 =
       WearTilePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            "parameter name",
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -72,7 +80,15 @@ class WearTilePreviewElementTest {
     val previewElement2 =
       WearTilePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            "parameter name",
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -87,7 +103,15 @@ class WearTilePreviewElementTest {
     val originalPreviewElement =
       WearTilePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            "parameter name",
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -95,7 +119,15 @@ class WearTilePreviewElementTest {
       )
 
     val newPreviewDisplaySettings =
-      PreviewDisplaySettings("derived name", "derived group", true, true, "0xffffff")
+      PreviewDisplaySettings(
+        "derived name",
+        "derived base name",
+        "parameter name",
+        "derived group",
+        true,
+        true,
+        "0xffffff",
+      )
     val newConfig =
       PreviewConfiguration.cleanAndGet(
         device = "id:wearos_square",

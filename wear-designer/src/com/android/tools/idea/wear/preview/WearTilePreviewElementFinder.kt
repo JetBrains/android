@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.buildParameterName
 import com.android.tools.idea.preview.buildPreviewName
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
@@ -163,6 +164,12 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
         nameParameter = name,
         isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
       ),
+      baseName = uMethod.name,
+      parameterName =
+        buildParameterName(
+          nameParameter = name,
+          isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
+        ),
       group = group,
       showDecoration = false,
       showBackground = true,

@@ -26,6 +26,8 @@ import com.intellij.psi.SmartPsiElementPointer
 
 internal class TestBasePreviewElement<T>(
   displayName: String = "",
+  baseName: String = "",
+  parameterName: String? = null,
   override val methodFqn: String = "TestMethod",
   groupName: String? = null,
   showDecorations: Boolean = false,
@@ -40,6 +42,8 @@ internal class TestBasePreviewElement<T>(
   override val displaySettings =
     PreviewDisplaySettings(
       displayName,
+      baseName,
+      parameterName,
       groupName,
       showDecorations,
       showBackground,
@@ -54,6 +58,8 @@ internal class TestBasePreviewElement<T>(
   ) =
     TestBasePreviewElement(
       displayName = displaySettings.name,
+      baseName = displaySettings.baseName,
+      parameterName = displaySettings.parameterName,
       methodFqn = methodFqn,
       groupName = displaySettings.group,
       showDecorations = displaySettings.showDecoration,

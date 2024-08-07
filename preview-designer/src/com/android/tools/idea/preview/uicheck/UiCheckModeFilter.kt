@@ -143,6 +143,8 @@ private fun <T : PreviewElementInstance<*>> wearPreviews(baseInstance: T): List<
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = name,
           group = message("ui.check.mode.wear.group"),
           showDecoration = true,
         )
@@ -166,6 +168,8 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${idToName[effectiveDeviceIds[device]]} - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = idToName[effectiveDeviceIds[device]],
           group = message("ui.check.mode.screen.size.group"),
           showDecoration = true,
         )
@@ -183,6 +187,8 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T): L
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = name,
           group = message("ui.check.mode.font.scale.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
@@ -200,6 +206,8 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = name,
           group = message("ui.check.mode.light.dark.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
@@ -219,6 +227,8 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T):
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
+          baseName = baseDisplaySettings.name,
+          parameterName = colorBlindMode.displayName,
           group = message("ui.check.mode.screen.accessibility.group"),
           showDecoration = false,
         )

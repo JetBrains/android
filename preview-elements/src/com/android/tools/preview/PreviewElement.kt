@@ -24,6 +24,8 @@ enum class DisplayPositioning {
  * Settings that modify how a [PreviewElement] is rendered
  *
  * @param name display name of this preview element
+ * @param baseName For parametrized previews, all of them have a same base name. For example for Composable it will be method name.
+ * @param parameterName For parametrized previews, they might have a parameter name.
  * @param group name that allows multiple previews in separate groups
  * @param showDecoration when true, the system decorations (navigation and status bars) should be
  *   displayed as part of the render
@@ -35,6 +37,8 @@ enum class DisplayPositioning {
  */
 data class PreviewDisplaySettings(
   val name: String,
+  val baseName: String,
+  val parameterName: String?,
   val group: String?,
   val showDecoration: Boolean,
   val showBackground: Boolean,
