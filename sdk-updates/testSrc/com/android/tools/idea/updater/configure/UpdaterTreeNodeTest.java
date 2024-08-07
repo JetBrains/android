@@ -92,18 +92,18 @@ public class UpdaterTreeNodeTest {
     FakePackage.FakeLocalPackage local = new FakePackage.FakeLocalPackage("foo");
     local.setDisplayName("my package");
     UpdatablePackage updatablePackage = new UpdatablePackage(local);
-    DetailsTreeNode node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    DetailsTreeNode node = new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable);
     validateText(node, "my package", SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
     local.setObsolete(true);
-    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable);
     validateText(node, "my package (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
     // bug 133519160
     local = new FakePackage.FakeLocalPackage(FD_NDK);
     local.setDisplayName("legacy ndk");
     updatablePackage = new UpdatablePackage(local);
-    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable);
     validateText(node, "legacy ndk (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
   }
 
@@ -131,7 +131,7 @@ public class UpdaterTreeNodeTest {
   public void testDetailsTreeNodeListener() throws Exception {
     UpdatablePackage updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("foo"));
     ChangeListener listener = Mockito.mock(ChangeListener.class);
-    DetailsTreeNode node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), listener, myConfigurable);
+    DetailsTreeNode node = new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), listener, myConfigurable);
     node.setState(NOT_INSTALLED);
     ArgumentCaptor<ChangeEvent> argument = ArgumentCaptor.forClass(ChangeEvent.class);
     Mockito.verify(listener).stateChanged(argument.capture());
@@ -336,7 +336,7 @@ public class UpdaterTreeNodeTest {
     platformPackage.setTypeDetails((TypeDetails)platformDetailsType);
     localPlatfromPackage.setTypeDetails((TypeDetails)platformDetailsType);
     UpdatablePackage updatablePlatformPackage = new UpdatablePackage(localPlatfromPackage, platformPackage);
-    DetailsTreeNode platformNode = new DetailsTreeNode(new PackageNodeModel(updatablePlatformPackage), null,
+    DetailsTreeNode platformNode = new DetailsTreeNode(new PackageNodeModel(updatablePlatformPackage, false), null,
                                                        myConfigurable);
     Set<UpdaterTreeNode> nodes = ImmutableSet.of(platformNode);
     SummaryTreeNode node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
@@ -348,7 +348,7 @@ public class UpdaterTreeNodeTest {
     FakePackage.FakeRemotePackage sourcesPackage = new FakePackage.FakeRemotePackage("sources");
     sourcesPackage.setTypeDetails((TypeDetails)sourceDetailsType);
     UpdatablePackage updatableSourcesPackage = new UpdatablePackage(sourcesPackage);
-    DetailsTreeNode sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage), null, myConfigurable);
+    DetailsTreeNode sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage, false), null, myConfigurable);
     nodes = ImmutableSet.of(platformNode, sourcesNode);
     node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
     assertEquals("Partially installed", node.getStatusString());
@@ -357,7 +357,7 @@ public class UpdaterTreeNodeTest {
     FakePackage.FakeLocalPackage localSourcesPackage = new FakePackage.FakeLocalPackage("sources");
     localSourcesPackage.setTypeDetails((TypeDetails)sourceDetailsType);
     updatableSourcesPackage = new UpdatablePackage(localSourcesPackage, sourcesPackage);
-    sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage), null, myConfigurable);
+    sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage, false), null, myConfigurable);
     nodes = ImmutableSet.of(platformNode, sourcesNode);
     node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
     assertEquals("Installed", node.getStatusString());
@@ -400,32 +400,32 @@ public class UpdaterTreeNodeTest {
 
   private void addUnselectedChildren(@NotNull UpdaterTreeNode parent) {
     UpdatablePackage updatablePackage = new UpdatablePackage(new FakePackage.FakeRemotePackage("remote1"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
     updatablePackage = new UpdatablePackage(new FakePackage.FakeRemotePackage("remote2"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
   }
 
   private void addMixedChildren(@NotNull UpdaterTreeNode parent) {
     UpdatablePackage updatablePackage = new UpdatablePackage(new FakePackage.FakeRemotePackage("remote"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
     updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("local"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
     updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("withRemote"),
                                             new FakePackage.FakeRemotePackage("withRemote"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
     FakePackage.FakeRemotePackage remote = new FakePackage.FakeRemotePackage("update");
     remote.setRevision(new Revision(2));
     updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("update"),
                                             remote);
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
   }
 
   private void addSelectedChildren(@NotNull UpdaterTreeNode parent) {
     UpdatablePackage updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("withoutRemote"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
     updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("withRemote"),
                                             new FakePackage.FakeRemotePackage("withRemote"));
-    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable));
+    parent.add(new DetailsTreeNode(new PackageNodeModel(updatablePackage, false), null, myConfigurable));
   }
 
   @NotNull
@@ -462,7 +462,7 @@ public class UpdaterTreeNodeTest {
         updatablePackage = new UpdatablePackage(remote);
       }
     }
-    return new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    return new DetailsTreeNode(new PackageNodeModel(updatablePackage, true), null, myConfigurable);
   }
 
   private static class TestTreeNode extends UpdaterTreeNode {

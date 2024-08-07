@@ -34,10 +34,10 @@ public class MultiVersionTreeNodeTest {
   public void maxVersion() {
     SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
     List<DetailsTreeNode> nodes = ImmutableList.of(
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0-alpha1"))), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0-beta2"))), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0"))), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;0.9.9"))), null, configurable)
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0-alpha1")), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0-beta2")), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0")), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;0.9.9")), false), null, configurable)
     );
     MultiVersionTreeNode node = new MultiVersionTreeNode(nodes);
     node.cycleState();
@@ -51,9 +51,9 @@ public class MultiVersionTreeNodeTest {
   public void maxPreviewVersion() {
     SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
     List<DetailsTreeNode> nodes = ImmutableList.of(
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-alpha2"))), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-beta1"))), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0"))), null, configurable)
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-alpha2")), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-beta1")), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0")), false), null, configurable)
     );
     MultiVersionTreeNode node = new MultiVersionTreeNode(nodes);
     node.cycleState();
@@ -73,9 +73,9 @@ public class MultiVersionTreeNodeTest {
     latest.setRevision(new Revision(1, 1));
 
     List<DetailsTreeNode> nodes = ImmutableList.of(
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v1)), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(latest)), null, configurable),
-      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v11)), null, configurable)
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v1), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(latest), false), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v11), false), null, configurable)
     );
     MultiVersionTreeNode node = new MultiVersionTreeNode(nodes);
     node.cycleState();
