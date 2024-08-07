@@ -48,8 +48,9 @@ fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: 
     Row(modifier = Modifier.background(TABLE_ROW_SELECTION_BACKGROUND_COLOR).padding(RECORDING_BANNER_PADDING_DP),
         verticalAlignment = Alignment.CenterVertically) {
       Icon(
-        painter = StudioIconsCompose.Common.InfoInline().getPainter().value,
-        contentDescription = "Info"
+        key = StudioIconsCompose.Common.InfoInline,
+        contentDescription = "Info",
+        iconClass = StudioIconsCompose::class.java
       )
       Spacer(modifier = Modifier.width(8.dp))
       EllipsisText(text = RECORDING_BANNER_MESSAGE)
@@ -57,7 +58,11 @@ fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: 
       Link(DONT_SHOW_AGAIN_TITLE, onClick = { onBannerDoNotAskAgainClick() }, overflow = TextOverflow.Ellipsis)
       Spacer(modifier = Modifier.width(8.dp))
       IconButton(onClick = { onBannerClose() }) {
-        Icon(painter = StudioIconsCompose.Common.Close().getPainter().value, contentDescription = "Close")
+        Icon(
+          key = StudioIconsCompose.Common.Close,
+          contentDescription = "Close",
+          iconClass = StudioIconsCompose::class.java
+        )
       }
     }
     PastRecordingsBannerBorderLine()

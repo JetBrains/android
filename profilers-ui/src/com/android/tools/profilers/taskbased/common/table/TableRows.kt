@@ -26,29 +26,34 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LeftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
+fun LeftAlignedColumnText(text: String, iconKey: IntelliJIconKey? = null, rowScope: RowScope) {
   with(rowScope) {
     Box(
       modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 5.dp),
       contentAlignment = Alignment.CenterStart
     ) {
       Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        iconPainter?.let {
+        iconKey?.let {
           Tooltip(
             { Text(TaskBasedUxStrings.PREFERRED_PROCESS_TOOLTIP) }
           ) {
-            Icon(painter = it, contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC)
+            Icon(
+              it,
+              contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
+              iconClass = StudioIconsCompose::class.java
+            )
           }
         }
         EllipsisText(text = text)
