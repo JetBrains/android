@@ -12,6 +12,7 @@
     <orderEntry type="module" module-name="intellij.android.device-explorer-files" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-common" scope="TEST"/>
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />

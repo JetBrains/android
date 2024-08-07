@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/android-common:intellij.android.common.tests[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",

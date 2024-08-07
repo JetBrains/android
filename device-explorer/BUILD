@@ -55,6 +55,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common.tests[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
