@@ -1,0 +1,45 @@
+import com.android.build.api.variant.HostTestBuilder;
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    testFixtures.enable = true
+    defaultConfig {
+        applicationId "google.simpleapplication"
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+   experimentalProperties["android.experimental.enableScreenshotTest"] = true
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:+'
+    api 'com.google.guava:guava:19.0'
+    api 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:+'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}
+
+
+androidComponents {
+  onVariants(selector().all()) { variant ->
+    variant.androidTest?.sources?.java?.addStaticSourceDirectory("src/android/java")
+    variant.testFixtures?.sources?.java?.addStaticSourceDirectory("src/fixtures/java")
+    variant.hostTests[HostTestBuilder.SCREENSHOT_TEST_TYPE]?.sources?.java?.addStaticSourceDirectory("src/screenshot/java")
+    variant.hostTests[HostTestBuilder.UNIT_TEST_TYPE]?.sources?.java?.addStaticSourceDirectory("src/unit/java")
+  }
+}
