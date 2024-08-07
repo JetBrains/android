@@ -141,7 +141,12 @@ private object CompileScopeImpl : CompileScope {
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    val androidModule = input.first().module?.implementingModules?.firstOrNull { it.isAndroidModule() }
+    val module = input.first().module
+    val androidModule = when {
+      module == null -> null
+      module.isAndroidModule() -> module
+      else -> module.implementingModules.firstOrNull { it.isAndroidModule() }
+    }
     return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, androidModule?.platform ?: JvmPlatforms.defaultJvmPlatform)
   }
 
