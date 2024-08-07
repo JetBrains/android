@@ -23,18 +23,18 @@ class ProtoAnimationTest {
 
   @Test
   fun testValidAnimator() {
-    val validAnimator = TestDynamicTypeAnimator() // Create an instance that implements the interface
+    val validAnimator =
+      TestDynamicTypeAnimator() // Create an instance that implements the interface
     // Should not throw an exception
     ProtoAnimation(validAnimator)
   }
 
   @Test
   fun testInvalidAnimator() {
-    val invalidAnimator =  String() // Create an instance that DOES NOT implement the interface
+    val invalidAnimator = String() // Create an instance that DOES NOT implement the interface
     // Should throw an IllegalArgumentException
-    val exception = assertThrows(IllegalArgumentException::class.java) {
-      ProtoAnimation(invalidAnimator)
-    }
+    val exception =
+      assertThrows(IllegalArgumentException::class.java) { ProtoAnimation(invalidAnimator) }
     assertEquals("Animator must implement DynamicTypeAnimator interface", exception.message)
   }
 }

@@ -18,13 +18,13 @@ package com.android.tools.idea.wear.preview.animation
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
-
 class TestDynamicTypeAnimator : DynamicTypeAnimator {
-  override var typeEvaluator: DynamicTypeAnimator.TypeEvaluator<*> = object : DynamicTypeAnimator.TypeEvaluator<Any> {
-    override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any {
-      return if (fraction == 0f) startValue else endValue
+  override var typeEvaluator: DynamicTypeAnimator.TypeEvaluator<*> =
+    object : DynamicTypeAnimator.TypeEvaluator<Any> {
+      override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any {
+        return if (fraction == 0f) startValue else endValue
+      }
     }
-  }
   private var floatValues: FloatArray? = null
   private var intValues: IntArray? = null
   private var animationFrameTime: Long = 0

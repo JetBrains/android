@@ -88,21 +88,20 @@ class AnimationUtilsKtTest {
     whenever(model.dataContext)
       .thenReturn(SimpleDataContext.getSimpleContext(PREVIEW_ELEMENT_INSTANCE, previewElement))
 
-
     whenever(layoutlibSceneManager.model).thenReturn(model)
     whenever(layoutlibSceneManager.scene).thenReturn(scene)
     whenever(scene.root).thenReturn(root)
     whenever(root.nlComponent).thenReturn(nlComponent)
 
     // With animations
-    val tileServiceViewAdapter = object  {
-      fun getAnimations() = listOf(TestDynamicTypeAnimator())
-    }
+    val tileServiceViewAdapter =
+      object {
+        fun getAnimations() = listOf(TestDynamicTypeAnimator())
+      }
 
     val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
 
     nlComponent.viewInfo = viewInfo
-
 
     detectAnimations(layoutlibSceneManager)
 
@@ -110,18 +109,20 @@ class AnimationUtilsKtTest {
     assertThat(previewElement.hasAnimations).isTrue()
 
     // Without animations
-    val tileServiceViewAdapterNoAnimations = object  {
-      fun getAnimations() = emptyList<DynamicTypeAnimator>()
-    }
+    val tileServiceViewAdapterNoAnimations =
+      object {
+        fun getAnimations() = emptyList<DynamicTypeAnimator>()
+      }
 
-    val viewInfoNoAnimation = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapterNoAnimations, null, null)
+    val viewInfoNoAnimation =
+      ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapterNoAnimations, null, null)
 
     nlComponent.viewInfo = viewInfoNoAnimation
 
-
     detectAnimations(layoutlibSceneManager)
 
-    assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapterNoAnimations)
+    assertThat(previewElement.tileServiceViewAdapter.value)
+      .isEqualTo(tileServiceViewAdapterNoAnimations)
     assertThat(previewElement.hasAnimations).isFalse()
   }
 }
