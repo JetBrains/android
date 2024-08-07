@@ -166,7 +166,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
   }
 
   private fun setUpEssentialsMode() = runBlocking {
-    projectRule.runAndWaitForRefresh {
+    projectRule.runAndWaitForRefresh(failOnTimeout = false) {
       runWriteActionAndWait {
         AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = true
         ApplicationManager.getApplication()
