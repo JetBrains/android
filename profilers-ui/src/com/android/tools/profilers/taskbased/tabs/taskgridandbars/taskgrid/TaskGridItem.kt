@@ -50,7 +50,6 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.ButtonState
 import org.jetbrains.jewel.ui.component.Icon
@@ -124,10 +123,9 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
       modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
     ) {
       Icon(
-        TaskIconUtils.getLargeTaskIconKey(task),
+        painter = TaskIconUtils.getLargeTaskIconPainter(task),
         contentDescription = task.description,
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-        iconClass = StudioIconsCompose::class.java
+        modifier = Modifier.align(Alignment.CenterHorizontally)
       )
       Spacer(modifier = Modifier.height(10.dp))
       Text(
