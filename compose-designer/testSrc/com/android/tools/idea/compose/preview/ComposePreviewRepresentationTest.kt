@@ -16,8 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
@@ -126,6 +124,8 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
