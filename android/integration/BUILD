@@ -637,6 +637,27 @@ iml_studio_test(
     test_class = "com.android.tools.idea.SamplesImportTest",
 )
 
+multi_project_test_data = [
+    ":live_edit_project_deps",
+    ":buildproject_deps",
+    ":minapp",
+    ":liveeditproject",
+    "//prebuilts/studio/sdk:build-tools/33.0.1",
+    "//prebuilts/studio/sdk:platform-tools",
+    INTEGRATION_TEST_GRADLE_VERSION,
+]
+
+iml_studio_test(
+    name = "MultiProjectTest",
+    timeout = "long",
+    data = multi_project_test_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.MultiProjectTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier

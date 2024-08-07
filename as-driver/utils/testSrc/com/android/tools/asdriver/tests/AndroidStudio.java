@@ -452,6 +452,15 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
+   * Opens a project in a new window
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenProjectCommand
+   * @param projectPath path to the project to be opened
+   */
+  public void openProject(@NotNull final String projectPath) {
+    executeCommand("%openProject " + projectPath + " false", null);
+  }
+
+  /**
    * Moves the caret of the Editor to a specified position.
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.GoToCommand
    * @param line where the caret will be moved (0-indexed)
@@ -461,10 +470,17 @@ public class AndroidStudio implements AutoCloseable {
     executeCommand(String.format("%%goto %d %d", line + 1, column + 1), null);
   }
 
-  public void editFile(String file, String searchRegex, String replacement) {
-    ASDriver.EditFileRequest rq =
-      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement).build();
-    ASDriver.EditFileResponse response = androidStudio.editFile(rq);
+  public void editFile(String file, String searchRegex, String replacement){
+    editFile(null, file, searchRegex, replacement);
+  }
+
+  public void editFile(@Nullable String projectName, String file, String searchRegex, String replacement) {
+    ASDriver.EditFileRequest.Builder rqBuilder =
+      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement);
+    if (projectName != null){
+      rqBuilder.setProjectName(projectName);
+    }
+    ASDriver.EditFileResponse response = androidStudio.editFile(rqBuilder.build());
     switch (response.getResult()) {
       case OK:
         return;
