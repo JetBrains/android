@@ -72,10 +72,9 @@ fun TopBar(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerCompone
           ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
         }) {
         Icon(
-          key = StudioIconsCompose.Common.Settings,
+          painter = StudioIconsCompose.Common.Settings().getPainter().value,
           contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-          iconClass = StudioIconsCompose::class.java
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
         )
       }
     }
