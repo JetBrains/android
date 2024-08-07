@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.naveditor;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.AddProjectDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,13 +54,13 @@ public class CreateNavGraphTest {
    *   3. Gradle dependency should added to app .gradle file
    *      implementation 'android.arch.navigation:navigation-fragment:x.x.x'
    *   </pre>
-   *
    */
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
   public void createNavGraph() throws Exception {
-    IdeFrameFixture ideFrame =  guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(300));
 
     ideFrame.getProjectView()
       .selectAndroidPane()
@@ -71,11 +71,13 @@ public class CreateNavGraphTest {
     CreateResourceFileDialogFixture.find(ideFrame)
       .setFilename("nav_g")
       .setType("Navigation")
-      .clickOkAndWaitForDependencyDialog()
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.requestFocusIfLost();
+    AddProjectDependencyDialogFixture.find(ideFrame)
+        .clickOk();
+    ideFrame.waitForGradleSyncToFinish(Wait.seconds(300));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     String contents = ideFrame.getEditor()
       .open("app/build.gradle")
