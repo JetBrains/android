@@ -63,5 +63,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests[module, test]",
     ],
 )
