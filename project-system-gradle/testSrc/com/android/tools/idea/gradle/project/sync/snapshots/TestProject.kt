@@ -443,6 +443,10 @@ enum class TestProject(
       }
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  ),
+  TEST_STATIC_DIR(
+    TestProjectToSnapshotPaths.STATIC_FOLDER_TEST,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
