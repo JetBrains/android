@@ -40,6 +40,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
+        "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
@@ -62,8 +63,8 @@ iml_module(
 kotlin_test(
     name = "intellij.android.profilers.performance",
     srcs = glob([
-        "testSrc/com/android/tools/profilers/performance/**/*.kt",
-        "testSrc/com/android/tools/profilers/performance/**/*.java",
+        "testSrc/com/android/tools/profilers/performance/*.kt",
+        "testSrc/com/android/tools/profilers/performance/*.java",
     ]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.performance.jar"],
     lint_baseline = "lint_baseline_performance.xml",
