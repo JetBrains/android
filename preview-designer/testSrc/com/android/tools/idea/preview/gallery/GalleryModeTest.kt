@@ -168,9 +168,17 @@ class GalleryModeTest(private val newGalleryPreview: Boolean) {
         MutableStateFlow(FlowableCollection.Present(previewElements))
 
       override val filteredPreviewElementsFlow = MutableStateFlow(FlowableCollection.Uninitialized)
+
+      override val renderedPreviewElementsFlow =
+        MutableStateFlow<FlowableCollection<PreviewElement<*>>>(FlowableCollection.Uninitialized)
+
       override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(setOf())
       override var groupFilter: PreviewGroup = PreviewGroup.All
 
       override fun setSingleFilter(previewElement: PreviewElement<*>?) {}
+
+      override fun updateRenderedPreviews(previewElements: List<PreviewElement<*>>) {
+        renderedPreviewElementsFlow.value = FlowableCollection.Present(previewElements)
+      }
     }
 }

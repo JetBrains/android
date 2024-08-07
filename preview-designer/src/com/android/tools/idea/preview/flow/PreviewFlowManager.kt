@@ -37,11 +37,26 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   val filteredPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
+   * Flow containing all the [T]s that have completed rendering. These are all the
+   * [filteredPreviewElementsFlow] that have rendered.
+   *
+   * This flow must be updated by calling [updateRenderedPreviews].
+   */
+  val renderedPreviewElementsFlow: StateFlow<FlowableCollection<T>>
+
+  /**
    * Selects a single [T] preview element. If the value is non-null, then
    * [filteredPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
    * the value is null, then the single filter is removed.
    */
   fun setSingleFilter(previewElement: T?)
+
+  /**
+   * Updates the value of [renderedPreviewElementsFlow] with the given list of [T]s.
+   *
+   * @see renderedPreviewElementsFlow
+   */
+  fun updateRenderedPreviews(previewElements: List<T>)
 
   companion object {
     val KEY = DataKey.create<PreviewFlowManager<*>>("PreviewFlowManager")
