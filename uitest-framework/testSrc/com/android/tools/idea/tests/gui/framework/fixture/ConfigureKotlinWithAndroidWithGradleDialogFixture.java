@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 public class ConfigureKotlinWithAndroidWithGradleDialogFixture{
   @NotNull private final IdeFrameFixture myIdeFrame;
   @NotNull private final JDialog myDialog;
-  @NotNull static final String TITLE = ""; //Title is not appearing after IDEA 2023.3 merge. b/316416680
   @NotNull static final String DIALOG_CONTAINS = "Kotlin compiler and runtime version:";
 
   public static ConfigureKotlinWithAndroidWithGradleDialogFixture find(IdeFrameFixture ideFrame) {
@@ -43,7 +42,7 @@ public class ConfigureKotlinWithAndroidWithGradleDialogFixture{
     //Finding the dialog based on the content
     Collection<JDialog> allDialogFound = ideFrame.robot().finder().findAll(
       jLabel.getParent().getParent().getParent().getParent().getParent().getParent().getParent(),
-      Matchers.byTitle(JDialog.class, TITLE));
+      Matchers.byType(JDialog.class));
     JDialog dialog = allDialogFound.iterator().next();
 
     assertTrue(dialog.isVisible());

@@ -22,12 +22,15 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinWithAndroidWithGradleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewKotlinClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.StartupActivityTestUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -172,6 +175,8 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
 
     PaneClickPath(ideFrame);
     invokeKotlinClass(ideFrame).enterName("Children").clickOk();
+    ConfigureKotlinWithAndroidWithGradleDialogFixture.find(ideFrame)
+      .clickOkAndWaitDialogDisappear();
     editor.open("/app/src/main/java/google/simpleapplication/Children.kt")
       .moveBetween("}", "")
       .enterText("\n")
