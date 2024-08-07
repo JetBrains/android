@@ -1,0 +1,44 @@
+// Copyright 2023 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package bazel.intellij;
+
+option java_package = "com.google.idea.blaze.qsync.java";
+
+import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts/build_artifact.proto";
+
+// The artifacts built for a given target
+message JavaTargetArtifacts {
+  string target = 1;
+  reserved 2;
+  repeated string srcs = 3;  // Workspace relative.
+  // Note: The following fields are workspace relative in test data only.
+  repeated OutputArtifact jars = 4;
+  repeated OutputArtifact ide_aars = 5;
+  repeated OutputArtifact gen_srcs = 6;
+  repeated string srcjars = 7;          // Workspace relative
+  string android_resources_package = 8; // Package that this target places its Android R class in
+}
+
+// The list of all java targets built and their artifacts. Note that because
+// of aliases, many targets can point to the same path on disk.
+// This is the proto written (in text format) to artifact_info.txt by
+// build_dependencies.bzl
+// This proto message is only used to communicate between the aspect and the
+// IDE code. It is never persisted so backwards incompatible changes are ok.
+message JavaArtifacts {
+  repeated JavaTargetArtifacts artifacts = 1;
+}

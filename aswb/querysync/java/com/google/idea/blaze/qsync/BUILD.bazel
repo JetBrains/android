@@ -1,0 +1,24 @@
+java_library(
+    name = "qsync",
+    srcs = glob(["*.java"]),
+    visibility = [
+        "//tools/adt/idea/aswb/querysync:__subpackages__",
+        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
+    ],
+    deps = [
+        "//prebuilts/tools/common/m2:jsr305-2.0.1",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
+        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
+        "@maven//:com.google.guava.guava",
+    ],
+)
