@@ -55,7 +55,7 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
     fun fromAstNode(node: ASTNode): DeclarativeLiteralKind? {
       return when (node.elementType) {
         DeclarativeElementTypeHolder.BOOLEAN -> Boolean(node)
-        DeclarativeElementTypeHolder.STRING -> String(node)
+        DeclarativeElementTypeHolder.STRING_LITERAL -> String(node)
         DeclarativeElementTypeHolder.LONG_LITERAL -> Long(node)
         DeclarativeElementTypeHolder.INTEGER_LITERAL -> Int(node)
         DeclarativeElementTypeHolder.UNSIGNED_LONG -> ULong(node)
