@@ -18,15 +18,13 @@ package androidx.wear.protolayout.expression.pipeline
 import com.android.annotations.NonNull
 import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
-
-/**
- * Interface that should match the one from the AndroidX library
- */
+/** Interface that should match the one from the AndroidX library */
 interface DynamicTypeAnimator {
 
   interface TypeEvaluator<T> {
     fun evaluate(fraction: Float, startValue: T, endValue: T): T
   }
+
   val typeEvaluator: TypeEvaluator<*>
 
   /**
