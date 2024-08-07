@@ -125,6 +125,6 @@ enum class AnchorPoint(val x: Int, val y: Int) {
    * @param rotation the rotation of the display rectangle in quadrants counterclockwise
    */
   fun rotatedByQuadrants(rotation: Int): AnchorPoint {
-    return values()[(ordinal + rotation) % values().size]
+    return entries[(ordinal + rotation) % entries.size]
   }
 }
