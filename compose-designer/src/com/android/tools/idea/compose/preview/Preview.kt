@@ -84,7 +84,6 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.isErrorResult
@@ -336,12 +335,12 @@ class ComposePreviewRepresentation(
     )
 
   /**
-   * Gives access to the filtered preview elements. For testing only. Users of this class should not
+   * Gives access to the rendered preview elements. For testing only. Users of this class should not
    * use this method.
    */
   @TestOnly
-  fun filteredPreviewElementsInstancesFlowForTest() =
-    composePreviewFlowManager.filteredPreviewElementsFlow
+  fun renderedPreviewElementsInstancesFlowForTest() =
+    composePreviewFlowManager.renderedPreviewElementsFlow
 
   private val renderingBuildStatusManager =
     RenderingBuildStatusManager.create(
@@ -1288,9 +1287,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsFlow.value
-                .asCollection()
-                .sortByDisplayAndSourcePosition()
+              composePreviewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
             }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
