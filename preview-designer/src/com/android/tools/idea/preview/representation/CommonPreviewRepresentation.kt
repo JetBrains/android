@@ -118,7 +118,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -336,10 +335,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val myPsiCodeFileOutOfDateStatusReporter =
     PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
-  private var renderedElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
-
-  private val previewFlowManager = CommonPreviewFlowManager(renderedElementsFlow)
+  private val previewFlowManager = CommonPreviewFlowManager<T>()
 
   private val previewElementProvider =
     MemoizedPreviewElementProvider(
@@ -495,7 +491,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
-      renderedElementsFlow.value = FlowableCollection.Present(filePreviewElements)
+      previewFlowManager.updateRenderedPreviews(filePreviewElements)
     } else {
       // Some preview elements did not result in model creations. This could be because of failed
       // PreviewElements instantiation.

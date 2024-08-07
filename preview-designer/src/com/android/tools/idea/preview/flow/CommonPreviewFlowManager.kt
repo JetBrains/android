@@ -44,7 +44,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
@@ -71,8 +70,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * filtering.
  */
 class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
-  private val renderedPreviewElementsFlow: StateFlow<FlowableCollection<T>>,
-  private val log: Logger = Logger.getInstance(CommonPreviewFlowManager::class.java),
+  private val log: Logger = Logger.getInstance(CommonPreviewFlowManager::class.java)
 ) : PreviewFlowManager<T> {
 
   /**
@@ -84,6 +82,9 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
 
   override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
     MutableStateFlow(emptySet())
+
+  override val renderedPreviewElementsFlow =
+    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
   override var groupFilter: PreviewGroup
     get() = getCurrentFilterAsGroup()?.filterGroup ?: PreviewGroup.All
@@ -144,6 +145,10 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
    */
   fun getCurrentFilterAsGroup(): PreviewElementFilter.Group<T>? =
     filterFlow.value as? PreviewElementFilter.Group<T>
+
+  override fun updateRenderedPreviews(previewElements: List<T>) {
+    renderedPreviewElementsFlow.value = FlowableCollection.Present(previewElements)
+  }
 
   /** Initializes the flows that will listen to different events and will call [requestRefresh]. */
   @OptIn(FlowPreview::class)
