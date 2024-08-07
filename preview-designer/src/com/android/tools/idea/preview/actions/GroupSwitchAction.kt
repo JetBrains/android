@@ -34,11 +34,11 @@ class GroupSwitchAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /** [ToggleAction] that sets the given [group] as filter. */
-  inner class SetGroupAction(private val group: PreviewGroup, private val isSelected: Boolean) :
-    ToggleAction(group.displayName) {
+  inner class SetGroupAction(private val group: PreviewGroup) : ToggleAction(group.displayName) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-    override fun isSelected(e: AnActionEvent): Boolean = isSelected
+    override fun isSelected(e: AnActionEvent): Boolean =
+      e.dataContext.findPreviewManager(PreviewGroupManager.KEY)?.groupFilter == group
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
@@ -69,14 +69,14 @@ class GroupSwitchAction(
     val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
     if (availableGroups.isEmpty()) return true
 
-    val selectedGroup = previewManager?.groupFilter ?: PreviewGroup.All
-    addGroups(availableGroups, selectedGroup)
+    previewManager?.groupFilter ?: PreviewGroup.All
+    addGroups(availableGroups)
     return true
   }
 
-  private fun addGroups(groups: Set<PreviewGroup>, selected: PreviewGroup) {
-    add(SetGroupAction(PreviewGroup.All, selected == PreviewGroup.All))
+  private fun addGroups(groups: Set<PreviewGroup>) {
+    add(SetGroupAction(PreviewGroup.All))
     addSeparator()
-    groups.sortedBy { it.displayName }.forEach { add(SetGroupAction(it, it == selected)) }
+    groups.sortedBy { it.displayName }.forEach { add(SetGroupAction(it)) }
   }
 }
