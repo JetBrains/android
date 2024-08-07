@@ -4,6 +4,7 @@
   - name: intellij.android.adt.ui.compose
     libraries:
       jetbrains-jewel-markdown-laf-bridge-styling:
+      - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0/jewel-markdown-core-241-0.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0/jewel-markdown-ide-laf-bridge-styling-241-0.jar
   - name: intellij.android.adt.ui.model
@@ -148,6 +149,8 @@
   - name: intellij.android.app-inspection.inspectors.network.view
   - name: intellij.android.assistant
   - name: intellij.android.avd
+  - name: intellij.android.backup
+  - name: intellij.android.backup.api
   - name: intellij.android.build-attribution
   - name: intellij.android.codenavigation
   - name: intellij.android.completion
