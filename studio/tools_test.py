@@ -89,6 +89,40 @@ class ToolsTest(unittest.TestCase):
         "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1234.3333\" until-build=\"1234.3333\">"
       }, read_zip(after))
 
+  def test_change_since_until_major(self):
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1.1\" until-build=\"2.1\"/>"
+    })
+    after = get_path("res.jar")
+    stamper.main([
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
+        "--overwrite_since_until_builds",
+    ])
+
+    self.assertEqual({
+        "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1234\" until-build=\"1234.*\"/>"
+      }, read_zip(after))
+
+  def test_change_since_until_major_new(self):
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<id>my.id</id>"
+    })
+    after = get_path("res.jar")
+    stamper.main([
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
+        "--overwrite_since_until_builds",
+    ])
+
+    self.assertEqual({
+        "ANY-DIR/anyfile.xml": "<id>my.id</id>\n  <idea-version since-build=\"1234\" until-build=\"1234.*\"/>"
+      }, read_zip(after))
+
   def test_change_since(self):
     build_txt = create_file("build.txt", "AI-1234.3333")
     before = create_zip("before.jar", {
