@@ -475,6 +475,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     finally {
       myConfigurables.clear()
+      mySelectedConfigurable = null
       mySidePanel?.clear()
       myUiInitialized = false
       mySplitter = null
