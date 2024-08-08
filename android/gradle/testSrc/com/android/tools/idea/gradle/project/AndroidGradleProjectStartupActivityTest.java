@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -135,6 +136,7 @@ public class AndroidGradleProjectStartupActivityTest {
     assertThat(myRequest).isNull();
   }
 
+  @Ignore("AS Koala 2024.1.3 Canary 1 Merge: Test is slow and causes OOM on our end")
   @Test
   public void testJunitProducersAreIgnored() {
     Project project = myProjectRule.getProject();
