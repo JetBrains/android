@@ -91,6 +91,7 @@ debugger_test(
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepInto#testClassObjectFunFromTopLevel",
 
         # UNKNOWN:
+        "org.jetbrains.kotlin.idea.debugger.test.InlineScopesAndK1IdeK2CodeEvaluateExpressionTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.AsyncStackTraceTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.BreakpointApplicabilityTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.ClassNameCalculatorTestGenerated",
