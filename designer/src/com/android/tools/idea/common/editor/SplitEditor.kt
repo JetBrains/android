@@ -78,12 +78,7 @@ abstract class SplitEditor<P : FileEditor>(
     )
 
   private val previewViewAction =
-    SplitEditorAction(
-      "Design",
-      AllIcons.General.LayoutPreviewOnly,
-      super.showPreviewAction,
-      false,
-    )
+    SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.showPreviewAction, false)
 
   private val navigateLeftAction =
     object : AnAction() {
