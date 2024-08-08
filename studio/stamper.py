@@ -88,6 +88,19 @@ def _overwrite_plugin_version(build_txt, content):
 
   return content
 
+def _overwrite_since_until_builds(build_txt, content):
+  build_number = utils.read_file(build_txt)
+  build = build_number[3:] # removes the AI- prefix
+  major_api_version = build.split(".")[0]
+
+  tag = "<idea-version since-build=\"%s\" until-build=\"%s.*\"/>" % (major_api_version, major_api_version)
+  if "<idea-version" in content:
+    content = re.sub("<idea-version.*/>", tag, content, 1)
+  else:
+    anchor = "</id>" if "</id>" in content else "</name>"
+    content = re.sub(anchor, "%s\n  %s" % (anchor, tag), content)
+
+  return content
 
 def _replace_build_number(content, info_file):
   build_info = _read_status_file(info_file)
@@ -149,6 +162,10 @@ def main(argv):
       action="store_true",
       help="Whether to set the <version> and <idea-version> tags for this plugin.")
   parser.add_argument(
+      "--overwrite_since_until_builds",
+      action="store_true",
+      help="Whether to set the <idea-version> tags to the major version (ie. 242 to 242.*).")
+  parser.add_argument(
       "--build_txt",
       default="",
       required = "--stamp_app_info" in sys.argv or "--stamp_product_info" in sys.argv or "--overwrite_plugin_version" in sys.argv,
@@ -205,6 +222,9 @@ def main(argv):
 
     if args.overwrite_plugin_version:
       content = _overwrite_plugin_version(args.build_txt, content)
+
+    if args.overwrite_since_until_builds:
+      content = _overwrite_since_until_builds(args.build_txt, content)
 
     if args.stamp_product_info:
       content = _stamp_product_info(args.info_file, args.build_txt, content)
