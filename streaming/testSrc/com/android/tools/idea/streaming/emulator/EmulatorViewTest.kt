@@ -16,11 +16,8 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.Posture.PostureValue
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -79,6 +76,10 @@ import org.junit.Test
 import org.mockito.MockedStatic
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
@@ -389,7 +390,7 @@ class EmulatorViewTest {
     }
 
     val mockFocusManager: DefaultKeyboardFocusManager = mock()
-    whenever(mockFocusManager.processKeyEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
+    whenever(mockFocusManager.processKeyEvent(any<Component>(), any<KeyEvent>())).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
 
     mockFocusManager.processKeyEvent(
