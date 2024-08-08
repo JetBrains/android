@@ -56,12 +56,10 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
    * ExplainBuildErrorFilter
    */
   private fun BuildEvent.injectExplanationText(): BuildEvent {
-    return if (this is FileMessageEvent) {
-      val description = (description?.trimEnd()?.plus("\n\n") ?: "") +
-                        consoleLinkWithSeparatorText + message
-      FileMessageEventImpl(parentId ?: "", kind, group, message, description, filePosition)
-    } else {
-      this
+    if (this is FileMessageEventImpl) {
+      this.description = (description?.trimEnd()?.plus("\n\n") ?: "") +
+                          consoleLinkWithSeparatorText + message
     }
+    return this
   }
 }
