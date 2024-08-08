@@ -604,6 +604,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
           return;
         }
         else if (searchRegex.equals(request.getReplacement())) {
+          // If the search regex and replacement are the same, then there's no need to do anything.
           builder.setResult(ASDriver.EditFileResponse.Result.OK);
           responseObserver.onNext(builder.build());
           responseObserver.onCompleted();
