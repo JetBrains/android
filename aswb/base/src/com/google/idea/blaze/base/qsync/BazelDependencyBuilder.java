@@ -60,6 +60,7 @@ import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
+import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
@@ -92,9 +93,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
   public static final BoolExperiment fetchArtifactInfoInParallel =
       new BoolExperiment("qsync.parallel.artifact.info.fetch", true);
-
-  public static final BoolExperiment buildGeneratedSrcJars =
-      new BoolExperiment("qsync.build.generated.src.jars", true);
 
   /**
    * Logs message if the number of artifact info files fetched is greater than
@@ -197,7 +195,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
               .addBlazeFlags(
                   String.format(
                       "--aspects_parameters=use_generated_srcjars=%s",
-                      buildGeneratedSrcJars.getValue() ? "True" : "False"))
+                      ArtifactDirectoryUpdate.buildGeneratedSrcJars.getValue() ? "True" : "False"))
               .addBlazeFlags("--noexperimental_run_validations")
               .addBlazeFlags("--keep_going");
       outputGroups.stream()
