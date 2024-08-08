@@ -54,6 +54,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/logcat:intellij.android.logcat[module]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",

@@ -36,6 +36,8 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.logcat" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module-library">
       <library name="traceprocessor-proto">
         <CLASSES>
