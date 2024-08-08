@@ -29,6 +29,7 @@ import com.android.tools.analytics.stubs.StubDateProvider
 import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
+import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
@@ -39,6 +40,9 @@ import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.MachineDetails
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import com.intellij.testFramework.registerExtension
 import junit.framework.TestCase
 import org.junit.Assert
 import java.awt.GraphicsDevice
@@ -49,7 +53,16 @@ import java.util.GregorianCalendar
 import java.util.TimeZone
 import java.util.Calendar
 
-class AndroidStudioUsageTrackerTest : TestCase() {
+class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
+  private val mockMendelFlagsProvider: MendelFlagsProvider = mock()
+
+  override fun setUp() {
+    super.setUp()
+    ApplicationManager.getApplication().registerExtension(
+      MendelFlagsProvider.EP_NAME, mockMendelFlagsProvider, testRootDisposable
+    )
+  }
+
   fun testDeviceToDeviceInfo() {
     val info = deviceToDeviceInfo(createMockDevice())
     assertEquals(info.anonymizedSerialNumber, AnonymizerUtil.anonymizeUtf8("serial"))
@@ -118,7 +131,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     }
   }
 
-  fun testBuildActiveExperimentList() {
+  fun testBuildActiveExperimentListContainsStudioExperiments() {
     try {
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "")
       Truth.assertThat(buildActiveExperimentList()).hasSize(0)
@@ -128,6 +141,34 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       Truth.assertThat(buildActiveExperimentList()).containsExactly("one", "two")
     }
     finally {
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "")
+    }
+  }
+
+  fun testBuildActiveExperimentListContainsMendelExperiments() {
+    try {
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(emptyList())
+      Truth.assertThat(buildActiveExperimentList()).hasSize(0)
+
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(listOf(1))
+      Truth.assertThat(buildActiveExperimentList()).containsExactly("1")
+
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(listOf(1, 2))
+      Truth.assertThat(buildActiveExperimentList()).containsExactly("1", "2")
+    }
+    finally {
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(emptyList())
+    }
+  }
+
+  fun testBuildActiveExperimentListContainsBoth() {
+    try {
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(listOf(1))
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "single")
+      Truth.assertThat(buildActiveExperimentList()).containsExactly("1", "single")
+    }
+    finally {
+      whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(emptyList())
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "")
     }
   }

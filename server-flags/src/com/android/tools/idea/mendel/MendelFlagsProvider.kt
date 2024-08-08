@@ -29,6 +29,10 @@ interface MendelFlagsProvider {
         id in it.getActiveExperimentIds()
       }
 
+    fun getActiveExperimentIds(): List<Int> = EP_NAME.extensionList.flatMap {
+      it.getActiveExperimentIds()
+    }.distinct()
+
     fun getInstances() = EP_NAME.extensionList
   }
 }
