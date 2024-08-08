@@ -34,7 +34,6 @@ import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.fest.swing.timing.Wait
 import java.util.regex.Pattern
-import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
@@ -96,7 +95,7 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
   fun selectTab(resourceTypeDisplayName: String): ResourceExplorerFixture {
     val tabsWrapper = findByType<OverflowingTabbedPaneWrapper>(OverflowingTabbedPaneWrapper::class.java)
     val tabsPanel = finder().find(tabsWrapper, TypeMatcher(JTabbedPane::class.java)) as JTabbedPane
-    val tabIsVisible = (0..tabsPanel.tabCount).any { index ->
+    val tabIsVisible = (0..tabsPanel.tabCount - 1).any { index ->
       // Check if the desired tab is visible.
       ((tabsPanel.getBoundsAt(index))?.let { it.width > 0 } ?: false) && tabsPanel.getTitleAt(index) == resourceTypeDisplayName
     }
