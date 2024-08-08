@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.commands.CpuTraceInterceptCommandHandler;
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
+import com.android.tools.idea.profilers.commands.LeakCanaryLogcatCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
@@ -81,6 +82,11 @@ public class ProfilerTransportConfigContributor implements TransportConfigContri
       new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter(deviceToDeviceInfo(device)));
     proxy.registerEventPreprocessor(traceProcessor);
     proxy.registerDataPreprocessor(traceProcessor);
+
+    LeakCanaryLogcatCommandHandler lcLogcatHandler =
+      new LeakCanaryLogcatCommandHandler(device, proxy.getEventQueue());
+    proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING, lcLogcatHandler);
+    proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING, lcLogcatHandler);
   }
 
   @Override
