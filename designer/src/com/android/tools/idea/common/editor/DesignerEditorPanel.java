@@ -25,6 +25,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -35,8 +36,6 @@ import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
@@ -99,7 +98,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface<?> mySurface;
-  @NotNull private final Map<LayoutlibSceneManager, RenderListener> mySceneManagerToRenderListeners = new HashMap<>();
+  @NotNull private final Map<NlModel, ModelListener> myModelToListeners = new HashMap<>();
 
   @NotNull private final ModelLintIssueAnnotator myModelLintIssueAnnotator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
@@ -365,26 +364,23 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       return;
     }
 
-    mySurface.getModels().stream().map(mySurface::getSceneManager).filter(it -> it instanceof LayoutlibSceneManager)
+    mySurface.getModels()
       .forEach(it -> {
-        LayoutlibSceneManager manager = (LayoutlibSceneManager)it;
-        RenderListener listener = mySceneManagerToRenderListeners.remove(manager);
+        ModelListener listener = myModelToListeners.remove(it);
         if (listener != null) {
-          manager.removeRenderListener(listener);
+          it.removeListener(listener);
         }
       });
     CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
     modelSetFuture.whenComplete((result, ex) -> {
-      LayoutlibSceneManager manager = (LayoutlibSceneManager)mySurface.getSceneManager(model);
-      assert manager != null;
-      RenderListener listener = new RenderListener() {
+      ModelListener listener = new ModelListener() {
         @Override
-        public void onRenderCompleted() {
+        public void modelDerivedDataChanged(@NotNull NlModel model) {
           myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
         }
       };
-      mySceneManagerToRenderListeners.put(manager, listener);
-      manager.addRenderListener(listener);
+      myModelToListeners.put(model, listener);
+      model.addListener(listener);
     });
 
     if (myAccessoryPanel != null) {
@@ -451,11 +447,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
-    Set<LayoutlibSceneManager> keys = mySceneManagerToRenderListeners.keySet();
-    for (LayoutlibSceneManager manager : keys) {
-      RenderListener listener = mySceneManagerToRenderListeners.remove(manager);
+    Set<NlModel> keys = myModelToListeners.keySet();
+    for (NlModel model : keys) {
+      ModelListener listener = myModelToListeners.remove(model);
       if (listener != null) {
-        manager.removeRenderListener(listener);
+        model.removeListener(listener);
       }
     }
   }
