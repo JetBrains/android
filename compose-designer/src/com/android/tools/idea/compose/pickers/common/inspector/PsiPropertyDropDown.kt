@@ -111,7 +111,7 @@ private class WrappedComboBox(
       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
     )
     if (context != EditorContext.STAND_ALONE_EDITOR) {
-      putClientProperty("JComboBox.isTableCellEditor", true)
+      putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, true)
     }
 
     textField.background = UIUtil.TRANSPARENT_COLOR
