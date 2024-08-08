@@ -857,6 +857,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                                                       4L);
           CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, CommonUsageTracker.RenderResultType.RENDER);
         }
+        getDesignSurface().modelRendered();
         fireOnRenderComplete();
         completeRender();
 
