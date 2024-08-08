@@ -1,0 +1,85 @@
+// Copyright 2024 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package ij.qsync.deps;
+
+import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/project.proto";
+import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/snapshot.proto";
+
+// option java_api_version = 2;
+option java_package = "com.google.idea.blaze.qsync.java";
+option java_outer_classname = "ArtifactTrackerProto";
+
+message ArtifactTrackerState {
+  int32 version = 1;
+  // Map of target label -> build info for that dependency
+  map<string, TargetBuildInfo> built_deps = 2;
+  // Build contexts. These are referred to by their ID from TargetBuildInfo
+  repeated BuildContext build_contexts = 3;
+  map<string, CcToolchain> cc_toolchains = 4;
+}
+
+message TargetBuildInfo {
+  // Bazel build ID that produced the artifact herein
+  string build_id = 1;
+  // Java artifacts produced by the build
+  JavaArtifacts java_artifacts = 2;
+  CcCompilationInfo cc_info = 3;
+}
+
+message Artifact {
+  // Digest of the artifact as provided by bazel.
+  string digest = 1;
+  // build-out relative path that the artifact was written to.
+  string path = 2;
+}
+
+message JavaArtifacts {
+  repeated Artifact jars = 1;
+  repeated Artifact ide_aars = 2;
+  repeated Artifact gen_srcs = 3;
+  // Workspace relative paths of sources for the target
+  repeated string sources = 4;
+  // Workspace relative paths of srcjars for the target
+  repeated string src_jars = 5;
+  string android_resources_package = 6;
+}
+
+message BuildContext {
+  string build_id = 1;
+  int64 start_time_millis = 2;
+  VcsState vcs_state = 3;
+}
+
+message CcCompilationInfo {
+  repeated string defines = 1;
+  repeated ProjectPath include_directories = 2;
+  repeated ProjectPath quote_include_directories = 3;
+  repeated ProjectPath sysytem_include_directories = 4;
+  repeated ProjectPath framework_include_directories = 5;
+  repeated Artifact gen_headers = 6;
+  string toolchain_id = 7;
+}
+
+message CcToolchain {
+  string compiler = 1;
+  ProjectPath compiler_executable = 2;
+  string cpu = 3;
+  string target_gnu_system_name = 4;
+  repeated ProjectPath built_in_include_directories = 5;
+  repeated string c_options = 6;
+  repeated string cpp_options = 7;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package ij.qsync;
+
+// option java_api_version = 2;
+option java_outer_classname = "LanguageClassProto";
+option java_package = "com.google.idea.blaze.qsync.project";
+
+enum LanguageClass {
+  LANGUAGE_CLASS_UNSPECIFIED = 0;
+  LANGUAGE_CLASS_JAVA = 1;
+  LANGUAGE_CLASS_KOTLIN = 2;
+  LANGUAGE_CLASS_CC = 3;
+}
+
