@@ -602,16 +602,22 @@ class VisualizationForm(
 
     // This render the added components.
     for (manager in surface.sceneManagers) {
-      visualLintHandler.setupForLayoutlibSceneManager(manager) {
-        !isActive || isRenderingCanceled.get()
-      }
       renderFuture =
         renderFuture.thenCompose {
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
             manager.forceReinflate()
-            return@thenCompose manager.requestRenderAsync()
+            return@thenCompose manager
+              .requestRenderAsync()
+              .thenRunAsync(
+                {
+                  visualLintHandler.afterRenderCompleted(manager) {
+                    !isActive || isRenderingCanceled.get()
+                  }
+                },
+                AppExecutorUtil.getAppExecutorService(),
+              )
           }
         }
     }
