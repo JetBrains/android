@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
@@ -53,26 +52,16 @@ class VisualizationFormVisualLintHandler(
     myBaseConfigIssues.clear()
   }
 
-  fun setupForLayoutlibSceneManager(manager: LayoutlibSceneManager, isCancelled: () -> Boolean) {
-    val renderListener: RenderListener =
-      object : RenderListener {
-        override fun onRenderCompleted() {
-          if (isCancelled() || manager.model.isDisposed) return
-          val model = manager.model
-          val result = manager.renderResult
-          if (result != null) {
-            ApplicationManager.getApplication().executeOnPooledThread {
-              VisualLintService.getInstance(project)
-                .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
-            }
-          }
-
-          // Remove self. This will not cause ConcurrentModificationException.
-          // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
-          manager.removeRenderListener(this)
-        }
+  fun afterRenderCompleted(manager: LayoutlibSceneManager, isCancelled: () -> Boolean) {
+    if (isCancelled() || manager.model.isDisposed) return
+    val model = manager.model
+    val result = manager.renderResult
+    if (result != null) {
+      ApplicationManager.getApplication().executeOnPooledThread {
+        VisualLintService.getInstance(project)
+          .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
       }
-    manager.addRenderListener(renderListener)
+    }
   }
 
   fun onActivate() {
