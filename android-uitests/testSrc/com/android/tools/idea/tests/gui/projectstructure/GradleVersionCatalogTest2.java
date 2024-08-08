@@ -40,8 +40,6 @@ public class GradleVersionCatalogTest2 {
   @Rule
   public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private String versionsFilePath= "gradle/libs.versions.toml";
-
   /**
    * Gradle version catalog - Gradle version catalog - Navigation, Find Usages, Error Highlighting test
    * <p>
@@ -81,6 +79,7 @@ public class GradleVersionCatalogTest2 {
 
     EditorFixture editor = ideFrame.getEditor();
 
+    String versionsFilePath = "gradle/libs.versions.toml";
     editor.open(versionsFilePath);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -149,18 +148,18 @@ public class GradleVersionCatalogTest2 {
       .enterText("hello");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.waitForFileToActivate();
     editor.waitUntilErrorAnalysisFinishes();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editor.getHighlights(HighlightSeverity.WARNING).size())
-      .isGreaterThan(1);
+    Wait.seconds(30)
+        .expecting("Wait for HighlightSeverity.WARNING to be greater than 1")
+        .until(() -> (editor.getHighlights(HighlightSeverity.WARNING).size() > 1));
   }
-
   // A recursive function which can help in navigating through the steps to find the last file in the tree.
   private void navigateToFileUsingLastRow(JTreeFixture tree, IdeFrameFixture ideFrame) {
     // Expand the last row.
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     String val = (Objects.requireNonNull(tree.valueAt(tree.getRowCount() - 1)));
-    boolean condition = val.equalsIgnoreCase("2|alias|(|libs|.|plugins|.|android|.|application|)");
+    boolean condition = val.equalsIgnoreCase("2|alias(|libs.plugins.android.application|)");
     if (condition) {
       tree.doubleClickRow(tree.getRowCount() - 1);
     }
