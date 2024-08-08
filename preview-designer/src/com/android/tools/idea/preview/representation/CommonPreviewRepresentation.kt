@@ -108,8 +108,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -121,6 +119,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
 
 private val modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
@@ -338,19 +338,16 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
       override fun createDataContext(previewElement: T) =
-        CustomizedDataContext.create(
+        CustomizedDataContext.withSnapshot(
           previewElementModelAdapterDelegate.createDataContext(previewElement)
-        ) { dataId ->
-          when (dataId) {
-            PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-            CommonDataKeys.PROJECT.name -> project
-            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
-            PreviewGroupManager.KEY.name,
-            PreviewFlowManager.KEY.name -> previewFlowManager
-            FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
-            PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
-            else -> null
-          }
+        ) { sink ->
+          sink[PREVIEW_ELEMENT_INSTANCE] = previewElement
+          sink[CommonDataKeys.PROJECT] = project
+          sink[PreviewModeManager.KEY] = this@CommonPreviewRepresentation
+          sink[PreviewGroupManager.KEY] = previewFlowManager
+          sink[PreviewFlowManager.KEY] = previewFlowManager
+          sink[FastPreviewSurface.KEY] = this@CommonPreviewRepresentation
+          sink[PreviewInvalidationManager.KEY] = this@CommonPreviewRepresentation
         }
     }
 
