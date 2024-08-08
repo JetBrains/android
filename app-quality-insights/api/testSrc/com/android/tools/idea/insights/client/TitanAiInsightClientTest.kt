@@ -40,7 +40,7 @@ class TitanAiInsightClientTest {
     val client = TitanAiInsightClient(grpcRule.channel, ForwardingInterceptor)
 
     val projectId = "project-id"
-    val insight = client.fetchCrashInsight(projectId) { Any.newBuilder().build() }
+    val insight = client.fetchCrashInsight(projectId, Any.getDefaultInstance())
     assertThat(insight.rawInsight).isEqualTo("Task Complete Response")
   }
 }
