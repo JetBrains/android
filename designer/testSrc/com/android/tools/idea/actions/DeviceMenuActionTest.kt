@@ -157,6 +157,8 @@ class DeviceMenuActionTest {
               Automotive Large Portrait (1280 × 1606 dp, mdpi)
               Automotive Distant Display with Google Play (1440 × 800 dp, ldpi)
               Automotive Distant Display (1440 × 800 dp, ldpi)
+              Automotive (1408p landscape) with Google Play (1408 × 792 dp, mdpi)
+              Automotive (1408p landscape) (1408 × 792 dp, mdpi)
               Automotive (1080p landscape) (1440 × 800 dp, ldpi)
               Automotive (1024p landscape) (1024 × 768 dp, mdpi)
               ------------------------------------------------------
