@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.lang.aidl;
 
-import static com.android.SdkConstants.DOT_TXT;
-
 import com.android.tools.idea.lang.LangTestDataKt;
-import com.google.common.base.Charsets;
-import com.intellij.rt.execution.junit.FileComparisonFailure;
 import com.intellij.testFramework.ParsingTestCase;
-import java.io.File;
-import kotlin.io.FilesKt;
 
 /**
  * Tests for Aidl.bnf.
