@@ -49,7 +49,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -94,7 +93,6 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -840,7 +838,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     logConfigurationChange(surface);
     getModel().resetLastChange();
 
-    fireOnRenderStart();
     long renderStartTimeMs = System.currentTimeMillis();
         return myLayoutlibSceneRenderer.renderAsync(myForceInflate.getAndSet(false), myLogRenderErrors, reverseUpdate, myElapsedFrameTimeMs, quality)
       .thenApplyAsync(result -> {
@@ -906,16 +903,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myElapsedFrameTimeMs = ms;
   }
 
-  private void fireOnRenderStart() {
-    myRenderListeners.forEach(RenderListener::onRenderStarted);
-  }
   private void fireOnRenderComplete() {
     myRenderListeners.forEach(RenderListener::onRenderCompleted);
-  }
-  private void fireOnRenderFail(@NotNull Throwable e) {
-    myRenderListeners.forEach(listener -> {
-      listener.onRenderFailed(e);
-    });
   }
 
   public void addRenderListener(@NotNull RenderListener listener) {

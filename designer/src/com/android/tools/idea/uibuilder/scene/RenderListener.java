@@ -16,24 +16,16 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.scene.SceneManager;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for listeners to be notified about render requests
+ *
+ * TODO(b/358367358): remove this interface
  */
+@Deprecated
 public interface RenderListener {
-  /**
-   * Called when the {@link SceneManager} starts a new render request.
-   */
-  default void onRenderStarted() {}
-
   /**
    * Called when the {@link SceneManager} has finished a render request
    */
   void onRenderCompleted();
-
-  /**
-   * Called when the {@link SceneManager} has failed a render request.
-   */
-  default void onRenderFailed(@NotNull Throwable e) {}
 }

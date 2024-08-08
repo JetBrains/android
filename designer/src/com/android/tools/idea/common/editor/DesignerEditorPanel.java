@@ -380,15 +380,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       RenderListener listener = new RenderListener() {
         @Override
         public void onRenderCompleted() {
-          annotateRenderInformation();
-        }
-
-        @Override
-        public void onRenderFailed(@NotNull Throwable e) {
-          annotateRenderInformation();
-        }
-
-        private void annotateRenderInformation() {
           myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
         }
       };
