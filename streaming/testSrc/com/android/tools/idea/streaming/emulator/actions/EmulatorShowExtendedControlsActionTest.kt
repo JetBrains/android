@@ -16,8 +16,6 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -29,6 +27,8 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import javax.swing.UIManager
 import kotlin.time.Duration.Companion.seconds
 

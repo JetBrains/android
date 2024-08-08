@@ -15,26 +15,25 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.TestTimeSource
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.verifyNoMoreInteractions
 
 private const val INPUT_RATE_HZ = 5
 private val INPUTS = 1..500
@@ -96,12 +95,12 @@ class BenchmarkerTest {
 
     // Should now be in SENDING_INPUTS
     val expectedFrameDurationMillis = (1.seconds / INPUT_RATE_HZ).inWholeMilliseconds
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer)
       .scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
     assertThat(dispatched).isEmpty()
 
-    taskCaptor.value.run()
+    taskCaptor.firstValue.run()
 
     assertThat(dispatched).hasSize(1)
     verifyNoMoreInteractions(mockTimer)
@@ -129,10 +128,10 @@ class BenchmarkerTest {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
 
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()
-    repeat(numValues) { taskCaptor.value.run() }
+    repeat(numValues) { taskCaptor.firstValue.run() }
 
     assertThat(dispatched).hasSize(numValues)
     verify(mockTimer).cancel()
@@ -143,14 +142,14 @@ class BenchmarkerTest {
   fun finalizeInputsWhenBenchmarkingEnds() {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()
 
-    repeat(numValues - 1) { taskCaptor.value.run() }
+    repeat(numValues - 1) { taskCaptor.firstValue.run() }
     assertThat(finalizeInputsCalls).isEqualTo(0)
     // One more time should finish it off.
-    taskCaptor.value.run()
+    taskCaptor.firstValue.run()
 
     assertThat(finalizeInputsCalls).isEqualTo(1)
   }
@@ -159,12 +158,12 @@ class BenchmarkerTest {
   fun finalizeInputsWhenBenchmarkingCanceled() {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()
 
     // Just one input
-    taskCaptor.value.run()
+    taskCaptor.firstValue.run()
     assertThat(finalizeInputsCalls).isEqualTo(0)
     benchmarker.stop()
 
@@ -187,10 +186,10 @@ class BenchmarkerTest {
   fun isDone() {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
 
-    repeat(numValues + 1) { taskCaptor.value.run() }
+    repeat(numValues + 1) { taskCaptor.firstValue.run() }
 
     assertThat(dispatched).hasSize(numValues)
     dispatched.forEach { adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow()) }
@@ -211,12 +210,12 @@ class BenchmarkerTest {
   fun computesResultsCorrectly() {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()
 
     repeat(numValues) {
-      taskCaptor.value.run()
+      taskCaptor.firstValue.run()
       testTimeSource += it.seconds // Each input will take 1s longer than the last.
       adapter.adapterCallbacks.inputReturned(dispatched.last(), testTimeSource.markNow())
     }
@@ -236,10 +235,10 @@ class BenchmarkerTest {
   fun callsOnProgressCallbacks() {
     benchmarker.start()
     adapter.adapterCallbacks.onReady()
-    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
 
-    repeat(numValues + 1) { taskCaptor.value.run() }
+    repeat(numValues + 1) { taskCaptor.firstValue.run() }
 
     assertThat(dispatched).hasSize(numValues)
 

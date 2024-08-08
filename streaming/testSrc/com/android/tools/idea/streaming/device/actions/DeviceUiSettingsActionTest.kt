@@ -16,8 +16,6 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.adblib.DevicePropertyNames
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
@@ -57,6 +55,9 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -203,14 +204,14 @@ class DeviceUiSettingsActionTest {
     val listeners = mutableListOf<WindowFocusListener>()
     Mockito.doAnswer { invocation ->
       listeners.add(invocation.arguments[0] as WindowFocusListener)
-    }.whenever(window).addWindowFocusListener(MockitoKt.any())
+    }.whenever(window).addWindowFocusListener(any())
 
     action.actionPerformed(event)
     waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
 
-    listeners.forEach { it.windowLostFocus(MockitoKt.mock()) }
+    listeners.forEach { it.windowLostFocus(mock()) }
     assertThat(balloon.isDisposed).isTrue()
   }
 

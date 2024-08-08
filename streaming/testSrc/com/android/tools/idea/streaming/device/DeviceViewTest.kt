@@ -16,11 +16,8 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.adblib.DevicePropertyNames
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
@@ -103,6 +100,10 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
