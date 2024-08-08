@@ -29,7 +29,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
 
-
 /**
  * Action to import devices from a given file
  */
@@ -49,8 +48,8 @@ public class ImportDevicesAction extends DeviceUiAction {
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
-    VirtualFile[] files =
-      FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(parent, null);
+    VirtualFile[] toSelect = parent != null ? new VirtualFile[]{parent} : VirtualFile.EMPTY_ARRAY;
+    VirtualFile[] files = FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(null, toSelect);
     List<Device> importedDevices = new ArrayList<>();
     for (VirtualFile vf : files) {
       importedDevices.addAll(DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf)));
