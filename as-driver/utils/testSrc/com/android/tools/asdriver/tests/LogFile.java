@@ -153,7 +153,8 @@ public class LogFile {
           }
         }
         throw new InterruptedException(
-          String.format("Time out after %d %s while waiting for line matching '%s'%n%n%s", timeout, unit, regex, CHECK_LOGS_INSTRUCTIONS));
+          String.format("Time out after %.3g sec while waiting for line matching '%s'%n%n%s", unit.toMillis(timeout) / 1000.0, regex,
+                        CHECK_LOGS_INSTRUCTIONS));
       }
       if (!lookAhead) {
         position = channel.position();
