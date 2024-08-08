@@ -32,7 +32,7 @@ import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
@@ -247,7 +247,9 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomInAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val dataContext = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, surface)
+    val event = TestActionEvent.createTestEvent(dataContext)
 
     // Verify zoom in
     run {
@@ -316,7 +318,9 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomOutAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val dataContext = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, surface)
+    val event = TestActionEvent.createTestEvent(dataContext)
 
     // Verify zoom out
     run {
@@ -386,7 +390,9 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomToFitAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val dataContext = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, surface)
+    val event = TestActionEvent.createTestEvent(dataContext)
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 

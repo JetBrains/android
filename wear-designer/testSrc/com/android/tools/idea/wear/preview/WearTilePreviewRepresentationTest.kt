@@ -38,7 +38,7 @@ import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
@@ -125,7 +125,7 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
+      val dataContext = preview.mainSurfaceDataContext
       val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
@@ -324,11 +324,15 @@ class WearTilePreviewRepresentationTest {
     assertThat(preview.previewView.galleryMode).isNotNull()
   }
 
+  private val WearTilePreviewRepresentation.mainSurfaceDataContext
+    get() = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = PreviewModeManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
+    get() = PreviewModeManager.KEY.getData(mainSurfaceDataContext)!!
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = PreviewFlowManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
+    get() = PreviewFlowManager.KEY.getData(mainSurfaceDataContext)!!
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {

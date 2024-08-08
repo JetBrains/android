@@ -712,7 +712,7 @@ public abstract class DesignSurface<T extends SceneManager> extends PreviewSurfa
   }
 
   @Override
-  public void dataSnapshot(@NotNull DataSink sink) {
+  public void uiDataSnapshot(@NotNull DataSink sink) {
     sink.set(DESIGN_SURFACE, this);
     sink.set(GuiInputHandler.CURSOR_RECEIVER, this);
     sink.set(PANNABLE_KEY, getPannable());

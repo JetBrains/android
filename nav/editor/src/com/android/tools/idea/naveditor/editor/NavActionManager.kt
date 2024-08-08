@@ -48,8 +48,8 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -130,8 +130,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    orientationAction.updateActionsImmediately(
-      CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, mySurface))
+    val dataContext = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, mySurface)
+    orientationAction.updateActionsImmediately(dataContext)
 
     group.add(selectAllAction)
 

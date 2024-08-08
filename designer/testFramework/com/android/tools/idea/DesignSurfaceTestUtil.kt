@@ -58,7 +58,7 @@ object DesignSurfaceTestUtil {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
-    whenever(surface.dataSnapshot(ArgumentMatchers.any())).thenCallRealMethod()
+    whenever(surface.uiDataSnapshot(ArgumentMatchers.any())).thenCallRealMethod()
     whenever(surface.layeredPane).thenReturn(JLayeredPane())
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)

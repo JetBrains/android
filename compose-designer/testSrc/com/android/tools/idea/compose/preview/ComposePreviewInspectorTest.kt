@@ -51,7 +51,7 @@ class ComposePreviewInspectorTest {
 
     val manager = TestComposePreviewManager()
     manager.isInspectionTooltipEnabled = true
-    whenever(surface.dataSnapshot(Mockito.any())).thenAnswer(object : Answer<Unit> {
+    whenever(surface.uiDataSnapshot(Mockito.any())).thenAnswer(object : Answer<Unit> {
       override fun answer(invocation: InvocationOnMock) {
         val sink = invocation.arguments[0] as DataSink
         sink[COMPOSE_PREVIEW_MANAGER] = manager

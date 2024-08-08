@@ -727,8 +727,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @Override
-  public void dataSnapshot(@NotNull DataSink sink) {
-    super.dataSnapshot(sink);
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    super.uiDataSnapshot(sink);
     sink.set(LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY, this);
     DataSink.uiDataSnapshot(sink, myDelegateDataProvider);
   }

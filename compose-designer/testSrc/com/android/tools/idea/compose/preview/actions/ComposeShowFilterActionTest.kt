@@ -21,7 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.testFramework.TestActionEvent.createTestEvent
@@ -40,7 +40,7 @@ class ComposeShowFilterActionTest {
   fun testShowFilter() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.dataSnapshot(Mockito.any())).thenAnswer(object : Answer<Unit> {
+    whenever(surface.uiDataSnapshot(Mockito.any())).thenAnswer(object : Answer<Unit> {
       override fun answer(invocation: InvocationOnMock) {
         val sink = invocation.arguments[0] as DataSink
         sink[COMPOSE_PREVIEW_MANAGER] = manager
@@ -49,7 +49,9 @@ class ComposeShowFilterActionTest {
     manager.isFilterEnabled = false
 
     val action = ComposeShowFilterAction()
-    action.actionPerformed(createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)))
+    val dataContext = DataManager.getInstance().customizeDataContext(
+      DataContext.EMPTY_CONTEXT, surface)
+    action.actionPerformed(createTestEvent(dataContext))
 
     assertTrue(manager.isFilterEnabled)
   }

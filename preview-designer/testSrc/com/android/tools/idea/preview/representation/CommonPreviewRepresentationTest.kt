@@ -58,7 +58,7 @@ import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
-import com.intellij.openapi.actionSystem.CustomizedDataContext
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -269,7 +269,8 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
-      val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)
+      val context = DataManager.getInstance().customizeDataContext(
+        DataContext.EMPTY_CONTEXT, surface)
 
       assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
       assertTrue(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)

@@ -214,8 +214,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
 
   @Override
-  public void dataSnapshot(@NotNull DataSink sink) {
-    super.dataSnapshot(sink);
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    super.uiDataSnapshot(sink);
     NlComponent selection = getSelectionModel().getPrimary();
     if (selection != null && NavComponentHelperKt.isAction(selection)) {
       Scene scene = getScene();

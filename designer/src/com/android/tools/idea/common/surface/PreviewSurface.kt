@@ -45,7 +45,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataSnapshotProvider
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -87,7 +87,7 @@ abstract class PreviewSurface<T : SceneManager>(
   val zoomControlsPolicy: ZoomControlsPolicy,
   layout: LayoutManager,
 ) :
-  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, DataSnapshotProvider {
+  EditorDesignSurface(layout), Disposable, InteractableScenesSurface, ScaleListener, UiDataProvider {
 
   abstract val guiInputHandler: GuiInputHandler
 
