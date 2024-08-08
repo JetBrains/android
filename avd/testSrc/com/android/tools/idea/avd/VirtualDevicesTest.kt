@@ -61,7 +61,7 @@ class VirtualDevicesTest {
         mockSystemImageManager("system-images;android-33;android-automotive;x86_64"),
       )
       .add(
-        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(34))).toVirtualDevice(),
+        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(33))).toVirtualDevice(),
         mockSystemImage("system-images;android-33;android-automotive;x86_64"),
       )
 
