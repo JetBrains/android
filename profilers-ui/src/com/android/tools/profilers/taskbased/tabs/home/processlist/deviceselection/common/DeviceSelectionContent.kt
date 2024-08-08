@@ -34,6 +34,7 @@ import com.android.tools.profilers.taskbased.common.icons.DeviceIconUtils
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import icons.StudioIcons
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import javax.swing.Icon
 
@@ -62,8 +63,8 @@ fun DeviceText(text: String) {
 
 @Composable
 private fun DeviceIcon(icon: Icon?, description: String) {
-  DeviceIconUtils.getDeviceIconPainter(icon)?.let {
-    Icon(painter = it, contentDescription = description)
+  DeviceIconUtils.getDeviceIconKey(icon)?.let {
+    Icon(it, contentDescription = description, iconClass = StudioIconsCompose::class.java)
   }
 }
 

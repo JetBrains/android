@@ -82,8 +82,7 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
       else TaskBasedUxStrings.DEAD_PROCESS_TITLE
     // The android head icon to indicate the preferred process
     if (isPreferredProcess) {
-      val androidHeadIconPainter by StudioIconsCompose.Common.AndroidHead().getPainter()
-      LeftAlignedColumnText(processName, androidHeadIconPainter, rowScope = this)
+      LeftAlignedColumnText(processName, StudioIconsCompose.Common.AndroidHead, rowScope = this)
     }
     else {
       LeftAlignedColumnText(processName, rowScope = this)

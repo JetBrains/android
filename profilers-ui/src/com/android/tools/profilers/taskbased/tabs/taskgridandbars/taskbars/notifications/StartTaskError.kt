@@ -22,6 +22,6 @@ import icons.StudioIconsCompose
 @Composable
 fun StartTaskError(errorMessage: String, isCollapsed: Boolean) {
   CollapsibleNotification(mainText = errorMessage, tooltip = null,
-                          iconPainter = StudioIconsCompose.Common.Error().getPainter().value,
+                          iconKey = StudioIconsCompose.Common.Error,
                           iconDescription = START_TASK_SELECTION_ERROR_ICON_DESC, isCollapsed = isCollapsed)
 }
