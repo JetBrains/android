@@ -29,6 +29,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.query.PackageSet;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.google.protobuf.ExtensionRegistryLite;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +53,9 @@ import javax.annotation.Nullable;
  * listed in there.
  */
 public class ArtifactDirectoryUpdate {
+
+  public static final BoolExperiment buildGeneratedSrcJars =
+    new BoolExperiment("qsync.build.generated.src.jars", false);
 
   private final BuildArtifactCache artifactCache;
   private final Path workspaceRoot;
@@ -184,7 +188,11 @@ public class ArtifactDirectoryUpdate {
           updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src, dest));
           break;
         case STRIP_SUPPORTED_GENERATED_SOURCES:
-          updatedPaths.addAll(stripGeneratedSourcesTransform.copyWithTransform(src, dest));
+          if (buildGeneratedSrcJars.getValue()) {
+            updatedPaths.addAll(stripGeneratedSourcesTransform.copyWithTransform(src, dest));
+          } else {
+            updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src, dest));
+          }
           break;
         default:
           throw new IllegalArgumentException(
