@@ -1289,6 +1289,12 @@ def intellij_platform_import(name, spec):
         visibility = ["//visibility:public"],
     )
 
+    native.filegroup(
+        name = name + "-build-txt",
+        srcs = ["build.txt"],
+        visibility = ["//visibility:public"],
+    )
+
     for plugin, jars in spec.plugin_jars.items():
         jars_target_name = "%s-plugin-%s-jars" % (name, plugin)
         jvm_import(
@@ -1370,7 +1376,7 @@ def intellij_platform(
         data = native.glob([
             src + "/**/lib/*.jar",
             src + "/**/lib/modules/*.jar",
-            "**/product-info.json"
+            "**/product-info.json",
         ]),
         env = {
             "spec": json.encode(spec),
