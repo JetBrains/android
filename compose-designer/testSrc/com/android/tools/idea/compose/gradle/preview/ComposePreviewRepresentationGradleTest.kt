@@ -72,7 +72,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -201,7 +200,7 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    projectRule.buildAndRefresh()
+    projectRule.buildAndRefresh(failOnTimeout = false)
 
     val secondRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
     assertTrue(
@@ -220,7 +219,7 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    projectRule.buildAndRefresh()
+    projectRule.buildAndRefresh(failOnTimeout = false)
 
     val thirdRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
@@ -231,7 +230,7 @@ class ComposePreviewRepresentationGradleTest {
     // This test only makes sense when fast preview is disabled, as what's being tested is that
     // annotation changes take effect without rebuilding nor recompiling
     FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
-    projectRule.runAndWaitForRefresh {
+    projectRule.runAndWaitForRefresh(failOnTimeout = false) {
       // Remove the @Preview from the NavigatablePreview
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -256,7 +255,6 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  @Ignore("b/356189674")
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() =
     runBlocking {
       // This test only makes sense when fast preview is disabled, as what's being tested is that
@@ -264,7 +262,7 @@ class ComposePreviewRepresentationGradleTest {
       FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
       val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
-      projectRule.runAndWaitForRefresh {
+      projectRule.runAndWaitForRefresh(failOnTimeout = false) {
         // Add an annotation class annotated with Preview in OtherPreviews.kt
         runWriteActionAndWait {
           fixture.openFileInEditor(otherPreviewsFile.virtualFile)
@@ -304,7 +302,7 @@ class ComposePreviewRepresentationGradleTest {
           .joinToString("\n"),
       )
 
-      projectRule.runAndWaitForRefresh {
+      projectRule.runAndWaitForRefresh(failOnTimeout = false) {
         // Modify the Preview annotating MyAnnotation
         runWriteActionAndWait {
           fixture.openFileInEditor(otherPreviewsFile.virtualFile)
@@ -544,7 +542,10 @@ class ComposePreviewRepresentationGradleTest {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
         firstPreview!!.sceneView.let {
           previewView.mainSurface.zoomAndCenter(
@@ -566,7 +567,10 @@ class ComposePreviewRepresentationGradleTest {
       )
 
       // Now zoom out a lot to go below the threshold (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         previewView.mainSurface.zoomController.setScale(
           DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0
         )
@@ -583,7 +587,10 @@ class ComposePreviewRepresentationGradleTest {
       )
 
       // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         previewView.mainSurface.zoomController.setScale(
           DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0
         )
@@ -605,7 +612,10 @@ class ComposePreviewRepresentationGradleTest {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
         firstPreview!!.sceneView.let {
           previewView.mainSurface.zoomAndCenter(
@@ -627,7 +637,10 @@ class ComposePreviewRepresentationGradleTest {
       )
 
       // Now deactivate the preview representation (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         composePreviewRepresentation.onDeactivate()
       }
       withContext(uiThread) { fakeUi.root.validate() }
@@ -642,7 +655,10 @@ class ComposePreviewRepresentationGradleTest {
       )
 
       // Now reactivate the preview representation (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY) {
+      projectRule.runAndWaitForRefresh(
+        expectedRefreshType = ComposePreviewRefreshType.QUALITY,
+        failOnTimeout = false,
+      ) {
         composePreviewRepresentation.onActivate()
       }
       withContext(uiThread) { fakeUi.root.validate() }

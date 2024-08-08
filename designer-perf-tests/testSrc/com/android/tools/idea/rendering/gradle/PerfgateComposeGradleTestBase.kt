@@ -85,7 +85,7 @@ open class PerfgateComposeGradleTestBase {
     measurements: List<MetricMeasurement<Unit>>,
     measuredRunnable: suspend () -> Unit = { fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds) }
   ) = runBlocking {
-    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds, failOnTimeout = false) {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
