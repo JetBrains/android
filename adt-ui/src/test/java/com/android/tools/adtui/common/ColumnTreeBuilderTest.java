@@ -18,6 +18,7 @@ package com.android.tools.adtui.common;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.TreeWalker;
+import com.intellij.testFramework.LightPlatform4TestCase;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.treeStructure.Tree;
@@ -38,11 +39,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
-public class ColumnTreeBuilderTest {
+public class ColumnTreeBuilderTest extends LightPlatform4TestCase {
 
   @Test
   public void testTreeFillsViewportIfSmallerThanViewport() throws Exception {
@@ -127,7 +125,7 @@ public class ColumnTreeBuilderTest {
     JComponent treeTable = createTestColumnTreeBuilder(null, new MyEmptyRenderer(), tree)
       .setShowHeaderTooltips(true)
       .build();
-    JTableHeader header = (JTableHeader) new TreeWalker(treeTable).descendantStream()
+    JTableHeader header = (JTableHeader)new TreeWalker(treeTable).descendantStream()
       .filter(c -> c instanceof JTableHeader).findAny()
       .orElse(null);
     assertThat(header).isNotNull();
