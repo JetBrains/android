@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,17 +47,7 @@ public final class NavigateToCodeAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     CodeLocation codeLocation = myLocationSupplier.get();
-    if (codeLocation == null) {
-      e.getPresentation().setEnabled(false);
-      return;
-    }
-    // Because update() is also called right before actonPerformed for another check, if we disable the button here it would cause the
-    // action to be ignored. Therefore we always enable the button before checking isNavigatable asynchronously.
-    e.getPresentation().setEnabled(true);
-
-    myCodeNavigator.isNavigatable(codeLocation).thenAcceptAsync(
-        isNavigatable -> e.getPresentation().setEnabled(isNavigatable),
-        ApplicationManager.getApplication()::invokeLater);
+    e.getPresentation().setEnabled(codeLocation != null && myCodeNavigator.isNavigatable(codeLocation));
   }
 
   @Override

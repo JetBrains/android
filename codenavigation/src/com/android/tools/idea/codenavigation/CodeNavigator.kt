@@ -94,32 +94,30 @@ class CodeNavigator (source: NavSource, private val executor: Executor) {
       }) { runnable: Runnable? -> executor.onForeground(runnable!!)}
   }
 
-  fun isNavigatable(location: CodeLocation): CompletableFuture<Boolean>? {
-    return getNavigatableAsync(location).thenApply { nav: Navigatable? -> nav != null }
-  }
+  fun isNavigatable(location: CodeLocation) = getNavigatable(location)?.canNavigateToSource() ?: false
 
   /**
    * Gets the navigatable in another thread, so we don't block the UI while potentially performing
    * heavy operations, such as searching for the java class/method in the PSI tree or using
    * llvm-symbolizer to get a native function name.
-   *
-   * Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need
-   * to wrap the action in a ReadAction. Hence all PSI-reading code inside getNavigatable() will
-   * need to wrapped in a ReadAction.
-   *
-   * See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
    */
   private fun getNavigatableAsync(location: CodeLocation): CompletableFuture<Navigatable?> {
-    return CompletableFuture.supplyAsync(
-      {
-        ReadAction.compute(
-          ThrowableComputable<Navigatable, RuntimeException> { getNavigatable(location) })
-      }
-    ) { runnable: Runnable? -> executor.onBackground(runnable!!) }
+    return CompletableFuture.supplyAsync({ getNavigatable(location) }) { runnable: Runnable? ->
+      executor.onBackground(runnable!!)
+    }
   }
 
+  /**
+   * Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need
+   * to wrap the action in a ReadAction. Hence, all PSI-reading code inside getNavigatable() will
+   * need to wrapped in a ReadAction.
+   *
+   * See [General Threading Rules](http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html)
+   */
   private fun getNavigatable(location: CodeLocation): Navigatable? {
-    return mySource.lookUp(location, cpuArchSource.get())
+    return ReadAction.compute(ThrowableComputable<Navigatable, RuntimeException> {
+      mySource.lookUp(location, cpuArchSource.get())
+    })
   }
 
   interface Listener {
