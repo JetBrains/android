@@ -71,10 +71,6 @@ class VisualizationFormVisualLintHandler(
           // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
           manager.removeRenderListener(this)
         }
-
-        override fun onRenderFailed(e: Throwable) {
-          manager.removeRenderListener(this)
-        }
       }
     manager.addRenderListener(renderListener)
   }
