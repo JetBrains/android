@@ -42,7 +42,9 @@ public abstract class AndroidComponentDownloader {
   private final ReentrantReadWriteLock downloadLock = new ReentrantReadWriteLock();
 
   public boolean makeSureComponentIsInPlace() {
-    if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isDisposed()) return false; // to support regular junit tests with no Application initialized
+    if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isDisposed()) {
+      return false; // to support regular junit tests with no Application initialized
+    }
     if (IdeInfo.getInstance().isAndroidStudio()) return true;
 
     waitOtherThreadToCompleteIfNotInEDT();
@@ -148,8 +150,8 @@ public abstract class AndroidComponentDownloader {
   }
 
   @NotNull
-  protected final String getVersion() {
-    return LazyComponentVersions.getVersion(getArtifactName());
+  static String getVersion() {
+    return LazyComponentVersions.getVersion();
   }
 
   @NotNull
@@ -180,28 +182,27 @@ public abstract class AndroidComponentDownloader {
   }
 
   private static final class LazyComponentVersions {
-    private static final String PROPERTIES_RESOURCE_NAME = "/componentDownloader/versions.properties";
-    private static final Properties VERSIONS_MAP;
+    private static final String studioPlatformVersion;
 
     static {
       try {
         Properties properties = new Properties();
-        try (InputStream is = LazyComponentVersions.class.getResourceAsStream(PROPERTIES_RESOURCE_NAME)) {
+        try (InputStream is = LazyComponentVersions.class.getClassLoader().getResourceAsStream("studio-platform.properties")) {
           properties.load(is);
+          studioPlatformVersion = properties.getProperty("version");
+          if (studioPlatformVersion == null) {
+            throw new IllegalStateException("Could not find property 'version' in studio-platform.properties");
+          }
         }
-        VERSIONS_MAP = properties;
-      } catch (Exception t) {
+      }
+      catch (Exception t) {
         throw new RuntimeException(t.getMessage(), t);
       }
     }
 
     @NotNull
-    public static String getVersion(String componentName) {
-      String version = VERSIONS_MAP.getProperty(componentName);
-      if (version == null) {
-        throw new IllegalStateException("Could not find property '" + componentName + "' in " + LazyComponentVersions.class.getResource(PROPERTIES_RESOURCE_NAME));
-      }
-      return version;
+    public static String getVersion() {
+      return studioPlatformVersion;
     }
   }
 }
