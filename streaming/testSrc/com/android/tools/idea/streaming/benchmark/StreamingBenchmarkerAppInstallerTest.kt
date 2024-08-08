@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.inOrder
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.whenever
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.util.StudioPathManager
@@ -29,17 +24,21 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import io.ktor.util.encodeBase64
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.InputStream
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.hours
@@ -49,7 +48,6 @@ private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure 
 private const val START_COMMAND = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
 
 /** Tests the [StreamingBenchmarkerAppInstaller] class. */
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class StreamingBenchmarkerAppInstallerTest {
   @get:Rule
@@ -68,7 +66,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun installationFromDownload() = runBlockingTest {
+  fun installationFromDownload() = runTest {
     val downloadPath = Paths.get("/help/i/am/trapped/in/a/unit/test/factory.apk")
     val relativePath = "common/streaming-benchmarker/streaming-benchmarker.apk"
     val basePrebuiltsUrl = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
@@ -86,10 +84,10 @@ class StreamingBenchmarkerAppInstallerTest {
       // Download
       verify(indicator).isIndeterminate = true
       verify(indicator).text = "Installing benchmarking app"
-      val transformCaptor: ArgumentCaptor<(InputStream) -> InputStream> = argumentCaptor()
+      val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
       verify(urlFileCache).get(eq(apkUrl), eq(12.hours.inWholeMilliseconds), eq(indicator), transformCaptor.capture())
       val helloWorld = "Hello World"
-      assertThat(String(transformCaptor.value.invoke(helloWorld.encodeBase64().byteInputStream()).readBytes()))
+      assertThat(String(transformCaptor.firstValue.invoke(helloWorld.encodeBase64().byteInputStream()).readBytes()))
         .isEqualTo(helloWorld)
 
       // Installation
@@ -100,7 +98,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun installationFromPrebuilts_success() = runBlockingTest {
+  fun installationFromPrebuilts_success() = runTest {
     val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
       "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(true)
@@ -110,7 +108,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun installationFromPrebuilts_failure() = runBlockingTest {
+  fun installationFromPrebuilts_failure() = runTest {
     val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
       "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(false)
@@ -121,7 +119,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun launchBenchmarkingApp_disableBannerFailure() = runBlockingTest {
+  fun launchBenchmarkingApp_disableBannerFailure() = runTest {
     whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(false)
     whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(true)
 
@@ -131,7 +129,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun launchBenchmarkingApp_launchAppFailure() = runBlockingTest {
+  fun launchBenchmarkingApp_launchAppFailure() = runTest {
     whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(true)
     whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(false)
 
@@ -141,7 +139,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun launchBenchmarkingApp_success() = runBlockingTest {
+  fun launchBenchmarkingApp_success() = runTest {
     whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(true)
     whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(true)
 
@@ -151,7 +149,7 @@ class StreamingBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun uninstallBenchmarkingApp() = runBlockingTest {
+  fun uninstallBenchmarkingApp() = runTest {
     installer.uninstallBenchmarkingApp()
 
     verify(adb).uninstall(SERIAL_NUMBER)

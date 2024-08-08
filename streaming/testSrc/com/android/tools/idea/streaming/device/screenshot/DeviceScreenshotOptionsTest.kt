@@ -17,8 +17,6 @@ package com.android.tools.idea.streaming.device.screenshot
 
 import com.android.adblib.DevicePropertyNames
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.streaming.device.DeviceView
@@ -28,6 +26,8 @@ import com.android.tools.idea.ui.screenshot.FramingOption
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
