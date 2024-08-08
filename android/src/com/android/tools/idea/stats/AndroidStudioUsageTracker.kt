@@ -26,6 +26,7 @@ import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
@@ -122,11 +123,15 @@ object AndroidStudioUsageTracker {
   /** Gets list of active experiments. */
   @JvmStatic
   fun buildActiveExperimentList(): Collection<String> {
-    val experimentOverrides = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
-    if (experimentOverrides.isNullOrEmpty()) {
-      return listOf()
+    val experimentOverridesProperty = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
+
+    val experimentOverrides = if (experimentOverridesProperty.isNullOrEmpty()) {
+      emptyList()
+    } else {
+      experimentOverridesProperty.split(',')
     }
-    return experimentOverrides.split(',')
+    val activeMendelExperimentIds = MendelFlagsProvider.getActiveExperimentIds().map { it.toString() }
+    return experimentOverrides + activeMendelExperimentIds
   }
 
   /** Gets information about all the displays connected to this machine.  */
