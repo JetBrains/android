@@ -109,6 +109,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module, test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
     ],
 )
 
@@ -311,6 +312,10 @@ maven_repository(
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.prefab.cli_2.1.0",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
+        "@maven//:com.google.testing.platform.android-device-provider-local",
+        "@maven//:com.google.testing.platform.android-test-plugin",
+        "@maven//:com.google.testing.platform.core",  # CompileOnly should not be in the pom
+        "@maven//:com.google.testing.platform.launcher",  # CompileOnly should not be in the pom
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
@@ -2019,11 +2024,11 @@ java_test(
     timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
+    ]) + [
+        "//prebuilts/studio/sdk:emulator",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ] + select({
+        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
         "//conditions:default": [],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.espresso.EspressoRecorderTest"],

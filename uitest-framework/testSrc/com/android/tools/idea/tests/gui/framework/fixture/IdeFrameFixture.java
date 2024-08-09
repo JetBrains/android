@@ -238,6 +238,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture recordEspressoTest() {
+    new DeviceSelectorFixture(robot(), this).recordEspressoTest();
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
     new DeviceSelectorFixture(robot(), this).recordEspressoTest(device);
     return this;
