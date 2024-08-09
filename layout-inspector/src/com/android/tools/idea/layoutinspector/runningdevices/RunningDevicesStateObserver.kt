@@ -20,6 +20,7 @@ import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
@@ -183,8 +184,7 @@ class RunningDevicesStateObserver(
   /** Returns [DeviceId] of the visible tabs in the Running Devices Tool Window. */
   private fun getRunningDevicesVisibleTabs(): List<DeviceId> {
     val selectedContent = getAllContents().filter { it.isSelected }
-    val selectedTabDataProvider = selectedContent.mapNotNull { it.component as? DataProvider }
-    return selectedTabDataProvider.mapNotNull { it.getData(DEVICE_ID_KEY.name) as? DeviceId }
+    return selectedContent.mapNotNull { it.deviceId }
   }
 
   /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
@@ -215,5 +215,5 @@ class RunningDevicesStateObserver(
 
 private val Content.deviceId: DeviceId?
   get() {
-    return (component as? DataProvider)?.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
+    return DataManager.getInstance().getDataContext(component).getData(DEVICE_ID_KEY)
   }
