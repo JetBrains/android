@@ -135,7 +135,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
       }
 
       @Override
-      public ProjectSystemId getExternalSystemId() {
+      public @NotNull ProjectSystemId getExternalSystemId() {
         return GradleConstants.SYSTEM_ID;
       }
     };
