@@ -207,18 +207,20 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void clearAllNotificationsInWelcomeScreen(){
-      List<BalloonImpl.ActionButton> allNotificationActions =
-        Lists.newArrayList(robot().finder().findAll(welcomeFrame().target(), Matchers.byType(BalloonImpl.ActionButton.class)));
-        if (allNotificationActions.size() > 0) {
-            for (BalloonImpl.ActionButton closeAction : allNotificationActions) {
-                if (closeAction.isShowing()) {
-                    robot().click(closeAction);
-                  }
-             }
-         }
-   }
-
+  private void clearAllNotificationsInWelcomeScreen() {
+    List<BalloonImpl.ActionButton> allNotificationActions =
+      Lists.newArrayList(robot().finder().findAll(welcomeFrame().target(), Matchers.byType(BalloonImpl.ActionButton.class)));
+    //if (allNotificationActions.size() > 0) {
+    if (!allNotificationActions.isEmpty()) {
+      for (BalloonImpl.ActionButton closeAction : allNotificationActions) {
+        if (closeAction.isShowing() &
+            closeAction.getClass().getName().toLowerCase().contains("closebutton")) {
+          robot().click(closeAction);
+        }
+      }
+    }
+    welcomeFrame().target().requestFocus();
+  }
 
   private void restartIdeIfWelcomeFrameNotShowing() {
     boolean welcomeFrameNotShowing = false;

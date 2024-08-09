@@ -49,8 +49,6 @@ public class NavGraphSanityTest {
 
   @Before
   public void setUp() {
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
