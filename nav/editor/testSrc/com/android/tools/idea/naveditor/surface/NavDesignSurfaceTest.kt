@@ -73,7 +73,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertNotEquals
 
@@ -215,7 +214,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    whenever(surface.layeredPane).thenReturn(mock(JComponent::class.java))
     val guiInputHandler = surface.guiInputHandler
     guiInputHandler.startListening()
 

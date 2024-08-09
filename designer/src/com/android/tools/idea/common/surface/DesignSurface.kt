@@ -182,7 +182,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   private val hasZoomControls: Boolean = zoomControlsPolicy != ZoomControlsPolicy.HIDDEN
 
-  val layeredPane: JComponent = JLayeredPane().apply { setFocusable(true) }
+  val layeredPane: JLayeredPane = JLayeredPane().apply { setFocusable(true) }
 
   val guiInputHandler =
     GuiInputHandler(this, interactableProvider(this), interactionProviderCreator(this))
@@ -1308,13 +1308,16 @@ abstract class DesignSurface<T : SceneManager>(
     layeredPane.apply {
       add(progressPanel, LAYER_PROGRESS)
       add(mouseClickDisplayPanel, LAYER_MOUSE_CLICK)
-      zoomControlsLayerPane?.let { add(it, JLayeredPane.DRAG_LAYER) }
+      zoomControlsLayerPane?.let { add(it) }
+      setLayer(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER)
       if (scrollPane != null) {
         layout = MatchParentLayoutManager()
-        add(scrollPane, JLayeredPane.POPUP_LAYER)
+        add(scrollPane)
+        setLayer(zoomControlsLayerPane, JLayeredPane.POPUP_LAYER)
       } else {
         layout = OverlayLayout(this@apply)
-        add(sceneViewPanel, JLayeredPane.POPUP_LAYER)
+        add(sceneViewPanel)
+        setLayer(zoomControlsLayerPane, JLayeredPane.POPUP_LAYER)
       }
     }
   }
