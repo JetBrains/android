@@ -67,7 +67,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
@@ -736,7 +735,8 @@ class ComposePreviewRepresentationTest {
     runComposePreviewRepresentationTest {
       composePreviewEssentialsModeEnabled = true
 
-      val preview = createPreviewAndCompile()
+      // Only one preview/model is shown in gallery mode
+      val preview = createPreviewAndCompile(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)
     }
@@ -779,7 +779,8 @@ class ComposePreviewRepresentationTest {
     }
 
     runComposePreviewRepresentationTest(testPsiFile) {
-      val preview = createPreviewAndCompile()
+      // The file above contains only 1 preview/model
+      val preview = createPreviewAndCompile(expectedModelCount = 1)
       assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
         preview.uiCheckFilterFlow.value
       )
@@ -992,7 +993,7 @@ class ComposePreviewRepresentationTest {
 
     private lateinit var dataProvider: DataProvider
 
-    private var modelRenderedLatch: CountDownLatch = CountDownLatch(2)
+    private lateinit var newModelAddedLatch: CountDownLatch
 
     init {
       mainSurface.addListener(
@@ -1000,18 +1001,17 @@ class ComposePreviewRepresentationTest {
           override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
             val id = UUID.randomUUID().toString().substring(0, 5)
             logger.info("modelChanged ($id)")
-            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-              logger.info("renderListener ($id)")
-              modelRenderedLatch.countDown()
-            }
+            newModelAddedLatch.countDown()
           }
         }
       )
     }
 
     suspend fun createPreviewAndCompile(
-      previewOverride: ComposePreviewRepresentation? = null
+      previewOverride: ComposePreviewRepresentation? = null,
+      expectedModelCount: Int = 2,
     ): ComposePreviewRepresentation {
+      newModelAddedLatch = CountDownLatch(expectedModelCount)
       composeView = TestComposePreviewView(mainSurface)
       preview =
         previewOverride
@@ -1032,7 +1032,7 @@ class ComposePreviewRepresentationTest {
         logger.info("activate")
         preview.onActivate()
 
-        modelRenderedLatch.await()
+        newModelAddedLatch.await()
         delayWhileRefreshingOrDumb(preview)
       }
       return preview
