@@ -21,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
@@ -214,7 +213,7 @@ internal fun VirtualDeviceProfile.toVirtualDevice() =
     rearCamera = AvdCamera.VIRTUAL_SCENE,
     speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
     latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-    orientation = ScreenOrientation.PORTRAIT,
+    orientation = device.defaultState.orientation,
     defaultBoot = Boot.QUICK,
     internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
     expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
