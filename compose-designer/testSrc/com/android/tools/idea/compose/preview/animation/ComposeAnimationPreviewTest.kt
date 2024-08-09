@@ -76,7 +76,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   private suspend fun subscribeAnimations(animations: List<ComposeAnimation>) {
     surface.sceneManagers.forEach { it.render() }
     val clock = getClock()
-    animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it).join() }
+    animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it) }
   }
 
   private suspend fun createFakeUiForInspector(inspector: ComposeAnimationPreview) =
@@ -108,14 +108,14 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     val animation = createComposeAnimation()
     assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
-    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animation)
     assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     val otherAnimation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(otherAnimation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(otherAnimation)
     assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation)
     assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
@@ -123,7 +123,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   fun closingInspectorClearsSubscriptions() = runBlocking {
     createAndOpenInspector()
 
-    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation()).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation())
     assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     ComposeAnimationInspectorManager.closeCurrentInspector()
@@ -138,80 +138,81 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     // animations to be displayed
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animations.size)
 
     val clock = getClock()
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
 
     // After subscribing an animation, we should display the tabbedPane
     val anotherAnimation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, anotherAnimation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, anotherAnimation)
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(2, inspector.tabCount())
+    assertEquals(2, inspector.animations.size)
 
     // After unsubscribing from one animation, animation panel still shown.
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation)
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no
     // animations panel
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(anotherAnimation).join()
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(anotherAnimation)
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animations.size)
 
     // After subscribing again to the animation, we should display the tabbedPane
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
     assertNull(inspector.noAnimationsPanel())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
   }
 
   @Test
   fun oneTabPerSubscribedAnimation() = runBlocking {
     val inspector = createAndOpenInspector()
     assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animations.size)
 
     val animation1 = createComposeAnimation()
     val clock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1)
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
 
     val animation2 = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation2).join()
-    assertEquals(2, inspector.tabCount())
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation2)
+    assertEquals(2, inspector.animations.size)
 
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation1).join()
-    assertEquals(1, inspector.tabCount())
+    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation1)
+    assertEquals(1, inspector.animations.size)
   }
 
   @Test
   fun subscriptionNewClockClearsPreviousClockAnimations() = runBlocking {
     val inspector = createAndOpenInspector()
     assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animations.size)
 
     val clock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, createComposeAnimation()).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, createComposeAnimation())
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
 
     val anotherClock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation()).join()
-    assertEquals(1, inspector.tabCount())
+    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
+    println("Animations tab: ${inspector.animations}")
+    assertEquals(1, inspector.animations.size)
 
-    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation()).join()
-    assertEquals(2, inspector.tabCount())
+    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
+    assertEquals(2, inspector.animations.size)
   }
 
   @Test
@@ -437,7 +438,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       )
     )
 
-    assertEquals(5, inspector.tabCount())
+    assertEquals(5, inspector.animations.size)
     assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
     assertEquals(
       "repeatedLabel (1)",
@@ -542,17 +543,17 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       subscribeAnimations(animations)
 
       assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
       assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
 
       ComposeAnimationInspectorManager.invalidate(anotherPsiPointer).join()
       assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
       assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
 
       ComposeAnimationInspectorManager.invalidate(psiPointerTwo).join()
       assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(0, ComposeAnimationInspectorManager.currentInspector!!.tabCount())
+      assertEquals(0, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
       assertNotNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
     }
   }
@@ -563,14 +564,14 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     subscribeAnimations(listOf(createComposeAnimation()))
 
     assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.tabCount())
+    assertEquals(1, inspector.animations.size)
     assertNull(inspector.noAnimationsPanel())
     assertEquals(1, inspector.animationPreviewCardsCount())
 
     ComposeAnimationInspectorManager.invalidate(psiFilePointer).join()
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.tabCount())
+    assertEquals(0, inspector.animations.size)
     assertEquals(0, inspector.animationPreviewCardsCount())
   }
 
@@ -649,7 +650,6 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
   }
 
-  private fun ComposeAnimationPreview.tabCount(): Int = runBlocking(uiThread) { animations.size }
 
   private fun ComposeAnimationPreview.getAnimationTitleAt(index: Int): String =
     findAllCards(this.component)[index].findLabel().text
@@ -660,6 +660,5 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       .filter { it.name == "Loading Animations Panel" }
       .getIfSingle()
 
-  private fun ComposeAnimationPreview.animationPreviewCardsCount(): Int =
-    runBlocking(uiThread) { coordinationTab.cards.size }
+  private fun ComposeAnimationPreview.animationPreviewCardsCount(): Int = coordinationTab.cards.size
 }

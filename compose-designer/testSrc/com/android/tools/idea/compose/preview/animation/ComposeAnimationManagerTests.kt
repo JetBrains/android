@@ -205,7 +205,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     var ui: FakeUi
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
       withContext(uiThread) {
         ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
@@ -266,7 +266,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
 
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
       assertTrue("No animation is added", 1 == inspector.animations.size)
       withContext(uiThread) {
         val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
