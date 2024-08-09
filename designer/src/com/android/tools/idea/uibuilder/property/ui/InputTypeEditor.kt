@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.uibuilder.property.InputTypePropertyItem
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.BalloonImpl
 import com.intellij.ui.components.JBLabel
