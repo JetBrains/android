@@ -128,7 +128,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @GuardedBy("myFuturesLock")
   private final LinkedList<CompletableFuture<Void>> myPendingFutures = new LinkedList<>();
   @NotNull private final ViewEditor myViewEditor;
-  private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
   /**
    * Helper class in charge of some render related responsibilities
@@ -375,7 +374,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         model.getConfiguration().removeListener(myConfigurationChangeListener);
         model.removeListener(myModelChangeListener);
       }
-      myRenderListeners.clear();
     }
     finally {
       super.dispose();
@@ -858,7 +856,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, CommonUsageTracker.RenderResultType.RENDER);
         }
         getDesignSurface().modelRendered();
-        fireOnRenderComplete();
         completeRender();
 
         return result;
@@ -902,22 +899,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   public void setElapsedFrameTimeMs(long ms) {
     myElapsedFrameTimeMs = ms;
-  }
-
-  private void fireOnRenderComplete() {
-    myRenderListeners.forEach(RenderListener::onRenderCompleted);
-  }
-
-  public void addRenderListener(@NotNull RenderListener listener) {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("addRenderListener after LayoutlibSceneManager has been disposed");
-    }
-
-    myRenderListeners.add(listener);
-  }
-
-  public void removeRenderListener(@NotNull RenderListener listener) {
-    myRenderListeners.remove(listener);
   }
 
   /**
