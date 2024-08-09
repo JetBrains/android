@@ -34,7 +34,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
@@ -435,7 +434,7 @@ class WearTilePreviewRepresentationTest {
     testFile: PsiFile = createWearTilePreviewTestFile(),
     expectedModelCount: Int = 2,
   ): WearTilePreviewRepresentation {
-    val modelRenderedLatch = CountDownLatch(expectedModelCount)
+    val newModelAddedLatch = CountDownLatch(expectedModelCount)
     val previewRepresentation =
       WearTilePreviewRepresentationProvider().createRepresentation(testFile)
         as WearTilePreviewRepresentation
@@ -445,10 +444,7 @@ class WearTilePreviewRepresentationTest {
         override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
           val id = UUID.randomUUID().toString().substring(0, 5)
           logger.info("modelChanged ($id)")
-          (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-            logger.info("renderListener ($id)")
-            modelRenderedLatch.countDown()
-          }
+          newModelAddedLatch.countDown()
         }
       }
     )
@@ -468,7 +464,7 @@ class WearTilePreviewRepresentationTest {
     )
 
     withContext(Dispatchers.IO) {
-      modelRenderedLatch.await()
+      newModelAddedLatch.await()
       delayWhileRefreshingOrDumb(previewRepresentation)
     }
 
