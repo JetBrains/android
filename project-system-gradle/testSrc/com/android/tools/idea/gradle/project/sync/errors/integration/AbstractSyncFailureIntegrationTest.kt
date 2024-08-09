@@ -50,7 +50,7 @@ abstract class AbstractSyncFailureIntegrationTest {
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
 
-  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+  protected val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   @Before
   fun setUp() {
