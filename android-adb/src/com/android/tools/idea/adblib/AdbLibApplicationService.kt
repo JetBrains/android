@@ -62,25 +62,27 @@ class AdbLibApplicationService : Disposable {
   /**
    * A [AdbSession] customized to work in the Android plugin.
    */
-  val session = AdbSession.create(
-    host = host,
-    channelProvider = channelProvider,
-    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
-  ).also { session ->
-    // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance on
-    //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
-    //   are delegated to this AdbSession.
+  val session by lazy {
+    AdbSession.create(
+      host = host,
+      channelProvider = channelProvider,
+      connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
+    ).also { session ->
+      // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance on
+      //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
+      //   are delegated to this AdbSession.
 
-    val enabled = {
-      StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
-      StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
+      val enabled = {
+        StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
+        StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
+      }
+
+      ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
+        session,
+        enabled = enabled,
+        config = StudioProcessInventoryServerConfiguration(),
+      )
     }
-
-    ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
-      session,
-      enabled = enabled,
-      config = StudioProcessInventoryServerConfiguration(),
-    )
   }
 
   init {

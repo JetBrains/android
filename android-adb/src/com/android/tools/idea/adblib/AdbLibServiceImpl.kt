@@ -45,12 +45,14 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session = if (oneSessionPerProject) {
-    // Create per project session
-    createProjectSession(project)
-  } else {
-    // re-use session from application service
-    AdbLibApplicationService.instance.session
+  override val session by lazy {
+    if (oneSessionPerProject) {
+      // Create per project session
+      createProjectSession(project)
+    } else {
+      // re-use session from application service
+      AdbLibApplicationService.instance.session
+    }
   }
 
   override fun dispose() {
