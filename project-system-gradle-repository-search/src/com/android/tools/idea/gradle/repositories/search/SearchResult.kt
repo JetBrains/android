@@ -72,7 +72,7 @@ fun Collection<SearchResultStats>.combine(): SearchResultStats =
       })
 
 
-fun Future<SearchResult>.getResultSafely(): SearchResult? =
+fun Future<SearchResult>.getResultSafely(): SearchResult =
   takeUnless { isCancelled }
     .let {
       try {

@@ -37,7 +37,7 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
     val artifactPredicate: (String, String) -> Boolean =
       when (val query = request.query) {
         is ModuleQuery -> {
-          val modulePredicate = query.module.toWildcardMatchingPredicate() ?: {true}
+          val modulePredicate = query.module.toWildcardMatchingPredicate();
           { group, artifactName -> modulePredicate("$group:$artifactName") }
         }
 
@@ -83,8 +83,6 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
     return SearchResult(foundArtifacts.sortedWith(compareBy<FoundArtifact> { it.groupId }.thenBy { it.name }))
   }
-
-  private data class Match internal constructor(internal val artifactName: String, internal val groupId: String)
 
   companion object {
     fun maybeCreateLocalMavenRepository(mavenRepositoryUrl: String, mavenRepositoryName: String): LocalMavenRepository? {

@@ -22,7 +22,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.time.Duration
 import java.util.concurrent.Callable
 
-abstract class ArtifactRepository(val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
+abstract class ArtifactRepository(private val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ArtifactRepository search", 1)
     .let { MoreExecutors.listeningDecorator(it) }
 
