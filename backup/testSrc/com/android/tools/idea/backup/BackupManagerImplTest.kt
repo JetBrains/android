@@ -19,7 +19,6 @@ import com.android.backup.BackupException
 import com.android.backup.BackupResult
 import com.android.backup.BackupService
 import com.android.backup.ErrorCode
-import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
@@ -118,9 +117,10 @@ internal class BackupManagerImplTest {
         ErrorCode.CANNOT_ENABLE_BMGR to BackupUsageEvent.Result.CANNOT_ENABLE_BMGR,
         ErrorCode.TRANSPORT_NOT_SELECTED to BackupUsageEvent.Result.TRANSPORT_NOT_SELECTED,
         ErrorCode.GMSCORE_NOT_FOUND to BackupUsageEvent.Result.GMSCORE_NOT_FOUND,
-        GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
+        ErrorCode.GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
         ErrorCode.BACKUP_FAILED to BackupUsageEvent.Result.BACKUP_FAILED,
         ErrorCode.UNEXPECTED_ERROR to BackupUsageEvent.Result.UNEXPECTED_ERROR,
+        ErrorCode.PLAY_STORE_NOT_INSTALLED to BackupUsageEvent.Result.PLAY_STORE_NOT_INSTALLED,
       )
 
     errors.forEach { testBackupError(it.first, it.second) }
@@ -133,10 +133,11 @@ internal class BackupManagerImplTest {
         ErrorCode.CANNOT_ENABLE_BMGR to BackupUsageEvent.Result.CANNOT_ENABLE_BMGR,
         ErrorCode.TRANSPORT_NOT_SELECTED to BackupUsageEvent.Result.TRANSPORT_NOT_SELECTED,
         ErrorCode.GMSCORE_NOT_FOUND to BackupUsageEvent.Result.GMSCORE_NOT_FOUND,
-        GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
+        ErrorCode.GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
         ErrorCode.RESTORE_FAILED to BackupUsageEvent.Result.RESTORE_FAILED,
         ErrorCode.INVALID_BACKUP_FILE to BackupUsageEvent.Result.INVALID_BACKUP_FILE,
         ErrorCode.UNEXPECTED_ERROR to BackupUsageEvent.Result.UNEXPECTED_ERROR,
+        ErrorCode.PLAY_STORE_NOT_INSTALLED to BackupUsageEvent.Result.PLAY_STORE_NOT_INSTALLED,
       )
 
     errors.forEach { testRestoreError(it.first, it.second) }
@@ -149,7 +150,7 @@ internal class BackupManagerImplTest {
     val backupFile = Path.of("file")
     whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
       .thenReturn(
-        BackupResult.Error(GMSCORE_IS_TOO_OLD, BackupException(GMSCORE_IS_TOO_OLD, "Error"))
+        BackupResult.Error(ErrorCode.GMSCORE_IS_TOO_OLD, BackupException(ErrorCode.GMSCORE_IS_TOO_OLD, "Error"))
       )
 
     backupManagerImpl.restore(
