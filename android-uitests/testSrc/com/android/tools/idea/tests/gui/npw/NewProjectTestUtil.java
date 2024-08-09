@@ -17,10 +17,8 @@ package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
-import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,24 +26,17 @@ public class NewProjectTestUtil {
 
   public static boolean createNewProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
-
     WizardUtils.createNewProject(guiTest,tabName,templateName);
-    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().getProject());
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
-    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(360)).isBuildSuccessful());
   }
 
   public static boolean createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName, @NotNull Language language) {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
     WizardUtils.createCppProject(guiTest,tabName,templateName, language);
-    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().getProject());
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
-    guiTest.waitForBackgroundTasks();
-    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(360)).isBuildSuccessful());
   }
 }
