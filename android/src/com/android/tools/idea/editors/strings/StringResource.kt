@@ -175,22 +175,19 @@ class StringResource(
   }
 
   private fun getAnchor(locale: Locale): StringResourceKey? {
-    val keys = data.keys
-    val indexOfKey = keys.indexOf(key)
-    if (indexOfKey == -1) return null
-
-    // This translation exists in default translation. Find the anchor
-    for (index in (indexOfKey + 1) until keys.size) {
-      val next = keys[index]
-      val nextResource = data.getStringResource(next)
-
-      // If we're into another file already, we're not going to find the anchor here.
-      if (!hasSameDefaultValueFile(nextResource)) return null
-
+    val item = defaultValueAsResourceItem as? PsiResourceItem ?: return null
+    val tag = item.tag ?: return null
+    val resources = tag.parentTag ?: return null
+    val items = resources.subTags
+    val index = items.indexOf(tag)
+    for (nextIndex in (index + 1) until items.size) {
+      val next = items[index + 1]
+      val name = next.getAttributeValue(SdkConstants.ATTR_NAME) ?: continue
+      val nextKey = StringResourceKey(name, key.directory)
+      val nextResource = data.getStringResource(nextKey)
       // Check if this resource exists in the given Locale file.
-      if (nextResource.getTranslationAsResourceItem(locale) != null) return next
+      if (nextResource.getTranslationAsResourceItem(locale) != null) return nextKey
     }
-
     return null
   }
 
