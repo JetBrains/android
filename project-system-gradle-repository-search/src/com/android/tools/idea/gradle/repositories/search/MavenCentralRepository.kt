@@ -103,7 +103,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
           val id = docElement.findStringAttribute("id")
           val latestVersion = docElement.findStringAttribute("latestVersion")?.let { Version.parse(it) }
           if (id.isNullOrEmpty() || latestVersion == null) return@mapNotNull null
-          id.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(MavenCentralRepository.name, it[0], it[1], latestVersion) }
+          id.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(name, it[0], it[1], latestVersion) }
         }
       ?: listOf()
 
@@ -146,7 +146,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
       ?.getChild("versions")
       ?.getChildren("version")
       ?.map { Version.parse(it.textTrim) }
-      ?.let { FoundArtifact(MavenCentralRepository.name, query.groupId, query.artifactName, it) }
+      ?.let { FoundArtifact(name, query.groupId, query.artifactName, it) }
 
     return result?.let { SearchResult(listOf(result)) } ?: SearchResult(listOf())
   }

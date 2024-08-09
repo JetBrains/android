@@ -139,8 +139,7 @@ object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITOR
       ]
      */
 
-    val parser = JsonParser()
-    val array = parser.parse(response).asJsonArray
+    val array = JsonParser.parseReader(response).asJsonArray
     val errors = mutableListOf<Exception>()
 
     val artifacts = array.flatMap { result ->
@@ -187,7 +186,7 @@ object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITOR
       }
       is ModuleQuery -> {
         val artifactName = query.module
-        if (!artifactName.isNullOrEmpty()) {
+        if (artifactName.isNotEmpty()) {
           append("a=") // can only search module as artifact name
           append(artifactName)
           append("&")
