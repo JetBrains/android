@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.ui.JBColor
 import com.intellij.ui.content.ContentManagerEvent
@@ -56,8 +56,8 @@ open class WarningLayer(
   private val tabSelectionListener =
     object : ContentManagerListener {
       override fun selectionChanged(event: ContentManagerEvent) {
-        val selectedItem =
-          (event.content.component as? DataProvider)?.getData(PlatformDataKeys.SELECTED_ITEM.name)
+        val dataContext = DataManager.getInstance().getDataContext(event.content.component)
+        val selectedItem = PlatformDataKeys.SELECTED_ITEM.getData(dataContext)
         componentsToHighlight =
           (selectedItem as? IssueNode)?.issue?.getComponentsToHighlight() ?: emptyList()
         screenView.surface.repaint()
