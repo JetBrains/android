@@ -14,6 +14,7 @@ java_library(
         "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
         "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
         "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:exception",
+        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
         "@maven//:com.google.guava.guava",
         "@maven//:io.grpc.grpc-protobuf-lite",
     ],
