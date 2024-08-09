@@ -696,7 +696,7 @@ public class  TestUtils {
     Path jdk21Path = findInDownloadedJdks("corretto-21.");
     if (jdk21Path != null) return jdk21Path;
 
-    assert Runtime.version().feature() == 21 : "To continue we need to know where JDK_17 is. env.JDK_17_0 didn't work.";
+    assert Runtime.version().feature() == 21 : "To continue we need to know where JDK_21 is. env.JDK_21_0 didn't work.";
     return Paths.get(SystemProperties.getJavaHome());
   }
 
