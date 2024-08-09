@@ -23,6 +23,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
@@ -39,16 +40,16 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiFunction
 import java.util.function.Consumer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Model for an XML file
@@ -70,7 +71,7 @@ open class NlModel
 @VisibleForTesting
 protected constructor(
   parent: Disposable,
-  val buildTarget: BuildTargetReference,
+  val buildTarget: AndroidBuildTargetReference,
   val virtualFile: VirtualFile,
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
@@ -94,23 +95,7 @@ protected constructor(
 
   private val listeners = createWithDirectExecutor<ModelListener>()
 
-  private val _displayName = MutableStateFlow<String?>(null)
-
-  /** Model name. This can be used when multiple models are displayed at the same time */
-  val modelDisplayName: StateFlow<String?> = _displayName.asStateFlow()
-
-  fun setDisplayName(value: String?) {
-    _displayName.value = value
-  }
-
-  private val _tooltip = MutableStateFlow<String?>(null)
-
-  /** Text to display when displaying a tooltip related to this model */
-  val tooltip: StateFlow<String?> = _tooltip.asStateFlow()
-
-  fun setTooltip(value: String?) {
-    _tooltip.value = value
-  }
+  val displaySettings = DisplaySettings()
 
   // Deliberately not rev'ing the model version and firing changes here;
   // we know only the warnings layer cares about this change and can be
@@ -153,7 +138,9 @@ protected constructor(
   var organizationGroup: OrganizationGroup? = null
 
   init {
-    Disposer.register(parent, this)
+    if (!Disposer.tryRegister(parent, this)) {
+      Disposer.dispose(this)
+    }
   }
 
   /** Returns if this model is currently active. */
@@ -407,7 +394,7 @@ protected constructor(
   /** An [NlModel] builder */
   class Builder(
     val parentDisposable: Disposable,
-    val buildTarget: BuildTargetReference,
+    val buildTarget: AndroidBuildTargetReference,
     val file: VirtualFile,
     val configuration: Configuration,
   ) {

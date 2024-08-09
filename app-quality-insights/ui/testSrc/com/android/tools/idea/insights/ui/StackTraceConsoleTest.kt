@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
+import com.android.tools.idea.insights.ISSUE3
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Stacktrace
@@ -282,6 +283,28 @@ class StackTraceConsoleTest {
 
       assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
       assertThat(stackTraceConsole.emptyStatePane.isVisible).isTrue()
+    }
+  }
+
+  @Test
+  fun `when frame line is 0, colon 0 is not printed`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
+      )
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      assertThat(stackTraceConsole.consoleView.text.trim())
+        .isEqualTo(
+          """
+          java.lang.RuntimeException: Test Crash
+              com.example.someapp.MainActivity.onCreate${'$'}lambda${'$'}0(MainActivity.java:359)
+              com.example.someapp.MainActivity.${'$'}r8${'$'}lambda${'$'}4oWG6U3SJNFRfpZuiYxu7QrLG2Q
+              com.example.someapp.MainActivity${'$'}${'$'}ExternalSyntheticLambda0.onClick(D8${'$'}${'$'}SyntheticClass)
+        """
+            .trimIndent()
+        )
     }
   }
 }

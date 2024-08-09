@@ -54,7 +54,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
@@ -633,7 +633,7 @@ class NlComponentTreeDefinitionTest {
   private fun createFlowModel(): SyncNlModel {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     return NlModelBuilderUtil.model(
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         projectRule.fixture,
         SdkConstants.FD_RES_LAYOUT,
         "some_layout.xml",
@@ -730,7 +730,7 @@ class NlComponentTreeDefinitionTest {
     content.setToolContext(surface)
     val panel = content.component
     val table = content.focusedComponent as TreeTableImpl
-    assertThat(SwingUtilities.isDescendingFrom(table, panel))
+    assertThat(SwingUtilities.isDescendingFrom(table, panel)).isTrue()
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())
     table.bounds = Rectangle(0, 0, 400, 800)

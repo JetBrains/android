@@ -17,10 +17,14 @@ package org.jetbrains.android.dom.manifest
 
 import com.intellij.util.xml.Attribute
 import com.intellij.util.xml.Convert
+import com.intellij.util.xml.DefinesXml
+import com.intellij.util.xml.Required
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.Styleable
 import org.jetbrains.android.dom.converters.AndroidPackageConverter
 
+@DefinesXml
 interface Queries : ManifestElement {
   fun getProviders(): List<Provider>
 
@@ -28,20 +32,35 @@ interface Queries : ManifestElement {
 
   fun getPackages(): List<Package>
 
+  @DefinesXml
   interface Package : AndroidDomElement {
     @Attribute("name")
     @Convert(AndroidPackageConverter::class)
     fun getName(): AndroidAttributeValue<String>
   }
 
+  @DefinesXml
   interface Intent : AndroidDomElement {
-    fun getAction(): Action
+    @Required fun getAction(): Action
 
     fun getData(): Data
 
     fun getCategory(): Category
+
+    /**
+     * Data is redefined here because some of the "AndroidManifestData" styleable's attributes are
+     * not applicable in this context per
+     * https://developer.android.com/training/package-visibility/declaring#intent-filter-signature.
+     */
+    @DefinesXml
+    @Styleable(
+      "AndroidManifestData",
+      skippedAttributes = ["path", "pathPrefix", "pathPattern", "port", "mimeGroup"],
+    )
+    interface Data : AndroidDomElement {}
   }
 
+  @DefinesXml
   interface Provider : AndroidDomElement {
     @Attribute("authorities")
     @Convert(AndroidPackageConverter::class)

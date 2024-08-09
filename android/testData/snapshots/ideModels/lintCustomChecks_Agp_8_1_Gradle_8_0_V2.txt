@@ -821,6 +821,7 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -1155,6 +1156,7 @@ MODULE                        : project.library
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
         buildType                     : debug
@@ -1458,6 +1460,7 @@ MODULE                        : project.library-remote
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
         buildType                     : debug

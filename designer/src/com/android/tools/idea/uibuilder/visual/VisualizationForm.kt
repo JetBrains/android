@@ -34,17 +34,18 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -168,7 +169,7 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlDesignSurface.builder(project, this@VisualizationForm) {
+      NlSurfaceBuilder.builder(project, this@VisualizationForm) {
           surface: NlDesignSurface,
           model: NlModel ->
           val sceneManager = LayoutlibSceneManager(model, surface, config)
@@ -391,7 +392,7 @@ class VisualizationForm(
             myCurrentModelsProvider.createNlModels(
               this,
               file!!,
-              BuildTargetReference.from(facet!!, targetFile),
+              AndroidBuildTargetReference.from(facet!!, targetFile),
             )
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")
@@ -610,12 +611,8 @@ class VisualizationForm(
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
-            val modelUpdateFuture = manager.updateModelAsync()
-            if (isRenderingCanceled.get()) {
-              return@thenCompose CompletableFuture.completedFuture<Void?>(null)
-            } else {
-              return@thenCompose modelUpdateFuture.thenCompose { manager.requestRenderAsync() }
-            }
+            manager.forceReinflate()
+            return@thenCompose manager.requestRenderAsync()
           }
         }
     }

@@ -89,8 +89,8 @@ private fun getApplicationId(project: Project): String? {
     }
     val androidModel = AndroidModel.get(module)
     if (androidModel != null) {
-      val faucet = AndroidFacet.getInstance(module)
-      if (faucet != null && faucet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP) {
+      val facet = AndroidFacet.getInstance(module)
+      if (facet != null && facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP) {
         return androidModel.applicationId
       }
     }

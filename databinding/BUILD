@@ -38,14 +38,14 @@ iml_module(
         "non-gradle": {},
     },
     tags = [
-        "no_test_mac",
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [
         ":testapp_deps",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",

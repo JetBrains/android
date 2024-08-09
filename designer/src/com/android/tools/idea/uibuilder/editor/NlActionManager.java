@@ -22,6 +22,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
@@ -47,6 +48,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.api.actions.ZoomToSelectionAction;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.base.Strings;
@@ -85,7 +87,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides and handles actions in the layout editor
  */
-public class NlActionManager extends ActionManager<NlDesignSurface> {
+public class NlActionManager extends ActionManager<DesignSurface<LayoutlibSceneManager>> {
   /**
    * Data key for the actions work in Layout Editor. This includes NlDesignSurface and ActionToolBar, but **exclude** all attached
    * TODO: Try to make all actions work for all design tools, so we can remove this data key.

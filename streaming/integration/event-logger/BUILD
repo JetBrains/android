@@ -12,7 +12,10 @@ android_binary(
         "versionName": "0.1",
         "targetSdkVersion": "33",
     },
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "//tools/base/bazel/platforms:windows_host": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//tools/adt/idea/streaming:__pkg__"],
     deps = [
         "//tools/adt/idea/streaming/integration/event-logger/app/src/main/java/com/android/tools/eventlogger:event_logging_activity",

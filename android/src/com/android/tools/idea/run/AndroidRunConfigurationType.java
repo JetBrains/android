@@ -4,6 +4,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.*;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
@@ -46,6 +47,11 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
       return new AndroidRunConfiguration(project, this);
+    }
+
+    @Override
+    public void configureDefaultSettings(@NotNull RunnerAndConfigurationSettings settings) {
+      settings.setActivateToolWindowBeforeRun(false);
     }
   }
 

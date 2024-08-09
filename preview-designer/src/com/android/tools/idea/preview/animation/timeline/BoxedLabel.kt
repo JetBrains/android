@@ -96,10 +96,9 @@ class BoxedLabel(
 
     val label = "${timelineUnit.propertyLabel} :  "
     val value =
-      if (grouped) timelineUnit.unit?.toString() else timelineUnit.unit?.toString(componentId)
+      if (grouped) timelineUnit.unit.toString() else timelineUnit.unit.toString(componentId)
     val color =
-      if (timelineUnit.unit is AnimationUnit.Color) (timelineUnit.unit as AnimationUnit.Color).color
-      else null
+      if (timelineUnit.unit is AnimationUnit.Color<*, *>) timelineUnit.unit.color else null
     g.font = JBFont.medium()
     val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
     val valueLayout = TextLayout(value, g.font, g.fontRenderContext)

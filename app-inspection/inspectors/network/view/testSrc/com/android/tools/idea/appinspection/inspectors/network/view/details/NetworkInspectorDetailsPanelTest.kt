@@ -147,7 +147,7 @@ class NetworkInspectorDetailsPanelTest {
   @Test
   fun openAndCLoseDetailsPanelWhenSwitchingTabs() {
     val tabs = inspectorView.connectionsView.component.findParentIsInstance<CommonTabbedPane>()
-    assertThat(tabs.selectedIndex == 0)
+    assertThat(tabs.selectedIndex).isEqualTo(0)
     detailsPanel.isVisible = false
     model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
     model.setSelectedConnection(DEFAULT_DATA)

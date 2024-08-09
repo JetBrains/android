@@ -43,7 +43,7 @@ type_channel_mappings = {
 
 # Types considered to be EAP. This should be a subset of
 # type_channel_mappings.keys().
-eap_types = ["Canary", "Beta", "Dev"]
+eap_types = ["Canary", "Beta", "Nightly"]
 
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
@@ -1366,7 +1366,7 @@ def intellij_platform(
         name = name + "_spec_test",
         srcs = ["//tools/adt/idea/studio:intellij_test.py"],
         main = "intellij_test.py",
-        tags = ["no_test_windows", "no_test_mac"],
+        tags = ["noci:studio-win"],
         data = native.glob([src + "/**/lib/*.jar", "**/product-info.json"]),
         env = {
             "spec": json.encode(spec),

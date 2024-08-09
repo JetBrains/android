@@ -40,7 +40,7 @@ class ComposeViewSingleWordFilter : ComposeViewFilter {
     val trimmedKeyword = query.trim()
 
     surface.updateSceneViewVisibilities { view ->
-      val name = view.sceneManager.model.modelDisplayName.value
+      val name = view.sceneManager.model.displaySettings.modelDisplayName.value
       name?.contains(trimmedKeyword, ignoreCase = true) ?: false
     }
   }

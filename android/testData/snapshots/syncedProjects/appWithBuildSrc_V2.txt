@@ -687,67 +687,67 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -757,12 +757,12 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -807,67 +807,67 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.17.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.21.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -877,12 +877,12 @@ PROJECT                       : project
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -903,117 +903,117 @@ PROJECT                       : project
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:collections:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION>
             *CLASSES                      : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/res
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
         LIBRARY                       : Gradle: com.google.guava:guava:19.0

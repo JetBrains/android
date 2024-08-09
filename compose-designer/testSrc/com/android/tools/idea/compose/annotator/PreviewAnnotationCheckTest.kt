@@ -60,7 +60,7 @@ internal class PreviewAnnotationCheckTest {
         import androidx.compose.ui.tooling.preview.Preview
         import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
+        @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         @Composable
         fun myFun() {}
       """
@@ -93,7 +93,7 @@ internal class PreviewAnnotationCheckTest {
         import androidx.compose.ui.tooling.preview.Preview
         import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        @Preview(device = "spec:width=20sp,dpi=320,dpi=320,chinSize=qwe,madeUpParam")
         @Composable
         fun myFun() {}
 """
@@ -102,16 +102,14 @@ internal class PreviewAnnotationCheckTest {
     assertNotNull(issue)
     assertEquals(
       """
-      Bad value type for: shape, width, unit.
+      Bad value type for: width, chinSize.
 
-      Parameter: shape should be one of: Normal, Round.
-      Parameter: width should have Integer value.
-      Parameter: unit should be one of: px, dp.
+      Parameter: width, chinSize should have Float(dp/px) value.
 
       Unknown parameter: madeUpParam.
 
 
-      Parameters should not be repeated: shape.
+      Parameters should not be repeated: dpi.
 
 
       Missing parameter: height.
@@ -150,7 +148,7 @@ internal class PreviewAnnotationCheckTest {
         package example
         import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         class myNotAnnotation() {}
       """
           .trimIndent()
@@ -171,7 +169,7 @@ internal class PreviewAnnotationCheckTest {
         package example
         import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
+        @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         annotation class myAnnotation() {}
       """
           .trimIndent()

@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
@@ -55,7 +56,7 @@ class ViewBindingEnabledTest {
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   private fun enableViewBinding(buildFile: File, enabled: Boolean) {
-    assertThat(buildFile.exists())
+    assertThat(buildFile.exists()).isTrue()
 
     // Kind of hacky, but this assumes the only instance of `enabled = ...` is from:
     // `viewBinding\n{ enabled = [true|false] }`
@@ -81,6 +82,7 @@ class ViewBindingEnabledTest {
     // Trigger resource repository initialization
     val facet = projectRule.androidFacet(":app")
     StudioResourceRepositoryManager.getAppResources(facet)
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     // Context needed for searching for light classes
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
@@ -98,6 +100,7 @@ class ViewBindingEnabledTest {
 
     enableViewBinding(buildFile, true)
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     assertThat(facet.isViewBindingEnabled()).isTrue()
     assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)
@@ -113,6 +116,7 @@ class ViewBindingEnabledTest {
 
     enableViewBinding(buildFile, false)
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
     assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)

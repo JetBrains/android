@@ -70,7 +70,7 @@ class LogcatFilterPsiTest {
       val psi =
         parse(
           """
-            $key: bar $key: b\ a\ r $key: b\a\r $key:bar $key:b\ a\ r $key:b\a\r
+            $key: bar $key: b\ a\ r $key: b\a\r $key:bar $key:b\ a\ r $key:b\a\r $key:b:a:r
           """
             .trim()
         )
@@ -84,6 +84,7 @@ class LogcatFilterPsiTest {
             KeyFilter(key, "bar"),
             KeyFilter(key, "b a r"),
             KeyFilter(key, "b\\a\\r"),
+            KeyFilter(key, "b:a:r"),
           )
         )
     }
@@ -194,12 +195,12 @@ class LogcatFilterPsiTest {
     val psi =
       parse(
         """
-        bar b\ a\ r b\a\r
+        tag\:b\ a\ r b\:a\r
       """
           .trim()
       )
 
-    assertThat(psi.toFilter()).isEqualTo(TopLevelFilter("bar b a r b\\a\\r"))
+    assertThat(psi.toFilter()).isEqualTo(TopLevelFilter("tag:b a r b:a\\r"))
   }
 
   @Test

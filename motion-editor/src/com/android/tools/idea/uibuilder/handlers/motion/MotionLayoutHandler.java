@@ -182,8 +182,7 @@ public class MotionLayoutHandler extends ViewGroupHandler implements ConstraintL
   @NotNull
   public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
-                                                      @NotNull NlComponent parent,
-                                                      @NotNull AccessoryPanelVisibility panelVisibility) {
+                                                      @NotNull NlComponent parent) {
     assert surface instanceof NlDesignSurface : "MotionLayoutHandler needs an NlDesignSurface";
     if (true) {
       switch (type) {
@@ -191,21 +190,21 @@ public class MotionLayoutHandler extends ViewGroupHandler implements ConstraintL
           if (DEBUG) {
             Debug.println("SOUTH PANEL");
           }
-          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent);
           parent.putClientProperty(MOTION_ACCESSORY, accessoryPanel);
           return accessoryPanel;
         case EAST_PANEL:
           if (DEBUG) {
             Debug.println("EAST PANEL");
           }
-          return new MotionAttributePanel(parent, panelVisibility);
+          return new MotionAttributePanel();
       }
     }
     else {
       switch (type) {
         case SOUTH_PANEL:
         case EAST_PANEL:
-          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent);
           parent.putClientProperty(MOTION_ACCESSORY, accessoryPanel);
           return accessoryPanel;
       }

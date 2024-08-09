@@ -102,7 +102,7 @@ iml_module(
         },
         "other": {},
     },
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     test_data = [
         ":test_deps",
@@ -129,7 +129,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",  # b/72973198
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],

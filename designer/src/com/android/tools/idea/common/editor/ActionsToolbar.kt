@@ -54,8 +54,14 @@ import org.jetbrains.annotations.TestOnly
 class ActionsToolbar(private val parent: Disposable, private val surface: DesignSurface<*>) :
   DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener, ModelListener {
   val toolbarComponent: JComponent
-  private var northToolbar: ActionToolbar? = null
-  private var northEastToolbar: ActionToolbar? = null
+
+  @get:TestOnly
+  var northToolbar: ActionToolbar? = null
+    private set
+
+  @get:TestOnly
+  var northEastToolbar: ActionToolbar? = null
+    private set
 
   @get:TestOnly
   var centerToolbar: ActionToolbarImpl? = null
@@ -224,8 +230,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     val bottom = if (hasBottomActionBar) 1 else 0
     toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, border)
   }
-
-  override fun activatePreferredEditor(surface: DesignSurface<*>, component: NlComponent) = false
 
   // ---- Implements ModelListener ----
   override fun modelDerivedDataChanged(model: NlModel) {

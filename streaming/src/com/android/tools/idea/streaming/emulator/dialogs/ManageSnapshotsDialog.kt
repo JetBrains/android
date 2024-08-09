@@ -374,14 +374,14 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
         emulatorView.showLongRunningOperationIndicator(message("manage.snapshots.loading.snapshot"))
       }
 
-      override fun onNext(response: SnapshotPackage) {
-        if (response.success) {
+      override fun onNext(message: SnapshotPackage) {
+        if (message.success) {
           invokeLaterIfDialogIsShowing {
             snapshotTableModel.setLoadedLastSnapshot(snapshotTable.convertRowIndexToModel(selectedRow))
           }
         }
         else {
-          val error = response.err.toString(UTF_8)
+          val error = message.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterIfDialogIsShowing {
             showError(message("manage.snapshots.error.loading.snapshot", snapshotToLoad.displayName, detail))

@@ -191,7 +191,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.1.0@aar [=]
             Scope                         : Test
@@ -438,7 +438,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection-ktx:1.1.0 [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar [=]
         LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.core:core-ktx:1.6.0@aar [=]
         LIBRARY                       : Gradle: androidx.core:core:1.6.0@aar [=]
@@ -607,7 +607,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.1.0@aar [=]
             Scope                         : Test
@@ -1201,7 +1201,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar (1) [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
             Scope                         : Test
@@ -1363,7 +1363,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1) [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar (1) [=]
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar (1) [=]
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
@@ -1496,7 +1496,7 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar (1) [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
             Scope                         : Test
@@ -2076,14 +2076,14 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : jar://<M2>/androidx/collection/collection-ktx/1.1.0/collection-ktx-1.1.0.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/res
-            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.3/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.4@aar (1)
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-2.1.4/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.1.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.1.0/res

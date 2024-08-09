@@ -16,10 +16,10 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -31,6 +31,7 @@ import com.intellij.ide.JavaUiBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
@@ -62,6 +63,7 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
@@ -371,9 +373,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
     }
 
-    UiNotifyConnector.doWhenFirstShown(dialog.contentPane) {
-      advanceInit.run()
-    }
+    UiNotifyConnector.Once.installOn(dialog.contentPane, object : Activatable {
+      override fun showNotify() {
+        advanceInit.run()
+      }
+    })
     invokeLater(ModalityState.stateForComponent(myDetails)) {
       myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
     }

@@ -30,7 +30,7 @@ dependencies {
     api 'com.android.support:appcompat-v7:+'
     api libs.guava
     api libs.constraint.layout
-    testImplementation libExample.junit
+    testImplementation libImported.junit
     androidTestImplementation 'com.android.support.test:runner:+'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
 }

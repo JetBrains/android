@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
@@ -32,10 +33,12 @@ public class GradleProjectEventListener implements GradleBuildListener {
   private final Object myLock = new Object();
 
   @Override
+  @UiThread
   public void buildStarted(@NotNull BuildContext context) {
   }
 
   @Override
+  @UiThread
   public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
     synchronized (myLock) {
       myBuildFinished = System.currentTimeMillis();

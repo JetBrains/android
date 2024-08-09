@@ -3,15 +3,14 @@ load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 SYNC_PERFGATE_TAGS = [
     "block-network",
-    "no_test_mac",
-    "no_test_windows",
-    "perfgate",
+    "noci:studio-win",
+    "noci:studio-linux",
+    "ci:perfgate-linux",
 ]
 
 SYNC_SMOKE_TAGS = [
     "block-network",
-    "no_test_mac",
-    "no_test_windows",
+    "noci:studio-win",
 ]
 
 # managed by go/iml_to_build

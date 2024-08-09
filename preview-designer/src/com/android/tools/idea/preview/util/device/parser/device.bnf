@@ -47,8 +47,6 @@
     EQUALS = '='
     COLON = ':'
 
-    UNIT_KEYWORD = 'unit'
-
     SPEC_KEYWORD = 'spec'
     ID_KEYWORD = 'id'
     NAME_KEYWORD = 'name'
@@ -63,6 +61,17 @@
     IS_ROUND_KEYWORD = 'isRound'
     CHIN_SIZE_KEYWORD = 'chinSize'
     DPI_KEYWORD = 'dpi'
+    CUTOUT_KEYWORD = 'cutout'
+    NAVIGATION_KEYWORD = 'navigation'
+
+    NAV_BUTTONS_KEYWORD = 'buttons'
+    NAV_GESTURE_KEYWORD = 'gesture'
+
+    CUTOUT_NONE_KEYWORD = 'none'
+    CUTOUT_CORNER_KEYWORD = 'corner'
+    CUTOUT_DOUBLE_KEYWORD = 'double'
+    CUTOUT_HOLE_KEYWORD = 'punch_hole'
+    CUTOUT_TALL_KEYWORD = 'tall'
 
     NUMERIC_T = 'regexp:\d+(\.\d)?'
     STRING_T = 'regexp:\p{Alnum}{1}([^:,="\\]|\\.)*'
@@ -78,19 +87,22 @@ unit ::= (PX | DP)
 size_t ::= NUMERIC_T (unit)?
 orientation_t ::= LANDSCAPE_KEYWORD | PORTRAIT_KEYWORD | SQUARE_KEYWORD
 boolean_t ::= TRUE | FALSE
+cutout_t ::= CUTOUT_NONE_KEYWORD | CUTOUT_CORNER_KEYWORD | CUTOUT_DOUBLE_KEYWORD
+   | CUTOUT_HOLE_KEYWORD | CUTOUT_TALL_KEYWORD
+navigation_t ::= NAV_BUTTONS_KEYWORD | NAV_GESTURE_KEYWORD
 
 /* Parameter definitions */
 name_param ::= NAME_KEYWORD EQUALS STRING_T
 id_param ::= ID_KEYWORD EQUALS STRING_T
 width_param::= WIDTH_KEYWORD EQUALS size_t
 height_param ::= HEIGHT_KEYWORD EQUALS size_t
-shape_param ::= "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin") // Deprecated, just here to be compatible with the old parser
-unit_param ::= UNIT_KEYWORD EQUALS unit // Deprecated, just here to be compatible with the old parser
 parent_param::= PARENT_KEYWORD EQUALS STRING_T
 orientation_param ::= ORIENTATION_KEYWORD EQUALS orientation_t
 is_round_param ::= IS_ROUND_KEYWORD EQUALS boolean_t
 chin_size_param ::= CHIN_SIZE_KEYWORD EQUALS size_t
 dpi_param ::= DPI_KEYWORD EQUALS NUMERIC_T
+cutout_param ::= CUTOUT_KEYWORD EQUALS cutout_t
+navigation_param ::= NAVIGATION_KEYWORD EQUALS navigation_t
 
 /* Top level definitions */
 param ::= parent_param
@@ -98,10 +110,10 @@ param ::= parent_param
    | name_param
    | width_param
    | height_param
-   | shape_param // Deprecated, just here to be compatible with the old parser
-   | unit_param // Deprecated, just here to be compatible with the old parser
    | orientation_param
    | is_round_param
    | chin_size_param
+   | cutout_param
+   | navigation_param
    | dpi_param { name="param" }
 spec ::= param (COMMA param)*

@@ -36,14 +36,13 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.filteredVariantNames
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
-import com.android.tools.idea.gradle.model.variantNames
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.getGenerateBaselineProfileTaskName
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
-import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
@@ -52,6 +51,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -97,7 +97,7 @@ class GradleAndroidModel(
       .mapNotNull { it.value.productFlavor.dimension?.let { dimension -> dimension to it.key } }
       .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
       .groupBy({ it.first }, { it.second })
-  val variantNames: Collection<String> get() = androidProject.variantNames
+  val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
 
   fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
@@ -208,6 +208,11 @@ class GradleAndroidModel(
   }
 
   /**
+   * Returns the JVM `targetCompatibility` for the module.
+   */
+  fun getTargetLanguageLevel(): LanguageLevel? = data.getJavaTargetLanguageLevel()
+
+  /**
    * Returns the `minSdkVersion` specified by the user (in the default config or product flavors).
    * This is normally the merged value, but for example when using preview platforms, the Gradle plugin
    * will set minSdkVersion and targetSdkVersion to match the level of the compileSdkVersion; in this case
@@ -263,7 +268,7 @@ class GradleAndroidModel(
   }
 
   override fun getDesugaring(): Set<Desugaring> {
-    return getGradleDesugaring(agpVersion, data.getJavaLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
+    return getGradleDesugaring(agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
   }
 
   override fun getResValues(): Map<String, DynamicResourceValue> {

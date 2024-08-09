@@ -58,7 +58,7 @@ internal const val GESTURES_OVERLAY = "com.android.internal.systemui.navbar.gest
 internal const val THREE_BUTTON_OVERLAY = "com.android.internal.systemui.navbar.threebutton"
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
 internal const val ACCESSIBILITY_BUTTON_TARGETS = "accessibility_button_targets"
-private const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
+internal const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
 private const val TALK_BACK_SERVICE_CLASS = "com.google.android.marvin.talkback.TalkBackService"
 internal const val TALK_BACK_SERVICE_NAME = "$TALKBACK_PACKAGE_NAME/$TALK_BACK_SERVICE_CLASS"
 private const val SELECT_TO_SPEAK_SERVICE_CLASS = "com.google.android.accessibility.selecttospeak.SelectToSpeakService"
@@ -109,7 +109,6 @@ internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
-  "cmd overlay enable $GESTURES_OVERLAY; " +
   "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
@@ -118,7 +117,11 @@ internal const val FACTORY_RESET_COMMAND =
 
 internal const val FACTORY_RESET_DEBUG_LAYOUT =
     "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION"
+    "service call activity $SYSPROPS_TRANSACTION; "
+
+internal const val FACTORY_RESET_GESTURE_NAVIGATION =
+  "cmd overlay enable $GESTURES_OVERLAY; " +
+  "cmd overlay disable $THREE_BUTTON_OVERLAY; "
 
 private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
   return DeviceInfo.newBuilder()
@@ -328,7 +331,14 @@ internal class EmulatorUiSettingsController(
   }
 
   override fun setTalkBack(on: Boolean) {
-    scope.launch { changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on) }
+    scope.launch {
+      if (on) {
+        // Grant POST_NOTIFICATIONS to the Talkback application.
+        // This prevents a non essential security popup on an emulator.
+        executeShellCommand("pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS")
+      }
+      changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on)
+    }
     lastTalkBack = on
     updateResetButton()
   }
@@ -375,6 +385,9 @@ internal class EmulatorUiSettingsController(
       if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
         command += FACTORY_RESET_DEBUG_LAYOUT
       }
+      if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+        command += FACTORY_RESET_GESTURE_NAVIGATION
+      }
       executeShellCommand(command)
       populateModel()
     }
@@ -387,13 +400,15 @@ internal class EmulatorUiSettingsController(
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
       else -> !lastDarkMode &&
-              lastGestureNavigation &&
               !lastSelectToSpeak &&
               lastDensity == readPhysicalDensity
     }
     isDefault = isDefault && extraChecks
     if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
       isDefault = isDefault && !lastDebugLayout
+    }
+    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+      isDefault = isDefault && lastGestureNavigation
     }
     model.differentFromDefault.setFromController(!isDefault)
   }

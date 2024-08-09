@@ -53,8 +53,7 @@ iml_module(
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
             "tags": [
-                "no_test_mac",  # b/113099009
-                "no_test_windows",  # b/135665870
+                "noci:studio-win",  # b/135665870
             ],
         },
         "other": {
@@ -70,6 +69,7 @@ iml_module(
         ":test_deps",
         "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/build-attribution/testData",
@@ -134,8 +134,7 @@ generate_old_agp_tests_from_list(
             ],
             tags = [
                 "block-network",
-                "no_test_mac",
-                "no_test_windows",
+                "noci:studio-win",
             ],
             test_class = "com.android.build.attribution.AndroidBuildAttributionOldAgpTestSuite",
         ),

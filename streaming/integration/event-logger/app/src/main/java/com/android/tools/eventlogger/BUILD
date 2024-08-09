@@ -9,5 +9,8 @@ android_library(
         "-target",
         "8",
     ],
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )

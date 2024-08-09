@@ -72,7 +72,7 @@ class ResourceExplorerViewModelTest {
     // Trigger a change in the Resource Type.
     viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.STRING)
     Truth.assertThat(listViewModel.currentResourceType).isEqualTo(ResourceType.STRING)
-    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS))
+    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS)).isTrue()
   }
 
   @Test
@@ -99,7 +99,7 @@ class ResourceExplorerViewModelTest {
     viewModel.facet = module2.androidFacet!!
     Truth.assertThat(listViewModel.facet).isNotEqualTo(module2.androidFacet)
     Truth.assertThat(viewModel.createResourceListViewModel().get().facet).isEqualTo(module2.androidFacet)
-    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS))
+    Truth.assertThat(latch.await(15L, TimeUnit.SECONDS)).isTrue()
   }
 
   @Test

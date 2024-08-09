@@ -28,8 +28,7 @@ import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
-import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.InputEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
@@ -40,11 +39,9 @@ import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
-import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
-import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
@@ -124,9 +121,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       ch.notifyWhenStateChanged(state, this)
     }
   }
-  private val keyboardEventQueue = ArrayDeque<Pair<KeyboardEvent, StreamObserver<Empty>>>()
-  @GuardedBy("keyboardEventQueue")
-  private var keyboardEventInFlight = false
+  @GuardedBy("this")
+  private var inputEventSender: StreamObserver<InputEvent>? = null
 
   var emulatorConfig: EmulatorConfiguration
     get() {
@@ -293,6 +289,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (emulatorState.compareAndSet(EmulatorState.RUNNING, EmulatorState.SHUTDOWN_REQUESTED) &&
         connectionState == ConnectionState.CONNECTED) {
       sendShutdown()
+      channel?.shutdown()
     }
   }
 
@@ -362,82 +359,39 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Sends a [KeyboardEvent] to the Emulator.
-   */
-  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
-    }
-    // Non-streaming gRPC calls don't guarantee in-order delivery. To make sure that the keyboard
-    // events don't arrive out of order, we don't issue a new sendKey call until the previous one
-    // is completed.
-    synchronized(keyboardEventQueue) {
-      if (keyboardEventInFlight) {
-        keyboardEventQueue.add(Pair(keyboardEvent, streamObserver))
-        return
-      }
-      keyboardEventInFlight = true
-    }
-
-    doSendKeyboardEvent(keyboardEvent, streamObserver)
-  }
-
-  private fun doSendKeyboardEvent(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty>) {
-    val observer = object : DelegatingStreamObserver<KeyboardEvent, Empty>(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()) {
-      override fun onCompleted() {
-        try {
-          super.onCompleted()
-        }
-        finally {
-          sendQueuedKeyboardEventIfAny()
-        }
-      }
-    }
-
-    emulatorControllerStub.sendKey(keyboardEvent, observer)
-  }
-
-  private fun sendQueuedKeyboardEventIfAny() {
-    val item: Pair<KeyboardEvent, StreamObserver<Empty>>
-    synchronized(keyboardEventQueue) {
-      keyboardEventInFlight = false
-      item = keyboardEventQueue.removeFirstOrNull() ?: return
-      keyboardEventInFlight = true
-    }
-    doSendKeyboardEvent(item.first, item.second)
-  }
-
-  /**
-   * Sends a [MouseEvent] to the Emulator.
-   */
-  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
-      LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
-    }
-    emulatorControllerStub.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
-  }
-
-  /**
-   * Sends a [TouchEvent] to the Emulator.
-   */
-  fun sendTouch(touchEvent: TouchEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
-    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
-      LOG.info("sendTouch(${shortDebugString(touchEvent)})")
-    }
-    emulatorControllerStub.sendTouch(touchEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendTouchMethod()))
-  }
-
-  /**
-   * Pushes mouse wheel events to the emulator virtio device.
+   * Streams input events to the emulator.
    *
-   * @param streamObserver a client stream observer to handle events
-   * @return a StreamObserver that can be used to trigger the push
+   * @param streamObserver a client stream observer that is used only for error handling
+   * @return a StreamObserver that can be used to supply input events
    */
-  fun injectWheel(streamObserver: StreamObserver<Empty> = getEmptyObserver()) : StreamObserver<WheelEvent>{
+  private fun streamInputEvent(streamObserver: StreamObserver<Empty> = getEmptyObserver()) : StreamObserver<InputEvent> {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("injectWheel()")
+      LOG.info("streamInputEvent()")
     }
-    return emulatorControllerStub.injectWheel(DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getInjectWheelMethod()))
+    val sender = emulatorControllerStub.streamInputEvent(
+        DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getStreamInputEventMethod()))
+    return object : EmptyStreamObserver<InputEvent>() {
+
+      override fun onNext(message: InputEvent) {
+        val loggingEnabled = when {
+          message.hasKeyEvent() || message.hasAndroidEvent() -> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
+          else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
+        }
+        if (loggingEnabled) {
+          LOG.info("streamInputEvent: sending ${shortDebugString(message)})")
+        }
+        sender?.onNext(message)
+      }
+    }
+  }
+
+  /**
+   * Returns an existing or creates a new input event sender.
+   */
+  fun getOrCreateInputEventSender(): StreamObserver<InputEvent> {
+    synchronized(this) {
+      return inputEventSender ?: streamInputEvent().also { inputEventSender = it }
+    }
   }
 
   /**
@@ -683,7 +637,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private fun sendKeepAlive() {
     val responseObserver = object : EmptyStreamObserver<VmRunState>() {
-      override fun onNext(response: VmRunState) {
+      override fun onNext(message: VmRunState) {
         connectionState = ConnectionState.CONNECTED
         if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
           sendShutdown()
@@ -713,6 +667,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   override fun dispose() {
+    inputEventSender?.onCompleted()
+    inputEventSender = null
     channel?.shutdown()
   }
 
@@ -762,7 +718,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     override fun onError(t: Throwable) {
-      if (!(t is StatusRuntimeException && t.status.code == Status.Code.CANCELLED) && channel?.isShutdown == false) {
+      if (channel?.isShutdown == false &&
+          (t !is StatusRuntimeException ||
+           (t.status.code != Status.Code.CANCELLED &&
+            (t.status.code != Status.Code.UNAVAILABLE || emulatorState.get() == EmulatorState.RUNNING)))) {
         LOG.warn("${method.fullMethodName} call failed - ${t.message}")
       }
 
@@ -909,6 +868,11 @@ private class ImageResponseMarshaller : Marshaller<Image> {
     }
   }
 }
+
+private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> getEmptyObserver(): StreamObserver<T> = EMPTY_OBSERVER as StreamObserver<T>
 
 private const val FORMAT_FIELD_TAG = Image.FORMAT_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
 private const val IMAGE_FIELD_TAG = Image.IMAGE_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED

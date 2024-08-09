@@ -45,10 +45,9 @@ internal fun PairingDevice.buildIDevice(
   },
 ): IDevice {
   return Mockito.mock(IDevice::class.java).apply {
-    MockitoKt.whenever(arePropertiesSet()).thenReturn(true)
     MockitoKt.whenever(isOnline).thenReturn(true)
     MockitoKt.whenever(isEmulator).thenReturn(this@buildIDevice.isEmulator)
-    MockitoKt.whenever(name).thenReturn(this@buildIDevice.deviceID)
+    MockitoKt.whenever(name).thenReturn(displayName)
     MockitoKt.whenever(serialNumber).thenReturn("serialNumber")
     MockitoKt.whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
     MockitoKt.whenever(version).thenReturn(AndroidVersion(apiLevel, null))

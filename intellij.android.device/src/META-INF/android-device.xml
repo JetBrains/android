@@ -20,9 +20,4 @@
       <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.ServerFlags"/>
     </action>
   </actions>
-
-  <extensionPoints>
-    <extensionPoint qualifiedName="com.android.tools.idea.adddevicedialog.deviceSourceProvider"
-                    interface="com.android.tools.idea.adddevicedialog.DeviceSourceProvider"/>
-  </extensionPoints>
 </idea-plugin>

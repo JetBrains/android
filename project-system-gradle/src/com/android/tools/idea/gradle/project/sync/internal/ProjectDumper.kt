@@ -85,6 +85,7 @@ class ProjectDumper(
   private val kotlinVersionPattern = Regex("\\d+\\.\\d+\\.[0-9a-zA-Z\\-]+") // Examples: 1.7.0, 1.3.1-eap-23, 1.7.20-Beta
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
   private val transformFolderPattern = Regex("/transforms-\\d/")
+  private val gradleVersionWithoutPrefixPattern = Regex("/${SdkConstants.GRADLE_LATEST_VERSION}/")
   private val konanFolderPathRegex = Regex("^/([_/0-9a-z])+\\.konan")
 
   fun File.normalizeCxxPath(variantName: String?): String {
@@ -231,6 +232,7 @@ class ProjectDumper(
       }
       .removeAndroidVersionsFromPath()
       .replace(transformFolderPattern, "/<TRANSFORMS>/")
+      .replace(gradleVersionWithoutPrefixPattern, "/<GRADLE_VERSION>/")
 
   fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 
@@ -255,7 +257,7 @@ class ProjectDumper(
 
         // Handle kotlin-native-prebuilt (e.g., "file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib")
         line.contains("kotlin-native-prebuilt-") -> {
-          line.replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
+          line.replaceKotlinVersionForTests()
         }
 
         else -> line
@@ -298,10 +300,10 @@ class ProjectDumper(
       ?: this
   }
 
-  private val javaVersionRegex = Regex("(jbr|corretto)-(17|11|1\\.8)")
+  private val javaVersionRegex = Regex("(jbr|corretto)-(21|17|11|1\\.8)")
   fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
 
-  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17])\\.0\\.[0-9]+( - aarch64)?")
+  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+( - aarch64)?")
   fun String.replaceJdkVersion(): String {
     return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION")
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")

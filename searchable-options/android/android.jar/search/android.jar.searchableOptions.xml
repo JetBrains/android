@@ -77,6 +77,15 @@
     <option name="available" path="ActionManager" hit="Available devices" />
     <option name="devices" path="ActionManager" hit="Available devices" />
     <option name="back" path="ActionManager" hit="Back" />
+    <option name="app" path="ActionManager" hit="Backup App State" />
+    <option name="backup" path="ActionManager" hit="Backup App State" />
+    <option name="state" path="ActionManager" hit="Backup App State" />
+    <option name="a" path="ActionManager" hit="Backup app state to a file" />
+    <option name="app" path="ActionManager" hit="Backup app state to a file" />
+    <option name="backup" path="ActionManager" hit="Backup app state to a file" />
+    <option name="file" path="ActionManager" hit="Backup app state to a file" />
+    <option name="state" path="ActionManager" hit="Backup app state to a file" />
+    <option name="to" path="ActionManager" hit="Backup app state to a file" />
     <option name="apk" path="ActionManager" hit="Build APK(s)" />
     <option name="build" path="ActionManager" hit="Build APK(s)" />
     <option name="s" path="ActionManager" hit="Build APK(s)" />
@@ -152,9 +161,6 @@
     <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
-    <option name="android" path="ActionManager" hit="Common Android Settings" />
-    <option name="common" path="ActionManager" hit="Common Android Settings" />
-    <option name="settings" path="ActionManager" hit="Common Android Settings" />
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
@@ -221,6 +227,9 @@
     <option name="runs" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="the" path="ActionManager" hit="Deploys and runs the application without building." />
     <option name="without" path="ActionManager" hit="Deploys and runs the application without building." />
+    <option name="device" path="ActionManager" hit="Device UI Shortcuts" />
+    <option name="shortcuts" path="ActionManager" hit="Device UI Shortcuts" />
+    <option name="ui" path="ActionManager" hit="Device UI Shortcuts" />
     <option name="banner" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
     <option name="dismisses" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
     <option name="for" path="ActionManager" hit="Dismisses banner for Gradle project notifications" />
@@ -686,6 +695,12 @@
     <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="application" path="ActionManager" hit="Restore Application" />
+    <option name="restore" path="ActionManager" hit="Restore Application" />
+    <option name="application" path="ActionManager" hit="Restore Application from file" />
+    <option name="file" path="ActionManager" hit="Restore Application from file" />
+    <option name="from" path="ActionManager" hit="Restore Application from file" />
+    <option name="restore" path="ActionManager" hit="Restore Application from file" />
     <option name="and" path="ActionManager" hit="Return and Erase Device" />
     <option name="device" path="ActionManager" hit="Return and Erase Device" />
     <option name="erase" path="ActionManager" hit="Return and Erase Device" />
@@ -951,6 +966,16 @@
     <option name="native" hit="native" />
     <option name="openscreen" hit="openscreen" />
   </configurable>
+  <configurable id="debugger.stepping" configurable_name="Stepping">
+    <option name="android" hit="Android" />
+    <option name="android" hit="Do not step into Android internal classes" />
+    <option name="classes" hit="Do not step into Android internal classes" />
+    <option name="do" hit="Do not step into Android internal classes" />
+    <option name="internal" hit="Do not step into Android internal classes" />
+    <option name="into" hit="Do not step into Android internal classes" />
+    <option name="not" hit="Do not step into Android internal classes" />
+    <option name="step" hit="Do not step into Android internal classes" />
+  </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
     <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
@@ -1033,10 +1058,10 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl+" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="edits" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="manually" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="push" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="ctrl+quote" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="edits" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="manually" hit="Push Edits Manually (Ctrl+Quote)" />
+    <option name="push" hit="Push Edits Manually (Ctrl+Quote)" />
     <option name="ctrl+s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="edits" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="manually" hit="Push Edits Manually on Save (Ctrl+S)" />

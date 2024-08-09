@@ -143,7 +143,8 @@ public class ThemeResolver {
       return Collections.emptyList();
     }
 
-    Map<ResourceType, ResourceValueMap> resources = resolverCache.getConfiguredFrameworkResources(target, myConfiguration.getFullConfig());
+    Map<ResourceType, ResourceValueMap> resources = resolverCache.getConfiguredFrameworkResources(target, myConfiguration.getFullConfig(),
+                                                                                                  myConfiguration.getOverlays());
     ResourceValueMap styles = resources.get(ResourceType.STYLE);
     return getFrameworkThemes(styles);
   }

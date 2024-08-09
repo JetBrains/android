@@ -1,0 +1,14 @@
+kotlin {
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation 'org.junit:junit:4.11'
+      }
+    }
+    commonTest {
+      dependencies {
+        implementation 'org.junit:junit:4.11'
+      }
+    }
+  }
+}

@@ -14,7 +14,10 @@ android_binary(
         "versionName": "0.1",
         "targetSdkVersion": "31",
     },
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "//tools/base/bazel/platforms:windows_host": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         "//tools/adt/idea/streaming/testSrc/testApp/src/main/java/com/android/tools/screensharing/testapp:main_activity",
     ],

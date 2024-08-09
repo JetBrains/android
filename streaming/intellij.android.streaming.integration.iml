@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$/integration">
       <sourceFolder url="file://$MODULE_DIR$/integration" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/integration/event-logger" />
+      <excludeFolder url="file://$MODULE_DIR$/integration/languages" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
@@ -21,12 +22,18 @@
     <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.streaming" />
 </module>

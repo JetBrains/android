@@ -54,6 +54,7 @@ object AndroidXmlResourcesUtil {
     add(AppRestrictionsDomFileDescription.ROOT_TAG_NAME)
     add(PathsDomFileDescription.TAG_NAME)
     add(MotionDomFileDescription.ROOT_TAG_NAME)
+    add(AccessibilityServiceDomFileDescription.ROOT_TAG_NAME)
   }
 
   @JvmStatic

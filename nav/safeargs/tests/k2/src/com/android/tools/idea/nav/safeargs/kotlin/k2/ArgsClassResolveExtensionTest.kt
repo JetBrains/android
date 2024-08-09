@@ -25,6 +25,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
@@ -57,7 +58,7 @@ class ArgsClassResolveExtensionTest(
 
   @Before
   fun setUp() {
-    check(KotlinPluginModeProvider.isK2Mode())
+    assume().that(KotlinPluginModeProvider.currentPluginMode).isEqualTo(KotlinPluginMode.K2)
     if (navVersion > SafeArgsFeatureVersions.MINIMUM_VERSION) {
       safeArgsRule.addFakeNavigationDependency(navVersion)
     }
@@ -168,6 +169,7 @@ class ArgsClassResolveExtensionTest(
     WriteCommandAction.runWriteCommandAction(project) {
       xmlFile.virtualFile.replaceWithoutSaving("some_argument", "some_other_argument", project)
     }
+    safeArgsRule.waitForPendingUpdates()
 
     analyzeFileContent(
       """
@@ -236,6 +238,7 @@ class ArgsClassResolveExtensionTest(
         safeArgsRule.project,
       )
     }
+    safeArgsRule.waitForPendingUpdates()
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.KOTLIN
 
     analyzeFileContent(

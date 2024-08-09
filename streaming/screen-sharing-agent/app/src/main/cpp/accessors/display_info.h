@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <string>
 
 #include "geom.h"
@@ -58,6 +59,8 @@ struct DisplayInfo {
   }
 
   [[nodiscard]] std::string ToDebugString() const;
+
+  [[nodiscard]] static std::string ToDebugString(const std::map<int, DisplayInfo>& displays);
 
   Size logical_size { 0, 0 };
   int32_t logical_density_dpi = 0;

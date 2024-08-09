@@ -9,7 +9,6 @@ iml_module(
     test_tags = [
         "block-network",
         "cpu:3",
-        "no_test_mac",  # b/174646037
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -48,6 +47,7 @@ iml_module(
         "//tools/adt/idea/debuggers:intellij.android.debuggers",
         "//tools/adt/idea/intellij.android.device",
         "//tools/adt/idea/logcat:intellij.android.logcat",
+        "//tools/adt/idea/backup:intellij.android.backup",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",

@@ -26,6 +26,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
@@ -41,7 +42,6 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -61,7 +61,7 @@ class DirectionsClassResolveExtensionTest(
 
   @Before
   fun setUp() {
-    check(KotlinPluginModeProvider.isK2Mode())
+    assume().that(KotlinPluginModeProvider.currentPluginMode).isEqualTo(KotlinPluginMode.K2)
     if (navVersion > SafeArgsFeatureVersions.MINIMUM_VERSION) {
       safeArgsRule.addFakeNavigationDependency(navVersion)
     }
@@ -122,7 +122,6 @@ class DirectionsClassResolveExtensionTest(
   }
 
   @Test
-  @Ignore("b/322995469, apparently _k2 only?")
   fun handlesModifications() {
     val xmlFile =
       addNavXml(
@@ -172,6 +171,7 @@ class DirectionsClassResolveExtensionTest(
         safeArgsRule.project,
       )
     }
+    safeArgsRule.waitForPendingUpdates()
 
     analyzeFileContent(
       """
@@ -186,7 +186,6 @@ class DirectionsClassResolveExtensionTest(
   }
 
   @Test
-  @Ignore("b/269235670")
   fun handlesModeChange() {
     val xmlFile =
       addNavXml(
@@ -252,6 +251,7 @@ class DirectionsClassResolveExtensionTest(
         safeArgsRule.project,
       )
     }
+    safeArgsRule.waitForPendingUpdates()
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.KOTLIN
 
     analyzeFileContent(

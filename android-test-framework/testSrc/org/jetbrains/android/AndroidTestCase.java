@@ -4,14 +4,11 @@ package org.jetbrains.android;
 
 import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheckThreadingAgentIsRunning;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.workspaceModel.ide.legacyBridge.impl.java.JavaModuleTypeUtils.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 
 import com.android.SdkConstants;
 import com.android.test.testutils.TestUtils;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -34,6 +31,7 @@ import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -97,7 +95,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected List<Module> myAdditionalModules;
 
   protected AndroidFacet myFacet;
-  protected BuildTargetReference myBuildTarget;
   protected CodeStyleSettings mySettings;
 
   protected AdtTestProjectDescriptor myProjectDescriptor;
@@ -167,8 +164,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     createManifest();
 
     myFacet = addAndroidFacetAndSdk(myModule);
-    myBuildTarget = BuildTargetReference.gradleOnly(myFacet);
-
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
     myFixture.copyDirectoryToProject(getResDir(), "res");
@@ -288,7 +283,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  public static void initializeModuleFixtureBuilderWithSrcAndGen(AndroidModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+  public static void initializeModuleFixtureBuilderWithSrcAndGen(
+    AndroidModuleFixtureBuilder<?> moduleFixtureBuilder,
+    String moduleRoot
+  ) {
     moduleFixtureBuilder.setModuleRoot(moduleRoot);
     moduleFixtureBuilder.addContentRoot(moduleRoot);
 
@@ -616,7 +614,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       // the (unnamed) root module will be app.iml
       String moduleFilePath =
         myModuleRoot + (myModuleName == null ? "/app" : "/" + myModuleName) + ModuleFileType.DOT_DEFAULT_EXTENSION;
-      return ModuleManager.getInstance(project).newModule(moduleFilePath, JAVA_MODULE_ENTITY_TYPE_ID_NAME);
+      return ModuleManager.getInstance(project).newModule(moduleFilePath, JavaModuleType.getModuleType().getId());
     }
 
     @NotNull

@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
@@ -102,7 +103,7 @@ class GradleApplicationIdProvider private constructor(
         )?.packageName
 
       PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
-      PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.holderModule) }.packageName
+      PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.module.getHolderModule()) }.packageName
       PROJECT_TYPE_APP -> basicVariant.applicationId.nullize()
       PROJECT_TYPE_ATOM -> null
       PROJECT_TYPE_FEATURE -> if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
@@ -141,7 +142,7 @@ class GradleApplicationIdProvider private constructor(
 
     val targetFacet =
       androidFacet
-        .holderModule
+        .module.getHolderModule()
         .getGradleProjectPath()
         ?.let { GradleHolderProjectPath(it.buildRoot, testedTargetVariant.targetProjectPath) }
         ?.resolveIn(androidFacet.module.project)

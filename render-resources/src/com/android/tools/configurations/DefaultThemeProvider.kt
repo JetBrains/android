@@ -53,7 +53,8 @@ private fun findPostSplashTheme(themeStyle: String, configuration: Configuration
     return themeStyle
   }
   val resolverCache: ResourceResolverCache = configuration.settings.resolverCache
-  val resourceResolver = resolverCache.getResourceResolver(configuration.target, themeUrl.toString(), configuration.fullConfig)
+  val resourceResolver = resolverCache.getResourceResolver(configuration.target, themeUrl.toString(), configuration.fullConfig,
+                                                           configuration.overlays)
   val theme = resourceResolver.getStyle(reference)
   if (theme == null) {
     if (log.isDebugEnabled) log.debug(String.format("Unable to resolve theme %s", themeUrl))

@@ -19,11 +19,15 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
+import java.util.Optional
 
 class ConfigureKotlinMultiplatformLibraryModuleStep(
   model: NewKotlinMultiplatformLibraryModuleModel,
@@ -31,6 +35,10 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(
 ) : ConfigureModuleStep<NewKotlinMultiplatformLibraryModuleModel>(
   model, FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API, title = title
 ) {
+
+  init {
+    model.language.set(Optional.of(Language.Kotlin))
+  }
 
   override fun createMainPanel(): DialogPanel = panel {
     row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
@@ -41,6 +49,11 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(
     }
 
   }.withBorder(empty(6))
+
+  override fun onProceeding() {
+    super.onProceeding()
+    model.template.set(GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(model.project, model.moduleName.get()))
+  }
 
   override fun getPreferredFocusComponent() = moduleName
 }

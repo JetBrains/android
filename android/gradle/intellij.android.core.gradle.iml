@@ -85,5 +85,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.facet" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="classgraph" level="project" />
   </component>
 </module>

@@ -118,6 +118,13 @@ class FakeScreenSharingAgentRule : TestRule {
             writeOkay(socket.outputStream)
             ShellV2Protocol(socket).writeExitCode(0)
           }
+          else if (args.startsWith("logcat ")) {
+            writeOkay(socket.outputStream)
+            val shellProtocol = ShellV2Protocol(socket)
+            shellProtocol.writeStdout("--------- beginning of crash\n")
+            shellProtocol.writeStdout("06-20 17:54:11.642 14782 14782 F libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)\n")
+            shellProtocol.writeExitCode(0)
+          }
           else {
             throw NextHandlerException()
           }

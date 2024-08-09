@@ -195,7 +195,9 @@ void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
 }
 
 void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
-  if (display_id == display_id_) {
+  if (display_id == display_id_ &&
+      // Ignore primary display changes on non-foldable phones. See b/348562991.
+      (display_id != PRIMARY_DISPLAY_ID || !DeviceStateManager::GetSupportedDeviceStates(Jvm::GetJni()).empty())) {
     Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
     StopCodec();
   }
@@ -204,7 +206,10 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
-  DisplayManager::AddDisplayListener(jni, this);
+  // Don't listen to display events on non-foldable HONOR phones. HONOR 90 is producing bogus display change events (b/348562991).
+  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::Agent::device_manufacturer() != HONOR) {
+    DisplayManager::AddDisplayListener(jni, this);
+  }
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};

@@ -1299,6 +1299,7 @@ MODULE                        : navgraph.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.navgraph
         testApplicationId             : com.example.navgraph.test
@@ -1979,6 +1980,7 @@ MODULE                        : navgraph.lib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug

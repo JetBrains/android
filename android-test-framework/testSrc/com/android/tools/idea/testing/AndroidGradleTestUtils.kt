@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Abi
 import com.android.test.testutils.TestUtils
 import com.android.test.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.test.testutils.TestUtils.getSdk
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
@@ -76,10 +77,12 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -112,6 +115,7 @@ import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -151,6 +155,7 @@ import com.intellij.ide.impl.runUnderModalProgressIfIsEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -172,14 +177,15 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
+import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
-import com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName
-import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
+import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -199,6 +205,8 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -732,6 +740,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     androidResourcesEnabled = true,
     unifiedTestPlatformEnabled = true,
     useAndroidX = false,
+    dataBindingEnabled = false,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
@@ -1220,6 +1229,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
         it.mainArtifact.applicationId,
         it.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.applicationId,
         it.buildType,
+        false
       )
     },
     flavorDimensions = this.flavorDimensions.orEmpty(),
@@ -2271,6 +2281,10 @@ private fun <T> openPreparedProject(
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
+        val awaitGradleStartupActivity = project.coroutineScope().launch {
+          project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
+        }
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture())
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.maybeOutputDiagnostics()
         project
@@ -2549,9 +2563,13 @@ fun injectSyncOutputDumper(
   )
 }
 
-fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
+fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStarted: () -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
   val gradleBuildInvoker = GradleBuildInvoker.getInstance(this)
   val disposable = Disposer.newDisposable()
+  val listener =  object: ProjectSystemBuildManager.BuildListener {
+    override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) = buildStarted()
+  }
+  messageBus.connect(disposable).subscribe(PROJECT_SYSTEM_BUILD_TOPIC, listener)
   try {
     injectBuildOutputDumpingBuildViewManager(project = this, disposable = disposable, eventHandler = eventHandler)
     val future = invoker(gradleBuildInvoker)

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+
 const val PREVIEW_LEFT_PADDING = 25
 
 val EMPTY_PADDING = GroupPadding(0, 0) { 0 }

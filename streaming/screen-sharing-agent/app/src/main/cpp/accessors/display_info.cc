@@ -41,4 +41,16 @@ string DisplayInfo::ToDebugString() const {
                       logical_size.width, logical_size.height, rotation, logical_density_dpi, layer_stack, flags, type, state);
 }
 
+string DisplayInfo::ToDebugString(const map<int, DisplayInfo>& displays) {
+  string result;
+  for (auto d = displays.begin(); d != displays.end(); ++d) {
+    if (!result.empty()) {
+      result += ", ";
+    }
+    result += StringPrintf("displayId=%d ", d->first);
+    result += d->second.ToDebugString();
+  }
+  return result;
+}
+
 }  // namespace screensharing

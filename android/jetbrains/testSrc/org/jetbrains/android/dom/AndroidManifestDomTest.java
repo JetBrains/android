@@ -238,6 +238,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       "        </intent>\n" +
       "    </queries>\n" +
       "    <queries>\n" +
+      "        <<error descr=\"'action' child tag should be defined\">intent</error> />\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
       "        <provider android:authorities=\"p1.p2\"/>\n" +
       "    </queries>\n" +
       "</manifest>").getVirtualFile();
@@ -290,6 +293,31 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
+  }
+
+  public void testQueriesIntentDataAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "           <data <caret>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    // Validate that completed attributes include a few from the AndroidManifestData styleable, but exclude those
+    // called out at https://developer.android.com/training/package-visibility/declaring#intent-filter-signature.
+    List<String> lookupStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupStrings).contains("android:host");
+    assertThat(lookupStrings).contains("android:mimeType");
+    assertThat(lookupStrings).doesNotContain("android:path");
+    assertThat(lookupStrings).doesNotContain("android:pathPrefix");
+    assertThat(lookupStrings).doesNotContain("android:pathPattern");
+    assertThat(lookupStrings).doesNotContain("android:port");
+    assertThat(lookupStrings).doesNotContain("android:mimeGroup");
   }
 
   public void testQueriesCategoryNameCompletion() {
@@ -632,6 +660,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testIntentUriRelativeFilterGroupHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
   /* b/144507473
   public void testIntentCategoryDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
@@ -698,6 +730,20 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
    * Test that "data" tag is completed as a subtag of "intent-filter"
    */
   public void testDataTagCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that <uri-relative-filter-group> tag is completed as a subtag of <intent-filter>.
+   */
+  public void testUriRelativeFilterGroupCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that <data> tag is completed as a subtag of <uri-relative-filter-group>.
+   */
+  public void testUriRelativeFilterGroupDataCompletion() throws Throwable {
     doTestCompletion();
   }
 

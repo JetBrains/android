@@ -15,6 +15,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.backup.api" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" />
@@ -44,5 +45,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.jdom" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
+    <orderEntry type="module" module-name="kotlin.project-wizard.core" />
   </component>
 </module>

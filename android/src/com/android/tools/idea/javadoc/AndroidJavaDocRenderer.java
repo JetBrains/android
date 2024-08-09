@@ -54,9 +54,10 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderService;
@@ -70,6 +71,7 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceFiles;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -312,7 +314,7 @@ public class AndroidJavaDocRenderer {
       int rank = 0;
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
-        String facetModuleName = reachableFacet.getHolderModule().getName();
+        String facetModuleName = ModuleSystemUtil.getHolderModule(reachableFacet.getModule()).getName();
         SourceProviders sourceProviders = SourceProviders.getInstance(reachableFacet);
         Set<NamedIdeaSourceProvider> selectedProviders = new HashSet<>();
         for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentSourceProviders()).reverse()) {
@@ -506,7 +508,8 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceRepository getFrameworkResources() {
       StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
-      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
+      List<FrameworkOverlay> overlays = myConfiguration != null ? myConfiguration.getOverlays() : ImmutableList.of();
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of(), overlays);
     }
 
     @Override
@@ -1057,7 +1060,7 @@ public class AndroidJavaDocRenderer {
           RenderLogger logger = new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
                                                  () -> HtmlLinkManager.NOOP_LINK_MANAGER);
           CompletableFuture<RenderTask> renderTaskFuture =
-            taskBuilder(service, BuildTargetReference.gradleOnly(facet), myConfiguration, logger).build();
+            taskBuilder(service, AndroidBuildTargetReference.gradleOnly(facet), myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
               return CompletableFuture.completedFuture(null);

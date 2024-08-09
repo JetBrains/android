@@ -145,6 +145,9 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.compose-compiler-plugin" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-fir" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

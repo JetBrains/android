@@ -77,9 +77,11 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jps
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jrunscript
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jstack
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jstat
+Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jwebserver
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/keytool
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/rmiregistry
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/serialver
+Android Studio Preview.app/Contents/jbr/Contents/Home/conf/jaxp.properties
 Android Studio Preview.app/Contents/jbr/Contents/Home/conf/logging.properties
 Android Studio Preview.app/Contents/jbr/Contents/Home/conf/management/jmxremote.access
 Android Studio Preview.app/Contents/jbr/Contents/Home/conf/management/jmxremote.password.template
@@ -122,6 +124,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/jpeg.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/lcms.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/libpng.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/mesa3d.md
+Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/pipewire.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.desktop/xwd.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.instrument/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.instrument/ASSEMBLY_EXCEPTION
@@ -231,12 +234,6 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/jop
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.ci/LICENSE
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler.management/ADDITIONAL_LICENSE_INFO
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler.management/ASSEMBLY_EXCEPTION
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler.management/LICENSE
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
-Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.vm.compiler/LICENSE
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jartool/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jartool/LICENSE
@@ -383,6 +380,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libjli.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libjsig.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libjsound.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/liblcms.dylib
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/lible.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement_agent.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement_ext.dylib
@@ -398,6 +396,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libprefs.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/librmi.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libsaproc.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libsplashscreen.dylib
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libsyslookup.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libverify.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libzip.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/modules

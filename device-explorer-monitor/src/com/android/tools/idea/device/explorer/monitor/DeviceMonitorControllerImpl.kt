@@ -65,6 +65,7 @@ class DeviceMonitorControllerImpl(
     view.trackModelChanges(uiThreadScope)
 
     uiThreadScope.launch {
+      model.projectApplicationIdListChanged()
       try {
         deviceService.start()
         setupJob.complete(Unit)
@@ -159,6 +160,20 @@ class DeviceMonitorControllerImpl(
 
     override fun packageFilterToggled(isActive: Boolean) {
       controllerListener?.packageFilterToggled(isActive)
+    }
+
+    override fun backupApplication(rows: IntArray) {
+      uiThreadScope.launch {
+        model.backupApplication(project, rows)
+        // TODO(b/348406593): trackAction(DeviceExplorerEvent.Action.BACKUP)
+      }
+    }
+
+    override fun restoreApplication(rows: IntArray) {
+      uiThreadScope.launch {
+        model.restoreApplication(project, rows)
+        // TODO(b/348406593): trackAction(DeviceExplorerEvent.Action.BACKUP)
+      }
     }
   }
 

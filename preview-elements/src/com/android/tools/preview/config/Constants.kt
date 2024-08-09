@@ -43,23 +43,19 @@ const val PARAMETER_HARDWARE_DENSITY = "Density"
 const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
 const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
 const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
+const val PARAMETER_HARDWARE_CUTOUT = "Cutout"
+const val PARAMETER_HARDWARE_NAVIGATION = "Navigation"
 const val PARAMETER_WALLPAPER = "wallpaper"
 // endregion
 
 object Preview {
   object DeviceSpec {
-    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of
-    // PropertyItem name and parameter name,
-    //  alternatively restructure properties so that they are not a flat list, so that the 'device'
-    // PropertyItem has its own PropertyItems
     const val PREFIX = "spec:"
     const val SEPARATOR = ','
     const val OPERATOR = '='
 
     const val PARAMETER_WIDTH = "width"
     const val PARAMETER_HEIGHT = "height"
-    const val PARAMETER_SHAPE = "shape"
-    const val PARAMETER_UNIT = "unit"
     const val PARAMETER_DPI = "dpi"
 
     /**
@@ -76,16 +72,22 @@ object Preview {
     const val PARAMETER_CHIN_SIZE = "chinSize"
     const val PARAMETER_ORIENTATION = "orientation"
     const val PARAMETER_PARENT = "parent"
+    const val PARAMETER_CUTOUT = "cutout"
+    const val PARAMETER_NAVIGATION = "navigation"
     // endregion
+
+    // Set those values first as they are referenced by ReferencePhoneConfig
+    const val DEFAULT_DPI: Int = 420
+    const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
+    val DEFAULT_ORIENTATION = Orientation.portrait
+    val DEFAULT_CUTOUT = Cutout.none
+    val DEFAULT_NAVIGATION = Navigation.gesture
 
     val DEFAULT_WIDTH_DP: Int = ReferencePhoneConfig.width.roundToInt()
     val DEFAULT_HEIGHT_DP: Int = ReferencePhoneConfig.height.roundToInt()
     val DEFAULT_SHAPE: Shape = ReferencePhoneConfig.shape
     val DEFAULT_UNIT: DimUnit = ReferencePhoneConfig.dimUnit
-    val DEFAULT_DPI: Int = ReferencePhoneConfig.dpi
     val DEFAULT_IS_ROUND: Boolean = ReferencePhoneConfig.isRound
-    const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
-    val DEFAULT_ORIENTATION = Orientation.portrait
 
     /**
      * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes

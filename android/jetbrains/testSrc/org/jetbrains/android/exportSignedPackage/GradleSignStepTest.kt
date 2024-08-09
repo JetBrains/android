@@ -97,7 +97,7 @@ class GradleSignStepTest : LightPlatformTestCase() {
     whenever(myWizard.targetType).thenReturn(targetType)
     val testAndroidModel = Mockito.mock(GradleAndroidModel::class.java)
     whenever(testAndroidModel.moduleName).thenReturn(name)
-    whenever(testAndroidModel.variantNames).thenReturn(listOf("debug", "release"))
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("debug", "release"))
     properties.setValue(gradleSignStep.getApkPathPropertyName(name, targetType), destinationPath)
     properties.setList(GradleSignStep.PROPERTY_BUILD_VARIANTS, listOf("release"))
 

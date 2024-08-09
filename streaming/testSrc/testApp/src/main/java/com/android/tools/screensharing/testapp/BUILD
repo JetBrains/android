@@ -11,5 +11,8 @@ android_library(
     ],
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )

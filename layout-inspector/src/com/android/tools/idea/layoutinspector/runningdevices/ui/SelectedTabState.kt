@@ -117,6 +117,10 @@ data class SelectedTabState(
     // Try to restore UI config
     val uiConfigString = PropertiesComponent.getInstance().getValue(UI_CONFIGURATION_KEY)
     uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
+
+    val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
+    DataManager.registerDataProvider(layoutInspectorRenderer, layoutInspectorProvider)
+    Disposer.register(this) { DataManager.removeDataProvider(layoutInspectorRenderer) }
   }
 
   @TestOnly
@@ -232,9 +236,10 @@ data class SelectedTabState(
   ): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
-        { layoutInspectorRenderer.interceptClicks },
-        { layoutInspectorRenderer.interceptClicks = it },
-        { layoutInspector.currentClient },
+        isSelected = { layoutInspectorRenderer.interceptClicks },
+        setSelected = { layoutInspectorRenderer.interceptClicks = it },
+        isRendering = { layoutInspector.renderModel.isActive },
+        connectedClientProvider = { layoutInspector.currentClient },
       )
     val shortcut =
       KeyboardShortcut(

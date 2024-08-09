@@ -9,6 +9,7 @@ import com.android.tools.idea.nav.safeargs.module.NavInfoChangeReason
 import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.safeArgsMode
+import com.android.tools.idea.nav.safeargs.waitForPendingUpdates
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -138,6 +139,7 @@ class NavInfoFetcherTest {
         .fileUnderGradleRoot("src/main/res/navigation/nav_graph.xml")!!
         .replaceWithoutSaving("@+id/FirstFragment", "@+id/FirstFragmentChanged", module.project)
     }
+    waitForPendingUpdates(module)
 
     assertModified(NavInfoChangeReason.NAVIGATION_RESOURCE_CHANGED)
     assertThat(

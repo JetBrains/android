@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import java.awt.event.InputEvent.ALT_DOWN_MASK
@@ -22,18 +23,38 @@ import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 
-/** Defines a sequence of [KeyboardEvent]s. */
+/** Defines a sequence of keyboard events. */
 internal data class EmulatorKeyStroke(val keyName: String, val modifiers: Int = 0)
 
+internal fun EmulatorController.sendKeyStroke(keyStroke: EmulatorKeyStroke) {
+  pressModifierKeys(keyStroke.modifiers)
+  sendKeyEvent(keyStroke.keyName)
+  releaseModifierKeys(keyStroke.modifiers)
+}
+
+/** Simulates pressing and/or releasing of a named Emulator key. */
+internal fun EmulatorController.sendKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress) {
+  val inputEvent = InputEvent.newBuilder().setKeyEvent(KeyboardEvent.newBuilder().setKey(keyName).setEventType(eventType))
+  getOrCreateInputEventSender().onNext(inputEvent.build())
+}
+
+/** Simulates typing a series of characters into the Emulator. */
+internal fun EmulatorController.sendTypedText(text: String) {
+  val inputEvent = InputEvent.newBuilder().setKeyEvent(KeyboardEvent.newBuilder().setText(text))
+  getOrCreateInputEventSender().onNext(inputEvent.build())
+}
+
 /** Simulates pressing of Emulator keys corresponding to the given [modifiers]. */
-internal fun EmulatorController.pressModifierKeys(modifiers: Int) {
+private fun EmulatorController.pressModifierKeys(modifiers: Int) {
   if (modifiers != 0) {
     var currentModifiers = 0
-    val event = KeyboardEvent.newBuilder().setEventType(KeyEventType.keydown)
+    val inputEvent = InputEvent.newBuilder()
+    val keyboardEvent = inputEvent.keyEventBuilder.setEventType(KeyEventType.keydown)
     for ((modifier, key) in EMULATOR_MODIFIER_KEYS) {
       if ((modifiers and modifier) != 0) {
         currentModifiers = currentModifiers or modifier
-        sendKey(event.setKey(key).build())
+        keyboardEvent.setKey(key)
+        getOrCreateInputEventSender().onNext(inputEvent.build())
         if (currentModifiers == modifiers) {
           break
         }
@@ -43,15 +64,17 @@ internal fun EmulatorController.pressModifierKeys(modifiers: Int) {
 }
 
 /** Simulates releasing of Emulator keys corresponding to the given [modifiers]. */
-internal fun EmulatorController.releaseModifierKeys(modifiers: Int) {
+private fun EmulatorController.releaseModifierKeys(modifiers: Int) {
   if (modifiers != 0) {
     // Simulate releasing of meta keys.
     var currentModifiers = modifiers
-    val event = KeyboardEvent.newBuilder().setEventType(KeyEventType.keyup)
+    val inputEvent = InputEvent.newBuilder()
+    val keyboardEvent = inputEvent.keyEventBuilder.setEventType(KeyEventType.keyup)
     for ((modifier, key) in EMULATOR_MODIFIER_KEYS.asReversed()) {
       if ((currentModifiers and modifier) != 0) {
         currentModifiers = currentModifiers and modifier.inv()
-        sendKey(event.setKey(key).build())
+        keyboardEvent.setKey(key)
+        getOrCreateInputEventSender().onNext(inputEvent.build())
         if (currentModifiers == 0) {
           break
         }

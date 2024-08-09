@@ -22,13 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
-import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
@@ -45,6 +45,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import java.awt.Component
+import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -55,20 +56,24 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
   private val project: Project?,
+  private val provisioner: LocalEmulatorProvisionerPlugin,
   systemImages: ImmutableCollection<SystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   private var systemImages by mutableStateOf(systemImages)
 
   companion object {
-    internal fun create(project: Project?): LocalVirtualDeviceSource {
+    internal fun create(
+      project: Project?,
+      provisioner: LocalEmulatorProvisionerPlugin,
+    ): LocalVirtualDeviceSource {
       val images = SystemImage.getSystemImages().toImmutableList()
 
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(project, images, skins)
+      return LocalVirtualDeviceSource(project, provisioner, images, skins)
     }
   }
 
@@ -81,18 +86,17 @@ internal class LocalVirtualDeviceSource(
 
   @Composable
   internal fun WizardPageScope.ConfigurationPage(device: VirtualDevice) {
-    val configureDevicePanelState = remember(device) { ConfigureDevicePanelState(skins, device) }
     val images = systemImages.filter { it.matches(device) }.toImmutableList()
 
     // TODO: http://b/342003916
-    val systemImageTableSelectionState = remember { TableSelectionState(images.first()) }
+    val configureDevicePanelState =
+      remember(device) { ConfigureDevicePanelState(device, skins, images.first()) }
 
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
     ConfigureDevicePanel(
       configureDevicePanelState,
       images,
-      systemImageTableSelectionState,
       onDownloadButtonClick = { downloadSystemImage(parent, it) },
       onImportButtonClick = {
         // TODO Validate the skin
@@ -113,7 +117,11 @@ internal class LocalVirtualDeviceSource(
     nextAction = WizardAction.Disabled
 
     finishAction =
-      add(configureDevicePanelState.device, systemImageTableSelectionState.selection!!, parent)
+      add(
+        configureDevicePanelState.device,
+        configureDevicePanelState.systemImageTableSelectionState.selection!!,
+        parent,
+      )
   }
 
   private fun add(device: VirtualDevice, image: SystemImage, parent: Component) = WizardAction {
@@ -132,6 +140,7 @@ internal class LocalVirtualDeviceSource(
     }
 
     VirtualDevices().add(device, image)
+    provisioner.refreshDevices()
     close()
   }
 
@@ -166,21 +175,29 @@ internal class LocalVirtualDeviceSource(
     return true
   }
 
-  override val profiles: List<DeviceProfile> =
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.map {
-      it.toVirtualDeviceProfile()
-    }
+  override val profiles: List<DeviceProfile>
+    get() =
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
+        val androidVersions =
+          systemImages.filter { it.matches(device) }.mapTo(TreeSet()) { it.androidVersion }
+        // If there are no system images for a device, we can't create it.
+        if (androidVersions.isEmpty()) null else device.toVirtualDeviceProfile(androidVersions)
+      }
 }
 
-internal fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
-  VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()
+internal fun Device.toVirtualDeviceProfile(
+  androidVersions: Set<AndroidVersion>
+): VirtualDeviceProfile =
+  VirtualDeviceProfile.Builder()
+    .apply { initializeFromDevice(this@toVirtualDeviceProfile, androidVersions) }
+    .build()
 
 internal fun VirtualDeviceProfile.toVirtualDevice() =
   // TODO: Check that these are appropriate defaults
   VirtualDevice(
     name = device.displayName,
     device = device,
-    androidVersion = AndroidVersion(apiRange.upperEndpoint()),
+    androidVersion = apiLevels.last(),
     // TODO(b/335267252): Set the skin appropriately.
     skin = NoSkin.INSTANCE,
     frontCamera = AvdCamera.EMULATED,

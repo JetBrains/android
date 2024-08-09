@@ -24,7 +24,7 @@ iml_module(
     },
     tags = [
         "no_k2",
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.kotlin.k1.SafeArgsK1TestSuite",
     # keep sorted

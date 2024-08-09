@@ -408,7 +408,7 @@ class NlPropertyItemTest {
     assertThat(design.value).isEqualTo(HELLO_WORLD)
     assertThat(design.isReference).isFalse()
     assertThat(design.resolvedValue).isEqualTo(HELLO_WORLD)
-    assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT) != null)
+    assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT)).isNotNull()
   }
 
   @RunsInEdt

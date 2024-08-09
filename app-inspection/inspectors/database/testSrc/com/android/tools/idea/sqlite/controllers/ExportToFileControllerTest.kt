@@ -935,7 +935,7 @@ private class DatabaseLockingTestFixture(private val databaseRepository: OpenDat
   }
 
   override fun tearDown() {
-    assertThat(lockIdToDatabase.isEmpty())
+    assertThat(lockIdToDatabase).isEmpty()
   }
 
   fun acquireDatabaseLock(databaseId: Int): Int {

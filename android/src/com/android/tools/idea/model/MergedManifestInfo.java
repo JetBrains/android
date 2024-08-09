@@ -27,6 +27,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -52,7 +53,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -403,7 +403,7 @@ final class MergedManifestInfo {
     Project project = facet.getModule().getProject();
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     Optional<MergedManifestInfoToken<AndroidProjectSystem>> maybeToken =
-      Arrays.stream(MergedManifestInfoToken.EP_NAME.getExtensions(project))
+      MergedManifestInfoToken.EP_NAME.getExtensionList().stream()
         .filter(t -> t.isApplicable(projectSystem))
         .findFirst();
     maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker));
@@ -434,7 +434,7 @@ final class MergedManifestInfo {
     }
     SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
     if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
-      return androidFacet.getMainModule();
+      return ModuleSystemUtil.getMainModule(androidFacet.getModule());
     }
     return null;
   }

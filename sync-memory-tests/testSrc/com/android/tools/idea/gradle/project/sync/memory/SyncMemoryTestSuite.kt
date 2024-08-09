@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_1000_GRADLE_SNAPSHOT_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_1000_KOTLIN_LATEST_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
@@ -95,13 +97,18 @@ class Benchmark200Repeated20TimesMemoryTest  {
   }
 }
 
-class Benchmark1000MemoryRuntimeClasspathTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
+class Benchmark1000MemoryLatestGradleTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_GRADLE_SNAPSHOT_NAME, STANDARD_1000, useLatestGradle = true)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
+    benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
 
-  @Test fun testMemory() {
-    StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
-    GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
-    benchmarkTestRule.openProject()
-  }
+  @Test fun testMemory() = benchmarkTestRule.openProject()
+}
+
+class Benchmark1000MemoryLatestKotlinTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_KOTLIN_LATEST_NAME, STANDARD_1000, useLatestKotlin = true)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
+    benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
+
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }

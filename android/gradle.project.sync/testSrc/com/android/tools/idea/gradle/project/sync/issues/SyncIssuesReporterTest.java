@@ -227,7 +227,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(15);
+    assertThat(strategies).hasSize(16);
 
     strategy = strategies.get(TYPE_COMPILE_SDK_VERSION_TOO_HIGH);
     assertThat(strategy).isInstanceOf(CompileSdkVersionTooHighReporter.class);
@@ -273,6 +273,9 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(IdeSyncIssue.TYPE_EXCEPTION);
     assertThat(strategy).isInstanceOf(ExceptionSyncIssuesReporter.class);
+
+    strategy = strategies.get(IdeSyncIssue.TYPE_MISSING_COMPOSE_COMPILER_GRADLE_PLUGIN);
+    assertThat(strategy).isInstanceOf(MissingComposeCompilerGradlePluginReporter.class);
   }
 
   public void testReportErrorBeforeWarning() throws Exception {

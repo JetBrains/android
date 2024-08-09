@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * would not be in line with common wizard conventions
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.VmUninstallInfoStep}
  */
+@Deprecated
 public class VmUninstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JLabel mUninstallText;

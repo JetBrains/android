@@ -44,6 +44,7 @@ import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.TestPannable;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.model.Coordinates;
@@ -426,8 +427,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     GuiInputHandler manager = surface.getGuiInputHandler();
 
-    Point moved = new Point(0, 0);
-    when(surface.getScrollPosition()).thenReturn(moved);
+    when(surface.getPannable()).thenReturn(new TestPannable());
     int modifierKeyMask = InputEvent.BUTTON2_DOWN_MASK;
 
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(0, modifierKeyMask, MouseEvent.NOBUTTON)));
@@ -437,7 +437,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
   public void testInterceptPanModifiedKeyReleased() {
     DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     GuiInputHandler manager = surface.getGuiInputHandler();
-    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+    when(surface.getPannable()).thenReturn(new TestPannable());
 
     assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(0, 0, MouseEvent.NOBUTTON)));
     Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB));
@@ -446,7 +446,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
   public void testIsPanningAfterMouseReleased() {
     DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     GuiInputHandler manager = surface.getGuiInputHandler();
-    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+    when(surface.getPannable()).thenReturn(new TestPannable());
 
     manager.setPanning(true);
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0, MouseEvent.BUTTON2)));
@@ -461,7 +461,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
   public void testIsPanningAfterKeyReleased() {
     DesignSurface<?> surface = setupConstraintLayoutCursorTest();
     GuiInputHandler manager = surface.getGuiInputHandler();
-    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+    when(surface.getPannable()).thenReturn(new TestPannable());
 
     manager.setPanning(true);
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0, MouseEvent.NOBUTTON)));

@@ -20,7 +20,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,7 +32,6 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
@@ -65,7 +63,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
 
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
-      hideTipsAndOpenWhatsNewAssistant(project);
+      openWhatsNewAssistant(project);
     }
     else {
       // But also show if the config version is newer than current, even if AS version is not higher
@@ -73,37 +71,6 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       WhatsNewCheckVersionTask task =
         new WhatsNewCheckVersionTask(project, new VersionCheckCallback(project));
       task.queue();
-    }
-  }
-
-  private static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project) {
-    hideTipsAndOpenWhatsNewAssistant(project, GeneralSettings.getInstance(), null);
-  }
-
-  /**
-   * Hide the Tip of the Day if showing What's New Assistant on startup because
-   * we don't want to show two auto-opening panels/popups
-   */
-  @VisibleForTesting
-  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project,
-                                               @NotNull GeneralSettings generalSettings,
-                                               @Nullable FutureCallback<? super Boolean> callback) {
-    boolean showTipsOnStartup = generalSettings.isShowTipsOnStartup();
-    if (showTipsOnStartup)
-      generalSettings.setShowTipsOnStartup(false);
-
-    // Restore to the setting that user had before, if applicable
-    openWhatsNewAssistant(project);
-    if (showTipsOnStartup) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        generalSettings.setShowTipsOnStartup(true);
-        if (callback != null)
-          callback.completed(true);
-      });
-    }
-    else {
-      if (callback != null)
-        callback.completed(true);
     }
   }
 
@@ -176,7 +143,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     public void completed(Boolean result) {
       // Auto-show What's New Assistant
       if (result) {
-        hideTipsAndOpenWhatsNewAssistant(myProject);
+        openWhatsNewAssistant(myProject);
       }
     }
 

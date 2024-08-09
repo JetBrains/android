@@ -71,7 +71,8 @@ public class SyncIssuesReporter {
       new JcenterDeprecatedReporter(),
       new AgpUsedJavaTooLowReporter(),
       new ExceptionSyncIssuesReporter(),
-      new CompileSdkVersionTooHighReporter()
+      new CompileSdkVersionTooHighReporter(),
+      new MissingComposeCompilerGradlePluginReporter()
     );
   }
 

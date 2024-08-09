@@ -43,6 +43,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.ui.NewUI;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -111,7 +112,8 @@ public class StudioCrashReporterTest {
 
     String content = getSerializedContent(report);
 
-    assertRequestContainsField(content, "isNewUI", "false");
+    String expectedValue = Boolean.toString(NewUI.isEnabled());
+    assertRequestContainsField(content, "isNewUI", expectedValue);
   }
 
   @Test

@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
+    <orderEntry type="module" module-name="intellij.android.backup" />
     <orderEntry type="module" module-name="intellij.android.mlkit" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" />

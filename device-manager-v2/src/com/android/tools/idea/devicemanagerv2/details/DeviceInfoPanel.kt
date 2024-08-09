@@ -28,7 +28,7 @@ import com.android.repository.io.recursiveSize
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.device.ScreenDiagram
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -287,13 +287,13 @@ private fun createCopyPropertiesButton(infoSection: InfoSection) =
 
 private val EXCLUDED_LOCAL_AVD_PROPERTIES =
   setOf(
-    AvdManager.AVD_INI_ABI_TYPE,
-    AvdManager.AVD_INI_CPU_ARCH,
-    AvdManager.AVD_INI_SKIN_NAME,
-    AvdManager.AVD_INI_SKIN_PATH,
-    AvdManager.AVD_INI_SDCARD_SIZE,
-    AvdManager.AVD_INI_SDCARD_PATH,
-    AvdManager.AVD_INI_IMAGES_2,
+    ConfigKey.ABI_TYPE,
+    ConfigKey.CPU_ARCH,
+    ConfigKey.SKIN_NAME,
+    ConfigKey.SKIN_PATH,
+    ConfigKey.SDCARD_SIZE,
+    ConfigKey.SDCARD_PATH,
+    ConfigKey.IMAGES_2,
   )
 
 /** Launches a coroutine to monitor the device properties and update details when they change. */

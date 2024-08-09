@@ -120,17 +120,17 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
 
   private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
 
-    override fun onNext(response: ClipData) {
-      logger.debug { "ClipboardReceiver.onNext: \"${response.text}\"" }
+    override fun onNext(message: ClipData) {
+      logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
       if (clipboardReceiver != this) {
         return // This clipboard feed has already been cancelled.
       }
 
-      if (response.text.isNotEmpty()) {
+      if (message.text.isNotEmpty()) {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          if (response.text != lastClipboardText) {
-            lastClipboardText = response.text
-            val content = StringSelection(response.text)
+          if (message.text != lastClipboardText) {
+            lastClipboardText = message.text
+            val content = StringSelection(message.text)
             ClipboardSynchronizer.getInstance().setContent(content, content)
           }
         }

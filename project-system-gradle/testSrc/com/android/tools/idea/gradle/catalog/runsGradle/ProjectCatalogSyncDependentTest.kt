@@ -23,7 +23,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
 class ProjectCatalogSyncDependentTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
@@ -33,11 +32,14 @@ class ProjectCatalogSyncDependentTest {
     projectRule.fixture.testDataPath = TestProjectPaths.TEST_DATA_PATH
   }
   @Test
-  fun testAppliedFilesShared() {
+  fun testImportedCatalog() {
     projectRule.loadProject(TestProjectPaths.PSD_IMPORTED_VERSION_CATALOG_SAMPLE_GROOVY)
     val pbm = ProjectBuildModel.get(projectRule.project)
-    assertThat(pbm.versionCatalogsModel.catalogNames()).containsAllIn(setOf("libs", "libExample"))
-    val catalog = pbm.versionCatalogsModel.getVersionCatalogModel("libExample")
+    assertThat(pbm.versionCatalogsModel.catalogNames()).containsAllIn(setOf("libs", "libImported"))
+    val catalog = pbm.versionCatalogsModel.getVersionCatalogModel("libImported")
     assertThat(catalog).isNotNull()
+    val libs = catalog!!.libraryDeclarations().getAll()
+    assertThat(libs.size).isEqualTo(1)
+    assertThat(libs["junit"]).isNotNull()
   }
 }

@@ -27,7 +27,7 @@ import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTAN
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.getPreviewNodes
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
@@ -38,9 +38,10 @@ import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.smartReadActionBlocking
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -58,6 +59,7 @@ class ComposeVisualLintSuppressTaskTest {
   @Test
   fun testSuppressIssue() {
     val facet = projectRule.androidFacet(":app")
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val (targetFile, previewElement) =
       runBlocking {
         val psiFile =
@@ -66,7 +68,8 @@ class ComposeVisualLintSuppressTaskTest {
             "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
           )
         psiFile.virtualFile to
-          runReadAction {
+          // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
+          smartReadActionBlocking(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
@@ -109,7 +112,7 @@ class ComposeVisualLintSuppressTaskTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
     nlModel.dataContext = DataContext {
@@ -159,6 +162,7 @@ class ComposeVisualLintSuppressTaskTest {
   @Test
   fun testShowSuppressAction() {
     val facet = projectRule.androidFacet(":app")
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val (targetFile, previewElement) =
       runBlocking {
         val psiFile =
@@ -167,7 +171,8 @@ class ComposeVisualLintSuppressTaskTest {
             "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
           )
         psiFile.virtualFile to
-          runReadAction {
+          // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
+          smartReadActionBlocking(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
@@ -210,7 +215,7 @@ class ComposeVisualLintSuppressTaskTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
     nlModel.dataContext = DataContext {

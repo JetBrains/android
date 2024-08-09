@@ -7,41 +7,65 @@ iml_module(
     iml_files = ["intellij.android.designer-perf-tests.iml"],
     split_test_targets = {
         "perfgateCompose": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComposeTest",
         },
         "perfgateComplex": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComplexRenderTest",
         },
         "perfgateVisualLint": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.uibuilder.visual.visuallint",
         },
         "perfgateJarManager": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "test_filter": "com.android.tools.idea.rendering.PerfgateJarManagerTest",
         },
         "perfgateComposeStandardGradle": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeStandardGradleTest",
         },
         "perfgateComposeEssentialsGradle": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeEssentialsGradleTest",
         },
         "perfgateComposeRenderQualityGradle": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeRenderQualityGradleTest",
         },
         "perfgateUiCheck": {
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.uicheck",
         },
@@ -49,8 +73,7 @@ iml_module(
         },
     },
     tags = [
-        "no_mac",
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
     test_data = [
@@ -66,6 +89,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/adt/idea/designer-perf-tests/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",

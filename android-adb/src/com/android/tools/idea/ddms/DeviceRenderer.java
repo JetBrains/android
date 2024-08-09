@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ddms;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.ConfigKey.DISPLAY_NAME;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -85,7 +85,7 @@ public class DeviceRenderer {
     if (avdManager != null) {
       AvdInfo info = avdManager.getAvd(avdName, true);
       if (info != null) {
-        avdName = info.getProperties().get(AVD_INI_DISPLAY_NAME);
+        avdName = info.getProperties().get(DISPLAY_NAME);
       }
     }
     if (avdName == null) {

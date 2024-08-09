@@ -513,7 +513,7 @@ class DevicesConnectionStep(
       value.launch = { Futures.immediateFuture(iDevice) } // We can only launch AVDs once!
 
       // If it was not launched by us, it may still be booting. Wait for "boot complete".
-      while (!iDevice.arePropertiesSet() || iDevice.getProperty("dev.bootcomplete") == null) {
+      while (!iDevice.isOnline() || iDevice.getProperty("dev.bootcomplete") == null) {
         LOG.warn("${iDevice.name} not ready yet")
         delay(2000)
       }

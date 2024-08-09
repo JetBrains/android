@@ -20,7 +20,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -135,7 +135,7 @@ class PerfgateVisualLintAnalyzerTest {
         val nlModel = SyncNlModel.create(
           projectRule.fixture.projectDisposable,
           NlComponentRegistrar,
-          BuildTargetReference.gradleOnly(facet),
+          AndroidBuildTargetReference.gradleOnly(facet),
           file,
           configuration
         )
@@ -155,7 +155,9 @@ class PerfgateVisualLintAnalyzerTest {
     }
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel) }
     }

@@ -82,6 +82,13 @@ class DeviceSpecSyntaxHighlighter : SyntaxHighlighterBase() {
       DeviceSpecTypes.FALSE -> primitive
       DeviceSpecTypes.PORTRAIT_KEYWORD,
       DeviceSpecTypes.LANDSCAPE_KEYWORD,
+      DeviceSpecTypes.CUTOUT_NONE_KEYWORD,
+      DeviceSpecTypes.CUTOUT_CORNER_KEYWORD,
+      DeviceSpecTypes.CUTOUT_DOUBLE_KEYWORD,
+      DeviceSpecTypes.CUTOUT_HOLE_KEYWORD,
+      DeviceSpecTypes.CUTOUT_TALL_KEYWORD,
+      DeviceSpecTypes.NAV_BUTTONS_KEYWORD,
+      DeviceSpecTypes.NAV_GESTURE_KEYWORD,
       DeviceSpecTypes.STRING_T -> string
       DeviceSpecTypes.PX,
       DeviceSpecTypes.DP -> unit
@@ -93,6 +100,8 @@ class DeviceSpecSyntaxHighlighter : SyntaxHighlighterBase() {
       DeviceSpecTypes.DPI_KEYWORD,
       DeviceSpecTypes.IS_ROUND_KEYWORD,
       DeviceSpecTypes.CHIN_SIZE_KEYWORD,
+      DeviceSpecTypes.CUTOUT_KEYWORD,
+      DeviceSpecTypes.NAVIGATION_KEYWORD,
       DeviceSpecTypes.ORIENTATION_KEYWORD -> paramName
       else -> emptyArray()
     }

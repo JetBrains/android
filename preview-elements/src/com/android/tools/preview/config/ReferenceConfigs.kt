@@ -26,7 +26,7 @@ val ReferencePhoneConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
 }
 
 /** Default device configuration for Foldables */
-val ReferenceFoldableConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
+val ReferenceFoldableConfig: DeviceConfig by lazy {
   getDeviceConfigFor(DEVICE_CLASS_FOLDABLE_ID)
 }
 

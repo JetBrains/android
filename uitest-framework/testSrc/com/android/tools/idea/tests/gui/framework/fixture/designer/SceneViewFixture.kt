@@ -50,7 +50,7 @@ private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
 private val MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2 // Based on DrawAnchor.java
 
 private fun SceneView.convertToViewport(@SwingCoordinate x: Int, @SwingCoordinate y: Int): Point =
-  scene.designSurface.getCoordinatesOnViewport(Point(x, y))
+  scene.designSurface.getCoordinatesOnViewportForTest(Point(x, y))
 
 class SceneComponentFixture internal constructor(
   private val robot: Robot,

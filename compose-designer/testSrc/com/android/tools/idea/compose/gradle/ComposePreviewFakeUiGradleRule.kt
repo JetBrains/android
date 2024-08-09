@@ -26,7 +26,7 @@ import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
@@ -110,7 +110,7 @@ class ComposePreviewFakeUiGradleRule(
     logger.setLevel(LogLevel.ALL)
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
-    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     logger.info("ComposePreviewFakeUiGradleRuleImpl setUp")
     psiMainFile = getPsiFile(project, previewFilePath)

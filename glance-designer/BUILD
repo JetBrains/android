@@ -32,7 +32,7 @@ iml_module(
 iml_module(
     name = "intellij.android.glance-designer.tests",
     iml_files = ["intellij.android.glance-designer.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.glance.preview.GlanceDesignerTestSuite",
     test_friends = ["//tools/adt/idea/glance-designer:intellij.android.glance-designer"],
     test_srcs = ["testSrc"],

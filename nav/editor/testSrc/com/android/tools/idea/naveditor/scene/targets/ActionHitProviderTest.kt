@@ -91,7 +91,7 @@ class ActionHitProviderTest : NavTestCase() {
 
     scene.getSceneComponent("fragment1")!!.setPosition(200, 20)
     scene.getSceneComponent("fragment2")!!.setPosition(20, 20)
-    scene.sceneManager.layout(false)
+    scene.sceneManager.requestLayoutAsync(false)
 
     val navView = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     val context = navView.context

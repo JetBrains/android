@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.SelectionModel
@@ -33,14 +34,17 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.defaultActionHandlerProvider
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 
 object DesignSurfaceTestUtil {
@@ -54,14 +58,16 @@ object DesignSurfaceTestUtil {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
-    whenever(surface.dataSnapshot(Mockito.any())).thenCallRealMethod()
-    whenever(surface.layeredPane).thenReturn(JPanel())
+    whenever(surface.getData(ArgumentMatchers.any())).thenCallRealMethod()
+    whenever(surface.layeredPane).thenReturn(JLayeredPane())
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)
     whenever(surface.size).thenReturn(Dimension(1000, 1000))
     whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
-    val interactable = TestInteractable(surface, JPanel(), surface)
+    val pannable = TestPannable()
+    whenever(surface.pannable).thenReturn(pannable)
+    val interactable = TestInteractable(pannable, JPanel(), surface)
     whenever(surface.guiInputHandler)
       .thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
@@ -71,13 +77,11 @@ object DesignSurfaceTestUtil {
       whenever(surface.actionManager)
         .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     }
-    Mockito.doAnswer { listeners.add(it.getArgument(0)) }
-      .whenever(surface)
-      .addListener(Mockito.any(DesignSurfaceListener::class.java))
+    Mockito.doAnswer { listeners.add(it.getArgument(0)) }.whenever(surface).addListener(any())
 
     Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }
       .whenever(surface)
-      .removeListener(Mockito.any(DesignSurfaceListener::class.java))
+      .removeListener(any())
 
     selectionModel.addListener { _, selection ->
       listeners.forEach { listener -> listener.componentSelectionChanged(surface, selection) }
@@ -106,7 +110,6 @@ object DesignSurfaceTestUtil {
     whenever(surface.addModelWithoutRender(any()))
       .thenReturn(CompletableFuture.completedFuture(null))
     whenever(surface.addAndRenderModel(any())).thenReturn(CompletableFuture.completedFuture(null))
-    whenever(surface.configuration).thenReturn(model.configuration)
     whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
     // TODO: NlDesignSurface should not be referenced from here.
@@ -114,7 +117,7 @@ object DesignSurfaceTestUtil {
     if (surface is NlDesignSurface) {
       whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
       whenever(surface.getActionHandlerProvider())
-        .thenReturn(Function { NlDesignSurface.defaultActionHandlerProvider(it) })
+        .thenReturn(Function { defaultActionHandlerProvider(it) })
     }
 
     val sceneManager = sceneManagerFactory(surface, model)

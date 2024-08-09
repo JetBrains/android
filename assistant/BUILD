@@ -25,7 +25,7 @@ iml_module(
 iml_module(
     name = "assistant-test",
     iml_files = ["assistant-test.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.assistant.view.AssistantTestSuite",
     # keep sorted
     test_data = [

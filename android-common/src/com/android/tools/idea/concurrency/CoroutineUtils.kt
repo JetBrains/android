@@ -27,6 +27,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -47,6 +48,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -122,6 +124,27 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
       LOG.error(throwable)
     }
   }
+}
+
+/**
+ * Creates a coroutine scope matching the [Disposable]'s lifecycle. When the [Disposable] gets
+ * disposed, the scope's job is also canceled.
+ *
+ * The scope is created with a [SupervisorJob], meaning that a child coroutine failing will not
+ * cause the other coroutines in the scope to fail.
+ *
+ * @param dispatcher The dispatcher to use when creating the scope. Defaults to [Dispatchers.Default].
+ * @param extraContext The context to append to the scope's context. Can be used to provide
+ *      a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
+ */
+fun Disposable.createCoroutineScope(
+  dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  extraContext: CoroutineContext = EmptyCoroutineContext,
+): CoroutineScope {
+  val job = SupervisorJob()
+  val scopeDisposable = Disposable { job.cancel("Disposing") }
+  Disposer.register(this, scopeDisposable)
+  return CoroutineScope(job + dispatcher + extraContext)
 }
 
 /**
@@ -213,7 +236,7 @@ private class ProjectDisposable : Disposable {
  * This method also accepts an optional [CoroutineContext].
  */
 fun CoroutineScope.launchWithProgress(
-  progressIndicator: ProgressIndicatorEx,
+  progressIndicator: ProgressIndicator,
   context: CoroutineContext = EmptyCoroutineContext,
   runnable: suspend CoroutineScope.() -> Unit): Job {
   if (!progressIndicator.isRunning) progressIndicator.start()
@@ -246,7 +269,7 @@ fun CoroutineScope.launchWithProgress(
       // The coroutine completed so, if needed, we stop the indicator.
       if (progressIndicator.isRunning) {
         progressIndicator.stop()
-        progressIndicator.processFinish()
+        (progressIndicator as? ProgressIndicatorEx)?.processFinish()
       }
     }
   }

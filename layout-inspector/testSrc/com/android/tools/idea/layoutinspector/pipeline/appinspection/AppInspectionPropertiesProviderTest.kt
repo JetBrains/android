@@ -747,10 +747,10 @@ class AppInspectionPropertiesProviderTest {
     val targetNode = inspectorRule.inspectorModel[3]!!
     inspectorRule.inspectorModel.setSelection(targetNode, SelectionOrigin.COMPONENT_TREE)
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
-    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
-    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
-    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "1.0"))
-    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "200px"))
+    propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next")
+    propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true")
+    propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "1.0")
+    propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "200px")
 
     inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "text")
     inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "alpha")
@@ -761,9 +761,9 @@ class AppInspectionPropertiesProviderTest {
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) {
       propertiesModel.properties[ANDROID_URI, "text"].value == "secondaryValue" && valuesChanged > 0
     }
-    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
-    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "4.0"))
-    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "500px"))
+    propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true")
+    propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "4.0")
+    propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "500px")
 
     // Verify that we did not fire a properties generated notification after the original
     assertThat(generatedCount).isEqualTo(3)
@@ -797,11 +797,11 @@ class AppInspectionPropertiesProviderTest {
     val text2 = inspectorRule.inspectorModel[11]!!
     inspectorRule.inspectorModel.setSelection(text1, SelectionOrigin.COMPONENT_TREE)
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 3 }
-    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
+    propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next")
 
     inspectorRule.inspectorModel.setSelection(text2, SelectionOrigin.COMPONENT_TREE)
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 4 }
-    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Previous"))
+    propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Previous")
   }
 
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =

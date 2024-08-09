@@ -24,7 +24,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
@@ -53,7 +53,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         )
         .build()
 
-    val surface = NlDesignSurface.build(project, project)
+    val surface = NlSurfaceBuilder.build(project, project)
     waitForFuture(surface.addModelWithoutRender(model))
     val editorManager = FileEditorManager.getInstance(project)
 

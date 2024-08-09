@@ -34,7 +34,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.downloads.AndroidLayoutlibDownloader;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
-import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -357,7 +357,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       }
     }
     NlModel model =
-      myModelProvider.createModel(myEditor, myProject, BuildTargetReference.from(facet, myFile), myComponentRegistrar, myFile);
+      myModelProvider.createModel(myEditor, myProject, AndroidBuildTargetReference.from(facet, myFile), myComponentRegistrar, myFile);
 
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.
@@ -510,7 +510,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       NlModel model = new NlModel.Builder(disposable, facet, file, configuration)
         .withComponentRegistrar(componentRegistrar)
         .build();
-      model.setDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
+      model.getDisplaySettings().setDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
       return model;
     };
 
@@ -519,7 +519,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
      */
     NlModel createModel(@NotNull Disposable parentDisposable,
                         @NotNull Project project,
-                        @NotNull BuildTargetReference buildTarget,
+                        @NotNull AndroidBuildTargetReference buildTarget,
                         @NotNull Consumer<NlComponent> componentRegistrar,
                         @NotNull VirtualFile file);
   }

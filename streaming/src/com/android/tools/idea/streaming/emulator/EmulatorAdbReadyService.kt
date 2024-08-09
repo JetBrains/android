@@ -32,7 +32,7 @@ import java.awt.EventQueue
 /**
  * Returns true if the ADB is ready to handle commands for the device with [serialNumber] in [project].
  */
-internal fun isReadyForAdbCommands(project: Project, serialNumber: String): Boolean =
+fun isReadyForAdbCommands(project: Project, serialNumber: String): Boolean =
   project.service<EmulatorAdbReadyService>().isReadyForAdbCommands(serialNumber)
 
 @Service(Service.Level.PROJECT)

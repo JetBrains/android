@@ -24,10 +24,10 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.client.retryRpc
 import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.idea.vitals.datamodel.Dimension
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
@@ -248,7 +248,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       LOG.info("Play Vitals gRpc server connected at $address")
       return VitalsGrpcClientImpl(
         channel =
-          NettyChannelBuilder.forTarget(address)
+          channelBuilderForAddress(address)
             .apply {
               if (StudioFlags.PLAY_VITALS_GRPC_USE_TRANSPORT_SECURITY.get()) useTransportSecurity()
               else usePlaintext()

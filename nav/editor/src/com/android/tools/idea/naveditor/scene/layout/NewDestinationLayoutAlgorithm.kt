@@ -37,7 +37,7 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
     component.nlComponent.removeClientProperty(NEW_DESTINATION_MARKER_PROPERTY)
 
     val surface = component.scene.designSurface
-    @SwingCoordinate val swingPoint = Point(surface.scrollPosition)
+    @SwingCoordinate val swingPoint = Point(surface.pannable.scrollPosition)
     swingPoint.translate(INITIAL_OFFSET, INITIAL_OFFSET)
 
     val view = surface.focusedSceneView ?: return false

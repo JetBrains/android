@@ -100,7 +100,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
@@ -186,8 +186,7 @@ maven_repository(
 
 COMMON_OLD_AGP_TEST_TARGETS_TAGS = [
     "block-network",
-    "no_test_mac",
-    "no_test_windows",
+    "noci:studio-win",
 ]
 
 local_generate_old_agp_tests_from_list(

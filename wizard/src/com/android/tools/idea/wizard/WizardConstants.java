@@ -37,26 +37,31 @@ public class WizardConstants {
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
+  @Deprecated
   public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
 
   // Dimensions
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
+  @Deprecated
   public static final int STUDIO_WIZARD_INSET_SIZE = JBUI.scale(12);
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
+  @Deprecated
   public static final Insets STUDIO_WIZARD_INSETS =
     new Insets(0, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE);
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
+  @Deprecated
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
 
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
+  @Deprecated
   public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = JBUI.size(1080, 650);
 
   public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = JBUI.size(192, 192);

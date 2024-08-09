@@ -33,7 +33,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.lint.AttributeKey
 import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.getRoot
@@ -328,7 +328,7 @@ private constructor(
     ): List<NlComponent> {
       val model =
         NlModelBuilderUtil.model(
-            BuildTargetReference.gradleOnly(facet),
+            AndroidBuildTargetReference.gradleOnly(facet),
             fixture,
             resourceFolder,
             fileName,

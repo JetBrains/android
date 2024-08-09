@@ -104,7 +104,7 @@ class JavaKotlinMethodRecordingTaskHandlerTest(private val myExposureLevel: Expo
     val cpuTaskArgs = CpuTaskArgs(false, javaKotlinMethodTraceSessionArtifact)
     myJavaKotlinMethodRecordingTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(myJavaKotlinMethodRecordingTaskHandler.stage!!.recordingModel.isRecording)
+    assertThat(myJavaKotlinMethodRecordingTaskHandler.stage!!.recordingModel.isRecording).isTrue()
   }
 
   @Test

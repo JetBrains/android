@@ -31,6 +31,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -105,7 +106,7 @@ public class SceneCreationTest extends SceneTest {
 
   public void testSceneDisposal() throws ExecutionException, InterruptedException {
     SelectionModel selectionModel = spy(new DefaultSelectionModel());
-    DesignSurface<?> surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
+    DesignSurface<?> surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).setSelectionModel(selectionModel).build();
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");

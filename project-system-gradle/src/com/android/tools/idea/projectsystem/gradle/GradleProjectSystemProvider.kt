@@ -28,13 +28,8 @@ import com.intellij.openapi.project.Project
  * a new instance of the project system. In particular, the provider extension may be instantiated after the disposal of the project, in
  * which case we can't create the project system because it interacts with the project during instantiation.
  */
-class GradleProjectSystemProvider(val project: Project) : AndroidProjectSystemProvider {
+class GradleProjectSystemProvider : AndroidProjectSystemProvider {
   override val id = "com.android.tools.idea.GradleProjectSystem"
-
-  // This is supposed to be called only while initializing the project system, but it may be called from multiple threads
-  // at the same time due to lazy initialization. We do not want to initialize multiple instances of GradleProjectSystem
-  // which subscribe to various events. To prevent this from happening we instantiate GradleProjectSystem via a thread-safe lazy property.
-  override val projectSystem by lazy { GradleProjectSystem(project) }
-
-  override fun isApplicable() = Info.getInstance(project).isBuildWithGradle
+  override fun isApplicable(project: Project) = Info.getInstance(project).isBuildWithGradle
+  override fun projectSystemFactory(project: Project) = GradleProjectSystem(project)
 }

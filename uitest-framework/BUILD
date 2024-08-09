@@ -8,7 +8,7 @@ iml_module(
         "//tools/adt/idea/studio:required_jvm_args",
     ],
     iml_files = ["intellij.android.guiTestFramework.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
     test_data = [
     ],

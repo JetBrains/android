@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_AREAS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_COUNT;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_DEFAULTS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_NAME;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
+import static com.android.sdklib.internal.avd.ConfigKey.FOLD_AT_POSTURE;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_ANGLES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_AREAS;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_COUNT;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_DEFAULTS;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_RANGES;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_SUB_TYPE;
+import static com.android.sdklib.internal.avd.ConfigKey.HINGE_TYPE;
+import static com.android.sdklib.internal.avd.ConfigKey.POSTURE_LISTS;
+import static com.android.sdklib.internal.avd.ConfigKey.RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.ConfigKey.SKIN_NAME;
+import static com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH;
+import static com.android.sdklib.internal.avd.UserSettingsKey.PREFERRED_ABI;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
@@ -158,20 +158,20 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
     assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
     assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("1080-0-0-1840");
-    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
-    assertThat(avdConfig.get(AVD_INI_RESIZABLE_CONFIG)).
+    assertThat(avdConfig.get(HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(HINGE_AREAS)).isEqualTo("1080-0-0-1840");
+    assertThat(avdConfig.get(POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(RESIZABLE_CONFIG)).
       isEqualTo("phone-0-1080-2400-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
-    assertThat(avdConfig.get(AVD_INI_SKIN_NAME)).isEqualTo("1080x2400");
-    assertThat(avdConfig.get(AVD_INI_SKIN_PATH)).isEqualTo("1080x2400");
+    assertThat(avdConfig.get(SKIN_NAME)).isEqualTo("1080x2400");
+    assertThat(avdConfig.get(SKIN_PATH)).isEqualTo("1080x2400");
   }
 
   public void testFoldableAvds() throws IOException {
@@ -224,16 +224,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
     assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
     assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
-    assertThat(avdConfig.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
-    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(avdConfig.containsKey(FOLD_AT_POSTURE)).isFalse();
+    assertThat(avdConfig.get(POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
 
     // 8in foldable
     foldable = devMgr.getDevice("8in Foldable", "Generic");
@@ -256,16 +256,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
     assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
     assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("180-360");
-    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("1148-0-1-2480");
-    assertThat(avdConfig.get(AVD_INI_FOLD_AT_POSTURE)).isEqualTo("4");
-    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("3, 4");
-    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("180-330, 330-360");
+    assertThat(avdConfig.get(HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_RANGES)).isEqualTo("180-360");
+    assertThat(avdConfig.get(HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(HINGE_AREAS)).isEqualTo("1148-0-1-2480");
+    assertThat(avdConfig.get(FOLD_AT_POSTURE)).isEqualTo("4");
+    assertThat(avdConfig.get(POSTURE_LISTS)).isEqualTo("3, 4");
+    assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("180-330, 330-360");
 
     // 6.7in Foldable
     foldable = devMgr.getDevice("6.7in Foldable", "Generic");
@@ -285,16 +285,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false);
     avdConfig = avdInfo.getProperties();
 
-    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("0");
-    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("0-1318-1080-1");
-    assertThat(avdConfig.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
-    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_TYPE)).isEqualTo("0");
+    assertThat(avdConfig.get(HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(HINGE_AREAS)).isEqualTo("0-1318-1080-1");
+    assertThat(avdConfig.containsKey(FOLD_AT_POSTURE)).isFalse();
+    assertThat(avdConfig.get(POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
   }
 
   public void testWipeAvd() {
@@ -510,10 +510,10 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false);
 
     assertThat(info).isNotNull();
-    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isNull();
+    assertThat(info.getUserSettings().get(PREFERRED_ABI)).isNull();
 
     Map<String, String> userSettings = new HashMap<>();
-    userSettings.put(USER_SETTINGS_INI_PREFERRED_ABI, Abi.X86_64.toString());
+    userSettings.put(PREFERRED_ABI, Abi.X86_64.toString());
     info = mAvdManagerConnection.createOrUpdateAvd(
       null,
       "test7p6Foldable",
@@ -527,7 +527,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       userSettings,
       false);
     assertThat(info).isNotNull();
-    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
+    assertThat(info.getUserSettings().get(PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {

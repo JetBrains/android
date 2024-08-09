@@ -19,13 +19,9 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.Iterables;
 import java.awt.LayoutManager;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A layout editor design surface.
@@ -39,28 +35,11 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
   }
 
   /**
-   * @deprecated use {@link #getConfigurations()} instead. Using this method means that you won't support multi-model configurations
-   */
-  @Deprecated
-  @Nullable
-  public Configuration getConfiguration() {
-    return Iterables.getFirst(getConfigurations(), null);
-  }
-
-  /**
    * Returns all the configurations represented in the surface. Since there are multiple models, there can be multiple configurations
    * being rendered.
    */
   @NotNull
   abstract public ImmutableCollection<Configuration> getConfigurations();
-
-   /**
-   * Returns all the configurations represented in the surface returned by getConfigurations() as a standard Java list.
-   */
-  @NotNull
-  public List<Configuration> getConfigurationsAsList() {
-    return new ArrayList(getConfigurations());
-  }
 
   /**
    * When called, this will trigger a re-inflate and refresh of the layout and returns a {@link CompletableFuture} that will complete

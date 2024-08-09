@@ -89,11 +89,13 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout true; service call activity 1599295570", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout false; service call activity 1599295570", "")
+    adb.configureShellCommand(deviceSelector, "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS", "")
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
@@ -103,6 +105,7 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
@@ -161,6 +164,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOn() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     uiRule.configureUiSettings(gestureNavigation = false)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isTrue()
@@ -174,6 +178,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOff() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
@@ -205,7 +210,10 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.talkBackOn.setFromUi(true)
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" }
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS" &&
+      lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME"
+    }
     assertUsageEvent(OperationKind.TALKBACK)
     assertThat(model.differentFromDefault.value).isTrue()
   }
@@ -227,6 +235,7 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     model.talkBackOn.setFromUi(true)
     waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "pm grant $TALKBACK_PACKAGE_NAME android.permission.POST_NOTIFICATIONS" &&
       lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME"
     }
     assertUsageEvent(OperationKind.TALKBACK)
@@ -327,6 +336,7 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testSetDebugLayout() {
     StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.debugLayout.setFromUi(true)

@@ -40,7 +40,10 @@ import java.nio.file.Path
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
- * only apply to a specific [Project].
+ * only apply to a specific [Project].  Instantiating a generalized instance of this interface must, with
+ * when considering the wider system, be idempotent with respect to instantiating other instances for the
+ * same project: any state needed by the project system must be encapsulated for example in project
+ * services.
  */
 interface AndroidProjectSystem: ModuleHierarchyProvider {
   /** The IDE project this project system describes */

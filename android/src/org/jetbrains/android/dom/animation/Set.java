@@ -26,7 +26,7 @@ import java.util.List;
  * @see org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription
  */
 @DefinesXml
-@Styleable("AnimationSet")
+@Styleable({"AnimationSet", "Animation"})
 public interface Set extends AnimationElement {
   @SubTagList("alpha")
   List<Alpha> getAlphaAnimations();

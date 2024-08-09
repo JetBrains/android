@@ -70,7 +70,30 @@ class DebugViewAttributesTest {
     )
 
     assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
-      .isEqualTo(SetFlagResult.Failure("error"))
+      .isEqualTo(SetFlagResult.Failure(SetFlagResult.Failure.Reason.UNKNOWN))
+    assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings put global debug_view_attributes 1")
+  }
+
+  @Test
+  fun testEnableSettingSecurityException() = runBlocking {
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      "0",
+    )
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      "",
+      "java.lang.SecurityException",
+    )
+
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
+      .isEqualTo(SetFlagResult.Failure(SetFlagResult.Failure.Reason.SECURITY_EXCEPTION))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings get global debug_view_attributes")

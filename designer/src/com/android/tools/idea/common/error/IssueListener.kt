@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-interface IssueListener {
+fun interface IssueListener {
   fun onIssueSelected(issue: Issue?)
 }

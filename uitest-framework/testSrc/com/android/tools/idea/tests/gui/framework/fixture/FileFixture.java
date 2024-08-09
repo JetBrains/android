@@ -83,7 +83,7 @@ public class FileFixture {
       .expecting("number of highlight items to be " + expected)
       .until(() -> queryHighlightInfos(severity).size() == expected);
     } catch (WaitTimedOutError w) {
-      throw new AssertionError("AFTER: "+GuiQuery.get(() -> queryHighlightInfos(severity).toString()), w);
+      throw new AssertionError("AFTER: Code Analysis Highlight count for "+severity+ " is: "+GuiQuery.get(() -> queryHighlightInfos(severity).size() +" which is not equal to expected count of: "+expected), w);
     }
     return this;
   }

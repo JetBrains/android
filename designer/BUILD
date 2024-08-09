@@ -74,7 +74,7 @@ iml_module(
             "shard_count": 4,
         },
     },
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         ":test_deps",
@@ -101,7 +101,6 @@ iml_module(
     test_tags = [
         "block-network",
         "cpu:3",
-        "no_test_mac",  # b/72973198
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],

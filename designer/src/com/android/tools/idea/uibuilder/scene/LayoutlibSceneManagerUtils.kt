@@ -75,10 +75,3 @@ internal fun getTriggerFromChangeType(changeType: ChangeType?): LayoutEditorRend
     ChangeType.BUILD -> LayoutEditorRenderResult.Trigger.BUILD
     else -> null
   }
-
-/**
- * Returns true if the [changeType] should trigger a refresh when the corresponding
- * [LayoutlibSceneManager] is in power save mode.
- */
-internal fun shouldRefreshInPowerSaveMode(changeType: ChangeType?) =
-  changeType != ChangeType.RESOURCE_CHANGED && changeType != ChangeType.RESOURCE_EDIT

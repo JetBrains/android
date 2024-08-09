@@ -128,9 +128,9 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
     assumeTrue(model.customConfigurationModel.size == 0)
     view.configComponents.assumedNotNull {
       button.doClick()
-      assertThat(model.customConfigurationModel.size == 1)
+      assertThat(model.customConfigurationModel.size).isEqualTo(1)
       button.doClick()
-      assertThat(model.customConfigurationModel.size == 0)
+      assertThat(model.customConfigurationModel.size).isEqualTo(0)
     }
   }
 

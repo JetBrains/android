@@ -29,7 +29,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.ExperimentalUI
@@ -66,7 +65,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 
 internal const val WEAR_DOCS_LINK =
-  "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
+  "https://developer.android.com/training/wearables/get-started/connect-phone"
 
 class DeviceListStep(
   model: WearDevicePairingModel,
@@ -382,22 +381,6 @@ class DeviceListStep(
       else -> icon
     }
 
-  private fun showCloudSyncDialog(pairedPhone: PairingDevice) {
-    Messages.showIdeaMessageDialog(
-      project,
-      message(
-        "wear.assistant.device.list.cloud.sync.subtitle",
-        pairedPhone.displayName,
-        WEAR_DOCS_LINK,
-      ),
-      message("wear.assistant.device.list.cloud.sync.title"),
-      arrayOf(Messages.getOkButton()),
-      0,
-      Messages.getWarningIcon(),
-      null,
-    )
-  }
-
   private class SomeDisabledSelectionModel(val list: JBList<PairingDevice>) :
     DefaultListSelectionModel() {
     init {
@@ -473,10 +456,6 @@ private class TooltipList<E> : JBList<E>() {
   }
 
   override fun getToolTipText(event: MouseEvent?): String? = null
-
-  fun cleanCache() {
-    cellRendererCache.clear()
-  }
 }
 
 private class DeviceListPanel(

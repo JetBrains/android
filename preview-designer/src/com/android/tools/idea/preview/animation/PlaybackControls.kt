@@ -234,7 +234,7 @@ class PlaybackControls(
     }
 
     override fun dispose() {
-      ticker.dispose()
+      Disposer.dispose(ticker)
     }
 
     init {

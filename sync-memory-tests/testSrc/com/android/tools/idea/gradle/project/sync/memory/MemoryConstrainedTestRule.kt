@@ -27,6 +27,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
 import org.junit.rules.ExternalResource
 import java.io.File
+import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -52,7 +53,10 @@ class MemoryConstrainedTestRule(
       // It might be the case where there are no daemons,
       // in which case we just reset the accumulatedd time
       // First item in the list will be the latest started daemon
-      val daemonPid = GradleDaemonServices.getDaemonsStatus().firstOrNull()?.pid?.toLong()
+      val daemonPid = GradleDaemonServices.getDaemonsStatus().firstOrNull()?.pid?.toLong() ?: ProcessHandle.allProcesses().toList().filter {
+        it.info().commandLine().getOrNull()?.contains("GradleDaemon") ?: false
+      }.map { it.pid() }.singleOrNull()
+
       if (gcCollectionTimeMeasurements.isNotEmpty() && (daemonPid == null || daemonPid != lastKnownDaemonPid)) {
         println("!!! Daemon is completely gone or restarted between runs !!! pid: $daemonPid")
         // If a new daemon has started in  between runs, reset the accumulated GC collection time

@@ -58,8 +58,8 @@ internal fun DeviceTable(
         "API",
         attribute = {
           // This case is a bit strange, because we adjust the display based on the API filter.
-          // TODO: We will need a way to pass the API level on to the next stage.
-          (filterState.apiLevelFilter.apiLevel.apiLevel ?: it.apiRange.upperEndpoint()).toString()
+          filterState.apiLevelFilter.apiLevelSelection.apply(it)?.getApiStringWithoutExtension()
+            ?: ""
         },
       ),
       TableTextColumn("Width", attribute = { it.resolution.width.toString() }),
@@ -121,7 +121,7 @@ internal fun DeviceTable(
                   else ->
                     DeviceDetails(
                       selection,
-                      filterState.apiLevelFilter.apiLevel.apiLevel,
+                      filterState.apiLevelFilter.apiLevelSelection,
                       modifier = Modifier.width(200.dp).fillMaxHeight(),
                     )
                 }

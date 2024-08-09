@@ -34,8 +34,6 @@ import java.awt.Component
 import javax.swing.JButton
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * A button displaying the "initial to target" state. It opens a picker to select these states.
@@ -44,10 +42,8 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponentAction, AnAction() {
 
-  private val _state: MutableStateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> =
+  val state: MutableStateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> =
     MutableStateFlow(AnimationUnit.UnitUnknown(null) to AnimationUnit.UnitUnknown(null))
-
-  val state: StateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> = _state.asStateFlow()
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -78,7 +74,7 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
       displayTitle = state.value.first.getPickerTitle(),
       balloonPosition = Balloon.Position.above,
       model =
-        AnimatedPropertiesModel(_state.value.first, _state.value.second) { initial, target ->
+        AnimatedPropertiesModel(state.value.first, state.value.second) { initial, target ->
           updateState(initial, target)
         },
     )
@@ -89,22 +85,20 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
     get() = "${state.value.first} to ${state.value.second}"
 
   fun swapStates() {
-    _state.value = _state.value.second to _state.value.first
+    state.value = state.value.second to state.value.first
   }
 
-  fun getState(index: Int): List<*> = _state.value.toList()[index].components
-
   fun updateInitialState(initial: Any?) {
-    updateState(ComposeUnit.parseStateUnit(initial), _state.value.second)
+    updateState(ComposeUnit.parseStateUnit(initial), state.value.second)
   }
 
   fun updateTargetState(target: Any?) {
-    updateState(_state.value.first, ComposeUnit.parseStateUnit(target))
+    updateState(state.value.first, ComposeUnit.parseStateUnit(target))
   }
 
   // Private helper function to update the state and notify observers
   private fun updateState(initial: AnimationUnit.Unit<*>, target: AnimationUnit.Unit<*>) {
-    _state.value = initial to target
+    state.value = initial to target
     stateListeners.forEach { it() } // Notify listeners (needed for backward compatibility)
   }
 }

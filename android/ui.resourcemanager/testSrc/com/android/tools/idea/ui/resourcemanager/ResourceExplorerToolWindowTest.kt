@@ -183,7 +183,7 @@ class ResourceExplorerToolWindowTest {
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
     assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(ResourceExplorer::class.java)
     var resourceExplorer = toolWindow.contentManager.contents[0].component as ResourceExplorer
-    assertThat(resourceExplorer.facet.name == "app")
+    assertThat(resourceExplorer.facet.name).isEqualTo("app")
 
     // Create another module and change the facet in the resourceExplorer
     val module2Name = "app2"
@@ -206,6 +206,6 @@ class ResourceExplorerToolWindowTest {
     assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(ResourceExplorer::class.java)
     val newResourceExplorer = toolWindow.contentManager.contents[0].component as ResourceExplorer
     assertThat(newResourceExplorer).isNotEqualTo(resourceExplorer)
-    assertThat(newResourceExplorer.facet.name == "app2")
+    assertThat(newResourceExplorer.facet.name).isEqualTo("app2")
   }
 }

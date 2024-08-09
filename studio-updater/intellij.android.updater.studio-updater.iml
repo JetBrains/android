@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="opentest4j" level="project" />
   </component>
 </module>

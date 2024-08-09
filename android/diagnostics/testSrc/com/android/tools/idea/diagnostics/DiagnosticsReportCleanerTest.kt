@@ -52,7 +52,7 @@ class DiagnosticsReportCleanerTest : TestCase() {
 
     DiagnosticsReportCleaner.cleanupFiles(reportDir)
     Truth.assertThat(oldReportFile.exists()).isFalse()
-    Truth.assertThat(newReportFile.exists())
+    Truth.assertThat(newReportFile.exists()).isTrue()
   }
 
   fun `test DiagnosticsReportCleanerTest cleanupDirectories only deletes old directories`() {
@@ -66,8 +66,8 @@ class DiagnosticsReportCleanerTest : TestCase() {
     Files.setLastModifiedTime(otherDir, FileTime.fromMillis(0))
 
     DiagnosticsReportCleaner.cleanupDirectories(testDirectoryPath, arrayOf(Regex("^reportDir.*")))
-    Truth.assertThat(newReportDir.exists())
-    Truth.assertThat(otherDir.exists())
+    Truth.assertThat(newReportDir.exists()).isTrue()
+    Truth.assertThat(otherDir.exists()).isTrue()
   }
 
   fun `test DiagnosticsReportCleanerTest handles missing directories`() {

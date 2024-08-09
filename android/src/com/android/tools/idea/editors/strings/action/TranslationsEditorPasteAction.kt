@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.action;
 
-import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Caret
@@ -24,7 +23,6 @@ import com.intellij.openapi.editor.EditorCopyPasteHelper
 import com.intellij.openapi.editor.actions.BasePasteHandler
 import com.intellij.openapi.editor.actions.TextComponentEditorAction
 import com.intellij.openapi.editor.ex.EditorEx
-import javax.swing.text.JTextComponent
 
 /**
  * This is a copy of [com.intellij.openapi.editor.actions.PasteAction] with handling for languages that can't be displayed by the
@@ -45,8 +43,6 @@ import javax.swing.text.JTextComponent
           if (it.size == 1) editor.putUserData(EditorEx.LAST_PASTED_REGION, it[0])
         }
       }
-      // Make sure the font can display the language if this is a JTextComponent
-      (editor.component as? JTextComponent)?.apply { font = StringResourceEditor.getFont(font) }
     }
   }
 }

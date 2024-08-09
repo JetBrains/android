@@ -100,6 +100,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="module" module-name="kotlin.code-insight.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

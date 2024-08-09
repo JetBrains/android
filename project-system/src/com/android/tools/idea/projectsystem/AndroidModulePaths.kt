@@ -79,7 +79,24 @@ data class AndroidModulePathsImpl(
   override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
 }
 
+data class KotlinMultiplatformModulePathsImpl(
+  override val moduleRoot: File?,
+  override val manifestDirectory: File?,
+  private val androidSrcRoot: File?,
+  private val commonSrcRoot: File?,
+  private val unitTestRoot: File?,
+  private val instrumentedTestRoot: File?,
+  private val aidlRoot: File?,
+  override val resDirectories: List<File>,
+  override val mlModelsDirectories: List<File>
+) : AndroidModulePaths {
+  override fun getSrcDirectory(packageName: String?): File? = androidSrcRoot?.appendPackageToRoot(packageName)
+  override fun getTestDirectory(packageName: String?): File? = instrumentedTestRoot?.appendPackageToRoot(packageName)
+  override fun getUnitTestDirectory(packageName: String?): File? = unitTestRoot?.appendPackageToRoot(packageName)
+  override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
+  fun getCommonSrcDirectory(packageName: String?): File? = commonSrcRoot?.appendPackageToRoot(packageName)
+}
+
 private fun File.appendPackageToRoot(packageName: String?): File? {
   return File(this, (packageName ?: return this).replace('.', File.separatorChar))
 }
-

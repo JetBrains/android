@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        // This will be populated by AndroidGradleTestCase
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:+'
-    }
-}
-
-allprojects {
-    repositories {
-        // This will be populated by AndroidGradleTestCase
-    }
+plugins {
+alias(libs.plugins.android.application) apply false
 }

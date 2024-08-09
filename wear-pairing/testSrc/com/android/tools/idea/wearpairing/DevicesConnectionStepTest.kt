@@ -396,7 +396,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
       receiver.addOutput(byteArray, 0, byteArray.size)
     }
 
-    whenever(iDevice.arePropertiesSet()).thenReturn(true)
+    whenever(iDevice.isOnline()).thenReturn(true)
     whenever(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
     whenever(iDevice.getSystemProperty("ro.oem.companion_package"))
       .thenReturn(Futures.immediateFuture(""))

@@ -19,20 +19,27 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.compose.preview.animation.AnimationClock
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.getAnimatedVisibilityState
+import com.android.tools.idea.compose.preview.animation.state.SingleState
+import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
-import com.android.tools.idea.preview.animation.TimelinePanel
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * This class handles AnimatedVisibility composable. It animates the appearance and disappearance of
+ * its content.
+ *
+ * Animation can be in one of 2 states Enter or Exit, see [AnimatedVisibilityState] in AndroidX
+ */
 class AnimatedVisibilityAnimationManager(
   animation: ComposeAnimation,
   tabTitle: String,
   tracker: ComposeAnimationTracker,
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
@@ -46,7 +53,7 @@ class AnimatedVisibilityAnimationManager(
     tracker,
     animationClock,
     maxDurationPerIteration,
-    timelinePanel,
+    getCurrentTime,
     executeInRenderSession,
     tabbedPane,
     rootComponent,
@@ -55,19 +62,33 @@ class AnimatedVisibilityAnimationManager(
     scope,
   ) {
 
-  override suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
+  override val animationState: SingleState<*> =
+    SingleState(tracker, animation.states, animation.states.firstOrNull())
+
+  /** Initializes the state of the Compose animation before it starts */
+  override suspend fun setupInitialAnimationState() {
     executeInRenderSession(true) {
-      // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
-      // calling `getAnimatedVisibilityState`
-      // via reflection will return a String rather than an AnimatedVisibilityState. To work
-      // around that, we select the initial combo
-      // box item by checking the display value.
-      val state =
-        animationClock.getAnimatedVisibilityState(animation).let { loadedState ->
-          animation.states.firstOrNull { it.toString() == loadedState.toString() }
-        }
-      val finalState = state ?: animation.states.firstOrNull()
-      animationState.setStartState(finalState)
+      animationState.setInitialState(animationClock.getAnimatedVisibilityState(animation))
     }
   }
+
+  /**
+   * Updates the actual animation in Compose to set its state based on the selected value of
+   * [animationState].
+   */
+  override suspend fun syncAnimationWithState() {
+    animationClock.apply {
+      val state = animationState.state.value ?: return
+      executeInRenderSession(false) { updateAnimatedVisibilityState(animation, state) }
+    }
+  }
+}
+
+private fun <T> SingleState<T>.setInitialState(loadedState: Any?) {
+  // AnimatedVisibilityState is an inline class in Compose that maps to a String.
+  // Therefore, calling `getAnimatedVisibilityState` via reflection will return a String rather than
+  // an AnimatedVisibilityState.
+  // To work around that, we select the initial combo box item by checking the display value.
+  val state = states.firstOrNull { it.toString() == loadedState.toString() } ?: return
+  setState(state)
 }

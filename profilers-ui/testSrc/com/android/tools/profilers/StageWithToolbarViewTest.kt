@@ -170,6 +170,25 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
   }
 
   @Test
+  fun testTimelineButtonEnableStatesTaskBasedUx() {
+    ideProfilerServices.enableTaskBasedUx(true)
+
+    val zoomInButton = stageWithToolbarView.zoomInButton
+    val zoomOutButton = stageWithToolbarView.zoomOutButton
+    val resetButton = stageWithToolbarView.resetZoomButton
+    val frameSelectionButton = stageWithToolbarView.zoomToSelectionButton
+    val liveButton = stageWithToolbarView.goLiveButton
+
+    // Controls should be enabled regardless of agent for TaskBasedUx
+    Truth.assertThat(studioProfilers.sessionsManager.isSessionAlive).isTrue()
+    Truth.assertThat(zoomInButton.isEnabled).isTrue()
+    Truth.assertThat(zoomOutButton.isEnabled).isTrue()
+    Truth.assertThat(resetButton.isEnabled).isTrue()
+    Truth.assertThat(frameSelectionButton.isEnabled).isFalse() // Frame selection button is dependent on selection being available.
+    Truth.assertThat(liveButton.isEnabled).isTrue()
+  }
+
+  @Test
   fun testTimelineButtonEnableStates() {
     ideProfilerServices.enableTaskBasedUx(false)
 

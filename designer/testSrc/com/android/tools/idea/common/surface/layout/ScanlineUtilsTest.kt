@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.common.surface.layout
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
 import java.awt.Insets

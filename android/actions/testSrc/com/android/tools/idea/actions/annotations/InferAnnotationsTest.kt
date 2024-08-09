@@ -43,6 +43,7 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
@@ -943,8 +944,8 @@ class InferAnnotationsTest {
 
   @Test
   fun annotationSourceJava() {
-    // Tests passing annotation constraints and making sure that we stringify these properly
-    // to Java (todo: consider placing the usage in a separate Kotlin file!)
+    // Tests passing annotation constraints and making sure that
+    // we stringify these properly to Java
     checkJava(
       before =
         """
@@ -972,9 +973,8 @@ class InferAnnotationsTest {
             @CheckResult(suggest = "My \"suggestion\"\nNext line.") because it returns JavaTest#call2 annotated with @CheckResult(suggest = "My \"suggestion\"\nNext line.")
             @IntRange(from = MY_CONSTANT) because it returns JavaTest#call2 annotated with @IntRange(from = MY_CONSTANT)
         """,
-      // In the below, we should be getting a fully qualified name reference to MY_CONSTANT, but it
-      // doesn't
-      // resolve from unit tests.
+      // In the below, we should be getting a fully qualified name reference to MY_CONSTANT,
+      // but it doesn't resolve from unit tests.
       expectedDiffs =
         """
         @@ -7 +7
@@ -987,12 +987,67 @@ class InferAnnotationsTest {
               public static int test2() {
         """,
       includeAndroidJar = true, // to resolve Long.MAX_VALUE
-      extraFiles =
-        arrayOf(
-          fixture.addFileToProject(
-            "JavaTest.java",
-            // language=Java
-            """
+      extraFiles = addAnnotationSourceExtraFiles(),
+    )
+  }
+
+  @Test
+  fun annotationSourceKotlin() {
+    if (KotlinPluginModeProvider.isK1Mode()) {
+      return
+    }
+    // Tests passing annotation constraints and making sure that
+    // we stringify these properly to Kotlin
+    checkKotlin(
+      before =
+      """
+        package test.pkg
+
+        import test.pkg.JavaTest.call2
+        import androidx.annotation.*
+
+        fun test(): Int {
+            return JavaTest.call()
+        }
+
+        fun test2(): Int {
+            return call2()
+        }
+        """,
+      expectedReport =
+      """
+        Function test.pkg.test():
+          @IntRange(from = MY_VALUE, to = Long.MAX_VALUE) because it returns JavaTest#call annotated with @IntRange(from = MY_VALUE, to = Long.MAX_VALUE)
+        Function test.pkg.test2():
+          @CheckResult(suggest = "My \"suggestion\"\nNext line.") because it returns JavaTest#call2 annotated with @CheckResult(suggest = "My \"suggestion\"\nNext line.")
+          @IntRange(from = MY_CONSTANT) because it returns JavaTest#call2 annotated with @IntRange(from = MY_CONSTANT)
+        """,
+      // In the below, we should be getting a fully qualified name reference to MY_CONSTANT,
+      // but it doesn't resolve from unit tests.
+      expectedDiffs =
+      """
+        @@ -5 +5
+          import androidx.annotation.*
+        + import java.lang.Long
+        @@ -6 +7
+        + @IntRange(from = JavaTest.MY_VALUE, to = Long.MAX_VALUE)
+          fun test(): Int {
+        @@ -10 +12
+        + @CheckResult(suggest = "My \"suggestion\"\nNext line.")
+        + @IntRange(from = MY_CONSTANT)
+          fun test2(): Int {
+        """,
+      includeAndroidJar = true, // to resolve Long.MAX_VALUE
+      extraFiles = addAnnotationSourceExtraFiles(),
+    )
+  }
+
+  private fun addAnnotationSourceExtraFiles(): Array<PsiFile> =
+    arrayOf(
+      fixture.addFileToProject(
+        "JavaTest.java",
+        // language=Java
+        """
           package test.pkg;
 
           import androidx.annotation.CheckResult;
@@ -1014,23 +1069,20 @@ class InferAnnotationsTest {
               }
           }
           """
-          ),
-          fixture.addFileToProject(
-            "Constants.kt",
-            // language=kotlin
-            """
+      ),
+      fixture.addFileToProject(
+        "Constants.kt",
+        // language=kotlin
+        """
           package test.pkg
           class Constants {
               companion object {
                   const val MY_CONSTANT = 10L
               }
           }
-          fun test(): Int = JavaTest.call()
           """
-          ),
-        )
+      ),
     )
-  }
 
   @Test
   fun turnOffInferenceViaSettings() {

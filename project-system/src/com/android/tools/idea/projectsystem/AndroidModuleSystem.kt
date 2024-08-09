@@ -24,18 +24,15 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
-import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -331,6 +328,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether the view binding feature is enabled for this module. */
   val isViewBindingEnabled: Boolean get() = false
 
+  /** Whether the data binding feature is enabled for this module. */
+  val isDataBindingEnabled: Boolean get() = false
+
   /** Whether KAPT is enabled for this module. */
   val isKaptEnabled: Boolean get() = false
 
@@ -452,56 +452,46 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   }
 }
 
-fun Module.getAllLinkedModules() : List<Module> = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
+/**
+ * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
+ * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
+ * to all Android modules.  This class should not be accessed directly from outside the Gradle project system (but
+ * is unfortunately more widely accessible for historical reasons).
+ */
+data class LinkedAndroidGradleModuleGroup(
+  val holder: Module,
+  val main: Module,
+  val unitTest: Module?,
+  val androidTest: Module?,
+  val testFixtures: Module?,
+  val screenshotTest: Module?
+) {
+  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest)
+  override fun toString(): String =
+    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, " +
+    "androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}, screenshotTest=${screenshotTest?.name}"
+}
 
-fun Module.getHolderModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+/**
+ * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project.  This key should
+ * not be accessed from outside the Gradle project system (but is unfortunately more widely-accessible for historical reasons.)
+ */
+val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
+
+
+fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
 
 fun Module.isHolderModule() : Boolean = getHolderModule() == this
 
-fun Module.getMainModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.main ?: this
+fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getUnitTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest
-
-fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
-
-fun Module.getScreenshotTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.screenshotTest
-
-fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
-
-fun Module.getAndroidTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest
+fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
-
-fun Module.getTestFixturesModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
-
-fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-
-/**
- * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest) or the
- * holder module used as the parent of these source set modules.
- */
-fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null
 
 /**
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
-
-/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
-fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
-  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      // We are running some tests that don't set up real-world project structure, so fetch all modules.
-      // See http://b/258162266 for more details.
-      it
-    }
-    else {
-      // Holder module has associated facet, but it can be ignored.
-      it.filter { module -> !module.isHolderModule() }
-    }
-  }.mapNotNull { it.androidFacet }
-}
-

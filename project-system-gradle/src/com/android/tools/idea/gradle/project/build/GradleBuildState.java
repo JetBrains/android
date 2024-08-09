@@ -33,7 +33,7 @@ import org.jetbrains.annotations.TestOnly;
 public class GradleBuildState {
   private static final Logger LOG = Logger.getInstance(GradleBuildState.class);
   @VisibleForTesting
-  static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle build", GradleBuildListener.class);
+  public static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle build", GradleBuildListener.class);
 
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;

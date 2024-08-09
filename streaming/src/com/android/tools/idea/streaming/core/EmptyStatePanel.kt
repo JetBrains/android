@@ -22,6 +22,7 @@ import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.StandardColors
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
@@ -31,7 +32,7 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
-import com.intellij.collaboration.async.disposingScope
+import com.intellij.collaboration.async.cancelAndJoinSilently
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
@@ -123,8 +125,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateContent() })
 
     val progress = StudioLoggerProgressIndicator(EmptyStatePanel::class.java)
-    @Suppress("UnstableApiUsage")
-    val job = disposingScope(Dispatchers.IO).launch {
+    val scope = createCoroutineScope(Dispatchers.IO)
+    scope.launch {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
       val sdkManager = sdkHandler.getSdkManager(progress)
       val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
@@ -139,9 +141,10 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     }
     Disposer.register(this) {
       progress.cancel()
-      job.cancel()
       if (ApplicationManager.getApplication().isUnitTestMode) {
-        runBlocking { job.join() } // Wait for asynchronous activity to finish in tests.
+        // Wait for asynchronous activity to finish in tests.
+        ProgressManager.getInstance() // Force instantiation of ProgressManager to avoid a potential deadlock.
+        runBlocking { @Suppress("UnstableApiUsage") scope.cancelAndJoinSilently() }
       }
     }
 

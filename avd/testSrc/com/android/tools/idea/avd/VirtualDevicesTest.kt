@@ -17,8 +17,9 @@ package com.android.tools.idea.avd
 
 import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.MockitoKt.any
@@ -45,7 +46,10 @@ class VirtualDevicesTest {
     whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
 
     VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
-      .add(autoDevice.toVirtualDeviceProfile().toVirtualDevice(), mockSystemImage())
+      .add(
+        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(34))).toVirtualDevice(),
+        mockSystemImage(),
+      )
 
     val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
     verify(avdManagerConnection)
@@ -63,7 +67,7 @@ class VirtualDevicesTest {
         /* removePrevious = */ eq(true),
       )
 
-    assertThat(hardwarePropertiesCaptor.value).containsKey(AvdManager.AVD_INI_CLUSTER_WIDTH)
+    assertThat(hardwarePropertiesCaptor.value).containsKey(ConfigKey.CLUSTER_WIDTH)
   }
 
   private companion object {

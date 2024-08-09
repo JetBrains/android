@@ -10,8 +10,20 @@
       android:title="title1"
       <warning>android:someAttr</warning>="">
 
-    <extra android:name="someKey" android:value="someHeaderValue" />
-    <intent android:action="android.intent.action.VIEW" android:data="http://www.android.com" />
+    <intent
+        android:action="android.intent.action.VIEW"
+        android:data="http://www.android.com"
+        android:targetClass="p1.p2.MyFragmentActivity"
+        android:targetPackage="p1.p2"
+        android:mimeType="foo"
+        android:identifier="foo">
+
+      <extra android:name="someKey" android:value="someHeaderValue" />
+      <<error descr="'name' attribute should be defined">extra</error> />
+
+      <category android:name="someKey" />
+      <<error descr="'name' attribute should be defined">category</error> />
+    </intent>
     <<warning>someTag</warning>/>
   </header>
 

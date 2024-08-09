@@ -52,7 +52,6 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getZoomController()).thenReturn(createZoomControllerFake(0.5, null));
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
-    when(surface.getConfiguration()).thenReturn(configuration);
 
     VirtualFile kotlinFile = mock(VirtualFile.class);
     when(kotlinFile.getFileType()).thenReturn(KotlinFileType.INSTANCE);

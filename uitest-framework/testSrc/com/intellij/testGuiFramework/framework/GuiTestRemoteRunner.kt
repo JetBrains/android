@@ -16,6 +16,7 @@
 package com.intellij.testGuiFramework.framework
 
 import com.android.tools.idea.bleak.UseBleak
+import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -23,7 +24,6 @@ import com.intellij.testGuiFramework.launcher.GuiTestLauncher
 import com.intellij.testGuiFramework.remote.server.JUnitServer
 import com.intellij.testGuiFramework.remote.server.JUnitServerHolder
 import com.intellij.testGuiFramework.remote.transport.*
-import org.apache.log4j.Level
 import org.junit.AssumptionViolatedException
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.runner.notification.RunNotifier
@@ -165,7 +165,7 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
     private val LOG = Logger.getInstance(GuiTestRemoteRunner::class.java)
 
     init {
-      LOG.setLevel(Level.INFO)
+      LOG.setLevel(LogLevel.INFO)
     }
   }
 }

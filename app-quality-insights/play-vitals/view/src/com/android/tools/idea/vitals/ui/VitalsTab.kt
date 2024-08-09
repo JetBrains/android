@@ -35,6 +35,7 @@ import com.android.tools.idea.insights.ui.actions.AppInsightsToggleAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -169,6 +170,7 @@ class VitalsTab(
           name = "versions",
           flow = versions,
           scope = scope,
+          enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
           groupNameSupplier = { it.displayVersion },
           nameSupplier = { it.buildVersion },
           secondaryGroupSupplier = { it.tracks },
@@ -186,6 +188,7 @@ class VitalsTab(
           name = "devices",
           flow = devices,
           scope = scope,
+          enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
           groupNameSupplier = { it.manufacturer },
           nameSupplier = { it.displayName },
           secondaryGroupSupplier = { setOf(it.deviceType) },
@@ -203,6 +206,7 @@ class VitalsTab(
           name = "operating systems",
           flow = operatingSystems,
           scope = scope,
+          enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
           groupNameSupplier = { it.displayName },
           nameSupplier = { it.displayName },
           onSelected = projectController::selectOperatingSystems,

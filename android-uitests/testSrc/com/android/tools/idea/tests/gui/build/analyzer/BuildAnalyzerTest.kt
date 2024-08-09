@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.build.analyzer
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton
 import com.android.tools.idea.tests.gui.framework.fixture.BuildAnalyzerViewFixture
@@ -38,9 +36,6 @@ class BuildAnalyzerTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule().withTimeout(9, TimeUnit.MINUTES)
-
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION, true)
 
   /**
    * * <p>

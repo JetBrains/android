@@ -16,9 +16,9 @@
 package com.android.tools.idea.common.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManager
 
 /**
  * Wrapper class to define the options available for layout.

@@ -112,7 +112,6 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     row {
       turnOffDisplayWhileMirroringCheckBox =
         checkBox(message("mirroring.settings.checkbox.turn.off.device.display.while.mirroring"))
-          .comment(message("mirroring.settings.checkbox.turn.off.device.display.while.mirroring.comment"))
           .bindSelected(state::turnOffDisplayWhileMirroring)
           .component
     }.topGap(TopGap.SMALL)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
@@ -22,8 +23,12 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.lightEdit.LightEdit
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
@@ -35,10 +40,12 @@ import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.XmlSerializer
@@ -75,7 +82,7 @@ data class SourceCodeEditorWithMultiRepresentationPreviewState(
  */
 class SourceCodeEditorProvider
 private constructor(private val providers: Collection<PreviewRepresentationProvider>) :
-  FileEditorProvider, QuickDefinitionProvider, DumbAware {
+  AsyncFileEditorProvider, QuickDefinitionProvider, DumbAware {
   constructor() : this(PROVIDERS_EP.extensions.toList())
 
   private val log = Logger.getInstance(SourceCodeEditorProvider::class.java)
@@ -84,6 +91,71 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     return !LightEdit.owns(project) && file.isSourceFileType() && isAndroidEnvironment(project)
   }
 
+  @UiThread
+  private fun buildSourceCodeEditorWithMultiRepresentationPreview(
+    project: Project,
+    psiFile: PsiFile,
+    textEditor: TextEditor,
+  ): SourceCodeEditorWithMultiRepresentationPreview {
+    val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
+    return SourceCodeEditorWithMultiRepresentationPreview(
+      project,
+      textEditor,
+      multiRepresentationPreview,
+    )
+  }
+
+  override fun createEditorAsync(
+    project: Project,
+    file: VirtualFile,
+  ): AsyncFileEditorProvider.Builder {
+    if (log.isDebugEnabled) {
+      log.debug("createEditorAsync file=${file.path}")
+    }
+
+    // createEditorAsync is called in a background thread. Slow operations
+    // need to happen here and the builder will be called in the UI thread.
+    val psiFile = runReadAction { PsiManager.getInstance(project).findFile(file)!! }
+
+    return object : AsyncFileEditorProvider.Builder() {
+      override fun build(): FileEditor =
+        buildSourceCodeEditorWithMultiRepresentationPreview(
+          project,
+          psiFile,
+          runBlockingCancellable {
+            PsiAwareTextEditorProvider().createEditor(project, file)
+          } as TextEditor,
+        )
+    }
+  }
+
+  @Suppress("UnstableApiUsage")
+  suspend fun createEditorBuilder(
+    project: Project,
+    file: VirtualFile,
+  ): AsyncFileEditorProvider.Builder {
+    if (log.isDebugEnabled) {
+      log.debug("createEditorBuilder file=${file.path}")
+    }
+
+    // createEditorBuilder is called in a background thread. Slow operations
+    // need to happen here and the builder will be called in the UI thread.
+    val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
+    val textEditor = PsiAwareTextEditorProvider().createEditor(project, file)
+
+    return object : AsyncFileEditorProvider.Builder() {
+      override fun build(): FileEditor =
+        buildSourceCodeEditorWithMultiRepresentationPreview(
+          project,
+          psiFile,
+          textEditor as TextEditor,
+        )
+    }
+  }
+
+  // This method is being replaced by the platform to use createEditorAsync.
+  // For now, the platform requires keeping this implementation but it will not be called if the
+  // createEditorAsync method is available.
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     if (log.isDebugEnabled) {
       log.debug("createEditor file=${file.path}")
@@ -101,13 +173,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
         }
       )
 
-    val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
-
-    return SourceCodeEditorWithMultiRepresentationPreview(
-      project,
-      textEditor,
-      multiRepresentationPreview,
-    )
+    return buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
   }
 
   override fun getEditorTypeId() = "android-source-code"

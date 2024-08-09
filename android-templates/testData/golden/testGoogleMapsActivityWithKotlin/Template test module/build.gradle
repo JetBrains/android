@@ -1,7 +1,7 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
 android {
@@ -38,12 +38,12 @@ android {
 
 dependencies {
 
-    implementation libs.core.ktx
-    implementation libs.appcompat
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
     implementation libs.material
     implementation libs.play.services.maps
-    implementation libs.constraintlayout
+    implementation libs.androidx.constraintlayout
     testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
 }

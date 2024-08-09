@@ -104,6 +104,7 @@ internal fun AdditionalSettingsPanel(
 
       EmulatedPerformanceGroup(
         configureDevicePanelState.device,
+        requireNotNull(configureDevicePanelState.systemImageTableSelectionState.selection),
         configureDevicePanelState::device::set,
       )
     }
@@ -384,6 +385,7 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 @Composable
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
+  image: SystemImage,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -430,7 +432,7 @@ private fun EmulatedPerformanceGroup(
 
       Dropdown(
         device.graphicAcceleration,
-        GRAPHIC_ACCELERATION_ITEMS,
+        listOf(GpuMode.AUTO, GpuMode.HOST, image.softwareItem()).toImmutableList(),
         onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
         Modifier.alignByBaseline(),
       )
@@ -461,10 +463,6 @@ private fun EmulatedPerformanceGroup(
     }
   }
 }
-
-// TODO The third item depends on the system image
-private val GRAPHIC_ACCELERATION_ITEMS =
-  GpuMode.values().filterNot { it == GpuMode.OFF }.toImmutableList()
 
 internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
   internal val storageGroupState = StorageGroupState(device)

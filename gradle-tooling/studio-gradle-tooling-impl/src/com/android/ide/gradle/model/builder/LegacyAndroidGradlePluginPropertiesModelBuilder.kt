@@ -28,6 +28,7 @@ import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import java.lang.reflect.Method
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -52,7 +53,8 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
     val problems = mutableListOf<Exception>()
     val applicationIdMap = fetchApplicationIds(parameters, project, problems)
     val (namespace, androidTestNamespace) = fetchNamespace(parameters, project, problems)
-    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, namespace, androidTestNamespace, problems)
+    val dataBindingEnabled = fetchIsDataBindingEnabled(parameters, project, problems)
+    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, namespace, androidTestNamespace, dataBindingEnabled, problems)
   }
 
   private fun fetchApplicationIds(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, String> {
@@ -115,6 +117,51 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       problems += RuntimeException("Failed to fetch namespace", e)
     }
     return Pair(namespace, androidTestNamespace)
+  }
+
+  // This only applies for AGP model producer version < 9 (i.e. below AGP 8.7)
+  private fun fetchIsDataBindingEnabled(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project,  problems: MutableList<Exception>): Boolean? {
+    if (!parameters.dataBinding) return null
+    val androidExtension = project.extensions.findByName("android") ?: return null
+    try {
+      val dataBinding = androidExtension.invokeMethod<Any>("getDataBinding")
+      // Most recent form
+      dataBinding.invokeMethodIfPresent<Boolean>("getEnable")?.let { return it }
+
+      // For 4.x AGPs, buildFeatures was where the value was set and using dataBinding.isEnabled would result in a spurious deprecation
+      // warning during sync.
+      val buildFeatures = androidExtension.invokeMethodIfPresent<Any>("getBuildFeatures")
+      if (buildFeatures != null) {
+        // Simulate the logic in those versions of AGP which fell back to the project property, if set.
+        return (buildFeatures.invokeMethodIfPresent<Boolean?>("getDataBinding")) ?:
+            project.findProperty("android.defaults.buildfeatures.databinding")?.toBoolean()
+               ?: false
+      }
+
+      // The original way this was exposed in the AGP DSL.
+      return dataBinding.invokeMethod("isEnabled")
+    } catch (e: Exception) {
+      problems += RuntimeException("Failed to read if data binding is enabled", e)
+      return null
+    }
+  }
+
+  // Modelled from AGP's logic in OptionParsers.kt
+  private fun Any.toBoolean(): Boolean? = when (this) {
+    is Boolean -> this
+    is CharSequence ->
+      when (toString().lowercase(Locale.US)) {
+        "true" -> true
+        "false" -> false
+        else -> null
+      }
+    is Number ->
+      when (toInt()) {
+        0 -> false
+        1 -> true
+        else -> null
+      }
+    else -> null
   }
 
   sealed class VariantCollectionProvider(private val extensionObject: Any, private val getterName: String, val isMain: Boolean, val providesApplicationId: Boolean) {

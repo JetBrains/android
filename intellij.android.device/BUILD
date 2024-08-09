@@ -20,5 +20,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
     ],
 )

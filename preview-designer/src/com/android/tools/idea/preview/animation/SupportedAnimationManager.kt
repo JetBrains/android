@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
  * timeline panel, playback controls, and a tabbed interface. It manages animation state, timeline
  * elements, and loading/caching of transitions.
  *
- * @param timelinePanel The TimelinePanel used to display the animation timeline.
+ * @param getCurrentTime Returns time in milliseconds in the current timeline.
  * @param playbackControls The PlaybackControls to control the animation playback.
  * @param tabbedPane The AnimationTabs where animation tabs can be opened.
  * @param rootComponent The root JComponent used for UI elements.
@@ -56,7 +56,7 @@ import kotlinx.coroutines.withContext
  * @param updateTimelineElementsCallback A callback function to update timeline elements.
  */
 abstract class SupportedAnimationManager(
-  timelinePanel: TimelinePanel,
+  getCurrentTime: () -> Int,
   playbackControls: PlaybackControls,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
@@ -82,10 +82,10 @@ abstract class SupportedAnimationManager(
   val frozenState = MutableStateFlow(FrozenState(false))
 
   /** An action to control freezing/unfreezing the animation. */
-  private val freezeAction = FreezeAction(timelinePanel, frozenState, tracker)
+  private val freezeAction = FreezeAction(getCurrentTime, frozenState, tracker)
 
   /** Abstract property representing the state manager for this animation type. */
-  abstract val animationState: AnimationState
+  abstract val animationState: AnimationState<*>
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   private var currentTransition = Transition()
@@ -181,8 +181,8 @@ abstract class SupportedAnimationManager(
    * Load transition for current animation state. If transition was loaded before, the cached result
    * is used.
    */
-  suspend fun loadTransition(longTimeout: Boolean = false) {
-    val stateHash = animationState.stateHashCode.value
+  private suspend fun loadTransition(longTimeout: Boolean = false) {
+    val stateHash = animationState.state.value.hashCode()
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
         cachedTransitions[stateHash] = loadTransitionFromLibrary()
@@ -199,7 +199,15 @@ abstract class SupportedAnimationManager(
 
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setup() {
-    setupStateManager()
+    setupInitialAnimationState()
+    scope.launch {
+      animationState.state.collect {
+        syncAnimationWithState()
+        loadTransition()
+        loadAnimatedPropertiesAtCurrentTime(false)
+        updateTimelineElementsCallback()
+      }
+    }
 
     withContext(uiThread) {
       card =
@@ -240,7 +248,14 @@ abstract class SupportedAnimationManager(
     }
   }
 
-  abstract suspend fun setupStateManager()
+  /**
+   * This method is called when the animation state changes. It should be overridden by subclasses
+   * to perform any necessary synchronization between the animation and its state.
+   */
+  abstract suspend fun syncAnimationWithState()
+
+  /** This method is called during the setup process to initialize the animation state. */
+  abstract suspend fun setupInitialAnimationState()
 }
 
 private fun CoroutineScope.createChildScope(name: String) =

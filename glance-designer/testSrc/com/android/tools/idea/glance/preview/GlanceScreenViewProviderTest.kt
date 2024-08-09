@@ -17,10 +17,11 @@ package com.android.tools.idea.glance.preview
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Assert
@@ -37,7 +38,7 @@ class GlanceScreenViewProviderTest {
   fun setUp() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-          BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+          AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",
@@ -45,7 +46,7 @@ class GlanceScreenViewProviderTest {
         )
         .build()
     }
-    surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).join()
   }
 

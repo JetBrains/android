@@ -147,9 +147,12 @@ interface ApkToken : ProjectSystemToken {
   override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem is ApkProjectSystem
 }
 
-class ApkApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, ApkToken {
-  override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext? {
-    val result = FacetFinder.tryFindFacetForProcess(project, info) ?: return null
+class ApkApplicationProjectContextProvider : ApplicationProjectContextProvider<ApkProjectSystem>, ApkToken {
+  override fun computeApplicationProjectContext(
+    projectSystem: ApkProjectSystem,
+    info: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ) : ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(projectSystem.project, info) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

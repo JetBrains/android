@@ -28,6 +28,7 @@ import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
 import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
+import static java.util.Locale.ROOT;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -35,7 +36,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
@@ -59,16 +59,20 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.layoutlib.LayoutlibContext;
+import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.tools.sdk.LayoutlibFactory;
+import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -205,6 +209,8 @@ public class Configuration {
   private Consumer<BufferedImage> myImageTransformation = null;
   private boolean myGestureNav = false;
   private boolean myEdgeToEdge = false;
+  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
+  private FrameworkOverlay myDeviceOverlay = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -257,6 +263,10 @@ public class Configuration {
     myAdaptiveShape = from.myAdaptiveShape;
     myUseThemedIcon = from.myUseThemedIcon;
     myWallpaper = from.myWallpaper;
+    myDeviceOverlay = from.myDeviceOverlay;
+    myGestureNav = from.myGestureNav;
+    myCutoutOverlay = from.myCutoutOverlay;
+    myEdgeToEdge = from.myEdgeToEdge;
   }
 
   @Override
@@ -331,6 +341,7 @@ public class Configuration {
     else {
       myDevice = computeBestDevice();
     }
+    updateDeviceOverlay();
     return myDevice;
   }
 
@@ -571,6 +582,7 @@ public class Configuration {
       State prevState = myState;
 
       myDevice = mySpecificDevice = device;
+      updateDeviceOverlay();
 
       int updateFlags = CFG_DEVICE;
 
@@ -928,6 +940,17 @@ public class Configuration {
   }
 
   /**
+   * Sets the overlay to use for displaying the display cutout
+   */
+  public void setCutoutOverlay(FrameworkOverlay overlay) {
+    myCutoutOverlay = overlay;
+  }
+
+  public FrameworkOverlay getCutoutOverlay() {
+    return myCutoutOverlay;
+  }
+
+  /**
    * Sets the consumer that applies a transformation function to the rendered image.
    *
    * @param imageTransformation the consumer containing a transformation function to be applied to the rendered image
@@ -935,7 +958,6 @@ public class Configuration {
   public void setImageTransformation(@Nullable Consumer<BufferedImage> imageTransformation) {
     myImageTransformation = imageTransformation;
   }
-
 
   /**
    * Returns the transformation function to apply to the rendered image
@@ -1187,34 +1209,47 @@ public class Configuration {
     }
   }
 
+  public void useDeviceForCutout(@NotNull String deviceId) {
+    Optional<FrameworkOverlay> deviceOverlay = Enums.getIfPresent(FrameworkOverlay.class, deviceId.toUpperCase(ROOT));
+    if (deviceOverlay.isPresent()) {
+      myDeviceOverlay = deviceOverlay.get();
+    } else {
+      myDeviceOverlay = null;
+    }
+  }
+
+  private void updateDeviceOverlay() {
+    if (myDevice == null) {
+      myDeviceOverlay = null;
+    } else {
+      useDeviceForCutout(myDevice.getId());
+    }
+  }
+
   // ---- Resolving resources ----
 
   @Slow
   public @NonNull ResourceResolver getResourceResolver() {
     String theme = getTheme();
     Device device = getDevice();
+    List<FrameworkOverlay> overlays = getOverlays();
     ResourceResolverCache resolverCache = mySettings.getResolverCache();
     if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
       // Remove the old custom device configuration only if it's different from the new one
-      resolverCache.replaceCustomConfig(theme, getFullConfig());
+      resolverCache.replaceCustomConfig(theme, getFullConfig(), overlays);
     }
-    return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
+    return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig(), overlays);
   }
 
-  /**
-   * Returns an {@link ResourceRepository} for the framework resources based on the current
-   * configuration selection.
-   *
-   * @return the framework resources or null if not found.
-   */
-  @Nullable
-  public ResourceRepository getFrameworkResources() {
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      return mySettings.getResolverCache().getFrameworkResources(getFullConfig(), target);
+  @NonNull
+  public List<FrameworkOverlay> getOverlays() {
+    List<FrameworkOverlay> overlays = new ArrayList<>(3);
+    overlays.add(myGestureNav ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
+    if (myDeviceOverlay != null) {
+      overlays.add(myDeviceOverlay);
     }
-
-    return null;
+    overlays.add(myCutoutOverlay);
+    return overlays;
   }
 
   // For debugging only
@@ -1231,6 +1266,14 @@ public class Configuration {
       .add("target", myTarget)
       .add("uimode", myUiMode)
       .add("nightmode", myNightMode)
+      .add("fontScale", myFontScale)
+      .add("adaptiveShape", myAdaptiveShape)
+      .add("useThemedIcon", myUseThemedIcon)
+      .add("wallpaper", myWallpaper)
+      .add("deviceOverlay", myDeviceOverlay)
+      .add("gestureNav", myGestureNav)
+      .add("cutoutOverlay", myCutoutOverlay)
+      .add("edgeToEdge", myEdgeToEdge)
       .toString();
   }
 
@@ -1244,6 +1287,7 @@ public class Configuration {
     if (myDevice != device) {
       updateFlags = CFG_DEVICE;
       myDevice = device;
+      updateDeviceOverlay();
     }
 
     if (myState != state) {

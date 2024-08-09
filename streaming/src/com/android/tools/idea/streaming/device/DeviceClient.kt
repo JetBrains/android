@@ -77,6 +77,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.IntFunction
 import kotlin.math.min
 
+
 // Predefined agent's exit codes. Other exit codes are possible.
 internal const val AGENT_GENERIC_FAILURE = 1
 internal const val AGENT_INVALID_COMMAND_LINE = 2
@@ -118,6 +119,7 @@ internal const val STREAM_AUDIO = 0x04
 internal const val USE_UINPUT = 0x08
 internal const val AUTO_RESET_UI_SETTINGS = 0x10
 internal const val DEBUG_LAYOUT_UI_SETTINGS = 0x20
+internal const val GESTURE_NAVIGATION_UI_SETTINGS = 0x40
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -414,6 +416,7 @@ internal class DeviceClient(
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
+                (if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) GESTURE_NAVIGATION_UI_SETTINGS else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
@@ -422,7 +425,20 @@ internal class DeviceClient(
     val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
     val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
     val codecArg = if (codecName.isNotBlank()) " --codec=$codecName" else ""
-    val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
+    val preloadClause = when {
+      DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring && deviceConfig.featureLevel == 34 ->
+          // Turning off display on API 34 requires loading of libandroid_servers.so.
+          // Other preloaded libraries are its dependencies.
+          "LD_PRELOAD=\"/apex/com.android.adbd/lib64/libadb_pairing_server.so " +
+          "/apex/com.android.adbd/lib64/libadb_pairing_connection.so " +
+          "/apex/com.android.os.statsd/lib64/libstatspull.so " +
+          "/apex/com.android.os.statsd/lib64/libstatssocket.so " +
+          "/apex/com.android.runtime/lib64/bionic/libdl_android.so " +
+          "/apex/com.android.i18n/lib64/libandroidicu.so " +
+          "/system/lib64/libandroid_servers.so\" "
+      else -> ""
+    }
+    val command = "${preloadClause}CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main --socket=$socketName" +
                   "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
     clientScope.launch {
@@ -447,6 +463,7 @@ internal class DeviceClient(
               } else {
                 log.warn("terminated with code ${it.exitCode}")
                 recordAbnormalAgentTermination(it.exitCode, System.currentTimeMillis() - agentStartTime, errors)
+                AgentLogSaver.saveLog(adbSession, deviceSelector)
               }
               for (listener in agentTerminationListeners) {
                 listener.agentTerminated(it.exitCode)

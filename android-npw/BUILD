@@ -54,13 +54,13 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
             # b/192102820 flaky on windows, taking longer than 15 minutes
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
         },
         "BenchmarkModuleTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.BenchmarkModuleTest",
             # b/192269906 flaky on windows, taking longer than 15 minutes
-            "tags": ["no_windows"],
+            "tags": ["noci:studio-win"],
         },
         "AddBaselineProfilesModuleTest": {
             "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleTest",
@@ -151,10 +151,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.4",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
-        "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
-        "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
@@ -169,6 +166,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:androidx.test.ext.junit_1.1.5",
+        "@maven//:androidx.test.runner_1.5.2",
         "@maven//:androidx.wear.watchface.watchface-guava_1.1.0",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",

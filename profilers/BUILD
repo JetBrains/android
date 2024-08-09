@@ -16,7 +16,7 @@ iml_module(
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.profilers.ProfilersTestSuite",
     test_data = [

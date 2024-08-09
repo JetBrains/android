@@ -12,7 +12,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.profilers.perfetto.traceprocessor.WindowsNameDemanglerTest",
         },
         "other": {
-            "tags": ["no_test_windows"],
+            "tags": ["noci:studio-win"],
         },
     },
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/profilers:test_data",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -86,9 +87,6 @@ kotlin_test(
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"],
-    tags = [
-        "no_test_mac",  # b/168793471
-    ],
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",
@@ -118,9 +116,6 @@ kotlin_test(
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"],
     lint_baseline = "lint_baseline_captureDetails.xml",
-    tags = [
-        "no_test_mac",  # b/168793471
-    ],
     test_class = "com.android.tools.idea.profilers.PerformanceTestSuite",
     deps = [
         ":intellij.android.profilersAndroid_testlib",

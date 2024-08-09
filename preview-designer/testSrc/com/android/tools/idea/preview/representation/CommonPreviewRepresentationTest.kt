@@ -22,8 +22,9 @@ import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
@@ -52,30 +53,35 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
-import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
-import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.waitUntil
+import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFails
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -84,9 +90,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.util.concurrent.CountDownLatch
-import kotlin.test.assertFails
-import kotlin.time.Duration.Companion.seconds
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
@@ -145,18 +148,20 @@ class CommonPreviewRepresentationTest {
     refreshManager =
       PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED)
 
-    psiFile = runWriteActionAndWait {
-      fixture.addFileToProjectAndInvalidate(
+    psiFile =
+      fixture.configureByText(
         "Test.kt",
         // language=kotlin
         """
-        fun MyFun() {
-          println("Hello world!")
-        }
-      """
+      annotation class Preview
+
+      @Preview
+      fun MyFun() {
+        println("Hello world!")
+      }
+    """
           .trimIndent(),
       )
-    }
   }
 
   @After
@@ -204,7 +209,7 @@ class CommonPreviewRepresentationTest {
         !previewRepresentation.isInvalidatedForTest()
       }
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
     }
 
   @Test
@@ -255,7 +260,7 @@ class CommonPreviewRepresentationTest {
     }
 
     assertEquals("compilationSucceeded (compiledFiles=1)", testTracker.logOutput())
-    previewRepresentation.onDeactivate()
+    previewRepresentation.onDeactivateImmediately()
   }
 
   @Test
@@ -263,16 +268,15 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
-      val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface)
 
-      assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
-      assertThat(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
-      assertThat(PreviewGroupManager.KEY.getData(context) is PreviewGroupManager)
-      assertThat(PreviewFlowManager.KEY.getData(context) is PreviewFlowManager<*>)
-      assertTrue(FastPreviewSurface.KEY.getData(context) is FastPreviewSurface)
-      assertTrue(PreviewInvalidationManager.KEY.getData(context) is PreviewInvalidationManager)
+      assertTrue(surface.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
+      assertTrue(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
+      assertTrue(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
+      assertTrue(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
+      assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
+      assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
 
-      preview.onDeactivate()
+      preview.onDeactivateImmediately()
     }
   }
 
@@ -285,7 +289,7 @@ class CommonPreviewRepresentationTest {
       previewRepresentation.compileAndWaitForRefresh()
 
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
 
       val blockingRefresh = blockRefreshManager()
 
@@ -309,7 +313,7 @@ class CommonPreviewRepresentationTest {
 
       assertFalse(previewRepresentation.isInvalidatedForTest())
       var blockingRefresh = blockRefreshManager()
-      previewRepresentation.onDeactivate()
+      previewRepresentation.onDeactivateImmediately()
       // Quality refresh on deactivation to decrease qualities
       delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
         refreshManager.getTotalRequestsInQueueForTest() == 1
@@ -346,7 +350,7 @@ class CommonPreviewRepresentationTest {
       assertEquals(ZoomConstants.MIN_SCALE, surface.zoomController.minScale, 0.001)
       assertEquals(ZoomConstants.MAX_SCALE, surface.zoomController.maxScale, 0.001)
 
-      preview.onDeactivate()
+      preview.onDeactivateImmediately()
     }
   }
 
@@ -403,6 +407,36 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  @Test
+  fun clickingOnThePreviewNavigatesToDefinition() {
+    runBlocking(workerThread) {
+      val preview = createPreviewRepresentation()
+      preview.compileAndWaitForRefresh()
+
+      assertEquals(0, runReadAction { projectRule.fixture.caretOffset })
+
+      waitUntil { preview.previewView.mainSurface.models.size == 1 }
+      val sceneView = preview.previewView.mainSurface.sceneManagers.first().sceneViews.first()
+
+      withContext(uiThread) {
+        preview.navigationHandler.handleNavigateWithCoordinates(
+          sceneView,
+          sceneView.x,
+          sceneView.y,
+          false,
+        )
+      }
+
+      runReadAction {
+        val expectedOffset =
+          fixture.findElementByText("@Preview", KtAnnotationEntry::class.java).textOffset
+        assertEquals(expectedOffset, projectRule.fixture.caretOffset)
+      }
+
+      preview.onDeactivateImmediately()
+    }
+  }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -426,7 +460,16 @@ class CommonPreviewRepresentationTest {
   }
 
   private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
-    val previewElement = PsiTestPreviewElement()
+    val smartPointerManager = SmartPointerManager.getInstance(project)
+    val previewElement =
+      PsiTestPreviewElement(
+        previewElementDefinition =
+          runReadAction {
+            fixture.findElementByText("@Preview", KtAnnotationEntry::class.java)?.let {
+              smartPointerManager.createSmartPsiElementPointer(it)
+            }
+          }
+      )
     val previewElementProvider = TestPreviewElementProvider(previewElement)
     val previewElementModelAdapter = TestPreviewElementModelAdapter(previewElement)
     val previewRepresentation =
@@ -459,7 +502,7 @@ class CommonPreviewRepresentationTest {
     // wait for smart mode and status to be needs build
     waitForSmartMode(fixture.project)
     delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild
+      getProjectBuildStatusForTest() == RenderingBuildStatus.NeedsBuild
     }
 
     // Activate and wait for build listener setup to finish

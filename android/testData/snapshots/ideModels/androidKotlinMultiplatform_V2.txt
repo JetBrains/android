@@ -806,7 +806,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidInstrumentedTestCompileClasspath : <empty>
                         androidInstrumentedTestCompileOnly      : <empty>
                         androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
-                        androidInstrumentedTestDependencySources          : <empty>
                         androidInstrumentedTestImplementation   : <empty>
                         androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
                         androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
@@ -817,7 +816,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
-                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -839,7 +837,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidUnitTestCompileClasspath         : <empty>
                         androidUnitTestCompileOnly    : <empty>
                         androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                        androidUnitTestDependencySources        : <empty>
                         androidUnitTestImplementation : <empty>
                         androidUnitTestImplementationDependenciesMetadata : <empty>
                         androidUnitTestIntransitiveDependenciesMetadata   : <empty>
@@ -851,7 +848,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -861,7 +857,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -923,7 +918,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -933,7 +927,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -950,7 +943,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -968,7 +960,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -1031,7 +1022,6 @@ MODULE                        : Kotlin_Multiplatform
                         androidMainApiDependenciesMetadata      : <empty>
                         androidMainCompileOnly        : <empty>
                         androidMainCompileOnlyDependenciesMetadata        : <empty>
-                        androidMainDependencySources  : <empty>
                         androidMainImplementation     : <empty>
                         androidMainImplementationDependenciesMetadata     : <empty>
                         androidMainIntransitiveDependenciesMetadata       : <empty>
@@ -1050,7 +1040,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
                         commonMainCompileOnlyDependenciesMetadata         : <empty>
-                        commonMainDependencySources   : <empty>
                         commonMainImplementation      : <empty>
                         commonMainImplementationDependenciesMetadata      : <empty>
                         commonMainIntransitiveDependenciesMetadata        : <empty>
@@ -1060,7 +1049,6 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestApiDependenciesMetadata       : <empty>
                         commonTestCompileOnly         : <empty>
                         commonTestCompileOnlyDependenciesMetadata         : <empty>
-                        commonTestDependencySources   : <empty>
                         commonTestImplementation      : <empty>
                         commonTestImplementationDependenciesMetadata      : <empty>
                         commonTestIntransitiveDependenciesMetadata        : <empty>
@@ -1078,7 +1066,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainApiDependenciesMetadata          : <empty>
                         jvmMainCompileOnly            : <empty>
                         jvmMainCompileOnlyDependenciesMetadata  : <empty>
-                        jvmMainDependencySources      : <empty>
                         jvmMainImplementation         : <empty>
                         jvmMainImplementationDependenciesMetadata         : <empty>
                         jvmMainIntransitiveDependenciesMetadata : <empty>
@@ -1096,7 +1083,6 @@ MODULE                        : Kotlin_Multiplatform
                         jvmTestCompileClasspath       : <empty>
                         jvmTestCompileOnly            : <empty>
                         jvmTestCompileOnlyDependenciesMetadata  : <empty>
-                        jvmTestDependencySources      : <empty>
                         jvmTestImplementation         : <empty>
                         jvmTestImplementationDependenciesMetadata         : <empty>
                         jvmTestIntransitiveDependenciesMetadata : <empty>
@@ -1200,6 +1186,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
         buildType                     : debug
@@ -1641,7 +1628,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleTypeoneModetwoDebug
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileTypeoneModetwoDebugAndroidTestSources
@@ -1688,7 +1675,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     AssembleTaskName              : assembleTypeoneModetwoDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/androidLib/build/intermediates/apk_ide_redirect_file/typeoneModetwoDebugAndroidTest/createTypeoneModetwoDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1730,7 +1717,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                         module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:androidLib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :androidLib (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.androidLib.androidTest
 MODULE                        : Kotlin_Multiplatform.androidLib.main
@@ -1802,6 +1789,7 @@ MODULE                        : Kotlin_Multiplatform.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -2044,7 +2032,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2077,7 +2065,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2180,7 +2168,7 @@ MODULE                        : Kotlin_Multiplatform.app
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.app.androidTest
 MODULE                        : Kotlin_Multiplatform.app.main
@@ -2251,6 +2239,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : false
+        DataBindingEnabled            : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -2331,7 +2320,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileAndroidInstrumentedTest
@@ -2434,7 +2423,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidInstrumentedTest
                     AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidInstrumentedTest/createAndroidInstrumentedTestApkListingFileRedirect/redirect.txt [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2476,7 +2465,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpSecondLib-androidMain
                         module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
-                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidInstrumentedTest
@@ -2564,7 +2553,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : instrumentedTest (KotlinCompilationImpl)
                 - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
@@ -2822,7 +2811,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -2863,7 +2852,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpJvmOnly
                     noReflect                     : true
                     noStdlib                      : true
@@ -2942,7 +2931,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpJvmOnly_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3058,6 +3047,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : false
+        DataBindingEnabled            : false
     - basicVariant:               : androidMain
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     DefaultSourceProvider
@@ -3104,7 +3094,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     kotlinMppGradleModel          : {androidMain=androidMain, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidMain
@@ -3131,7 +3121,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KGP_VERSION>
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3233,7 +3223,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3312,7 +3302,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 21
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true

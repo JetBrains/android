@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 
 class NavDesignSurfaceShortcutTest : NavTestCase() {
@@ -26,8 +25,7 @@ class NavDesignSurfaceShortcutTest : NavTestCase() {
   fun testNavDesignSurfaceProvideTheZoomableContext() {
     // Simply test NavDesignSurface provide data for ZOOMABLE_KEY
     val surface = NavDesignSurface(project, myRootDisposable)
-    val event = AnActionEvent.createFromDataContext(
-      "", null, CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = AnActionEvent.createFromDataContext("", null, DataContext { id -> surface.getData(id) })
     assertNotNull(event.getData(ZOOMABLE_KEY))
   }
 }

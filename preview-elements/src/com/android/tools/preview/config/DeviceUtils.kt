@@ -93,6 +93,7 @@ fun DeviceConfig.createDeviceInstance(): Device {
         addSoftware(Software())
         addState(
           State().apply {
+            name = "default"
             isDefaultState = true
             hardware = Hardware()
           }

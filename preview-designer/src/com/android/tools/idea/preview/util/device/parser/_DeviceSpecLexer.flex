@@ -51,10 +51,18 @@ STRING_T=([:letter:]|[:digit:]){1}([^:,=\"\\]|\\.)*
   "portrait"         { return PORTRAIT_KEYWORD; }
   "square"           { return SQUARE_KEYWORD; }
 
-  "unit"             { return UNIT_KEYWORD; }
   "orientation"      { return ORIENTATION_KEYWORD; }
   "isRound"          { return IS_ROUND_KEYWORD; }
   "dpi"              { return DPI_KEYWORD; }
+  "cutout"           { return CUTOUT_KEYWORD; }
+  "navigation"       { return NAVIGATION_KEYWORD; }
+  "buttons"          { return NAV_BUTTONS_KEYWORD; }
+  "gesture"          { return NAV_GESTURE_KEYWORD; }
+  "none"             { return CUTOUT_NONE_KEYWORD; }
+  "corner"           { return CUTOUT_CORNER_KEYWORD; }
+  "double"           { return CUTOUT_DOUBLE_KEYWORD; }
+  "punch_hole"       { return CUTOUT_HOLE_KEYWORD; }
+  "tall"             { return CUTOUT_TALL_KEYWORD; }
 
   "id"               { yypushback(yylength()); yybegin(STRING_PARAM); }
   "name"             { yypushback(yylength()); yybegin(STRING_PARAM); }

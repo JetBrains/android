@@ -17,11 +17,10 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
@@ -30,10 +29,10 @@ import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.collect.ImmutableSet
@@ -52,8 +51,8 @@ private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
- * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
- * preview. [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * Creates a [NlSurfaceBuilder] with a common setup for the design surfaces in Compose preview.
+ * [isInteractive] should return when the Preview is in interactive mode. When it is, the
  * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
  * issue panel ("E").
  */
@@ -66,21 +65,18 @@ private fun createPreviewDesignSurfaceBuilder(
   sceneComponentProvider: ComposeSceneComponentProvider,
   screenViewProvider: ScreenViewProvider,
   isInteractive: () -> Boolean,
-): NlDesignSurface.Builder =
-  NlDesignSurface.builder(project, parentDisposable) { surface, model ->
+): NlSurfaceBuilder =
+  NlSurfaceBuilder.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
-          RealTimeSessionClock()
-        }
-        .also {
-          it.setListenResourceChange(false) // don't re-render on resource changes
-          it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
-          it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
-          // When the cache successful render image is enabled, the scene manager will retain
-          // the last valid image even if subsequent renders fail.
-          it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
-        }
+      LayoutlibSceneManager(model, surface, sceneComponentProvider).also {
+        it.setListenResourceChange(false) // don't re-render on resource changes
+        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+        it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
+        // When the cache successful render image is enabled, the scene manager will retain
+        // the last valid image even if subsequent renders fail.
+        it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
+      }
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
@@ -90,7 +86,7 @@ private fun createPreviewDesignSurfaceBuilder(
       if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()
       else NopSelectionModel
     )
-    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
+    .setZoomControlsPolicy(ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActionsProvider {
       if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
     }
@@ -101,10 +97,9 @@ private fun createPreviewDesignSurfaceBuilder(
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
 /**
- * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
- * [isInteractive] should return when the Preview is in interactive mode. When it is, the
- * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
- * issue panel ("E").
+ * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]
+ * should return when the Preview is in interactive mode. When it is, the [NlDesignSurface] will
+ * disable the interception of global shortcuts like refresh ("R") or toggle issue panel ("E").
  */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,

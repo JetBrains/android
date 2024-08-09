@@ -69,11 +69,11 @@ interface ProjectSystemBuildManager {
     CLEAN
   }
 
-  data class BuildResult(val mode: BuildMode, val status: BuildStatus, val timestampMillis: Long) {
+  data class BuildResult(val mode: BuildMode, val status: BuildStatus) {
     companion object {
       @JvmStatic
       fun createUnknownBuildResult(): BuildResult =
-        BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, System.currentTimeMillis())
+        BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN)
     }
   }
 

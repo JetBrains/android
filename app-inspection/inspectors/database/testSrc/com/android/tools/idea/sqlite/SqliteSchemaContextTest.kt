@@ -38,7 +38,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
    * Skips tests on Windows.
    *
    * Our current Bazel setup leaks a Disposer instance when running any editor tests on Windows,
-   * which is why most targets are tagged with no_test_windows. Disabling this whole target could be
+   * which is why most targets are tagged with noci:studio-win. Disabling this whole target could be
    * dangerous, in the past we had Windows-specific bugs like leaking file handles that were caught
    * by tests, so for now we disable this editor-centric test.
    */

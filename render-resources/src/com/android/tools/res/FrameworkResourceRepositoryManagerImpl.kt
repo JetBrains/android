@@ -18,6 +18,7 @@ package com.android.tools.res
 import com.android.SdkConstants.DOT_JAR
 import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.aar.CachingData
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
@@ -36,7 +37,7 @@ open class FrameworkResourceRepositoryManagerImpl(
   private val systemCachePath: String = "", // Empty path means no caching
   private val diskIoExecutor: Executor,
 ) : FrameworkResourceRepositoryManager {
-  private data class CacheKey(val path: Path, val useCompiled9Patches: Boolean)
+  private data class CacheKey(val path: Path, val overlayName: String, val useCompiled9Patches: Boolean)
 
   private val cache = ConcurrentHashMap<CacheKey, FrameworkResourceRepository>()
 
@@ -46,23 +47,45 @@ open class FrameworkResourceRepositoryManagerImpl(
    * resources for the given set of languages plus the language-neutral ones, but may contain resources for more
    * languages than was requested. The repository loads faster if the set of languages is smaller.
    *
-   * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
+   * @param resourceJarFile the jar file containing resources of the Android framework
    * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
    * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository
    *     may contain data for more languages.
+   * @param overlays a list of overlays to add to the base framework resources
    * @return the repository of Android framework resources
    */
   @Slow
   override fun getFrameworkResources(
-    resourceDirectoryOrFile: Path,
+    resourceJarFile: Path,
     useCompiled9Patches: Boolean,
-    languages: Set<String>
-  ): FrameworkResourceRepository {
-    val path = resourceDirectoryOrFile
-    val cacheKey = CacheKey(path, useCompiled9Patches)
+    languages: Set<String>,
+    overlays: List<FrameworkOverlay>,
+  ): ResourceRepository {
+    val path = resourceJarFile
     val cachingData = createCachingData(path)
+    val baseRepository = getFrameworkRepository(path, "", useCompiled9Patches, languages, cachingData)
+    if (overlays.isEmpty()) {
+      return baseRepository
+    }
+
+    val overlayRepositories = overlays.map { getFrameworkRepository(path, it.overlayName, useCompiled9Patches, languages, cachingData) }
+    return FrameworkWithOverlaysResourceRepository(baseRepository, overlayRepositories)
+  }
+
+  private fun getFrameworkRepository(
+    path: Path,
+    overlay: String,
+    useCompiled9Patches: Boolean,
+    languages: Set<String>,
+    cachingData: CachingData?
+  ): FrameworkResourceRepository {
+    val cacheKey = CacheKey(path, overlay, useCompiled9Patches)
     val cached = cache.computeIfAbsent(cacheKey) {
-      FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
+      if (overlay.isEmpty()) {
+        FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
+      } else {
+        FrameworkResourceRepository.createForOverlay(path, overlay, languages, cachingData, useCompiled9Patches)
+      }
     }
     if (languages.isEmpty()) {
       return cached

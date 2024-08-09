@@ -99,6 +99,12 @@ public final class StudioFlags {
     "Show a combobox to select the version of Android Gradle plugin used for the new project",
     IdeaIsInternalDefault.INSTANCE);
 
+  public static final Flag<Boolean> NPW_INCLUDE_ALL_COMPATIBLE_ANDROID_GRADLE_PLUGIN_VERSIONS = new BooleanFlag(
+    NPW, "show.agp.version.combobox.all.versions", "List all previous versions of AGP",
+    "List all versions of AGP in the new project wizard combo box. " +
+    "When disabled the combo box will only the two newest stable major-minor series of AGP versions.",
+    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = new BooleanFlag(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
@@ -219,7 +225,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = new BooleanFlag(PROFILER, "task.based.ux", "Task-based UX",
     "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
@@ -459,7 +465,7 @@ public final class StudioFlags {
     "Use adblib to track devices (IDevice)",
     "Use adblib instead of ddmlib to track and implement `IDevice` instances. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
@@ -633,12 +639,13 @@ public final class StudioFlags {
     true
   );
 
+  // Disabled due to b/351811546
   public static final Flag<Boolean> LOGCAT_PROTOBUF_ENABLED = new BooleanFlag(
     LOGCAT,
     "protobuf.enable",
     "Enable Logcat Protobuf format",
     "Enable Logcat Protobuf format",
-    true
+    false
   );
 
   public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
@@ -674,6 +681,11 @@ public final class StudioFlags {
     "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
     false
   );
+
+  public static final Flag<Boolean> INCLUDE_ANDROIDX_DEV_ANDROID_GRADLE_PLUGIN_SNAPSHOTS = new BooleanFlag(
+    GRADLE_IDE, "agp.snapshot.repo", "Enable AGP snapshot repository",
+    "Also consults the androidx.dev snapshot repository for available versions of AGP.",
+    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = new BooleanFlag(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
@@ -803,6 +815,26 @@ public final class StudioFlags {
     " instead obtain the information from the applications dependency graph.",
     true
   );
+
+  public static final Flag<Boolean> GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_UNIT_TESTS = new BooleanFlag(
+    GRADLE_IDE,
+    "gradle.build.runtime.classpath.for.library.unit.tests",
+    "Controls whether runtime classpath is fetched for library unit tests",
+    "Controls whether runtime classpath is fetched for library unit tests. " +
+    "Requires gradle.ide.gradle.skip.runtime.classpath.for.libraries to be on to take effect",
+    true
+  );
+
+  public static final Flag<Boolean> GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_SCREENSHOT_TESTS = new BooleanFlag(
+    GRADLE_IDE,
+    "gradle.build.runtime.classpath.for.library.screenshot.tests",
+    "Controls whether runtime classpath is fetched for library screenshot tests",
+    "Controls whether runtime classpath is fetched for library screenshot tests. " +
+    "Requires gradle.ide.gradle.skip.runtime.classpath.for.libraries to be on to take effect",
+    true
+  );
+
+
   public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = new StringFlag(
     GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",
     "When creating a project, Gradle updates the distributionUrl to point to a server accessible via the internet. When internet egress " +
@@ -953,7 +985,11 @@ public final class StudioFlags {
     true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS = new BooleanFlag(
     EMBEDDED_EMULATOR, "ui.settings.debug.layout", "Show Debug Layout in UI settings",
-    "Enables Debug Layout in UI settings to display layout bounds",
+    "Enables Debug Layout in Device UI Shortcuts to display layout bounds",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS = new BooleanFlag(
+    EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
+    "Enables Gesture Navigation setting in Device UI Shortcuts",
     false);
   //endregion
 
@@ -1299,7 +1335,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy.enable.default",
     "Enable live edit by default",
     "If enabled, live edit will be enabled by default",
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = new BooleanFlag(
@@ -1467,11 +1503,6 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
-    COMPOSE, "ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
-    "Enable colorblind Check mode in UI Check Mode for Compose preview",
-    true);
-
   public static final Flag<Boolean> COMPOSE_VISUAL_LINT_RUN = new BooleanFlag(
     COMPOSE, "visual.lint.run", "Enable visual lint for Compose Preview",
     "Enable so that visual lint runs on previews in the Compose Preview.",
@@ -1499,7 +1530,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
   // endregion
 
   // region Wear Health Services
@@ -1996,6 +2027,14 @@ public final class StudioFlags {
                     "Enables the \"Analyze Thread Safety\" button in the Project tool window",
                     false);
 
+
+  public static final Flag<Boolean> AI_RENAME_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.rename.action",
+                    "Use ML model to rename variable names",
+                    "Enables AI renaming functionalities",
+                    false);
+
+
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
@@ -2064,9 +2103,6 @@ public final class StudioFlags {
   // region Google Login
   private static final FlagGroup GOOGLE_LOGIN =
     new FlagGroup(FLAGS, "google.login", "Google Login");
-  public static final Flag<Boolean> ENABLE_SETTINGS_ACCOUNT_UI =
-    new BooleanFlag(GOOGLE_LOGIN, "enabled", "Enable new login settings UI",
-                "When enabled, a login settings page will replace the popup from the login action in the top right.", true);
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
                     "When enabled, a combined login page will show when logging in for a new user.", true);
@@ -2081,6 +2117,17 @@ public final class StudioFlags {
                     "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", false);
 
   // endregion Cloud Integration
+
+  // region Backup
+  private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
+  public static final Flag<Boolean> BACKUP_ENABLED =
+    new BooleanFlag(
+      BACKUP,
+      "enable",
+      "Enable Backup/Restore feature",
+      "Enable Backup/Restore feature",
+      false);
+  // endregion Backup
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
     return BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()

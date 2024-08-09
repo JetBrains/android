@@ -7,7 +7,7 @@ iml_module(
     iml_files = ["intellij.android.gradle-tooling.impl.iml"],
     jvm_target = "8",
     resources = ["resources"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

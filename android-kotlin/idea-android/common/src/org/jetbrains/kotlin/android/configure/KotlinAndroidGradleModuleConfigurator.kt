@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -40,6 +41,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -293,8 +295,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                 changedFiles.addAll(it)
             }
 
-            if (jvmTarget != null) {
-                moduleBuildModel.android().kotlinOptions().jvmTarget().setValue(jvmTarget)
+            LanguageLevel.parse(jvmTarget)?.let { languageLevel ->
+                moduleBuildModel.android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
                 moduleBuildModel.psiFile?.let { changedFiles.storeOriginalFileContent(it) }
             }
             moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)?.let {
@@ -334,7 +336,12 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     ): Pair<NotificationMessageCollector, Set<Module>> {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val (configuredModules, changedFiles) = configureWithVersion(project, modules, version, collector, kotlinVersionsAndModules = emptyMap())
+            val modulesAndJvmTargets = modules
+              .mapNotNull { module -> GradleAndroidModel.get(module)?.getTargetLanguageLevel()?.let {
+                  languageLevel -> module.name to languageLevel.toJavaVersion().toString() }
+              }
+              .toMap()
+             val (configuredModules, changedFiles) = configureWithVersion(project, modules, version, collector, emptyMap(), modulesAndJvmTargets)
 
             for (file in changedFiles.getChangedFiles()) {
                 OpenFileAction.openFile(file.virtualFile, project)

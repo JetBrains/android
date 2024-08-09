@@ -100,7 +100,7 @@ fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
 }
 
 fun AndroidFacet.getVariantAndAbi(): VariantAndAbi {
-  val ndkFacet = NdkFacet.getInstance(holderModule)
+  val ndkFacet = NdkFacet.getInstance(module)
   val variantAndAbi = VariantAndAbi(
     properties.SELECTED_BUILD_VARIANT,
     // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.

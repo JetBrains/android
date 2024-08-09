@@ -43,9 +43,6 @@ object TestAppInsightsTracker : AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
   ) = Unit
 
-  override fun logMatchers(event: AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails) =
-    Unit
-
   override fun logError(
     mode: ConnectionMode,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,

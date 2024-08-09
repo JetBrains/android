@@ -15,6 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
+import com.android.annotations.Nullable;
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
 import com.android.tools.idea.io.grpc.ManagedChannel;
@@ -37,6 +38,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidStudio implements AutoCloseable {
 
@@ -371,33 +373,61 @@ public class AndroidStudio implements AutoCloseable {
   /**
    * Opens a file and then goes to a specific line and column in the first open project's selected
    * text editor.
-   * @param file the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
-   *            if no file is initially found.
-   * @param line 0-indexed line number.
-   * @param column 0-indexed column number.
+   *
+   * @param file     the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
+   *                 if no file is initially found.
+   * @param line     0-indexed line number.
+   * @param column   0-indexed column number.
    * @see com.intellij.openapi.editor.LogicalPosition
    */
-  public void openFile(String project, String file, Integer line, Integer column) {
-    ASDriver.OpenFileRequest.Builder builder = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file);
-    if (line != null) {
-      builder.setLine(line);
-    }
-    if (column != null) {
-      builder.setColumn(column);
-    }
-    ASDriver.OpenFileRequest rq = builder.build();
-    ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
-    switch (response.getResult()) {
-      case OK -> {}
-      case ERROR ->
-        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. %s",
-                                                      file, project, line, column, formatErrorMessage(response.getErrorMessage())));
-      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
-    }
+  public void openFile(@Nullable String project, @NotNull String file, Integer line, Integer column) {
+    openFile(project, file, false);
+    goTo(line, column);
   }
 
-  public void openFile(String project, String file) {
-    openFile(project, file, null, null);
+  /**
+   * Opens a file and then goes to a specific line and column in the first open project's selected
+   * text editor.
+   *
+   * @param file     the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
+   *                 if no file is initially found.
+   * @param line     0-indexed line number.
+   * @param column   0-indexed column number.
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @see com.intellij.openapi.editor.LogicalPosition
+   */
+  public void openFile(@Nullable String project, @NotNull String file, Integer line, Integer column, boolean isWarmup) {
+    openFile(project, file, isWarmup);
+    goTo(line, column);
+  }
+
+  /**
+   * Method that calls performanceTesting `openFile` command. Command opens the file with a specified path.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenFileCommand
+   * @param filePath path to the file to be opened
+   */
+  public void openFile(@Nullable String project, @NotNull final String filePath) {
+    openFile(project, filePath, false);
+  }
+
+  /**
+   * Opens file in the editor.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenFileCommand
+   * @param filePath path to the file to be opened
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   */
+  public void openFile(@Nullable String project, @NotNull final String filePath, boolean isWarmup) {
+    executeCommand("%openFile " + filePath + (isWarmup ? " WARMUP" : ""), project);
+  }
+
+  /**
+   * Moves the caret of the Editor to a specified position.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.GoToCommand
+   * @param line where the caret will be moved (0-indexed)
+   * @param column on the line where the caret will be moved (0-indexed)
+   */
+  private void goTo(int line, int column) {
+    executeCommand(String.format("%%goto %d %d", line + 1, column + 1), null);
   }
 
   public void editFile(String file, String searchRegex, String replacement) {
@@ -506,6 +536,84 @@ public class AndroidStudio implements AutoCloseable {
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
+  }
+
+  /**
+   * Triggers basic completion in the editor at the current caret position and checks that the specified completion variants were showed.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.CompletionCommand and
+   * com.jetbrains.performancePlugin.commands.AssertCompletionCommand
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @param variants expected completion variants
+   */
+  public void completeCode(boolean isWarmup, String... variants) {
+    StringBuilder builder = new StringBuilder().append("%doComplete");
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
+
+    builder = new StringBuilder().append("%assertCompletionCommand CONTAINS");
+    for (String variant : variants) {
+      builder.append(" ").append(variant);
+    }
+    executeCommand(builder.toString(), null);
+    executeCommand("%pressKey ESCAPE", null);
+  }
+
+  /**
+   * Triggers find usages action with the popup and asserts that the usage from the specific file and line is presented.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.FindUsagesCommand
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @param path to the file of the symbol to be asserted
+   * @param line of the symbol in the file (0-indexed)
+   */
+  public void findUsages(boolean isWarmup, @NotNull final String path, int line) {
+    StringBuilder builder = new StringBuilder().append("%findUsages");
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
+
+    executeCommand(String.format("%%assertFindUsagesEntryCommand -filePath %s|-line %d", path, line + 1), null);
+  }
+
+
+  /**
+   * Closes all editor tabs.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.CloseAllTabsCommand
+   */
+  public void closeAllEditorTabs() {
+    executeCommand("%closeAllTabs", null);
+  }
+
+  /**
+   * Executes an editor action with the specified actionId.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.ExecuteEditorActionCommand
+   * @param actionId id of the action to be executed
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   */
+  public void executeEditorAction(@NotNull final String actionId, boolean isWarmup) {
+    StringBuilder builder = new StringBuilder().append("%executeEditorAction ").append(actionId);
+    if (isWarmup) {
+      builder.append(" WARMUP");
+    }
+    executeCommand(builder.toString(), null);
+  }
+
+  private void executeCommand(@NotNull final String command, @Nullable final String projectName) {
+    ASDriver.ExecuteCommandsRequest.Builder requestBuilder =
+      ASDriver.ExecuteCommandsRequest.newBuilder();
+    requestBuilder.addCommands(command);
+    if (projectName != null) {
+      requestBuilder.setProjectName(projectName);
+    }
+    ASDriver.ExecuteCommandsResponse response = androidStudio.executeCommands(requestBuilder.build());
+    switch (response.getResult()) {
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Failed to execute command: %s.",
+                                                                  formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
   }
 
   public void runWithBleak(Runnable scenario) {

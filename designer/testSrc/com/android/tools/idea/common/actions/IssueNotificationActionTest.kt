@@ -19,6 +19,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.SharedIssuePanelProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,14 +29,23 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.util.TestToolWindowManager
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndWait
 import icons.StudioIcons
+import javax.swing.JComponent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -45,27 +56,35 @@ class IssueNotificationActionTest {
 
   @Rule @JvmField val projectRule = AndroidProjectRule.inMemory()
 
-  @Test
-  fun testOnlyHaveVisualLintIssue() {
-    val action = IssueNotificationAction()
+  private fun createSurface(
+    issueModel: IssueModel,
+    issueProvider: VisualLintIssueProvider,
+    model: NlModel,
+  ): NlDesignSurface {
     val surface = mock<NlDesignSurface>()
-
-    val issueModel = IssueModel(projectRule.testRootDisposable, projectRule.project)
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.project).thenReturn(projectRule.project)
     whenever(surface.supportedActions)
       .thenReturn(ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL))
 
+    whenever(surface.visualLintIssueProvider).thenReturn(issueProvider)
+
+    whenever(surface.models).thenReturn(ImmutableList.of(model))
+
+    return surface
+  }
+
+  @Test
+  fun testOnlyHaveVisualLintIssue() {
+    val issueModel = IssueModel(projectRule.testRootDisposable, projectRule.project)
     val issueProvider =
       object : VisualLintIssueProvider(projectRule.testRootDisposable) {
         override fun customizeIssue(issue: VisualLintRenderIssue) = Unit
       }
-    whenever(surface.visualLintIssueProvider).thenReturn(issueProvider)
-
     val mockedFile = mock<VirtualFile>()
     val model = mock<NlModel>()
     whenever(model.virtualFile).thenReturn(mockedFile)
-    whenever(surface.models).thenReturn(ImmutableList.of(model))
+    val surface = createSurface(issueModel, issueProvider, model)
 
     val actionEvent =
       TestActionEvent.createTestEvent { dataId ->
@@ -76,6 +95,7 @@ class IssueNotificationActionTest {
         }
       }
 
+    val action = IssueNotificationAction()
     action.update(actionEvent)
     assertTrue(actionEvent.presentation.isEnabled)
     assertEquals(IssueNotificationAction.DISABLED_ICON, actionEvent.presentation.icon)
@@ -114,6 +134,58 @@ class IssueNotificationActionTest {
     }
   }
 
+  // Regression test for b/349037677
+  @Suppress("UnstableApiUsage")
+  @Test
+  fun testToggleBehaviour() {
+    projectRule.replaceProjectService(
+      ToolWindowManager::class.java,
+      TestToolWindowManager(projectRule.project),
+    )
+    val manager = ToolWindowManager.getInstance(projectRule.project)
+    val toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    runInEdtAndWait {
+      val contentManager = toolWindow.contentManager
+      val content =
+        contentManager.factory
+          .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
+          .apply { isCloseable = false }
+      contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
+      ProblemsViewToolWindowUtils.addTab(
+        projectRule.project,
+        SharedIssuePanelProvider(projectRule.project),
+      )
+    }
+
+    val issueModel = IssueModel(projectRule.testRootDisposable, projectRule.project)
+    val issueProvider =
+      object : VisualLintIssueProvider(projectRule.testRootDisposable) {
+        override fun customizeIssue(issue: VisualLintRenderIssue) = Unit
+      }
+    val mockedFile = mock<VirtualFile>()
+    val model = mock<NlModel>()
+    whenever(model.virtualFile).thenReturn(mockedFile)
+    val surface = createSurface(issueModel, issueProvider, model)
+
+    val actionEvent =
+      TestActionEvent.createTestEvent { dataId ->
+        when {
+          PlatformDataKeys.PROJECT.`is`(dataId) -> projectRule.project
+          DESIGN_SURFACE.`is`(dataId) -> surface
+          else -> null
+        }
+      }
+
+    val action = IssueNotificationAction()
+    action.setSelected(actionEvent, true)
+    assertTrue(IssuePanelService.getInstance(projectRule.project).isIssuePanelVisible())
+    action.setSelected(actionEvent, true)
+    assertTrue(IssuePanelService.getInstance(projectRule.project).isIssuePanelVisible())
+    action.setSelected(actionEvent, false)
+    assertFalse(IssuePanelService.getInstance(projectRule.project).isIssuePanelVisible())
+  }
+
   @Test
   fun testActionNotVisibleIfActionIsNotSupported() {
     val surface = mock<NlDesignSurface>()
@@ -143,4 +215,10 @@ class IssueNotificationActionTest {
       .components(mutableListOf(NlComponent(nlModel, 570L)))
       .type(VisualLintErrorType.BOUNDS)
       .build()
+}
+
+private class TestContentComponent(private val id: String) : JComponent(), ProblemsViewTab {
+  override fun getName(count: Int): String = id
+
+  override fun getTabId(): String = id
 }

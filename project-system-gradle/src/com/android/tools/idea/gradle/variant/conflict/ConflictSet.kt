@@ -62,7 +62,7 @@ class ConflictSet private constructor(
 
     @JvmStatic
     fun findConflicts(project: Project): ConflictSet {
-      val androidHolderModules = project.getAndroidFacets().map { it.holderModule }
+      val androidHolderModules = project.getAndroidFacets().map { it.module }
 
       val modulesByPath = androidHolderModules
         .asSequence()

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.annotations.concurrency.Slow;
@@ -36,6 +35,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
@@ -121,7 +121,7 @@ public class AvdManagerConnection {
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
 
-  public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
+  public static final String HW_LCD_DENSITY = "hw.lcd.density";
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
 
@@ -321,7 +321,7 @@ public class AvdManagerConnection {
     }
     assert mySdkHandler != null;
 
-    String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
+    String skinPath = info.getProperties().get(SKIN_PATH);
     if (skinPath != null) {
       Path skin = mySdkHandler.toCompatiblePath(skinPath);
       // For historical reasons skin.path in config.ini may be a path relative to SDK
@@ -750,7 +750,7 @@ public class AvdManagerConnection {
 
   @Nullable
   public static String getRequiredSystemImagePath(@NotNull AvdInfo avdInfo) {
-    String imageSystemDir = avdInfo.getProperties().get(AvdManager.AVD_INI_IMAGES_1);
+    String imageSystemDir = avdInfo.getProperties().get(ConfigKey.IMAGES_1);
     if (imageSystemDir == null) {
       return null;
     }

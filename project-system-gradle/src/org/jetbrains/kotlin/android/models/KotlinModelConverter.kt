@@ -202,6 +202,10 @@ class KotlinModelConverter {
     useAndroidX = booleanFlagValuesList.firstOrNull {
       it.flag == ProtoBooleanFlag.USE_ANDROID_X
     }?.value ?: BooleanFlag.USE_ANDROID_X.legacyDefault,
+
+    dataBindingEnabled = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.DATA_BINDING_ENABLED
+    }?.value ?: BooleanFlag.DATA_BINDING_ENABLED.legacyDefault
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(
@@ -472,6 +476,7 @@ class KotlinModelConverter {
           applicationId = null,
           testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
           buildType = null,
+          false,
         )
       ),
       defaultVariantName = kotlinMultiplatformAndroidVariantName,

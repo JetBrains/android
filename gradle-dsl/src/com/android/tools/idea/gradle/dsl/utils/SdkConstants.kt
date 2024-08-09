@@ -30,5 +30,6 @@ const val FN_SETTINGS_GRADLE_KTS = "settings.gradle.kts"
 const val FN_SETTINGS_GRADLE_DECLARATIVE = "settings.gradle.dcl"
 
 const val EXT_VERSIONS_TOML = "versions.toml"
+const val EXT_TOML = ".toml"
 
 const val GRADLE_PATH_SEPARATOR = ":"

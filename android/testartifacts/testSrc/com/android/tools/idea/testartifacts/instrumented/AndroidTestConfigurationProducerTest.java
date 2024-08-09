@@ -278,8 +278,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       "}");
 
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
-    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
-
+    IndexingTestUtil.waitUntilIndexesAreReady(myFixture.getProject());
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.SomeTest.InnerClassTest");
     assertEquals("google.simpleapplication.SomeTest$InnerClassTest", runConfig.CLASS_NAME);
   }

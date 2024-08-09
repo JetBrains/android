@@ -22,8 +22,15 @@ import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibil
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsupportedAnimationManager
+import com.android.tools.idea.compose.preview.animation.managers.FromToSupportedAnimationManager
+import com.android.tools.idea.compose.preview.animation.state.BooleanFromToState
+import com.android.tools.idea.compose.preview.animation.state.ComposeColorState
+import com.android.tools.idea.compose.preview.animation.state.EnumFromToState
+import com.android.tools.idea.compose.preview.animation.state.FromToStateComboBox
+import com.android.tools.idea.compose.preview.animation.state.PickerState
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationPreview
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -92,8 +99,7 @@ class ComposeAnimationPreview(
       removeAnimation(animation).join()
       val tab = withContext(uiThread) { createAnimationManager(animation) }
       tab.setup()
-      withContext(uiThread) { addAnimationManager(tab) }
-      updateTimelineElements()
+      addAnimationManager(tab)
     }
 
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
@@ -118,32 +124,54 @@ class ComposeAnimationPreview(
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          timeline,
+          getCurrentTime = { clockControl.currentValue() },
           ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { updateTimelineElements() },
+          {
+            updateTimelineElements()
+            renderAnimation()
+          },
           scope,
         )
       ComposeAnimationType.TRANSITION_ANIMATION,
       ComposeAnimationType.ANIMATE_X_AS_STATE,
       ComposeAnimationType.ANIMATED_CONTENT,
-      ComposeAnimationType.INFINITE_TRANSITION ->
-        ComposeSupportedAnimationManager(
+      ComposeAnimationType.INFINITE_TRANSITION -> {
+        val states = animation.states
+        val currentState = animation.getCurrentState()
+        val unit = ComposeUnit.parseStateUnit(currentState)
+        val state =
+          when {
+            unit is ComposeUnit.Color ->
+              ComposeColorState(tracker, unit, states.lastOrNull()?.let { unit.create(it) })
+            unit !is AnimationUnit.UnitUnknown ->
+              PickerState(tracker, states.firstOrNull(), states.lastOrNull())
+            currentState is Boolean -> BooleanFromToState(tracker, currentState)
+            currentState is Enum<*> ->
+              EnumFromToState(tracker, states.toSet() as Set<Enum<*>>, currentState)
+            else -> FromToStateComboBox(tracker, states, currentState)
+          }
+        FromToSupportedAnimationManager(
           animation,
           tabNames.createName(animation),
           tracker,
           animationClock!!,
           maxDurationPerIteration,
-          timeline,
+          getCurrentTime = { clockControl.currentValue() },
           ::executeInRenderSession,
           tabbedPane,
           rootComponent,
           playbackControls,
-          { updateTimelineElements() },
+          {
+            updateTimelineElements()
+            renderAnimation()
+          },
           scope,
+          state,
         )
+      }
       ComposeAnimationType.ANIMATED_VALUE,
       ComposeAnimationType.ANIMATABLE,
       ComposeAnimationType.ANIMATE_CONTENT_SIZE,
@@ -159,10 +187,7 @@ class ComposeAnimationPreview(
    */
   override fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
-      withContext(uiThread) {
-        animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
-      }
-      updateTimelineElements()
+      animations.find { it.animation == animation }?.let { removeAnimationManager(it) }
     }
 
   override fun invalidatePanel() =
@@ -171,3 +196,17 @@ class ComposeAnimationPreview(
       tabNames.clear()
     }
 }
+
+private fun ComposeAnimation.getCurrentState() =
+  when (type) {
+    ComposeAnimationType.TRANSITION_ANIMATION ->
+      animationObject::class
+        .java
+        .methods
+        .singleOrNull { it.name == "getCurrentState" }
+        ?.let {
+          it.isAccessible = true
+          it.invoke(animationObject)
+        } ?: states.firstOrNull()
+    else -> states.firstOrNull()
+  }

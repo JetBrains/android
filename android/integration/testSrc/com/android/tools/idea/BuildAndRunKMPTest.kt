@@ -22,9 +22,12 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics
 import com.android.tools.perflogger.Benchmark
+import com.android.tools.perflogger.Metric
+import com.android.tools.perflogger.Metric.MetricSample
 import com.android.tools.perflogger.PerfData
 import org.junit.Rule
 import org.junit.Test
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 class BuildAndRunKMPTest {
@@ -36,9 +39,12 @@ class BuildAndRunKMPTest {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
+  val metric = Metric("Time-elapsed")
+
   @Test
   fun buildAndRunKmpTest() {
     val benchmark = createBenchmark()
+    val startTime = System.currentTimeMillis()
 
     benchmark.log("test_start", System.currentTimeMillis())
 
@@ -56,8 +62,10 @@ class BuildAndRunKMPTest {
           println("Finished waiting for index")
 
           println("Waiting for boot")
+          metric.addSamples(Benchmark.Builder("KMP-before-boot").setProject("Android Studio E2E").build(), MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime ))
           benchmark.log("calling_waitForBoot", System.currentTimeMillis())
           emulator.waitForBoot()
+          metric.addSamples(Benchmark.Builder("KMP-after-boot").setProject("Android Studio E2E").build(), MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime ))
           benchmark.log("after_waitForBoot", System.currentTimeMillis())
 
           studio.executeAction("MakeGradleProject")
@@ -71,7 +79,9 @@ class BuildAndRunKMPTest {
 
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.google\\.samples\\.apps\\.kmp", 60, TimeUnit.SECONDS)
           emulator.logCat.waitForMatchingLine(".*Hello World!.*", 30, TimeUnit.SECONDS)
+          metric.addSamples(Benchmark.Builder("KMP-total-time").setProject("Android Studio E2E").build(), MetricSample(Instant.now().toEpochMilli(), System.currentTimeMillis() - startTime ))
           benchmark.log("test_end", System.currentTimeMillis())
+          metric.commit()
         }
       }
     }

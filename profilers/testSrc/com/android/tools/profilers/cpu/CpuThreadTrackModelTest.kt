@@ -78,7 +78,7 @@ class CpuThreadTrackModelTest {
     val nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(node)
     // Make sure the size of the constructed map is correct.
     assertThat(nameToNodes.size).isEqualTo(30)
-    assertThat(nameToNodes.containsKey("main"))
+    assertThat(nameToNodes).containsKey("main")
     // Check one element to make sure it has the right data.
     assertThat(nameToNodes["main"]!!.size).isEqualTo(1)
     assertThat(nameToNodes["main"]!!.get(0).data.fullName).isEqualTo("main")

@@ -24,8 +24,8 @@ import com.intellij.testFramework.JavaPsiTestCase
 class NullabilityUtilsTest : JavaPsiTestCase() {
   fun testCanCreateNullabilityAnnotationFromProject() {
     val nullNotNullManager = NullableNotNullManager.getInstance(project)
-    assertThat(nullNotNullManager.notNulls.map { "@$it" }.contains(project.createNullabilityAnnotation(true, null).text))
-    assertThat(nullNotNullManager.nullables.map { "@$it" }.contains(project.createNullabilityAnnotation(false, null).text))
+    assertThat(nullNotNullManager.notNulls.map { "@$it" }).contains(project.createNullabilityAnnotation(true, null).text)
+    assertThat(nullNotNullManager.nullables.map { "@$it" }).contains(project.createNullabilityAnnotation(false, null).text)
   }
 
   fun testCanAnnotateTypesWithNullabilityAnnotations() {
@@ -33,7 +33,7 @@ class NullabilityUtilsTest : JavaPsiTestCase() {
     val nonNullDummyType = project.annotateType(dummyType, true, null)
     val nullableDummyType = project.annotateType(dummyType, false, null)
 
-    assertThat(nonNullDummyType.annotations.contains(project.createNullabilityAnnotation(true, null)))
-    assertThat(nullableDummyType.annotations.contains(project.createNullabilityAnnotation(false, null)))
+    assertThat(nonNullDummyType.annotations.single().text).isEqualTo(project.createNullabilityAnnotation(true, null).text)
+    assertThat(nullableDummyType.annotations.single().text).isEqualTo(project.createNullabilityAnnotation(false, null).text)
   }
 }

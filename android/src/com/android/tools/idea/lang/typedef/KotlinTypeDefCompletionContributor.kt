@@ -16,10 +16,12 @@
 package com.android.tools.idea.lang.typedef
 
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.codeInsight.KotlinCodeInsightWorkspaceSettings
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -31,8 +33,8 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 /**
- * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations
- * for a code completion on a [KtValueArgument].
+ * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for
+ * a code completion on a [KtValueArgument].
  *
  * See also [IntDef](https://developer.android.com/reference/androidx/annotation/IntDef),
  * [LongDef](https://developer.android.com/reference/androidx/annotation/LongDef), and
@@ -43,14 +45,22 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
   override val elementPattern: ElementPattern<PsiElement> =
     PlatformPatterns.psiElement().inside(PlatformPatterns.psiElement(KtValueArgument::class.java))
 
-  override val insertHandler = object : TypeDefInsertHandler() {
-    override fun bindToTarget(context: InsertionContext, target: PsiElement) {
-      val expr = context.getParent() as? KtReferenceExpression ?: return
-      (expr.mainReference as? KtSimpleNameReference)?.bindToElement(target, ShorteningMode.FORCED_SHORTENING)
-    }
-  }
+  override val insertHandler =
+    object : TypeDefInsertHandler() {
+      override fun shouldOptimizeImports(project: Project) =
+        KotlinCodeInsightWorkspaceSettings.getInstance(project).optimizeImportsOnTheFly
 
-  override fun computeConstrainingTypeDef(position: PsiElement) = position.parentOfType<KtValueArgument>()?.getTypeDef()
+      override fun bindToTarget(context: InsertionContext, target: PsiElement) {
+        val expr = context.getParent() as? KtReferenceExpression ?: return
+        (expr.mainReference as? KtSimpleNameReference)?.bindToElement(
+          target,
+          ShorteningMode.FORCED_SHORTENING,
+        )
+      }
+    }
+
+  override fun computeConstrainingTypeDef(position: PsiElement) =
+    position.parentOfType<KtValueArgument>()?.getTypeDef()
 
   /**
    * Returns typedef values for the first typedef annotation encountered, or `null` if there is no
@@ -60,10 +70,12 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
     if (this is KtLambdaArgument) return null
 
     val calleeElement =
-      parentOfType<KtCallElement>()?.calleeExpression
+      parentOfType<KtCallElement>()
+        ?.calleeExpression
         ?.let { if (it is KtConstructorCalleeExpression) it.constructorReferenceExpression else it }
-        ?.mainReference?.resolve()?.navigationElement
-      ?: return null
+        ?.mainReference
+        ?.resolve()
+        ?.navigationElement ?: return null
 
     val index = (parent as KtValueArgumentList).arguments.indexOf(this)
     val name = getArgumentName()?.asName?.asString()

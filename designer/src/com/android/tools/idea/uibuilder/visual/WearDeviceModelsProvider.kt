@@ -21,7 +21,7 @@ import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
@@ -53,7 +53,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    buildTarget: BuildTargetReference,
+    buildTarget: AndroidBuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -91,8 +91,8 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.setTooltip(config.toHtmlTooltip())
-      model.setDisplayName(device.displayName)
+      model.displaySettings.setTooltip(config.toHtmlTooltip())
+      model.displaySettings.setDisplayName(device.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

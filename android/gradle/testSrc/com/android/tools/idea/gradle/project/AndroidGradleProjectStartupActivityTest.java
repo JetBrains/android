@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,12 +25,21 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.execution.RunConfigurationProducerService;
+import com.intellij.execution.junit.JUnitConfigurationProducer;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
+import io.github.classgraph.ClassGraph;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.NotNull;
@@ -123,5 +133,38 @@ public class AndroidGradleProjectStartupActivityTest {
     catch(InterruptedException ignored) { }
 
     assertThat(myRequest).isNull();
+  }
+
+  @Test
+  public void testJunitProducersAreIgnored() {
+    Project project = myProjectRule.getProject();
+    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(project).getState().ignoredProducers;
+    assertThat(ignoredProducersService.size()).isEqualTo(4);
+
+    Set<ClassLoader> classLoaders = PluginManager.getLoadedPlugins().stream().map(PluginDescriptor::getClassLoader).collect(Collectors.toSet());
+    Class<JUnitConfigurationProducer> junitProducerClass = JUnitConfigurationProducer.class;
+    ClassGraph graph = new ClassGraph();
+    for (ClassLoader loader : classLoaders)
+    {
+      graph.addClassLoader(loader);
+    }
+    Set<String> jUnitProducersNames = graph.enableClassInfo()
+      .scan()
+      .getAllClasses()
+      .stream()
+      .map( n -> {
+        try {
+          return n.loadClass();
+        } catch (Throwable e) {
+          return null;
+        }
+
+      })
+      .filter(Objects::nonNull)
+      .filter(junitProducerClass::isAssignableFrom)
+      .filter(it -> !Modifier.isAbstract(it.getModifiers()))
+      .map(Class::getName)
+      .collect(Collectors.toSet());
+    assertThat(ignoredProducersService).containsAllIn(jUnitProducersNames);
   }
 }

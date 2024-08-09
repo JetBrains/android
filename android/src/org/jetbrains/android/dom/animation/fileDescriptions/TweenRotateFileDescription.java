@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
-import org.jetbrains.android.dom.drawable.Rotate;
+import org.jetbrains.android.dom.animation.Rotate;
 
 /**
  * @see TweenSetFileDescription

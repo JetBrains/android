@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -128,7 +128,7 @@ class NonTransitiveResourcesLoaderTest() {
     // We do not need any of the services offered by LayoutLibrary in this test so just mock it.
     val layoutlib = mock<LayoutLibrary>()
     val facet = app.androidFacet ?: fail(":app does not have an android facet")
-    val viewLoader = ViewLoader(layoutlib, AndroidFacetRenderModelModule(BuildTargetReference.gradleOnly(facet)), IRenderLogger.NULL_LOGGER, null, delegateClassLoader)
+    val viewLoader = ViewLoader(layoutlib, AndroidFacetRenderModelModule(AndroidBuildTargetReference.gradleOnly(facet)), IRenderLogger.NULL_LOGGER, null, delegateClassLoader)
     viewLoader.loadAndParseRClassSilently()
     val idManager = StudioResourceIdManager.get(app)
     assertThat(idManager).isNotNull()

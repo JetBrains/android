@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -123,6 +124,7 @@ object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
  * annotation that is annotated with @Preview or with other MultiPreview.
  */
+@RequiresReadLock
 fun isMultiPreviewAnnotation(annotation: UAnnotation) =
   !isGlancePreview(annotation) &&
     annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&

@@ -1,12 +1,13 @@
-import tempfile
-import shutil
-import tarfile
-import sys
-import argparse
-import os
-import subprocess
-import glob
 from collections import defaultdict
+import argparse
+import datetime
+import glob
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
 import zipfile
 
 def files_in_dir(root, base = None):
@@ -42,7 +43,7 @@ def jps_build(args, environment, cwd):
         workspace = tempfile.mkdtemp()
 
     for source in args.sources:
-        print("Setting up source: " + source)
+        print("Setting up source: " + source + " @ " + str(datetime.datetime.now()))
         if source.endswith(".tar"):
             with tarfile.open(source, "r") as tar:
                 if not args.reuse_workspace:
@@ -77,12 +78,14 @@ def jps_build(args, environment, cwd):
     bin_cwd = os.path.join(workspace, args.working_directory)
     bin_path = os.path.join(bin_cwd, args.command)
 
+    print("Running at: " + str(datetime.datetime.now()))
     cmd = [bin_path]
     cmd.extend([s.replace("{jps_bin_cwd}", bin_cwd) for s in args.args])
     if args.verbose:
         print("Running " + " ".join(cmd))
     retcode = subprocess.call(cmd, cwd=bin_cwd, env=env)
 
+    print("Done running at: " + str(datetime.datetime.now()))
     if retcode == 0:
         all_files = set(files_in_dir(workspace))
 
@@ -115,6 +118,7 @@ def jps_build(args, environment, cwd):
         shutil.rmtree(workspace)
     else:
         print("Leaving " + workspace + " behind.")
+    print("Done copying at: " + str(datetime.datetime.now()))
 
     return retcode
 

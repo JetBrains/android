@@ -40,6 +40,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
@@ -287,10 +288,10 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    assertThat(parameters.mode)
-      .isEqualTo(
+    assertThat(
         LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
       )
+      .isEqualTo(parameters.mode)
 
     // trigger initialization
     StudioResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
@@ -326,6 +327,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
         .map { classReader -> classReader.className to classReader }
         .toMap()
 
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
 
     // The data binding compiler generates a bunch of stuff we don't care about in Studio. The

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.io.ZipUtil
@@ -52,7 +53,9 @@ object Dependencies {
    */
   fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String): Map<String, GradleVersion> {
     val loader = DependencyLoader(fixture)
-    return loader.loadAll(*dependencyNames)
+    val loadedDependencies = loader.loadAll(*dependencyNames)
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
+    return loadedDependencies
   }
 
   private class DependencyLoader(val fixture: CodeInsightTestFixture) {

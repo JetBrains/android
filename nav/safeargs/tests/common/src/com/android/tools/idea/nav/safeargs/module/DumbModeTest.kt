@@ -60,7 +60,7 @@ class DumbModeTest {
       """
         .trimIndent()
     val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
-    safeArgsRule.waitForResourceRepositoryUpdates()
+    safeArgsRule.waitForPendingUpdates()
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
     // 1 NavArgumentData
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)

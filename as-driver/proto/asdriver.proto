@@ -11,13 +11,13 @@ service AndroidStudio {
 
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
+  rpc ExecuteCommands(ExecuteCommandsRequest) returns (ExecuteCommandsResponse) {}
+
   rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
 
   rpc InvokeComponent(InvokeComponentRequest) returns (InvokeComponentResponse) {}
 
   rpc WaitForIndex(WaitForIndexRequest) returns (WaitForIndexResponse) {}
-
-  rpc OpenFile(OpenFileRequest) returns (OpenFileResponse) {}
 
   rpc EditFile(EditFileRequest) returns (EditFileResponse) {}
 
@@ -66,6 +66,21 @@ message ExecuteActionResponse {
     ERROR = 2;
   }
   ExecuteActionResponse.Result result = 1;
+  string error_message = 2;
+}
+
+message ExecuteCommandsRequest {
+  repeated string commands = 1;
+
+  optional string project_name = 2;
+}
+
+message ExecuteCommandsResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  ExecuteCommandsResponse.Result result = 1;
   string error_message = 2;
 }
 
@@ -124,23 +139,6 @@ message InvokeComponentResponse {
 message WaitForIndexRequest {}
 
 message WaitForIndexResponse {}
-
-message OpenFileRequest {
-  string project = 1;
-  string file = 2;
-
-  optional uint32 line = 3;
-  optional uint32 column = 4;
-}
-
-message OpenFileResponse {
-  enum Result {
-    OK = 0;
-    ERROR = 1;
-  }
-  OpenFileResponse.Result result = 1;
-  string error_message = 2;
-}
 
 message EditFileRequest {
   string file = 1;

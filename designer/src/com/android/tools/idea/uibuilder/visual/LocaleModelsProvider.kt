@@ -22,7 +22,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -51,7 +51,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    buildTarget: BuildTargetReference,
+    buildTarget: AndroidBuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -87,8 +87,8 @@ object LocaleModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, defaultFile, defaultLocaleConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      firstModel.setTooltip(defaultLocaleConfig.toHtmlTooltip())
-      firstModel.setDisplayName("Default (no locale)")
+      firstModel.displaySettings.setTooltip(defaultLocaleConfig.toHtmlTooltip())
+      firstModel.displaySettings.setDisplayName("Default (no locale)")
       models.add(firstModel)
 
       registerModelsProviderConfigurationListener(
@@ -115,8 +115,8 @@ object LocaleModelsProvider : VisualizationModelsProvider {
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.setTooltip(config.toHtmlTooltip())
-      model.setDisplayName(label)
+      model.displaySettings.setTooltip(config.toHtmlTooltip())
+      model.displaySettings.setDisplayName(label)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)

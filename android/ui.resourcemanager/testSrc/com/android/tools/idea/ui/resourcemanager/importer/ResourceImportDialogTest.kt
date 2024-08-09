@@ -81,7 +81,7 @@ class ResourceImportDialogTest {
       override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
         File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
     }
-    maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable, areaInstance = rule.project)
+    maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable)
     rule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
     dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!,
                                                     getAssets(

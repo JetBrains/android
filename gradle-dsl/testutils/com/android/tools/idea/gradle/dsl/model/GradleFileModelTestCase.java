@@ -137,8 +137,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected VirtualFile myProjectBasePath;
 
-  protected String myCustomRootFolder;
-
   @NotNull
   @Contract(pure = true)
   @Parameters(name = "{1}")
@@ -148,10 +146,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       {".gradle.kts", KOTLIN_LANGUAGE},
       {".gradle.dcl", GRADLE_DECLARATIVE_LANGUAGE}
     });
-  }
-
-  protected void customizeRootDir(String root){
-    myCustomRootFolder = root;
   }
 
   protected boolean isGroovy() { return myLanguageName.equals(GROOVY_LANGUAGE); }
@@ -908,7 +902,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       @Nullable
       @Override
       public @SystemIndependent String getGradleProjectRootPath(@NotNull Project project) {
-        if(myCustomRootFolder != null) return myCustomRootFolder;
         VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
         if (projectDir == null) return null;
         return projectDir.getPath();

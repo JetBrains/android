@@ -28,9 +28,11 @@ import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationInspectorManager
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
@@ -42,9 +44,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
@@ -334,8 +336,8 @@ class ComposePreviewRepresentation(
   fun filteredPreviewElementsInstancesFlowForTest() =
     composePreviewFlowManager.filteredPreviewElementsFlow
 
-  private val projectBuildStatusManager =
-    ProjectBuildStatusManager.create(
+  private val renderingBuildStatusManager =
+    RenderingBuildStatusManager.create(
       this,
       psiFile,
       onReady = {
@@ -344,7 +346,7 @@ class ComposePreviewRepresentation(
         when (it) {
           // Do not refresh if we still need to build the project. Instead, only update the
           // empty panel and editor notifications if needed.
-          ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
+          RenderingBuildStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
           else -> requestRefresh()
         }
       },
@@ -656,7 +658,7 @@ class ComposePreviewRepresentation(
           composePreviewViewProvider.invoke(
             project,
             psiFilePointer,
-            projectBuildStatusManager,
+            renderingBuildStatusManager,
             dataProvider,
             createMainDesignSurfaceBuilder(
               project,
@@ -848,7 +850,7 @@ class ComposePreviewRepresentation(
         ::requestRefresh,
         delegateFastPreviewSurface::requestFastPreviewRefreshSync,
         ::restorePrevious,
-        { projectBuildStatusManager.status },
+        { renderingBuildStatusManager.status },
         { composeWorkBench.updateVisibilityAndNotifications() },
       )
     }
@@ -954,11 +956,11 @@ class ComposePreviewRepresentation(
     WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
   override fun status(): ComposePreviewManager.Status {
-    val projectBuildStatus = projectBuildStatusManager.status
+    val projectBuildStatus = renderingBuildStatusManager.status
     val isRefreshing =
       (refreshManager.refreshingTypeFlow.value != null ||
         DumbService.isDumb(project) ||
-        projectBuildStatus == ProjectStatus.Building)
+        projectBuildStatus == RenderingBuildStatus.Building)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the
     // preview
@@ -968,10 +970,10 @@ class ComposePreviewRepresentation(
         !isRefreshing && hasErrorsAndNeedsBuild(),
         !isRefreshing && hasSyntaxErrors(),
         !isRefreshing &&
-          (projectBuildStatus is ProjectStatus.OutOfDate ||
-            projectBuildStatus is ProjectStatus.NeedsBuild),
+          (projectBuildStatus is RenderingBuildStatus.OutOfDate ||
+            projectBuildStatus is RenderingBuildStatus.NeedsBuild),
         !isRefreshing &&
-          (projectBuildStatus as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
+          (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
         psiFilePointer.element,
       )
@@ -1018,7 +1020,12 @@ class ComposePreviewRepresentation(
     // controlled by the Compose clock. For that reason, we need to call
     // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
     // and displayed in static preview.
-    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
+    surface.sceneManagers.forEach {
+      ComposeAnimationToolbarUpdater.update(this, it) {
+        AnimationToolingUsageTracker.getInstance(surface)
+      }
+      it.executeCallbacksAndRequestRender()
+    }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
     // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens
@@ -1251,7 +1258,7 @@ class ComposePreviewRepresentation(
           return@launchWithProgress
         }
 
-        if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+        if (renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild) {
           // Project needs to be built before being able to refresh.
           requestLogger.debug("Project has not build, not able to refresh")
           return@launchWithProgress

@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME
+import com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME
 import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
@@ -265,7 +265,7 @@ class AndroidDeviceSpecUtilTest {
     whenever(avdInfo.properties).thenReturn(
       mapOf(
         Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString()),
-        Pair(AVD_INI_DEVICE_NAME, name)
+        Pair(DEVICE_NAME, name)
       )
     )
     whenever(avdInfo.userSettings).thenReturn(mapOf())

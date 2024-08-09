@@ -22,6 +22,7 @@ import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesChangeListener
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
+import com.android.tools.idea.nav.safeargs.waitForPendingUpdates
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -90,6 +91,7 @@ class ProjectNavigationResourceModificationTrackerTest {
         fixture.project,
       )
     }
+    waitForPendingUpdates(appModule)
     // picked up 1 document change
     assertThat(
         ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
@@ -105,6 +107,7 @@ class ProjectNavigationResourceModificationTrackerTest {
         fixture.project,
       )
     }
+    waitForPendingUpdates(depModule)
     // picked up 1 document change
     assertThat(
         ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount

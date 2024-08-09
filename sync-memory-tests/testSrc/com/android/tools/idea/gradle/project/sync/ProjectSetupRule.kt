@@ -26,6 +26,7 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.map2Array
 import org.junit.rules.ExternalResource
+import java.io.File
 import java.nio.file.Paths
 
 private const val DIRECTORY = "benchmark"
@@ -84,6 +85,7 @@ interface ProjectSetupRule {
   val projectName: String
   val project: BenchmarkProject
   val useLatestGradle: Boolean
+  val useLatestKotlin: Boolean
   fun openProject(body: (Project) -> Any = {})
   fun addListener(listener: GradleSyncListenerWithRoot)
 }
@@ -92,6 +94,7 @@ class ProjectSetupRuleImpl(
   override val projectName: String,
   override val project: BenchmarkProject,
   override val useLatestGradle: Boolean,
+  override val useLatestKotlin: Boolean,
   testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
   val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
@@ -114,6 +117,8 @@ class ProjectSetupRuleImpl(
         agpVersion =
         if (useLatestGradle)
           AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+        else if (useLatestKotlin)
+          AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
         else
           AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
     ).open(
@@ -141,12 +146,20 @@ class ProjectSetupRuleImpl(
       )
 
       unzipIntoOfflineMavenRepo("${project.projectPath}/repo.zip")
-      if (TestUtils.runningFromBazel()) { // If not running from bazel, you'll need to make sure
+      if (TestUtils.runningFromBazel()) {
+        // If not running from bazel, you'll need to make sure
         // latest AGP is published, with databinding artifacts.
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
         unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
-        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
+        "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest".unzipIfExists()
+        "tools/base/build-system/integration-test/latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks.manifest".unzipIfExists()
+      }
+    }
+
+    private fun String.unzipIfExists() {
+      if (File(this).exists()) {
+        linkIntoOfflineMavenRepo(this)
       }
     }
 

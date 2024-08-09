@@ -56,7 +56,10 @@ internal fun findCompatibleFacets(project: Project): List<AndroidFacet> =
  * True if the given [androidFacet] is supported in the ResourceExplorer.
  */
 internal fun compatibleFacetExists(androidFacet: AndroidFacet): Boolean =
-  findCompatibleFacets(androidFacet.module.project).any { compatibleFacet -> androidFacet.mainModule.androidFacet == compatibleFacet }
+  when (val mainFacet = androidFacet.module.getMainModule().androidFacet) {
+    null -> false
+    else -> findCompatibleFacets(androidFacet.module.project).any { compatibleFacet -> mainFacet == compatibleFacet }
+  }
 
 internal fun getFacetForModuleName(moduleName: String?, project: Project): AndroidFacet? {
   return findCompatibleFacets(project).firstOrNull { it.module.name == moduleName }

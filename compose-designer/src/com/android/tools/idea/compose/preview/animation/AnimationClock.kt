@@ -48,11 +48,16 @@ internal fun AnimationClock.setClockTimes(clockTimeMillis: Map<ComposeAnimation,
 /**
  * Updates the TransitionState corresponding to the given [ComposeAnimation] in the transitionStates
  * map, creating a TransitionState with the given [fromState] and [toState].
+ *
+ * [fromState] and [toState] being list is the expectation on androidx, i.e. it will always receive
+ * a list and try to parse it accordingly. Values passed here are always wrapped into a list: either
+ * a singleton list containing a 1-dimension value, or the list of components for n-dimension
+ * values.
  */
 internal fun AnimationClock.updateFromAndToStates(
   animation: ComposeAnimation,
-  fromState: Any,
-  toState: Any,
+  fromState: List<Any?>,
+  toState: List<Any?>,
 ) {
   updateFromAndToStatesFunction.invoke(clock, animation, fromState, toState)
 }

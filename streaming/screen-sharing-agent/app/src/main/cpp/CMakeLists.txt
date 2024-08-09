@@ -17,6 +17,7 @@ add_library(
         accessors/audio_manager.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
+        accessors/display_control.cc
         accessors/display_info.cc
         accessors/display_listener_dispatcher.cc
         accessors/display_manager.cc
@@ -44,6 +45,7 @@ add_library(
         log.cc
         main.cc
         scoped_setting.cc
+        shell_command.cc
         shell_command_executor.cc
         session_environment.cc
         settings.cc

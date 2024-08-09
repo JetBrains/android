@@ -33,7 +33,7 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-ide-plugin.tests",
     iml_files = ["intellij.android.compose-ide-plugin.tests.iml"],
-    tags = ["no_test_windows"],  # b/208245297
+    tags = ["noci:studio-win"],  # b/208245297
     test_class = "com.android.tools.tests.ComposeTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:build-tools/latest",

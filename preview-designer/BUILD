@@ -38,7 +38,7 @@ iml_module(
 iml_module(
     name = "intellij.android.preview-designer.tests",
     iml_files = ["intellij.android.preview-designer.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -74,5 +74,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
     ],
 )

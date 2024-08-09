@@ -5,14 +5,12 @@ android {
     defaultConfig {
         minSdkVersion 19
     }
-    flavorDimensions "dim1", "dim2", "dim3"
+    flavorDimensions "dim1", "dim2"
     productFlavors {
       fl1 { dimension "dim1" }
       fl2 { dimension "dim1" }
       ab { dimension "dim2" }
       xy { dimension "dim2" }
-      dimFl1 { dimension "dim3" }
-      dimFl2 { dimension "dim3" }
     }
 }
 

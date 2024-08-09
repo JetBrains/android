@@ -46,7 +46,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
         .build()
     val surface = LayoutTestUtilities.createScreen(model).surface
     surface.scene!!.buildDisplayList(DisplayList(), 0)
-    surface.model = model
+    surface.setModel(model)
 
     val layoutResource =
       StudioResourceRepositoryManager.getModuleResources(myFixture.module.androidFacet!!)
@@ -92,7 +92,7 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
         .build()
     val surface = LayoutTestUtilities.createScreen(model).surface
     surface.scene!!.buildDisplayList(DisplayList(), 0)
-    surface.model = model
+    surface.setModel(model)
 
     val layoutResource =
       StudioResourceRepositoryManager.getModuleResources(myFixture.module.androidFacet!!)

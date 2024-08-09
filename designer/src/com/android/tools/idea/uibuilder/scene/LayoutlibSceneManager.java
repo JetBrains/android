@@ -21,7 +21,6 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
-import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.shouldRefreshInPowerSaveMode;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -46,7 +45,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.SceneUpdateListener;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
@@ -54,7 +52,6 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.modes.essentials.EssentialsMode;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -93,7 +90,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
@@ -111,16 +107,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,7 +132,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
-  private final DesignSurfaceProgressIndicator myProgressIndicator;
   private final RenderingQueue myRenderingQueue;
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
@@ -148,7 +140,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
   private SessionClock mySessionClock;
-  private final Supplier<SessionClock> mySessionClockFactory;
   // Protects all accesses to the myRenderTask reference. RenderTask calls to render and layout do not need to be protected
   // since RenderTask is able to handle those safely.
   private final Object myRenderingTaskLock = new Object();
@@ -285,34 +276,17 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param renderingQueueFactory      a factory to create a {@link RenderingQueue}.
    * @param sceneComponentProvider     a {@link SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
-   * @param sceneUpdateListener        a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
-   * @param sessionClockFactory        a factory to create a session clock used in the interactive preview.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                                  @Nullable SceneUpdateListener sceneUpdateListener,
-                                  @NotNull LayoutScannerConfiguration layoutScannerConfig,
-                                  @NotNull Supplier<SessionClock> sessionClockFactory) {
-    super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
-    myProgressIndicator = new DesignSurfaceProgressIndicator(new ProgressRegistration() {
-
-      @Override
-      public void unregisterIndicator(@NotNull ProgressIndicatorBase indicator) {
-        designSurface.unregisterIndicator(indicator);
-      }
-
-      @Override
-      public void registerIndicator(@NotNull ProgressIndicatorBase indicator) {
-        designSurface.registerIndicator(indicator);
-      }
-    });
+                                  @NotNull LayoutScannerConfiguration layoutScannerConfig) {
+    super(model, designSurface, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
-    mySessionClockFactory = sessionClockFactory;
     createSceneView();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
@@ -353,62 +327,41 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, SceneUpdateListener, LayoutScannerConfiguration, Supplier)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, LayoutScannerConfiguration)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
    *                               {@link SceneComponent}s.
-   * @param sceneUpdateListener    a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
-   * @param sessionClockFactory    a factory to create a session clock used in the interactive preview.
    */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface<LayoutlibSceneManager> designSurface,
-                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
-                               @NotNull SceneUpdateListener sceneUpdateListener,
-                               @NotNull Supplier<SessionClock> sessionClockFactory) {
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
     this(
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       sceneComponentProvider,
-      sceneUpdateListener,
-      new LayoutScannerEnabled(),
-      sessionClockFactory);
+      new LayoutScannerEnabled());
     myLayoutScannerConfig.setLayoutScannerEnabled(false);
   }
 
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
    *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    * @param config configuration for layout validation when rendering.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config) {
-    this(model, designSurface, config, null);
-  }
-
-  /**
-   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
-   *
-   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
-   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
-   * @param config configuration for layout validation when rendering.
-   * @param listener {@link SceneUpdateListener } allows performing additional operations affected by the scene root component when updating the scene.
-   */
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config, @Nullable SceneUpdateListener listener) {
     this(
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
-      listener,
-      config,
-      RealTimeSessionClock::new);
+      config);
   }
 
   @NotNull
@@ -463,8 +416,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         model.removeListener(myModelChangeListener);
       }
       myRenderListeners.clear();
-
-      myProgressIndicator.stop();
     }
     finally {
       super.dispose();
@@ -488,7 +439,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         }
       }
       // TODO(b/168445543): move session clock to RenderTask
-      mySessionClock = mySessionClockFactory.get();
+      mySessionClock = new RealTimeSessionClock();
       myRenderTask = newTask;
     }
   }
@@ -585,11 +536,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Records whether this {@link LayoutlibSceneManager} is out of date and needs to be refreshed.
-   */
-  private final AtomicBoolean isOutOfDate = new AtomicBoolean(false);
-
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
@@ -609,12 +555,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (EssentialsMode.isEnabled() &&
-          !shouldRefreshInPowerSaveMode(model.getLastChangeType())) {
-        isOutOfDate.set(true);
-        return;
-      }
-
       NlDesignSurface surface = getDesignSurface();
       // The structure might have changed, force a re-inflate
       forceReinflate();
@@ -742,8 +682,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
 
     LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
+    // TODO(b/335424569): remove isRenderingSynchronously. The clients that want this behaviour should achieve it by using the futures
+    //   properly, but it shouldn't be a mode in LayoutlibSceneManager
     if (getDesignSurface().isRenderingSynchronously()) {
-      return renderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return requestRenderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
@@ -876,21 +818,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Request a layout pass
-   *
-   * @param animate if true, the resulting layout should be animated
-   */
-  @Override
-  public void layout(boolean animate) {
-    try {
-      requestLayoutAsync(animate).get(2, TimeUnit.SECONDS);
-    }
-    catch (InterruptedException | ExecutionException | TimeoutException e) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
-    }
-  }
-
   @Nullable
   public RenderResult getRenderResult() {
     myRenderResultLock.readLock().lock();
@@ -957,7 +884,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       }
     }
 
-    fireOnInflateStart();
     // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
     // external changes
     AndroidFacet facet = getModel().getFacet();
@@ -1040,7 +966,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
         return result;
       })
       .thenApply(result -> {
-        fireOnInflateComplete();
         return logIfSuccessful(result, null, CommonUsageTracker.RenderResultType.INFLATE);
       })
       .whenCompleteAsync(this::notifyModelUpdateIfSuccessful, AppExecutorUtil.getAppExecutorService());
@@ -1139,32 +1064,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  /**
-   * Asynchronously update the model. This will inflate the layout and notify the listeners using
-   * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
-   */
-  @NotNull
-  public CompletableFuture<Void> updateModelAsync() {
-    return updateModelAndProcessResultsAsync(result -> null);
-  }
-
-  /**
-   * Asynchronously update the model and apply the provided processing to the {@link RenderResult}.
-   */
-  @NotNull
-  public CompletableFuture<Void> updateModelAndProcessResultsAsync(Function<? super RenderResult, Void> resultProcessing) {
-    if (isDisposed.get()) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return inflateAsync(true, new AtomicBoolean())
-      .thenApply(resultProcessing);
-  }
-
-  protected void notifyListenersModelLayoutComplete(boolean animate) {
+  private void notifyListenersModelLayoutComplete(boolean animate) {
     getModel().notifyListenersModelChangedOnLayout(animate);
   }
 
-  protected void notifyListenersModelUpdateComplete() {
+  private void notifyListenersModelUpdateComplete() {
     getModel().notifyListenersModelDerivedDataChanged();
   }
 
@@ -1283,7 +1187,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       myRenderFutures.clear();
       myIsCurrentlyRendering = false;
     }
-    isOutOfDate.set(false);
     callbacks.forEach(callback -> callback.complete(null));
     // If there are pending futures, we should trigger the render update
     if (hasPendingRenders()) {
@@ -1347,19 +1250,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myElapsedFrameTimeMs = ms;
   }
 
-  protected void fireOnInflateStart() {
-    myRenderListeners.forEach(RenderListener::onInflateStarted);
-  }
-  protected void fireOnInflateComplete() {
-    myRenderListeners.forEach(RenderListener::onInflateCompleted);
-  }
-  protected void fireOnRenderStart() {
+  private void fireOnRenderStart() {
     myRenderListeners.forEach(RenderListener::onRenderStarted);
   }
-  protected void fireOnRenderComplete() {
+  private void fireOnRenderComplete() {
     myRenderListeners.forEach(RenderListener::onRenderCompleted);
   }
-  protected void fireOnRenderFail(@NotNull Throwable e) {
+  private void fireOnRenderFail(@NotNull Throwable e) {
     myRenderListeners.forEach(listener -> {
       listener.onRenderFailed(e);
     });
@@ -1599,11 +1496,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   public int getInteractiveEventsCount() {
     return myInteractiveEventsCounter.get();
-  }
-
-  @Override
-  public boolean isOutOfDate() {
-    return isOutOfDate.get();
   }
 
   @TestOnly

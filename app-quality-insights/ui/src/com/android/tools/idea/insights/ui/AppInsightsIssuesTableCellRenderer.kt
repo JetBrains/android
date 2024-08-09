@@ -24,9 +24,10 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
-import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import javax.swing.JPanel
 import javax.swing.JTable
 
@@ -45,10 +46,23 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
       border = JBUI.Borders.empty()
     }
   private val rendererPanel =
-    JPanel(BorderLayout()).apply {
+    JPanel(GridBagLayout()).apply {
       border = JBUI.Borders.empty()
-      add(leftPanel, BorderLayout.WEST)
-      add(signalPanel, BorderLayout.EAST)
+      val gridBagConstraint =
+        GridBagConstraints().apply {
+          anchor = GridBagConstraints.LINE_START
+          weightx = 0.8
+          weighty = 0.1
+          gridx = 0
+          gridy = 0
+        }
+      add(leftPanel, gridBagConstraint)
+      gridBagConstraint.apply {
+        anchor = GridBagConstraints.LINE_END
+        weightx = 0.2
+        gridx = 1
+      }
+      add(signalPanel, gridBagConstraint)
     }
 
   override fun updateRenderer() {
@@ -74,7 +88,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
         foreground,
         issue.issueDetails.notesCount > 0,
       )
-    var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(24)
+    var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(30)
 
     signalPanel.removeAll()
     issue.issueDetails.signals.forEach {
@@ -86,7 +100,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
           isOpaque = false
         }
       signalPanel.add(iconLabel)
-      availableWidth -= JBUIScale.scale(20)
+      availableWidth -= JBUIScale.scale(24)
     }
 
     val (className, methodName) = issue.issueDetails.getDisplayTitle()

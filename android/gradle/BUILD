@@ -27,7 +27,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
@@ -63,6 +62,7 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
+        "@intellij//:JUnit[test]",
     ],
 )
 

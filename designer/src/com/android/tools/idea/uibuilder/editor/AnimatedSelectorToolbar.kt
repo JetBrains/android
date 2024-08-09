@@ -26,7 +26,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -223,7 +223,7 @@ class AnimatedSelectorModel(
   originalFile: VirtualFile,
   parentDisposable: Disposable,
   project: Project,
-  buildTarget: BuildTargetReference,
+  buildTarget: AndroidBuildTargetReference,
   componentRegistrar: Consumer<NlComponent>,
   config: Configuration,
 ) {
@@ -296,7 +296,7 @@ class AnimatedSelectorModel(
   private fun createModelWithFile(
     parentDisposable: Disposable,
     project: Project,
-    buildTarget: BuildTargetReference,
+    buildTarget: AndroidBuildTargetReference,
     componentRegistrar: Consumer<NlComponent>,
     config: Configuration,
     file: VirtualFile,

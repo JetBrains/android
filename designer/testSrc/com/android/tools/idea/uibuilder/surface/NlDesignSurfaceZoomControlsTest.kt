@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.test.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -25,7 +25,8 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.common.surface.ZoomControlsPolicy
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -37,10 +38,6 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.openapi.actionSystem.CustomizedDataContext
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
@@ -50,6 +47,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.EventQueue
+import java.awt.event.KeyEvent
+import java.nio.file.Paths
+import javax.swing.JPanel
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -58,11 +60,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.BorderLayout
-import java.awt.EventQueue
-import java.awt.event.KeyEvent
-import java.nio.file.Paths
-import javax.swing.JPanel
 
 class NlDesignSurfaceZoomControlsTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
@@ -109,18 +106,18 @@ class NlDesignSurfaceZoomControlsTest {
     val configuration =
       RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     surface = invokeAndWaitIfNeeded {
-      NlDesignSurface.builder(
+      NlSurfaceBuilder.builder(
           androidProjectRule.project,
           androidProjectRule.fixture.testRootDisposable,
         )
-        .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.VISIBLE)
+        .setZoomControlsPolicy(ZoomControlsPolicy.VISIBLE)
         .build()
     }
 
     val model =
       NlModel.Builder(
           androidProjectRule.testRootDisposable,
-          BuildTargetReference.gradleOnly(facet),
+          AndroidBuildTargetReference.gradleOnly(facet),
           layout.virtualFile,
           configuration,
         )
@@ -178,7 +175,7 @@ class NlDesignSurfaceZoomControlsTest {
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = TestActionEvent { dataId -> surface.getData(dataId) }
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 
@@ -222,8 +219,7 @@ class NlDesignSurfaceZoomControlsTest {
     // Delegate context for keyboard events. This ensures that, when actions update, they get the
     // right data context to make the
     // decision about visibility and presentation.
-    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, surface) }
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { surface.getData(it) }
 
     // Verify zoom in
     run {

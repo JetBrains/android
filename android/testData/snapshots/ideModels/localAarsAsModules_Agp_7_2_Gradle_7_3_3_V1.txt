@@ -386,6 +386,7 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.android.test.localaarsasmodules
         testApplicationId             : com.android.test.localaarsasmodules.test
@@ -742,6 +743,7 @@ MODULE                        : project.library
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         testApplicationId             : com.android.test.library.test
         buildType                     : debug

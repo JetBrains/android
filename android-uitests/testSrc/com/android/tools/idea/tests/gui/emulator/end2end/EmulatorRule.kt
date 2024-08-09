@@ -181,8 +181,8 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
     val controller = emulatorController
     val completion = SettableFuture.create<Boolean>()
     val statusReceiver = object : EmptyStreamObserver<EmulatorStatus>() {
-      override fun onNext(response: EmulatorStatus) {
-        if (response.booted) {
+      override fun onNext(message: EmulatorStatus) {
+        if (message.booted) {
           completion.set(true)
         }
         else if (!completion.isDone) {

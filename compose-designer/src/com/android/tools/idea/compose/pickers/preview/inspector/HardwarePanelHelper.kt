@@ -17,12 +17,14 @@ package com.android.tools.idea.compose.pickers.preview.inspector
 
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.preview.config.PARAMETER_HARDWARE_CHIN_SIZE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CUTOUT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DIMENSIONS
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_IS_ROUND
+import com.android.tools.preview.config.PARAMETER_HARDWARE_NAVIGATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.property.panel.api.EditorProvider
@@ -86,6 +88,10 @@ internal fun addHardwareView(
   addSinglePropertyLine(PARAMETER_HARDWARE_IS_ROUND)
 
   addSinglePropertyLine(PARAMETER_HARDWARE_CHIN_SIZE)
+
+  addSinglePropertyLine(PARAMETER_HARDWARE_CUTOUT)
+
+  addSinglePropertyLine(PARAMETER_HARDWARE_NAVIGATION)
 
   inspector.addComponent(panelBuilder.build()).addValueChangedListener {
     // Refresh the added editors on value changes

@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -173,6 +174,7 @@ class GenerateBaselineProfileModuleTest {
       projectTemplateData = ProjectTemplateData(
         androidXSupport = true,
         agpVersion = agpVersion,
+        additionalMavenRepos = listOf(),
         sdkDir = null,
         language = sourceCodeLanguage,
         kotlinVersion = kotlinVersion,
@@ -278,7 +280,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = 34
+  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -692,7 +694,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = 34
+  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8

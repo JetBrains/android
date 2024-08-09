@@ -478,7 +478,7 @@ class LogcatMainPanelTest {
 
     awaitQuiescence()
     runInEdtAndWait {}
-    assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
+    assertThat(logcatMainPanel.editor.document.immutableText()).isEmpty()
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
@@ -497,7 +497,7 @@ class LogcatMainPanelTest {
 
     awaitQuiescence()
     runInEdtAndWait {}
-    assertThat(logcatMainPanel.editor.document.immutableText().isEmpty())
+    assertThat(logcatMainPanel.editor.document.immutableText()).isEmpty()
   }
 
   @Test
@@ -1254,7 +1254,7 @@ class LogcatMainPanelTest {
     val deviceComboBox = logcatMainPanel.headerPanel.deviceComboBox
     logcatMainPanel.pauseLogcat()
 
-    waitForCondition { deviceComboBox.model.size > 0 }
+    waitForCondition { deviceComboBox.model.size == 2 }
     deviceComboBox.selectedIndex = 1
     waitForCondition { logcatMainPanel.getSelectedDevice() == device2 }
 

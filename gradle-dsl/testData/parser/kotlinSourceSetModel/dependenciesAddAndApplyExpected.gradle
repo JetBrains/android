@@ -1,0 +1,9 @@
+kotlin {
+  sourceSets {
+    set {
+      dependencies {
+        implementation 'org.junit:junit:4.11'
+      }
+    }
+  }
+}

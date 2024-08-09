@@ -106,7 +106,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(false, heapProfdSessionArtifact)
     myNativeAllocationsTaskHandler.enter(nativeAllocationsTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording)
+    assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
   @Test

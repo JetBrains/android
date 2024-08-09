@@ -17,9 +17,9 @@ import static com.intellij.util.containers.ContainerUtil.emptyList;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -110,7 +110,7 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
     if (module.isDisposed()) {
       return false;
     }
-    List<Module> sourceSetModules = ModuleSystemUtil.getAllLinkedModules(module);
+    List<Module> sourceSetModules = LinkedAndroidModuleGroupUtilsKt.getAllLinkedModules(module);
     for (Module m : sourceSetModules) {
       // The module from getValue() has already been checked by super.contains
       if (m == module) {

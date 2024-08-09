@@ -21,8 +21,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.preview.CommonPreviewRefreshType
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RefreshType
@@ -79,10 +79,10 @@ class GlancePreviewViewModelTest {
     get() = projectRule.fixture
 
   private val statusManager =
-    object : ProjectBuildStatusManager {
+    object : RenderingBuildStatusManager {
       override var isBuilding: Boolean = false
-      override var statusFlow: MutableStateFlow<ProjectStatus> =
-        MutableStateFlow(ProjectStatus.NotReady)
+      override var statusFlow: MutableStateFlow<RenderingBuildStatus> =
+        MutableStateFlow(RenderingBuildStatus.NotReady)
     }
 
   private val refreshManager = mock<PreviewRefreshManager>()
@@ -124,7 +124,7 @@ class GlancePreviewViewModelTest {
   @Test
   fun testRefreshWhenNeedsBuild() =
     runBlocking(uiThread) {
-      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
       viewModel.activate()
 
@@ -174,7 +174,7 @@ class GlancePreviewViewModelTest {
       Assert.assertEquals(0, testView.showContentCalls)
       Assert.assertEquals(2, testView.updateToolbarCalls)
 
-      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
       Assert.assertTrue(testView.errorMessages.isEmpty())
       Assert.assertEquals("Initializing...", testView.loadingMessages.last())
@@ -190,7 +190,7 @@ class GlancePreviewViewModelTest {
       Assert.assertEquals(3, testView.updateToolbarCalls)
 
       statusManager.isBuilding = false
-      statusManager.statusFlow.value = ProjectStatus.Ready
+      statusManager.statusFlow.value = RenderingBuildStatus.Ready
       viewModel.buildSucceeded()
 
       Assert.assertTrue(testView.errorMessages.isEmpty())
@@ -321,7 +321,7 @@ class GlancePreviewViewModelTest {
   fun testIsOutOfDate() {
     Assert.assertFalse(viewModel.isOutOfDate)
 
-    statusManager.statusFlow.value = ProjectStatus.OutOfDate.Code
+    statusManager.statusFlow.value = RenderingBuildStatus.OutOfDate.Code
 
     Assert.assertTrue(viewModel.isOutOfDate)
   }

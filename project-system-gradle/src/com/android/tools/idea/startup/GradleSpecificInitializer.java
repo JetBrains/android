@@ -133,9 +133,9 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
   }
 
   private static void useIdeGooglePlaySdkIndexInGradleDetector() {
-    GradleDetector.setPlaySdkIndexFactory((path, client, googleMavenRepository) -> {
+    GradleDetector.setPlaySdkIndexFactory((path, client) -> {
       IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
-      playIndex.initializeAndSetFlags(googleMavenRepository);
+      playIndex.initializeAndSetFlags();
       return playIndex;
     });
   }

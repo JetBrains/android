@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
-import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
@@ -115,10 +116,17 @@ class TomlErrorParser : BuildOutputParser {
                                    alias: String,
                                    description: StringBuilder,
                                    reader: BuildOutputInstantReader): BuildIssueEventImpl {
-    val buildIssue = object : BuildIssue {
+    val buildIssue = object : ErrorMessageAwareBuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = BUILD_ISSUE_TITLE
+      override val buildErrorMessage: BuildErrorMessage
+        get() = BuildErrorMessage.newBuilder().apply {
+          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+          fileLocationIncluded = true
+          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+          lineLocationIncluded = true
+        }.build()
 
       private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
@@ -158,10 +166,17 @@ class TomlErrorParser : BuildOutputParser {
       description.appendLine(descriptionLine)
     }
 
-    val buildIssue = object : BuildIssue {
+    val buildIssue = object : ErrorMessageAwareBuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = BUILD_ISSUE_TITLE
+      override val buildErrorMessage: BuildErrorMessage
+        get() = BuildErrorMessage.newBuilder().apply {
+          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+          fileLocationIncluded = true
+          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+          lineLocationIncluded = true
+        }.build()
 
       private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
@@ -173,7 +188,6 @@ class TomlErrorParser : BuildOutputParser {
         val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
         return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
       }
-
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
         return runReadAction {
@@ -209,10 +223,17 @@ class TomlErrorParser : BuildOutputParser {
     }
     if(dependency == null) return null
     val dependencyName = dependency!!.first
-    val buildIssue = object : BuildIssue {
+    val buildIssue = object : ErrorMessageAwareBuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = BUILD_ISSUE_TITLE
+      override val buildErrorMessage: BuildErrorMessage
+        get() = BuildErrorMessage.newBuilder().apply {
+          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+          fileLocationIncluded = true
+          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+          lineLocationIncluded = true
+        }.build()
 
       private fun computeNavigable(project: Project,
                                    virtualFile: VirtualFile,
@@ -298,10 +319,17 @@ class TomlErrorParser : BuildOutputParser {
     }
 
     return errorDescriptions.map { error ->
-      val buildIssue = object : BuildIssue {
+      val buildIssue = object : ErrorMessageAwareBuildIssue {
         override val description: String = description.toString().trimEnd()
         override val quickFixes: List<BuildIssueQuickFix> = emptyList()
         override val title: String = BUILD_ISSUE_TITLE
+        override val buildErrorMessage: BuildErrorMessage
+          get() = BuildErrorMessage.newBuilder().apply {
+            errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+            fileLocationIncluded = true
+            fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+            lineLocationIncluded = error.line != null
+          }.build()
 
         override fun getNavigatable(project: Project): Navigatable? {
           val tomlFile = when {

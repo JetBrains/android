@@ -333,8 +333,7 @@ public class GuiInputHandler implements Disposable {
       }
       if (myLayers != null) {
         for (Layer layer : myLayers) {
-          //noinspection SSBasedInspection
-          layer.dispose();
+          Disposer.dispose(layer);
         }
         myLayers = null;
       }

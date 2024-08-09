@@ -17,8 +17,6 @@ package org.jetbrains.android.facet;
 
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 
-import com.android.tools.idea.util.CommonAndroidUtil;
-import com.android.tools.idea.util.LinkedAndroidModuleGroup;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -30,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,74 +83,5 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public AndroidFacetProperties getProperties() {
     return getConfiguration().getState();
-  }
-
-  /**
-   * Obtains the module that contains the main production sources.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that contains sources and dependencies
-   * from the main artifact ONLY.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @NotNull
-  public Module getMainModule() {
-    Module mainModule = getModuleByMethod(LinkedAndroidModuleGroup::getMain);
-    if (mainModule == null) throw new IllegalStateException("Main modules shouldn't be null, something has gone wrong!");
-    return mainModule;
-  }
-
-  /**
-   * Obtains the module that contains the unit test sources.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that contains sources and dependencies
-   * from the unit test artifact ONLY.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @Nullable
-  public Module getUnitTestModule() {
-    return getModuleByMethod(LinkedAndroidModuleGroup::getUnitTest);
-  }
-
-  /**
-   * Obtains the module that contains the Android test sources.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that contains sources and dependencies
-   * from the Android test artifact ONLY.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @Nullable
-  public Module getAndroidTestModule() {
-    return getModuleByMethod(LinkedAndroidModuleGroup::getAndroidTest);
-  }
-
-  /**
-   * Obtains the empty module which should be used when sources or dependencies aren't needed, or to get information to display to the user.
-   *
-   * For Gradle, If module per source set is enabled then this will return the module that has as children all the modules from this
-   * Android Gradle project, this module will contain no sources or dependencies and is just used to group the other modules.
-   * Or, If module per source set is disabled then this will return the combined module with all sources, tests and dependencies
-   * for the combined main, unit test and android test artifacts.
-   */
-  @NotNull
-  public Module getHolderModule() {
-    Module holderModule = getModuleByMethod(LinkedAndroidModuleGroup::getHolder);
-    if (holderModule == null) throw new IllegalStateException("Holder modules shouldn't be null, something has gone wrong!");
-    return holderModule;
-  }
-
-  /**
-   * Helper method to find different modules related to this Android facet.
-   *
-   * @param func the getter from the {@link LinkedAndroidModuleGroup} for the module needed
-   * @return the desired module
-   */
-  @Nullable
-  private Module getModuleByMethod(@NotNull Function<LinkedAndroidModuleGroup, Module> func) {
-      // We can't use the utilities in ModuleUtil in this module as such we access the LINKED_ANDROID_MODULE_GROUP directly
-      LinkedAndroidModuleGroup moduleGroup = getModule().getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP);
-      return (moduleGroup != null) ? func.apply(moduleGroup) : getModule();
   }
 }

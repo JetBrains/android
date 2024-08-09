@@ -17,18 +17,17 @@ package com.android.tools.idea.actions
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.CustomizedDataContext
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.Assert.assertEquals
@@ -60,7 +59,7 @@ class SetColorBlindModeActionTest {
   fun testColorBlindModeChange() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-          BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+          AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",
@@ -69,13 +68,13 @@ class SetColorBlindModeActionTest {
         .build()
     }
     val myScreenViewProvider = TestScreenViewProvider()
-    val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).join()
 
     surface.setScreenViewProvider(myScreenViewProvider, false)
 
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
-    val event = createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = createTestEvent(surface::getData)
 
     // Two things are tested here:
     // 1. That the color-blind filter is modified according to the setColorBlindModeAction

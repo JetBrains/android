@@ -106,13 +106,13 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myAttachedToolWindow2a.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
     when(myAttachedToolWindow2b.getDefinition()).thenReturn(PalettePanelToolContent.getOtherDefinition());
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE1), eq(PalettePanelToolContent.getDefinition())))
-      .thenReturn(myDetachedToolWindow1a, null);
+      .thenReturn(myDetachedToolWindow1a, (DetachedToolWindow<String>) null);
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE1), eq(PalettePanelToolContent.getOtherDefinition())))
-      .thenReturn(myDetachedToolWindow1b, null);
+      .thenReturn(myDetachedToolWindow1b, (DetachedToolWindow<String>) null);
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getDefinition())))
-      .thenReturn(myDetachedToolWindow2a, null);
+      .thenReturn(myDetachedToolWindow2a, (DetachedToolWindow<String>) null);
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getOtherDefinition())))
-      .thenReturn(myDetachedToolWindow2b, null);
+      .thenReturn(myDetachedToolWindow2b, (DetachedToolWindow<String>) null);
 
     myManager = new DetachedToolWindowManager(getProject());
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
@@ -154,7 +154,6 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     verify(myDetachedToolWindow1a).updateSettingsInAttachedToolWindow();
   }
 
-  @SuppressWarnings("unchecked")
   public void testRestoreDefaultLayout() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
@@ -171,7 +170,6 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myListener.fileOpened(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
 
-    //noinspection unchecked
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
@@ -180,11 +178,9 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myListener.fileOpened(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
 
-    //noinspection unchecked
     verify(myDetachedToolWindow1a).show(eq(myAttachedToolWindow1a));
   }
 
-  @SuppressWarnings("unchecked")
   public void testSwitchingBetweenTwoEditorsWithDifferentFloatingToolWindows() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);

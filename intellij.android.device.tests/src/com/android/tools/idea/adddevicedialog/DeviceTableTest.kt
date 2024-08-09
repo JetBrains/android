@@ -65,4 +65,26 @@ class DeviceTableTest {
     composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Galaxy S22", useUnmergedTree = true).assertIsDisplayed()
   }
+
+  @Test
+  fun formFactorFilter() {
+    composeTestRule.setContent {
+      StudioTestTheme {
+        val source = TestDeviceSource()
+        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+        DeviceTable(source.profiles)
+      }
+    }
+
+    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TestDevices.automotive.name).assertDoesNotExist()
+
+    composeTestRule
+      .onNode(hasText("Phone") and hasAnySibling(hasText("Form Factor")))
+      .performClick()
+    composeTestRule.onNodeWithText("Automotive").performClick()
+
+    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertDoesNotExist()
+    composeTestRule.onNodeWithText(TestDevices.automotive.name).assertIsDisplayed()
+  }
 }

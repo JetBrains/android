@@ -19,6 +19,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
@@ -269,10 +270,23 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
  * or if the method is not also annotated with [annotationFqn].
  */
 @RequiresReadLock
-fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? = runReadAction {
-  val uMethod =
-    getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
-  if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
+fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? {
+  // TODO(b/349535556): Remove this. This is temporarily added to ensure that no paths without the
+  // read lock are left to this method.
+  // The method is tagged RequiresReadLock so it should never be called without the read lock.
+  fun getContainingUMethodWithReadLock(): UMethod? {
+    val uMethod =
+      getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
+    return if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
+  }
+
+  if (!ApplicationManager.getApplication().isReadAccessAllowed) {
+    Logger.getInstance(AnnotatedMethodsFinder::class.java)
+      .error("getContainingUMethodAnnotatedWith called without read lock")
+    runReadAction { getContainingUMethodWithReadLock() }
+  }
+
+  return getContainingUMethodWithReadLock()
 }
 
 /**

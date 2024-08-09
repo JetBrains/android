@@ -24,7 +24,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -73,7 +73,7 @@ class CommonNlDesignSurfacePreviewViewTest {
   @Before
   fun setUp() =
     runBlocking(uiThread) {
-      val surfaceBuilder = NlDesignSurface.builder(project, fixture.testRootDisposable)
+      val surfaceBuilder = NlSurfaceBuilder.builder(project, fixture.testRootDisposable)
 
       previewView =
         CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)

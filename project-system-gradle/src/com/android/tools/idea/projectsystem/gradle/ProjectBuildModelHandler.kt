@@ -38,7 +38,7 @@ import kotlin.concurrent.withLock
  * [modify] if you require more fine grained control please use [ProjectBuildModel.get].
  */
 @Service
-class ProjectBuildModelHandler(val project: Project) {
+class ProjectBuildModelHandler @VisibleForTesting constructor(val project: Project) {
   /**
    * The time stamp of the last sync before the [ProjectBuildModel] was created.
    */

@@ -63,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @deprecated Replaced by {@link com.android.tools.idea.sdk.wizard.LicenseAgreementStep}
  */
+@Deprecated
 public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final JTextPane myLicenseTextField;
   private final Tree myChangeTree;

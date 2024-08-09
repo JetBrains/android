@@ -27,6 +27,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -36,9 +38,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.IntUnaryOperator;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -54,8 +58,9 @@ public class FrozenColumnTable<M extends TableModel> {
   private final int myFrozenColumnCount;
   private final Collection<FrozenColumnTableListener> myListeners;
 
-  private SubTable myFrozenTable;
-  private SubTable myScrollableTable;
+  private SubTable<M> myFrozenTable;
+  private SubTable<M> myScrollableTable;
+  private SubTable<M> myLastFocusedSubTable;
   private JScrollPane myScrollPane;
   private int rowHeight;
   private int mySelectedRow;
@@ -63,9 +68,6 @@ public class FrozenColumnTable<M extends TableModel> {
 
   @Nullable
   private FrozenColumnTableRowSorter<M> myRowSorter;
-
-  private static final String NEXT_COLUMN_ACTION = "selectNextColumn";
-  private static final String PREVIOUS_COLUMN_ACTION = "selectPreviousColumn";
 
   FrozenColumnTable(@NotNull M model, int frozenColumnCount) {
     myModel = model;
@@ -75,13 +77,25 @@ public class FrozenColumnTable<M extends TableModel> {
     initFrozenTable();
     initScrollableTable();
     initScrollPane();
+    myLastFocusedSubTable = myFrozenTable;
 
-    myFrozenTable.getActionMap().put(NEXT_COLUMN_ACTION, new SelectNextColumnAction(myFrozenTable, myScrollableTable));
-    myScrollableTable.getActionMap().put(PREVIOUS_COLUMN_ACTION, new SelectPreviousColumnAction(myFrozenTable, myScrollableTable));
+    registerActionOverrides();
     new SubTableHoverListener(myFrozenTable, myScrollableTable).install();
 
     mySelectedRow = -1;
     mySelectedColumn = -1;
+  }
+
+  private void registerActionOverrides() {
+    registerActionOverrides(new ActionTable(myFrozenTable, myFrozenTable, myScrollableTable));
+    registerActionOverrides(new ActionTable(myFrozenTable, myScrollableTable, myScrollableTable));
+  }
+
+  private void registerActionOverrides(@NotNull ActionTable table) {
+    ActionMap map = table.getCurrentTable().getActionMap();
+    for (ActionType type : ActionType.getEntries()) {
+      map.put(type.getActionName(), new TableAction(type, table));
+    }
   }
 
   private void initFrozenTable() {
@@ -89,17 +103,10 @@ public class FrozenColumnTable<M extends TableModel> {
     myFrozenTable.setName("frozenTable");
 
     IntUnaryOperator converter = IntUnaryOperator.identity();
-    myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
+    myFrozenTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
-      if (myFrozenTable.getSelectionModel().getMinSelectionIndex() == -1) {
-        myScrollableTable.clearSelection();
-      }
-      else {
-        myScrollableTable.setRowSelectionInterval(
-          myFrozenTable.getSelectionModel().getMinSelectionIndex(),
-          myFrozenTable.getSelectionModel().getMaxSelectionIndex());
-      }
+      mirrorRowSelection(myFrozenTable, myScrollableTable);
       fireSelectedCellChanged(false);
     });
 
@@ -125,7 +132,12 @@ public class FrozenColumnTable<M extends TableModel> {
       }
     });
 
-    myFrozenTable.addMouseListener(new CellPopupTriggerListener(converter));
+    myFrozenTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myFrozenTable.addFocusListener(new FocusAdapter() {
+      public void focusGained(@NotNull FocusEvent event) {
+        myLastFocusedSubTable = myFrozenTable;
+      }
+    });
   }
 
   private void initScrollableTable() {
@@ -133,17 +145,10 @@ public class FrozenColumnTable<M extends TableModel> {
     myScrollableTable.setName("scrollableTable");
 
     IntUnaryOperator converter = viewColumnIndex -> myFrozenTable.getColumnCount() + viewColumnIndex;
-    myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener(converter));
+    myScrollableTable.getTableHeader().addMouseListener(new HeaderPopupTriggerListener<>(converter));
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
-      if (myScrollableTable.getSelectionModel().getMinSelectionIndex() == -1) {
-        myFrozenTable.clearSelection();
-      }
-      else {
-        myFrozenTable.setRowSelectionInterval(
-          myScrollableTable.getSelectionModel().getMinSelectionIndex(),
-          myScrollableTable.getSelectionModel().getMaxSelectionIndex());
-      }
+      mirrorRowSelection(myScrollableTable, myFrozenTable);
       fireSelectedCellChanged(false);
     });
 
@@ -157,6 +162,39 @@ public class FrozenColumnTable<M extends TableModel> {
     });
 
     myScrollableTable.addMouseListener(new CellPopupTriggerListener<>(converter));
+    myScrollableTable.addFocusListener(new FocusAdapter() {
+      public void focusGained(@NotNull FocusEvent event) {
+        myLastFocusedSubTable = myScrollableTable;
+      }
+    });
+  }
+
+  private void mirrorRowSelection(@NotNull JTable fromTable, JTable toTable) {
+    ListSelectionModel fsm =  fromTable.getSelectionModel();
+    int first = fsm.getMinSelectionIndex();
+    int last = fsm.getMaxSelectionIndex();
+    if (first == -1) {
+      toTable.clearSelection();
+    }
+    else {
+      if (fsm.getLeadSelectionIndex() == first) {
+        int temp = first;
+        first = last;
+        last = temp;
+      }
+      toTable.setRowSelectionInterval(first, last);
+    }
+  }
+
+  public boolean skipTransferTo(@NotNull Component toComponent, @NotNull Component fromComponent) {
+    if (fromComponent instanceof SubTable<?>) {
+      // If coming from a SubTable, then skip the next SubTable:
+      return toComponent instanceof SubTable<?>;
+    }
+    else {
+      // If coming from a different control, then skip this SubTable if this is not the last focused SubTable:
+      return toComponent instanceof SubTable<?> && myLastFocusedSubTable != toComponent;
+    }
   }
 
   private static final class HeaderPopupTriggerListener<M extends TableModel> extends MouseAdapter {

@@ -36,7 +36,7 @@ fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
  * HTML rendering of issues and fix actions.
  */
 fun RenderService.taskBuilderWithHtmlLogger(
-  buildTarget: BuildTargetReference,
+  buildTarget: AndroidBuildTargetReference,
   configuration: Configuration,
 ): RenderService.RenderTaskBuilder =
   taskBuilder(buildTarget, configuration, createHtmlLogger(buildTarget.project))

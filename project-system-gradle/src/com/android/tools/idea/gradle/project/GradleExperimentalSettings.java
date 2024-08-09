@@ -36,7 +36,7 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
 
   public boolean ENABLE_GRADLE_API_OPTIMIZATION = true;
 
-  public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
+  public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {

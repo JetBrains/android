@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * Provides an explanation of changes the wizard will perform.
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.InstallSummaryStep}
  */
+@Deprecated
 public final class InstallSummaryStep extends FirstRunWizardStep {
   private final Key<Boolean> myKeyCustomInstall;
   private final Key<String> myKeySdkInstallLocation;

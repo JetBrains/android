@@ -20,9 +20,10 @@ import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -31,16 +32,15 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -50,10 +50,14 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -61,9 +65,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -80,7 +81,7 @@ class WearTilePreviewRepresentationTest {
   fun setup() {
     logger.setLevel(LogLevel.ALL)
     Logger.getInstance(WearTilePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
-    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(RenderingBuildStatus::class.java).setLevel(LogLevel.ALL)
     logger.info("setup")
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     logger.info("setup complete")
@@ -101,9 +102,11 @@ class WearTilePreviewRepresentationTest {
   fun testPreviewInitialization() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
+
       preview.previewView.mainSurface.models.forEach {
         assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
       }
+
       val status = preview.previewViewModel
       assertFalse(status.isOutOfDate)
       val renderResults =
@@ -121,12 +124,14 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
-      val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
+      val previewGroupManager =
+        preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("groupA")
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
+
+      val dataContext = DataContext { preview.previewView.mainSurface.getData(it) }
 
       // Select preview group "groupA"
       run {
@@ -164,7 +169,7 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
       assertThat(preview.previewView.galleryMode).isNull()
 
       // go into gallery mode
@@ -184,7 +189,7 @@ class WearTilePreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
       assertThat(preview.previewView.galleryMode).isNull()
 
       // enable tile preview essentials mode
@@ -237,6 +242,73 @@ class WearTilePreviewRepresentationTest {
       preview.onDeactivate()
     }
 
+  @Test
+  fun clickingOnThePreviewNavigatesToDefinition() {
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertEquals(0, runReadAction { projectRule.fixture.caretOffset })
+
+      // Preview from simple @Preview annotation
+      run {
+        val sceneViewWithNormalPreviewAnnotation =
+          preview.previewView.mainSurface.sceneManagers
+            .first {
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+                "tilePreview3 - preview3"
+            }
+            .sceneViews
+            .first()
+        withContext(uiThread) {
+          preview.navigationHandler.handleNavigateWithCoordinates(
+            sceneViewWithNormalPreviewAnnotation,
+            sceneViewWithNormalPreviewAnnotation.x,
+            sceneViewWithNormalPreviewAnnotation.y,
+            false,
+          )
+        }
+
+        runReadAction {
+          val expectedOffset =
+            fixture
+              .findElementByText("@Preview(name = \"preview3\")", KtAnnotationEntry::class.java)
+              .textOffset
+          assertEquals(expectedOffset, projectRule.fixture.caretOffset)
+        }
+      }
+
+      // Preview from @MyMultiPreview annotation
+      run {
+        val sceneViewWithMultiPreviewAnnotation =
+          preview.previewView.mainSurface.sceneManagers
+            .first {
+              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+                "tilePreview3 - multipreview preview"
+            }
+            .sceneViews
+            .first()
+        withContext(uiThread) {
+          preview.navigationHandler.handleNavigateWithCoordinates(
+            sceneViewWithMultiPreviewAnnotation,
+            sceneViewWithMultiPreviewAnnotation.x,
+            sceneViewWithMultiPreviewAnnotation.y,
+            false,
+          )
+        }
+
+        runReadAction {
+          // We expect to navigate the user to where they use @MyMultiPreview and not the @Preview
+          // declared within the multi preview
+          val expectedOffset =
+            fixture.findElementByText("@MyMultiPreview\n", KtAnnotationEntry::class.java).textOffset
+          assertEquals(expectedOffset, projectRule.fixture.caretOffset)
+        }
+      }
+
+      preview.onDeactivate()
+    }
+  }
+
   private suspend fun expectGalleryModeIsSet(
     preview: WearTilePreviewRepresentation,
     previewElement: PreviewElement<*>,
@@ -254,10 +326,10 @@ class WearTilePreviewRepresentationTest {
   }
 
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = PreviewModeManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
+    get() = previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = PreviewFlowManager.KEY.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
+    get() = previewView.mainSurface.getData(PreviewFlowManager.KEY.name) as PreviewFlowManager<*>
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
@@ -314,7 +386,7 @@ class WearTilePreviewRepresentationTest {
   }
 
   private fun createWearTilePreviewTestFile() = runWriteActionAndWait {
-    fixture.addFileToProjectAndInvalidate(
+    fixture.configureByText(
       "Test.kt", // language=kotlin
       """
           package com.android.test
@@ -325,6 +397,9 @@ class WearTilePreviewRepresentationTest {
         import androidx.wear.tiles.tooling.preview.TilePreviewData
         import androidx.wear.tiles.tooling.preview.WearDevices
 
+        @Preview(name = "multipreview preview")
+        annotation class MyMultiPreview
+
         @Preview
         private fun tilePreview(): TilePreviewData {
           return TilePreviewData()
@@ -332,6 +407,12 @@ class WearTilePreviewRepresentationTest {
 
         @Preview(name = "preview2", group = "groupA")
         private fun tilePreview2(): TilePreviewData {
+          return TilePreviewData()
+        }
+
+        @MyMultiPreview
+        @Preview(name = "preview3")
+        private fun tilePreview3(): TilePreviewData {
           return TilePreviewData()
         }
         """

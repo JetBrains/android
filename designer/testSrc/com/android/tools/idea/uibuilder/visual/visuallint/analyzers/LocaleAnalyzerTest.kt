@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -84,7 +84,7 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         layoutFile,
       )
 
@@ -153,7 +153,7 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         layoutFile,
       )
 
@@ -221,7 +221,7 @@ class LocaleAnalyzerTest {
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
-        BuildTargetReference.gradleOnly(facet),
+        AndroidBuildTargetReference.gradleOnly(facet),
         layoutFile,
       )
 

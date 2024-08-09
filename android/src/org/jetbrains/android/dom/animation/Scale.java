@@ -22,7 +22,7 @@ import org.jetbrains.android.dom.Styleable;
  * Framework code: ScaleAnimation(Context, AttributeSet) constructor
  * @see org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription
  */
-@Styleable("ScaleAnimation")
+@Styleable({"ScaleAnimation", "Animation"})
 @DefinesXml
 public interface Scale extends AnimationElement {
 }

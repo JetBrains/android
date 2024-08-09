@@ -16,66 +16,69 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.GeneratedSourceFileChangeTracker;
-import com.intellij.ide.GeneratedSourceFileChangeTrackerImpl;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import java.io.IOException;
-import org.mockito.Mock;
+import java.util.function.Function;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GeneratedFileNotificationProvider}.
  */
-public class GeneratedFileNotificationProviderTest extends HeavyPlatformTestCase {
-  @Mock private GeneratedSourceFileChangeTrackerImpl myGeneratedSourceFileChangeTracker;
-  @Mock private GradleProjectInfo myProjectInfo;
-  @Mock private GradleAndroidModel myAndroidModuleModel;
-  @Mock private IdeAndroidProject myAndroidProject;
-  @Mock private FileEditor myFileEditor;
+public class GeneratedFileNotificationProviderTest {
 
-  private GeneratedFileNotificationProvider myNotificationProvider;
+  @Rule
+  public AndroidProjectRule androidProjectRule = AndroidProjectRule.withAndroidModel(
+    createAndroidProjectBuilderForDefaultTestProjectStructure()
+  );
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    initMocks(this);
+  private FileEditor fileEditor;
 
-    new IdeComponents(getProject()).replaceProjectService(GeneratedSourceFileChangeTracker.class, myGeneratedSourceFileChangeTracker);
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+  private final GeneratedFileNotificationProvider myNotificationProvider = new GeneratedFileNotificationProvider();
+  private VirtualFile file;
 
-    when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
-
-    myNotificationProvider = new GeneratedFileNotificationProvider();
+  @Before
+  public void before() throws IOException {
+    EdtTestUtil.runInEdtAndWait(() -> {;
+      VirtualFile buildFolder = createFolderInProjectRoot(androidProjectRule.getProject(), "build");
+      file = createFile(buildFolder, "test.txt");
+      fileEditor = FileEditorManager.getInstance(androidProjectRule.getProject()).openFile(file).get(0);
+    });
   }
 
-  public void testCreateNotificationPanelWithFileInBuildFolder() throws IOException {
-    VirtualFile buildFolder = createFolderInProjectRoot(getProject(), "build");
-    VirtualFile file = createFile(buildFolder, "test.txt");
-    EditorNotificationPanel panel =
-      myNotificationProvider.createNotificationPanel(file, myFileEditor, virtualToIoFile(buildFolder), myGeneratedSourceFileChangeTracker);
+  @Nullable
+  private Function<FileEditor, EditorNotificationPanel>  collectNotificationData() {
+    return ApplicationManager.getApplication().runReadAction((Computable<Function<FileEditor, EditorNotificationPanel>>)() ->
+      myNotificationProvider.collectNotificationData(androidProjectRule.getProject(), file));
+  }
+
+  @Test
+  public void testCreateNotificationPanelWithFileInBuildFolder() {
+    Function<FileEditor, EditorNotificationPanel> function = requireNonNull(collectNotificationData());
+    EditorNotificationPanel panel = function.apply(fileEditor);
     assertEquals("Files under the \"build\" folder are generated and should not be edited.", panel.getText());
   }
 
+  @Test
   public void testNotificationCanBeDisabledWithKey() throws Exception {
-    VirtualFile buildFolder = createFolderInProjectRoot(getProject(), "build");
-    VirtualFile file = createFile(buildFolder, "test.txt");
-
-    when(myFileEditor.getUserData(DISABLE_GENERATED_FILE_NOTIFICATION_KEY)).thenReturn(Boolean.TRUE);
-
-    EditorNotificationPanel panel =
-      myNotificationProvider.createNotificationPanel(file, myFileEditor, virtualToIoFile(buildFolder), myGeneratedSourceFileChangeTracker);
-    assertNull(panel);
+    fileEditor.putUserData(DISABLE_GENERATED_FILE_NOTIFICATION_KEY, Boolean.TRUE);
+    assertThat(requireNonNull(collectNotificationData()).apply(fileEditor)).named("collect notification data").isNull();
   }
 }
+

@@ -105,7 +105,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     myCallstackSampleTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(myCallstackSampleTaskHandler.stage!!.recordingModel.isRecording)
+    assertThat(myCallstackSampleTaskHandler.stage!!.recordingModel.isRecording).isTrue()
   }
 
   @Test

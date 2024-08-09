@@ -1013,6 +1013,7 @@ MODULE                        : project.app
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app
         testApplicationId             : com.example.android.app.test
@@ -1409,6 +1410,7 @@ MODULE                        : project.benchmark
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.benchmark
         buildType                     : benchmark
@@ -1682,6 +1684,7 @@ MODULE                        : project.test
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
         buildType                     : debug
@@ -1947,6 +1950,7 @@ MODULE                        : project.test2
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
         buildType                     : debug

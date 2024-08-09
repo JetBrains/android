@@ -129,14 +129,12 @@ class PreviewPickerLineMarkerProviderTest {
     fixture.moveCaret("\"my group\"|\n)\n@Composable")
 
     // Type incomplete device spec
-    fixture.type(",\ndevice = \"spec:shape=Normal\"")
+    fixture.type(",\ndevice = \"spec:width=1080dp\"")
     fixture.doHighlighting()
     assertMissingLineMarker()
 
-    fixture.moveCaret("spec:shape=Normal|\"")
-    fixture.type(
-      ",width=1080,height=1920,unit=px,dpi=480"
-    ) // Type the rest of a correct Device spec.
+    fixture.moveCaret("spec:width=1080dp|\"")
+    fixture.type(",height=1920dp") // Type the rest of a correct Device spec.
     fixture.doHighlighting()
     getAndAssertPreviewLineMarkers()
   }

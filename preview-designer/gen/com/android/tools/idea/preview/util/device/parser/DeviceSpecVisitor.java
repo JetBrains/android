@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-// ATTENTION: This file has been automatically generated from something.bnf. Do not edit it manually.
+// ATTENTION: This file has been automatically generated from
+// preview-designer/src/com/android/tools/idea/preview/util/device/parser/device.bnf.
+// Do not edit it manually.
 package com.android.tools.idea.preview.util.device.parser;
 
 import com.intellij.psi.PsiElement;
@@ -29,6 +31,14 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
 
   public void visitChinSizeParam(@NotNull DeviceSpecChinSizeParam o) {
     visitParam(o);
+  }
+
+  public void visitCutoutParam(@NotNull DeviceSpecCutoutParam o) {
+    visitParam(o);
+  }
+
+  public void visitCutoutT(@NotNull DeviceSpecCutoutT o) {
+    visitPsiElement(o);
   }
 
   public void visitDpiParam(@NotNull DeviceSpecDpiParam o) {
@@ -51,6 +61,14 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitParam(o);
   }
 
+  public void visitNavigationParam(@NotNull DeviceSpecNavigationParam o) {
+    visitParam(o);
+  }
+
+  public void visitNavigationT(@NotNull DeviceSpecNavigationT o) {
+    visitPsiElement(o);
+  }
+
   public void visitOrientationParam(@NotNull DeviceSpecOrientationParam o) {
     visitParam(o);
   }
@@ -67,10 +85,6 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
     visitParam(o);
   }
 
-  public void visitShapeParam(@NotNull DeviceSpecShapeParam o) {
-    visitParam(o);
-  }
-
   public void visitSizeT(@NotNull DeviceSpecSizeT o) {
     visitPsiElement(o);
   }
@@ -81,10 +95,6 @@ public class DeviceSpecVisitor extends PsiElementVisitor {
 
   public void visitUnit(@NotNull DeviceSpecUnit o) {
     visitPsiElement(o);
-  }
-
-  public void visitUnitParam(@NotNull DeviceSpecUnitParam o) {
-    visitParam(o);
   }
 
   public void visitWidthParam(@NotNull DeviceSpecWidthParam o) {

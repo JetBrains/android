@@ -19,17 +19,6 @@ internal enum class DeviceSpecRule(
   override val requiredParameters: List<ParameterRule>,
   override val optionalParameters: List<ParameterRule>,
 ) : CheckRule {
-  Legacy(
-    requiredParameters =
-      listOf(
-        LegacyParameterRule.shape,
-        LegacyParameterRule.width,
-        LegacyParameterRule.height,
-        LegacyParameterRule.unit,
-        LegacyParameterRule.dpi,
-      ),
-    optionalParameters = listOf(LegacyParameterRule.id),
-  ),
   LanguageBased(
     requiredParameters = listOf(LanguageParameterRule.width, LanguageParameterRule.height),
     optionalParameters =
@@ -38,10 +27,12 @@ internal enum class DeviceSpecRule(
         LanguageParameterRule.orientation,
         LanguageParameterRule.chinSize,
         LanguageParameterRule.dpi,
+        LanguageParameterRule.cutout,
+        LanguageParameterRule.navigation,
       ),
   ),
   LanguageWithParentId(
     requiredParameters = listOf(LanguageParameterRule.parent),
-    optionalParameters = listOf(LanguageParameterRule.orientation),
+    optionalParameters = listOf(LanguageParameterRule.orientation, LanguageParameterRule.navigation),
   ),
 }

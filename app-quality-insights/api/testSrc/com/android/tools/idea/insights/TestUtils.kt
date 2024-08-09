@@ -297,6 +297,94 @@ val ISSUE2 =
     ),
   )
 
+val ISSUE3 =
+  AppInsightsIssue(
+    IssueDetails(
+      IssueId("6789"),
+      "Issue3",
+      "com.google.crash.Crash",
+      FailureType.NON_FATAL,
+      "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/652731D4013400016ABAED130A6E5D76_616649578263490731",
+      "1.0.0",
+      "2.0.0",
+      12L,
+      14L,
+      10L,
+      100L,
+      setOf(SignalType.SIGNAL_REGRESSED),
+      "https://url.for-crash.com/3",
+      0,
+      emptyList(),
+    ),
+    Event(
+      name =
+        "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/652731D4013400016ABAED130A6E5D76_616649578263490731",
+      eventData =
+        EventData(
+          device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
+          operatingSystemInfo =
+            OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
+          eventTime = FAKE_25_DAYS_AGO,
+        ),
+      stacktraceGroup =
+        StacktraceGroup(
+          exceptions =
+            listOf(
+              ExceptionStack(
+                stacktrace =
+                  Stacktrace(
+                    caption =
+                      Caption(title = "java.lang.RuntimeException", subtitle = "Test Crash"),
+                    blames = Blames.BLAMED,
+                    frames =
+                      listOf(
+                        Frame(
+                          line = 359,
+                          file = "MainActivity.java",
+                          rawSymbol =
+                            "com.example.someapp.MainActivity.onCreate\$lambda\$0(MainActivity.java:359)",
+                          symbol = "com.example.someapp.MainActivity.onCreate\$lambda\$0",
+                          offset = 23,
+                          address = 0,
+                          library = "dev.firebase.appdistribution.debug",
+                          blame = Blames.BLAMED,
+                        ),
+                        Frame(
+                          line = 0,
+                          file = "",
+                          rawSymbol =
+                            "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q(:0)",
+                          symbol =
+                            "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q",
+                          offset = 31,
+                          address = 0,
+                          library = "dev.firebase.appdistribution.debug",
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                        Frame(
+                          line = 0,
+                          file = "SomeFile.java",
+                          rawSymbol =
+                            "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick(D8\$\$SyntheticClass:0)",
+                          symbol =
+                            "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick",
+                          offset = 25,
+                          address = 0,
+                          library = "dev.firebase.appdistribution.debug",
+                          blame = Blames.NOT_BLAMED,
+                        ),
+                      ),
+                  ),
+                type = "java.lang.RuntimeException",
+                exceptionMessage = "Test Crash",
+                rawExceptionMessage = "java.lang.RuntimeException: Test Crash",
+              )
+            )
+        ),
+      appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
+    ),
+  )
+
 val NOTE1 =
   Note(
     id = NoteId(issueId = ISSUE1.id, noteId = "note_id_1"),

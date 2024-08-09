@@ -95,7 +95,7 @@ class CpuTreeModelTest {
 
     private fun assertTree(onNode: Assertion<CpuTreeNode<*>>, vararg onChildren: Assertion<CpuTreeNode<*>>): Assertion<CpuTreeNode<*>> = {
       onNode(it)
-      assertThat(onChildren.size == it.children.size)
+      assertThat(onChildren.size).isEqualTo(it.children.size)
       (onChildren zip it.children).forEach { (assert, tree) -> assert(tree) }
     }
   }

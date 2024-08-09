@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -140,33 +141,51 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   /**
    * Adds plugin to module but insert/check version catalog first
    * Project build file/settings stay intact
+   *
+   * If the plugin has already been applied to the module, but it's not already in the version
+   * catalog, the version catalog is not updated (otherwise the plugin would be added to the
+   * version catalog, but the catalog reference would not actually be used).
    */
   override fun addPluginToModule(pluginId: String,
                                  version: String,
                                  buildModel: GradleBuildModel,
-                                 matcher: PluginMatcher): Set<PsiFile> =
-    getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
+                                 matcher: PluginMatcher): Set<PsiFile> {
+    if (buildModel.hasPlugin(matcher) &&
+        findCatalogPluginDeclaration(getCatalogModel(), matcher) == null) {
+      return emptySet()
+    }
+    return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
       if (!buildModel.hasPlugin(matcher)) {
         buildModel.applyPlugin(reference, null)
         changedFiles.addIfNotNull(buildModel.psiElement?.containingFile)
       }
     }
+  }
 
   override fun addDependency(configuration: String,
                              dependency: String,
                              excludes: List<ArtifactDependencySpec>,
                              parsedModel: GradleBuildModel,
-                             matcher: DependencyMatcher): Set<PsiFile> =
+                             matcher: DependencyMatcher,
+                             sourceSetName: String?): Set<PsiFile> =
     getOrAddDependencyToCatalog(dependency, matcher) { alias, changedFiles ->
-      val dependenciesModel = parsedModel.dependencies()
-      val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
-      if (!dependenciesModel.hasArtifact(matcher)) {
+      val dependenciesModel = getDependenciesModel(sourceSetName, parsedModel)
+      if (dependenciesModel != null && !dependenciesModel.hasArtifact(matcher)) {
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
         dependenciesModel.addArtifact(configuration, reference, excludes).also {
           changedFiles.addIfNotNull(parsedModel.psiFile)
         }
       }
     }
+
+  private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
+    return if (sourceSetName != null) {
+      parsedModel.kotlin().sourceSets().find { it.name() == sourceSetName }?.dependencies()
+    } else {
+      parsedModel.dependencies()
+    }
+  }
 
   private fun getOrAddPluginToCatalog(plugin: String, version: String, matcher: PluginMatcher): Pair<Alias?, PsiFile?> {
     val catalogModel = getCatalogModel()

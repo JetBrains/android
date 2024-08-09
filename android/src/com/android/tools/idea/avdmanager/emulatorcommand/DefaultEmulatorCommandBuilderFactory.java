@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils;
+import com.android.sdklib.internal.avd.ConfigKey;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,12 +25,12 @@ import org.jetbrains.annotations.NotNull;
 public final class DefaultEmulatorCommandBuilderFactory implements EmulatorCommandBuilderFactory {
   @Override
   public @NotNull EmulatorCommandBuilder newEmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
-    if (Objects.equals(avd.getProperty(AvdWizardUtils.USE_COLD_BOOT), "yes")) {
+    if (Objects.equals(avd.getProperty(ConfigKey.FORCE_COLD_BOOT_MODE), "yes")) {
       return new ColdBootEmulatorCommandBuilder(emulator, avd);
     }
 
-    if (Objects.equals(avd.getProperty(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT), "yes")) {
-      String snapshot = Optional.ofNullable(avd.getProperty(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)).orElse("");
+    if (Objects.equals(avd.getProperty(ConfigKey.FORCE_CHOSEN_SNAPSHOT_BOOT_MODE), "yes")) {
+      String snapshot = Optional.ofNullable(avd.getProperty(ConfigKey.CHOSEN_SNAPSHOT_FILE)).orElse("");
       return new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, snapshot);
     }
 

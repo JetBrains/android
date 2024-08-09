@@ -45,7 +45,6 @@ private:
   bool restore_normal_display_power_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(SessionEnvironment);
-
 };
 
 }  // namespace screensharing

@@ -77,18 +77,7 @@ private fun addStatsFromBuildIssue(buildEvent: BuildIssueEvent): BuildErrorMessa
   if (issue is ErrorMessageAwareBuildIssue) {
     return issue.buildErrorMessage
   }
-  val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
-  when(buildEvent.issue.title) {
-    TomlErrorParser.BUILD_ISSUE_TITLE -> BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
-    ConfigurationCacheErrorParser.BUILD_ISSUE_TITLE -> BuildErrorMessage.ErrorType.CONFIGURATION_CACHE
-    else -> null
-  }?.let {
-    buildErrorMessageBuilder.errorShownType = it
-  }
-
-  //TODO(b/326938231): add file stats based on navigable, while doing refactoring. Currently it is hard as requires project.
-  //               Plus eagerly requesting navigable might be wrong.
-  return buildErrorMessageBuilder.build()
+  return BuildErrorMessage.newBuilder().build()
 }
 
 private fun addStatsFromDefaultMessage(buildEvent: MessageEvent): BuildErrorMessage? {

@@ -208,7 +208,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
       fail("fixture.elementAtCaret did not throw expected AssertionError")
     }
     catch (e: AssertionError) {
-      assertThat(e.message!!.contains("element not found in file"))
+      assertThat(e.message!!).contains("element not found in file")
     }
   }
 }

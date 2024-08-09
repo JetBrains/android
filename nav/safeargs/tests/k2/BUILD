@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.nav.safeargs.tests.k2",
     iml_files = ["intellij.android.nav.safeargs.tests.k2.iml"],
     tags = [
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.kotlin.k2.SafeArgsK2TestSuite",
     # keep sorted

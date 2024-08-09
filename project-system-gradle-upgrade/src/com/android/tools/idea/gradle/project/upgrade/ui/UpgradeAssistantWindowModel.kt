@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade.ui
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
@@ -349,11 +350,13 @@ class UpgradeAssistantWindowModel(
     }
   }
 
+  @UiThread
   override fun buildStarted(context: BuildContext) {
     stateBeforeBuild = uiState.get()
     uiState.set(UIState.RunningBuild)
   }
 
+  @UiThread
   override fun buildFinished(status: BuildStatus, context: BuildContext) {
     uiState.set(stateBeforeBuild).also { refresh(true) }
   }

@@ -30,7 +30,6 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
-        "no_test_mac",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
@@ -67,6 +66,8 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api[test]",
         "//tools/base/common:studio.android.sdktools.common.testfixtures[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
+        "//tools/base/backup:studio.android.sdktools.backup[module, test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
@@ -78,5 +79,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module, test]",
     ],
 )

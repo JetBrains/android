@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
+    <orderEntry type="library" name="kotlinx-collections-immutable" level="project" />
   </component>
 </module>

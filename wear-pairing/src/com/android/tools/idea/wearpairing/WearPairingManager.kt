@@ -466,12 +466,7 @@ class WearPairingManager(
   private fun getConnectedDevices(): Map<String, IDevice> {
     ThreadingAssertions.assertBackgroundThread()
 
-    return connectedDevicesProvider()
-      .filter {
-        it.isEmulator || it.arePropertiesSet()
-      } // Ignore un-populated physical devices (still loading properties)
-      .filter { it.isOnline }
-      .associateBy { it.getDeviceID() }
+    return connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
   }
 
   private suspend fun updateForwardState(
@@ -524,6 +519,21 @@ class WearPairingManager(
         removeAllPairedDevices(
           deviceID
         ) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+      } else if (device.isDirectAccessDevice()) {
+        val deviceHasNewSession =
+          deviceTable.values
+            .filter { it.isDirectAccessDevice() && it.displayName == device.displayName }
+            .any { it.deviceID != deviceID }
+
+        // Direct Access Devices are wiped after each session is disconnected and expired.
+        // If another Direct Access Device exists in the device table with the same name as the
+        // current device, then we can assume that the pairing is no longer valid as the
+        // session associated to the disconnected device has expired and has been wiped.
+        // Otherwise, keep the pairing in case the user reclaims the session, but don't add it to
+        // the list.
+        if (deviceHasNewSession) {
+          removeAllPairedDevices(deviceID)
+        }
       } else {
         deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
       }
@@ -580,6 +590,9 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
       }
     }
 }
+
+private fun PairingDevice.isDirectAccessDevice() =
+  !isWearDevice && deviceID.matches(Regex("projects/.+/deviceSessions/session-.*"))
 
 private fun IDevice.isPhysicalPhone(): Boolean =
   when {

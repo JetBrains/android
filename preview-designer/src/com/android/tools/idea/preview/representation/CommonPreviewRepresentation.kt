@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.preview.representation
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
-import com.android.tools.idea.common.scene.SceneUpdateListener
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -27,9 +27,9 @@ import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -78,13 +78,16 @@ import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
-import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
+import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.surface.defaultSceneManagerProvider
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
@@ -97,7 +100,6 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
@@ -105,6 +107,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -143,10 +146,9 @@ val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("Previe
  *   displaying the previews.
  * @param renderingTopic the [RenderingTopic] under which the preview renderings will be executed.
  * @param useCustomInflater a configuration to apply when rendering the previews.
- * @param sceneUpdateListener the listener to be notified whenever the scene of a preview element is
- *   updated.
  * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
  *   for tracking refresh metrics.
+ * @param onAfterRender the function to be called after preview rendering completed for each scene.
  */
 open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   adapterViewFqcn: String,
@@ -155,22 +157,22 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
   viewConstructor:
     (
-      project: Project, surfaceBuilder: NlDesignSurface.Builder, parentDisposable: Disposable,
+      project: Project, surfaceBuilder: NlSurfaceBuilder, parentDisposable: Disposable,
     ) -> CommonNlDesignSurfacePreviewView,
   viewModelConstructor:
     (
       previewView: PreviewView,
-      projectBuildStatusManager: ProjectBuildStatusManager,
+      renderingBuildStatusManager: RenderingBuildStatusManager,
       refreshManager: PreviewRefreshManager,
       project: Project,
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
       hasRenderErrors: () -> Boolean,
     ) -> CommonPreviewViewModel,
-  configureDesignSurface: NlDesignSurface.Builder.(NavigationHandler) -> Unit,
+  configureDesignSurface: NlSurfaceBuilder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
-  sceneUpdateListener: SceneUpdateListener? = null,
   private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
+  private val onAfterRender: (LayoutlibSceneManager) -> Unit = {},
 ) :
   PreviewRepresentation,
   AndroidCoroutinesAware,
@@ -180,13 +182,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   PreviewInvalidationManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
-  private val project = psiFile.project
-  private val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiFile) }
+  protected val project = psiFile.project
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val buildTargetReference =
+    BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
 
-  private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
 
-  @TestOnly internal fun getProjectBuildStatusForTest() = projectBuildStatusManager.status
+  @TestOnly internal fun getProjectBuildStatusForTest() = renderingBuildStatusManager.status
 
   private val lifecycleManager =
     PreviewLifecycleManager(
@@ -214,15 +217,21 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @VisibleForTesting
   val navigationHandler =
-    DefaultNavigationHandler { _, _, _, _, _ -> null }
+    DefaultNavigationHandler { sceneView, _, _, _, _ ->
+        val model = sceneView.sceneManager.model
+        val previewElement = model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)
+
+        previewElement?.previewElementDefinition?.element?.navigationElement
+          as? NavigatablePsiElement
+      }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
   @VisibleForTesting
   val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
         project,
-        NlDesignSurface.builder(project, this) { surface, model ->
-            NlDesignSurface.defaultSceneManagerProvider(surface, model, sceneUpdateListener).apply {
+        NlSurfaceBuilder.builder(project, this) { surface, model ->
+            defaultSceneManagerProvider(surface, model).apply {
               setUseCustomInflater(useCustomInflater)
               setShrinkRendering(true)
               setRenderingTopic(renderingTopic)
@@ -262,7 +271,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
   }
 
-  private val surface: NlDesignSurface
+  protected val surface: NlDesignSurface
     get() = previewView.mainSurface
 
   /** Used for allowing to decrease qualities of previews after deactivating this representation */
@@ -295,7 +304,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   val previewViewModel: CommonPreviewViewModel =
     viewModelConstructor(
       previewView,
-      projectBuildStatusManager,
+      renderingBuildStatusManager,
       refreshManager,
       project,
       psiFilePointer,
@@ -319,7 +328,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     previewFlowManager.filteredPreviewElementsFlow.value != FlowableCollection.Uninitialized
 
   private val previewFreshnessTracker =
-    CodeOutOfDateTracker.create(module, this) { requestRefresh() }
+    CodeOutOfDateTracker.create(buildTargetReference, this) { requestRefresh() }
 
   private val myPsiCodeFileOutOfDateStatusReporter =
     PsiCodeFileOutOfDateStatusReporter.getInstance(project)
@@ -407,6 +416,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   override fun onDeactivate() = lifecycleManager.deactivate()
 
+  /**
+   * Same as [onDeactivate] but forces an immediate deactivation without any delay. Only for
+   * testing.
+   */
+  @TestOnly internal fun onDeactivateImmediately() = lifecycleManager.deactivateImmediately()
+
   override fun restorePrevious() = previewModeManager.restorePrevious()
 
   override fun setMode(mode: PreviewMode) {
@@ -428,7 +443,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
 
-    setupBuildListener(project, previewViewModel, this)
+    setupBuildListener(buildTargetReference, previewViewModel, this)
     previewBuildListenersManager.setupPreviewBuildListeners(disposable = this, psiFilePointer)
 
     project.runWhenSmartAndSyncedOnEdt(this, { onEnterSmartMode() })
@@ -495,7 +510,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         return@launchWithProgress
       }
 
-      if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+      if (renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild) {
         // Project needs to be built before being able to refresh.
         requestLogger.debug("Project has not build, not able to refresh")
         return@launchWithProgress
@@ -662,7 +677,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private fun onAfterRender() {
     // We need to run any callbacks that have been registered during the rendering of the preview
-    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
+    surface.sceneManagers.forEach {
+      onAfterRender(it)
+      it.executeCallbacksAndRequestRender()
+    }
     previewViewModel.afterPreviewsRefreshed()
   }
 
@@ -775,10 +793,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private fun onEnterSmartMode() {
-    when (projectBuildStatusManager.status) {
+    when (renderingBuildStatusManager.status) {
       // Do not refresh if we still need to build the project. Instead, only update the empty panel
       // and editor notifications if needed.
-      ProjectStatus.NeedsBuild -> previewViewModel.onEnterSmartMode()
+      RenderingBuildStatus.NeedsBuild -> previewViewModel.onEnterSmartMode()
       // We try to refresh even if the status is ProjectStatus.NotReady. This may not result into a
       // successful preview, since the project
       // might not have been built, but it's worth to try.
@@ -827,20 +845,23 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
-    createAnimationInspector()?.also {
-      Disposer.register(this@CommonPreviewRepresentation, it)
-      withContext(uiThread) { previewView.bottomPanel = it.component }
+    withContext(uiThread) {
+      createAnimationInspector(element)?.also {
+        Disposer.register(this@CommonPreviewRepresentation, it)
+        previewView.bottomPanel = it.component
+      }
     }
     ActivityTracker.getInstance().inc()
   }
 
-  protected open fun createAnimationInspector(): AnimationPreview<*>? {
+  @UiThread
+  protected open fun createAnimationInspector(element: PreviewElement<*>): AnimationPreview<*>? {
     return null
   }
 
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
-    currentInspector?.dispose()
+    currentInspector?.let { Disposer.dispose(it) }
     withContext(uiThread) { previewView.bottomPanel = null }
     invalidateAndRefresh()
   }

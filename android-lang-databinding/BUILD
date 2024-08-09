@@ -30,8 +30,7 @@ iml_module(
     name = "intellij.android.lang-databinding.tests",
     iml_files = ["intellij.android.lang-databinding.tests.iml"],
     tags = [
-        "no_test_mac",  # b/113099009
-        "no_test_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
     test_data = [
@@ -75,7 +74,7 @@ maven_repository(
         "@maven//:androidx.activity.activity_1.3.1",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.lifecycle.lifecycle-common_2.6.1",

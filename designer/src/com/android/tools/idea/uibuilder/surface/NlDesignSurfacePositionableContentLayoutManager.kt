@@ -18,12 +18,12 @@ package com.android.tools.idea.uibuilder.surface
 import androidx.annotation.VisibleForTesting
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
+import com.android.tools.idea.common.layout.option.layout
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.layout
 import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point

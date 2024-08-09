@@ -17,8 +17,8 @@ package com.android.tools.idea.preview.viewmodels
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.adtui.stdui.ActionData
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -44,7 +44,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils
 /** A generic implementation of [PreviewViewModel]. */
 open class CommonPreviewViewModel(
   private val previewView: PreviewView,
-  private val projectBuildStatusManager: ProjectBuildStatusManager,
+  private val renderingBuildStatusManager: RenderingBuildStatusManager,
   private val previewRefreshManager: PreviewRefreshManager,
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
@@ -156,9 +156,9 @@ open class CommonPreviewViewModel(
       when {
         DumbService.getInstance(project).isDumb ->
           previewView.showLoadingMessage(message("panel.indexing"))
-        projectBuildStatusManager.isBuilding ->
+        renderingBuildStatusManager.isBuilding ->
           previewView.showLoadingMessage(message("panel.building"))
-        projectBuildStatusManager.status == ProjectStatus.NeedsBuild -> {
+        renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild -> {
           previewView.showErrorMessage(message("panel.needs.build"), null, buildAndRefreshAction)
         }
         else -> previewView.showLoadingMessage(message("panel.initializing"))
@@ -170,7 +170,7 @@ open class CommonPreviewViewModel(
     get() =
       previewRefreshManager.refreshingTypeFlow.value != null ||
         DumbService.isDumb(project) ||
-        projectBuildStatusManager.isBuilding
+        renderingBuildStatusManager.isBuilding
 
   override val hasErrorsAndNeedsBuild: Boolean
     get() = hasPreviews.get() && (!hasRendered.get() || hasRenderErrors())
@@ -179,11 +179,12 @@ open class CommonPreviewViewModel(
     get() = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
   override val isOutOfDate: Boolean
-    get() = projectBuildStatusManager.status is ProjectStatus.OutOfDate
+    get() = renderingBuildStatusManager.status is RenderingBuildStatus.OutOfDate
 
   override val areResourcesOutOfDate: Boolean
     get() =
-      (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate == true
+      (renderingBuildStatusManager.status as? RenderingBuildStatus.OutOfDate)
+        ?.areResourcesOutOfDate == true
 
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element

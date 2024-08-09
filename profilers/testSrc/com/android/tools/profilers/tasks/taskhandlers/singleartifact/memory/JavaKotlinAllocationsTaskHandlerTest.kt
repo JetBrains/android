@@ -133,7 +133,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     myJavaKotlinAllocationsTaskHandler.enter(allocationsTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(myJavaKotlinAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording)
+    assertThat(myJavaKotlinAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
   @Test

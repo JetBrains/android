@@ -48,7 +48,7 @@ import org.junit.Test
 import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 
-private const val SETTINGS_BUTTON_TEXT = "Common Android Settings"
+private const val SETTINGS_BUTTON_TEXT = "Device UI Shortcuts"
 private const val ITERATION_DELAY_MS = 5L
 private val TIMEOUT = 10.seconds
 

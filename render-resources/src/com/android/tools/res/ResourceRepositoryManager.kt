@@ -77,10 +77,16 @@ interface ResourceRepositoryManager {
    * @param languages the set of ISO 639 language codes determining the subset of resources to load.
    *     May be empty to load only the language-neutral resources. The returned repository may contain resources
    *     for more languages than was requested.
+   * @param overlays a list of overlays to add to the base framework resources
    * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
-  fun getFrameworkResources(languages: Set<String>): ResourceRepository?
+  fun getFrameworkResources(languages: Set<String>, overlays: List<FrameworkOverlay>): ResourceRepository?
+
+  @Slow
+  fun getFrameworkResources(languages: Set<String>): ResourceRepository? {
+    return getFrameworkResources(languages, emptyList())
+  }
 
   /**
    * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing

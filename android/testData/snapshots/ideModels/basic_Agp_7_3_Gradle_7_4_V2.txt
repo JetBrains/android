@@ -628,6 +628,7 @@ MODULE                        : project
         UsesCompose                   : false
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
+        DataBindingEnabled            : false
     - basicVariant:               : debug
         applicationId                 : com.android.tests.basic.debug
         testApplicationId             : com.android.tests.basic.debug.test

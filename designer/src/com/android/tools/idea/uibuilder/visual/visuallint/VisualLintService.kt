@@ -54,6 +54,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.profile.ProfileChangeAdapter
 import com.intellij.profile.codeInspection.InspectionProfileManager
+import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
@@ -378,9 +379,17 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
         return@thenCompose CompletableFuture.failedFuture(IllegalArgumentException())
       }
 
+      if (model.isDisposed) {
+        newTask.dispose()
+        return@thenCompose CompletableFuture.failedFuture(
+          AlreadyDisposedException("NlModel was already disposed")
+        )
+      }
+
       // TODO: Potentially save this task for future?
       return@thenCompose newTask.inflate().whenComplete { result, inflateException ->
         val exception: Throwable? = inflateException ?: result.renderResult.exception
+        newTask.dispose()
         if (exception != null || result == null) {
           logger.error(
             "INFLATE",
@@ -390,7 +399,6 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
             null,
           )
         }
-        newTask.dispose()
       }
     }
 }

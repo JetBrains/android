@@ -29,15 +29,18 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSuppressTask
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 
 /** [VisualLintIssueProvider] to be used when dealing with Compose. */
 class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
@@ -116,28 +119,40 @@ class ComposeVisualLintSuppressTask(
   override fun run() {
     VisualLintUsageTracker.getInstance()
       .trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, facet)
+    val previewElementDefinitionPtr = previewElement.previewElementDefinition ?: return
+    var composableFunctionPtr: SmartPsiElementPointer<KtFunction>? = null
+    var suppressPtr: SmartPsiElementPointer<KtAnnotationEntry>? = null
+    ApplicationManager.getApplication().runReadAction {
+      val annotationEntry =
+        (previewElementDefinitionPtr.element as? KtAnnotationEntry) ?: return@runReadAction
+      val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@runReadAction
+      composableFunctionPtr = composableFunction.createSmartPointer()
+      suppressPtr =
+        composableFunction.annotationEntries
+          .find { it.fqNameMatches("kotlin.Suppress") }
+          ?.createSmartPointer()
+    }
+
+    val composableFunction = composableFunctionPtr?.element ?: return
+
     WriteCommandAction.runWriteCommandAction(
       project,
       issueType.toSuppressActionDescription(),
       null,
       {
-        previewElement.previewElementDefinition?.let { pointer ->
-          val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let
-          val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@let
-          var suppress =
-            composableFunction.annotationEntries.find { it.fqNameMatches("kotlin.Suppress") }
-          if (suppress != null) {
-            suppress.addNewValueArgument(
+        if (suppressPtr != null) {
+          suppressPtr
+            ?.element
+            ?.addNewValueArgument(
               KtPsiFactory(project).createArgument("\"${issueType.ignoredAttributeValue}\""),
               KtPsiFactory(project),
             )
-          } else {
-            suppress =
-              KtPsiFactory(project)
-                .createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
-            ShortenReferencesFacility.getInstance()
-              .shorten(composableFunction.addAnnotationEntry(suppress))
-          }
+        } else {
+          val suppress =
+            KtPsiFactory(project)
+              .createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
+          ShortenReferencesFacility.getInstance()
+            .shorten(composableFunction.addAnnotationEntry(suppress))
         }
       },
       previewElement.containingFile,

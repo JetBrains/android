@@ -21,7 +21,6 @@ import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.impl.ProjectRootsUtil

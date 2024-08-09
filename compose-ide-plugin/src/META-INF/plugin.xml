@@ -41,11 +41,6 @@
     </intentionAction>
 
     <intentionAction>
-      <className>com.android.tools.compose.intentions.ComposeCreatePreviewAction</className>
-      <category>Compose Android</category>
-    </intentionAction>
-
-    <intentionAction>
       <className>com.android.tools.compose.intentions.ComposeUnwrapAction</className>
       <category>Compose Android</category>
     </intentionAction>

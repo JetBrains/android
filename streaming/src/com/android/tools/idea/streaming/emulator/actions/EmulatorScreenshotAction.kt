@@ -66,9 +66,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   private class ScreenshotReceiver(val emulatorView: EmulatorView, val project: Project) : EmptyStreamObserver<Image>() {
 
-    override fun onNext(response: Image) {
+    override fun onNext(message: Image) {
       executeOnPooledThread {
-        showScreenshotViewer(response)
+        showScreenshotViewer(message)
       }
     }
 

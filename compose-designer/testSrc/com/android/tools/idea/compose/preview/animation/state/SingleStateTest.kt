@@ -20,11 +20,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
-import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,22 +46,14 @@ class SingleStateTest {
   @RunsInEdt
   @Test
   fun createCard() {
-    val state =
-      SingleState(
-          NoopComposeAnimationTracker,
-          AndroidCoroutineScope(projectRule.testRootDisposable),
-        )
-        .apply {
-          updateStates(setOf("One", "Two", "Three"))
-          setStartState("One")
-        }
+    val state = SingleState(NoopComposeAnimationTracker, setOf("One", "Two", "Three"), "One")
     val card =
       AnimationCard(
           Mockito.mock(DesignSurface::class.java),
           "Title",
           listOf(
             FreezeAction(
-              createTestSlider(),
+              { 200 },
               MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
               NoopAnimationTracker,
             )
@@ -84,24 +74,14 @@ class SingleStateTest {
     toolbar.components.forEach { assertBigger(minimumSize, it.size) }
     // Default state.
     assertEquals("One", (toolbar.components[2] as JPanel).findComboBox().text)
-    assertEquals("One", state.getState(0))
-    val hash = state.stateHashCode.value
+    assertEquals("One", state.state.value)
+    val hash = state.state.value.hashCode()
     // Swap state.
     ui.clickOn(toolbar.components[1])
     // State hashCode has changed.
-    assertNotEquals(hash, state.stateHashCode.value)
+    assertNotEquals(hash, state.state.value.hashCode())
     // The states swapped.
     assertEquals("Two", (toolbar.components[2] as JPanel).findComboBox().text)
-    assertEquals("Two", state.getState(0))
-    // Update states.
-    state.updateStates(setOf("Four", "Five", "Six"))
-    state.setStartState("Four")
-    ui.updateToolbars()
-    assertEquals("Four", (toolbar.components[2] as JPanel).findComboBox().text)
-    assertEquals("Four", state.getState(0))
-    // Swap state.
-    ui.clickOn(toolbar.components[1])
-    assertEquals("Five", (toolbar.components[2] as JPanel).findComboBox().text)
-    assertEquals("Five", state.getState(0))
+    assertEquals("Two", state.state.value)
   }
 }

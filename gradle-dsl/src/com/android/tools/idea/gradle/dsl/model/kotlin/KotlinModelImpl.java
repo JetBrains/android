@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model.kotlin;
 
+import static com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetDslElement.KOTLIN_SOURCE_SET;
+import static com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetsDslElement.KOTLIN_SOURCE_SETS;
+
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel;
+import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinSourceSetModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,5 +40,26 @@ public class KotlinModelImpl extends GradleDslBlockModel implements KotlinModel 
   @Override
   public @NotNull ResolvedPropertyModel jvmToolchain() {
     return getLanguageModelForProperty(JVM_TOOLCHAIN);
+  }
+
+  @Override
+  public @NotNull List<KotlinSourceSetModel> sourceSets() {
+    KotlinSourceSetsDslElement sourceSets = myDslElement.getPropertyElement(KOTLIN_SOURCE_SETS);
+    return sourceSets == null ? ImmutableList.of() : sourceSets.get();
+  }
+
+  @Override
+  public @NotNull KotlinSourceSetModel addSourceSet(@NotNull String name) {
+    KotlinSourceSetsDslElement sourceSets = myDslElement.ensurePropertyElement(KOTLIN_SOURCE_SETS);
+    KotlinSourceSetDslElement sourceSetElement = sourceSets.ensureNamedPropertyElement(KOTLIN_SOURCE_SET, GradleNameElement.create(name));
+    return new KotlinSourceSetModelImpl(sourceSetElement);
+  }
+
+  @Override
+  public void removeSourceSet(@NotNull String name) {
+    KotlinSourceSetsDslElement sourceSets = myDslElement.getPropertyElement(KOTLIN_SOURCE_SETS);
+    if (sourceSets != null) {
+      sourceSets.removeProperty(name);
+    }
   }
 }

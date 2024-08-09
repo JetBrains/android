@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.UserSettingsKey;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
@@ -127,7 +127,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
       if (info == null) {
         return null;
       }
-      return info.getUserSettings().get(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI);
+      return info.getUserSettings().get(UserSettingsKey.PREFERRED_ABI);
     }
     catch (ExecutionException | InterruptedException e) {
       return null;

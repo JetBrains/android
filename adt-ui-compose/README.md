@@ -35,7 +35,7 @@ process.
 
 ## How to Upgrade Jewel + Compose Desktop
 
-1. Update the `/tools/base/maven/artifacts.bzl` file's DATA artifact entries to the desired version. While there's no single set of
+1. Update the `/tools/base/bazel/maven/artifacts.bzl` file's DATA artifact entries to the desired version. While there's no single set of
 artifacts to target, follow these general steps:
     1. Update the versions of artifacts prefixed with `org.jetbrains.jewel`.
     2. If Jewel's changelog mentions a Compose version upgrade, update the artifacts prefixed with `org.jetbrains.compose`.

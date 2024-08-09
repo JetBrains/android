@@ -15,11 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.api.kotlin;
 
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public interface KotlinModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel jvmToolchain();
+
+  @NotNull
+  List<KotlinSourceSetModel> sourceSets();
+
+  @NotNull
+  KotlinSourceSetModel addSourceSet(@NotNull String name);
+
+  void removeSourceSet(@NotNull String name);
 }

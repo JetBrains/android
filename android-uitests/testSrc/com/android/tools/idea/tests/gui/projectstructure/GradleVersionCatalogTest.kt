@@ -275,6 +275,7 @@ class GradleVersionCatalogTest {
           findDependenciesTable().cell("androidx.appcompat:appcompat:1.3.0").click()
           findVersionCombo().run {
             Truth.assertThat(selectedItem()).contains("versions.appcompat")
+            guiTest.waitForAllBackgroundTasksToBeCompleted()
             selectItem(Pattern.compile(".*1\\.6\\.1.*"))
             Truth.assertThat(selectedItem()).contains("1.6.1")
           }

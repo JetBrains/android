@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +61,9 @@ public class DynamicAppUtils {
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
 
     DynamicAppFeatureOnFeatureToken<AndroidProjectSystem> token =
-      Arrays.stream(DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensions(project)).filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
+      DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst().orElse(null);
     if (token == null) {
       return ImmutableList.of();
     }
@@ -85,7 +86,9 @@ public class DynamicAppUtils {
     AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
 
     DynamicAppFeatureOnFeatureToken<AndroidProjectSystem> token =
-      Arrays.stream(DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensions(project)).filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
+      DynamicAppFeatureOnFeatureToken.EP_NAME.getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst().orElse(null);
     if (token == null) {
       return ImmutableList.of();
     }

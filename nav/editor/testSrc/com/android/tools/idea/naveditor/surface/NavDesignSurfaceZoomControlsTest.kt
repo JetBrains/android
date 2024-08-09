@@ -25,15 +25,13 @@ import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.actionSystem.CustomizedDataContext
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
@@ -215,7 +213,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, AndroidBuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
@@ -247,7 +245,7 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomInAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
 
     // Verify zoom in
     run {
@@ -283,7 +281,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, AndroidBuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
@@ -316,7 +314,7 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomOutAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
 
     // Verify zoom out
     run {
@@ -353,7 +351,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, AndroidBuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
@@ -386,7 +384,7 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomToFitAction>()
       .single()
 
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, surface))
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 

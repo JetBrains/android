@@ -164,19 +164,8 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
-    <!--
-      These two activities, along with NativeStartupActivity in android-ndk, have an ordering requirement.  In production,
-      that ordering requirement is satisfied by the services within the activities, providing DeferredCompletables which
-      are completed when the activity is done, and which can be waited for from other activities.
-
-      In unit test mode, StartupManagerImpl runs all the ProjectActivities synchronously, and in order.  We therefore
-      have to ensure that these activities are in an acceptable order, or our tests will deadlock.
-    -->
-    <postStartupActivity id="Android.Initialization"
-                         implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
-    <postStartupActivity id="Android.Gradle.Project"
-                         implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"
-                         order="after Android.Initialization"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <intentionAction>
       <language>UAST</language>
       <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
@@ -195,12 +184,9 @@
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover"/>
-    <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy"
-                          order="first"/>
-    <spellchecker.support language="kotlin"
-                          implementationClass="org.jetbrains.kotlin.android.spellchecker.AndroidGradleKtsSpellcheckingStrategy"
-                          order="first"/>
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
+    <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
+    <spellchecker.support language="kotlin" implementationClass="org.jetbrains.kotlin.android.spellchecker.AndroidGradleKtsSpellcheckingStrategy" order="first"/>
     <versionCatalogFilesGradleModel implementation="com.android.tools.idea.gradle.catalog.VersionCatalogFilesGradleModel"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -238,8 +224,10 @@
         implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerGradleToken"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.ui.resourcemanager.importer">
-    <createDefaultResDirectoryToken
-        implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
+    <createDefaultResDirectoryToken implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.android.facet">
+    <resourceFolderManagerToken implementation="org.jetbrains.android.facet.ResourceFolderManagerGradleToken"/>
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
@@ -257,8 +245,6 @@
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromHardcodedNamesSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.InitializeGradleLocalJavaHomeListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
-    <listener class="com.android.tools.idea.gradle.project.sync.listeners.SdkIndexIssuesSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

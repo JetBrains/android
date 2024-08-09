@@ -192,8 +192,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       }
       AccessoryPanelInterface panel = myPanels.get(parent);
       if (panel == null) {
-        ViewGroupHandler.AccessoryPanelVisibility visibilityCallback = mySurface;
-        panel = viewGroupHandler.createAccessoryPanel(surface, myType, parent, visibilityCallback);
+        panel = viewGroupHandler.createAccessoryPanel(surface, myType, parent);
         myPanels.put(parent, panel);
         removeCurrentPanel();
       }

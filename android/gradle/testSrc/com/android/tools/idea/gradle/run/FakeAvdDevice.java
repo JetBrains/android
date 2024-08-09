@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
-import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
+import static com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME;
+import static com.android.sdklib.internal.avd.UserSettingsKey.PREFERRED_ABI;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
 
 import com.android.annotations.NonNull;
@@ -93,7 +93,7 @@ public final class FakeAvdDevice implements AndroidDevice {
   @Override
   public boolean supportsMultipleScreenFormats() {
     return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
-           && "resizable".equals(myAvdInfo.getProperties().get(AVD_INI_DEVICE_NAME));
+           && "resizable".equals(myAvdInfo.getProperties().get(DEVICE_NAME));
   }
 
   @NotNull
@@ -113,7 +113,7 @@ public final class FakeAvdDevice implements AndroidDevice {
   @Nullable
   @Override
   public String getAppPreferredAbi() {
-    return myAvdInfo.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI);
+    return myAvdInfo.getUserSettings().get(PREFERRED_ABI);
   }
 
   @NotNull

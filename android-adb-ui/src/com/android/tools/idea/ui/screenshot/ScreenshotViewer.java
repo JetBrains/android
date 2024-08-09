@@ -576,7 +576,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       case WEAR -> DeviceScreenshotEvent.DeviceType.WEAR;
       case HANDHELD -> DeviceScreenshotEvent.DeviceType.PHONE;
       case TV -> DeviceScreenshotEvent.DeviceType.TV;
-      case AUTOMOTIVE -> DeviceScreenshotEvent.DeviceType.UNKNOWN_DEVICE_TYPE;
+      default -> DeviceScreenshotEvent.DeviceType.UNKNOWN_DEVICE_TYPE;
     };
   }
 

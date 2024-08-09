@@ -38,6 +38,16 @@ class SyncBenchmarkVersionTest {
     Truth.assertThat(benchmarkVersions.resolvedKotlinVersion() >= latestVersions.resolvedKotlinVersion()).isTrue()
   }
 
+  @Test
+  fun `kotlin snapshot benchmarks are ahead of latest`() {
+    val benchmarkVersions = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
+    val latestVersions = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
+
+    Truth.assertThat(benchmarkVersions.resolvedAgpVersion() >= latestVersions.resolvedAgpVersion()).isTrue()
+    Truth.assertThat(benchmarkVersions.resolvedGradleVersion() >= latestVersions.resolvedGradleVersion()).isTrue()
+    Truth.assertThat(benchmarkVersions.resolvedKotlinVersion() >= latestVersions.resolvedKotlinVersion()).isTrue()
+  }
+
   fun AgpVersionSoftwareEnvironment.resolvedAgpVersion() = AgpVersion.parse(agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion)
   fun AgpVersionSoftwareEnvironment.resolvedGradleVersion() = GradleVersion.version(gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION)
   fun AgpVersionSoftwareEnvironment.resolvedKotlinVersion() = Version.parse(kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS)

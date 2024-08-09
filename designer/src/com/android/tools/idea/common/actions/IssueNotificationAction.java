@@ -113,6 +113,7 @@ public class IssueNotificationAction extends ToggleAction {
       ToolWindow problemsWindow = ProblemsView.getToolWindow(project);
       if (problemsWindow != null) {
         problemsWindow.hide();
+        return;
       }
     }
     DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);

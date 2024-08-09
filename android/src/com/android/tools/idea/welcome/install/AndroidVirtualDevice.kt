@@ -24,7 +24,7 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.HardwareProperties
@@ -99,7 +99,7 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     val settings = getAvdSettings(displayName, internalName, d)
     if (useRanchu) {
-      settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
+      settings[ConfigKey.CPU_CORES] = "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
     return avdManager.createOrUpdateAvd(
       null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, sdCard,
@@ -189,9 +189,10 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
         HardwareProperties.HW_ACCELEROMETER, HardwareProperties.HW_AUDIO_INPUT, HardwareProperties.HW_BATTERY,
         HardwareProperties.HW_GPS, HardwareProperties.HW_KEYBOARD, HardwareProperties.HW_ORIENTATION_SENSOR,
         HardwareProperties.HW_PROXIMITY_SENSOR, HardwareProperties.HW_SDCARD,
-        AvdManager.AVD_INI_GPU_EMULATION)
+        ConfigKey.GPU_EMULATION)
     private val DISABLED_HARDWARE = setOf(
-      HardwareProperties.HW_DPAD, HardwareProperties.HW_MAINKEYS, HardwareProperties.HW_TRACKBALL, AvdManager.AVD_INI_SNAPSHOT_PRESENT
+      HardwareProperties.HW_DPAD, HardwareProperties.HW_MAINKEYS, HardwareProperties.HW_TRACKBALL,
+      ConfigKey.SNAPSHOT_PRESENT
     )
 
     @Throws(WizardException::class)
@@ -202,24 +203,24 @@ class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installU
 
     private fun getAvdSettings(displayName: String, internalName: String, device: Device): MutableMap<String, String> {
       val result: MutableMap<String, String> = hashMapOf()
-      result[AvdManager.AVD_INI_GPU_MODE] = GpuMode.AUTO.gpuSetting
+      result[ConfigKey.GPU_MODE] = GpuMode.AUTO.gpuSetting
       for (key in ENABLED_HARDWARE) {
         result[key] = HardwareProperties.BOOLEAN_YES
       }
       for (key in DISABLED_HARDWARE) {
         result[key] = HardwareProperties.BOOLEAN_NO
       }
-      result[AvdManager.AVD_INI_CAMERA_BACK] = "virtualscene"
-      result[AvdManager.AVD_INI_CAMERA_FRONT] = "emulated"
-      result[AvdManager.AVD_INI_DEVICE_NAME] = device.id
-      result[AvdManager.AVD_INI_DEVICE_MANUFACTURER] = device.manufacturer
-      result[AvdWizardUtils.AVD_INI_NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
-      result[AvdWizardUtils.AVD_INI_NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
-      result[AvdManager.AVD_INI_AVD_ID] = internalName
-      result[AvdManager.AVD_INI_DISPLAY_NAME] = displayName
-      setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, false)
-      setStorageSizeKey(result, AvdManager.AVD_INI_DATA_PARTITION_SIZE, DEFAULT_RAM_SIZE, false)
-      setStorageSizeKey(result, AvdManager.AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
+      result[ConfigKey.CAMERA_BACK] = "virtualscene"
+      result[ConfigKey.CAMERA_FRONT] = "emulated"
+      result[ConfigKey.DEVICE_NAME] = device.id
+      result[ConfigKey.DEVICE_MANUFACTURER] = device.manufacturer
+      result[ConfigKey.NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
+      result[ConfigKey.NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
+      result[ConfigKey.AVD_ID] = internalName
+      result[ConfigKey.DISPLAY_NAME] = displayName
+      setStorageSizeKey(result, ConfigKey.RAM_SIZE, DEFAULT_RAM_SIZE, false)
+      setStorageSizeKey(result, ConfigKey.DATA_PARTITION_SIZE, DEFAULT_RAM_SIZE, false)
+      setStorageSizeKey(result, ConfigKey.VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
       val hardwareProperties = DeviceManager.getHardwareProperties(device)
       result.putAll(hardwareProperties)
 

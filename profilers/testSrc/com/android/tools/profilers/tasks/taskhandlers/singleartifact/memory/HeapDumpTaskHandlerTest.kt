@@ -105,7 +105,7 @@ class HeapDumpTaskHandlerTest {
     val heapDumpArgs = HeapDumpTaskArgs(artifact = hprofSessionArtifact)
     myHeapDumpTaskHandler.enter(heapDumpArgs)
     // The session is alive, so startTask and thus startCapture should be called.
-    assertThat(myHeapDumpTaskHandler.stage!!.recordingOptionsModel.isRecording)
+    assertThat(myHeapDumpTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
   @Test

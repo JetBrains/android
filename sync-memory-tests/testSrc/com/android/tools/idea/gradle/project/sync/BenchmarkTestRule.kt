@@ -33,13 +33,23 @@ const val MULTI_APP_190_NAME = "190Apps_2200Modules"
 
 // Benchmarks with different versions than standard benchmarks
 const val SUBSET_1000_GRADLE_SNAPSHOT_NAME = "1000Modules_GradleSnapshot"
+const val SUBSET_1000_KOTLIN_LATEST_NAME = "1000Modules_KotlinLatest"
 
 // Feature benchmark names
 const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
-fun createBenchmarkTestRule(projectName: String, project: BenchmarkProject, useLatestGradle: Boolean = false): BenchmarkTestRule {
-  val projectSetupRule =  ProjectSetupRuleImpl(projectName, project, useLatestGradle) { AndroidProjectRule.withIntegrationTestEnvironment() }
+
+fun createBenchmarkTestRule(projectName: String,
+                            project: BenchmarkProject,
+                            useLatestGradle: Boolean = false,
+                            useLatestKotlin: Boolean = false): BenchmarkTestRule {
+  val projectSetupRule = ProjectSetupRuleImpl(
+    projectName,
+    project,
+    useLatestGradle,
+    useLatestKotlin
+  ) { AndroidProjectRule.withIntegrationTestEnvironment() }
 
   val wrappedRules =  RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
     .around(projectSetupRule)

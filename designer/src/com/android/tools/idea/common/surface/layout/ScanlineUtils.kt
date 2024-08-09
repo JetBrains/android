@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.surface.layout
 
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 
 /*
  * Scanlines are a simplified method to find the maximum allowed area that a [SceneView] can paint to. We simply build

@@ -222,5 +222,7 @@ fun <T> verifyChangeReflected(
     }
   }
 
-  modelsToVerify.forEach { assertEquals(it.configuration.toHtmlTooltip(), it.tooltip.value) }
+  modelsToVerify.forEach {
+    assertEquals(it.configuration.toHtmlTooltip(), it.displaySettings.tooltip.value)
+  }
 }

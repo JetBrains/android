@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.stdui.KeyBindingKt;
+import com.android.tools.idea.common.model.DisplaySettings;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.sceneview.LabelPanel;
@@ -137,9 +138,8 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    */
   @NotNull
   public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView, CoroutineScope scope) {
-    return new LabelPanel(sceneView.getSceneManager().getModel().getModelDisplayName(),
-                          sceneView.getSceneManager().getModel().getTooltip(),
-                          scope);
+    DisplaySettings displaySettings = sceneView.getSceneManager().getModel().getDisplaySettings();
+    return new LabelPanel(displaySettings, scope);
   }
 
   /**

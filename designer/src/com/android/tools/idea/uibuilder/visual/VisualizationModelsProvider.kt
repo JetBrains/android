@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -33,6 +33,6 @@ interface VisualizationModelsProvider {
   fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    buildTarget: BuildTargetReference,
+    buildTarget: AndroidBuildTargetReference,
   ): List<NlModel>
 }

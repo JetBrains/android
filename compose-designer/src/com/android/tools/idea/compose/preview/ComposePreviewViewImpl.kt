@@ -35,8 +35,8 @@ import com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviews
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatus
+import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -49,7 +49,7 @@ import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
@@ -77,7 +77,6 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
-import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -202,9 +201,9 @@ fun interface ComposePreviewViewProvider {
   fun invoke(
     project: Project,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
-    projectBuildStatusManager: ProjectBuildStatusManager,
+    renderingBuildStatusManager: RenderingBuildStatusManager,
     dataProvider: DataProvider,
-    mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+    mainDesignSurfaceBuilder: NlSurfaceBuilder,
     parentDisposable: Disposable,
   ): ComposePreviewView
 }
@@ -234,7 +233,7 @@ fun interface ComposePreviewViewProvider {
  * @param project the current open project
  * @param psiFilePointer an [SmartPsiElementPointer] pointing to the file being rendered within this
  *   panel. Used to handle which notifications should be displayed.
- * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
+ * @param renderingBuildStatusManager [RenderingBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
@@ -243,11 +242,11 @@ fun interface ComposePreviewViewProvider {
 internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  private val projectBuildStatusManager: ProjectBuildStatusManager,
+  private val renderingBuildStatusManager: RenderingBuildStatusManager,
   dataProvider: DataProvider,
-  mainDesignSurfaceBuilder: NlDesignSurface.Builder,
+  mainDesignSurfaceBuilder: NlSurfaceBuilder,
   parentDisposable: Disposable,
-) : ComposePreviewView, Pannable, DataProvider {
+) : ComposePreviewView, DataProvider {
 
   private val workbench =
     WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
@@ -260,7 +259,7 @@ internal class ComposePreviewViewImpl(
     mainDesignSurfaceBuilder
       .setDelegateDataProvider { key ->
         when {
-          PANNABLE_KEY.`is`(key) -> this@ComposePreviewViewImpl
+          PANNABLE_KEY.`is`(key) -> pannable
           // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
           GuiInputHandler.CURSOR_RECEIVER.`is`(key) -> workbench
           PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(key) -> {
@@ -275,6 +274,8 @@ internal class ComposePreviewViewImpl(
         // zoom-to-fit is triggered.
         zoomController.setScale(0.25)
       }
+
+  private val pannable: Pannable = mainSurface.pannable
 
   private fun getDataInBackground(dataId: String): Any? {
     if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
@@ -291,15 +292,6 @@ internal class ComposePreviewViewImpl(
     return null
   }
 
-  override val isPannable: Boolean
-    get() = mainSurface.isPannable
-
-  override var isPanning: Boolean
-    get() = mainSurface.isPanning
-    set(value) {
-      mainSurface.isPanning = value
-    }
-
   override val component: JComponent = workbench
 
   private val notificationPanel =
@@ -308,12 +300,6 @@ internal class ComposePreviewViewImpl(
         "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
       )
     )
-
-  override var scrollPosition: Point
-    get() = mainSurface.scrollPosition
-    set(value) {
-      mainSurface.setScrollPosition(value.x, value.y)
-    }
 
   /**
    * Vertical splitter where the top component is the [mainSurface] and the bottom component, when
@@ -371,10 +357,10 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
-    val projectStatus = projectBuildStatusManager.statusFlow.value
+    val projectStatus = renderingBuildStatusManager.statusFlow.value
     log.debug("ProjectStatus: $projectStatus")
     when (projectStatus) {
-      ProjectStatus.NeedsBuild -> {
+      RenderingBuildStatus.NeedsBuild -> {
         if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
           log.debug("Preview not supported in read-only files")
           showModalErrorMessage(message("panel.read.only.file"))
@@ -383,8 +369,8 @@ internal class ComposePreviewViewImpl(
           showNeedsToBuildErrorPanel()
         }
       }
-      ProjectStatus.Building -> workbench.showLoading(message("panel.building"))
-      ProjectStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
+      RenderingBuildStatus.Building -> workbench.showLoading(message("panel.building"))
+      RenderingBuildStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
       else -> {
         if (DumbService.getInstance(project).isDumb)
           workbench.showLoading(message("panel.indexing"))
@@ -461,7 +447,8 @@ internal class ComposePreviewViewImpl(
   override fun updateVisibilityAndNotifications() =
     UIUtil.invokeLaterIfNeeded {
       if (
-        workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild
+        workbench.isMessageVisible &&
+          renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild
       ) {
         if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
           showModalErrorMessage(message("panel.read.only.file"))

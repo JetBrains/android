@@ -221,7 +221,7 @@ class LightBindingClassTest {
     val binding =
       fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.constructors).hasLength(1)
-    assertThat(binding.constructors.first().hasModifier(JvmModifier.PRIVATE))
+    assertThat(binding.constructors.first().hasModifier(JvmModifier.PRIVATE)).isTrue()
   }
 
   @Test

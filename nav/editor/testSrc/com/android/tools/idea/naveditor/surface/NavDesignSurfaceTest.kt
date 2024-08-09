@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.testutils.MockitoKotlinUtils.safeEq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
@@ -226,7 +227,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
     LayoutTestUtilities.clickMouse(guiInputHandler, MouseEvent.BUTTON1, 2, x, y, 0)
 
-    verify(surface).notifyComponentActivate(eq(fragment.nlComponent), anyInt(), anyInt())
+    verify(surface).notifyComponentActivate(safeEq(fragment.nlComponent), anyInt(), anyInt())
   }
 
   fun testScrollToCenter() {
@@ -259,7 +260,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f1)!!.setPosition(0, 0)
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
-    (surface.sceneManager as NavSceneManager).layout(false)
+    (surface.sceneManager as NavSceneManager).requestLayoutAsync(false)
     surface.zoomController.zoomToFit()
 
     // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
@@ -301,7 +302,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
     val manager = GuiInputHandler(
-      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
     )
     manager.startListening()
 
@@ -508,7 +509,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
 
     val manager = GuiInputHandler(
-      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
     )
     manager.startListening()
 

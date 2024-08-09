@@ -24,7 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet
 val Module.isAndroidApp: Boolean
   get() = AndroidFacet.getInstance(this)?.configuration?.isAppProject ?: false
 
-fun Project.getHolderModules(): List<Module> = getAndroidFacets().map { it.holderModule }
+fun Project.getHolderModules(): List<Module> = getAndroidFacets().map { it.module }
 
 val Module.androidAppId: String?
   get() {

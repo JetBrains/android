@@ -56,9 +56,7 @@ open class SyncLayoutlibSceneManager(
       }
     },
     LayoutlibSceneManagerHierarchyProvider(),
-    null,
     DISABLED,
-    ::RealTimeSessionClock,
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
@@ -114,13 +112,6 @@ open class SyncLayoutlibSceneManager(
     return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate))
   }
 
-  override fun updateModelAsync(): CompletableFuture<Void> {
-    if (ignoreModelUpdateRequests) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return waitForFutureWithoutBlockingUiThread(super.updateModelAsync())
-  }
-
   override fun wrapRenderModule(core: RenderModelModule): RenderModelModule {
     return TestRenderModelModule(core)
   }
@@ -136,7 +127,8 @@ open class SyncLayoutlibSceneManager(
     value: String,
   ) {
     if (renderResult == null) {
-      updateModelAsync().join()
+      forceReinflate()
+      requestRenderAsync().join()
     }
     var map: MutableMap<ResourceReference, ResourceValue> =
       renderResult!!.defaultProperties.getOrPut(component.snapshot!!) { HashMap() }
@@ -144,9 +136,5 @@ open class SyncLayoutlibSceneManager(
     val resourceValue: ResourceValue =
       StyleItemResourceValueImpl(namespace, attributeName, value, null)
     map[reference] = resourceValue
-  }
-
-  fun fireRenderCompleted() {
-    fireOnRenderComplete()
   }
 }

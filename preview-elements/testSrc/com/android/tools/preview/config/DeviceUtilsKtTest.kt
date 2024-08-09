@@ -104,14 +104,6 @@ internal class DeviceUtilsKtTest {
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(20, screen.chin)
 
-    // From DeviceSpec
-    screen =
-      deviceFromDeviceSpec("spec:shape=Round,width=100,height=200,unit=px,dpi=300")!!
-        .defaultHardware
-        .screen
-    assertEquals(ScreenRound.ROUND, screen.screenRound)
-    assertEquals(0, screen.chin)
-
     // From DeviceSpec Language
     screen =
       deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!
@@ -123,7 +115,7 @@ internal class DeviceUtilsKtTest {
 
   @Test
   fun deviceInstanceWithDifferentDimensionUnit() {
-    val device1 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=px,dpi=310")
+    val device1 = deviceFromDeviceSpec("spec:width=100px,height=200px,dpi=310")
     assertNotNull(device1)
     val screen1 = device1.defaultHardware.screen
     assertEquals(100, screen1.xDimension)
@@ -131,7 +123,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(320, screen1.pixelDensity.dpiValue) // Adjusted Density bucket
     assertEquals(0.69, (screen1.diagonalLength * 100).toInt() / 100.0, 0.0)
 
-    val device2 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=dp,dpi=310")
+    val device2 = deviceFromDeviceSpec("spec:width=100dp,height=200dp,dpi=310")
     assertNotNull(device2)
     val screen2 = device2.defaultHardware.screen
 

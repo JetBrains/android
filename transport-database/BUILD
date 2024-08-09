@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.transportDatabase",
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.transportDatabase.iml"],
-    tags = ["no_test_windows"],  # b/148697994
+    tags = ["noci:studio-win"],  # b/148697994
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

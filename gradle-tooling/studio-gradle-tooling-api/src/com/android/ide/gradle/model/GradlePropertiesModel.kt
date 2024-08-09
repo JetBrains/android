@@ -21,4 +21,6 @@ interface GradlePropertiesModel {
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean?
 
+  /** Whether constraints for library components are disabled */
+  val excludeLibraryComponentsFromConstraints: Boolean?
 }

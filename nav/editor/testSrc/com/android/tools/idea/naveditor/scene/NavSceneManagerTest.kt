@@ -21,6 +21,7 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -167,7 +168,7 @@ class NavSceneManagerTest : NavTestCase() {
     sceneManager.update()
 
     val designSurface = model.surface as NavDesignSurface
-    whenever(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
+    whenever(designSurface.pannable).thenAnswer { TestPannable(scrollPosition = scrollPosition) }
 
     val currentNavigation = designSurface.currentNavigation
 

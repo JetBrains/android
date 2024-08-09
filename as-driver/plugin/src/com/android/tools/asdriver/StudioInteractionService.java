@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.icons.CachedImageIcon;
 import com.intellij.openapi.util.SystemInfo;
@@ -45,6 +46,7 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -130,9 +132,12 @@ public class StudioInteractionService {
     } else if (component instanceof JListItemComponent componentAsListItem) {
       log("Invoking JListItemComponent item: " + componentAsListItem);
       componentAsListItem.invoke();
-    } else if (component instanceof JButton componentAsButton) {
+    } else if (component instanceof AbstractButton componentAsButton) {
       log("Invoking JButton: " + componentAsButton);
       invokeButton(componentAsButton);
+    } else if (component instanceof JLabel componentAsLabel) {
+      log("Invoking JLabel: " + componentAsLabel);
+      clickLabel(componentAsLabel);
     } else if (component instanceof ActionButton componentAsButton) {
       log("Invoking ActionButton: " + componentAsButton);
       componentAsButton.click();
@@ -322,6 +327,8 @@ public class StudioInteractionService {
         icon = ((ActionButton)c).getIcon();
       } else if (c instanceof JButton) {
         icon = ((JButton)c).getIcon();
+      } else if (c instanceof JLabel) {
+        icon = ((JLabel)c).getIcon();
       } else {
         continue;
       }
@@ -351,15 +358,20 @@ public class StudioInteractionService {
     return allComponents;
   }
 
-  private void invokeButton(JButton button) {
+  private void invokeButton(AbstractButton button) {
     Action action = button.getAction();
     if (action == null) {
-      System.out.println("JButton had no associated action. Falling back to doClick.");
+      System.out.println("Button had no associated action. Falling back to doClick.");
       button.doClick();
     } else {
       ActionEvent ae = new ActionEvent(button, 0, null);
       action.actionPerformed(ae);
     }
+  }
+
+  private void clickLabel(JLabel label) {
+    MouseEvent clickEvent = new MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false);
+    label.dispatchEvent(clickEvent);
   }
 
   /**
@@ -384,17 +396,24 @@ public class StudioInteractionService {
    * feel free to modify the implementation to accommodate your needs).
    */
   private String getTextFromComponent(Component c) {
+    String result = null;
     if (c instanceof JLabel jl) {
-      return jl.getText();
+      result = jl.getText();
     }
     if (c instanceof AbstractButton ab) {
-      return ab.getText();
+      result = ab.getText();
     }
     if (c instanceof SimpleColoredComponent scc) {
-      return scc.toString();
+      result = scc.toString();
+    }
+    if (StringUtil.nullize(result) == null) {
+      AccessibleContext context = c.getAccessibleContext();
+      if (context != null) {
+        result = context.getAccessibleName();
+      }
     }
 
-    return null;
+    return result;
   }
 
   /**

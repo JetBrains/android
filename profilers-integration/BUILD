@@ -275,12 +275,9 @@ iml_studio_test(
         "block-network",
         "very_flaky",  # b/260867011
     ],
-    tags_mac = [
-        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
-    ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
-        "no_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.profilers.integration.sessionbased.SessionBasedProfilingWithApkTest",
 )
@@ -299,12 +296,9 @@ iml_studio_test(
         "block-network",
         "very_flaky",  # b/260867011
     ],
-    tags_mac = [
-        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
-    ],
     tags_windows = [
         # TODO(b/287284693): Add Windows support for this test.
-        "no_windows",
+        "noci:studio-win",
     ],
     test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
 )

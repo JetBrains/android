@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
 import com.android.ddmlib.AdbInitOptions
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
@@ -40,7 +41,8 @@ class DeviceProvisionerAndroidDeviceTest {
   fun initAdb() {
     AndroidDebugBridge.enableFakeAdbServerMode(deviceProvisionerRule.fakeAdb.fakeAdbServer.port)
     val options =
-      AdbInitOptions.builder().setClientSupportEnabled(false).useJdwpProxyService(false).build()
+      AdbInitOptions.builder().setIDeviceManagerFactory(AdbLibIDeviceManagerFactory(deviceProvisionerRule.adbSession))
+        .useJdwpProxyService(false).build()
     AndroidDebugBridge.init(options)
     bridge =
       AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")

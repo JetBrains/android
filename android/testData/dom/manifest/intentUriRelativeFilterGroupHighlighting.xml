@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.p2">
+  <uses-permission android:name="android.permission.UNKNOWN"/>
+
+  <application>
+    <<error>activity</error>>
+      <intent-filter>
+        <action android:name="android.intent.action.UNKNOWN"/>
+        <category android:name="UNKNOWN"/>
+        <uri-relative-filter-group>
+          <data android:pathPrefix="/auth" />
+        </uri-relative-filter-group>
+      </intent-filter>
+    </activity>
+
+  </application>
+</manifest>

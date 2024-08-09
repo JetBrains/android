@@ -39,8 +39,6 @@ interface AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
   )
 
-  fun logMatchers(event: AppQualityInsightsUsageEvent.AppQualityInsightsMatcherDetails)
-
   fun logError(
     mode: ConnectionMode,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,

@@ -81,7 +81,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
       scale *= 2;
     }
     // TODO(b/136258816): Update metrics to log multiple configurations
-    Configuration configuration = surface.getConfiguration();
+    Configuration configuration = surface.getConfigurations().stream().findFirst().orElse(null);
     if (configuration != null) {
       State deviceState = configuration.getDeviceState();
 

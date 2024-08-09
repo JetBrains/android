@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.testFramework.TestApplicationManager;
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,11 +41,25 @@ import org.junit.rules.ExternalResource;
  */
 public class DebugLoggerRule extends ExternalResource {
   @Nullable private Logger.Factory myOriginalFactory;
+  private final Class<? extends Logger.Factory> myFactory;
+
+  public DebugLoggerRule() {
+    this(MyDebugLoggerFactory.class);
+  }
+
+  public DebugLoggerRule(Class<? extends Logger.Factory> factoryClass) {
+    myFactory = factoryClass;
+  }
 
   @Override
   protected void before() throws Throwable {
     super.before();
 
+    // Initialize TestApplicationManager.Companion before setting the logger factory, since
+    // TestApplicationManager.Companion sets the logger factory on init and we want to be sure
+    // it's overridden here.
+    //noinspection ResultOfMethodCallIgnored
+    TestApplicationManager.Companion.getInstanceIfCreated();
     try {
       Field factoryField = Logger.class.getDeclaredField("ourFactory");
       factoryField.setAccessible(true);
@@ -54,7 +69,7 @@ public class DebugLoggerRule extends ExternalResource {
     catch (IllegalAccessException | NoSuchFieldException e) {
       System.err.println("Error injecting custom logger factory: " + e);
     }
-    Logger.setFactory(MyDebugLoggerFactory.class);
+    Logger.setFactory(myFactory);
   }
 
   @Override

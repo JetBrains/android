@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.res.StudioResourceIdManager;
@@ -42,6 +43,8 @@ import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 
 public class ViewLoaderTest extends AndroidTestCase {
+
+  private AndroidBuildTargetReference myBuildTarget;
   @SuppressWarnings("ALL")
   public static class R {
     public static final class string {
@@ -60,7 +63,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
+    myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet);
     RenderTestUtil.beforeRenderTestCase();
     Module module = myFacet.getModule();
     AndroidPlatform platform = AndroidPlatforms.getInstance(module);

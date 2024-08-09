@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.analysis
 
 import com.android.tools.idea.insights.Frame
-import com.intellij.psi.PsiElement
 
 /** A pair of a [crash frame][Frame] and its ["cause"][Cause]. */
 data class CrashFrame(val frame: Frame, val cause: Cause)
@@ -32,17 +31,3 @@ sealed class Cause {
 
   data class Throwable(val exceptionType: String) : Cause()
 }
-
-/** Confidence level of a static analysis match. */
-enum class Confidence {
-  LOW,
-  MEDIUM,
-  HIGH,
-}
-
-/**
- * Represents Stack Frame analysis matches.
- *
- * Points to the matched [PsiElement] and carries the [Confidence] of the match.
- */
-data class Match(val element: PsiElement, val confidence: Confidence, val matcherName: String)

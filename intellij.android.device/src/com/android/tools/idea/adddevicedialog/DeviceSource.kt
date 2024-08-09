@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-interface DeviceSource {
+import com.android.sdklib.deviceprovisioner.Extension
+
+interface DeviceSource : Extension {
   val profiles: List<DeviceProfile>
 
   fun WizardPageScope.selectionUpdated(profile: DeviceProfile)

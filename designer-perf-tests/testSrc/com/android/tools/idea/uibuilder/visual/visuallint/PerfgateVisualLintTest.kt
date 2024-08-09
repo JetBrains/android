@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -93,13 +93,15 @@ class PerfgateVisualLintTest {
     val nlModel = SyncNlModel.create(
       projectRule.fixture.testRootDisposable,
       NlComponentRegistrar,
-      BuildTargetReference.gradleOnly(facet),
+      AndroidBuildTargetReference.gradleOnly(facet),
       dashboardLayout
     )
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("phone_background_linting_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("phone_background_linting_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), emptyMap(), visualLintExecutorService)
@@ -120,14 +122,16 @@ class PerfgateVisualLintTest {
     val wearModel = SyncNlModel.create(
       projectRule.fixture.testRootDisposable,
       NlComponentRegistrar,
-      BuildTargetReference.gradleOnly(facet),
+      AndroidBuildTargetReference.gradleOnly(facet),
       wearLayout,
       wearConfiguration
     )
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("wear_background_linting_memory_use"))),
+                        // TODO(b/352075517): re-enable memory measurement once performance issue is fixed
+                        // HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("wear_background_linting_memory_use"))
+      ),
       samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), emptyMap(), visualLintExecutorService)

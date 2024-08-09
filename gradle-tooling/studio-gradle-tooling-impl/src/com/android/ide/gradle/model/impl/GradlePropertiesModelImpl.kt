@@ -18,5 +18,6 @@ package com.android.ide.gradle.model.impl
 import com.android.ide.gradle.model.GradlePropertiesModel
 
 data class GradlePropertiesModelImpl(
-  override val useAndroidX: Boolean?
+  override val useAndroidX: Boolean?,
+  override val excludeLibraryComponentsFromConstraints: Boolean?
 ) : GradlePropertiesModel

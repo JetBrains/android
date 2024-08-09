@@ -1,3 +1,0 @@
-rootProject.name='kotlinMpp'
-include ':app'
-include ':shared'

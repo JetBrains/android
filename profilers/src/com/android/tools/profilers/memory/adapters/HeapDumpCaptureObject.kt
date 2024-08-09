@@ -29,9 +29,14 @@ import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.analytics.trackLoading
+import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.saveHeapDumpToFile
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOCATIONS
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.LABEL
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.NATIVE_SIZE
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.RETAINED_SIZE
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
@@ -47,8 +52,6 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import gnu.trove.TObjectProcedure
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
-import java.util.HashMap
-import java.util.HashSet
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
@@ -225,6 +228,13 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   }
 
   override fun canSafelyLoad() = MainMemoryProfilerStage.canSafelyLoadHprof(countBytes().toLong())
+
+  override fun isGroupingSupported(grouping: ClassGrouping?): Boolean {
+    return when (grouping) {
+      ClassGrouping.ARRANGE_BY_CLASS, ClassGrouping.ARRANGE_BY_PACKAGE -> true
+      else -> false
+    }
+  }
 
   private fun doGetBytesRequest() = client.transportClient.getBytes(Transport.BytesRequest.newBuilder()
                                                                       .setStreamId(_session.streamId)

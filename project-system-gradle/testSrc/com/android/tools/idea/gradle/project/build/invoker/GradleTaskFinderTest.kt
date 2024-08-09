@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
+import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder

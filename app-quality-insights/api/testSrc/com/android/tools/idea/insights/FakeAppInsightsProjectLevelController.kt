@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.psi.PsiFile
 import kotlin.coroutines.EmptyCoroutineContext
@@ -47,8 +46,6 @@ class FakeAppInsightsProjectLevelController(
   override fun enterOfflineMode() {}
 
   override fun insightsInFile(file: PsiFile) = retrieveInsights(file)
-
-  override fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer) {}
 
   override fun revertToSnapshot(state: AppInsightsState) {}
 

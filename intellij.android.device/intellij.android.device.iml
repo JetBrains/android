@@ -51,5 +51,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
   </component>
 </module>

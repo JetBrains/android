@@ -38,7 +38,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;

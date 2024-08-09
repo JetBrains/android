@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.sdklib.AndroidVersion
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -24,7 +25,9 @@ class VirtualDeviceProfileTest {
     val devices = readTestDevices()
     val device = devices.first { it.id == "pixel_8" }
     val deviceProfile =
-      VirtualDeviceProfile.Builder().apply { initializeFromDevice(device) }.build()
+      VirtualDeviceProfile.Builder()
+        .apply { initializeFromDevice(device, setOf(AndroidVersion(34))) }
+        .build()
 
     assertThat(deviceProfile.name).startsWith("Pixel 8")
     assertThat(deviceProfile.toBuilder().build()).isEqualTo(deviceProfile)

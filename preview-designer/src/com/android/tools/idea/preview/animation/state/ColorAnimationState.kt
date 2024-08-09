@@ -16,17 +16,12 @@
 package com.android.tools.idea.preview.animation.state
 
 import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.JBColor
 import java.awt.Color
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-
-private val DEFAULT_COLOR: Color = JBColor.WHITE
+import kotlinx.coroutines.flow.update
 
 /**
  * An abstract base class representing the state of a color animation.
@@ -34,40 +29,33 @@ private val DEFAULT_COLOR: Color = JBColor.WHITE
  * This class manages the initial and target colors of the animation, provides a hash code
  * representing the current state, and defines actions for changing the color states.
  *
- * @param tracker The [AnimationTracker] associated with this animation state.
- * @param scope The [CoroutineScope] in which the state flow for the hash code is collected.
+ * @param T The type of animation unit representing a color (e.g., RGB, HSL).
+ * @param tracker The [AnimationTracker] associated with this animation to log changes and events.
+ * @param initialColor The starting color value for the animation.
+ * @param targetColor The final color value for the animation.
  */
-abstract class ColorAnimationState(private val tracker: AnimationTracker, scope: CoroutineScope) :
-  AnimationState {
-
-  /** The initial color state of the animation. */
-  val fromState: StateFlow<Color>
-    get() = _fromState
-
-  /** The target color state of the animation. */
-  val toState: StateFlow<Color>
-    get() = _toState
-
-  private val _fromState: MutableStateFlow<Color> = MutableStateFlow(DEFAULT_COLOR)
-  private val _toState: MutableStateFlow<Color> = MutableStateFlow(DEFAULT_COLOR)
-
-  override val stateHashCode =
-    combine(_fromState, _toState) { from, to -> Pair(from.rgb, to.rgb).hashCode() }
-      .stateIn(
-        scope,
-        SharingStarted.Eagerly,
-        initialValue = Pair(_fromState.value.rgb, _toState.value.rgb).hashCode(),
-      )
-
-  override val changeStateActions: List<AnAction> by lazy {
-    val initial = ColorPickerAction(tracker, _fromState)
-    val target = ColorPickerAction(tracker, _toState)
-
-    listOf(SwapAction(tracker) { initial.swapWith(target) }, initial, ToolbarLabel("to"), target)
+abstract class ColorAnimationState<T : AnimationUnit.Color<*, T>>(
+  private val tracker: AnimationTracker,
+  initialColor: T,
+  targetColor: T,
+) : FromToState<T> {
+  companion object {
+    val DEFAULT_COLOR: Color = JBColor.WHITE
   }
 
-  fun setStates(initialColor: Color, targetColor: Color) {
-    _fromState.value = initialColor
-    _toState.value = targetColor
+  /** The initial color state of the animation. */
+  override val state: MutableStateFlow<Pair<T, T>> = MutableStateFlow(initialColor to targetColor)
+
+  override val changeStateActions: List<AnAction> by lazy {
+    val initial =
+      ColorPickerAction(tracker, initialColor.color ?: DEFAULT_COLOR) {
+        state.update { (_, target) -> target.create(it) to target }
+      }
+    val target =
+      ColorPickerAction(tracker, targetColor.color ?: DEFAULT_COLOR) {
+        state.update { (initial, _) -> initial to initial.create(it) }
+      }
+
+    listOf(SwapAction(tracker) { initial.swapWith(target) }, initial, ToolbarLabel("to"), target)
   }
 }

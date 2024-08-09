@@ -28,6 +28,7 @@ import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
+import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
@@ -628,8 +629,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
-    override fun injectWheel(responseObserver: StreamObserver<Empty>): StreamObserver<WheelEvent> {
-      return object : EmptyStreamObserver<WheelEvent>() {
+    override fun streamInputEvent(responseObserver: StreamObserver<Empty>): StreamObserver<InputEvent> {
+      return object : EmptyStreamObserver<InputEvent>() {
         override fun onCompleted() {
           executor.execute {
             sendEmptyResponse(responseObserver)

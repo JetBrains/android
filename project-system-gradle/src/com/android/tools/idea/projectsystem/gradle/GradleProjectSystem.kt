@@ -58,6 +58,8 @@ import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -97,7 +99,7 @@ import java.io.File
 import java.nio.file.Path
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
-  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
+  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider.getInstance(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
   private val myBuildManager: ProjectSystemBuildManager = GradleProjectSystemBuildManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
@@ -279,8 +281,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
       for (androidFacet in project.getAndroidFacets()) {
         val model = GradleAndroidModel.get(androidFacet) ?: continue
-        val mainModule = androidFacet.mainModule
-        val androidTestModule = androidFacet.androidTestModule
+        val mainModule = androidFacet.module.getMainModule()
+        val androidTestModule = mainModule.getAndroidTestModule()
         model.androidProject.namespace?.let { namespace ->
           packageToModule.put(namespace, mainModule)
 
@@ -521,9 +523,12 @@ private fun IdeArtifactName.toKnownScopeType() =
 /**
  * An [ApplicationProjectContextProvider] for the Gradle project system.
  */
-class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
-  override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext? {
-    val result = FacetFinder.tryFindFacetForProcess(project, info) ?: return null
+class GradleApplicationProjectContextProvider : ApplicationProjectContextProvider<GradleProjectSystem>, GradleToken {
+  override fun computeApplicationProjectContext(
+    projectSystem: GradleProjectSystem,
+    info: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ) : ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(projectSystem.project, info) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

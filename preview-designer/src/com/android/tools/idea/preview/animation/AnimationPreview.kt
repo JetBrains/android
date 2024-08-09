@@ -44,7 +44,6 @@ import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -112,9 +111,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   private val bottomPanel =
     BottomPanel(rootComponent, tracker).apply {
       addResetListener {
-        scope.launch {
-          animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
-        }
+        animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
       }
     }
 
@@ -157,11 +154,11 @@ abstract class AnimationPreview<T : AnimationManager>(
    * An interactive timeline where users scrub or jump within an animation. Visual ranges display
    * the durations of individual animations on the timeline.
    */
-  protected val timeline: Timeline =
+  private val timeline: Timeline =
     Timeline(animationPreviewPanel, component).apply {
       addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
     }
-  private val clockControl = SliderClockControl(timeline)
+  protected val clockControl = SliderClockControl(timeline)
 
   /**
    * Provides buttons and controls for playing, pausing, and adjusting the playback speed of the
@@ -202,7 +199,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   protected suspend fun updateTimelineElements() {
     // Call once to update all sizes as all curves / lines required it.
     withContext(uiThread) {
-      timeline.sliderUI.elements.forEach { it.dispose() }
+      timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
       timeline.sliderUI.elements = getTimelineElements()
       timeline.revalidate()
       timeline.repaint()
@@ -301,7 +298,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   /** Triggers a render/update of the displayed preview. */
-  private suspend fun renderAnimation() {
+  protected suspend fun renderAnimation() {
     sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
   }
 
@@ -359,7 +356,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    * animations.
    */
   open fun invalidatePanel(): Job =
-    scope.launch(uiThread) {
+    scope.launch {
       /**
        * Calling [removeAnimationManager] for all animations will properly remove the cards from
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
@@ -368,44 +365,50 @@ abstract class AnimationPreview<T : AnimationManager>(
       animations.forEach { removeAnimationManager(it) }
     }
 
-  @UiThread
   protected suspend fun removeAnimationManager(animationManager: T) {
-    animationManager.destroy()
-    coordinationTab.removeCard(animationManager.card)
-    removeAnimation(animationManager)
-    if (animationManager is SupportedAnimationManager) {
-      tabbedPane.tabs
-        .find { it.component == animationManager.tab.component }
-        ?.let { tabbedPane.removeTab(it) }
+    withContext(uiThread) {
+      animationManager.destroy()
+      coordinationTab.removeCard(animationManager.card)
+      removeAnimation(animationManager)
+      if (animationManager is SupportedAnimationManager) {
+        tabbedPane.tabs
+          .find { it.component == animationManager.tab.component }
+          ?.let { tabbedPane.removeTab(it) }
+      }
+      if (animations.isEmpty()) {
+        tabbedPane.removeAllTabs()
+        // There are no more tabs. Replace the TabbedPane with the placeholder panel.
+        showNoAnimationsPanel()
+      } else if (tabbedPane.tabCount != 0) {
+        tabbedPane.select(tabbedPane.getTabAt(0), true)
+      }
     }
-    if (animations.isEmpty()) {
-      tabbedPane.removeAllTabs()
-      // There are no more tabs. Replace the TabbedPane with the placeholder panel.
-      showNoAnimationsPanel()
-    } else if (tabbedPane.tabCount != 0) {
-      tabbedPane.select(tabbedPane.getTabAt(0), true)
-    }
+    updateMaxDuration()
+    updateTimelineElements()
   }
 
   /** Adds an [AnimationManager] card to [coordinationTab]. */
-  @UiThread
-  protected fun addAnimationManager(animationTab: T) {
-    val isAddingFirstTab = animations.isEmpty()
-    addAnimation(animationTab)
-    coordinationTab.addCard(animationTab.card)
+  protected suspend fun addAnimationManager(animationTab: T) {
+    withContext(uiThread) {
+      val isAddingFirstTab = animations.isEmpty()
+      addAnimation(animationTab)
+      coordinationTab.addCard(animationTab.card)
 
-    if (isAddingFirstTab) {
-      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
-      // TabbedPane.
-      hideNoAnimationPanel()
-      tabbedPane.addTab(
-        TabInfo(coordinationTab).apply {
-          setText("${message("animation.inspector.tab.all.title")}  ")
-        },
-        0,
-      )
-      coordinationTab.addTimeline(timeline)
+      if (isAddingFirstTab) {
+        // There are no tabs, and we're about to add one. Replace the placeholder panel with the
+        // TabbedPane.
+        hideNoAnimationPanel()
+        tabbedPane.addTab(
+          TabInfo(coordinationTab).apply {
+            setText("${message("animation.inspector.tab.all.title")}  ")
+          },
+          0,
+        )
+        coordinationTab.addTimeline(timeline)
+      }
     }
+    updateMaxDuration()
+    updateTimelineElements()
   }
 
   protected suspend fun executeInRenderSession(longTimeout: Boolean = false, function: () -> Unit) {
@@ -417,10 +420,9 @@ abstract class AnimationPreview<T : AnimationManager>(
     animationPreviewPanel.add(errorPanel, TabularLayout.Constraint(0, 0))
     animationPreviewPanel.revalidate()
     animationPreviewPanel.repaint()
-    scope.cancel("Error in Animation Inspector", e)
   }
 
   override fun dispose() {
-    timeline.sliderUI.elements.forEach { it.dispose() }
+    timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
   }
 }

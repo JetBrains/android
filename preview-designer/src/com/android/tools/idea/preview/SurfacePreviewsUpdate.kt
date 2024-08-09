@@ -29,7 +29,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -282,7 +282,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           withContext(AndroidDispatchers.workerThread) {
             NlModel.Builder(
                 parentDisposable,
-                BuildTargetReference.from(facet, psiFile.virtualFile),
+                AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
                 file,
                 configuration,
               )
@@ -297,7 +297,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       }
 
       // Common configuration steps for new and reused models
-      newModel.setDisplayName(previewElement.displaySettings.name)
+      newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
       (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->

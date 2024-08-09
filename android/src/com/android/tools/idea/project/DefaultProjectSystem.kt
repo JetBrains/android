@@ -69,11 +69,17 @@ import java.io.File
 import java.nio.file.Path
 import java.util.IdentityHashMap
 
+class DefaultProjectSystemProvider : AndroidProjectSystemProvider {
+  override val id: String = ""
+  override fun isApplicable(project: Project) = false
+  override fun projectSystemFactory(project: Project) = DefaultProjectSystem(project)
+}
+
 /**
  * This implementation of AndroidProjectSystem is used for projects where the build system is not
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
-class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem {
   override fun isAndroidProject(): Boolean {
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
@@ -82,15 +88,11 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     throw IllegalStateException("Not implemented")
   }
 
-  override val id: String = ""
-
   override fun getDefaultApkFile(): VirtualFile? = null
 
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(DefaultProjectSystem::class.java))
   }
-
-  override fun isApplicable() = false
 
   override fun allowsFileCreation() = false
 
@@ -108,9 +110,6 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   }
 
   override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
-
-  override val projectSystem = this
-
   private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
   override fun getModuleSystem(module: Module): AndroidModuleSystem = synchronized(moduleCache) {
     moduleCache.getOrPut(module) { DefaultModuleSystem(module) }

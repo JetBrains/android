@@ -20,6 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -119,7 +120,11 @@ class ComposeAnalysisTest {
     groupTable.assertRestartLambda(test)
     assertEquals("test", test.name)
 
-    val outer = groupTable.assertMethodGroup(169591811)
+    val outer = if (!KotlinPluginModeProvider.isK2Mode()) {
+      groupTable.assertMethodGroup(169591811)
+    } else {
+      groupTable.assertMethodGroup(-270222928)
+    }
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 
@@ -157,7 +162,11 @@ class ComposeAnalysisTest {
     groupTable.assertRestartLambda(test)
     assertEquals("test", test.name)
 
-    val outer = groupTable.assertMethodGroup(169591811)
+    val outer = if (!KotlinPluginModeProvider.isK2Mode()) {
+      groupTable.assertMethodGroup(169591811)
+    } else {
+      groupTable.assertMethodGroup(-270222928)
+    }
     groupTable.assertRestartLambda(outer)
     assertEquals("outer", outer.name)
 

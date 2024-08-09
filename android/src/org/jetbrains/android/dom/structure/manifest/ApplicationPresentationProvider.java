@@ -23,7 +23,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import icons.StudioIcons;
-import java.util.Arrays;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +45,7 @@ public class ApplicationPresentationProvider extends PresentationProvider<Applic
       Project project = module.getProject();
       AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
       AndroidIconProviderProjectToken<AndroidProjectSystem> token =
-        Arrays.stream(AndroidIconProviderProjectToken.getEP_NAME().getExtensions())
+        AndroidIconProviderProjectToken.getEP_NAME().getExtensionList().stream()
           .filter(it -> it.isApplicable(projectSystem))
           .findFirst().orElse(null);
       if (token != null) {

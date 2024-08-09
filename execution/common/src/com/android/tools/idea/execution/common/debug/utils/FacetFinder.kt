@@ -21,6 +21,8 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity.Companion.asRunningApplicationIdentity
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -143,7 +145,7 @@ object FacetFinder {
         for (manifestFile in sourceProvider.manifestFiles) {
           val globalProcessNames = ProcessNameReader.readGlobalProcessNames(project, manifestFile)
           if (globalProcessNames.contains(processName)) {
-            return facet.mainModule
+            return facet.module.getMainModule()
           }
         }
       }
@@ -151,7 +153,7 @@ object FacetFinder {
         for (manifestFile in sourceProvider.manifestFiles) {
           val globalProcessNames = ProcessNameReader.readGlobalProcessNames(project, manifestFile)
           if (globalProcessNames.contains(processName)) {
-            return facet.androidTestModule
+            return facet.module.getAndroidTestModule()
           }
         }
       }

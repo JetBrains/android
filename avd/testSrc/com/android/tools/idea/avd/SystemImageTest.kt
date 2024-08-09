@@ -24,13 +24,21 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Storage
+import com.android.sdklib.devices.VendorDevices
+import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
 import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
 import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
+import com.android.utils.NullLogger
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,9 +50,103 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class SystemImageTest {
   @Test
-  fun matchesApiLevelEqualsApiRangeUpperEndpoint() {
+  fun softwareItemFeatureLevelIsLessThan23() {
     // Arrange
     val image =
+      SystemImage(
+        true,
+        "system-images;android-22;default;arm64-v8a",
+        "ARM 64 v8a System Image",
+        AndroidVersion(22),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(219_124_634),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItemAbiDoesntSupportMultipleCores() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;default;arm64-v8a",
+        "ARM 64 v8a System Image",
+        AndroidVersion(23),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(253_807_785),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItemDoesntHaveGoogleApis() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;default;x86_64",
+        "Intel x86_64 Atom System Image",
+        AndroidVersion(23),
+        Services.ANDROID_OPEN_SOURCE,
+        setOf(Abi.X86_64).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.DEFAULT_TAG).toImmutableList(),
+        Storage(365_009_313),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.OFF, item)
+  }
+
+  @Test
+  fun softwareItem() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-23;google_apis;x86_64",
+        "Google APIs Intel x86_64 Atom System Image",
+        AndroidVersion(23),
+        Services.GOOGLE_APIS,
+        setOf(Abi.X86_64).toImmutableSet(),
+        emptySet<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.GOOGLE_APIS_TAG).toImmutableList(),
+        Storage(667_471_680),
+      )
+
+    // Act
+    val item = image.softwareItem()
+
+    // Assert
+    assertEquals(GpuMode.SWIFT, item)
+  }
+
+  @Test
+  fun matchesDevice() {
+    val devices = VendorDevices(NullLogger())
+    devices.init()
+
+    fun image(vararg tags: IdDisplay) =
       SystemImage(
         true,
         "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
@@ -53,17 +155,34 @@ class SystemImageTest {
         Services.GOOGLE_PLAY_STORE,
         setOf(Abi.ARM64_V8A).toImmutableSet(),
         setOf<Abi>().toImmutableSet(),
+        persistentListOf(*tags),
         Storage(1_549_122_970),
       )
 
-    val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
+    val phone = devices.getDevice("pixel_8", "Google")!!
+    val tablet = devices.getDevice("pixel_tablet", "Google")!!
+    val wear = devices.getDevice("wearos_large_round", "Google")!!
+    val tv = devices.getDevice("tv_4k", "Google")!!
+    val auto = devices.getDevice("automotive_1080p_landscape", "Google")!!
+    val autoPlay = devices.getDevice("automotive_1024p_landscape", "Google")!!
 
-    // Act
-    val matches = image.matches(device)
+    fun SystemImage.assertMatchesOnly(vararg devices: Device) {
+      for (device in listOf(phone, tablet, wear, tv, auto, autoPlay)) {
+        if (device in devices) {
+          assertTrue("Expected image to match ${device.id}", matches(device))
+        } else {
+          assertFalse("Expected image to not match ${device.id}", matches(device))
+        }
+      }
+    }
 
-    // Assert
-    assertTrue(matches)
+    image().assertMatchesOnly(phone, tablet)
+    image(SystemImageTags.PLAY_STORE_TAG).assertMatchesOnly(phone, tablet)
+    image(SystemImageTags.WEAR_TAG).assertMatchesOnly(wear)
+    image(SystemImageTags.TABLET_TAG, SystemImageTags.GOOGLE_APIS_TAG).assertMatchesOnly(tablet)
+    image(SystemImageTags.AUTOMOTIVE_TAG).assertMatchesOnly(auto)
+    image(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG).assertMatchesOnly(autoPlay)
+    image(SystemImageTags.GOOGLE_TV_TAG).assertMatchesOnly(tv)
   }
 
   @Test
@@ -78,17 +197,67 @@ class SystemImageTest {
         Services.GOOGLE_APIS,
         setOf(Abi.ARMEABI).toImmutableSet(),
         setOf<Abi>().toImmutableSet(),
+        persistentListOf(),
         Storage(65_781_578),
       )
 
-    val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
+    val device = mockPixel8()
 
     // Act
     val matches = image.matches(device)
 
     // Assert
     assertFalse(matches)
+  }
+
+  @Test
+  fun matchesDeviceIsntTabletEtc() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-34;google_apis_tablet;arm64-v8a",
+        "Google APIs Tablet ARM 64 v8a System Image",
+        AndroidVersion(34, null, 7, true),
+        Services.GOOGLE_APIS,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        listOf(SystemImageTags.GOOGLE_APIS_TAG, SystemImageTags.TABLET_TAG).toImmutableList(),
+        Storage(1_775_178_445),
+      )
+
+    val device = mockPixel8()
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertFalse(matches)
+  }
+
+  @Test
+  fun matchesApiLevelEqualsApiRangeUpperEndpoint() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-34-ext10;google_apis_playstore;arm64-v8a",
+        "Google Play ARM 64 v8a System Image",
+        AndroidVersion(34, null, 10, false),
+        Services.GOOGLE_PLAY_STORE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        persistentListOf(),
+        Storage(1_549_122_970),
+      )
+
+    val device = mockPixel8()
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertTrue(matches)
   }
 
   @Test
@@ -232,6 +401,22 @@ class SystemImageTest {
   }
 
   private companion object {
+    private fun mockPixel8(): VirtualDevice {
+      val screen = MockitoKt.mock<Screen>()
+
+      val hardware = MockitoKt.mock<Hardware>()
+      MockitoKt.whenever(hardware.screen).thenReturn(screen)
+
+      val device = MockitoKt.mock<Device>()
+      MockitoKt.whenever(device.defaultHardware).thenReturn(hardware)
+
+      val virtualDevice = MockitoKt.mock<VirtualDevice>()
+      MockitoKt.whenever(virtualDevice.androidVersion).thenReturn(AndroidVersion(34))
+      MockitoKt.whenever(virtualDevice.device).thenReturn(device)
+
+      return virtualDevice
+    }
+
     private fun mockGooglePlayIntelX86AtomSystemImage() =
       mockRepoPackage(
         1_153_916_727,

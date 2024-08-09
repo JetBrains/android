@@ -20,11 +20,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
-import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -50,14 +48,13 @@ class ComposeColorStateTest {
   fun statesAreCorrect() {
     val state =
       ComposeColorState(
-          NoopComposeAnimationTracker,
-          AndroidCoroutineScope(projectRule.testRootDisposable),
-        )
-        .apply {
-          setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
-        }
-    assertEquals(listOf(1f, 0f, 0f, 1f), state.getState(0))
-    assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(1))
+        NoopComposeAnimationTracker,
+        ComposeUnit.Color.create(Color.red),
+        ComposeUnit.Color.create(Color.blue),
+      )
+    val (initial, target) = state.state.value
+    assertEquals(listOf(1f, 0f, 0f, 1f), initial.components)
+    assertEquals(listOf(0f, 0f, 1f, 1f), target.components)
   }
 
   @RunsInEdt
@@ -65,19 +62,18 @@ class ComposeColorStateTest {
   fun createCard() {
     val state =
       ComposeColorState(
-          NoopComposeAnimationTracker,
-          AndroidCoroutineScope(projectRule.testRootDisposable),
-        )
-        .apply {
-          setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
-        }
+        NoopComposeAnimationTracker,
+        ComposeUnit.Color.create(Color.red),
+        ComposeUnit.Color.create(Color.blue),
+      )
+
     val card =
       AnimationCard(
           Mockito.mock(DesignSurface::class.java),
           "Title",
           listOf(
             FreezeAction(
-              createTestSlider(),
+              { 200 },
               MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
               NoopAnimationTracker,
             )
@@ -97,13 +93,14 @@ class ComposeColorStateTest {
     // All components are visible
     toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
     // Default hash.
-    val hash = state.stateHashCode.value
+    val hash = state.state.value.hashCode()
     // Swap state.
     ui.clickOn(toolbarComponents[1])
     // State hashCode has changed.
-    assertNotEquals(hash, state.stateHashCode.value)
+    assertNotEquals(hash, state.state.value.hashCode())
     // The states swapped.
-    assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(0)) // Blue
-    assertEquals(listOf(1f, 0f, 0f, 1f), state.getState(1)) // Red
+    val (initial, target) = state.state.value
+    assertEquals(listOf(0f, 0f, 1f, 1f), initial.components) // Blue
+    assertEquals(listOf(1f, 0f, 0f, 1f), target.components) // Red
   }
 }

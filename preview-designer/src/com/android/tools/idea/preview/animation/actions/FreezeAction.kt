@@ -18,7 +18,6 @@ package com.android.tools.idea.preview.animation.actions
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.SupportedAnimationManager.FrozenState
-import com.android.tools.idea.preview.animation.TimelinePanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -28,7 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 /** A toggle action to freeze / unfreeze animation. */
 class FreezeAction(
-  private val timelinePanel: TimelinePanel,
+  private val getCurrentTime: () -> Int,
   private val frozenState: MutableStateFlow<FrozenState>,
   val tracker: AnimationTracker,
 ) :
@@ -38,7 +37,7 @@ class FreezeAction(
   ) {
 
   override fun setSelected(e: AnActionEvent, frozen: Boolean) {
-    frozenState.value = FrozenState(frozen, timelinePanel.value)
+    frozenState.value = FrozenState(frozen, getCurrentTime())
     if (frozen) {
       tracker.lockAnimation()
       e.presentation.text = message("animation.inspector.action.unfreeze")

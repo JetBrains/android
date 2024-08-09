@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
 import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
 import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
@@ -29,8 +27,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdNameVerifier;
@@ -68,47 +64,9 @@ public class AvdWizardUtils {
   public static final String DEVICE_DEFINITION_KEY = WIZARD_ONLY + "DeviceDefinition";
   public static final String SYSTEM_IMAGE_KEY = WIZARD_ONLY + "SystemImage";
 
-  public static final String RAM_STORAGE_KEY = AvdManager.AVD_INI_RAM_SIZE;
-  public static final String VM_HEAP_STORAGE_KEY = AvdManager.AVD_INI_VM_HEAP_SIZE;
-  public static final String INTERNAL_STORAGE_KEY = AvdManager.AVD_INI_DATA_PARTITION_SIZE;
-  public static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
-  public static final String EXISTING_SD_LOCATION = AvdManager.AVD_INI_SDCARD_PATH;
-
   public static final String DEFAULT_ORIENTATION_KEY = WIZARD_ONLY + "DefaultOrientation";
 
-  public static final String AVD_INI_NETWORK_SPEED = "runtime.network.speed";
-  public static final String NETWORK_SPEED_KEY = AVD_INI_NETWORK_SPEED;
-  public static final String AVD_INI_NETWORK_LATENCY = "runtime.network.latency";
-  public static final String NETWORK_LATENCY_KEY = AVD_INI_NETWORK_LATENCY;
-
-  public static final String FRONT_CAMERA_KEY = AvdManager.AVD_INI_CAMERA_FRONT;
-  public static final String BACK_CAMERA_KEY = AvdManager.AVD_INI_CAMERA_BACK;
-
-  public static final String USE_HOST_GPU_KEY = AvdManager.AVD_INI_GPU_EMULATION;
-  public static final String HOST_GPU_MODE_KEY = AvdManager.AVD_INI_GPU_MODE;
-
-  public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
-  public static final String USE_FAST_BOOT = AvdManager.AVD_INI_FORCE_FAST_BOOT_MODE;
-  public static final String USE_CHOSEN_SNAPSHOT_BOOT = AvdManager.AVD_INI_FORCE_CHOSEN_SNAPSHOT_BOOT_MODE;
-  public static final String CHOSEN_SNAPSHOT_FILE = AvdManager.AVD_INI_CHOSEN_SNAPSHOT_FILE;
-
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
-
-  public static final String CUSTOM_SKIN_FILE_KEY = AvdManager.AVD_INI_SKIN_PATH;
-  public static final String BACKUP_SKIN_FILE_KEY = AvdManager.AVD_INI_BACKUP_SKIN_PATH;
-  public static final String DEVICE_FRAME_KEY = "showDeviceFrame";
-
-  public static final String DISPLAY_NAME_KEY = AVD_INI_DISPLAY_NAME;
-  public static final String AVD_ID_KEY = AVD_INI_AVD_ID;
-
-  public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
-
-  public static final String EMULATOR_BINARY_KEY = "emulatorBinary";
-  public static final String COMMAND_LINE_OPTIONS_KEY = "commandLineOptions";
-
-  // Device definition keys
-
-  public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;
 
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 12));

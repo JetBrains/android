@@ -173,8 +173,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -199,8 +198,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -225,8 +223,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -252,8 +249,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -278,8 +274,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -304,8 +299,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -329,8 +323,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),
@@ -353,8 +346,7 @@ tests_list = [
         ],
         tags = [
             "block-network",
-            "no_test_mac",  # b/215483578
-            "no_test_windows",
+            "noci:studio-win",
         ],
         test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
     ),

@@ -20,7 +20,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.NoopAnimationTracker
-import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findExpandButton
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.actions.FreezeAction
@@ -52,7 +51,7 @@ class AnimationCardTest {
       AnimationCard(
           Mockito.mock(DesignSurface::class.java),
           "Title",
-          listOf(FreezeAction(createTestSlider(), frozenFlow, NoopAnimationTracker)),
+          listOf(FreezeAction({ 200 }, frozenFlow, NoopAnimationTracker)),
           NoopAnimationTracker,
         )
         .apply { setDuration(111) }

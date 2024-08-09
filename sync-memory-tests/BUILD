@@ -12,31 +12,43 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
             "tags": [
-                "perfgate",
-                "perfgate-release",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
+        # This test is run in release branch, too but not analyzed due to small number of runs per test
+        # A larger number of runs per test allows to detect regressions amongst the noise
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
                 "perfgate-release",
             ],
         },
         # Release branch tests with comparison to main branch
-        # 2000 subset is not included here because it doesn't have enough runs per test to make a meaningful analysis
-        # TODO: We should add the 1000 memory test as well but U-test requires at least 3 samples to be useful,
-        # so it won't work out of the box since memory tests don't have multiple runs.
         "Benchmark1000CpuReleaseBranch": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": [
+                "perfgate-release",
+            ],
+            "additional_jvm_args": ["-Drunning.from.release.branch=true"],
+        },
+        "Benchmark2000MemoryReleaseBranch": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
+            "exec_properties": LARGE_MACHINE,
             "tags": [
                 "perfgate-release",
             ],
@@ -46,8 +58,38 @@ iml_module(
         "Benchmark1000CpuLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestGradleTest",
             "tags": [
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
+            "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
+        },
+        "Benchmark1000MemoryLatestGradleTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestGradleTest",
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": ["//tools/base/build-system:gradle-distrib-latest-snapshot"],
+        },
+        "Benchmark1000CpuLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuLatestKotlinTest",
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
+        },
+        "Benchmark1000MemoryLatestKotlinTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryLatestKotlinTest",
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+            "data": ["//tools/base/build-system/integration-test:latest_kotlin_gradle_plugin_prebuilts_for_sync_benchmarks"],
         },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {
@@ -57,27 +99,35 @@ iml_module(
         # Tests without regression analyzers, to reduce noise
         "Benchmark200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
         },
         "Benchmark500Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
         },
         "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
-            "tags": ["perfgate"],
-        },
-        "Benchmark1000MemoryRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
-            "tags": ["perfgate"],
-        },
-        "Benchmark1000CpuRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
-            "tags": ["perfgate"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
         },
         # Disabled tests
         "Benchmark4200Cpu": {
@@ -85,14 +135,18 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "BenchmarkMultiApp190Cpu": {
@@ -101,7 +155,9 @@ iml_module(
             "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "Benchmark4200Memory": {
@@ -109,21 +165,27 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "BenchmarkMultiApp100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
         "BenchmarkMultiApp190Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
             "tags": [
                 "manual",
-                "perfgate",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
             ],
         },
     },
@@ -139,7 +201,6 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:gradle-distrib-latest-snapshot",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/data-binding:data_binding_runtime.zip",
     ],
@@ -151,8 +212,6 @@ iml_module(
     test_tags = [
         "block-network",
         "cpu:3",
-        "no_test_mac",
-        "no_test_windows",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -188,4 +247,34 @@ kotlin_library(
     name = "benchmark_summary_lib",
     srcs = ["src/com/android/tools/idea/gradle/project/sync/memory/BenchmarkSummaryTool.kt"],
     deps = ["@maven//:com.google.code.gson.gson"],
+)
+
+# See for latest versions: https://services.gradle.org/distributions-snapshots/
+
+# usage (meant to be used with a clean repo):
+# for Gradle update
+# bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- gradle 8.10-20240621020500+0000
+# available versions: https://services.gradle.org/distributions-snapshots
+# This will generate commits at
+# tools/adt/idea
+# tools/external/gradle
+
+# for Kotlin update
+# bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- kotlin 2.0.0-dev-6897
+# available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
+# This one might take a while since maven_fetch.sh takes some time
+# This will generate commits at
+# tools/adt/idea
+# tools/base
+# prebuilts/tools
+java_binary(
+    name = "update_benchmark_versions",
+    testonly = True,
+    main_class = "com.android.tools.idea.gradle.project.sync.UpdateBenchmarkVersionsKt",
+    runtime_deps = [":update_benchmark_versions_lib"],
+)
+
+kotlin_library(
+    name = "update_benchmark_versions_lib",
+    srcs = ["src/com/android/tools/idea/gradle/project/sync/UpdateBenchmarkVersions.kt"],
 )

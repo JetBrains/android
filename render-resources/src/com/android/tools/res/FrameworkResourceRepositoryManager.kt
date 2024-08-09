@@ -15,20 +15,21 @@
  */
 package com.android.tools.res
 
-import com.android.resources.aar.FrameworkResourceRepository
+import com.android.ide.common.resources.ResourceRepository
 import java.nio.file.Path
 import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
 
 /**
- * Provides an instance of [FrameworkResourceRepository] with specific parameters.
+ * Provides an instance of [ResourceRepository] containing framework resources with specific parameters.
  */
 fun interface FrameworkResourceRepositoryManager {
   fun getFrameworkResources(
-    resourceDirectoryOrFile: Path,
+    resourceJarFile: Path,
     useCompiled9Patches: Boolean,
-    languages: Set<String>
-  ): FrameworkResourceRepository
+    languages: Set<String>,
+    overlays: List<FrameworkOverlay>
+  ): ResourceRepository
 
   /** Interface for Java Service that provides [FrameworkResourceRepositoryManager] instance. */
   interface Provider {

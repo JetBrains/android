@@ -48,6 +48,10 @@ import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -75,8 +79,10 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     private val executorActions: List<AnAction> = ExecutorAction.getActionList()
       .mapNotNull { it as? ExecutorAction }
-      .filter { it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
-                it.executor == DefaultDebugExecutor.getDebugExecutorInstance() }
+      .filter {
+        it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
+        it.executor == DefaultDebugExecutor.getDebugExecutorInstance()
+      }
 
     private val createRunConfigAction = ExecutorAction.getActionList()
       .mapNotNull { it as? ActionGroupWrapper }
@@ -117,6 +123,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
              AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
     }
 
+    @OptIn(KaAllowAnalysisOnEdt::class)
     internal fun anyTopLevelKtRule(psiElement: PsiElement): String? {
       // Find class body
       val topLevelClass = if (psiElement is KtClass) {
@@ -133,22 +140,27 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Analyzes the class to check each property to see if there is at least a BaselineProfileRule applied.
-      return analyze(topLevelClass) {
-        ktProperties
-          .filter { prop ->
-            // Check that this property has a rule annotation applied and that the parent class node is the
-            // same of the method (to ensure both method and rule are in the same class).
-            prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
-            PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
-          }.firstNotNullOfOrNull { prop ->
-            // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
-            // gets extended.
-            PsiTreeUtil
-              .findChildOfType(prop, KtCallExpression::class.java)
-              ?.expressionType
-              ?.toString()
-              ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+      return allowAnalysisOnEdt {
+        @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        allowAnalysisFromWriteAction {
+          analyze(topLevelClass) {
+            ktProperties
+              .filter { prop ->
+                // Check that this property has a rule annotation applied and that the parent class node is the
+                // same of the method (to ensure both method and rule are in the same class).
+                prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
+                PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
+              }.firstNotNullOfOrNull { prop ->
+                // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
+                // gets extended.
+                PsiTreeUtil
+                  .findChildOfType(prop, KtCallExpression::class.java)
+                  ?.expressionType
+                  ?.toString()
+                  ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+              }
           }
+        }
       }
     }
 
@@ -168,7 +180,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Find a class member that has a BaselineProfileRule applied.
-      for (member : PsiMember in classMembers) {
+      for (member: PsiMember in classMembers) {
         // Only evaluate direct field member of the top level class
         val rule = PsiTreeUtil
           .findChildrenOfType(member, PsiAnnotation::class.java)
@@ -213,8 +225,9 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
   private fun createOverridingInfo(
     icon: Icon,
     message: String,
-    actions: List<AnAction>): Info {
-    return object: Info(
+    actions: List<AnAction>,
+  ): Info {
+    return object : Info(
       icon,
       actions.toTypedArray(),
       { _ -> message }
@@ -270,7 +283,8 @@ class BaselineProfileAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val sourceModule = e.getData(PlatformCoreDataKeys.MODULE) ?: return
-    val targetModulePath = GradleAndroidModel.get(sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
+    val targetModulePath = GradleAndroidModel.get(
+      sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
     val targetModuleGradlePath = sourceModule.getGradleProjectPath()?.resolve(targetModulePath)
     val runManager = RunManagerEx.getInstanceEx(project)
     val runConfiguration = runManager.allSettings

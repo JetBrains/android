@@ -32,6 +32,7 @@ import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -124,5 +125,30 @@ class ViewBindingCompletionKotlinTest {
           """
         .trimIndent()
     )
+  }
+
+  @Test
+  fun completeViewBindingClass_KotlinContext() {
+    // TODO(b/347649759): Enable test in K2.
+    if (KotlinPluginModeProvider.isK2Mode()) return
+
+    val testUtilFile =
+      fixture.addFileToProject(
+        "app/src/main/java/google/simpleapplication/TestUtil.kt",
+        // language=kotlin
+        """
+        package google.simpleapplication
+
+        fun sample() {
+          val binding: ActivityMainB${caret}
+        }
+        """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
+
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsExactly("ActivityMainBinding")
   }
 }

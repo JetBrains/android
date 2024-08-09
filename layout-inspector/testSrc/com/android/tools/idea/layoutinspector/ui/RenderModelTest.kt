@@ -234,7 +234,7 @@ class RenderModelTest {
     assertThat(model.root.layoutBounds.y).isEqualTo(0)
     assertThat(model.root.layoutBounds.width).isEqualTo(0)
     assertThat(model.root.layoutBounds.height).isEqualTo(0)
-    assertThat(panelModel.maxWidth)
+    assertThat(panelModel.maxWidth).isEqualTo(0)
   }
 
   @Test

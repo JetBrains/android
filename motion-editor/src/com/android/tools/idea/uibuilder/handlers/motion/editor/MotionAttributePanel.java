@@ -37,21 +37,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MotionAttributePanel implements AccessoryPanelInterface {
   private static final boolean DEBUG = false;
-  static Color ourSecondaryPanelBackground = new JBColor(0xfcfcfc, 0x313435);
-  static Color ourMainBackground = ourSecondaryPanelBackground;
-
-  private MotionAccessoryPanel myMotionAccessoryPanel;
-  private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
-  private final NlComponent myMotionLayout;
   private JPanel myPanel;
   private JEditorPane myEditorPane;
-  private NlComponent mySelection;
-  public NlModel myNlModel;
-  JPanel myAttributeGroups;
 
-  public MotionAttributePanel(@NotNull NlComponent parent, @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
-    myMotionLayout = parent;
-    myVisibilityCallback = visibility;
+  public MotionAttributePanel() {
     if (DEBUG) {
       Debug.log("MotionAttributePanel");
     }

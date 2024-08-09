@@ -60,6 +60,7 @@ iml_module(
     iml_files = ["intellij.android.render-resources.tests.iml"],
     # keep sorted
     test_data = [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
@@ -90,6 +91,7 @@ kotlin_test(
     ]),
     # keep sorted
     data = [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],

@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.*
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -56,7 +57,9 @@ private sealed class Command(val setting: String) {
 }
 
 private sealed class AdbCommandResult {
-  object Success : AdbCommandResult()
+  data object Success : AdbCommandResult()
+
+  data object SecurityException : AdbCommandResult()
 
   data class Failure(val message: String) : AdbCommandResult()
 }
@@ -66,9 +69,14 @@ sealed class SetFlagResult {
   /** The flag is set. [previouslySet] is true, if the flag was already set. */
   data class Set(val previouslySet: Boolean) : SetFlagResult()
 
-  data class Failure(val error: String?) : SetFlagResult()
+  data class Failure(val reason: Reason = UNKNOWN) : SetFlagResult() {
+    enum class Reason {
+      UNKNOWN,
+      SECURITY_EXCEPTION,
+    }
+  }
 
-  object Cancelled : SetFlagResult()
+  data object Cancelled : SetFlagResult()
 }
 
 /**
@@ -98,15 +106,16 @@ class DebugViewAttributes(
         return SetFlagResult.Set(true)
       }
 
-      when (val commandResult = executePut(adb, device, putCommand)) {
+      when (executePut(adb, device, putCommand)) {
         AdbCommandResult.Success -> SetFlagResult.Set(false)
-        is AdbCommandResult.Failure -> SetFlagResult.Failure(commandResult.message)
+        is AdbCommandResult.Failure -> SetFlagResult.Failure()
+        AdbCommandResult.SecurityException -> SetFlagResult.Failure(SECURITY_EXCEPTION)
       }
     } catch (cancellation: CancellationException) {
       SetFlagResult.Cancelled
     } catch (t: Throwable) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(t)
-      SetFlagResult.Failure(t.message ?: t.javaClass.simpleName)
+      SetFlagResult.Failure()
     }
   }
 
@@ -128,6 +137,8 @@ class DebugViewAttributes(
     return if (output.stdout.isBlank() && output.stderr.isBlank()) {
       // Empty output means "debug_view_attributes" was set successfully.
       AdbCommandResult.Success
+    } else if (output.stderr.contains("java.lang.SecurityException")) {
+      AdbCommandResult.SecurityException
     } else {
       AdbCommandResult.Failure(output.stderr)
     }
@@ -150,6 +161,8 @@ class DebugViewAttributes(
 private const val ACTIVITY_RESTART_KEY = "activity.restart"
 private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION =
   "failed.to.enable.view.attributes.inspection"
+private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION =
+  "failed.to.enable.view.attributes.inspection.security.exception"
 private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
   "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
 
@@ -169,15 +182,27 @@ fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
 }
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
-fun showUnableToSetDebugViewAttributesBanner(notificationModel: NotificationModel) {
+fun showUnableToSetDebugViewAttributesBanner(
+  notificationModel: NotificationModel,
+  reason: SetFlagResult.Failure.Reason,
+) {
   val learnMoreAction =
     StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
       BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
     }
 
+  val text =
+    when (reason) {
+      UNKNOWN -> LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION)
+      SECURITY_EXCEPTION ->
+        LayoutInspectorBundle.message(
+          FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION
+        )
+    }
+
   notificationModel.addNotification(
     id = FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION,
-    text = LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION),
+    text = text,
     status = EditorNotificationPanel.Status.Error,
     actions = listOf(learnMoreAction, notificationModel.dismissAction),
   )

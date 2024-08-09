@@ -20,10 +20,10 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.DeviceConfig
@@ -50,7 +50,7 @@ class ComposeScreenViewProvidersTest {
     val model =
       withContext(uiThread) {
         NlModelBuilderUtil.model(
-            BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+            AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             projectRule.fixture,
             SdkConstants.FD_RES_LAYOUT,
             "model.xml",
@@ -58,7 +58,7 @@ class ComposeScreenViewProvidersTest {
           )
           .build()
       }
-    val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
     surface.addModelWithoutRender(model).await()
 
     // Create a device with round shape

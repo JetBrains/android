@@ -15,8 +15,19 @@
  */
 package org.jetbrains.android.dom.xml
 
+import com.intellij.psi.PsiClass
+import com.intellij.util.xml.Attribute
+import com.intellij.util.xml.Convert
 import com.intellij.util.xml.CustomChildren
 import com.intellij.util.xml.DefinesXml
+import com.intellij.util.xml.PsiPackageConverter
+import com.intellij.util.xml.Required
+import com.intellij.util.xml.converters.ClassValueConverterImpl
+import org.jetbrains.android.dom.AndroidAttributeValue
+import org.jetbrains.android.dom.LookupClass
+import org.jetbrains.android.dom.LookupPrefix
+import org.jetbrains.android.dom.Styleable
+import org.jetbrains.android.dom.converters.ConstantFieldConverter
 
 @DefinesXml
 interface PreferenceElement : PreferenceElementBase {
@@ -25,5 +36,36 @@ interface PreferenceElement : PreferenceElementBase {
 
 interface PreferenceElementBase : XmlResourceElement {
   val intents: List<Intent>
-  val extras: List<Extra>
+
+  @DefinesXml
+  @Styleable("Intent")
+  interface Intent : XmlResourceElement {
+    @LookupPrefix("android.intent.action")
+    @LookupClass("android.content.Intent")
+    @Convert(ConstantFieldConverter::class)
+    fun getAction(): AndroidAttributeValue<String>
+
+    @Convert(ClassValueConverterImpl::class)
+    @Attribute("targetClass")
+    fun getTargetClass(): AndroidAttributeValue<PsiClass>
+
+    @Convert(PsiPackageConverter::class)
+    @Attribute("targetPackage")
+    fun getTargetPackage(): AndroidAttributeValue<String>
+
+    val extras: List<Extra>
+    val categories: List<Category>
+  }
+
+  @DefinesXml
+  @Styleable("Extra")
+  interface Extra : XmlResourceElement {
+    @Required fun getName(): AndroidAttributeValue<String>
+  }
+
+  @DefinesXml
+  @Styleable("IntentCategory")
+  interface Category : XmlResourceElement {
+    @Required fun getName(): AndroidAttributeValue<String>
+  }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.diff
 
+import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.smartDiffAgpVersion
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.truth.Truth
 import com.intellij.util.containers.isEmpty
@@ -22,8 +23,8 @@ import java.io.File
 import java.nio.charset.MalformedInputException
 import java.nio.file.Files
 import java.nio.file.Path
-import org.junit.Assert
 import kotlin.io.path.isDirectory
+import org.junit.Assert
 
 /**
  * Renders a project using the template to be tested, then diffs the generated files against the
@@ -68,7 +69,7 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     Assert.assertEquals(
       "$projectFile and $goldenFile are not of same file type",
       projectFile.isDirectory(),
-      goldenFile.isDirectory()
+      goldenFile.isDirectory(),
     )
 
     if (projectFile.isDirectory()) {
@@ -83,8 +84,10 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     // it's just for human readability, so diffing all lines and only reading bytes if text fails is
     // simpler.
     try {
-      val goldenLines = Files.readAllLines(goldenFile)
-      val projectLines = Files.readAllLines(projectFile)
+      val goldenLines =
+        Files.readAllLines(goldenFile).map { replaceLatestAgpVersion(it, printPrefix) }
+      val projectLines =
+        Files.readAllLines(projectFile).map { replaceLatestAgpVersion(it, printPrefix) }
       Truth.assertThat(projectLines).isEqualTo(goldenLines)
     } catch (error: MalformedInputException) {
       val goldenBytes = Files.readAllBytes(goldenFile)
@@ -126,4 +129,28 @@ private fun isDirectoryEffectivelyEmpty(dir: Path, printPrefix: String = ""): Bo
     println("${printPrefix}Skipping empty $dir")
   }
   return empty
+}
+
+// The version in libs.versions.toml of similar format to:
+// agp = "8.6.0-dev"
+val AGP_VERSION_REF = Regex("agp = \".*\"")
+
+// This string replaces the version reference in libs.versions.toml. See
+// replaceLatestGradleVersion. It is only replaced when we test the latest AGP version.
+const val AGP_VERSION_REF_REPLACEMENT = "agp = \"LATEST_AGP_VERSION\""
+
+/**
+ * When testing the latest AGP version, we replace the version string because it changes ~weekly, to
+ * avoid constantly updating golden files.
+ */
+private fun replaceLatestAgpVersion(text: String, printPrefix: String = ""): String {
+  if (!smartDiffAgpVersion()) {
+    return text
+  }
+
+  val replacedText = AGP_VERSION_REF.replace(text, AGP_VERSION_REF_REPLACEMENT)
+  if (replacedText != text) {
+    println("${printPrefix}Replaced AGP version in $text")
+  }
+  return replacedText
 }

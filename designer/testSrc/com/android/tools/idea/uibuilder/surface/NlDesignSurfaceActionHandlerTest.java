@@ -78,7 +78,7 @@ public class NlDesignSurfaceActionHandlerTest {
     myModel = createModel();
     // If using a lambda, it can be reused by the JVM and causing a Exception because the Disposable is already disposed.
     myDisposable = Disposer.newDisposable();
-    mySurface = NlDesignSurface.builder(myProjectRule.getProject(), myDisposable, (surface, model) -> {
+    mySurface = NlSurfaceBuilder.Companion.builder(myProjectRule.getProject(), myDisposable, (surface, model) -> {
         SyncLayoutlibSceneManager manager = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel((SyncNlModel)model);
         manager.setIgnoreRenderRequests(true);
         return manager;

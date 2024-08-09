@@ -27,11 +27,13 @@ import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_GROUP
 import com.android.tools.preview.config.PARAMETER_HARDWARE_CHIN_SIZE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CUTOUT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.preview.config.PARAMETER_HARDWARE_IS_ROUND
+import com.android.tools.preview.config.PARAMETER_HARDWARE_NAVIGATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
@@ -85,6 +87,10 @@ internal class PreviewPropertiesInspectorBuilder(
         allProps.remove(PARAMETER_HARDWARE_DIM_UNIT)?.let { put(PARAMETER_HARDWARE_DIM_UNIT, it) }
         allProps.remove(PARAMETER_HARDWARE_IS_ROUND)?.let { put(PARAMETER_HARDWARE_IS_ROUND, it) }
         allProps.remove(PARAMETER_HARDWARE_CHIN_SIZE)?.let { put(PARAMETER_HARDWARE_CHIN_SIZE, it) }
+        allProps.remove(PARAMETER_HARDWARE_CUTOUT)?.let { put(PARAMETER_HARDWARE_CUTOUT, it) }
+        allProps.remove(PARAMETER_HARDWARE_NAVIGATION)?.let {
+          put(PARAMETER_HARDWARE_NAVIGATION, it)
+        }
       }
     val remainingProperties = allProps.values
 
@@ -113,6 +119,8 @@ private object PreviewControlTypeProvider : PsiPropertyItemControlTypeProvider {
       PARAMETER_HARDWARE_DENSITY,
       PARAMETER_UI_MODE,
       PARAMETER_WALLPAPER,
+      PARAMETER_HARDWARE_CUTOUT,
+      PARAMETER_HARDWARE_NAVIGATION,
       PARAMETER_DEVICE -> ControlType.DROPDOWN
       PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
       PARAMETER_HARDWARE_IS_ROUND,

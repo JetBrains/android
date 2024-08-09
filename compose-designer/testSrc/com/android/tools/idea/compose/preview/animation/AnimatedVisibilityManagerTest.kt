@@ -149,6 +149,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { toolbar, ui ->
+      delayUntilCondition(200) { transitionCalls == 1 }
       assertEquals(1, transitionCalls)
       assertEquals(1, stateCalls)
       // Swap
@@ -158,8 +159,8 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals(2, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
-      assertEquals(2, transitionCalls)
       delayUntilCondition(200) { stateCalls == 3 }
+      assertEquals(2, transitionCalls)
       assertEquals(3, stateCalls)
     }
   }

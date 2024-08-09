@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LanguageSelector</string>
+    <string name="hello_world">Ciao mondo</string>
+    <string name="english">Inglese</string>
+    <string name="danish">Danese</string>
+    <string name="italian">Italia</string>
+    <string name="spanish">Spanish</string>
+    <string name="pseudo_english">Pseudo Inglese</string>
+    <string name="pseudo_arabic">Pseudo Arabo</string>
+</resources>

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.ImageComponent
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.ui.GuiTestingService
@@ -90,20 +91,10 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
 
     add(title, constraints)
 
-    val message = JEditorPane("text/html", consent.text).apply {
-      isEditable = false
-      background = Color(0, 0, 0, 0)
-      font = Font(font.name, Font.PLAIN, title.font.size - 2)
-      putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-      preferredSize = Dimension(420, 120)
-
-      addHyperlinkListener { e ->
-        if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-          if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(e.url.toURI());
-          }
-        }
-      }
+    val message = HtmlLabel().apply {
+      HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 2))
+      text = consent.text
+      preferredSize = Dimension(420, 140)
     }
 
     constraints.apply {
@@ -113,14 +104,11 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
     add(message, constraints)
 
     val menuName = ShowSettingsUtil.getSettingsMenuName()
-    val text = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
+    val settingsText = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
 
-    val hint = JEditorPane("text/html", text).apply {
-      isEditable = false
-      background = Color(0, 0, 0, 0)
-      foreground = Color.GRAY
-      font = Font(font.name, Font.PLAIN, title.font.size - 4)
-      putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+    val hint = HtmlLabel().apply {
+      HtmlLabel.setUpAsHtmlLabel(this, Font(font.name, Font.PLAIN, title.font.size - 4), Color.GRAY)
+      text = settingsText
       preferredSize = Dimension(420, 35)
     }
 

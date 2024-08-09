@@ -1046,7 +1046,7 @@ class ForegroundProcessDetectionTest {
     Disposer.dispose(projectRule.disposable)
 
     assertThat(processModel.selectedProcessListeners.size).isEqualTo(0)
-    assertThat(foregroundProcessDetection.transportListenerJob?.isCancelled)
+    assertThat(foregroundProcessDetection.transportListenerJob?.isCancelled).isTrue()
   }
 
   @Test

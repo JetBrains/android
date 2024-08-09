@@ -89,6 +89,7 @@
     <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.AppRestrictionsDomFileDescription" rootTagName="restrictions"/>
     <dom.fileMetaData implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription" rootTagName="paths"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription" rootTagName="MotionScene"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.AccessibilityServiceDomFileDescription" rootTagName="accessibility-service"/>
 
     <!-- File description for file with <lint> root tag: -->
     <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>

@@ -36,25 +36,30 @@ android_cc_binary(
     name = "native",
     binary = ":screen-sharing-agent.so",
     filename = "libscreen-sharing-agent.so",
-    tags = ["no_windows"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )
 
 aidl_library(
     name = "aidl_lib",
     srcs = glob(["app/src/main/aidl/**/*.aidl"]),
-    tags = ["no_windows"],
     deps = [
         ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
         "//tools/base/annotations",
     ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 java_library(
     name = "android_extras_lib",
     srcs = glob(["app/src/main/java/android/**/*.java"]),
-    tags = ["no_windows"],
     deps = [
         "//prebuilts/studio/sdk:platforms/latest_jar",
     ],
@@ -66,7 +71,6 @@ java_library(
         ["app/src/main/java/**/*.java"],
         exclude = ["app/src/main/java/android/**/*.java"],
     ),
-    tags = ["no_windows"],
     deps = [
         ":aidl_lib",
         ":android_extras_lib",
@@ -80,7 +84,6 @@ dex_library(
     jars = [
         ":apk_lib",
     ],
-    tags = ["no_windows"],
     visibility = ["//visibility:public"],
 )
 

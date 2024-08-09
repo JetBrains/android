@@ -20,6 +20,8 @@ import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.adtui.ZoomController
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -27,8 +29,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -41,7 +41,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
-import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -237,78 +236,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertThat(surface.models).containsExactly(model2, model1, model3).inOrder()
   }
 
-  fun testMagnify() {
-    val surface = TestDesignSurface(project, testRootDisposable)
-
-    // Test magnifying when sensitivity is 0.25
-    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 0.25
-
-    // test positive magnifying with sensitivity 0.25
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(1.0)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.25, surface.zoomController.scale)
-
-    // test negative magnifying with sensitivity 0.25
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(-1.5)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.625, surface.zoomController.scale)
-
-    // test sequential magnifying with sensitivity 0.25. The sequential magnifying should only take
-    // last magnify value as result.
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(0.3)
-    surface.magnify(-0.5)
-    surface.magnify(0.7)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.175, surface.zoomController.scale)
-
-    // Test magnifying when sensitivity is 1.5
-    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.5
-
-    // test positive magnifying with sensitivity 1.5
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(1.0)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(2.5, surface.zoomController.scale)
-
-    // test negative magnifying with sensitivity 1.5
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(-0.5)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.25, surface.zoomController.scale)
-
-    // test sequential magnifying with sensitivity 1.5
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(-0.3)
-    surface.magnify(1.4)
-    surface.magnify(-0.1)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.85, surface.zoomController.scale)
-
-    // Test magnifying is bounded by min and max scale allowances.
-    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.0
-
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(-100000.0)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(0.1, surface.zoomController.scale)
-
-    surface.zoomController.setScale(1.0)
-    surface.magnificationStarted(Point())
-    surface.magnify(100000.0)
-    surface.magnificationFinished(0.0)
-    TestCase.assertEquals(10.0, surface.zoomController.scale)
-  }
-
   fun testCanZoom() {
     val surface = TestDesignSurface(project, testRootDisposable)
 
@@ -405,7 +332,7 @@ class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(
 }
 
 class TestDesignSurface(
-  private val project: Project,
+  project: Project,
   private val disposable: Disposable,
   val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
     { model, surface ->
@@ -422,26 +349,27 @@ class TestDesignSurface(
     ZoomControlsPolicy.VISIBLE,
   ) {
 
-  override fun getLayoutManagerSwitcher(): LayoutManagerSwitcher? = null
+  override val layoutManagerSwitcher: LayoutManagerSwitcher?
+    get() = null
 
-  override fun getSelectionAsTransferable(): ItemTransferable {
-    return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
-  }
+  override val selectionAsTransferable: ItemTransferable
+    get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
   override fun createSceneManager(model: NlModel) = runBlocking {
     createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
   }
 
-  override fun scrollToCenter(list: MutableList<NlComponent>) {}
+  override fun scrollToCenter(list: List<NlComponent>) {}
 
-  override fun getScrollToVisibleOffset() = Dimension()
+  override val scrollToVisibleOffset = Dimension()
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
-  override fun getSelectableComponents(): List<NlComponent> = emptyList()
+  override val selectableComponents: List<NlComponent>
+    get() = emptyList()
 
   private val zoomControllerFake =
     createDesignSurfaceZoomControllerFake(

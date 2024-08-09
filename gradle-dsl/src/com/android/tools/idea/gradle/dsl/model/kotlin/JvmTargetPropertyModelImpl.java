@@ -31,7 +31,7 @@ import org.jetbrains.annotations.TestOnly;
 public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implements LanguageLevelPropertyModel {
   private static final Logger LOG = Logger.getInstance(JvmTargetPropertyModelImpl.class);
 
-  private static final String docLink = "https://kotlinlang.org/docs/reference/using-gradle.html#attributes-specific-for-jvm";
+  private static final String docLink = "https://kotlinlang.org/docs/gradle-compiler-options.html#attributes-specific-to-jvm";
   private static final ImmutableMap<Integer, String> allowedTargets = ImmutableMap.<Integer, String>builder()
     .put(6, "1.6")
     .put(8, "1.8")
@@ -39,6 +39,16 @@ public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implem
     .put(10, "10")
     .put(11, "11")
     .put(12, "12")
+    .put(13, "13")
+    .put(14, "14")
+    .put(15, "15")
+    .put(16, "16")
+    .put(17, "17")
+    .put(18, "18")
+    .put(19, "19")
+    .put(20, "20")
+    .put(21, "21")
+    .put(22, "22")
     .build();
 
   public JvmTargetPropertyModelImpl(@NotNull GradlePropertyModelImpl realModel) {

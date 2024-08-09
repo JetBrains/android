@@ -189,7 +189,7 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
           acceptSuspend <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
           acceptComposableSuspend @Composable {}
           acceptComposableSuspend(composableLambda)
-          acceptSuspend(<error descr="Expecting ')'"><error descr="Expecting an expression"><</error></error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!COMPOSABLE_SUSPEND_FUN, TYPE_MISMATCH!>@Composable suspend fun()</error> <warning descr="[UNUSED_LAMBDA_EXPRESSION] The lambda expression is unused. If you mean a block, you can use 'run { ... }'">{ }</warning><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">)</error>
+          acceptSuspend(<error descr="[COMPOSABLE_SUSPEND_FUN] Composable function cannot be annotated as suspend"><error descr="[TYPE_MISMATCH] Type mismatch: inferred type is () -> Unit but suspend () -> Unit was expected">@Composable suspend fun() { }</error></error>)
       }
         """
       )
@@ -211,9 +211,9 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       fun Test() {
           val composableLambda = @Composable {}
           acceptSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but 'kotlin.coroutines.SuspendFunction0<kotlin.Unit>' was expected.">{}</error>
-          acceptComposableSuspend @Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but '@Composable() kotlin.Function0<kotlin.Unit>' was expected.">{}</error>
-          acceptComposableSuspend(<error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>', but '@Composable() kotlin.Function0<kotlin.Unit>' was expected.">composableLambda</error>)
-          acceptSuspend(<error descr="Expecting ')'"><error descr="Expecting an expression"><</error></error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!COMPOSABLE_SUSPEND_FUN, TYPE_MISMATCH!>@Composable suspend fun()</error> { }<error descr="Unexpected tokens (use ';' to separate expressions on the same line)">)</error>
+          acceptComposableSuspend @Composable {}
+          acceptComposableSuspend(composableLambda)
+          acceptSuspend(<error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<kotlin.Unit>', but 'kotlin.coroutines.SuspendFunction0<kotlin.Unit>' was expected."><error descr="[COMPOSABLE_SUSPEND_FUN] Composable function cannot be annotated as suspend">@Composable <error descr="[ANONYMOUS_SUSPEND_FUNCTION] Anonymous suspend functions are prohibited.">suspend</error> fun()</error> { }</error>)
       }
         """
       )

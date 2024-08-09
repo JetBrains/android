@@ -33,7 +33,10 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
   override fun buildAll(modelName: String, project: Project): GradlePropertiesModel {
     check(canBuild(modelName)) { "Unexpected model name requested: $modelName" }
     return GradlePropertiesModelImpl(
-      useAndroidX = project.findProperty(USE_ANDROID_X_PROPERTY)?.toBoolean()
+      useAndroidX = project.findProperty(USE_ANDROID_X_PROPERTY)?.toBoolean(),
+      excludeLibraryComponentsFromConstraints = project.findProperty(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY)?.toBoolean()
+                                                ?: project.findProperty(
+                                                  EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL)?.toBoolean(),
     )
   }
 
@@ -57,3 +60,5 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
 }
 
 private const val USE_ANDROID_X_PROPERTY = "android.useAndroidX"
+private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY = "android.dependency.excludeLibraryComponentsFromConstraints"
+private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL = "android.experimental.dependency.excludeLibraryComponentsFromConstraints"

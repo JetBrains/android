@@ -16,21 +16,39 @@
 package com.android.tools.idea.preview.animation.state
 
 import com.intellij.openapi.actionSystem.AnAction
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interface for managing the states of an animation.
  *
- * State can be a single state, like visibility or most commonly initial and target state (from
- * color A to B, from int A to B, from Compose state A to B, etc)
+ * Animation states can be singular (e.g., visibility) or more commonly, transitions between initial
+ * and target states (e.g., color A to B, int A to B, Compose state A to B). This interface provides
+ * access to the current state and actions to modify it.
  */
-interface AnimationState {
+interface AnimationState<T> {
   /**
-   * Hash code that uniquely identifies the current state of the animation. Primarily used to
-   * compare animation states for equality.
+   * A flow representing the current state of the animation.
+   *
+   * This flow emits updates whenever the animation state changes, allowing consumers to react to
+   * the new state.
    */
-  val stateHashCode: StateFlow<Int>
+  val state: StateFlow<T>
 
   /** A list of actions that can be performed to change the state of the animation. */
   val changeStateActions: List<AnAction>
+}
+
+/**
+ * Represents the state of an animation that transitions between two values (from and to).
+ *
+ * This interface extends [AnimationState], specializing it for animations that have distinct start
+ * and end states. It exposes a `MutableStateFlow` to manage the current from/to values.
+ *
+ * @param T The type of the animated value (e.g., Int, Float, Color, Compose State).
+ */
+interface FromToState<T> : AnimationState<Pair<T, T>> {
+
+  /** A mutable flow representing the current "from" and "to" values of the animation. */
+  override val state: MutableStateFlow<Pair<T, T>>
 }

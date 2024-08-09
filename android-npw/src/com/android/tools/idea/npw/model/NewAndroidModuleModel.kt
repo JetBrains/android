@@ -56,6 +56,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
+import java.net.URL
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 class ExistingProjectModelData(
@@ -72,6 +73,7 @@ class ExistingProjectModelData(
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val agpVersion = ObjectValueProperty<AgpVersion>(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: AgpVersions.newProject.also { Logger.getInstance(ExistingProjectModelData::class.java).warn("Unable to determine AGP version for $project, using $it") })
+  override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {

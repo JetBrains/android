@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-import com.android.tools.idea.compose.preview.message
 import com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -26,21 +25,22 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import javax.swing.JComponent
 import javax.swing.plaf.ComponentUI
-import kotlinx.coroutines.flow.MutableStateFlow
 
 /** A comboBox action to select one state from the list of predefined states. */
-class EnumStateAction : ComboBoxAction(), CustomComponentAction {
+class EnumStateAction<T>(var states: Set<T>, private val callback: (T) -> Unit, initialValue: T?) :
+  ComboBoxAction(), CustomComponentAction {
 
-  /** Available states to select from. */
-  var states: Set<Any> = emptySet()
-
-  val currentState: MutableStateFlow<Any?> = MutableStateFlow(null)
+  var currentState: T? = initialValue
+    set(value) {
+      field = value
+      if (value != null) {
+        callback(value)
+      }
+    }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.text =
-      currentState.value?.toString()
-        ?: message("animation.inspector.states.combobox.placeholder.message")
+    e.presentation.text = currentState.toString()
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
@@ -67,9 +67,9 @@ class EnumStateAction : ComboBoxAction(), CustomComponentAction {
     return ActionUpdateThread.BGT
   }
 
-  private inner class StateAction(val state: Any) : AnAction(state.toString()) {
+  private inner class StateAction(val state: T) : AnAction(state.toString()) {
     override fun actionPerformed(e: AnActionEvent) {
-      currentState.value = state
+      currentState = state
     }
   }
 }
