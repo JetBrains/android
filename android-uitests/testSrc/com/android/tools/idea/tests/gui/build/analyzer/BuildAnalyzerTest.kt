@@ -19,7 +19,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton
 import com.android.tools.idea.tests.gui.framework.fixture.BuildAnalyzerViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import com.intellij.ui.components.JBPanelWithEmptyText
 import org.fest.swing.core.matcher.JButtonMatcher.withText
 import org.fest.swing.fixture.JPanelFixture
 import org.junit.Rule
@@ -132,12 +134,11 @@ class BuildAnalyzerTest {
       buildToolWindow.gradleBuildEventTree.also { tree ->
         assertEquals("Download info", tree.valueAt(1))
         tree.clickRow(1)
+        assertEquals(
+          ideFrame.robot().finder().findAll(Matchers.byName(JBPanelWithEmptyText::class.java, "downloads info build output panel")).size, 1)
       }
-      buildToolWindow.buildContent.component.also {
-        JPanelFixture(guiTest.robot(), guiTest.robot().finder().findByName(it, "downloads info build output panel", JPanel::class.java)).requireVisible()
-      }
+      buildToolWindow.hide()
     }
-    ideFrame.closeBuildPanel()
   }
 
   private fun BuildAnalyzerViewFixture.verifyOverviewPage() {
