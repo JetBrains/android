@@ -19,9 +19,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -30,6 +28,7 @@ import com.intellij.ui.popup.PopupFactoryImpl
 import java.time.Duration
 import java.time.Instant
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.SwingConstants
 
 object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
@@ -56,14 +55,7 @@ object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
       popup.setAdText("Device reserved for the 180 minutes maximum duration", SwingConstants.LEFT)
     } else {
       popup.addListSelectionListener { selectEvent ->
-        val text =
-          when (
-            val selectedItem =
-              PlatformCoreDataKeys.SELECTED_ITEM.getData(selectEvent.source as DataProvider)
-          ) {
-            is PopupFactoryImpl.ActionItem -> selectedItem.description
-            else -> ""
-          }
+        val text = ((selectEvent.source as? JList<*>)?.selectedValue as? PopupFactoryImpl.ActionItem)?.description ?: ""
         popup.setAdText(text, SwingConstants.LEFT)
       }
     }
