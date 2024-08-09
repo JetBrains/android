@@ -290,12 +290,12 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
 
   @Override
   @Nullable
-  public <T> T getCopyableUserData(Key<T> key) {
+  public <T> T getCopyableUserData(@NotNull Key<T> key) {
     return myWrappedElement.getCopyableUserData(key);
   }
 
   @Override
-  public <T> void putCopyableUserData(Key<T> key, T value) {
+  public <T> void putCopyableUserData(@NotNull Key<T> key, T value) {
     myWrappedElement.putCopyableUserData(key, value);
   }
 
