@@ -32,8 +32,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -437,16 +435,16 @@ class WearPairingManager(
   }
 
   @WorkerThread
-  internal fun launchDevice(
+  internal suspend fun launchDevice(
     project: Project?,
     deviceId: String,
     avdInfo: AvdInfo,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     ThreadingAssertions.assertBackgroundThread()
     connectedDevicesProvider()
       .find { it.getDeviceID() == deviceId }
       ?.apply {
-        return Futures.immediateFuture(this)
+        return this
       }
     return getDefaultAvdManagerConnection()
       .startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
@@ -571,7 +569,7 @@ private fun IDevice.toPairingDevice(deviceID: String, avdDevice: PairingDevice?)
       state = if (isOnline) ConnectionState.ONLINE else ConnectionState.OFFLINE,
       hasPlayStore = avdDevice?.hasPlayStore ?: false,
     )
-    .apply { launch = { Futures.immediateFuture(this@toPairingDevice) } }
+    .apply { launch = { this@toPairingDevice } }
 }
 
 private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {

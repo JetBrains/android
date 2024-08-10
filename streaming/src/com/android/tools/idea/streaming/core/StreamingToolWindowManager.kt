@@ -1151,7 +1151,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       toolWindowScope.launch(Dispatchers.IO) {
         val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
         try {
-          avdManager.startAvd(project, avd, RequestType.DIRECT_RUNNING_DEVICES).asDeferred().await()
+          avdManager.startAvd(project, avd, RequestType.DIRECT_RUNNING_DEVICES)
         }
         catch (e: Exception) {
           val message = e.message?.let { if (it.contains(avd.displayName)) it else "Unable to launch ${avd.displayName} - $it"} ?:
