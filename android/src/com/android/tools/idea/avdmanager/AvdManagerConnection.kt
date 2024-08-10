@@ -46,6 +46,7 @@ import com.android.sdklib.internal.avd.uniquifyAvdName
 import com.android.sdklib.internal.avd.uniquifyDisplayName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
+import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.NULL_CONNECTION
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater.updateSkin
 import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder
@@ -53,6 +54,7 @@ import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorComm
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -66,13 +68,12 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
@@ -84,7 +85,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.net.HttpConfigurable
 import java.io.File
 import java.io.IOException
@@ -94,6 +94,12 @@ import java.nio.file.StandardOpenOption
 import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 
@@ -113,8 +119,7 @@ open class AvdManagerConnection
 constructor(
   private val sdkHandler: AndroidSdkHandler?,
   private val avdManager: AvdManager?,
-  private val edtListeningExecutorService: ListeningExecutorService =
-    MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()),
+  private val uiDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread(ModalityState.any()),
 ) {
   val emulator: EmulatorPackage?
     get() = sdkHandler?.getEmulatorPackage(REPO_LOG)
@@ -163,20 +168,20 @@ constructor(
    * Starts the emulator without mounting a file to store or load state snapshots, forcing a full
    * boot and disabling state snapshot functionality.
    */
-  fun coldBoot(
+  suspend fun coldBoot(
     project: Project?,
     avd: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     return startAvd(project, avd, requestType, ::ColdBootEmulatorCommandBuilder)
   }
 
   /** Starts the emulator, booting from the "default_boot" snapshot. */
-  fun quickBoot(
+  suspend fun quickBoot(
     project: Project?,
     avd: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     return startAvd(project, avd, requestType, ::EmulatorCommandBuilder)
   }
 
@@ -184,43 +189,59 @@ constructor(
    * Starts the emulator, booting from the given snapshot (specified as the directory name beneath
    * "snapshots", not a full path).
    */
-  fun bootWithSnapshot(
+  suspend fun bootWithSnapshot(
     project: Project?,
     avd: AvdInfo,
     snapshot: String,
     requestType: AvdLaunchListener.RequestType,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     return startAvd(project, avd, requestType) { emulator, avd ->
       BootWithSnapshotEmulatorCommandBuilder(emulator, avd, snapshot)
     }
   }
 
   /** Boots the AVD, using its .ini file to determine the booting method. */
-  open fun startAvd(
+  open suspend fun startAvd(
+    project: Project?,
+    info: AvdInfo,
+    requestType: AvdLaunchListener.RequestType,
+  ): IDevice {
+    return startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory())
+  }
+
+  /** Boots the AVD, using its .ini file to determine the booting method. */
+  @Deprecated("Use suspend version")
+  open fun asyncStartAvd(
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
   ): ListenableFuture<IDevice> {
-    return startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory())
+    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<IDevice> {
+      // This is only used by the old Device Manager.
+      runBlocking { startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory()) }
+    }
   }
 
   /** Performs a cold boot and saves the emulator state on exit. */
+  @Deprecated("Use suspend version")
   fun startAvdWithColdBoot(
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
   ): ListenableFuture<IDevice> {
-    return startAvd(project, info, requestType, ::ColdBootNowEmulatorCommandBuilder)
+    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<IDevice> {
+      // This is only used by the old Device Manager.
+      runBlocking { startAvd(project, info, requestType, ::ColdBootNowEmulatorCommandBuilder) }
+    }
   }
 
-  fun startAvd(
+  suspend fun startAvd(
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
-  ): ListenableFuture<IDevice> {
-    avdManager
-      ?: return Futures.immediateFailedFuture(DeviceActionException("No Android SDK Found"))
+  ): IDevice {
+    avdManager ?: throw DeviceActionException("No Android SDK Found")
     checkNotNull(sdkHandler)
 
     val skinPath = info.properties[SKIN_PATH]
@@ -235,32 +256,19 @@ constructor(
       updateSkin(skin)
     }
 
-    return Futures.transformAsync(
-      MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<
-        AccelerationErrorCode
-      > {
-        checkAcceleration(sdkHandler)
-      },
-      { code: AccelerationErrorCode ->
-        continueToStartAvdIfAccelerationErrorIsNotBlocking(
-          code,
-          project,
-          info,
-          requestType,
-          factory,
-        )
-      },
-      MoreExecutors.directExecutor(),
-    )
+    return withContext(AndroidDispatchers.workerThread) {
+      val code = checkAcceleration(sdkHandler)
+      continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, requestType, factory)
+    }
   }
 
-  private fun continueToStartAvdIfAccelerationErrorIsNotBlocking(
+  private suspend fun continueToStartAvdIfAccelerationErrorIsNotBlocking(
     code: AccelerationErrorCode,
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     if (!code.problem.isEmpty()) {
       IJ_LOG.warn(String.format("Launching %s: %s: %s", info.name, code, code.problem))
     }
@@ -291,23 +299,23 @@ constructor(
     }
   }
 
-  private fun continueToStartAvd(
+  private suspend fun continueToStartAvd(
     project: Project?,
     avd: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     var avd = avd
     val emulator = emulator
     if (emulator == null) {
       IJ_LOG.error("No emulator binary found!")
-      return Futures.immediateFailedFuture(DeviceActionException("No emulator installed"))
+      throw DeviceActionException("No emulator installed")
     }
 
     val emulatorBinary = emulator.emulatorBinary
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!")
-      return Futures.immediateFailedFuture(DeviceActionException("No emulator binary found"))
+      throw DeviceActionException("No emulator binary found")
     }
 
     val avdManager = checkNotNull(avdManager)
@@ -322,7 +330,7 @@ constructor(
     // should show this error and if possible, bring that window to the front.
     if (avdManager.isAvdRunning(avd)) {
       avdManager.logRunningAvdInfo(avd)
-      return Futures.immediateFailedFuture(AvdIsAlreadyRunningException(avd))
+      throw AvdIsAlreadyRunningException(avd)
     }
 
     val commandLine =
@@ -340,9 +348,7 @@ constructor(
         runner.start()
       } catch (e: ExecutionException) {
         IJ_LOG.error("Error launching emulator", e)
-        return Futures.immediateFailedFuture(
-          DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
-        )
+        throw DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
       }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise,
@@ -390,12 +396,13 @@ constructor(
       .avdLaunched(avd, commandLine, requestType, project)
 
     return EmulatorConnectionListener.getDeviceForEmulator(
-      project,
-      avd.name,
-      processHandler,
-      5,
-      TimeUnit.MINUTES,
-    )
+        project,
+        avd.name,
+        processHandler,
+        5,
+        TimeUnit.MINUTES,
+      )
+      .await()
   }
 
   protected open fun newEmulatorCommand(
@@ -453,31 +460,26 @@ constructor(
     return writeTempFile(proxyParameters)?.absoluteFile?.toPath()
   }
 
-  private fun handleAccelerationError(
+  private suspend fun handleAccelerationError(
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     code: AccelerationErrorCode,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     if (code.solution == SolutionCode.NONE) {
-      return Futures.immediateFailedFuture(
-        DeviceActionException("${code.problem}\n\n${code.solutionMessage}\n")
-      )
+      throw DeviceActionException("${code.problem}\n\n${code.solutionMessage}\n")
     }
 
-    // noinspection ConstantConditions, UnstableApiUsage
-    return Futures.transformAsync(
-      showAccelerationErrorDialog(code, project),
-      { result -> tryFixingAccelerationError(result, project, info, requestType, code) },
-      MoreExecutors.directExecutor(),
-    )
+    val result = showAccelerationErrorDialog(code, project)
+
+    return tryFixingAccelerationError(result, project, info, requestType, code)
   }
 
-  private fun showAccelerationErrorDialog(
+  private suspend fun showAccelerationErrorDialog(
     code: AccelerationErrorCode,
     project: Project?,
-  ): ListenableFuture<Int> {
-    return edtListeningExecutorService.submit<Int> {
+  ): Int =
+    withContext(uiDispatcher) {
       val hypervisor = if (SystemInfo.isLinux) "KVM" else "Intel HAXM"
       val message =
         "$hypervisor is required to run this AVD.\n\n${code.problem}\n\n${code.solutionMessage}"
@@ -490,34 +492,35 @@ constructor(
         AllIcons.General.WarningDialog,
       )
     }
-  }
 
-  private fun tryFixingAccelerationError(
+  private suspend fun tryFixingAccelerationError(
     result: Int,
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     code: AccelerationErrorCode,
-  ): ListenableFuture<IDevice> {
+  ): IDevice {
     if (result == Messages.CANCEL) {
-      return Futures.immediateFailedFuture(DeviceActionCanceledException("Could not start AVD"))
+      throw DeviceActionCanceledException("Could not start AVD")
     }
 
-    val future = SettableFuture.create<IDevice>()
+    val changeWasMade = CompletableDeferred<Boolean>()
 
     ApplicationManager.getApplication()
       .invokeLater(
         AccelerationErrorSolution.getActionForFix(
           code,
           project,
-          { future.setFuture(startAvd(project, info, requestType)) },
-          {
-            future.setException(DeviceActionCanceledException("Retry after fixing problem by hand"))
-          },
+          { changeWasMade.complete(true) },
+          { changeWasMade.complete(false) },
         )
       )
 
-    return future
+    if (changeWasMade.await()) {
+      return startAvd(project, info, requestType)
+    } else {
+      throw DeviceActionCanceledException("Retry after fixing problem by hand")
+    }
   }
 
   /**
@@ -675,7 +678,9 @@ constructor(
     private val SDK_LOG: ILogger = LogWrapper(IJ_LOG)
     private val REPO_LOG: ProgressIndicator =
       StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
-    private val NULL_CONNECTION = AvdManagerConnection(null, null)
+    // The dispatcher on NULL_CONNECTION is unused. Pass Unconfined rather than the default uiThread(ModalityState.any()),
+    // because ModalityState.any() requires Application, which may not exist at class-init time in a test.
+    private val NULL_CONNECTION = AvdManagerConnection(null, null, Dispatchers.Unconfined)
 
     private val ourAvdCache: MutableMap<Path?, AvdManagerConnection> = WeakHashMap()
 

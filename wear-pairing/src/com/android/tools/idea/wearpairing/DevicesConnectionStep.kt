@@ -31,7 +31,6 @@ import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -509,8 +508,8 @@ class DevicesConnectionStep(
     try {
       showUiLaunchingDevice(value.displayName)
 
-      val iDevice = value.launch(project).await()
-      value.launch = { Futures.immediateFuture(iDevice) } // We can only launch AVDs once!
+      val iDevice = value.launch(project)
+      value.launch = { iDevice } // We can only launch AVDs once!
 
       // If it was not launched by us, it may still be booting. Wait for "boot complete".
       while (!iDevice.isOnline() || iDevice.getProperty("dev.bootcomplete") == null) {

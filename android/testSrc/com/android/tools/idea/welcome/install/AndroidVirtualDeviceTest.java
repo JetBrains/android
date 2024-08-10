@@ -60,6 +60,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -388,7 +389,7 @@ public final class AndroidVirtualDeviceTest {
       return null;
     }
     AvdManagerConnection connection =
-      new AvdManagerConnection(sdkHandler, IdeAvdManagers.INSTANCE.getAvdManager(sdkHandler), MoreExecutors.newDirectExecutorService());
+      new AvdManagerConnection(sdkHandler, IdeAvdManagers.INSTANCE.getAvdManager(sdkHandler), Dispatchers.getUnconfined());
     Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));
     avdCreator.init(progressStep);
     InstallContext context = new InstallContext(tempDirectoryRule.newPath().toFile(), progressStep);

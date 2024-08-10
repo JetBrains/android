@@ -34,10 +34,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlinx.coroutines.Dispatchers
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.mock
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
@@ -116,17 +118,17 @@ class FakeEmulatorRule : TestRule {
   private inner class TestAvdManagerConnection(
     sdkHandler: AndroidSdkHandler,
     avdHomeFolder: Path,
-  ) : AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder), MoreExecutors.newDirectExecutorService()) {
+  ) : AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder), Dispatchers.Unconfined) {
 
     override fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
       return super.getAvds(true) // Always refresh in tests.
     }
 
-    override fun startAvd(project: Project?, avd: AvdInfo, requestType: RequestType): ListenableFuture<IDevice> {
+    override suspend fun startAvd(project: Project?, avd: AvdInfo, requestType: RequestType): IDevice {
       val emulator = emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?:
-          return immediateFailedFuture(IllegalArgumentException("Unknown AVD: ${avd.id}"))
+          throw IllegalArgumentException("Unknown AVD: ${avd.id}")
       emulator.start(standalone = requestType != RequestType.DIRECT_RUNNING_DEVICES)
-      return immediateFuture(null)
+      return mock<IDevice>()
     }
   }
 }

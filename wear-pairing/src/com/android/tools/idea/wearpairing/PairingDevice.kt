@@ -16,8 +16,6 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 
 enum class ConnectionState {
@@ -37,13 +35,13 @@ data class PairingDevice(
 ) {
   // This field is declared outside the main constructor because it should not be used for
   // equals/hash. Kotlin doesn't have a better way.
-  lateinit var launch: (Project?) -> ListenableFuture<IDevice>
+  lateinit var launch: suspend (Project?) -> IDevice
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE
 
   fun disconnectedCopy(): PairingDevice {
     val res = copy(state = ConnectionState.DISCONNECTED)
-    res.launch = { Futures.immediateFailedFuture(RuntimeException("DISCONNECTED")) }
+    res.launch = { throw RuntimeException("DISCONNECTED") }
     return res
   }
 

@@ -151,7 +151,7 @@ public final class VirtualDeviceTableModelTest {
   @Test
   public void setValueAtStartAvdSucceeded() {
     // Arrange
-    Mockito.when(myConnection.startAvd(null, myAvd, RequestType.DIRECT_DEVICE_MANAGER))
+    Mockito.when(myConnection.asyncStartAvd(null, myAvd, RequestType.DIRECT_DEVICE_MANAGER))
         .thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
 
     TableModel model = new VirtualDeviceTableModel(null,
@@ -190,7 +190,7 @@ public final class VirtualDeviceTableModelTest {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
     Throwable throwable = new RuntimeException();
-    Mockito.when(myConnection.startAvd(null, myAvd, RequestType.DIRECT_DEVICE_MANAGER))
+    Mockito.when(myConnection.asyncStartAvd(null, myAvd, RequestType.DIRECT_DEVICE_MANAGER))
         .thenReturn(Futures.immediateFailedFuture(throwable));
 
     @SuppressWarnings("unchecked")

@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import kotlinx.coroutines.Dispatchers;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
   public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler, @NotNull AvdManager avdManager) {
-    super(handler, avdManager, MoreExecutors.newDirectExecutorService());
+    super(handler, avdManager, Dispatchers.getUnconfined());
     mySdkHandler = handler;
   }
 

@@ -143,30 +143,6 @@ public final class FakeAvdDevice implements AndroidDevice {
     return myAvdInfo.getDisplayName();
   }
 
-  public void coldBoot(@NotNull Project project) {
-    synchronized (myLock) {
-      if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = getDefaultAvdManagerConnection().coldBoot(project, myAvdInfo, RequestType.INDIRECT);
-      }
-    }
-  }
-
-  public void quickBoot(@NotNull Project project) {
-    synchronized (myLock) {
-      if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = getDefaultAvdManagerConnection().quickBoot(project, myAvdInfo, RequestType.INDIRECT);
-      }
-    }
-  }
-
-  public void bootWithSnapshot(@NotNull Project project, @NotNull String snapshot) {
-    synchronized (myLock) {
-      if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = getDefaultAvdManagerConnection().bootWithSnapshot(project, myAvdInfo, snapshot, RequestType.INDIRECT);
-      }
-    }
-  }
-
   @NotNull
   @Override
   public ListenableFuture<IDevice> getLaunchedDevice() {
