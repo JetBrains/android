@@ -107,7 +107,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     var launched = false
     phoneDevice.launch = {
       launched = true
-      Futures.immediateFuture(createTestDevice(companionAppVersion = ""))
+      createTestDevice(companionAppVersion = "")
     }
     wearDevice.launch = phoneDevice.launch
 
@@ -121,7 +121,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   }
 
   private fun shouldPromptToInstallCompanionApp(iDevice: IDevice) {
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -147,7 +147,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldWarnAboutUnknownCompanionApp() {
     val iDevice = createTestDevice(companionAppId = "some.unknown.companion.app")
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -166,10 +166,8 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldWarnAboutUnsupportedAbiCompanionApp() {
-    phoneDevice.launch = { Futures.immediateFuture(createTestDevice(abis = listOf("x86_64"))) }
-    wearDevice.launch = {
-      Futures.immediateFuture(createTestDevice(companionAppId = "com.google.android.wearable.app"))
-    }
+    phoneDevice.launch = { createTestDevice(abis = listOf("x86_64")) }
+    wearDevice.launch = { createTestDevice(companionAppId = "com.google.android.wearable.app") }
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
@@ -189,7 +187,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   fun stepShouldEnableGoForwardIfCompanionAppFound() {
     val iDevice =
       createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, wizard) = createDeviceConnectionStepUi()
@@ -205,7 +203,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldShowSuccessIfAlreadyPaired() {
     val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0")
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -222,7 +220,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
     phoneDevice.launch = {
       launchedCalled = true
-      Futures.immediateFailedFuture(RuntimeException("Test launching exception"))
+      throw RuntimeException("Test launching exception")
     }
     wearDevice.launch = phoneDevice.launch
 
@@ -244,7 +242,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   fun shouldShowErrorIfWatchGsmcoreIsOld() {
     val iDevice =
       createTestDevice(companionAppVersion = "versionName=1.0.0", 0) // Simulate Companion App
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -260,7 +258,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
       createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
     whenever(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt()))
       .thenThrow(RuntimeException("Test"))
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -282,7 +280,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
           else -> null
         }
       }
-    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
@@ -296,30 +294,26 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldShowFactoryResetIfCloudNodeIdDoesntMatchOnOldGmscore() {
     phoneDevice.launch = {
-      Futures.immediateFuture(
-        createTestDevice(
-          gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
-          companionAppVersion = "versionName=1.0.0",
-        ) { request ->
-          when {
-            request.contains("cloud network id:") -> "cloud network id: aaa"
-            else -> null
-          }
+      createTestDevice(
+        gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
+        companionAppVersion = "versionName=1.0.0",
+      ) { request ->
+        when {
+          request.contains("cloud network id:") -> "cloud network id: aaa"
+          else -> null
         }
-      )
+      }
     }
     wearDevice.launch = {
-      Futures.immediateFuture(
-        createTestDevice(
-          gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
-          companionAppVersion = "versionName=1.0.0",
-        ) { request ->
-          when {
-            request.contains("cloud network id:") -> "cloud network id: bbb"
-            else -> null
-          }
+      createTestDevice(
+        gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
+        companionAppVersion = "versionName=1.0.0",
+      ) { request ->
+        when {
+          request.contains("cloud network id:") -> "cloud network id: bbb"
+          else -> null
         }
-      )
+      }
     }
 
     val (fakeUi, _) = createDeviceConnectionStepUi()

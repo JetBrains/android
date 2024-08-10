@@ -88,7 +88,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -107,6 +106,7 @@ import javax.swing.JTable
 import kotlin.collections.set
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
@@ -1219,7 +1219,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             sdkHandler,
             sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
           ),
-          MoreExecutors.newDirectExecutorService(),
+          Dispatchers.Unconfined,
         ) {
         fun setFactory() {
           setConnectionFactory { _, _ -> this }
