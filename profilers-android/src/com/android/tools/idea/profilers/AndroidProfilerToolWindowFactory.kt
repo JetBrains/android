@@ -151,7 +151,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       toolWindow: ToolWindow
     ): AndroidProfilerToolWindow {
       val wrapper = ToolWindowWrapperImpl(project, toolWindow)
-      val profilerToolWindow = AndroidProfilerToolWindow(false, wrapper, project)
+      val profilerToolWindow = AndroidProfilerToolWindow(wrapper, project)
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
       PROJECT_PROFILER_MAP[project] = profilerToolWindow
       Disposer.register(profilerToolWindow) {
