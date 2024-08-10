@@ -39,7 +39,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
@@ -137,9 +136,7 @@ abstract class SplitEditor<P : FileEditor>(
 
   override fun getData(dataId: String): Any? {
     if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
-      val project = editor.project ?: return null
-      return FileEditorManagerEx.getInstanceEx(project)
-        .getData(dataId, editor, editor.caretModel.currentCaret)
+      return TextEditorPsiDataProvider().getData(dataId, editor, editor.caretModel.currentCaret)
     }
     if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
       return myEditor
