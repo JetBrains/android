@@ -43,7 +43,7 @@ internal class SyncProjectActionWorker(
    * All the requested models are registered back to the external project system via the
    * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
-  fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>): List<GradleModelCollection> {
+  fun populateAndroidModels(basicIncompleteModules: List<BasicIncompleteGradleModule>, shouldUseProjectGraph: Boolean): List<GradleModelCollection> {
     val modules = syncCounters.projectInfoPhase { fetchGradleModulesAction(basicIncompleteModules) }
 
     val androidModules = modules.filterIsInstance<AndroidModule>()
@@ -69,7 +69,7 @@ internal class SyncProjectActionWorker(
           // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
           // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
           // e.g the ones that should be selected by the IDE.
-          variantDiscovery.discoverVariantsAndSync()
+          variantDiscovery.discoverVariantsAndSync(shouldUseProjectGraph)
         }
 
         is AllVariantsSyncActionOptions -> {

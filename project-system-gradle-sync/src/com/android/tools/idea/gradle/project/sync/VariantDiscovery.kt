@@ -110,9 +110,8 @@ internal class VariantDiscovery(
    *     depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a root
    *     (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.
    */
-  fun discoverVariantsAndSync() {
+  fun discoverVariantsAndSync(shouldUseProjectGraph: Boolean) {
     if (inputModules.isEmpty()) return
-    val supportsProjectGraph = inputModules.first().modelVersions[ModelFeature.HAS_PROJECT_GRAPH_MODEL]
     val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
 
     if (shouldUsePreviouslyResolvedVariants) {
@@ -129,7 +128,7 @@ internal class VariantDiscovery(
         // project graph to parallelize the process earlier.
         val subprojectsWithVariants =
           // TODO: Use a more sensible check here
-          if(supportsProjectGraph && modulesToVisit.size <= 2)
+          if(shouldUseProjectGraph && modulesToVisit.size <= 2)
             runSubProjectGraphAction(modulesToVisit)
           else
             emptyList()
