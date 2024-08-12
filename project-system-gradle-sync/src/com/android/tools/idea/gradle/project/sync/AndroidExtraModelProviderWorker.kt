@@ -93,6 +93,9 @@ internal class AndroidExtraModelProviderWorker(
               GradleVersion.version(gradleVersion) >= GradleVersion.version("7.4.2") &&
               v2AndroidGradleModules.all { it.modelVersions[ModelFeature.SUPPORTS_PARALLEL_SYNC] }
 
+            val shouldUseProjectGraph = GradleVersion.version(gradleVersion) >= GradleVersion.version("8.10-rc-1") &&
+                                        v2AndroidGradleModules.all { it.modelVersions[ModelFeature.HAS_PROJECT_GRAPH_MODEL] }
+
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(
               v2ModelBuildersSupportParallelSync,
               syncOptions.flags.studioFlagFetchKotlinModelsInParallel
@@ -100,7 +103,7 @@ internal class AndroidExtraModelProviderWorker(
 
             val models =
               SyncProjectActionWorker(buildInfo, syncCounters, syncOptions, configuredSyncActionRunner)
-                .populateAndroidModels(modules)
+                .populateAndroidModels(modules, shouldUseProjectGraph)
 
             val syncExecutionReport = IdeSyncExecutionReport(
               parallelFetchForV2ModelsEnabled =
