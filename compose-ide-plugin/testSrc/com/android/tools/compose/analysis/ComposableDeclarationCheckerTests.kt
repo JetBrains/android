@@ -16,7 +16,6 @@
 package com.android.tools.compose.analysis
 
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.junit.Ignore
 import org.junit.Test
 
 /** Tests for [ComposableDeclarationChecker] */
@@ -381,26 +380,24 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
   }
 
   @Test
-  @Ignore("b/353305576")
   fun testInterfaceComposablesWithDefaultParameters() {
     doTest(
       """
             import androidx.compose.runtime.Composable
             interface A {
-                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
+                @Composable fun foo(x: Int = 0)
             }
         """
     )
   }
 
   @Test
-  @Ignore("b/353305576")
   fun testAbstractComposablesWithDefaultParameters() {
     doTest(
       """
             import androidx.compose.runtime.Composable
             abstract class A {
-                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Overridable Composable functions with default values are not currently supported">0</error>)
+                @Composable abstract fun foo(x: Int = 0)
             }
         """
     )
