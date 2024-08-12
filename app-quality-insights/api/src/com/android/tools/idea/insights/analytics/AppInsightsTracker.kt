@@ -17,6 +17,9 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.idea.insights.ConnectionMode
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 
 interface AppInsightsTracker {
   fun logZeroState(event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails)
@@ -69,6 +72,8 @@ interface AppInsightsTracker {
     eventId: String,
     isFetched: Boolean,
   )
+
+  fun logInsightSentiment(sentiment: Sentiment, experiment: Experiment, crashType: CrashType)
 
   enum class ProductType {
     CRASHLYTICS,

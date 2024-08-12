@@ -19,11 +19,14 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val MAIN_CARD = "main"
@@ -38,7 +41,7 @@ private const val EMPTY_CARD = "empty"
 class InsightMainPanel(
   controller: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
-) : JPanel() {
+) : JPanel(), DataProvider {
 
   private val scope =
     controller.coroutineScope.createChildScope(parentDisposable = parentDisposable)
@@ -47,6 +50,11 @@ class InsightMainPanel(
 
   private val mainContentPanel =
     InsightContentPanel(scope, controller.state.map { it.currentInsight }, parentDisposable)
+
+  private val issueFlow =
+    controller.state
+      .map { it.selectedIssue }
+      .stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
 
   private val emptyStateText =
     AppInsightsStatusText(this) { !isShowingInsight }
@@ -78,4 +86,10 @@ class InsightMainPanel(
     super.paint(g)
     emptyStateText.paint(this, g)
   }
+
+  override fun getData(dataId: String): Any? =
+    when {
+      FAILURE_TYPE_KEY.`is`(dataId) -> issueFlow.value?.issueDetails?.fatality
+      else -> null
+    }
 }
