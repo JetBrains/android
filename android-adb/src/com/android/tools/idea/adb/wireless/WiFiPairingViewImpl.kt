@@ -24,10 +24,11 @@ import com.intellij.openapi.util.Disposer
 import javax.swing.event.HyperlinkListener
 
 @UiThread
-class WiFiPairingViewImpl(project: Project,
-                          private val notificationService: WiFiPairingNotificationService,
-                          override val model: WiFiPairingModel,
-                          hyperlinkListener: HyperlinkListener
+class WiFiPairingViewImpl(
+  project: Project,
+  private val notificationService: WiFiPairingNotificationService,
+  override val model: WiFiPairingModel,
+  hyperlinkListener: HyperlinkListener,
 ) : WiFiPairingView {
   private val dlg: WiFiPairingDialog
   private val listeners = ArrayList<WiFiPairingView.Listener>()
@@ -39,14 +40,15 @@ class WiFiPairingViewImpl(project: Project,
     dlg.pairingCodePairInvoked = { service ->
       listeners.forEach { it.onPairingCodePairAction(service) }
     }
-    dlg.qrCodeScanAgainInvoked = {
-      listeners.forEach { it.onScanAnotherQrCodeDeviceAction() }
-    }
-    Disposer.register(dlg.disposable, Disposable {
-      // Note: Create a copy of the listener list in case one of the listener removes
-      //       itself in its [onClose] implementation.
-      listeners.toList().forEach { it.onClose() }
-    })
+    dlg.qrCodeScanAgainInvoked = { listeners.forEach { it.onScanAnotherQrCodeDeviceAction() } }
+    Disposer.register(
+      dlg.disposable,
+      Disposable {
+        // Note: Create a copy of the listener list in case one of the listener removes
+        //       itself in its [onClose] implementation.
+        listeners.toList().forEach { it.onClose() }
+      },
+    )
   }
 
   override fun showDialog() {
@@ -63,28 +65,34 @@ class WiFiPairingViewImpl(project: Project,
   }
 
   override fun showMdnsNotSupportedError() {
-    showMdnsNotSupportedError("This system does not meet the requirements to support Wi-Fi pairing.")
+    showMdnsNotSupportedError(
+      "This system does not meet the requirements to support Wi-Fi pairing."
+    )
   }
 
   private fun showMdnsNotSupportedError(message: String) {
-    dlg.showLoadingError(buildErrorHtml {
-      add(message)
-      newline()
-      add("Please update to the latest version of \"platform-tools\" using the SDK manager.")
-      newline()
-      newline()
-      addLink("Open SDK manager", Urls.openSdkManager)
-    })
+    dlg.showLoadingError(
+      buildErrorHtml {
+        add(message)
+        newline()
+        add("Please update to the latest version of \"platform-tools\" using the SDK manager.")
+        newline()
+        newline()
+        addLink("Open SDK manager", Urls.openSdkManager)
+      }
+    )
   }
 
   override fun showMdnsNotSupportedByAdbError() {
-    showMdnsNotSupportedError("The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing.")
+    showMdnsNotSupportedError(
+      "The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing."
+    )
   }
 
   override fun showMdnsCheckError() {
-    dlg.showLoadingError(buildErrorHtml {
-      add("There was an unexpected error during Wi-Fi pairing initialization.");
-    })
+    dlg.showLoadingError(
+      buildErrorHtml { add("There was an unexpected error during Wi-Fi pairing initialization.") }
+    )
   }
 
   private fun buildErrorHtml(build: HtmlBuilder.() -> Unit): HtmlBuilder {
@@ -119,6 +127,23 @@ class WiFiPairingViewImpl(project: Project,
     dlg.showQrCodePairingError(error)
   }
 
+  override fun showMacMdnsEnvironmentIsBroken() {
+    dlg.showLoadingError(
+      buildErrorHtml {
+        add("Please update to the latest version of \"platform-tools\" (minimum 35.0.2) with the ")
+        addLink("SDK manager", Urls.openSdkManager)
+        add(".")
+        newline()
+        newline()
+        add("Make sure mDNS backend 'default' is selected in ")
+        addLink("ADB Settings", Urls.openAdbSettings)
+        add(".")
+        newline()
+        newline()
+      }
+    )
+  }
+
   override fun addListener(listener: WiFiPairingView.Listener) {
     listeners.add(listener)
   }
@@ -142,7 +167,7 @@ class WiFiPairingViewImpl(project: Project,
     }
 
     override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
-      //TODO: Move logic to controller?
+      // TODO: Move logic to controller?
       dlg.showPairingCodeServices(services)
     }
   }

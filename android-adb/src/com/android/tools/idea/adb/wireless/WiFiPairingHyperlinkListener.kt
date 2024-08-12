@@ -26,8 +26,17 @@ import javax.swing.event.HyperlinkEvent
 object WiFiPairingHyperlinkListener : HyperlinkAdapter() {
   override fun hyperlinkActivated(e: HyperlinkEvent) {
     if (e.description == Urls.openSdkManager) {
-      ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
-        AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { dataId -> null })
+      ActionManager.getInstance()
+        .getAction("Android.RunAndroidSdkManager")
+        .actionPerformed(
+          AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { dataId -> null }
+        )
+    } else if (e.description == Urls.openAdbSettings) {
+      ActionManager.getInstance()
+        .getAction("Android.AdbSettings")
+        .actionPerformed(
+          AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { dataId -> null }
+        )
     } else if (e.url != null) {
       BrowserUtil.browse(e.url)
     }

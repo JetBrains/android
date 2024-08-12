@@ -26,27 +26,41 @@ interface WiFiPairingView {
 
   fun showDialog()
 
-  //region mDNS support functions
+  // region mDNS support functions
   fun startMdnsCheck()
+
   fun showMdnsCheckSuccess()
+
   fun showMdnsNotSupportedError()
+
   fun showMdnsNotSupportedByAdbError()
+
   fun showMdnsCheckError()
-  //endregion
+
+  // endregion
 
   fun showQrCodePairingStarted()
+
   fun showQrCodePairingInProgress(mdnsService: MdnsService)
+
   fun showQrCodePairingWaitForDevice(pairingResult: PairingResult)
+
   fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice)
+
   fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable)
 
+  fun showMacMdnsEnvironmentIsBroken()
+
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
 
   @UiThread
   interface Listener {
     fun onScanAnotherQrCodeDeviceAction()
+
     fun onPairingCodePairAction(mdnsService: MdnsService)
+
     fun onClose()
   }
 }
