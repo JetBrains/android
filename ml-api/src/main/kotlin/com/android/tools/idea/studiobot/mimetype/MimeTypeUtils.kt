@@ -29,6 +29,7 @@ import com.android.tools.idea.studiobot.MimeType.Companion.CPP
 import com.android.tools.idea.studiobot.MimeType.Companion.CSHARP
 import com.android.tools.idea.studiobot.MimeType.Companion.CSS
 import com.android.tools.idea.studiobot.MimeType.Companion.DART
+import com.android.tools.idea.studiobot.MimeType.Companion.DIFF
 import com.android.tools.idea.studiobot.MimeType.Companion.FSHARP
 import com.android.tools.idea.studiobot.MimeType.Companion.GO
 import com.android.tools.idea.studiobot.MimeType.Companion.GRADLE
@@ -343,6 +344,7 @@ fun MimeType.markdownLanguageName(): String? {
     XML.mimeType -> "xml"
     JSON.mimeType -> "json"
     TEXT.mimeType -> null
+    DIFF.mimeType -> "diff"
     REGEX.mimeType -> "regex"
     GROOVY.mimeType -> "groovy"
     TOML.mimeType -> "toml"

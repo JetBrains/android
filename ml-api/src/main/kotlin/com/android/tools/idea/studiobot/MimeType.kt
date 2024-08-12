@@ -54,6 +54,9 @@ value class MimeType(val mimeType: String) {
     /** Well known mime type for text files. */
     val TEXT = MimeType("text/plain")
 
+    /** Custom mime type for diff and patch files. */
+    val DIFF = MimeType("text/x-diff")
+
     /**
      * Special marker mimetype for unknown or unspecified mime types. These will generally be
      * treated as [TEXT] for editor purposes. (The standard "unknown" mime type is
