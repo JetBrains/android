@@ -3,14 +3,14 @@
 # Proto dependencies from bazel.
 #
 load(
-    "//tools/vendor/google/aswb/third_party/java/jetbrains:build_defs.bzl",
-    "combine_visibilities",
-)
-load(
-    "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl",
+    "//tools/adt/idea/aswb:build-visibility.bzl",
     "ASPECT_PROTO_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
     "create_proto_visibility_group",
+)
+load(
+    "//tools/vendor/google/aswb/third_party/java/jetbrains:build_defs.bzl",
+    "combine_visibilities",
 )
 
 licenses(["notice"])

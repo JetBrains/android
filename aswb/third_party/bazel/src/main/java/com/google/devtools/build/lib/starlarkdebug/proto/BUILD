@@ -5,7 +5,7 @@ package(default_visibility = ["//src:__subpackages__"])
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
-    visibility = ["//tools/vendor/google3/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib:__pkg__"],
+    visibility = ["//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib:__pkg__"],
 )
 
 java_proto_library(

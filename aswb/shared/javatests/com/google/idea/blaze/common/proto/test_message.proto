@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package ij.common.test;
+
+// option java_api_version = 2;
+option java_package = "com.google.idea.blaze.common.proto";
+
+message MyMessage {
+  string string = 1;
+  repeated string strings = 2;
+  map<string, string> string_map = 3;
+  int32 integer = 4;
+  SubMessage sub_message = 5;
+  repeated SubMessage sub_messages = 6;
+}
+
+message SubMessage {
+  string sub_string = 1;
+  int32 sub_int = 2;
+}

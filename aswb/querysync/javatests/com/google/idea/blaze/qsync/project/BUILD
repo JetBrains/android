@@ -1,4 +1,4 @@
-load("//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
@@ -11,9 +11,9 @@ java_test(
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:build_graphs",
+        "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -25,9 +25,9 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/query:QuerySummaryTestUtil",
+        "//tools/adt/idea/aswb/shared:vcs",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
         "@maven//:com.google.guava.guava",
     ],
 )

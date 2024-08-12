@@ -16,11 +16,11 @@ syntax = "proto3";
 
 package remote_logging;
 
-import "tools/vendor/google3/aswb/google/bytestream/bytestream.proto";
-import "tools/vendor/google3/aswb/google/longrunning/operations.proto";
+import "google/bytestream/bytestream.proto";
+import "google/longrunning/operations.proto";
 import "google/protobuf/timestamp.proto";
-import "tools/vendor/google3/aswb/google/rpc/status.proto";
-import "tools/vendor/google3/aswb/build/bazel/remote/execution/v2/remote_execution.proto";
+import "google/rpc/status.proto";
+import "build/bazel/remote/execution/v2/remote_execution.proto";
 
 option java_package = "com.google.devtools.build.lib.remote.logging";
 

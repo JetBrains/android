@@ -1,0 +1,614 @@
+v2024.03.12
+===========
+* Internal cleanup
+
+v2024.02.27
+===========
+* Internal cleanup
+
+v2024.02.13
+===========
+* Internal cleanup
+
+v2024.01.30
+===========
+* Internal Cleanup
+
+v2024.01.16
+===========
+* Internal Cleanup
+
+v2024.01.02
+===========
+* Internal Cleanup
+
+v2023.12.19
+===========
+* Internal Cleanup
+
+v2023.12.05
+===========
+* Internal Cleanup
+
+v2023.11.21
+===========
+* Internal Cleanup
+
+v2023.11.07
+===========
+* Internal Cleanup
+
+v2023.10.24
+===========
+* Internal Cleanup
+
+v2023.10.10
+===========
+* Internal Cleanup
+
+v2023.09.26
+===========
+* Internal cleanup
+
+v2023.09.12
+===========
+* Internal Cleanup
+
+v2023.08.29
+===========
+* Support Android Studio 2023.1
+* Internal Cleanup
+
+v2023.08.15
+===========
+* Internal cleanup
+
+v2023.08.01
+===========
+* Internal cleanup
+
+v2023.07.18
+===========
+* [query-sync] "Build dependecies for open files" action
+* Internal cleanup
+
+v2023.07.04
+===========
+* [query-sync] Support the "Build dependencies" action for directories and BUILD files.
+* Internal cleanup
+
+
+v2023.06.13
+===========
+* Move oldest supported Bazel version to 4.0.0
+* Internal cleanup
+
+v2023.05.30
+===========
+* Internal cleanup
+
+v2023.05.16
+===========
+* Internal cleanup
+
+v2023.05.02
+===========
+* Internal cleanup
+* Plugin compatible with Android Studio 2022.3
+
+v2023.04.18
+===========
+* Fix mobile install step: https://github.com/bazelbuild/intellij/pull/4669
+* Fix partial query fails to read input stream:  https://github.com/bazelbuild/intellij/pull/4739
+* Internal cleanup
+
+v2023.04.04
+===========
+Internal cleanup.
+
+v2023.03.21
+===========
+* Internal cleanup.
+* Plugin compatible with Android Studio 2022.2.
+
+v2023.03.07
+===========
+* Internal cleanup.
+* Fix (Failed Android apk target build: https://github.com/bazelbuild/intellij/issues/4462)
+* Support leading `@` in instrumentation test targets labels (https://github.com/bazelbuild/intellij/pull/4530)
+
+v2023.02.22
+===========
+* Internal cleanup.
+
+v2023.02.07
+===========
+* Internal cleanup.
+
+v2023.01.24
+===========
+* Internal cleanup.
+* Plugin compatible with Android Studio 2022.1
+
+v2023.01.10
+===========
+* `BlazeAndroidSyncBuildFlagsProvider` is removed in (https://github.com/bazelbuild/intellij/commit/583537c63866eac13169ce128bb53aa0017bc6e0) (addresses issues: #3787 and #3703)
+* Internal cleanup.
+
+v2022.12.13
+===========
+* Internal cleanup.
+
+v2022.11.29
+===========
+* Bug fixes and internal cleanup.
+
+v2022.11.15
+===========
+* Invoke Live Edit from ASwB (56913bc).
+* Internal cleanup.
+
+v2022.11.01
+===========
+* Internal cleanup.
+
+v2022.07.26
+===========
+* Fix Blaze target highlighting in the integrated terminal.
+
+v2022.07.12
+===========
+* Bug fixes and internal cleanup.
+
+v2022.06.14
+===========
+* Kotlin: Fix the detection of which test target to run for a newly created
+  Kotlin test. This allows the test to be run without requiring a Blaze sync.
+
+v2022.05.03
+===========
+* Added ALT+SHIFT+Y hotkey for running full Bazel syncs.
+* [Beta+Stable channel] IntelliJ + CLion: Fully switched to 2022.1.
+
+v2022.04.20
+===========
+* Add ALT+y hotkey for running a Bazel sync (⌥+y on Mac).
+
+v2022.04.05
+===========
+* Go: Fix debugging for go_test targets.
+
+v2022.03.22
+===========
+* Bug fixes and internal cleanup.
+
+v2022.03.08
+===========
+* [2021.3] Kotlin tests: Fixed suggestion of run configurations.
+
+v2022.02.22
+===========
+* Adapt Bazel plugin to the upcoming Starlark cc_library change.
+
+v2022.01.25
+===========
+* [Beta+Stable channel] CLion: Compatible with CLion 2021.3.
+* [Beta+Stable channel] IntelliJ: Compatible with IntelliJ 2021.3.
+
+v2022.01.11
+===========
+* Don’t ship a buildifier (formatter for BUILD files) binary.
+  * Users will now be shown a notification in case the buildifier binary is not
+    available with a link to a guide on how to install it.
+  * Allow specifying a custom buildifier binary.
+
+
+v2021.10.05
+===========
+* Associate with the *.sky and *.star IDE file associations as BUILD files.
+
+v2021.09.20
+===========
+* Kotlin: Fix debugger breakpoints in 2021.2.
+
+v2021.09.07
+===========
+* [Stable channel] CLion: Compatible with CLion 2021.2.
+
+v2021.08.24
+===========
+* [Beta channel] CLion: Compatible with CLion 2021.2.
+* [Stable channel] IntelliJ: Compatible with IntelliJ CE/UE 2021.2
+
+v2021.07.26
+===========
+* Avoid an issue with a hybrid JDK 8/11 setup when using fast run/debug.
+* [Beta channel] IntelliJ: Compatible with IntelliJ CE/UE 2021.2 EAP.
+
+v2021.07.12
+===========
+* [Stable channel] IntelliJ: Compatible with IntelliJ CE/UE 2021.1.
+* [Stable channel] CLion: Compatible with CLion 2021.1.
+
+v2021.06.29
+===========
+* [Beta channel] IntelliJ: Compatible with IntelliJ CE/UE 2021.1.
+* [Beta channel] CLion: Compatible with CLion 2021.1.
+
+v2021.06.15
+===========
+* Bug fixes and internal cleanup.
+
+v2021.05.11
+===========
+* Kotlin: Generate correct run configurations for non-small tests.
+
+v2021.04.26
+===========
+* GoLand: Fixed an issue with importing a Bazel project in Goland.
+* Tests: Run all targets recursively under a chosen directory.
+* Fixed resolution of generated code (e.g. protobufs) after project restart in Typescript and Go.
+
+v2021.04.07
+===========
+* IntelliJ: Compatible with IntelliJ CE/UE 2020.3.
+* 2020.3+ versions: Integrate Bazel-based IntelliJ projects into the new
+  IntelliJ Welcome screen.
+* Fix displaying/modifying code style settings for BUILD files.
+
+v2021.02.02
+===========
+* ASwB: Fix unresolved Kotlin symbols when using Dagger/Sting
+
+v2020.03.19
+===========
+* Add support for multiple targets in bazel run configurations
+* Improve BUILD file code folding support
+
+v2020.02.24
+===========
+* Allow queuing sync actions while building indices.
+* Show gutter run markers next to BUILD targets.
+* BUILD files auto-complete updates.
+
+v2019.09.30
+===========
+* CLion: fix unresolved genfiles after the first sync.
+
+v2019.08.19
+===========
+* Add support for starlark debugging.
+
+v2019.07.22
+===========
+* Add a .bazelproject option to automatically derive the relevant bazel
+  targets from directories. This is enabled by default for new projects.
+
+v2019.06.03
+===========
+* CLion: Fix debugging with bundled GDB
+
+v2019.03.18
+===========
+* Bazel problems view: allow filtering based on severity
+
+v2019.03.05
+===========
+* Fix escaping of quoted run configuration flags
+
+v2019.02.13
+===========
+* Mark unsynced python, go files in the project view
+
+v2019.01.28
+===========
+* Bug fixes and internal cleanup.
+
+v2019.01.14
+===========
+* Add coverage support
+* Fix kotlin library rule handling
+
+v2019.01.02
+===========
+* Compilation errors during Fast Run show up in the Bazel Problems view and can be double-clicked to
+  navigate to the error in the source
+* Go: fix some spurious 'unused symbol' warnings
+
+v2018.12.03
+===========
+* Fix failed test case gutter icons not displaying.
+* Fix attaching source jars from external workspaces
+* Fast run detects changed files more quickly and no longer unnecessarily compiles unchanged files.
+
+v2018.11.12
+===========
+* Resolve short-form references to external workspace targets
+* Changed serialization scheme for faster read/write and reduced disk usage.
+
+v2018.10.22
+===========
+* Bug fixes and internal cleanup.
+
+v2018.10.08
+===========
+* Support auto-syncing on proto file changes (Bazel Settings > Automatically re-sync when proto files change)
+
+v2018.09.24
+===========
+* Bug fixes and internal cleanup.
+
+v2018.09.10
+===========
+* Bug fixes and internal cleanup.
+
+v2018.08.20
+===========
+* Added a 'test_flags' project view section, used for all 'bazel test' invocations.
+
+v2018.08.06
+===========
+* Bug fixes and internal cleanup.
+
+v2018.07.23
+===========
+* Bug fixes and internal cleanup.
+
+v2018.07.09
+===========
+* New UI for running fast builds: use the "Fast Run" and "Fast Debug" buttons (instead of the normal "Run" and "Debug").
+  For more info see https://ij.bazel.build/docs/fast-builds.html
+* TypeScript: add support for navigating to JavaScript symbols.
+* BUILD/Skylark: change default indentation options to match buildifier.
+
+v2018.06.11
+===========
+* Bug fixes and internal cleanup.
+
+v2018.05.21
+===========
+* Run iterative tests faster using javac to compile instead of Bazel.
+  For instructions and caveats, see https://ij.bazel.build/docs/fast-builds.html
+
+v2018.05.07
+===========
+* Bug fixes and internal cleanup.
+
+v2018.04.23
+===========
+* Bug fixes and internal cleanup.
+
+v2018.04.09
+===========
+* Bug fixes and internal cleanup.
+
+v2018.03.26
+===========
+* Add an 'add source to project' action
+
+v2018.03.12
+===========
+* Convert to/from workspace-relative paths when sharing run configurations
+* Linkify parsed errors in the Bazel Console view
+* Add next/previous error actions to the Bazel Console view
+
+v2018.02.26
+===========
+* Bug fixes and internal cleanup.
+
+v2018.02.13
+===========
+* Bug fixes and internal cleanup.
+
+v2018.01.29
+===========
+* Copy BUILD target string action now works from any project file.
+
+v2018.01.16
+===========
+* Scala: Fix navigating to generated source files.
+
+v2018.01.02
+===========
+* CLion: reduce freezes after large number of files change (e.g. after 'git pull') by reindexing changed files
+* Be able to navigate from problems view to error line on bazel console.
+
+v2017.12.04
+===========
+* Scala: Add run configuration support for specs2 tests.
+
+v2017.11.20
+===========
+* Reduce indexing time after syncing.
+* Java debugging: allow specifying a different debug port.
+* Support custom environment variables when debugging python and C++ targets.
+* Bazel plugin settings are now searchable.
+
+v2017.11.06
+===========
+* Go support: Better Bazel-specific support for Go import resolution.
+* Suppress test failures showing up in the 'Problems' view
+
+v2017.10.23
+===========
+* CLion: improve performance of the 'Navigate > Related Symbol' action.
+* CLion: resolve file paths in run configuration console.
+* ASwB: add Python support (for AS 3.0+).
+* Fix resolution of python import statements.
+
+v2017.10.09
+===========
+* Support 'Run with Coverage' for all Bazel test run configurations.
+* Go-lang: Greatly improved import resolution.
+* Go-lang: Add Bazel run configuration support.
+* CLion: limit freezes when navigating between .cc and .h files.
+* Add support for java_lite_proto_library.
+
+v2017.09.25
+===========
+* Support HotSwapping when debugging java_binary targets.
+* Add an 'Update Directories' sync action, to add directories to the project
+  without running Bazel (note: new directories won't properly resolve until
+  a full sync is run).
+* JavaScript: reduce hangs while editing, by prefetching all indexed JS files
+  during sync.
+* Suppress spurious 'never assigned' warnings for @Inject-annotated fields.
+* Add basic support for custom java rules, providing the 'java_common' skylark
+  API.
+* Python: prioritize project files over SDK packages when resolving imports.
+
+v2017.09.11
+===========
+* Bug fixes and internal cleanup.
+
+v2017.08.28
+===========
+* CLion test output: make URLs and bazel targets clickable
+* Retrieve Javadocs for unattached sources
+* CLion: incremental sync retains more caches. Prefill caches on project reload.
+
+v2017.08.14
+===========
+* Fix spurious 'unused' warnings for AutoFactory-annotated classes
+* Python: Test UI support for paramaterized python tests
+* Python: Linkify stack traces in Bazel Console view
+* Test UI: fix timeouts not being marked as failures
+* Go: migrate Go code to the latest JetBrains plugin
+
+v2017.08.01
+===========
+* Add a user setting to suppress the Bazel console during sync
+* Add support for IntelliJ 2017.1.5
+* ASwB: fix generated resources not resolving
+* Fix unresolved references when targets are built with multiple Bazel configurations
+* Python: fix 'argument list too long' errors when debugging
+
+v2017.07.17
+===========
+* Explicitly deprioritize older android/gwt-specific versions of libraries during sync
+* Improve test finder heuristics when creating run configurations
+
+v2017.07.05
+===========
+* CLwB: Show "unsynced" diagnostic file status for C++ files
+
+v2017.06.19
+===========
+* Improve performance when indexing proto_library targets in the working set.
+* Fix incorrectly reusing existing, but different, run configurations.
+* Order BUILD file structure view by target name, not rule type.
+
+v2017.06.05
+===========
+* Add Scala support to IntelliJ.
+* Add 'sync_flags' .bazelproject section, for flags only applied during sync.
+* Android Studio: NDK plugins are now optional.
+* CLion: Improve performance by prefetching required genfiles during sync.
+
+v2017.05.22
+===========
+* TypeScript: Support multiple ts_config rules in .bazelproject
+* Android Studio: Index javac jar for javax.lang classes
+* Show failed test targets in test result UI
+
+v2017.05.08
+===========
+* Add Python support to CLion
+* Fix some bazel targets not being linkified in the run configuration console
+  output
+* Add an action to open a workspace file outside your project (File > Open
+  Workspace File...)
+* Add an action to add a source directory to your bazel project (Bazel >
+  Project > Add Directory To Project...)
+* CLion: fix project directories being cleared when reopening a project
+
+v2017.04.17
+===========
+* Add support for IntelliJ 2017.1
+* Support bazel build sharding for large projects
+* Detect out-of-memory errors during sync, and suggest enabling sharding
+* Add documentation links for .bazelproject items
+
+v2017.04.03
+===========
+* Add python support for IntelliJ
+* Prefetch project files on project open, prior to initial indexing
+* Handle nested junit test classes
+
+v2017.03.15
+===========
+* Bazel: WORKSPACE file language integration (syntax highlighting, navigation,
+  etc.)
+* Bazel: Find usages, navigation support for external workspace labels
+* Expand macros in run configuration build flags
+
+v2017.02.27
+===========
+* Add CLion support
+* Run configuration support for abstract test classes/methods
+* Support running all test classes in a directory
+* BUILD support: don't suggest private symbols in 'load' statement autocomplete
+
+v2017.02.13
+===========
+* Test UI support for parameterized tests
+* Test UI support for sharded tests, run locally
+* BUILD: Fix navigation for overridden built-in symbols
+* BUILD: Add auto-complete for fully-qualified class names
+
+v2017.01.30
+============
+* Integrate bazel test results with the IDE's test runner UI.
+* Add support for sharing run configurations
+* Restructure Bazel menu items
+
+v2017.01.09
+===========
+* Create source roots for all directories matching 'test_sources'.
+* When viewing source files for supported but inactive languages, suggest
+  enabling support for that language.
+* BUILD: Add syntax highlight/autocomplete support for more built-in functions.
+* Fix java debugger connection timeout
+* Basic support for Go-lang projects
+
+v2016.12.5
+==========
+* BUILD files: add syntax hightlighting for built-in names
+* BUILD files: support aliased load statements
+* ASwB: enable NDK support
+
+v1.12
+=====
+* Add autocomplete in run configuration target editor.
+* Fix debugging of java_binary targets with args
+
+v1.11
+=====
+* Completely suppress JUnit for Bazel projects, removing a common source of
+  confusion.
+* Improve sync working set / partial sync to include more targets that
+  users might expect should be included.
+* Add more history to import wizard.
+
+v1.10
+=====
+* Compatibility with 2016.2.4
+* Improve create run configuration from scratch experience
+
+v1.9
+==========
+* Better tolerance of broken BUILD files during sync
+* Sync working set action -- sync only the files you're
+  working on.
+* BUILD file support: performance improvements.
+* Unified run configurations -- there is only one type,
+  the Bazel Command Run Configuration.
+* Add test rule chooser heuristics, to support some common
+  test genrules.
+
+v1.8
+==========
+* Add local jar cache to improve performance and robustness.
+* Support filtered gen jars to allow mixed generated/non-
+  generated rules (requires bazel release to activate).
+* Abbreviate generated run configuration names.

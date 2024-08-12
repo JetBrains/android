@@ -12,7 +12,7 @@ java_binary(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/adt/idea/aswb/shared",
         "@maven//:com.google.guava.guava",
         "@maven//:io.grpc.grpc-protobuf",
     ],
@@ -33,7 +33,7 @@ java_library(
     name = "cli_context",
     srcs = ["CliContext.java"],
     deps = [
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/adt/idea/aswb/shared",
     ],
 )
 
