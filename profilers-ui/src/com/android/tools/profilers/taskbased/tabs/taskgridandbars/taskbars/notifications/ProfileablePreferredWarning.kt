@@ -42,6 +42,6 @@ fun ProfileablePreferredWarning(isPreferredProcessSelected: Boolean, isCollapsed
   }
 
   CollapsibleNotification(mainText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT, tooltip = tooltip,
-                          iconKey = StudioIconsCompose.Common.WarningInline,
+                          iconKey = StudioIconsCompose.Common.Warning,
                           iconDescription = INFO_ICON_DESC, isCollapsed = isCollapsed)
 }
