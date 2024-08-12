@@ -117,30 +117,6 @@
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.app.interaction.mode"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$AppInteraction"
-              icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW"
-              text="Interact with Apps" description="Use keyboard and mouse to interact with apps">
-        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.emulator.xr.view.direction.mode"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
-              icon="StudioIcons.Emulator.XR.ROTATE"
-              text="View Direction" description="Use keyboard and mouse to control view direction">
-        <keyboard-shortcut first-keystroke="control D" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.emulator.xr.location.in.space.mode"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpace"
-              icon="StudioIcons.Emulator.XR.PAN"
-              text="Location in Space" description="Use keyboard and mouse to control location in virtual space">
-        <keyboard-shortcut first-keystroke="control L" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
-      </action>
       <action id="android.emulator.xr.recenter"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
               icon="StudioIcons.Emulator.XR.RESET_POSITION"
@@ -156,6 +132,58 @@
         <keyboard-shortcut first-keystroke="control B" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control B" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.hand.tracking"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HandTracking"
+              icon="StudioIcons.Emulator.XR.HAND_TRACKING"
+              text="Hand Tracking"
+              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.eye.tracking"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$EyeTracking"
+              icon="StudioIcons.Emulator.XR.EYE_GAZE"
+              text="Eye Tracking" description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.hardware.input"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HardwareInput"
+              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
+              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device.">
+        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.view.direction"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
+              icon="StudioIcons.Emulator.XR.ROTATE"
+              text="View Direction"
+              description="Dragging mouse and arrow keys controls the view direction. The QWEASD keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control D" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.location.in.space.xy"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceXY"
+              icon="StudioIcons.Emulator.XR.PAN"
+              text="Move Right/Left and Up/Down"
+              description="Dragging mouse moves left/right and up/down in the virtual space. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control L" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.location.in.space.z"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceZ"
+              icon="StudioIcons.Emulator.XR.DOLLY"
+              text="Move Forward/Backward"
+              description="Dragging mouse vertically moves forward/backward in the virtual space. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control F" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
@@ -202,8 +230,8 @@
       <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
       <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
-              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT" text="Hardware Input"
-              description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
+              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
+              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
       <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
@@ -223,12 +251,6 @@
         <reference ref="android.emulator.display.mode.tablet"/>
         <separator/>
       </group>
-      <reference ref="android.emulator.xr.app.interaction.mode"/>
-      <reference ref="android.emulator.xr.view.direction.mode"/>
-      <reference ref="android.emulator.xr.location.in.space.mode"/>
-      <separator/>
-      <reference ref="android.emulator.xr.recenter"/>
-      <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
       <reference ref="android.device.power.button"/>
       <reference ref="android.device.volume.up.button"/>
@@ -245,6 +267,16 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <separator/>
+      <reference ref="android.emulator.xr.recenter"/>
+      <reference ref="android.emulator.xr.show.taskbar"/>
+      <separator/>
+      <reference ref="android.emulator.xr.hand.tracking"/>
+      <reference ref="android.emulator.xr.eye.tracking"/>
+      <reference ref="android.emulator.xr.hardware.input"/>
+      <reference ref="android.emulator.xr.view.direction"/>
+      <reference ref="android.emulator.xr.location.in.space.xy"/>
+      <reference ref="android.emulator.xr.location.in.space.z"/>
       <separator/>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->

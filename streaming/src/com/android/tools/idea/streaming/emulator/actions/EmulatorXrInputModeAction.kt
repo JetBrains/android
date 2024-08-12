@@ -43,7 +43,10 @@ sealed class EmulatorXrInputModeAction(private val inputMode: XrInputMode) : Tog
     enableRichTooltip(event.presentation)
   }
 
-  class AppInteraction : EmulatorXrInputModeAction(XrInputMode.APP_INTERACTION)
+  class HandTracking : EmulatorXrInputModeAction(XrInputMode.HAND)
+  class EyeTracking : EmulatorXrInputModeAction(XrInputMode.EYE)
+  class HardwareInput : EmulatorXrInputModeAction(XrInputMode.HARDWARE)
   class ViewDirection : EmulatorXrInputModeAction(XrInputMode.VIEW_DIRECTION)
-  class LocationInSpace : EmulatorXrInputModeAction(XrInputMode.LOCATION_IN_SPACE)
+  class LocationInSpaceXY : EmulatorXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_XY)
+  class LocationInSpaceZ : EmulatorXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_Z)
 }

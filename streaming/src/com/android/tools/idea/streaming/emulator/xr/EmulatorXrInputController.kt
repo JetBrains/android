@@ -25,7 +25,7 @@ private val EMULATOR_XR_INPUT_CONTROLLER_KEY = Key.create<EmulatorXrInputControl
 @UiThread
 internal class EmulatorXrInputController private constructor(private val emulator: EmulatorController) {
 
-  var inputMode: XrInputMode = XrInputMode.APP_INTERACTION
+  var inputMode: XrInputMode = XrInputMode.HAND
 
   companion object {
     fun getInstance(emulator: EmulatorController): EmulatorXrInputController =
@@ -34,10 +34,16 @@ internal class EmulatorXrInputController private constructor(private val emulato
 }
 
 internal enum class XrInputMode {
-  /** Mouse and keyboard are used to interact with running apps. */
-  APP_INTERACTION,
-  /** Mouse and keyboard are used to control view direction. */
+  /** Mouse is used to interact with running apps simulating hand tracking. */
+  HAND,
+  /** Mouse is used to interact with running apps simulating eye tracking. */
+  EYE,
+  /** Mouse and keyboard events are transparently forwarded to the device. */
+  HARDWARE,
+  /** Relative mouse coordinates control view direction. */
   VIEW_DIRECTION,
-  /** Mouse and keyboard are used to control location in virtual space. */
-  LOCATION_IN_SPACE,
+  /** Relative mouse coordinates control location in x-y plane. Mouse wheel controls moving forward and back. */
+  LOCATION_IN_SPACE_XY,
+  /** Relative mouse y coordinate controls moving forward and back. */
+  LOCATION_IN_SPACE_Z,
 }

@@ -387,12 +387,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
     assertAppearance(ui, "XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Interact with Apps" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "View Direction" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Location in Space" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
-
     // Check that the buttons not applicable to XR devices are hidden.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Volume Up" }).isNotNull()
@@ -403,12 +397,24 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
 
+    // Check XR-specific actions.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
+
     val xrInputController = EmulatorXrInputController.getInstance(panel.primaryEmulatorView!!.emulator)
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.APP_INTERACTION)
-    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "View Direction" })
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
-    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Location in Space" })
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
+    val modes = mapOf(
+      "Hand Tracking" to XrInputMode.HAND,
+      "Eye Tracking" to XrInputMode.EYE,
+      "Hardware Input" to XrInputMode.HARDWARE,
+      "View Direction" to XrInputMode.VIEW_DIRECTION,
+      "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+      "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+    )
+    for ((actionName, mode) in modes) {
+      ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == actionName })
+      assertThat(xrInputController.inputMode).isEqualTo(mode)
+    }
 
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()

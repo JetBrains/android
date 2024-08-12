@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.actions.getEmulatorConfig
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -47,6 +49,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    event.presentation.isEnabledAndVisible = getEmulatorConfig(event)?.deviceType != DeviceType.XR
     enableRichTooltip(event.presentation)
   }
 
