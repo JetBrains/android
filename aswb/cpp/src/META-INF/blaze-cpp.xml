@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright 2021 The Bazel Authors. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <depends>com.intellij.modules.cidr.lang</depends>
+  <depends>com.intellij.modules.cidr.debugger</depends>
+
+  <project-components>
+    <component>
+      <implementation-class>com.google.idea.blaze.cpp.BlazeCWorkspace</implementation-class>
+    </component>
+  </project-components>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.google.idea.blaze.cpp.BlazeCompilerFlagsProcessorProvider"
+                    interface="com.google.idea.blaze.cpp.BlazeCompilerFlagsProcessor$Provider"/>
+    <extensionPoint interface="com.google.idea.blaze.cpp.CppSupportChecker"
+        qualifiedName="com.google.idea.blaze.cpp.CppSupportChecker" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <SyncPlugin implementation="com.google.idea.blaze.cpp.BlazeCSyncPlugin"/>
+    <PrefetchFileSource implementation="com.google.idea.blaze.cpp.CPrefetchFileSource"/>
+    <SyncStatusContributor implementation="com.google.idea.blaze.cpp.syncstatus.CppSyncStatusContributor"/>
+    <cpp.BlazeCompilerFlagsProcessorProvider implementation="com.google.idea.blaze.cpp.IncludeRootFlagsProcessor$Provider"/>
+    <cpp.BlazeCompilerFlagsProcessorProvider implementation="com.google.idea.blaze.cpp.SysrootFlagsProcessor$Provider"/>
+    <TargetKindProvider implementation="com.google.idea.blaze.cpp.CppBlazeRules"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="cidr.lang">
+    <languageKindHelper implementation="com.google.idea.blaze.cpp.BlazeLanguageKindCalculatorHelper"/>
+    <autoImportHelper implementation="com.google.idea.blaze.cpp.BlazeCppAutoImportHelper"/>
+    <customHeaderProvider implementation="com.google.idea.blaze.cpp.BlazeCustomHeaderProvider"/>
+    <includeHelper implementation="com.google.idea.blaze.cpp.BlazeIncludeHelper"/>
+    <ownModuleDetector implementation="com.google.idea.blaze.cpp.BlazeOwnModuleDetector"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.google.idea.blaze.cpp.CompilerVersionChecker"
+                        serviceImplementation="com.google.idea.blaze.cpp.CompilerVersionCheckerImpl"/>
+    <applicationService serviceInterface="com.google.idea.blaze.cpp.CompilerWrapperProvider"
+                        serviceImplementation="com.google.idea.blaze.cpp.CompilerWrapperProviderImpl"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.google.idea.blaze.qsync">
+    <QuerySyncListenerProvider implementation="com.google.idea.blaze.cpp.qsync.CcProjectModelUpdater$Provider" />
+  </extensions>
+</idea-plugin>

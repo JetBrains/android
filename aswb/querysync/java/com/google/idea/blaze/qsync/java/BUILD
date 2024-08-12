@@ -27,9 +27,9 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
         "@maven//:com.google.guava.guava",
     ],
 )

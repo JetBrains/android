@@ -1,5 +1,5 @@
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl",
+    "//tools/adt/idea/aswb:build-visibility.bzl",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
 load(

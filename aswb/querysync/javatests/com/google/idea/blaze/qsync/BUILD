@@ -1,4 +1,4 @@
-load("//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
@@ -22,10 +22,10 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:vcs",
+        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -67,9 +67,9 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/query:QuerySummaryTestUtil",
+        "//tools/adt/idea/aswb/shared:vcs",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -85,9 +85,9 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/query:QuerySummaryTestUtil",
+        "//tools/adt/idea/aswb/shared:vcs",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -102,9 +102,9 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
+        "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
         "@maven//:com.google.guava.guava",
     ],
 )

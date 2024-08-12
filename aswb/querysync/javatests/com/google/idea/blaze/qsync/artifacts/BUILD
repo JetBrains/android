@@ -1,4 +1,4 @@
-load("//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+load("//tools/adt/idea/aswb:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
 
 package(default_visibility = DEFAULT_TEST_VISIBILITY)
 
@@ -10,10 +10,10 @@ java_test(
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -22,8 +22,8 @@ java_library(
     name = "mock_artifact_cache",
     srcs = ["MockArtifactCache.java"],
     deps = [
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:artifact",
         "@maven//:com.google.guava.guava",
     ],
 )

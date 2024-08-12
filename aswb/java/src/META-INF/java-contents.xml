@@ -1,0 +1,145 @@
+<!--
+  ~ Copyright 2016 The Bazel Authors. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <depends>JUnit</depends>
+  <depends>com.intellij.java</depends>
+
+  <actions>
+    <action class="com.google.idea.blaze.java.libraries.ExcludeLibraryAction"
+      id="Blaze.ExcludeLibraryAction"
+      text="Exclude Library and Resync">
+    </action>
+    <action class="com.google.idea.blaze.java.libraries.AttachSourceJarAction"
+      id="Blaze.AttachSourceJarAction"
+      text="Attach Source Jar">
+    </action>
+    <action class="com.google.idea.blaze.java.libraries.DetachAllSourceJarsAction"
+      id="Blaze.DetachAllSourceJars"
+      text="Detach All Blaze Source Jars">
+    </action>
+    <action class="com.google.idea.blaze.java.libraries.DescribeLibraryAction"
+      id="Blaze.DescribeLibraryAction"
+      text="Show Library Source Location">
+    </action>
+    <action class="com.google.idea.blaze.java.libraries.AddLibraryTargetDirectoryToProjectViewAction"
+      id="Blaze.AddLibraryTargetDirectoryToProjectView"
+      text="Add Library Target Directory to Project View">
+    </action>
+
+    <group id="Blaze.Java.ProjectViewPopupMenu">
+      <add-to-group group-id="Blaze.PerFileContextMenu"/>
+      <reference id="Blaze.ExcludeLibraryAction"/>
+      <reference id="Blaze.AttachSourceJarAction"/>
+      <reference id="Blaze.AddLibraryTargetDirectoryToProjectView"/>
+      <reference id="Blaze.DescribeLibraryAction"/>
+    </group>
+  </actions>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <SyncPlugin implementation="com.google.idea.blaze.java.sync.BlazeJavaSyncPlugin"/>
+    <QuerySyncPlugin implementation="com.google.idea.blaze.java.qsync.BlazeJavaQuerySyncPlugin"/>
+    <PsiFileProvider implementation="com.google.idea.blaze.java.psi.JavaPsiFileProvider" />
+    <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.java.run.BlazeJavaRunConfigurationHandlerProvider"/>
+    <SettingsUiContributor implementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettingsConfigurable$UiContributor"/>
+    <FileCache implementation="com.google.idea.blaze.java.libraries.JarCache$FileCacheAdapter"/>
+    <PrefetchFileSource implementation="com.google.idea.blaze.java.sync.JavaPrefetchFileSource"/>
+    <BlazeTestEventsHandler implementation="com.google.idea.blaze.java.run.BlazeJavaTestEventsHandler"/>
+    <AttributeSpecificStringLiteralReferenceProvider implementation="com.google.idea.blaze.java.lang.build.references.JavaClassQualifiedNameReference"/>
+    <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.JUnitTestHeuristic" order="before TestSizeHeuristic"/>
+    <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.ClassPackagePathHeuristic" id="ClassPackagePathHeuristic" order="before TargetNameHeuristic"/>
+    <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.QualifiedClassNameHeuristic" id="QualifiedClassNameHeuristic" order="before ClassPackagePathHeuristic"/>
+    <TestTargetHeuristic implementation="com.google.idea.blaze.java.run.TestClassHeuristic" order="before QualifiedClassNameHeuristic"/>
+    <SyncListener implementation="com.google.idea.blaze.java.libraries.DetachAllSourceJarsAction$DetachAllOnSync"/>
+    <JavaClasspathAspectStrategy implementation="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy$BazelStrategy"/>
+    <TestComparisonFailureParser implementation="com.google.idea.blaze.java.run.smrunner.JunitTestComparisonFailureParser"/>
+    <SyncStatusContributor implementation="com.google.idea.blaze.java.syncstatus.JavaSyncStatusContributor"/>
+    <SyncDataExtractor implementation="com.google.idea.blaze.java.sync.model.BlazeJavaSyncData$Extractor"/>
+    <SyncDataExtractor implementation="com.google.idea.blaze.java.sync.jdeps.JdepsState$Extractor"/>
+    <LoggedSettingsProvider implementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings$SettingsLogger"/>
+    <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.JavaLikeLanguage$Java"/>
+    <JavaLikeLanguage implementation="com.google.idea.blaze.java.sync.source.AndroidJavaLikeLanguage"/>
+    <TestContextProvider
+        implementation="com.google.idea.blaze.java.run.producers.JavaTestContextProvider"
+        id="JavaTestContextProvider"/>
+    <TestContextProvider
+        implementation="com.google.idea.blaze.java.run.producers.MultipleJavaClassesTestContextProvider"
+        order="after JavaTestContextProvider"/>
+    <BinaryContextProvider implementation="com.google.idea.blaze.java.run.producers.JavaBinaryContextProvider"/>
+    <OutputsProvider implementation="com.google.idea.blaze.java.sync.JavaOutputsProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <runConfigurationProducer
+        implementation="com.google.idea.blaze.java.run.producers.BlazeJavaAbstractTestCaseConfigurationProducer"
+        order="first, before testContextProducer"/>
+    <applicationService serviceImplementation="com.google.idea.blaze.java.sync.source.JavaSourcePackageReader"/>
+    <applicationService serviceImplementation="com.google.idea.blaze.java.sync.source.PackageManifestReader"/>
+    <programRunner implementation="com.google.idea.blaze.java.run.BlazeJavaDebuggerRunner" id="BlazeJavaDebug"/>
+    <projectService serviceImplementation="com.google.idea.blaze.java.libraries.AttachedSourceJarManager"/>
+    <postStartupActivity implementation="com.google.idea.blaze.java.libraries.DisableLibraryBytecodeNotification"/>
+
+    <!--
+      Load `BuildFileSafeDeleteProcessor` before `OCSafeDeleteProcessorDelegate` (Android NDK Pugin).
+      `OCSafeDeleteProcessorDelegate` does not provide an ID, so we load `BuildFileSafeDeleteProcessor`
+      first. This might break some upstream implementations that rely on being the first
+      JavaSafeDeleteProcessor to load.
+    -->
+    <refactoring.safeDeleteProcessor id="build_file_safe_delete" order="first"
+            implementation="com.google.idea.blaze.java.lang.build.BuildFileSafeDeleteProcessor"/>
+
+    <projectService serviceInterface="com.google.idea.blaze.java.libraries.JarCacheFolderProvider"
+        serviceImplementation="com.google.idea.blaze.java.libraries.JarCacheFolderProvider"/>
+    <projectService serviceImplementation="com.google.idea.blaze.java.libraries.JarCache"/>
+
+    <attachSourcesProvider implementation="com.google.idea.blaze.java.libraries.AddLibraryTargetDirectoryToProjectViewAttachSourcesProvider"/>
+    <attachSourcesProvider implementation="com.google.idea.blaze.java.libraries.BlazeAttachSourceProvider"/>
+    <applicationService serviceImplementation="com.google.idea.blaze.java.settings.BlazeJavaUserSettings"/>
+    <psi.referenceContributor language="BUILD" implementation="com.google.idea.blaze.java.lang.build.references.JavaClassReferenceContributor"/>
+    <useScopeEnlarger implementation="com.google.idea.blaze.java.psi.AutoFactoryUseScopeEnlarger"/>
+    <implicitUsageProvider implementation="com.google.idea.blaze.java.psi.AutoFactoryImplicitUsageProvider"/>
+    <useScopeEnlarger implementation="com.google.idea.blaze.java.psi.DaggerUseScopeEnlarger"/>
+    <implicitUsageProvider implementation="com.google.idea.blaze.java.psi.DaggerImplicitUsageProvider"/>
+    <implicitUsageProvider implementation="com.google.idea.blaze.java.psi.GuiceImplicitUsageProvider"/>
+    <useScopeEnlarger implementation="com.google.idea.blaze.java.psi.ForAutoConverterUseScopeEnlarger"/>
+    <implicitUsageProvider implementation="com.google.idea.blaze.java.psi.ForAutoConverterImplicitUsageProvider"/>
+    <!-- Need to come first to prevent overriding other position managers. -->
+    <debugger.positionManagerFactory implementation="com.google.idea.blaze.java.run.ExternalFilePositionManager$Factory" order="first"/>
+    <projectService serviceInterface="com.intellij.openapi.compiler.CompilerManager"
+        serviceImplementation="com.google.idea.blaze.java.run.BlazeCompilerManager"
+        overrides="true"/>
+    <postStartupActivity implementation="com.google.idea.blaze.java.run.producers.NonBlazeProducerSuppressor"/>
+    <actionConfigurationCustomizer implementation="com.google.idea.blaze.java.run.hotswap.BlazeHotSwapAction$Customizer"/>
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.google.idea.blaze.DefaultJdkProvider"
+        interface="com.google.idea.blaze.java.sync.sdk.BlazeJdkProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.JavaSyncAugmenter"
+                    interface="com.google.idea.blaze.java.sync.BlazeJavaSyncAugmenter"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.JavaLikeLanguage"
+                    interface="com.google.idea.blaze.java.sync.source.JavaLikeLanguage"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.JUnitParameterizedClassHeuristic"
+                    interface="com.google.idea.blaze.java.run.producers.JUnitParameterizedClassHeuristic"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.JavaClasspathAspectStrategy"
+                    interface="com.google.idea.blaze.java.run.hotswap.JavaClasspathAspectStrategy"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.AttachSourcesFilter"
+                    interface="com.google.idea.blaze.java.sync.model.AttachSourcesFilter"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.HotSwapCommandBuilder"
+                    interface="com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.blazeJavaDebuggingSetupHandler"
+                    interface="com.google.idea.blaze.java.run.BlazeJavaDebuggingSetupHandler"/>
+  </extensionPoints>
+</idea-plugin>
