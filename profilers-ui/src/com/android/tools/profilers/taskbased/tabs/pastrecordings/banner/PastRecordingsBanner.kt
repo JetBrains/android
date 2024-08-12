@@ -48,7 +48,7 @@ fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: 
     Row(modifier = Modifier.background(TABLE_ROW_SELECTION_BACKGROUND_COLOR).padding(RECORDING_BANNER_PADDING_DP),
         verticalAlignment = Alignment.CenterVertically) {
       Icon(
-        key = StudioIconsCompose.Common.InfoInline,
+        key = StudioIconsCompose.Common.Info,
         contentDescription = "Info",
         iconClass = StudioIconsCompose::class.java
       )
