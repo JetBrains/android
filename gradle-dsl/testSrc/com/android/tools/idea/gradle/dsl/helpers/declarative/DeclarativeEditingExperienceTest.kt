@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.helpers.declarative
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
 class DeclarativeEditingExperienceTest : BasePlatformTestCase() {
-  fun testQuotes() {
+  fun testDoubleQuotes() {
     myFixture.configureByText("build.gradle.dcl", """
     androidApplication {
         namespace = <caret>
@@ -30,6 +30,67 @@ class DeclarativeEditingExperienceTest : BasePlatformTestCase() {
     myFixture.checkResult("""
         androidApplication {
             namespace = "<caret>"
+        }
+    """.trimIndent())
+  }
+
+  fun testDoubleQuotes2() {
+    myFixture.configureByText("build.gradle.dcl", """
+    androidApplication {
+        namespace = "<caret>"
+    }
+    """.trimIndent())
+
+    myFixture.type('"')
+
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = ""<caret>
+        }
+    """.trimIndent())
+  }
+
+  fun testTripleQuotes() {
+    myFixture.configureByText("build.gradle.dcl", """
+    androidApplication {
+        namespace = ""<caret>
+    }
+    """.trimIndent())
+
+    myFixture.type('"')
+    val tripleQuotes = "\"\"\""
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = $tripleQuotes<caret>$tripleQuotes
+        }
+    """.trimIndent())
+  }
+
+  fun testTripleQuotes2() {
+    val tripleQuotes = "\"\"\""
+    myFixture.configureByText("build.gradle.dcl", """
+    androidApplication {
+        namespace = $tripleQuotes<caret>$tripleQuotes
+    }
+    """.trimIndent())
+
+    myFixture.type('"')
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = $tripleQuotes"<caret>""
+        }
+    """.trimIndent())
+
+    myFixture.type('"')
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = $tripleQuotes""<caret>"
+        }
+    """.trimIndent())
+    myFixture.type('"')
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = $tripleQuotes$tripleQuotes<caret>
         }
     """.trimIndent())
   }
