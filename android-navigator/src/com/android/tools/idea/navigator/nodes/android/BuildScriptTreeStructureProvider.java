@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.actionSystem.DataSink;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * nodes in the Android project view.
  */
 public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
-  @NotNull private TreeStructureProvider myRealTreeStructureProvider;
+  @NotNull private final TreeStructureProvider myRealTreeStructureProvider;
 
   public BuildScriptTreeStructureProvider(@NotNull TreeStructureProvider provider) {
     myRealTreeStructureProvider = provider;
@@ -44,10 +45,9 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
     return myRealTreeStructureProvider.modify(parent, children, settings);
   }
 
-  @Nullable
   @Override
-  public Object getData(@NotNull Collection<? extends AbstractTreeNode<?>> selected, @NotNull String dataName) {
-    return myRealTreeStructureProvider.getData(selected, dataName);
+  public void uiDataSnapshot(@NotNull DataSink sink, @NotNull Collection<? extends AbstractTreeNode<?>> selection) {
+    myRealTreeStructureProvider.uiDataSnapshot(sink, selection);
   }
 
   @Override
