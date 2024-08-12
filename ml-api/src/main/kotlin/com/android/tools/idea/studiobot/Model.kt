@@ -47,6 +47,7 @@ interface Model {
     config: GenerationConfig,
     history: Prompt? = null,
     legacyClientSidePrompt: Prompt? = null,
+    isTransformUseCase: Boolean = false,
   ): List<Content>
 
   /**
@@ -172,5 +173,6 @@ open class StubModel : Model {
     config: GenerationConfig,
     history: Prompt?,
     legacyClientSidePrompt: Prompt?,
+    isTransformUseCase: Boolean,
   ): List<Content> = emptyList()
 }
