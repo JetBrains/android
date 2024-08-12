@@ -45,7 +45,7 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createLiteral(value: Any?): DeclarativeLiteral =
     when (value) {
-      is String -> createStringLiteral(value)
+      is String -> if (value.contains('\n')) createMultiStringLiteral(value) else createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
       is ULong -> createULongLiteral(value)
@@ -56,6 +56,9 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createStringLiteral(value: String): DeclarativeLiteral =
     createFromText("placeholder = \"${value.escape()}\"") ?: error("Failed to create Declarative string from $value")
+
+  fun createMultiStringLiteral(value: String): DeclarativeLiteral =
+    createFromText("placeholder = \"\"\"${value.escapeMultilineString()}\"\"\"") ?: error("Failed to create Declarative string from $value")
 
   fun createIntLiteral(value: Int): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Int from $value")

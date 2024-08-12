@@ -45,7 +45,7 @@ class DeclarativeLiteralTest : LightPlatformTestCase() {
   }
 
   fun testLiteralStringValueSingleEscapes() {
-    val literal = DeclarativePsiFactory(project).createLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
+    val literal = DeclarativePsiFactory(project).createStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
     assertThat(literal.value).isEqualTo("a\tb\bc\nd\re\'f\"g\\h\$i")
   }
 
