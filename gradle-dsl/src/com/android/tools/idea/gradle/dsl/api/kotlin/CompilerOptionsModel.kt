@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.kotlin;
+package com.android.tools.idea.gradle.dsl.api.kotlin
 
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-public interface KotlinModel extends GradleBlockModel {
-  @NotNull
-  ResolvedPropertyModel jvmToolchain();
-
-  @NotNull
-  CompilerOptionsModel compilerOptions();
-
-  @NotNull
-  List<KotlinSourceSetModel> sourceSets();
-
-  @NotNull
-  KotlinSourceSetModel addSourceSet(@NotNull String name);
-
-  void removeSourceSet(@NotNull String name);
+interface CompilerOptionsModel: GradleBlockModel {
+  fun jvmTarget(): LanguageLevelPropertyModel
 }

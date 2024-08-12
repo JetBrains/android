@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinJvmTargetPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -226,22 +227,16 @@ public class GradlePropertyModelBuilder {
     return build().resolve();
   }
 
-  /**
-   * Builds a {@link LanguageLevelPropertyModel} with the properties defined by this builder.
-   *
-   * @return the built model
-   */
   public LanguageLevelPropertyModelImpl buildLanguage() {
     return new LanguageLevelPropertyModelImpl(build());
   }
 
-  /**
-   * Builds a {@link JvmTargetPropertyModel} with the properties defined by this builder.
-   *
-   * @return the built model
-   */
   public LanguageLevelPropertyModel buildJvmTarget() {
     return new JvmTargetPropertyModelImpl(build());
+  }
+
+  public LanguageLevelPropertyModel buildKotlinJvmTarget() {
+    return new KotlinJvmTargetPropertyModelImpl(build());
   }
 
   /**
