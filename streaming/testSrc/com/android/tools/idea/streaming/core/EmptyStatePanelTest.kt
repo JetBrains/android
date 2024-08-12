@@ -118,11 +118,10 @@ class EmptyStatePanelTest {
 
   @Test
   fun testEmulatorTooOld() {
-    assumeFalse(SystemInfo.isWindows) // b/359194301
     EmulatorSettings.getInstance().launchInToolWindow = true
     emulatorPackage.setRevision(Revision(35, 1, 2))
+    waitForCondition(2.seconds) { ui.getComponent<JEditorPane>().normalizedText.contains("install Android Emulator") }
     val htmlComponent = ui.getComponent<JEditorPane>()
-    waitForCondition(2.seconds) { htmlComponent.normalizedText.contains("install Android Emulator") }
     assertThat(htmlComponent.normalizedText).contains(
         "To launch virtual devices in this window, install Android Emulator 35.1.3 or higher." +
         " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
