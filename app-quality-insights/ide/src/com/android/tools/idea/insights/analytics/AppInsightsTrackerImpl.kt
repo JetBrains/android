@@ -22,6 +22,8 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.intellij.openapi.project.Project
 
 class AppInsightsTrackerImpl(
@@ -242,6 +244,30 @@ class AppInsightsTrackerImpl(
           }
         )
         .withProjectId(project)
+    )
+  }
+
+  override fun logInsightSentiment(
+    sentiment: Sentiment,
+    experiment: Experiment,
+    crashType: AppQualityInsightsUsageEvent.CrashType,
+  ) {
+    UsageTracker.log(
+      generateAndroidStudioEventBuilder()
+        .setAppQualityInsightsUsageEvent(
+          AppQualityInsightsUsageEvent.newBuilder().apply {
+            appId = AnonymizerUtil.anonymizeUtf8(project.name)
+            type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.INSIGHT_SENTIMENT
+            insightSentiment =
+              AppQualityInsightsUsageEvent.InsightSentiment.newBuilder()
+                .apply {
+                  this.sentiment = sentiment
+                  this.experiment = experiment
+                  this.crashType = crashType
+                }
+                .build()
+          }
+        )
     )
   }
 

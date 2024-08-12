@@ -73,4 +73,10 @@ object TestAppInsightsTracker : AppInsightsTracker {
     eventId: String,
     isFetched: Boolean,
   ) = Unit
+
+  override fun logInsightSentiment(
+    sentiment: AppQualityInsightsUsageEvent.InsightSentiment.Sentiment,
+    experiment: AppQualityInsightsUsageEvent.InsightSentiment.Experiment,
+    crashType: AppQualityInsightsUsageEvent.CrashType,
+  ) = Unit
 }
