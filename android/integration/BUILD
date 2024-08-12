@@ -203,7 +203,6 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags_linux = [
         "block-network",
-        "noci:studio-linux",
     ],
     tags_windows = [
         "block-network",

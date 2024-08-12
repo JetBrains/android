@@ -327,7 +327,7 @@ public class AndroidStudio implements AutoCloseable {
     System.out.println("Waiting for a breakpoint to be hit by the debugger");
 
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addSwingClassRegexMatch(".*JBRunnerTabs")
+    builder.addSwingClassRegexMatch(".*InternalDecoratorImpl")
       .addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
     waitForComponent(builder, true);
   }
