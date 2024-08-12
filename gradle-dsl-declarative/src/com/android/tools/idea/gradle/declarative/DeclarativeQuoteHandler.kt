@@ -18,4 +18,4 @@ package com.android.tools.idea.gradle.declarative
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder
 import com.intellij.codeInsight.editorActions.SimpleTokenSetQuoteHandler
 
-class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(DeclarativeElementTypeHolder.STRING_LITERAL)
+class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL)

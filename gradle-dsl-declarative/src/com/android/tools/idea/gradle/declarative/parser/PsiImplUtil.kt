@@ -97,7 +97,8 @@ class PsiImplUtil {
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
-      literal.stringLiteral != null -> literal.stringLiteral?.text?.unquote()?.unescape()
+      literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
+      literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
       literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
       literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
       literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
@@ -106,6 +107,7 @@ class PsiImplUtil {
     }
 
     private fun String.unquote() = this.removePrefix("\"").removeSuffixIfPresent("\"")
+    private fun String.unTripleQuote() = this.removePrefix("\"\"\"").removeSuffixIfPresent("\"\"\"")
     private fun String.removeSuffixIfPresent(suffix: String) = if (this.endsWith(suffix)) this.dropLast(suffix.length) else this
     private fun String.toIntegerOrNull(): Any? {
       if (isEmpty()) return null
