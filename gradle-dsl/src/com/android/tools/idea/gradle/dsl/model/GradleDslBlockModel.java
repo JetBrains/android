@@ -164,6 +164,11 @@ public abstract class GradleDslBlockModel implements GradleBlockModel, GradleDsl
   }
 
   @NotNull
+  protected LanguageLevelPropertyModel getKotlinJvmTargetModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildKotlinJvmTarget();
+  }
+
+  @NotNull
   protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property) {
     return GradlePropertyModelBuilder.create(myDslElement, property).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
   }

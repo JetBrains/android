@@ -33,6 +33,10 @@ public final class LanguageLevelUtil {
       digitalVersion = gradleString.substring("JavaVersion.VERSION_".length()).replace('_', '.');
     } else if (gradleString.startsWith("VERSION_")) {
       digitalVersion = gradleString.substring("VERSION_".length()).replace('_', '.');
+    } else if (gradleString.startsWith("org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_")) {
+      digitalVersion = gradleString.substring("org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_".length()).replace('_', '.');
+    } else if (gradleString.startsWith("JvmTarget.JVM_")) {
+      digitalVersion = gradleString.substring("JvmTarget.JVM_".length()).replace('_', '.');
     } else if (gradleString.startsWith("'") || gradleString.startsWith("\"")) {
       digitalVersion = gradleString.substring(1, gradleString.length() - 1);
     } else {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.kotlin
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.truth.Truth
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
@@ -37,6 +38,19 @@ class KotlinModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun addCompilerOptions() {
+    writeToBuildFile(TestFile.ADD_COMPILER_OPTIONS)
+    val buildModel = gradleBuildModel
+    val kotlin = buildModel.kotlin()
+    assertNotNull(kotlin.compilerOptions())
+    kotlin.compilerOptions().jvmTarget().setLanguageLevel(LanguageLevel.JDK_17)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_COMPILER_OPTIONS_EXPECTED)
+    checkForValidPsiElement(gradleBuildModel.kotlin(), KotlinModelImpl::class.java)
+    assertEquals("jvmTarget", LanguageLevel.JDK_17, kotlin.compilerOptions().jvmTarget().toLanguageLevel())
+  }
+
+  @Test
   fun removeToolchain() {
     writeToBuildFile(TestFile.REMOVE_TOOLCHAIN)
     val buildModel = gradleBuildModel
@@ -50,6 +64,19 @@ class KotlinModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun removeCompilerOptions() {
+    writeToBuildFile(TestFile.REMOVE_COMPILER_OPTIONS)
+    val buildModel = gradleBuildModel
+    var kotlin = buildModel.kotlin()
+    kotlin.compilerOptions().jvmTarget().delete()
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REMOVE_COMPILER_OPTIONS_EXPECTED)
+    kotlin = gradleBuildModel.kotlin()
+    checkForInvalidPsiElement(kotlin, KotlinModelImpl::class.java)
+    assertMissingProperty(kotlin.compilerOptions().jvmTarget())
+  }
+
+  @Test
   fun updateToolchain() {
     writeToBuildFile(TestFile.REMOVE_TOOLCHAIN)
     val buildModel = gradleBuildModel
@@ -60,6 +87,19 @@ class KotlinModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.UPDATE_TOOLCHAIN_EXPECTED)
     kotlin = gradleBuildModel.kotlin()
     assertEquals(Integer.valueOf(21), kotlin.jvmToolchain().toInt())
+  }
+
+  @Test
+  fun updateCompilerOptions() {
+    writeToBuildFile(TestFile.UPDATE_COMPILER_OPTIONS)
+    val buildModel = gradleBuildModel
+    var kotlin = buildModel.kotlin()
+    assertEquals(LanguageLevel.JDK_17, kotlin.compilerOptions().jvmTarget().toLanguageLevel())
+    kotlin.compilerOptions().jvmTarget().setLanguageLevel(LanguageLevel.JDK_21)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.UPDATE_COMPILER_OPTIONS_EXPECTED)
+    kotlin = gradleBuildModel.kotlin()
+    assertEquals(LanguageLevel.JDK_21, kotlin.compilerOptions().jvmTarget().toLanguageLevel())
   }
 
   @Test
@@ -193,6 +233,12 @@ class KotlinModelTest : GradleFileModelTestCase() {
     REMOVE_TOOLCHAIN_EXPECTED("removeToolchainExpected"),
     UPDATE_TOOLCHAIN_EXPECTED("updateToolchainExpected"),
     READ_TOOLCHAIN_VERSION_AS_REFERENCE("readToolchainVersionArgumentReference"),
+    ADD_COMPILER_OPTIONS("addCompilerOptions"),
+    ADD_COMPILER_OPTIONS_EXPECTED("addCompilerOptionsExpected"),
+    REMOVE_COMPILER_OPTIONS("removeCompilerOptions"),
+    REMOVE_COMPILER_OPTIONS_EXPECTED("removeCompilerOptionsExpected"),
+    UPDATE_COMPILER_OPTIONS("updateCompilerOptions"),
+    UPDATE_COMPILER_OPTIONS_EXPECTED("updateCompilerOptionsExpected"),
     ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK("addAndApplyEmptySourceSetBlock"),
     ADD_AND_APPLY_SOURCE_SET_BLOCK("addAndApplySourceSetBlock"),
     ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED("addAndApplySourceSetBlockExpected"),
