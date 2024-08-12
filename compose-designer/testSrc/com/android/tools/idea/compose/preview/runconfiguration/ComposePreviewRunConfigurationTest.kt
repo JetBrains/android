@@ -17,9 +17,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
@@ -27,21 +25,39 @@ import com.android.tools.idea.run.editor.NoApksProvider
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 
-class ComposePreviewRunConfigurationTest : AndroidTestCase() {
+class ComposePreviewRunConfigurationTest {
 
   private lateinit var runConfiguration: ComposePreviewRunConfiguration
 
-  override fun setUp() {
-    super.setUp()
+  @get:Rule val projectRule = ComposeProjectRule()
+
+  private val project
+    get() = projectRule.project
+
+  private val fixture
+    get() = projectRule.fixture
+
+  @Before
+  fun setUp() {
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
     runConfiguration = ComposePreviewRunConfiguration(project, runConfigurationFactory)
   }
 
+  @Test
   fun testAmStartOptionsWithComposableMethod() {
     runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
     runConfiguration.providerClassFqn = "com.mycomposeapp.ProviderClass"
@@ -54,11 +70,11 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       createApp(
         device,
         "com.example.myapp",
-        emptyList<String>(),
+        emptyList(),
         listOf("androidx.compose.ui.tooling.PreviewActivity"),
       ),
       device,
-      myFacet,
+      AndroidFacet.getInstance(fixture.module)!!,
       "",
       false,
       noApksProvider,
@@ -80,6 +96,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       )
   }
 
+  @Test
   fun testTriggerSourceType() {
     assertEquals(
       ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE,
@@ -97,6 +114,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testReadExternal() {
     assertNull(runConfiguration.composableMethodFqn)
 
@@ -114,6 +132,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     assertEquals("com.example.MyClassKt.ExampleComposable", runConfiguration.composableMethodFqn)
   }
 
+  @Test
   fun testWriteExternal() {
     runConfiguration.composableMethodFqn = "com.example.MyClassKt.ExampleComposable"
 
