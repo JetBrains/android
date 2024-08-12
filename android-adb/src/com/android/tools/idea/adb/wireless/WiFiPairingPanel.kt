@@ -29,7 +29,10 @@ import javax.swing.JPanel
 import javax.swing.event.HyperlinkListener
 
 @UiThread
-internal class WiFiPairingPanel(private val parentDisposable: Disposable, private val hyperlinkListener: HyperlinkListener) {
+internal class WiFiPairingPanel(
+  private val parentDisposable: Disposable,
+  private val hyperlinkListener: HyperlinkListener,
+) {
   private val centerPanel by lazy { WiFiPairingCenterPanel(hyperlinkListener) }
 
   private val loadingPanel: JBLoadingPanel by lazy {
@@ -49,47 +52,47 @@ internal class WiFiPairingPanel(private val parentDisposable: Disposable, privat
   }
 
   val qrCodePanel by lazy {
-    QrCodeTabPanel(Runnable {
-      qrCodeScanAgainInvoked()
-    }, parentDisposable)
+    QrCodeTabPanel(Runnable { qrCodeScanAgainInvoked() }, parentDisposable)
   }
 
   val pairingCodePanel by lazy {
-    PairingCodeTabPanel(
-      Consumer<MdnsService> { service -> pairingCodePairInvoked(service) })
+    PairingCodeTabPanel(Consumer<MdnsService> { service -> pairingCodePairInvoked(service) })
   }
 
   var isLoading: Boolean
     get() = loadingPanel.isLoading
-    set(value) = if (value) {
-      loadingPanel.startLoading()
-      centerPanel.showEmptyContent()
-    } else {
-      centerPanel.showContent()
-      loadingPanel.stopLoading()
-    }
+    set(value) =
+      if (value) {
+        loadingPanel.startLoading()
+        centerPanel.showEmptyContent()
+      } else {
+        centerPanel.showContent()
+        loadingPanel.stopLoading()
+      }
 
   var pairingCodePairInvoked: (MdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
   private fun createHeaderPanel(): JComponent {
-    val topLabel = JBLabel("Pair new devices over Wi-Fi").apply {
-      border = JBEmptyBorder(0, 0, 10, 0)
-      font = JBUI.Fonts.label(22f)//.asBold()
-    }
+    val topLabel =
+      JBLabel("Pair new devices over Wi-Fi").apply {
+        border = JBEmptyBorder(0, 0, 10, 0)
+        font = JBUI.Fonts.label(22f) // .asBold()
+      }
 
     val editorPane = createHtmlEditorPane()
     editorPane.addHyperlinkListener(hyperlinkListener)
-    val htmlBuilder = HtmlBuilder().apply {
-      add("Pair devices to enable wireless debugging.")
-      add(" ")
-      add("Pair camera-enabled devices using a QR code.")
-      add(" ")
-      add("Other devices can be paired using a pairing code.")
-      add("  ")
-      addLink("Learn more", Urls.learnMore)
-    }
+    val htmlBuilder =
+      HtmlBuilder().apply {
+        add("Pair devices to enable wireless debugging.")
+        add(" ")
+        add(" ")
+        add("Other devices can be paired using a pairing code.")
+        add("  ")
+        addLink("Learn more", Urls.learnMore)
+        add(".")
+      }
     editorPane.setHtml(htmlBuilder, UIColors.HEADER_LABEL)
 
     return JPanel(BorderLayout()).apply {
@@ -103,14 +106,15 @@ internal class WiFiPairingPanel(private val parentDisposable: Disposable, privat
     val qrCodePanel = qrCodePanel.component
     val pairingCodePanel = pairingCodePanel.component
 
-    val contentPanel = WiFiPairingContentPanel(parentDisposable).apply {
-      setQrCodeComponent(qrCodePanel)
-      setPairingCodeComponent(pairingCodePanel)
-    }.component
+    val contentPanel =
+      WiFiPairingContentPanel(parentDisposable)
+        .apply {
+          setQrCodeComponent(qrCodePanel)
+          setPairingCodeComponent(pairingCodePanel)
+        }
+        .component
 
-    return centerPanel.apply {
-      setContentComponent(contentPanel)
-    }.component
+    return centerPanel.apply { setContentComponent(contentPanel) }.component
   }
 
   fun setLoadingText(text: String) {

@@ -22,78 +22,63 @@ import java.awt.image.BufferedImage
 import java.net.InetAddress
 
 /**
- * Service to expose and pair wireless devices. All entry points run asynchronously and
- * return [ListenableFuture] for completion.
+ * Service to expose and pair wireless devices. All entry points run asynchronously and return
+ * [ListenableFuture] for completion.
  */
 @AnyThread
 interface WiFiPairingService {
   /**
    * Returns a [MdnsSupportState] for the current platform and current ADB version.
    *
-   * Errors generally are represented by states in MdnsSupportState, not exceptions,
-   * except for catastrophic failures (e.g. out of memory)
+   * Errors generally are represented by states in MdnsSupportState, not exceptions, except for
+   * catastrophic failures (e.g. out of memory)
    */
   suspend fun checkMdnsSupport(): MdnsSupportState
 
-  /**
-   * Generates a new [QrCodeImage] instance, with a new random service name and password
-   */
+  /** Generates a new [QrCodeImage] instance, with a new random service name and password */
   suspend fun generateQrCode(backgroundColor: Color, foregroundColor: Color): QrCodeImage
 
-  /**
-   * Returns a snapshot of the list of [AdbDevice] currently known
-   */
-  fun devices() : ListenableFuture<List<AdbDevice>>
+  /** Returns a snapshot of the list of [AdbDevice] currently known */
+  fun devices(): ListenableFuture<List<AdbDevice>>
 
-  /**
-   * Look up the list of mDNS services currently seen by the underlying adb implementation
-   */
-  suspend fun scanMdnsServices() : List<MdnsService>
+  /** Look up the list of mDNS services currently seen by the underlying adb implementation */
+  suspend fun scanMdnsServices(): List<MdnsService>
 
-  /**
-   * Pair a device through an mDNS service
-   */
-  suspend fun pairMdnsService(mdnsService: MdnsService, password: String) : PairingResult
+  /** Pair a device through an mDNS service */
+  suspend fun pairMdnsService(mdnsService: MdnsService, password: String): PairingResult
 
-  /**
-   * Wait for device to be available from the underlying adb implementation
-   */
+  /** Wait for device to be available from the underlying adb implementation */
   suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
 }
 
-/**
- * Result of pairing a device through "adb pair"
- */
+/** Result of pairing a device through "adb pair" */
 data class PairingResult(
-  /**
-   * The IP address of the device that was paired
-   */
+  /** The IP address of the device that was paired */
   val ipAddress: InetAddress,
-  /**
-   * The TCP port that was used for pairing
-   */
+  /** The TCP port that was used for pairing */
   val port: Int,
   /**
-   * The ID of the mDNS service representing the device that was paired (e.g. "adb-939AX05XBZ-vWgJpq")
+   * The ID of the mDNS service representing the device that was paired (e.g.
+   * "adb-939AX05XBZ-vWgJpq")
    */
-  val mdnsServiceId: String) {
-  /**
-   * A user friendly string representation of the device
-   */
-  val displayString : String
+  val mdnsServiceId: String,
+) {
+  /** A user friendly string representation of the device */
+  val displayString: String
     get() {
       return ipAddress.hostAddress + ":" + port
     }
 }
 
-/**
- * A device/service as exposed by the "adb mdns services" command
- */
-data class MdnsService(val serviceName: String, val serviceType: ServiceType, val ipAddress: InetAddress, val port: Int) {
-  /**
-   * A user friendly string representation of the device
-   */
-  val displayString : String
+/** A device/service as exposed by the "adb mdns services" command */
+data class MdnsService(
+  val serviceName: String,
+  val serviceType: ServiceType,
+  val ipAddress: InetAddress,
+  val port: Int,
+) {
+  /** A user friendly string representation of the device */
+  val displayString: String
     get() {
       return ipAddress.hostAddress + ":" + port
     }
@@ -101,32 +86,28 @@ data class MdnsService(val serviceName: String, val serviceType: ServiceType, va
 
 enum class ServiceType {
   QrCode,
-  PairingCode
+  PairingCode,
 }
 
-/**
- * Abstraction over an bitmap representation of a QrCode
- */
+/** Abstraction over an bitmap representation of a QrCode */
 data class QrCodeImage(
   /**
-   * The service name of this QR Code. This name will be exposed by ADB when the phone is ready to pair.
+   * The service name of this QR Code. This name will be exposed by ADB when the phone is ready to
+   * pair.
    */
   val serviceName: String,
-  /**
-   * The password of this QR Code. This password will be used when pairing the device.
-   */
+  /** The password of this QR Code. This password will be used when pairing the device. */
   val password: String,
-  /**
-   * The full pairing string, i.e. the string that is encoded in the [image]
-   */
+  /** The full pairing string, i.e. the string that is encoded in the [image] */
   val pairingString: String,
   /**
    * The QR Code [BufferedImage] representing [pairingString].
    *
-   * The image has a white background and a black pixel for each QR Code "dot". There is also a white border of a few pixel
-   * wide around the image to allow for cameras to frame the QR Code.
+   * The image has a white background and a black pixel for each QR Code "dot". There is also a
+   * white border of a few pixel wide around the image to allow for cameras to frame the QR Code.
    */
-  val image: BufferedImage)
+  val image: BufferedImage,
+)
 
 enum class MdnsSupportState {
   /** mDNS is supported on the current platform with the current version of ADB */
@@ -137,4 +118,9 @@ enum class MdnsSupportState {
   AdbVersionTooLow,
   /** There was an error invoking ADB, so we don't know if mDNS is supported or not */
   AdbInvocationError,
+  /**
+   * We detected that the Mac environment is broken (either platform-tools is too old or mdns back
+   * selection is wrong).
+   */
+  AdbMacEnvironmentBroken,
 }

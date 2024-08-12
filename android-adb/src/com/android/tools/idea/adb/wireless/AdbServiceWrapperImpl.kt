@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.ServerStatus
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
@@ -23,20 +24,20 @@ import com.android.tools.idea.adb.AdbService
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.time.delay
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.InetAddress
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.time.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AdbServiceWrapperImpl(
   private val project: Project,
-  private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider
+  private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider,
 ) : AdbServiceWrapper {
   private val ADB_TIMEOUT_MILLIS = 30_000L
   private val LOG = thisLogger()
@@ -48,10 +49,18 @@ class AdbServiceWrapperImpl(
     val stdoutStream = ByteArrayOutputStream()
     val stderrStream = ByteArrayOutputStream()
 
-    val exitValue = withContext(Dispatchers.IO) {
-      ExternalCommand(adbFile.absolutePath).execute(args, stdinStream, stdoutStream, stderrStream, ADB_TIMEOUT_MILLIS,
-                                                    TimeUnit.MILLISECONDS)
-    }
+    val exitValue =
+      withContext(Dispatchers.IO) {
+        ExternalCommand(adbFile.absolutePath)
+          .execute(
+            args,
+            stdinStream,
+            stdoutStream,
+            stderrStream,
+            ADB_TIMEOUT_MILLIS,
+            TimeUnit.MILLISECONDS,
+          )
+      }
     val processOutput = ProcessOutput()
     processOutput.appendStdout(stdoutStream.toString("UTF-8"))
     processOutput.appendStderr(stderrStream.toString("UTF-8"))
@@ -65,26 +74,34 @@ class AdbServiceWrapperImpl(
       waitForDevice(adb, pairingResult)
     }
 
+  override suspend fun getServerStatus(): ServerStatus {
+    throw NotImplementedError("DDMLib does not implement server-status")
+  }
 
   private suspend fun getAdbLocation(): File =
     // Use the I/O thread just in case we do I/O in the future (although currently there is none)
     withContext(Dispatchers.IO) {
-      AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("The path to the ADB command is not available")
+      AdbFileProvider.fromProject(project).get()
+        ?: throw IllegalStateException("The path to the ADB command is not available")
     }
 
-
-  private suspend fun waitForDevice(debugBridge: AndroidDebugBridge, pairingResult: PairingResult): AdbOnlineDevice {
+  private suspend fun waitForDevice(
+    debugBridge: AndroidDebugBridge,
+    pairingResult: PairingResult,
+  ): AdbOnlineDevice {
     val rem = TimeoutRemainder(nanoTimeProvider, ADB_DEVICE_CONNECT_MILLIS, TimeUnit.MILLISECONDS)
     while (true) {
-      val device = debugBridge.devices.firstOrNull {
-        it.isOnline && sameDevice(it, pairingResult)
-      }
+      val device = debugBridge.devices.firstOrNull { it.isOnline && sameDevice(it, pairingResult) }
       if (device != null) {
         return createAdbOnlineDevice(device, rem)
       }
 
       if (rem.remainingNanos <= 0) {
-        throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
+        throw AdbCommandException(
+          "Device did not connect within specified timeout",
+          -1,
+          emptyList(),
+        )
       }
 
       // Put thread back to sleep for a little bit to avoid busy loop
@@ -92,7 +109,10 @@ class AdbServiceWrapperImpl(
     }
   }
 
-  private suspend fun createAdbOnlineDevice(device: IDevice, rem: TimeoutRemainder): AdbOnlineDevice {
+  private suspend fun createAdbOnlineDevice(
+    device: IDevice,
+    rem: TimeoutRemainder,
+  ): AdbOnlineDevice {
     // Force fetching all properties by fetching one
     withTimeoutOrNull(rem.getRemainingUnits(TimeUnit.MILLISECONDS)) {
       device.getSystemProperty(IDevice.PROP_DEVICE_MODEL).await()
@@ -103,13 +123,12 @@ class AdbServiceWrapperImpl(
     }
 
     // Return initialized device
-    @Suppress("DEPRECATION")
-    return AdbOnlineDevice(device.serialNumber, device.properties)
+    @Suppress("DEPRECATION") return AdbOnlineDevice(device.serialNumber, device.properties)
   }
 
   private fun sameDevice(device: IDevice, pairingResult: PairingResult): Boolean {
     return sameIpAddress(device, pairingResult.ipAddress) ||
-           sameMdnsService(device, pairingResult.mdnsServiceId)
+      sameMdnsService(device, pairingResult.mdnsServiceId)
   }
 
   private fun sameMdnsService(device: IDevice, mdnsServiceId: String): Boolean {
@@ -119,7 +138,6 @@ class AdbServiceWrapperImpl(
   private fun sameIpAddress(device: IDevice, ipAddress: InetAddress): Boolean {
     // Note: pre-release versions of ADB used to set IP:PORT as the serial number of the device
     val comps = device.serialNumber.split(":")
-    return comps.size == 2 &&
-           comps[0] == ipAddress.hostAddress
+    return comps.size == 2 && comps[0] == ipAddress.hostAddress
   }
 }
