@@ -71,5 +71,6 @@
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="library" name="mockito-kotlin" scope="TEST" level="project" />
   </component>
 </module>
