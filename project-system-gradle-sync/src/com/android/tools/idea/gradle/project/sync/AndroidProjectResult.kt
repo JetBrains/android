@@ -54,7 +54,7 @@ sealed class AndroidProjectResult {
     override val defaultVariantName: String?,
     val androidVariantResolver: AndroidVariantResolver,
     val runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
-    val useNewDependencyGraphModel: Boolean,
+    val useFlatDependencyGraphModel: Boolean,
   ) : AndroidProjectResult() {
     override fun createVariantFetcher(): IdeVariantFetcher =
       v2VariantFetcher(
@@ -62,7 +62,7 @@ sealed class AndroidProjectResult {
         modelVersions,
         v2Variants,
         runtimeClasspathBehaviour,
-        useNewDependencyGraphModel
+        useFlatDependencyGraphModel
       )
   }
 
@@ -119,7 +119,7 @@ sealed class AndroidProjectResult {
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
       runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
-      useNewDependencyGraphModel: Boolean,
+      useFlatDependencyGraphModel: Boolean,
     ): ModelResult<V2Project> {
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
@@ -169,7 +169,7 @@ sealed class AndroidProjectResult {
           defaultVariantName = defaultVariantName,
           androidVariantResolver = androidVariantResolver,
           runtimeClasspathBehaviour = runtimeClasspathBehaviour,
-          useNewDependencyGraphModel = useNewDependencyGraphModel
+          useFlatDependencyGraphModel = useFlatDependencyGraphModel
         )
       }
     }
@@ -216,7 +216,7 @@ private fun v2VariantFetcher(
   modelVersions: ModelVersions,
   v2Variants: List<IdeVariantCoreImpl>,
   runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
-  useNewDependencyGraphModel: Boolean
+  useFlatDependencyGraphModel: Boolean
 ): IdeVariantFetcher {
   return fun(
     controller: BuildController,
@@ -233,7 +233,7 @@ private fun v2VariantFetcher(
       module.gradleProject,
       modelVersions,
       configuration.variant,
-      useNewDependencyGraphModel,
+      useFlatDependencyGraphModel,
       parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot)
     ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
