@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.stats.ReportProjectSizeTask
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,6 +29,7 @@ import com.android.tools.idea.testing.runCatchingAndRecord
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.runBlocking
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
@@ -143,6 +145,13 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
             )
           }
         ) { project ->
+          runBlocking {
+            // Wait for ReportProjectSizeTask to finish if started since this runs async during tests due to b/354210253
+            project.getService(ReportProjectSizeTask::class.java).repostStatsJobs.forEach {
+              it.join()
+            }
+          }
+
           tests.forEach {
             println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
             runCatchingAndRecord { with(it) { this@open.runTest(preparedProject.root, project, expectRule) } }
