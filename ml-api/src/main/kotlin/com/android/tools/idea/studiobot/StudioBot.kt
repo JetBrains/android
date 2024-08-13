@@ -121,4 +121,7 @@ enum class ModelType {
 
   // Gemini 1.5 Pro Long Context model via the Gemini API. This requires an API key to use.
   EXPERIMENTAL_LONG_CONTEXT,
+
+  // Gemini 1.5 Flash Long Context model via the Gemini API. This requires an API key to use.
+  EXPERIMENTAL_FLASH,
 }
