@@ -44,7 +44,11 @@ def jps_build(args, environment, cwd):
     if args.reuse_workspace:
         workspace = args.reuse_workspace
     else:
-        workspace = tempfile.mkdtemp()
+        workspace = "/tmp/.jps_build"
+        if os.path.exists(workspace):
+            fprint("%s exists, deleting..." % workspace)
+            shutil.rmtree(workspace)
+        os.makedirs(workspace)
 
     for source in args.sources:
         fprint("Setting up source: " + source + " @ " + str(datetime.datetime.now()))
