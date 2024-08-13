@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.k2
 
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.IrClassCache
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
@@ -27,6 +29,7 @@ import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -50,8 +53,12 @@ internal class LiveEditCompilerForK2(
   private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module? = null,
 ) {
+
+  private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
+
   fun compile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
     runWithCompileLock {
+      LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
       val result = backendCodeGenForK2(file, module)
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
