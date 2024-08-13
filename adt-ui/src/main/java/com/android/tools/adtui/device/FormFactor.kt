@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.AndroidVersion.VersionCodes.R
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
@@ -83,4 +82,7 @@ enum class FormFactor(
 
   // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
   fun hasEmulator(): Boolean = true
+
+  // We want to expose new SDKs when creating new mobile projects.
+  val hasUpperLimitForMinimumSdkSelection: Boolean get() = this != MOBILE
 }
