@@ -38,11 +38,11 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -71,7 +71,8 @@ private const val CLEAR_DATA = "Clear data"
 private const val EXPORT_CONNECTIONS = "Export connections"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
-private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
+private val SHORTCUT_MODIFIER_MASK_NUMBER
+  get() = if (ClientSystemInfo.isMac()) META_DOWN_MASK else CTRL_DOWN_MASK
 
 class NetworkInspectorTab(
   private val project: Project,

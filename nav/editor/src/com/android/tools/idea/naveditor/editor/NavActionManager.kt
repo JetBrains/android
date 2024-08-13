@@ -51,8 +51,7 @@ import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.util.SystemInfo
-import org.jetbrains.annotations.VisibleForTesting
+import com.intellij.openapi.client.ClientSystemInfo
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -91,7 +90,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
-    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    val keyEvent = if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
     addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
   }

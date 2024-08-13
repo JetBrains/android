@@ -50,8 +50,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.CollectionListModel
@@ -204,7 +204,7 @@ class ResourceExplorerListView(
     horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
     verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
     addMouseWheelListener { event ->
-      val modifierKey = if (SystemInfo.isMac) InputEvent.META_MASK else InputEvent.CTRL_MASK
+      val modifierKey = if (ClientSystemInfo.isMac()) InputEvent.META_MASK else InputEvent.CTRL_MASK
       val modifierPressed = (event.modifiers and modifierKey) == modifierKey
       if (modifierPressed && gridMode) {
         previewSize = max(MIN_CELL_WIDTH, min(
