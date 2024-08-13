@@ -22,7 +22,6 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
-import com.android.adblib.ddmlibcompatibility.IDeviceUsageTrackerImpl;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
@@ -496,7 +495,9 @@ public final class AdbService implements Disposable,
   @NotNull
   private static IDeviceUsageTracker getIDeviceUsageTracker() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
+    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()
+                                                                        ? IDeviceUsageTrackerImpl.Companion.forAdblibIDeviceWrapper(session)
+                                                                        : IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
   }
 
   /**
