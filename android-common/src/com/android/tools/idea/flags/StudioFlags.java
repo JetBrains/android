@@ -1866,7 +1866,8 @@ public final class StudioFlags {
                 "Impact tracking for the App Links Assistant", false);
   public static final Flag<Boolean> JSON_GENERATION =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.json.generation", "App Links Assistant JSON generation",
-                    "JSON generation (i.e. automated assistance with fixing web issues) in the App Links Assistant", false);
+                    "JSON generation (i.e. automated assistance with fixing web issues) in the App Links Assistant",
+                    ChannelDefault.enabledUpTo(CANARY));
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
