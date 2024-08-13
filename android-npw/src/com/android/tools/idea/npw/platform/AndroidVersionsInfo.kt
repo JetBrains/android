@@ -49,7 +49,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -84,7 +83,7 @@ class AndroidVersionsInfo {
    */
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
-    val maxSdkLevel = formFactor.maxOfflineApiLevel
+    val maxSdkLevel = if (formFactor.hasUpperLimitForMinimumSdkSelection) formFactor.maxOfflineApiLevel else Int.MAX_VALUE
     return knownTargetVersions.filter {
       formFactor.isAvailable(minSdkLevel .. maxSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
     }.toMutableList()
