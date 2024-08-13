@@ -962,9 +962,8 @@ abstract class DesignSurface<T : SceneManager>(
   val isEditable: Boolean
     get() = layoutType.isEditable()
 
-  override fun getConfigurations(): ImmutableCollection<Configuration> {
-    return models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
-  }
+  override val configurations: ImmutableCollection<Configuration>
+    get() = models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
 
   /**
    * Update the status of [GuiInputHandler]. It will start or stop listening depending on the
