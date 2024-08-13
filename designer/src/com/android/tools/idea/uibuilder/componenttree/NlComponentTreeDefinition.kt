@@ -481,7 +481,7 @@ private class ComponentTreePanel(
   private inner class IssueBadgeColumn : IconColumn("Issues") {
 
     override fun getIcon(item: Any): Icon? =
-      issueOf(item)?.let { IssueModel.getIssueIcon(it.severity, false) }
+      issueOf(item)?.let { IssueModel.getIssueIcon(it.severity) }
 
     override fun getTooltipText(item: Any): String {
       val issue = issueOf(item) ?: return ""
