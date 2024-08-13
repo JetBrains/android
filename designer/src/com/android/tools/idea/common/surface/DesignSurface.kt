@@ -64,10 +64,11 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -110,7 +111,6 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -156,7 +156,7 @@ abstract class DesignSurface<T : SceneManager>(
   Disposable,
   InteractableScenesSurface,
   ScaleListener,
-  DataProvider {
+  UiDataProvider {
 
   init {
     Disposer.register(parentDisposable, this)
@@ -1233,7 +1233,22 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  override fun getData(dataId: @NonNls String): Any? {
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DESIGN_SURFACE] = this
+    sink[GuiInputHandler.CURSOR_RECEIVER] = this
+
+    sink[PANNABLE_KEY] = pannable
+    sink[ZOOMABLE_KEY] = zoomController
+    sink[CONFIGURATIONS] = configurations
+
+    val handler: DesignSurfaceActionHandler = actionHandlerProvider(this)
+    sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = handler
+    sink[PlatformDataKeys.CUT_PROVIDER] = handler
+    sink[PlatformDataKeys.COPY_PROVIDER] = handler
+    sink[PlatformDataKeys.PASTE_PROVIDER] = handler
+
+    sink[PlatformCoreDataKeys.FILE_EDITOR] = fileEditorDelegate
+
     fun getMenuPoint(): Point? {
       val view = focusedSceneView ?: return null
       val selection = selectionModel.primary ?: return null
@@ -1243,43 +1258,24 @@ abstract class DesignSurface<T : SceneManager>(
         Coordinates.getSwingYDip(view, sceneComponent.centerY),
       )
     }
+    sink[PlatformDataKeys.CONTEXT_MENU_POINT] = getMenuPoint()
+    sink[PlatformDataKeys.MODULE] = model?.module
 
-    return when {
-      DESIGN_SURFACE.`is`(dataId) || GuiInputHandler.CURSOR_RECEIVER.`is`(dataId) -> this
-      PANNABLE_KEY.`is`(dataId) -> pannable
-      ZOOMABLE_KEY.`is`(dataId) -> zoomController
-      CONFIGURATIONS.`is`(dataId) -> configurations
-      (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.`is`(dataId) ||
-        PlatformDataKeys.CUT_PROVIDER.`is`(dataId) ||
-        PlatformDataKeys.COPY_PROVIDER.`is`(dataId) ||
-        PlatformDataKeys.PASTE_PROVIDER.`is`(dataId)) -> actionHandlerProvider(this)
-      PlatformCoreDataKeys.FILE_EDITOR.`is`(dataId) -> fileEditorDelegate
-      PlatformDataKeys.CONTEXT_MENU_POINT.`is`(dataId) -> getMenuPoint()
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { getSlowData(it) }
-      PlatformCoreDataKeys.MODULE.`is`(dataId) -> model?.module
-      else -> null
+    sink.lazy(CommonDataKeys.PSI_ELEMENT) {
+      focusedSceneView?.selectionModel?.primary?.tagDeprecated
     }
-  }
-
-  /**
-   * The data which should be obtained from the background thread.
-   *
-   * @see [PlatformCoreDataKeys.BGT_DATA_PROVIDER]
-   */
-  private fun getSlowData(dataId: String): Any? {
-    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      return focusedSceneView?.selectionModel?.primary?.tagDeprecated
-    } else if (LangDataKeys.PSI_ELEMENT_ARRAY.`is`(dataId)) {
+    sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
       val selection = focusedSceneView?.selectionModel?.selection
       if (selection != null) {
         val list: MutableList<XmlTag> = Lists.newArrayListWithCapacity(selection.size)
         for (component in selection) {
           list.add(component.tagDeprecated)
         }
-        return list.toArray<XmlTag>(XmlTag.EMPTY)
+        return@lazy list.toArray<XmlTag>(XmlTag.EMPTY)
+      } else {
+        return@lazy null
       }
     }
-    return null
   }
 
   override fun dispose() {

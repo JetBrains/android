@@ -38,6 +38,9 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
@@ -175,7 +178,9 @@ class NlDesignSurfaceZoomControlsTest {
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
 
-    val event = TestActionEvent { dataId -> surface.getData(dataId) }
+    val dataContext =
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+    val event = TestActionEvent.createTestEvent(dataContext)
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 
@@ -217,9 +222,9 @@ class NlDesignSurfaceZoomControlsTest {
     val zoomToFitScale = surface.zoomController.scale
 
     // Delegate context for keyboard events. This ensures that, when actions update, they get the
-    // right data context to make the
-    // decision about visibility and presentation.
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { surface.getData(it) }
+    // right data context to make the decision about visibility and presentation.
+    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, surface) }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
 
     // Verify zoom in
     run {

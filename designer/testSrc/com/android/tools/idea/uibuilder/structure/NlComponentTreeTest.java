@@ -63,6 +63,7 @@ import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.google.common.base.Charsets;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.ide.ui.IdeUiService;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -281,7 +282,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   private static DesignSurfaceActionHandler getActionHandler(NlComponentTree tree) {
-    return (DesignSurfaceActionHandler)tree.getData(PlatformDataKeys.PASTE_PROVIDER.getName());
+    return (DesignSurfaceActionHandler)IdeUiService.getInstance().createUiDataContext(tree).getData(PlatformDataKeys.PASTE_PROVIDER);
   }
 
   public void testPasteIntoLayoutAsFirstChild() throws Exception {
@@ -738,7 +739,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     tree.setSelectionPath(pathForRow4);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-    ((DeleteProvider)checkNotNull(tree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())))
+    DataContext context = IdeUiService.getInstance().createUiDataContext(tree);
+    checkNotNull(context.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER))
       .deleteElement(DataContext.EMPTY_CONTEXT);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     String constraintReferences = checkNotNull(model.getTreeReader().find("barrier")).getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
