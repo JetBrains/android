@@ -3,14 +3,13 @@ package com.android.tools.idea.startup
 
 import com.android.tools.analytics.UsageTracker
 import com.intellij.ide.ApplicationInitializedListener
-import kotlinx.coroutines.CoroutineScope
 
 /**
  * Initializer that is run only when the Android plugin is executed in IntelliJ IDEA.
  * This initializer shouldn't be run in Android Studio.
  */
-class AndroidPluginIdeaInitializer: ApplicationInitializedListener {
-  override suspend fun execute(asyncScope: CoroutineScope) {
+private class AndroidPluginIdeaInitializer: ApplicationInitializedListener {
+  override suspend fun execute() {
       UsageTracker.disable()
   }
 }

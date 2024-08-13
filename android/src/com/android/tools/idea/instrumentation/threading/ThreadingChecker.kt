@@ -23,17 +23,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.sun.tools.attach.VirtualMachine
-import kotlinx.coroutines.CoroutineScope
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-
-class ThreadingChecker : ApplicationInitializedListener {
-
+private class ThreadingChecker : ApplicationInitializedListener {
   /** Start receiving notifications from the threading agent. */
-  override suspend fun execute(asyncScope: CoroutineScope) {
+  override suspend fun execute() {
     val agentLoadedAtStartup = try {
       Class.forName("com.android.tools.instrumentation.threading.agent.Agent", false, null)
       true
@@ -45,7 +42,8 @@ class ThreadingChecker : ApplicationInitializedListener {
     if (agentLoadedAtStartup) {
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
       thisLogger().info("ThreadingChecker listener has been installed.")
-    } else {
+    }
+    else {
       // Attempt to load the threading agent dynamically when running an EAP build of Android Studio.
       // As for the tests and running Android Studio from IntelliJ during development use the -javaagent JVM option instead.
       maybeAttachThreadingAgent()

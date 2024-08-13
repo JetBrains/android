@@ -30,8 +30,8 @@ import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.diagnostic.thisLogger
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
 
@@ -45,16 +45,15 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
  *
  * GradleSpecificInitializer instead.
  */
-class AndroidStudioInitializer : ApplicationInitializedListener {
-
+private class AndroidStudioInitializer : ApplicationInitializedListener {
   // Note: this code runs quite early during IDE startup and directly impacts startup time. If possible,
   // prefer to initialize later (e.g. during first project open) or lazily (upon first access to your service).
-  override suspend fun execute(asyncScope: CoroutineScope) {
+  override suspend fun execute() {
     configureUpdateUrls()
     setupAnalytics()
 
     // Initialize System Health Monitor after Analytics.
-    asyncScope.launch {
+    (ApplicationManager.getApplication() as ComponentManagerEx).getCoroutineScope().launch {
       AndroidStudioSystemHealthMonitor.getInstance()?.start()
     }
 
@@ -75,7 +74,6 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
       SystemInfoStatsMonitor().start()
       setupAndroidSdkForTests()
     }
-
   }
 
   /** Sets up collection of Android Studio specific analytics.  */
