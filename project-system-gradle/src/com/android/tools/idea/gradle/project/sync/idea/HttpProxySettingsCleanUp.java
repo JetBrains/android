@@ -41,7 +41,7 @@ public class HttpProxySettingsCleanUp {
   public static void cleanUp(@NotNull Project project) {
     HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
     boolean ideUsingProxy = (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST))
-                            || ideHttpProxySettings.USE_PROXY_PAC;
+                            || (ideHttpProxySettings.USE_PROXY_PAC && isNotEmpty(ideHttpProxySettings.PAC_URL));
     GradleProperties properties;
     try {
       properties = new GradleProperties(GradleProjectSystemUtil.getUserGradlePropertiesFile(project));
