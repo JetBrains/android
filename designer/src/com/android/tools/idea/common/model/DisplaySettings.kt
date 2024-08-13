@@ -22,11 +22,39 @@ import kotlinx.coroutines.flow.asStateFlow
 class DisplaySettings {
   private val _displayName = MutableStateFlow<String?>(null)
 
-  /** Model name. This can be used when multiple models are displayed at the same time */
+  /**
+   * Model name. This can be used when multiple models are displayed at the same time
+   * [modelDisplayName] contains both [baseName] and [parameterName].
+   */
   val modelDisplayName: StateFlow<String?> = _displayName.asStateFlow()
 
+  /** Update [modelDisplayName]. */
   fun setDisplayName(value: String?) {
     _displayName.value = value
+  }
+
+  private val _baseName = MutableStateFlow<String?>(null)
+  /**
+   * For parametrized previews, all of them have a same base name. For example for Composable it
+   * will be method name. It used as name for organization group.
+   */
+  val baseName: StateFlow<String?> = _baseName.asStateFlow()
+
+  /** Update [baseName]. */
+  fun setBaseName(value: String?) {
+    _baseName.value = value
+  }
+
+  private val _parameterName = MutableStateFlow<String?>(null)
+  /**
+   * For parametrized previews, they might have a parameter name. It can be used as name for Preview
+   * instead of full name [modelDisplayName].
+   */
+  val parameterName: StateFlow<String?> = _parameterName.asStateFlow()
+
+  /** Update [parameterName]. */
+  fun setParameterName(value: String?) {
+    _parameterName.value = value
   }
 
   private val _tooltip = MutableStateFlow<String?>(null)
