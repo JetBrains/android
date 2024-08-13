@@ -17,13 +17,16 @@ package com.android.tools.idea.gradle.dsl.model.kotlin;
 
 import static com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetDslElement.KOTLIN_SOURCE_SET;
 import static com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetsDslElement.KOTLIN_SOURCE_SETS;
+import static com.android.tools.idea.gradle.dsl.parser.kotlin.CompilerOptionsDslElement.COMPILER_OPTIONS;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.kotlin.CompilerOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel;
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinSourceSetModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.CompilerOptionsDslElement;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
@@ -40,6 +43,12 @@ public class KotlinModelImpl extends GradleDslBlockModel implements KotlinModel 
   @Override
   public @NotNull ResolvedPropertyModel jvmToolchain() {
     return getLanguageModelForProperty(JVM_TOOLCHAIN);
+  }
+
+  @Override
+  public @NotNull CompilerOptionsModel compilerOptions() {
+    CompilerOptionsDslElement compilerOptionsDslElement = myDslElement.ensurePropertyElement(COMPILER_OPTIONS);
+    return new CompilerOptionsModelImpl(compilerOptionsDslElement);
   }
 
   @Override
