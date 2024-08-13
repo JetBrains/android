@@ -27,9 +27,11 @@ import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import kotlinx.coroutines.flow.firstOrNull
@@ -91,8 +93,11 @@ class ReRunUiCheckModeAction : AnAction() {
 
     val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
     val flowManager =
-      relevantEditor.getDesignSurface()?.getData(PreviewFlowManager.KEY.name)
-        as? PreviewFlowManager<*> ?: return
+      relevantEditor.getDesignSurface()?.let {
+        PreviewFlowManager.KEY.getData(
+          DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it)
+        )
+      } ?: return
     AndroidCoroutineScope(composeManager).launch {
       // Waits for the correct preview to be recreated, and starts UI Check on it
       val previewElements =

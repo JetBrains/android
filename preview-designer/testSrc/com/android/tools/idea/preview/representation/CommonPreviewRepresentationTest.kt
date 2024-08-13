@@ -62,6 +62,7 @@ import com.android.tools.preview.DisplayPositioning
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -287,13 +288,15 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
+      val context =
+        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
 
-      assertTrue(surface.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
-      assertTrue(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
-      assertTrue(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
-      assertTrue(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
-      assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
-      assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
+      assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
+      assertTrue(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
+      assertTrue(PreviewGroupManager.KEY.getData(context) is PreviewGroupManager)
+      assertTrue(PreviewFlowManager.KEY.getData(context) is PreviewFlowManager<*>)
+      assertTrue(FastPreviewSurface.KEY.getData(context) is FastPreviewSurface)
+      assertTrue(PreviewInvalidationManager.KEY.getData(context) is PreviewInvalidationManager)
 
       preview.onDeactivateImmediately()
     }

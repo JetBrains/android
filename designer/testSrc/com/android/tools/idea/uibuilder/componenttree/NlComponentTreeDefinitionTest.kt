@@ -63,7 +63,10 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -71,7 +74,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.UiInterceptors
 import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
@@ -255,23 +257,23 @@ class NlComponentTreeDefinitionTest {
     assertThat(selection.first().tagName).isEqualTo(SdkConstants.BUTTON)
   }
 
+  @RunsInEdt
   @Test
   fun testGotoDeclarationFromKeyboard() {
-    HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
-    runInEdtAndWait {
-      val content = createToolContent()
-      val model = createFlowModel()
-      val table = attach(content, model)
-      val textView = model.treeReader.find("a")!!
-      model.surface.selectionModel.setSelection(listOf(textView))
-      val ui = FakeUi(table)
-      val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
-      focusManager.focusOwner = table
+    val content = createToolContent()
+    val model = createFlowModel()
+    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, model.surface) }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
+    val table = attach(content, model)
+    val textView = model.treeReader.find("a")!!
+    model.surface.selectionModel.setSelection(listOf(textView))
+    val ui = FakeUi(table)
+    val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
+    focusManager.focusOwner = table
 
-      ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
-      ui.keyboard.pressAndRelease(KeyEvent.VK_B)
-      ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
-    }
+    ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_B)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
     fileOpenRule.checkEditor("some_layout.xml", 6, "<TextView")
   }
 

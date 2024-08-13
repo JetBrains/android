@@ -44,12 +44,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.MouseShortcut;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.client.ClientSystemInfo;
@@ -92,13 +93,12 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
-                                                     DataProvider {
+                                                     UiDataProvider {
   private  final static int UPDATE_DELAY_MSECS = 250;
 
   private final AtomicBoolean mySelectionIsUpdating;
@@ -668,16 +668,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  // ---- Implements DataProvider ----
+  // ---- Implements UiDataProvider ----
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    DataSink.uiDataSnapshot(sink, mySurface);
     TreePath path = getSelectionPath();
     if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
-      if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
-        return createNonNlComponentDeleteProvider();
-      }
+      sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider());
     }
-    return mySurface == null ? null : mySurface.getData(dataId);
   }
 
   @NotNull
