@@ -62,7 +62,6 @@ import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
@@ -161,8 +160,6 @@ internal constructor(
   /** Returns whether this surface is currently in resize mode or not. See [setResizeMode] */
   var isCanvasResizing: Boolean = false
 
-  private val renderListener = RenderListener { modelRendered() }
-
   var isRenderingSynchronously: Boolean = false
 
   var isAnimationScrubbing: Boolean = false
@@ -234,7 +231,6 @@ internal constructor(
 
   override fun createSceneManager(model: NlModel): LayoutlibSceneManager {
     val manager = sceneManagerProvider(this, model)
-    manager.addRenderListener(renderListener)
     return manager
   }
 
@@ -340,7 +336,11 @@ internal constructor(
     )
   }
 
-  private fun modelRendered() {
+  /**
+   * Notifies the design surface that a model being shown in this surface has been rendered (or
+   * re-rendered).
+   */
+  fun modelRendered() {
     updateErrorDisplay()
 
     // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs
