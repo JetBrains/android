@@ -53,6 +53,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
@@ -434,6 +435,8 @@ class PlatformIntegrationTest {
 
   @Test
   fun testSimpleApplicationMultipleRoots() {
+    // TODO (b/359232184) Multiple root projects cause CachingPreventedException
+    RecursionManager.disableMissedCacheAssertions(projectRule.testRootDisposable)
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
     val log = preparedProject.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
