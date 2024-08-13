@@ -63,7 +63,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
-import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
@@ -170,7 +169,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /**
    * If true, automatically update (if needed) and re-render when being activated. Which happens after {@link #activate(Object)} is called.
-   * Note that if the it is activated already, then it will not re-render.
+   * Note that if it is activated already, then it will not re-render.
    */
   private boolean myUpdateAndRenderWhenActivated = true;
 
@@ -194,7 +193,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * If true, the rendering will report when the user classes used by this {@link SceneManager} are out of date and have been modified
    * after the last build. The reporting will be done via the rendering log.
-   * Compose has its own mechanism to track out of date files so it will disable this reporting.
+   * Compose has its own mechanism to track out of date files, so it will disable this reporting.
    */
   private boolean reportOutOfDateUserClasses = false;
 
@@ -460,7 +459,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       // After the model derived data is changed, we need to update the selection in Edt thread.
-      // Changing selection should run in UI thread to avoid avoid race condition.
+      // Changing selection should run in UI thread to avoid race condition.
       NlDesignSurface surface = getDesignSurface();
       CompletableFuture.runAsync(() -> {
         // Ensure the new derived that is passed to the Scene components hierarchy
@@ -967,7 +966,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /**
    * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a particular point
-   * @param type type of a touch event
+   * @param type type of touch event
    * @param x horizontal android coordinate of the detected touch event
    * @param y vertical android coordinate of the detected touch event
    * @return a future that is completed when layoutlib handled the touch event
@@ -976,7 +975,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public CompletableFuture<InteractionEventResult> triggerTouchEventAsync(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
+      Logger.getInstance(LayoutlibSceneManager.class).warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed");
     }
 
     RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
@@ -995,7 +994,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @NotNull
   public CompletableFuture<InteractionEventResult> triggerKeyEventAsync(@NotNull KeyEvent event) {
     if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
+      Logger.getInstance(LayoutlibSceneManager.class).warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed");
     }
 
     RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
