@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
@@ -26,7 +24,9 @@ import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 class ComposePreviewInspectorTest {
 
@@ -56,19 +56,19 @@ class ComposePreviewInspectorTest {
     val handler = ComposePreviewInspector(surface, { listOf(composeViewInfo) }, verifier)
 
     handler.inspect(50, 50)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[0]), 50, 50)
+    verify(verifier).invoke(listOf(composeViewInfo.children[0]), 50, 50)
 
     handler.inspect(150, 150)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1]), 150, 150)
+    verify(verifier).invoke(listOf(composeViewInfo.children[1]), 150, 150)
 
     handler.inspect(350, 250)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[1].children[0]), 350, 250)
+    verify(verifier).invoke(listOf(composeViewInfo.children[1].children[0]), 350, 250)
 
     handler.inspect(800, 250)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo.children[2]), 800, 250)
+    verify(verifier).invoke(listOf(composeViewInfo.children[2]), 800, 250)
 
     handler.inspect(900, 380)
-    Mockito.verify(verifier).invoke(listOf(composeViewInfo), 900, 380)
+    verify(verifier).invoke(listOf(composeViewInfo), 900, 380)
   }
 
   private fun createViewInfo(): ComposeViewInfo {
