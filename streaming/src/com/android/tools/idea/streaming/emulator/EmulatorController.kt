@@ -42,6 +42,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
@@ -368,6 +369,27 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     emulatorControllerStub.setDisplayMode(displayMode,
                                           DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetDisplayModeMethod()))
+  }
+
+  /**
+   * Sets the XR-related options.
+   */
+  fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setXrOptions(${shortDebugString(xrOptions)})")
+    }
+    emulatorControllerStub.setXrOptions(xrOptions, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetXrOptionsMethod()))
+  }
+
+  /**
+   * Retrieves the XR-related options.
+   */
+  fun getXrOptions(streamObserver: StreamObserver<XrOptions>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getXrOptions()")
+    }
+    emulatorControllerStub.getXrOptions(EMPTY_PROTO,
+                                        DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetXrOptionsMethod()))
   }
 
   /**
