@@ -33,7 +33,10 @@ public interface DeclarativeLiteral extends DeclarativeValue {
   PsiElement getLongLiteral();
 
   @Nullable
-  PsiElement getStringLiteral();
+  PsiElement getMultilineStringLiteral();
+
+  @Nullable
+  PsiElement getOneLineStringLiteral();
 
   @Nullable
   PsiElement getUnsignedInteger();

@@ -22,7 +22,8 @@ import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHo
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LONG_LITERAL
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.NULL
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING_LITERAL
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeHighlightingLexer
@@ -43,7 +44,8 @@ class DeclarativeHighlighter : SyntaxHighlighterBase() {
     put(LINE_COMMENT, DeclarativeColor.COMMENT)
     put(BLOCK_COMMENT, DeclarativeColor.BLOCK_COMMENT)
 
-    put(STRING_LITERAL, DeclarativeColor.STRING)
+    put(ONE_LINE_STRING_LITERAL, DeclarativeColor.STRING)
+    put(MULTILINE_STRING_LITERAL, DeclarativeColor.STRING)
     put(BOOLEAN, DeclarativeColor.BOOLEAN)
     put(NULL, DeclarativeColor.NULL)
 

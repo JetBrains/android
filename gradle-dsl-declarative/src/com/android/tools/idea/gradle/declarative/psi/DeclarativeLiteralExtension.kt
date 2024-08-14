@@ -32,12 +32,18 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
   }
 
   class String(node: ASTNode) : DeclarativeLiteralKind(node) {
-    override val value: kotlin.String = node.text.trim('\"')
+    override val value: kotlin.String = node.text.trim('\"').unescape() ?: ""
   }
 
-    class Long(node: ASTNode) : DeclarativeLiteralKind(node) {
-      override val value: kotlin.Long? = node.text.toLongOrNull()
-    }
+  class MultilineString(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.String =
+      (if (node.text.length >= 6) node.text.removePrefix("\"\"\"").removeSuffix("\"\"\"") else node.text)
+        .unescapeMultiline() ?: ""
+  }
+
+  class Long(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Long? = node.text.toLongOrNull()
+  }
 
   class ULong(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.Long? = node.text.toLongOrNull()
@@ -55,7 +61,8 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
     fun fromAstNode(node: ASTNode): DeclarativeLiteralKind? {
       return when (node.elementType) {
         DeclarativeElementTypeHolder.BOOLEAN -> Boolean(node)
-        DeclarativeElementTypeHolder.STRING_LITERAL -> String(node)
+        DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL -> String(node)
+        DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL -> MultilineString(node)
         DeclarativeElementTypeHolder.LONG_LITERAL -> Long(node)
         DeclarativeElementTypeHolder.INTEGER_LITERAL -> Int(node)
         DeclarativeElementTypeHolder.UNSIGNED_LONG -> ULong(node)

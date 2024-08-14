@@ -49,7 +49,8 @@
     boolean = "regexp:(true|false)"
     null = "null"
     token
-    string_literal
+    one_line_string_literal
+    multiline_string_literal
 
     // Numbers
     integer_literal
@@ -94,7 +95,7 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+literal ::= multiline_string_literal | one_line_string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
 methods=[getValue]
 }
 private rvalue ::= factory | property | literal

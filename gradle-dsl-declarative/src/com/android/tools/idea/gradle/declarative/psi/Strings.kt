@@ -30,6 +30,17 @@ fun String.escape(): String {
   return sb.toString()
 }
 
+fun String.escapeMultilineString(): String {
+  val sb = StringBuilder()
+  for (char in this) {
+    when (char) {
+      '$' -> sb.append("\${'$'}")
+      else -> sb.append(char)
+    }
+  }
+  return sb.toString()
+}
+
 private fun String.unicodeSequenceAt(pos: Int): Pair<Char, Int>? {
   var code = 0
   for (i in 0 until 4) {
@@ -66,3 +77,6 @@ fun String.unescape(): String? {
   }
   return sb.toString()
 }
+
+fun String.unescapeMultiline(): String? =
+  this.replace("\${'$'}", "$")

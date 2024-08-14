@@ -47,8 +47,7 @@ UNSIGNED_INTEGER=({NUMBER_LITERAL} | {HEX_LITERAL} | {BIN_LITERAL}) [uU]
 LETTER=[a-zA-Z]
 TOKEN=({LETTER} | "_") ({LETTER} | "_" | [0-9])* | `[^\r\n`]+`
 
-STRING_LITERAL={MULTILINE_STRING_LITERAL} | {LINE_STRING_LITERAL}
-LINE_STRING_LITERAL=\" {LINE_STRING_CONTENT}* \"?
+ONE_LINE_STRING_LITERAL=\" {LINE_STRING_CONTENT}* \"?
 MULTILINE_STRING_LITERAL=\"\"\" {MULTILINE_STRING_CONTENT}* (\"\"\")?
 LINE_STRING_CONTENT=[^\\\"\r\n]+ | {ESCAPE_IDENTIFIER} | {UNI_CHARACTER_LITERAL}
 MULTILINE_STRING_CONTENT=[^\"]|(\"[^\"])|(\"\"[^\"])
@@ -65,27 +64,28 @@ UNI_CHARACTER_LITERAL=\\u {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT}
 }
 
 <YYINITIAL> {
-  {WHITE_SPACE}            { return WHITE_SPACE; }
+  {WHITE_SPACE}              { return WHITE_SPACE; }
 
-  "="                      { return OP_EQ; }
-  "."                      { return OP_DOT; }
-  "{"                      { return OP_LBRACE; }
-  "}"                      { return OP_RBRACE; }
-  "("                      { return OP_LPAREN; }
-  ")"                      { return OP_RPAREN; }
-  ","                      { return OP_COMMA; }
-  "null"                   { return NULL; }
-  ";"                      { return SEMI; }
+  "="                        { return OP_EQ; }
+  "."                        { return OP_DOT; }
+  "{"                        { return OP_LBRACE; }
+  "}"                        { return OP_RBRACE; }
+  "("                        { return OP_LPAREN; }
+  ")"                        { return OP_RPAREN; }
+  ","                        { return OP_COMMA; }
+  "null"                     { return NULL; }
+  ";"                        { return SEMI; }
 
-  {LINE_COMMENT}           { return LINE_COMMENT; }
-  "/*"                     { startBlockComment(); }
-  {STRING_LITERAL}         { return STRING_LITERAL; }
-  {BOOLEAN}                { return BOOLEAN; }
-  {TOKEN}                  { return TOKEN; }
-  {INTEGER_LITERAL}        { return INTEGER_LITERAL; }
-  {LONG_LITERAL}           { return LONG_LITERAL; }
-  {UNSIGNED_LONG}          { return UNSIGNED_LONG; }
-  {UNSIGNED_INTEGER}       { return UNSIGNED_INTEGER; }
+  {LINE_COMMENT}             { return LINE_COMMENT; }
+  "/*"                       { startBlockComment(); }
+  {ONE_LINE_STRING_LITERAL}  { return ONE_LINE_STRING_LITERAL; }
+  {MULTILINE_STRING_LITERAL} { return MULTILINE_STRING_LITERAL; }
+  {BOOLEAN}                  { return BOOLEAN; }
+  {TOKEN}                    { return TOKEN; }
+  {INTEGER_LITERAL}          { return INTEGER_LITERAL; }
+  {LONG_LITERAL}             { return LONG_LITERAL; }
+  {UNSIGNED_LONG}            { return UNSIGNED_LONG; }
+  {UNSIGNED_INTEGER}         { return UNSIGNED_INTEGER; }
 }
 
 [^] { return BAD_CHARACTER; }

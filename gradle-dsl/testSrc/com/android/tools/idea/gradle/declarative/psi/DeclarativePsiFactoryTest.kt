@@ -31,7 +31,16 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     val literal = DeclarativePsiFactory(project).createStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.String::class.java)
+    assertThat(literal.kind!!.value).isEqualTo("a\tb\bc\nd\re\'f\"g\\h\$i")
     assertThat(literal.text).isEqualTo("\"a\\tb\\bc\\nd\\re\\'f\\\"g\\\\h\\\$i\"")
+  }
+
+  fun testCreateMultilineStringEscapes() {
+    val literal = DeclarativePsiFactory(project).createMultiStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.MultilineString::class.java)
+    assertThat(literal.kind!!.value).isEqualTo("a\tb\bc\nd\re\'f\"g\\h\$i")
+    assertThat(literal.text).isEqualTo("\"\"\"a\tb\bc\nd\re\'f\"g\\h\${'$'}i\"\"\"")
   }
 
   fun testCreateStringUnicodeEscapes() {
@@ -46,6 +55,13 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.String::class.java)
     assertThat(literal.text).isEqualTo("\"someOtherLiteral\"")
+  }
+
+  fun testCreateLiteralMultiLineString() {
+    val literal = DeclarativePsiFactory(project).createLiteral("someOther\nLiteral")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.MultilineString::class.java)
+    assertThat(literal.text).isEqualTo("\"\"\"someOther\nLiteral\"\"\"")
   }
 
   fun testCreateIntegerLiteral() {

@@ -108,11 +108,12 @@ public class _DeclarativeLexer implements FlexLexer {
     "\2\0\1\1\1\2\1\3\1\4\1\5\1\6\1\7"+
     "\1\1\2\10\1\11\1\12\1\13\1\1\3\13\1\14"+
     "\1\15\3\16\2\3\1\0\1\17\1\20\1\0\1\21"+
-    "\1\22\3\0\3\13\1\23\1\24\2\3\1\0\1\10"+
-    "\1\25\1\10\4\13\4\0\1\26\1\27\3\0";
+    "\1\22\3\0\3\13\1\23\1\24\1\3\1\25\1\0"+
+    "\1\10\1\26\1\10\4\13\4\0\1\27\1\30\2\0"+
+    "\1\25\1\0";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[59];
+    int [] result = new int[60];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -144,10 +145,10 @@ public class _DeclarativeLexer implements FlexLexer {
     "\0\u035a\0\u0381\0\u03a8\0\u03cf\0\u03f6\0\u041d\0\116\0\116"+
     "\0\116\0\u0444\0\u046b\0\u0492\0\116\0\u04b9\0\116\0\u04e0"+
     "\0\u0507\0\u052e\0\u0555\0\u057c\0\u05a3\0\u05ca\0\u0138\0\u0138"+
-    "\0\u05f1\0\u0618\0\u063f";
+    "\0\u05f1\0\u0618\0\116\0\u063f";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[59];
+    int [] result = new int[60];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -206,8 +207,8 @@ public class _DeclarativeLexer implements FlexLexer {
     "\2\17\1\70\7\17\3\0\4\52\1\71\42\52\14\0"+
     "\3\72\2\0\2\72\7\0\4\72\22\0\1\54\2\0"+
     "\2\54\12\0\1\65\32\0\3\56\2\0\2\56\5\0"+
-    "\1\66\1\0\4\56\11\0\4\52\1\51\42\52\14\0"+
-    "\3\73\2\0\2\73\7\0\4\73\25\0\3\31\2\0"+
+    "\1\66\1\0\4\56\11\0\4\52\1\73\42\52\14\0"+
+    "\3\74\2\0\2\74\7\0\4\74\25\0\3\31\2\0"+
     "\2\31\7\0\4\31\11\0";
 
   private static int [] zzUnpacktrans() {
@@ -252,10 +253,10 @@ public class _DeclarativeLexer implements FlexLexer {
     "\2\0\1\11\2\1\4\11\3\1\2\11\5\1\2\11"+
     "\5\1\1\0\1\11\1\1\1\0\1\11\1\1\3\0"+
     "\3\1\3\11\1\1\1\0\1\1\1\11\1\1\1\11"+
-    "\3\1\4\0\2\1\3\0";
+    "\3\1\4\0\2\1\2\0\1\11\1\0";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[59];
+    int [] result = new int[60];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -580,117 +581,122 @@ public class _DeclarativeLexer implements FlexLexer {
             { return BAD_CHARACTER;
             }
           // fall through
-          case 24: break;
+          case 25: break;
           case 2:
             { return WHITE_SPACE;
             }
           // fall through
-          case 25: break;
+          case 26: break;
           case 3:
-            { return STRING_LITERAL;
+            { return ONE_LINE_STRING_LITERAL;
             }
           // fall through
-          case 26: break;
+          case 27: break;
           case 4:
             { return OP_LPAREN;
             }
           // fall through
-          case 27: break;
+          case 28: break;
           case 5:
             { return OP_RPAREN;
             }
           // fall through
-          case 28: break;
+          case 29: break;
           case 6:
             { return OP_COMMA;
             }
           // fall through
-          case 29: break;
+          case 30: break;
           case 7:
             { return OP_DOT;
             }
           // fall through
-          case 30: break;
+          case 31: break;
           case 8:
             { return INTEGER_LITERAL;
             }
           // fall through
-          case 31: break;
+          case 32: break;
           case 9:
             { return SEMI;
             }
           // fall through
-          case 32: break;
+          case 33: break;
           case 10:
             { return OP_EQ;
             }
           // fall through
-          case 33: break;
+          case 34: break;
           case 11:
             { return TOKEN;
             }
           // fall through
-          case 34: break;
+          case 35: break;
           case 12:
             { return OP_LBRACE;
             }
           // fall through
-          case 35: break;
+          case 36: break;
           case 13:
             { return OP_RBRACE;
             }
           // fall through
-          case 36: break;
+          case 37: break;
           case 14:
             { 
             }
           // fall through
-          case 37: break;
+          case 38: break;
           case 15:
             { startBlockComment();
             }
           // fall through
-          case 38: break;
+          case 39: break;
           case 16:
             { return LINE_COMMENT;
             }
           // fall through
-          case 39: break;
+          case 40: break;
           case 17:
             { return LONG_LITERAL;
             }
           // fall through
-          case 40: break;
+          case 41: break;
           case 18:
             { return UNSIGNED_INTEGER;
             }
           // fall through
-          case 41: break;
+          case 42: break;
           case 19:
             { if (--commentLevel == 0) { yybegin(YYINITIAL); return BLOCK_COMMENT; }
             }
           // fall through
-          case 42: break;
+          case 43: break;
           case 20:
             { commentLevel++;
             }
           // fall through
-          case 43: break;
-          case 21:
-            { return UNSIGNED_LONG;
-            }
-          // fall through
           case 44: break;
-          case 22:
-            { return NULL;
+          case 21:
+            { return MULTILINE_STRING_LITERAL;
             }
           // fall through
           case 45: break;
-          case 23:
-            { return BOOLEAN;
+          case 22:
+            { return UNSIGNED_LONG;
             }
           // fall through
           case 46: break;
+          case 23:
+            { return NULL;
+            }
+          // fall through
+          case 47: break;
+          case 24:
+            { return BOOLEAN;
+            }
+          // fall through
+          case 48: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }
