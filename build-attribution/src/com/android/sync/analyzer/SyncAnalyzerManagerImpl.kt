@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.SyncViewManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -41,6 +42,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtensi
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
+
 
 class SyncAnalyzerManagerImpl(
   val project: Project
@@ -76,13 +78,12 @@ class SyncAnalyzerManagerImpl(
   }
 }
 
-@Service
-class SyncAnalyzerDataManager {
+@Service(Service.Level.PROJECT)
+class SyncAnalyzerDataManager : Disposable {
   @VisibleForTesting
   val idToData = ConcurrentHashMap<ExternalSystemTaskId, DataHolder>()
 
   fun getOrCreateDataForTask(id: ExternalSystemTaskId, project: Project): DataHolder = idToData.computeIfAbsent(id) {
-    Disposer.register(project) { clearDataForTask(id) }
     DataHolder(it, project)
   }
 
@@ -90,6 +91,13 @@ class SyncAnalyzerDataManager {
 
   fun clearDataForTask(id: ExternalSystemTaskId) {
     idToData.remove(id)?.let { Disposer.dispose(it.buildDisposable) }
+  }
+
+  override fun dispose() {
+    idToData.forEach {
+      Disposer.dispose(it.value.buildDisposable)
+    }
+    idToData.clear()
   }
 
   class DataHolder(val id: ExternalSystemTaskId, project: Project) {
