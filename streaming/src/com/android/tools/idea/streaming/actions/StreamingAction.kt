@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorController
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -73,3 +75,6 @@ internal fun AnAction.enableRichTooltip(presentation: Presentation) {
     }
   })
 }
+
+internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
+    event.getData(DISPLAY_VIEW_KEY)

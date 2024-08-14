@@ -18,8 +18,6 @@ package com.android.tools.idea.streaming.actions
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
-import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorConfig
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -27,6 +25,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
+import com.intellij.util.containers.ContainerUtil.createConcurrentList
 
 /**
  * ToggleAction for hardware input.
@@ -37,14 +36,14 @@ import com.intellij.openapi.project.DumbAware
 internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
-    val deviceId = getDeviceId(event) ?: return false
-    return event.project?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
+    val displayView = getDisplayView(event) ?: return false
+    return event.project?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(displayView.deviceId) ?: false
   }
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
-    val deviceId = getDeviceId(event) ?: return
-    event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(deviceId, selected)
-    getDisplayView(event)?.hardwareInputStateChanged(event, selected)
+    val displayView = getDisplayView(event) ?: return
+    event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, selected)
+    displayView.hardwareInputStateChanged(event, selected)
   }
 
   override fun update(event: AnActionEvent) {
@@ -55,14 +54,6 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  private fun getDisplayView(event: AnActionEvent): AbstractDisplayView? {
-    return event.getData(EMULATOR_VIEW_KEY) ?: event.getData(DEVICE_VIEW_KEY)
-  }
-
-  private fun getDeviceId(event: AnActionEvent): DeviceId? {
-    return getDisplayView(event)?.deviceId
-  }
-
   companion object {
     const val ACTION_ID = "android.streaming.hardware.input"
   }
@@ -70,7 +61,8 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
 @Service(Service.Level.PROJECT)
 internal class HardwareInputStateStorage {
-  private val enabledDevices = mutableSetOf<String>()
+
+  private val enabledDevices = createConcurrentList<String>()
 
   fun isHardwareInputEnabled(deviceId: DeviceId): Boolean {
     return enabledDevices.contains(deviceId.storageKey)
@@ -86,7 +78,7 @@ internal class HardwareInputStateStorage {
 
   private val DeviceId.storageKey: String
     get() = when (this) {
-      is DeviceId.EmulatorDeviceId -> this.emulatorId.avdFolder.toString()
-      is DeviceId.PhysicalDeviceId -> this.serialNumber
+      is DeviceId.EmulatorDeviceId -> emulatorId.avdFolder.toString()
+      is DeviceId.PhysicalDeviceId -> serialNumber
     }
 }
