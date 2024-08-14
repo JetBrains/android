@@ -85,7 +85,7 @@ public class NlTreeBadgeHandler {
       if (pathBounds != null) {
         int y = pathBounds.y + pathBounds.height / 2;
         if (issue != null) {
-          Icon firstIcon = IssueModel.getIssueIcon(issue.getSeverity(), tree.isRowSelected(i) && tree.hasFocus());
+          Icon firstIcon = IssueModel.getIssueIcon(issue.getSeverity());
           if (firstIcon != null) {
             int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
             int iy = y - firstIcon.getIconHeight() / 2;

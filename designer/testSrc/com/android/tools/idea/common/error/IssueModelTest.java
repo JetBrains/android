@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error;
 
 import static com.android.tools.idea.common.error.MockIssueFactoryKt.createIssue;
-import static kotlinx.coroutines.flow.StateFlowKt.MutableStateFlow;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -165,7 +164,7 @@ public class IssueModelTest {
   @Test
   public void testIssueIconErrorInline() {
     HighlightSeverity severity = HighlightSeverity.ERROR;
-    Icon icon = IssueModel.getIssueIcon(severity, false);
+    Icon icon = IssueModel.getIssueIcon(severity);
     assertNotNull(icon);
     assertEquals(StudioIcons.Common.ERROR_INLINE, icon);
   }
@@ -173,15 +172,15 @@ public class IssueModelTest {
   @Test
   public void testIssueIconErrorInlineSelected() {
     HighlightSeverity severity = HighlightSeverity.ERROR;
-    Icon icon = IssueModel.getIssueIcon(severity, true);
+    Icon icon = IssueModel.getIssueIcon(severity);
     assertNotNull(icon);
-    assertEquals(StudioIcons.Common.ERROR_INLINE_SELECTED, icon);
+    assertEquals(StudioIcons.Common.ERROR_INLINE, icon);
   }
 
   @Test
   public void testIssueIconWarningInline() {
     HighlightSeverity severity = HighlightSeverity.INFORMATION;
-    Icon icon = IssueModel.getIssueIcon(severity, false);
+    Icon icon = IssueModel.getIssueIcon(severity);
     assertNotNull(icon);
     assertEquals(StudioIcons.Common.WARNING_INLINE, icon);
   }
@@ -189,9 +188,9 @@ public class IssueModelTest {
   @Test
   public void testIssueIconWarningInlineSelected() {
     HighlightSeverity severity = HighlightSeverity.INFORMATION;
-    Icon icon = IssueModel.getIssueIcon(severity, true);
+    Icon icon = IssueModel.getIssueIcon(severity);
     assertNotNull(icon);
-    assertEquals(StudioIcons.Common.WARNING_INLINE_SELECTED, icon);
+    assertEquals(StudioIcons.Common.WARNING_INLINE, icon);
   }
 
   @Test

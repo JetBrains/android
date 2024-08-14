@@ -97,7 +97,6 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DELETE = load("studio/icons/common/delete.svg", "intui/icons/common/delete.svg", 55368258, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/common/edit.svg", "intui/icons/common/edit.svg", -1443582273, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_DECORATOR = load("studio/icons/common/error-decorator.svg", "intui/icons/common/error-decorator.svg", 1752370570, 2);
-    /** 16x16 */ public static final @NotNull Icon ERROR_INLINE_SELECTED = load("studio/icons/common/error-inline-selected.svg", -1796742579, 0);
     /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", -1267613464, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_STACK = load("studio/icons/common/error-stack.svg", "intui/icons/common/error-stack.svg", 1724576961, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR = load("studio/icons/common/error.svg", "intui/icons/common/error.svg", -1991257582, 2);
@@ -107,17 +106,14 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/common/group.svg", "intui/icons/common/group.svg", -616944603, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("studio/icons/common/help.svg", "intui/icons/common/help.svg", 1868521137, 2);
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", "intui/icons/common/import-data.svg", 2036891466, 2);
-    /** 16x16 */ public static final @NotNull Icon INFO_INLINE_SELECTED = load("studio/icons/common/info-inline-selected.svg", 501598852, 0);
     /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", -2140866011, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("studio/icons/common/info.svg", "intui/icons/common/info.svg", 216054291, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("studio/icons/common/link.svg", "intui/icons/common/link.svg", 636172221, 2);
     /** 17x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", "intui/icons/common/list-view.svg", -1580146156, 2);
-    /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE_SELECTED = load("studio/icons/common/locked-inline-selected.svg", 147020694, 0);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE = load("studio/icons/common/locked-inline.svg", "intui/icons/common/locked-inline.svg", 2129025715, 2);
     /** 16x16 */ public static final @NotNull Icon LOGIN = load("studio/icons/common/login.svg", "intui/icons/common/login.svg", -152184853, 2);
     /** 16x16 */ public static final @NotNull Icon LOGOUT = load("studio/icons/common/logout.svg", "intui/icons/common/logout.svg", -377217031, 2);
     /** 16x16 */ public static final @NotNull Icon MISSING = load("studio/icons/common/missing.svg", "intui/icons/common/missing.svg", -514092134, 2);
-    /** 14x14 */ public static final @NotNull Icon MOVE_DOWN_SELECTED = load("studio/icons/common/move-down-selected.svg", -1222863025, 0);
     /** 16x16 */ public static final @NotNull Icon OVERFLOW = load("studio/icons/common/overflow.svg", "intui/icons/common/overflow.svg", -189393049, 2);
     /** 14x24 */ public static final @NotNull Icon PROPERTY_BOUND_FOCUS_LARGE = load("studio/icons/common/property-bound-focus-large.svg", 472436645, 2);
     /** 14x20 */ public static final @NotNull Icon PROPERTY_BOUND_FOCUS = load("studio/icons/common/property-bound-focus.svg", -1637631498, 2);
@@ -133,14 +129,11 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/common/screenshot.svg", "intui/icons/common/screenshot.svg", 1540467097, 2);
     /** 16x16 */ public static final @NotNull Icon SEARCH = load("studio/icons/common/search.svg", "intui/icons/common/search.svg", 1371267813, 2);
     /** 16x16 */ public static final @NotNull Icon SETTINGS = load("studio/icons/common/settings.svg", "intui/icons/common/settings.svg", 1783337616, 2);
-    /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE_SELECTED = load("studio/icons/common/success-inline-selected.svg", -1635771865, 0);
     /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("studio/icons/common/success-inline.svg", 622028579, 2);
     /** 16x16 */ public static final @NotNull Icon SUCCESS = load("studio/icons/common/success.svg", "intui/icons/common/success.svg", -683128264, 2);
     /** 16x16 */ public static final @NotNull Icon TYPO_STACK = load("studio/icons/common/typo-stack.svg", "intui/icons/common/typo-stack.svg", 1178996725, 2);
     /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("studio/icons/common/video-capture.svg", "intui/icons/common/video-capture.svg", -1824493774, 2);
-    /** 16x16 */ public static final @NotNull Icon VISIBILITY_INLINE_SELECTED = load("studio/icons/common/visibility-inline-selected.svg", -1248685856, 0);
     /** 16x16 */ public static final @NotNull Icon VISIBILITY_INLINE = load("studio/icons/common/visibility-inline.svg", "intui/icons/common/visibility-inline.svg", 2092521706, 2);
-    /** 16x16 */ public static final @NotNull Icon WARNING_INLINE_SELECTED = load("studio/icons/common/warning-inline-selected.svg", 745437309, 0);
     /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("studio/icons/common/warning-inline.svg", 1942569773, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING_STACK = load("studio/icons/common/warning-stack.svg", "intui/icons/common/warning-stack.svg", -1949741817, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING = load("studio/icons/common/warning.svg", "intui/icons/common/warning.svg", 485473669, 2);
@@ -321,13 +314,10 @@ public final class StudioIcons {
     public static final class Extras {
       /** 24x24 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("studio/icons/layout-editor/extras/download-overlay-legacy-large.svg", "intui/icons/layout-editor/extras/download-overlay-legacy-large.svg", 982198546, 2);
       /** 16x16 */ public static final @NotNull Icon DOWNLOAD_OVERLAY_LEGACY = load("studio/icons/layout-editor/extras/download-overlay-legacy.svg", "intui/icons/layout-editor/extras/download-overlay-legacy.svg", 1304878711, 2);
-      /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD_SELECTED = load("studio/icons/layout-editor/extras/palette-download-selected.svg", "intui/icons/layout-editor/extras/palette-download-selected.svg", 280412719, 0);
       /** 16x16 */ public static final @NotNull Icon PALETTE_DOWNLOAD = load("studio/icons/layout-editor/extras/palette-download.svg", "intui/icons/layout-editor/extras/palette-download.svg", -1079201257, 2);
       /** 24x24 */ public static final @NotNull Icon PIPETTE_LARGE = load("studio/icons/layout-editor/extras/pipette-large.svg", "intui/icons/layout-editor/extras/pipette-large.svg", -630191082, 2);
       /** 16x16 */ public static final @NotNull Icon PIPETTE = load("studio/icons/layout-editor/extras/pipette.svg", "intui/icons/layout-editor/extras/pipette.svg", 1904902152, 2);
-      /** 16x16 */ public static final @NotNull Icon ROOT_INLINE_SELECTED = load("studio/icons/layout-editor/extras/root-inline-selected.svg", "intui/icons/layout-editor/extras/root-inline-selected.svg", 1780441843, 0);
       /** 16x16 */ public static final @NotNull Icon ROOT_INLINE = load("studio/icons/layout-editor/extras/root-inline.svg", "intui/icons/layout-editor/extras/root-inline.svg", -182157023, 2);
-      /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE_SELECTED = load("studio/icons/layout-editor/extras/visibility-gone-inline-selected.svg", "intui/icons/layout-editor/extras/visibility-gone-inline-selected.svg", 1705175841, 0);
       /** 16x16 */ public static final @NotNull Icon VISIBILITY_GONE_INLINE = load("studio/icons/layout-editor/extras/visibility-gone-inline.svg", "intui/icons/layout-editor/extras/visibility-gone-inline.svg", -53755087, 2);
     }
 
@@ -347,7 +337,6 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ADD_TRANSITION = load("studio/icons/layout-editor/motion/add-transition.svg", "intui/icons/layout-editor/motion/add-transition.svg", -643784273, 2);
       /** 16x16 */ public static final @NotNull Icon BASE_LAYOUT = load("studio/icons/layout-editor/motion/base-layout.svg", "intui/icons/layout-editor/motion/base-layout.svg", -89995332, 2);
       /** 16x16 */ public static final @NotNull Icon CONSTRAINT_SET = load("studio/icons/layout-editor/motion/constraint-set.svg", "intui/icons/layout-editor/motion/constraint-set.svg", 1823755157, 2);
-      /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT_SELECTED = load("studio/icons/layout-editor/motion/end-constraint-selected.svg", "intui/icons/layout-editor/motion/end-constraint-selected.svg", 1579488402, 2);
       /** 16x16 */ public static final @NotNull Icon END_CONSTRAINT = load("studio/icons/layout-editor/motion/end-constraint.svg", "intui/icons/layout-editor/motion/end-constraint.svg", -569492308, 2);
       /** 16x16 */ public static final @NotNull Icon GESTURE = load("studio/icons/layout-editor/motion/gesture.svg", "intui/icons/layout-editor/motion/gesture.svg", -1073421695, 2);
       /** 16x16 */ public static final @NotNull Icon GO_TO_END = load("studio/icons/layout-editor/motion/go-to-end.svg", "intui/icons/layout-editor/motion/go-to-end.svg", 1344140723, 2);
@@ -369,9 +358,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon TIMELINE_ADD = load("studio/icons/layout-editor/motion/timeline-add.svg", "intui/icons/layout-editor/motion/timeline-add.svg", -2139233544, 2);
       /** 16x16 */ public static final @NotNull Icon TIMELINE_END_CONSTRAINT = load("studio/icons/layout-editor/motion/timeline-end-constraint.svg", "intui/icons/layout-editor/motion/timeline-end-constraint.svg", -213234163, 2);
       /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_HEADER = load("studio/icons/layout-editor/motion/timeline-keyframe-header.svg", "intui/icons/layout-editor/motion/timeline-keyframe-header.svg", 1965138829, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME_SELECTED = load("studio/icons/layout-editor/motion/timeline-keyframe-selected.svg", "intui/icons/layout-editor/motion/timeline-keyframe-selected.svg", 61172338, 2);
       /** 16x16 */ public static final @NotNull Icon TIMELINE_KEYFRAME = load("studio/icons/layout-editor/motion/timeline-keyframe.svg", "intui/icons/layout-editor/motion/timeline-keyframe.svg", -1985705707, 2);
-      /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT_SELECTED = load("studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg", "intui/icons/layout-editor/motion/timeline-start-constraint-selected.svg", -1716946127, 2);
       /** 16x16 */ public static final @NotNull Icon TIMELINE_START_CONSTRAINT = load("studio/icons/layout-editor/motion/timeline-start-constraint.svg", "intui/icons/layout-editor/motion/timeline-start-constraint.svg", -48857666, 2);
       /** 16x16 */ public static final @NotNull Icon TRANSITION = load("studio/icons/layout-editor/motion/transition.svg", "intui/icons/layout-editor/motion/transition.svg", -664655561, 2);
     }
@@ -496,7 +483,6 @@ public final class StudioIcons {
       /** 12x12 */ public static final @NotNull Icon DESIGN_PROPERTY_ENABLED = load("studio/icons/layout-editor/properties/design-property-enabled.svg", "intui/icons/layout-editor/properties/design-property-enabled.svg", 1495158148, 2);
       /** 12x12 */ public static final @NotNull Icon DESIGN_PROPERTY = load("studio/icons/layout-editor/properties/design-property.svg", "intui/icons/layout-editor/properties/design-property.svg", -167081192, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITES_HOVER = load("studio/icons/layout-editor/properties/favorites-hover.svg", "intui/icons/layout-editor/properties/favorites-hover.svg", -718478066, 2);
-      /** 16x16 */ public static final @NotNull Icon FAVORITES_SELECTED = load("studio/icons/layout-editor/properties/favorites-selected.svg", "intui/icons/layout-editor/properties/favorites-selected.svg", 29143605, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITES = load("studio/icons/layout-editor/properties/favorites.svg", "intui/icons/layout-editor/properties/favorites.svg", 214016979, 2);
       /** 14x14 */ public static final @NotNull Icon FLAG = load("studio/icons/layout-editor/properties/flag.svg", "intui/icons/layout-editor/properties/flag.svg", -241360752, 2);
       /** 16x16 */ public static final @NotNull Icon GONE_TOOLS_ATTRIBUTE = load("studio/icons/layout-editor/properties/gone-tools-attribute.svg", "intui/icons/layout-editor/properties/gone-tools-attribute.svg", 1379845635, 2);
