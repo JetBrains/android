@@ -95,10 +95,9 @@ class TemplateManager private constructor() {
       // Create the menu group item
       val categoryGroup: NonEmptyActionGroup = object : NonEmptyActionGroup() {
         override fun update(e: AnActionEvent) {
-          updateAction(e, category.name, childrenCount > 0, false)
+          super.update(e)
+          updateAction(e, category.name, e.presentation.isEnabled, false)
         }
-
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
       }
       categoryGroup.isPopup = true
       fillCategory(categoryGroup, category, am)
@@ -182,14 +181,14 @@ class TemplateManager private constructor() {
     @JvmStatic
     val instance = TemplateManager()
 
-    private fun updateAction(event: AnActionEvent, actionText: String?, visible: Boolean, disableIfNotReady: Boolean) {
+    private fun updateAction(event: AnActionEvent, actionText: String?, notEmpty: Boolean, disableIfNotReady: Boolean) {
       val module = event.getData(PlatformCoreDataKeys.MODULE)
       val facet = module?.androidFacet
       val isProjectReady = facet != null && AndroidModel.get(facet) != null
       event.presentation.apply {
         text = actionText + (" (Project not ready)".takeUnless { isProjectReady } ?: "")
-        isVisible = visible && facet != null && AndroidModel.isRequired(facet)
-        isEnabled = !disableIfNotReady || isProjectReady
+        isVisible = notEmpty && facet != null && AndroidModel.isRequired(facet)
+        isEnabled = notEmpty && (!disableIfNotReady || isProjectReady)
       }
     }
 
