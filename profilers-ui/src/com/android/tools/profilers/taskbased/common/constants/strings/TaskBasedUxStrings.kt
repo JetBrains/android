@@ -97,6 +97,7 @@ object TaskBasedUxStrings {
     ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Captures the call stacks during your app’s Java/Kotlin code execution"
     ProfilerTaskType.NATIVE_ALLOCATIONS -> "Captures native memory allocations"
     ProfilerTaskType.LIVE_VIEW -> "Displays and records a streaming timeline of CPU usage and memory footprint"
+    ProfilerTaskType.LEAKCANARY -> "Displays leaks detected by LeakCanary" //TODO(b/361643517): Need display string confirmation
     else -> ""
   }
 
@@ -123,6 +124,7 @@ object TaskBasedUxStrings {
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
       ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
       ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
+      ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
       ProfilerTaskType.UNSPECIFIED -> ""
     }
 
@@ -134,7 +136,7 @@ object TaskBasedUxStrings {
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
       ProfilerTaskType.NATIVE_ALLOCATIONS -> taskType.description
-      ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.UNSPECIFIED -> ""
+      ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.LEAKCANARY, ProfilerTaskType.UNSPECIFIED -> ""
     }
 
   fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionError) =

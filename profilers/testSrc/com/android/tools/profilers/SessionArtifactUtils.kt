@@ -17,9 +17,10 @@ package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
-import com.android.tools.profiler.proto.Trace.TraceInfo
 import com.android.tools.profiler.proto.Trace.TraceConfiguration
+import com.android.tools.profiler.proto.Trace.TraceInfo
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact
 import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
@@ -79,6 +80,11 @@ object SessionArtifactUtils {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     val info = TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build()
     return HeapProfdSessionArtifact(profilers, session, sessionMetadata, info)
+  }
+
+  fun createLeakCanarySessionArtifact(profilers: StudioProfilers, session: Common.Session): LeakCanarySessionArtifact {
+    val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
+    return LeakCanarySessionArtifact(profilers, session, sessionMetadata)
   }
 
   fun createAllocationSessionArtifact(profilers: StudioProfilers, session: Common.Session,

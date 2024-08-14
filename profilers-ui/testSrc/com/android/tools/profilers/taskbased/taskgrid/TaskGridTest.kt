@@ -26,8 +26,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -144,7 +144,7 @@ class TaskGridTest {
       TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithTag("System Trace", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithTag("Callstack Sample", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
@@ -153,6 +153,7 @@ class TaskGridTest {
     composeTestRule.onNodeWithTag("Heap Dump", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithTag("Native Allocations", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithTag("Live View", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("LeakCanary", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
   }
 
   @Test
@@ -161,7 +162,7 @@ class TaskGridTest {
       TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("System Trace").performClick()
