@@ -38,6 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyIssue
 import org.jetbrains.plugins.gradle.util.GradleBundle
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
@@ -122,6 +123,8 @@ class SyncFailureUsageReporter {
         GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID
       error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: '") == true ->
         GradleSyncFailure.UNKNOWN_PLUGIN_OTHER
+      error?.cause?.toString()?.startsWith("org.gradle.internal.resolve.ModuleVersionNotFoundException:") == true ->
+        GradleSyncFailure.MISSING_DEPENDENCY_OTHER
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
   }
