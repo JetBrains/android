@@ -37,6 +37,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -385,7 +386,7 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 @Composable
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
-  image: SystemImage,
+  image: ISystemImage,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -432,7 +433,7 @@ private fun EmulatedPerformanceGroup(
 
       Dropdown(
         device.graphicAcceleration,
-        listOf(GpuMode.AUTO, GpuMode.HOST, image.softwareItem()).toImmutableList(),
+        listOf(GpuMode.AUTO, GpuMode.HOST, GpuMode.getSoftwareGpuMode(image)).toImmutableList(),
         onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
         Modifier.alignByBaseline(),
       )

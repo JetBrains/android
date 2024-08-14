@@ -22,6 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.DeviceSystemImageMatcher
+import com.android.sdklib.ISystemImage
+import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
@@ -53,20 +56,31 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
   private val provisioner: LocalEmulatorProvisionerPlugin,
-  systemImages: ImmutableCollection<SystemImage>,
+  systemImages: ImmutableCollection<ISystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   private var systemImages by mutableStateOf(systemImages)
 
   companion object {
     internal fun create(provisioner: LocalEmulatorProvisionerPlugin): LocalVirtualDeviceSource {
-      val images = SystemImage.getSystemImages().toImmutableList()
-
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(provisioner, images, skins)
+      return LocalVirtualDeviceSource(provisioner, ISystemImages.get(), skins)
+    }
+
+    private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
+      // TODO: http://b/347053479
+      if (image.androidVersion.isPreview) {
+        return false
+      }
+
+      if (image.androidVersion.apiLevel != device.androidVersion.apiLevel) {
+        return false
+      }
+
+      return DeviceSystemImageMatcher.matches(device.device, image)
     }
   }
 
@@ -82,10 +96,10 @@ internal class LocalVirtualDeviceSource(
   @Composable
   internal fun WizardPageScope.ConfigurationPage(
     device: VirtualDevice,
-    image: SystemImage?,
-    finish: suspend (VirtualDevice, SystemImage) -> Boolean,
+    image: ISystemImage?,
+    finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
   ) {
-    val images = systemImages.filter { it.matches(device) }.toImmutableList()
+    val images = systemImages.filter { matches(device, it) }.toImmutableList()
 
     // TODO: http://b/342003916
     val configureDevicePanelState =
@@ -131,7 +145,7 @@ internal class LocalVirtualDeviceSource(
     }
   }
 
-  private suspend fun add(device: VirtualDevice, image: SystemImage): Boolean {
+  private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
     withContext(AndroidDispatchers.diskIoThread) {
       VirtualDevices().add(device, image)
       provisioner.refreshDevices()
@@ -145,15 +159,15 @@ internal class LocalVirtualDeviceSource(
    * @return true if the system image is present (either because it was already there or it was
    *   downloaded successfully).
    */
-  private suspend fun ensureSystemImageIsPresent(image: SystemImage, parent: Component): Boolean {
-    if (image.isRemote) {
+  private suspend fun ensureSystemImageIsPresent(image: ISystemImage, parent: Component): Boolean {
+    if (image is RemoteSystemImage) {
       val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
 
       if (!yes) {
         return false
       }
 
-      val finish = downloadSystemImage(parent, image.path)
+      val finish = downloadSystemImage(parent, image.`package`.path)
 
       if (!finish) {
         return false
@@ -176,10 +190,7 @@ internal class LocalVirtualDeviceSource(
       return false
     }
 
-    withContext(AndroidDispatchers.workerThread) {
-      systemImages = SystemImage.getSystemImages().toImmutableList()
-    }
-
+    withContext(AndroidDispatchers.workerThread) { systemImages = ISystemImages.get() }
     return true
   }
 
@@ -187,7 +198,10 @@ internal class LocalVirtualDeviceSource(
     get() =
       DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
         val androidVersions =
-          systemImages.filter { it.matches(device) }.mapTo(TreeSet()) { it.androidVersion }
+          systemImages
+            .filter { DeviceSystemImageMatcher.matches(device, it) }
+            .mapTo(TreeSet()) { it.androidVersion }
+
         // If there are no system images for a device, we can't create it.
         if (androidVersions.isEmpty()) null else device.toVirtualDeviceProfile(androidVersions)
       }

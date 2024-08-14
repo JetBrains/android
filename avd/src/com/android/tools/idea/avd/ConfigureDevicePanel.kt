@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.android.sdklib.ISystemImage
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
@@ -37,7 +38,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -51,7 +52,7 @@ internal fun ConfigureDevicePanel(
 @Composable
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -64,7 +65,7 @@ private fun Tabs(
   )
 
   val servicesSet =
-    images.mapTo(EnumSet.noneOf(Services::class.java), SystemImage::services).toImmutableSet()
+    images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
 
   // TODO: http://b/335494340
   var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.first())) }
@@ -93,7 +94,7 @@ private fun Tabs(
 }
 
 internal class ConfigureDevicePanelState
-internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, image: SystemImage) {
+internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, image: ISystemImage) {
   internal var device by mutableStateOf(device)
 
   internal var skins by mutableStateOf(skins)

@@ -22,6 +22,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
@@ -41,6 +42,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
@@ -49,6 +51,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
+    val version = AndroidVersion(34, null, 7, true)
     val fileSystem = createInMemoryFileSystem()
     val home = System.getProperty("user.home")
 
@@ -56,7 +59,7 @@ class AdditionalSettingsPanelTest {
       VirtualDevice(
         device = readTestDevices().first { it.id == "pixel_8" },
         name = "Pixel 8 API 34",
-        androidVersion = AndroidVersion(34, null, 7, true),
+        androidVersion = version,
         skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_8")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
@@ -72,7 +75,10 @@ class AdditionalSettingsPanelTest {
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )
 
-    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), mock())
+    val image = mock<ISystemImage>()
+    whenever(image.androidVersion).thenReturn(version)
+
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image)
 
     rule.setContent {
       CompositionLocalProvider(
