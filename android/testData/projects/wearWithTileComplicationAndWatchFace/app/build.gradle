@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.wear.watchface:watchface-guava:1.1.0'
-    implementation 'androidx.wear.watchface:watchface-complications-data-source-ktx:1.1.1'
-    implementation 'androidx.wear.tiles:tiles:1.0.0'
+    implementation 'androidx.wear.watchface:watchface-guava:1.2.1'
+    implementation 'androidx.wear.watchface:watchface-complications-data-source-ktx:1.2.1'
+    implementation 'androidx.wear.tiles:tiles:1.4.0'
 }
