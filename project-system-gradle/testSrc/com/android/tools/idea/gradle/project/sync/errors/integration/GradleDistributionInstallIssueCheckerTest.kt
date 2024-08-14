@@ -48,7 +48,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).contains("Could not install Gradle distribution from 'https://services.gradle.org/distributions/gradle-8.3-rc-2-bin.zip'.")
         expect.that(buildIssue.description).contains("Reason: java.lang.RuntimeException: Could not create parent directory for lock file ")
@@ -82,7 +82,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
-      { buildIssue ->
+      { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://127.0.0.1:1234/distributions/gradle-8.3-rc-2-bin.zip'.
@@ -118,7 +118,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     """.trimIndent())
     runSyncAndCheckBuildIssueFailure(
       preparedProject,
-      { buildIssue ->
+      { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).isEqualTo("""
           Could not install Gradle distribution from 'https://$unknownHost/distributions/gradle-8.3-rc-2-bin.zip'.

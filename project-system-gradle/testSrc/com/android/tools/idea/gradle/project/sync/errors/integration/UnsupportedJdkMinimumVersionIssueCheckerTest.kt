@@ -44,7 +44,7 @@ class UnsupportedJdkMinimumVersionIssueCheckerTest : AbstractIssueCheckerIntegra
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         val expectedText = StringBuilder("com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0\n")
         expectedText.append("Please use JDK 8 or newer.\n")

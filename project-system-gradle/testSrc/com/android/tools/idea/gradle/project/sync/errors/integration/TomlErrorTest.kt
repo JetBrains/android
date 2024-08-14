@@ -31,7 +31,7 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
     preparedProject: PreparedTestProject
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
-    verifySyncViewEvents = { buildEvents ->
+    verifySyncViewEvents = { _, buildEvents ->
       // Expect single BuildIssueEvent on Sync Output
       buildEvents.filterIsInstance<BuildIssueEvent>().let { events ->
         expect.that(events).hasSize(1)
