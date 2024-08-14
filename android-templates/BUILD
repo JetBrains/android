@@ -225,7 +225,8 @@ maven_repository(
         "@maven//:androidx.wear.tiles.tiles-material_1.4.0",
         "@maven//:androidx.wear.tiles.tiles-renderer_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.wear.tiles.tiles-tooling-preview_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.wear.tiles.tiles_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles-tooling_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.wear.tiles.tiles_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",

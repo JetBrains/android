@@ -49,6 +49,7 @@ dependencies {
     implementation libs.core.splashscreen
     implementation libs.tiles
     implementation libs.tiles.material
+    implementation libs.tiles.tooling.preview
     implementation libs.horologist.compose.tools
     implementation libs.horologist.tiles
     implementation libs.watchface.complications.data.source.ktx
@@ -56,4 +57,5 @@ dependencies {
     androidTestImplementation libs.ui.test.junit4
     debugImplementation libs.ui.tooling
     debugImplementation libs.ui.test.manifest
+    debugImplementation libs.tiles.tooling
 }
