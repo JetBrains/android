@@ -166,7 +166,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleSdkData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
@@ -2562,7 +2562,7 @@ fun injectSyncOutputDumper(
 ) {
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
-    object : ExternalSystemTaskNotificationListenerAdapter() {
+    object : ExternalSystemTaskNotificationListener {
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         if (id.ideProjectId != projectId) return
         outputHandler(project, text)

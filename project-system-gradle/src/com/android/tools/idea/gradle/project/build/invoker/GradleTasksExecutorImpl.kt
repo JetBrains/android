@@ -62,7 +62,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
@@ -277,7 +276,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             .withVmOptions(traceJvmArgs)
             .withArguments(commandLineArguments)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
-          val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
+          val listener = object : ExternalSystemTaskNotificationListener {
             override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
               if (myBuildStopper.contains(id)) {
                 taskListener.onStatusChange(event)
