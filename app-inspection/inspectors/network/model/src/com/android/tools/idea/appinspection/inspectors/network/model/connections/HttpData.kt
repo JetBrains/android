@@ -20,10 +20,12 @@ import com.android.tools.idea.protobuf.ByteString
 import com.intellij.util.io.URLUtil
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.URI
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
+import org.brotli.dec.BrotliInputStream
 import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
@@ -113,16 +115,11 @@ data class HttpData(
     get() = emptyMap()
 
   fun getReadableResponsePayload(): ByteString {
-    return if (getContentEncodings().find { it.lowercase() == "gzip" } != null) {
-      try {
-        GZIPInputStream(ByteArrayInputStream(responsePayload.toByteArray())).use {
-          ByteString.copyFrom(it.readBytes())
-        }
-      } catch (ignored: IOException) {
-        responsePayload
-      }
-    } else {
-      responsePayload
+    val encodings = getContentEncodings().map { it.lowercase() }
+    return when {
+      encodings.contains("gzip") -> responsePayload.readWith { GZIPInputStream(it) }
+      encodings.contains("br") -> responsePayload.readWith { BrotliInputStream(it) }
+      else -> responsePayload
     }
   }
 
@@ -294,3 +291,11 @@ private fun HttpTransport.toDisplayText() =
     HttpTransport.UNDEFINED,
     HttpTransport.UNRECOGNIZED -> "Unknown"
   }
+
+private fun ByteString.readWith(wrap: (InputStream) -> InputStream): ByteString {
+  return try {
+    wrap(ByteArrayInputStream(toByteArray())).use { ByteString.copyFrom(it.readBytes()) }
+  } catch (ignored: IOException) {
+    this
+  }
+}

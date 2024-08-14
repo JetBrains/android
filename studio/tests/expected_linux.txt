@@ -1978,6 +1978,7 @@ android-studio/plugins/android/lib/core-3.5.0.jar
 android-studio/plugins/android/lib/core-common-2.2.0.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/database_inspector_java_proto.jar
+android-studio/plugins/android/lib/dec-0.1.2.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
