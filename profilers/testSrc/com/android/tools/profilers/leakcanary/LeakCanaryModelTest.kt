@@ -146,7 +146,7 @@ class FakeLeakCanaryCommandHandler(timer: FakeTimer,
   }
 
   companion object {
-    private const val TEST_DATA_PATH = "tools/adt/idea/profilers/testData/sampleLeaks/"
+    const val TEST_DATA_PATH = "tools/adt/idea/profilers/testData/sampleLeaks/"
 
     fun getLeakCanaryEvent(profilers: StudioProfilers, leakToSendFile: String): Common.Event {
       val file = TestUtils.resolveWorkspacePath("${TEST_DATA_PATH}/$leakToSendFile").toFile()

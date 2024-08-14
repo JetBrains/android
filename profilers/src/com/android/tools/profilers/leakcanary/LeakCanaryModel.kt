@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.leakcanary
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.leakcanarylib.LeakCanarySerializer
 import com.android.tools.leakcanarylib.data.Analysis
@@ -22,7 +23,9 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ModelStage
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -129,5 +132,38 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
       }
     }
     profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+  }
+
+  // Setting it to UNKNOWN_STAGE since stage usage is avoided in task-based ux.
+  override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
+
+  fun loadFromPastSession(startTimestamp: Long,
+                          endTimeStamp: Long,
+                          session: Common.Session) {
+    leakEvents = getAllLeakCanaryEvents(session, startTimestamp, endTimeStamp) as MutableList<Analysis>
+    _leaksDetectedCount.value = leakEvents.size
+  }
+
+  private fun getAllLeakCanaryEvents(session: Common.Session,
+                                     startTimestamp: Long,
+                                     endTimeStamp: Long): List<Analysis> {
+    val result = getLeaksFromRange(profilers.client, session, Range(startTimestamp.toDouble(), endTimeStamp.toDouble()))
+    return result.mapNotNull { event -> getEventFromLogcatMessage(event.leakcanaryLogcat.logcatMessage) }
+  }
+
+  companion object {
+    fun getLeaksFromRange(
+      profilerClient: ProfilerClient,
+      session: Common.Session,
+      range: Range): List<Common.Event> {
+     return profilerClient.transportClient.getEventGroups(
+        Transport.GetEventGroupsRequest.newBuilder()
+          .setStreamId(session.streamId)
+          .setPid(session.pid)
+          .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT)
+          .setFromTimestamp(range.min.toLong())
+          .setToTimestamp(range.max.toLong())
+          .build()).groupsList.flatMap{group -> group.eventsList.toList()}
+    }
   }
 }
