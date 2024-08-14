@@ -186,11 +186,9 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.6.6",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
@@ -200,7 +198,6 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.6.6",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.6.6",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
@@ -265,9 +262,9 @@ maven_repository(
         "@maven//:androidx.wear.compose.compose-material_1.2.1",
         "@maven//:androidx.wear.compose.compose-navigation_1.2.1",
         "@maven//:androidx.wear.compose.compose-ui-tooling_1.2.1",
-        "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
-        "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
-        "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
+        "@maven//:androidx.wear.tiles.tiles-material_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles_1.4.0",
+        "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.2.1",
         "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
@@ -301,8 +298,8 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-pay_16.1.0",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
         "@maven//:com.google.android.gms.play-services-wearable_18.0.0",
-        "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
-        "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
+        "@maven//:com.google.android.horologist.horologist-compose-tools_0.6.17",
+        "@maven//:com.google.android.horologist.horologist-tiles_0.6.17",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.1.0",
         "@maven//:com.google.android.material.material_1.10.0",
