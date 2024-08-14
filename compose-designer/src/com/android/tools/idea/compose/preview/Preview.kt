@@ -230,25 +230,25 @@ fun configureLayoutlibSceneManager(
   quality: Float,
 ): LayoutlibSceneManager =
   sceneManager.apply {
-    setTransparentRendering(!showDecorations)
-    setShrinkRendering(!showDecorations)
-    // When the cache successful render image is enabled, the scene manager will retain the last
-    // valid image even if subsequent renders fail. But do not cache in interactive mode as it does
-    // not help and it would make unnecessary copies of the bitmap.
-    setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive)
-    setClassesToPreload(if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList())
-    isUsePrivateClassLoader = requestPrivateClassLoader
-    setShowDecorations(showDecorations)
-    // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
-    // Scene Manager to not report it via the regular log.
-    doNotReportOutOfDateUserClasses()
-    setQuality(quality)
-    if (runAtfChecks || runVisualLinting) {
-      setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
-    } else {
-      setCustomContentHierarchyParser(null)
+    sceneRenderConfiguration.let { config ->
+      config.useTransparentRendering = !showDecorations
+      config.useShrinkRendering = !showDecorations
+      // When the cache successful render image is enabled, the scene manager will retain the last
+      // valid image even if subsequent renders fail. But do not cache in interactive mode as it
+      // does not help, and it would make unnecessary copies of the bitmap.
+      config.cacheSuccessfulRenderImage =
+        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive
+      config.classesToPreload = if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      config.usePrivateClassLoader = requestPrivateClassLoader
+      config.showDecorations = showDecorations
+      // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
+      // Scene Manager to not report it via the regular log.
+      config.reportOutOfDateUserClasses = false
+      config.quality = quality
+      config.customContentHierarchyParser =
+        if (runAtfChecks || runVisualLinting) accessibilityBasedHierarchyParser else null
+      config.layoutScannerConfig.isLayoutScannerEnabled = runAtfChecks
     }
-    layoutScannerConfig.isLayoutScannerEnabled = runAtfChecks
     visualLintMode =
       if (runVisualLinting) {
         VisualLintMode.RUN_ON_PREVIEW_ONLY

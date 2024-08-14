@@ -168,20 +168,19 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlSurfaceBuilder.builder(project, this@VisualizationForm) {
-          surface: NlDesignSurface,
-          model: NlModel ->
-          val sceneManager = LayoutlibSceneManager(model, surface, config)
-          sceneManager.setListenResourceChange(false)
-          sceneManager.setShowDecorations(
-            VisualizationToolSettings.getInstance().globalState.showDecoration
-          )
-          sceneManager.setUpdateAndRenderWhenActivated(false)
-          sceneManager.setUseImagePool(false)
-          // 0.5f makes it spend 50% memory.
-          sceneManager.setQuality(0.5f)
-          sceneManager.setLogRenderErrors(false)
-          sceneManager
+      NlSurfaceBuilder.builder(project, this@VisualizationForm) { surface, model ->
+          LayoutlibSceneManager(model, surface, config).apply {
+            setListenResourceChange(false)
+            setUpdateAndRenderWhenActivated(false)
+            sceneRenderConfiguration.let {
+              it.showDecorations =
+                VisualizationToolSettings.getInstance().globalState.showDecoration
+              it.useImagePool = false
+              // 0.5f makes it spend 50% memory.
+              it.quality = 0.5f
+              it.logRenderErrors = false
+            }
+          }
         }
         .setActionManagerProvider { surface: DesignSurface<*> ->
           VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
@@ -607,7 +606,7 @@ class VisualizationForm(
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
-            manager.forceReinflate()
+            manager.sceneRenderConfiguration.forceReinflate()
             return@thenCompose manager
               .requestRenderAsync()
               .thenRunAsync(
@@ -733,7 +732,7 @@ class VisualizationForm(
       val visualizationForm = e.getData(VISUALIZATION_FORM) ?: return
       surface.models
         .mapNotNull { model: NlModel -> surface.getSceneManager(model) }
-        .forEach { manager -> manager.setShowDecorations(state) }
+        .forEach { manager -> manager.sceneRenderConfiguration.showDecorations = state }
       surface.requestRender().thenRun {
         if (!Disposer.isDisposed(visualizationForm.myWorkBench)) {
           visualizationForm.myWorkBench.showContent()

@@ -72,7 +72,8 @@ private fun createPreviewDesignSurfaceBuilder(
       LayoutlibSceneManager(model, surface, sceneComponentProvider).also {
         it.setListenResourceChange(false) // don't re-render on resource changes
         it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
-        it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
+        it.sceneRenderConfiguration.renderingTopic =
+          RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
       }
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }

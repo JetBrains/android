@@ -38,7 +38,8 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
       surface.models
         .firstOrNull()
         ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
-        ?.isShowingDecorations ?: false
+        ?.sceneRenderConfiguration
+        ?.showDecorations ?: false
     // A selected state could need to change to unselected due to changing to a wear device.
     // Make sure to update the selection here in such scenario
     if (isSelected && editor.configuration.device.isWear()) {
@@ -65,7 +66,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     val surface = editor.scene.designSurface
     surface.models
       .mapNotNull { surface.getSceneManager(it) as? LayoutlibSceneManager }
-      .forEach { it.setShowDecorations(selected) }
+      .forEach { it.sceneRenderConfiguration.showDecorations = selected }
     // Changing the decoration needs to rebuild the RenderTask, so we have to force re-render the
     // layouts.
     surface.forceRefresh()

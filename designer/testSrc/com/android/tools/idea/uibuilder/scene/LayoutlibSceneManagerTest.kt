@@ -25,7 +25,6 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.concurrency.EdtExecutorService
@@ -69,54 +68,10 @@ class LayoutlibSceneManagerTest : SceneTest() {
     assertNotNull(myLayoutlibSceneManager.secondarySceneView)
   }
 
-  fun testChangingShowDecorationsForcesReinflate() {
-    val defaultShowDecorations = myLayoutlibSceneManager.isShowingDecorations
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setShowDecorations(!defaultShowDecorations)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setShowDecorations(defaultShowDecorations)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testChangingUsePrivateClassLoaderForcesReinflate() {
-    val defaultIsUsePrivateClassLoader = myLayoutlibSceneManager.isUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.isUsePrivateClassLoader = !defaultIsUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.isUsePrivateClassLoader = defaultIsUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testSettingShrinkRenderingForcesReinflate() {
-    val defaultShrinkRendering = myLayoutlibSceneManager.isUseShrinkRendering
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setShrinkRendering(!defaultShrinkRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setShrinkRendering(defaultShrinkRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testSettingTransparentRenderingForcesReinflate() {
-    val defaultTransparentRendering = myLayoutlibSceneManager.isUseTransparentRendering
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setTransparentRendering(!defaultTransparentRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setTransparentRendering(defaultTransparentRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
   fun testDoNotCacheSuccessfulRenderImage() = runBlocking {
-    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(false)
+    myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = false
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.forceReinflate()
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)
@@ -139,9 +94,9 @@ class LayoutlibSceneManagerTest : SceneTest() {
   }
 
   fun testCacheSuccessfulRenderImage() = runBlocking {
-    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(true)
+    myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = true
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.forceReinflate()
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)
