@@ -32,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONTENT_CARD = "content"
@@ -46,13 +47,20 @@ class InsightContentPanel(
 
   private val cardLayout = CardLayout()
 
-  private val insightContentPanel = InsightTextPane()
+  private val insightTextPane = InsightTextPane()
+  private val feedbackPanel = InsightFeedbackPanel()
 
   private val insightPanel =
+    JPanel(VerticalLayout()).apply {
+      add(insightTextPane)
+      add(feedbackPanel)
+    }
+
+  private val insightScrollPanel =
     JPanel(BorderLayout()).apply {
       val scrollPane =
         ScrollPaneFactory.createScrollPane(
-            insightContentPanel,
+            insightPanel,
             JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER,
           )
@@ -68,7 +76,7 @@ class InsightContentPanel(
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
       border = JBUI.Borders.empty()
-      add(insightPanel)
+      add(insightScrollPanel)
     }
 
   private val emptyOrErrorPanel: JPanel =
@@ -93,6 +101,7 @@ class InsightContentPanel(
 
     scope.launch {
       currentInsightFlow.distinctUntilChanged().collect { aiInsight ->
+        feedbackPanel.resetFeedback()
         when (aiInsight) {
           is LoadingState.Ready -> {
             when (aiInsight.value) {
@@ -119,14 +128,14 @@ class InsightContentPanel(
                   }
                   showEmptyCard()
                 } else {
-                  insightContentPanel.text = insight.rawInsight
+                  insightTextPane.text = insight.rawInsight
                   showContentCard()
                 }
               }
             }
           }
           is LoadingState.Loading -> {
-            insightContentPanel.text = ""
+            insightTextPane.text = ""
             showContentCard(true)
           }
           // Permission denied message is confusing. Provide a generic message
@@ -168,6 +177,7 @@ class InsightContentPanel(
     } else {
       loadingPanel.stopLoading()
     }
+    insightPanel.isVisible = !startLoading
     cardLayout.show(this, card)
   }
 
