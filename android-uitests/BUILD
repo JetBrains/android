@@ -263,6 +263,8 @@ maven_repository(
         "@maven//:androidx.wear.compose.compose-navigation_1.2.1",
         "@maven//:androidx.wear.compose.compose-ui-tooling_1.2.1",
         "@maven//:androidx.wear.tiles.tiles-material_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles-tooling-preview_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles-tooling_1.4.0",
         "@maven//:androidx.wear.tiles.tiles_1.4.0",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.2.1",
         "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
