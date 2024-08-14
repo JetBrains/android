@@ -77,6 +77,11 @@ debugger_test(
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinEvaluateExpressionTestGenerated",
     ],
     split_tests_art = {
+        "ambiguous_chains": "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.java.AmbiguousChainsTest",
+        "async_stack_trace": "org.jetbrains.kotlin.idea.debugger.test.AsyncStackTraceTestGenerated",
+        "breakpoint_applicability": "org.jetbrains.kotlin.idea.debugger.test.BreakpointApplicabilityTestGenerated",
+        "class_name_calculator": "org.jetbrains.kotlin.idea.debugger.test.ClassNameCalculatorTestGenerated",
+        "ir_breakpoint_highlighting": "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated",
         "k1k2_kotlin_stepping": shard("org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated", 20),
     },
     test_exclude_filter_art = [
@@ -177,17 +182,22 @@ debugger_test(
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Uncategorized#testStopInInlinedLambdaInSuspendFunctionWithSuspendPointsInObjectLiteral",
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Uncategorized#testWhenWithoutExpression",
 
+        # K1IdeK2CodeAsyncStackTraceTestGenerated
+        "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeAsyncStackTraceTestGenerated",
+
+        # IrBreakpointHighlightingTestGenerated
+        "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated#testConditionalReturn",
+        "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated#testConditionalReturnInLambda",
+        "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated#testMultiLineLambda",
+        "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated#testAnonymousFun",
+
         # UNKNOWN:
         "org.jetbrains.kotlin.idea.debugger.test.InlineScopesAndK1IdeK2CodeEvaluateExpressionTestGenerated",
-        "org.jetbrains.kotlin.idea.debugger.test.AsyncStackTraceTestGenerated",
-        "org.jetbrains.kotlin.idea.debugger.test.BreakpointApplicabilityTestGenerated",
-        "org.jetbrains.kotlin.idea.debugger.test.ClassNameCalculatorTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.ContinuationStackTraceTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.CoroutineDumpTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.FileRankingTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.IndyLambdaIrKotlinEvaluateExpressionTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.IndyLambdaIrKotlinSteppingTestGenerated",
-        "org.jetbrains.kotlin.idea.debugger.test.IrBreakpointHighlightingTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.IrKotlinEvaluateExpressionInMppTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.IrKotlinEvaluateExpressionTestGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.IrKotlinEvaluateExpressionWithIRFragmentCompilerTestGenerated",
@@ -214,7 +224,6 @@ debugger_test(
         "org.jetbrains.kotlin.idea.debugger.test.sequence.exec.IrSequenceTraceWithIREvaluatorTestCaseGenerated",
         "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.collection.PositiveCollectionBuildTest",
         "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.collection.TypedCollectionChainTest",
-        "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.java.AmbiguousChainsTest",
         "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.java.LocationPositiveChainTest",
         "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.java.NegativeJavaStreamTest",
         "org.jetbrains.kotlin.idea.debugger.test.sequence.psi.java.TypedJavaChainTest",
