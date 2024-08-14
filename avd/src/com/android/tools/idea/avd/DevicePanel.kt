@@ -32,7 +32,6 @@ import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
-import com.intellij.icons.ExpUiIcons
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.ui.component.CheckboxRow
@@ -42,6 +41,7 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
+import org.jetbrains.jewel.ui.icon.PathIconKey
 
 @Composable
 internal fun DevicePanel(
@@ -209,7 +209,7 @@ internal constructor(
 
 @Composable
 private fun DownloadButton(onClick: () -> Unit) {
-  IconButton(onClick) { Icon("expui/general/download.svg", null, ExpUiIcons::class.java) }
+  IconButton(onClick) { Icon(PathIconKey("expui/general/download.svg"), null) }
 }
 
 @Composable
