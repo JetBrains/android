@@ -109,7 +109,7 @@ private fun getNdkDetails(
   progress: ProgressIndicator
 ): String {
   return buildString {
-    project.getAndroidFacets().forEach(Consumer { facet: AndroidFacet ->
+    project?.getAndroidFacets()?.forEach(Consumer { facet: AndroidFacet ->
       val module = facet.module
       val ndkFacet = getInstance(module)
       val ndkModuleModel = ndkFacet?.ndkModuleModel

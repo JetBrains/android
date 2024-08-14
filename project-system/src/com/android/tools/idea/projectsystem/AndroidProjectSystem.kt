@@ -231,7 +231,7 @@ fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModu
 /**
  * Returns a list of all Android holder modules. These are the intellij [Module] objects that correspond to an emptyish (no roots/deps)
  * module that contains the other source set modules as children. If you need to obtain the actual module for the currently active source
- * set then please you [getMainModule] on the return [Module] objects.
+ * set then please use [getMainModule] on the return [Module] objects.
  *
  * If [additionalFilter] is supplied then the modules list returns will also only contain modules passing that filter.
  */
@@ -246,12 +246,12 @@ fun Project.getAndroidModulesForDisplay(additionalFilter: ((Module) -> Boolean)?
  *
  * Note: A copy of AndroidFacet is attached to all source set modules so we need to filter only the ones belong to holder modules here.
  */
-fun Project?.getAndroidFacets(): List<AndroidFacet> {
-  return this?.let {
+fun Project.getAndroidFacets(): List<AndroidFacet> {
+  return this.let {
     ProjectFacetManager.getInstance(this).getFacets(AndroidFacet.ID).filter { facet ->
     facet.module.isHolderModule()
     }
-  } ?: listOf()
+  }
 }
 
 /**
