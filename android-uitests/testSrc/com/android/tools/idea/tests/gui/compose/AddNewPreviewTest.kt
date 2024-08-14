@@ -70,7 +70,7 @@ class AddNewPreviewTest {
         @Preview(name = "Second")
         @Composable
         fun SecondPreview() {
-          MaterialTheme {
+          MyApplicationTheme {
             Text(text = "A second preview")
       """.trimIndent())
 
