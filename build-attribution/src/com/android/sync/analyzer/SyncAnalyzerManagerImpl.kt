@@ -50,7 +50,7 @@ class SyncAnalyzerManagerImpl(
 
   override fun updateSyncStatsData(id: ExternalSystemTaskId?, syncStats: GradleSyncStats.Builder) {
     if (id == null) return
-    service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)?.let { downloadsData ->
+    project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)?.let { downloadsData ->
       syncStats.downloadsData = transformDownloadsAnalyzerData(downloadsData.downloadsStatsAccumulator.repositoryResults)
     }
   }
@@ -58,14 +58,14 @@ class SyncAnalyzerManagerImpl(
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
     if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
-      val data = service<SyncAnalyzerDataManager>().getOrCreateDataForTask(id, project)
+      val data = project.service<SyncAnalyzerDataManager>().getOrCreateDataForTask(id)
       project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
     }
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
     if (id == null) return
-    service<SyncAnalyzerDataManager>().clearDataForTask(id)
+    project.service<SyncAnalyzerDataManager>().clearDataForTask(id)
   }
 
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
@@ -79,11 +79,11 @@ class SyncAnalyzerManagerImpl(
 }
 
 @Service(Service.Level.PROJECT)
-class SyncAnalyzerDataManager : Disposable {
+class SyncAnalyzerDataManager(val project: Project) : Disposable {
   @VisibleForTesting
   val idToData = ConcurrentHashMap<ExternalSystemTaskId, DataHolder>()
 
-  fun getOrCreateDataForTask(id: ExternalSystemTaskId, project: Project): DataHolder = idToData.computeIfAbsent(id) {
+  fun getOrCreateDataForTask(id: ExternalSystemTaskId): DataHolder = idToData.computeIfAbsent(id) {
     DataHolder(it, project)
   }
 
@@ -120,7 +120,7 @@ class SyncAnalyzerOperationHelperExtension : GradleOperationHelperExtension {
     if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
     val project = id.findProject() ?: return
 
-    val syncData = service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)
+    val syncData = project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)
     if (syncData != null) {
       val downloadEventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(syncData.downloadsStatsAccumulator, syncData.downloadsInfoDataModel)
 
