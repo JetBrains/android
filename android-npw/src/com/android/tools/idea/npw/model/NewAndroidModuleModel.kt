@@ -168,8 +168,8 @@ class NewAndroidModuleModel(
           data = data as ModuleTemplateData,
           appTitle = applicationName.get(),
           useKts = useGradleKts.get(),
-          bytecodeLevel = bytecodeLevel.value,
-          useVersionCatalog = useVersionCatalog.get())
+          useVersionCatalog = useVersionCatalog.get()
+        )
       }
       FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(

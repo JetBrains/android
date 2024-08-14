@@ -38,6 +38,8 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.android.tools.idea.gradle.project.sync.quickFixes.getTargetJavaVersion
+import com.android.tools.idea.gradle.project.sync.quickFixes.setJavaKotlinCompileOptions
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
@@ -619,6 +621,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in
    * kotlinOptions.
    */
+  @Deprecated("Use setJavaKotlinCompileOptions instead")
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
     var languageLevel = LanguageLevel.parse(version)!!
     // Kotlin does not support 1.7
@@ -644,6 +647,33 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (kotlinSupport && (context.moduleTemplateData)?.isDynamic != true) {
       updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
     }
+  }
+
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in
+   * kotlinOptions, based on the Gradle JDK version
+   */
+  override fun setJavaKotlinCompileOptions(isKotlin: Boolean) {
+    val buildModel = moduleGradleBuildModel ?: return
+    val languageLevel = pickLanguageLevel()
+
+    val agpApplied =
+      buildModel.appliedPlugins().any { it.name().valueAsString()?.contains("android") == true }
+
+    // The language level property may already be set in the module if this is, for example, a new
+    // activity template
+    val currentJavaVersion = buildModel.getTargetJavaVersion()
+    if (currentJavaVersion == null || currentJavaVersion.isLessThan(languageLevel)) {
+      buildModel.setJavaKotlinCompileOptions(languageLevel, agpApplied, isKotlin)
+    }
+  }
+
+  /**
+   * Picks the lowest reasonable Java version for templates, which later may be based on the Gradle
+   * JDK version
+   */
+  private fun pickLanguageLevel(): LanguageLevel {
+    return LanguageLevel.JDK_11
   }
 
   override fun addDynamicFeature(name: String, toModule: File) {
