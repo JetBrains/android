@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -44,8 +42,9 @@ import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
-import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 
 object DesignSurfaceTestUtil {
 
@@ -58,35 +57,35 @@ object DesignSurfaceTestUtil {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
-    whenever(surface.getData(any(String::class.java))).thenCallRealMethod()
-    whenever(surface.layeredPane).thenReturn(JLayeredPane())
+    Mockito.`when`(surface.getData(any<String>())).thenCallRealMethod()
+    Mockito.`when`(surface.layeredPane).thenReturn(JLayeredPane())
     val selectionModel: SelectionModel = DefaultSelectionModel()
-    whenever(surface.selectionModel).thenReturn(selectionModel)
-    whenever(surface.size).thenReturn(Dimension(1000, 1000))
-    whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
-    whenever(surface.selectionAsTransferable).thenCallRealMethod()
+    Mockito.`when`(surface.selectionModel).thenReturn(selectionModel)
+    Mockito.`when`(surface.size).thenReturn(Dimension(1000, 1000))
+    Mockito.`when`(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
+    Mockito.`when`(surface.selectionAsTransferable).thenCallRealMethod()
     val pannable = TestPannable()
-    whenever(surface.pannable).thenReturn(pannable)
+    Mockito.`when`(surface.pannable).thenReturn(pannable)
     val interactable = TestInteractable(pannable, JPanel(), surface)
-    whenever(surface.guiInputHandler)
+    Mockito.`when`(surface.guiInputHandler)
       .thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
-      whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
-      whenever(surface.actionManager).thenReturn(NlActionManager(surface))
-      whenever(surface.layoutPreviewHandler)
+      Mockito.`when`(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
+      Mockito.`when`(surface.actionManager).thenReturn(NlActionManager(surface))
+      Mockito.`when`(surface.layoutPreviewHandler)
         .thenReturn(
           object : LayoutPreviewHandler {
             override var previewWithToolsVisibilityAndPosition = true
           }
         )
     } else {
-      whenever(surface.actionManager)
+      Mockito.`when`(surface.actionManager)
         .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     }
-    Mockito.doAnswer { listeners.add(it.getArgument(0)) }.whenever(surface).addListener(any())
+    Mockito.doAnswer { listeners.add(it.getArgument(0)) }.`when`(surface).addListener(any())
 
     Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }
-      .whenever(surface)
+      .`when`(surface)
       .removeListener(any())
 
     selectionModel.addListener { _, selection ->
@@ -110,20 +109,21 @@ object DesignSurfaceTestUtil {
   ): DesignSurface<out SceneManager> {
     val surface = createMockSurface(disposableParent, surfaceClass, interactionHandlerCreator)
 
-    whenever(surface.model).thenReturn(model)
-    whenever(surface.models).thenReturn(ImmutableList.of(model))
-    whenever(surface.setModel(any())).thenReturn(CompletableFuture.completedFuture(null))
-    whenever(surface.addModelWithoutRender(any()))
+    Mockito.`when`(surface.model).thenReturn(model)
+    Mockito.`when`(surface.models).thenReturn(ImmutableList.of(model))
+    Mockito.`when`(surface.setModel(any())).thenReturn(CompletableFuture.completedFuture(null))
+    Mockito.`when`(surface.addModelWithoutRender(any()))
       .thenReturn(CompletableFuture.completedFuture<Nothing?>(null))
-    whenever(surface.addAndRenderModel(any())).thenReturn(CompletableFuture.completedFuture(null))
-    whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
+    Mockito.`when`(surface.addAndRenderModel(any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
+    Mockito.`when`(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
     // TODO: NlDesignSurface should not be referenced from here.
     // TODO: Do we need a special version of ModelBuilder for Nele?
     if (surface is NlDesignSurface) {
-      whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
-      whenever(surface.actionHandlerProvider).thenReturn { defaultActionHandlerProvider(it) }
-      whenever(surface.layoutPreviewHandler)
+      Mockito.`when`(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
+      Mockito.`when`(surface.actionHandlerProvider).thenReturn { defaultActionHandlerProvider(it) }
+      Mockito.`when`(surface.layoutPreviewHandler)
         .thenReturn(
           object : LayoutPreviewHandler {
             override var previewWithToolsVisibilityAndPosition = true
@@ -132,18 +132,17 @@ object DesignSurfaceTestUtil {
     }
 
     val sceneManager = sceneManagerFactory(surface, model)
-    whenever(surface.getSceneManager(any())).thenReturn(sceneManager)
-    whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
-    whenever(surface.getSceneViewAtOrPrimary(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
-      .thenCallRealMethod()
-    whenever(surface.focusedSceneView).thenReturn(sceneManager.sceneView)
+    Mockito.`when`(surface.getSceneManager(any())).thenReturn(sceneManager)
+    Mockito.`when`(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
+    Mockito.`when`(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod()
+    Mockito.`when`(surface.focusedSceneView).thenReturn(sceneManager.sceneView)
     val scene = sceneManager.scene
     sceneManager.update()
-    whenever(surface.scene).thenReturn(scene)
-    whenever(surface.project).thenReturn(project)
-    whenever(surface.layoutType).thenCallRealMethod()
+    Mockito.`when`(surface.scene).thenReturn(scene)
+    Mockito.`when`(surface.project).thenReturn(project)
+    Mockito.`when`(surface.layoutType).thenCallRealMethod()
     val zoomController = createZoomControllerFake(returnScale = 0.5)
-    whenever(surface.zoomController).thenReturn(zoomController)
+    Mockito.`when`(surface.zoomController).thenReturn(zoomController)
     return surface
   }
 
