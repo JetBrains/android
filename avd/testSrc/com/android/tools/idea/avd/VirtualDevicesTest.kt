@@ -18,123 +18,59 @@ package com.android.tools.idea.avd
 import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.AvdNetworkLatency
-import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.sdklib.internal.avd.AvdBuilder
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.NoErrorsOrWarningsLogger
-import com.android.tools.idea.avd.StorageCapacity.Unit
-import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Paths
 import org.junit.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class VirtualDevicesTest {
-  private val connection = mock<AvdManagerConnection>()
+  private val avdManager = mock<AvdManager>()
 
   @Test
-  fun addAutomotiveDevice() {
+  fun add() {
     val deviceManager =
       DeviceManager.createInstance(mock<AndroidSdkHandler>(), NoErrorsOrWarningsLogger())
     val allDevices = deviceManager.getDevices(DeviceManager.ALL_DEVICES).toList()
     val autoDevice = allDevices.first { it.id == "automotive_1080p_landscape" }
+    val systemImageManager =
+      mockSystemImageManager("system-images;android-33;android-automotive;x86_64")
+    val systemImage = mockSystemImage("system-images;android-33;android-automotive;x86_64")
 
-    whenever(connection.avdExists(any())).thenReturn(false)
-    whenever(connection.cleanAvdName(any(), any())).thenReturn("Automotive_1080p_landscape_")
-
-    VirtualDevices(
-        connection,
-        mockSystemImageManager("system-images;android-33;android-automotive;x86_64"),
-      )
-      .add(
-        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(33))).toVirtualDevice(),
-        mockSystemImage("system-images;android-33;android-automotive;x86_64"),
-      )
-
-    val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
-    verify(connection)
-      .createOrUpdateAvd(
-        /* currentInfo = */ isNull(),
-        /* avdName = */ eq("Automotive_1080p_landscape_"),
-        /* device = */ eq(autoDevice),
-        /* systemImageDescription = */ any(),
-        /* orientation = */ eq(ScreenOrientation.PORTRAIT), // TODO: This seems wrong
-        /* isCircular = */ eq(false),
-        /* sdCard = */ isNull(),
-        /* skinFolder = */ any(),
-        /* hardwareProperties = */ hardwarePropertiesCaptor.capture(),
-        /* userSettings = */ isNull(),
-        /* removePrevious = */ eq(true),
+    whenever(avdManager.createAvdBuilder(any()))
+      .thenReturn(
+        AvdBuilder(
+          Paths.get("/tmp/avd/automotive.ini"),
+          Paths.get("/tmp/avd/automotive.avd"),
+          autoDevice,
+        )
       )
 
-    assertThat(hardwarePropertiesCaptor.lastValue).containsKey(ConfigKey.CLUSTER_WIDTH)
-  }
+    val virtualDevice =
+      autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(33))).toVirtualDevice()
 
-  @Test
-  fun addGraphicAccelerationEqualsOff() {
-    // Arrange
-    val devices =
-      VirtualDevices(
-        connection,
-        mockSystemImageManager("system-images;android-31;google_apis;x86_64"),
-        getHardwareProperties = { _ -> emptyMap() },
-      )
+    VirtualDevices(avdManager, systemImageManager).add(virtualDevice, systemImage)
 
-    val device =
-      VirtualDevice(
-        "Pixel 6",
-        mock<Device>(),
-        AndroidVersion(31),
-        NoSkin.INSTANCE,
-        AvdCamera.EMULATED,
-        AvdCamera.VIRTUAL_SCENE,
-        AvdNetworkSpeed.FULL,
-        AvdNetworkLatency.NONE,
-        ScreenOrientation.PORTRAIT,
-        Boot.QUICK,
-        StorageCapacity(2_048, Unit.MB),
-        Custom(StorageCapacity(512, Unit.MB)),
-        4,
-        GpuMode.OFF,
-        StorageCapacity(2_048, Unit.MB),
-        StorageCapacity(256, Unit.MB),
-      )
+    val avdBuilderCaptor = argumentCaptor<AvdBuilder>()
+    verify(avdManager).createAvd(avdBuilderCaptor.capture())
 
-    val image = mockSystemImage("system-images;android-31;google_apis;x86_64")
-    whenever(connection.cleanAvdName(any(), any())).thenReturn("Pixel 6")
-
-    // Act
-    devices.add(device, image)
-
-    // Assert
-    verify(connection)
-      .createOrUpdateAvd(
-        anyOrNull(),
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        anyOrNull(),
-        any(),
-        argThat { properties -> properties["hw.gpu.enabled"] == "no" },
-        anyOrNull(),
-        any(),
-      )
+    with(avdBuilderCaptor.lastValue) {
+      assertThat(avdName).isEqualTo("Automotive_1080p_landscape_")
+      assertThat(device).isEqualTo(autoDevice)
+      assertThat(displayName).isEqualTo(autoDevice.displayName)
+      assertThat(screenOrientation).isEqualTo(ScreenOrientation.LANDSCAPE)
+      assertThat(configProperties()).containsKey(ConfigKey.CLUSTER_WIDTH)
+    }
   }
 
   private companion object {
