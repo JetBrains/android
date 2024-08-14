@@ -31,6 +31,7 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
@@ -62,6 +63,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -401,7 +403,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
 
-    val xrInputController = EmulatorXrInputController.getInstance(panel.primaryEmulatorView!!.emulator)
+    val xrInputController = EmulatorXrInputController.getInstance(project, panel.primaryEmulatorView!!.emulator)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes = mapOf(
       "Hand Tracking" to XrInputMode.HAND,
@@ -411,9 +413,11 @@ class EmulatorToolWindowPanelTest {
       "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
       "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
     )
+    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
     for ((actionName, mode) in modes) {
       ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
+      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
     panel.destroyContent()

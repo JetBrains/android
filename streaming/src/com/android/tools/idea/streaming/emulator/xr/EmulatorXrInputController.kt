@@ -15,21 +15,31 @@
  */
 package com.android.tools.idea.streaming.emulator.xr
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.getOrCreateUserData
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import io.ktor.util.collections.ConcurrentMap
 
-private val EMULATOR_XR_INPUT_CONTROLLER_KEY = Key.create<EmulatorXrInputController>("EmulatorXrInputController")
+/**
+ * Orchestrates mouse and keyboard input for XR devices. Thread safe.
+ */
+internal class EmulatorXrInputController(private val emulator: EmulatorController): Disposable {
 
-@UiThread
-internal class EmulatorXrInputController private constructor(private val emulator: EmulatorController) {
+  @Volatile var inputMode: XrInputMode = XrInputMode.HAND
 
-  var inputMode: XrInputMode = XrInputMode.HAND
+  init {
+    Disposer.register(emulator, this)
+  }
+
+  override fun dispose() {
+  }
 
   companion object {
-    fun getInstance(emulator: EmulatorController): EmulatorXrInputController =
-        emulator.getOrCreateUserData(EMULATOR_XR_INPUT_CONTROLLER_KEY) { EmulatorXrInputController(emulator) }
+    fun getInstance(project: Project, emulator: EmulatorController): EmulatorXrInputController =
+        project.service<EmulatorXrInputControllerService>().getXrInputController(emulator)
   }
 }
 
@@ -46,4 +56,23 @@ internal enum class XrInputMode {
   LOCATION_IN_SPACE_XY,
   /** Relative mouse y coordinate controls moving forward and back. */
   LOCATION_IN_SPACE_Z,
+}
+
+@Service(Service.Level.PROJECT)
+internal class EmulatorXrInputControllerService: Disposable {
+
+  private val xrControllers = ConcurrentMap<EmulatorController, EmulatorXrInputController>()
+
+  fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {
+    return xrControllers.computeIfAbsent(emulator) {
+      Disposer.register(emulator) {
+        xrControllers.remove(emulator)
+      }
+      return@computeIfAbsent EmulatorXrInputController(emulator)
+    }
+  }
+
+  override fun dispose() {
+    xrControllers.clear()
+  }
 }

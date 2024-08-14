@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
@@ -55,8 +56,12 @@ internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? {
 }
 
 internal fun getEmulatorXrInputController(event: AnActionEvent): EmulatorXrInputController? {
-  val controller = getEmulatorController(event) ?: return null
-  return EmulatorXrInputController.getInstance(controller)
+  if (getEmulatorConfig(event)?.deviceType == DeviceType.XR) {
+    val project = event.project ?: return null
+    val controller = getEmulatorController(event) ?: return null
+    return EmulatorXrInputController.getInstance(project, controller)
+  }
+  return null
 }
 
 internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =

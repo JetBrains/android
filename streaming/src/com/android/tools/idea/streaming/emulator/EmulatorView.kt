@@ -470,7 +470,9 @@ class EmulatorView(
         }
       }
       if (emulatorConfig.deviceType == DeviceType.XR) {
-        xrInputController = EmulatorXrInputController.getInstance(emulator)
+        getProject()?.let { project ->
+          xrInputController = EmulatorXrInputController.getInstance(project, emulator)
+        }
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {

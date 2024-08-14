@@ -16,11 +16,14 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.enableRichTooltip
+import com.android.tools.idea.streaming.actions.getDisplayView
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 
 /** Sets an input mode for an XR AVD. */
@@ -32,10 +35,13 @@ sealed class EmulatorXrInputModeAction(private val inputMode: XrInputMode) : Tog
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
       getEmulatorXrInputController(event)?.inputMode = inputMode
+      val displayView = getDisplayView(event) ?: return
+      event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, false)
+      displayView.hardwareInputStateChanged(event, false)
     }
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
@@ -45,7 +51,6 @@ sealed class EmulatorXrInputModeAction(private val inputMode: XrInputMode) : Tog
 
   class HandTracking : EmulatorXrInputModeAction(XrInputMode.HAND)
   class EyeTracking : EmulatorXrInputModeAction(XrInputMode.EYE)
-  class HardwareInput : EmulatorXrInputModeAction(XrInputMode.HARDWARE)
   class ViewDirection : EmulatorXrInputModeAction(XrInputMode.VIEW_DIRECTION)
   class LocationInSpaceXY : EmulatorXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_XY)
   class LocationInSpaceZ : EmulatorXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_Z)

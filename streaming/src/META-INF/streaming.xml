@@ -150,14 +150,6 @@
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.hardware.input"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HardwareInput"
-              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
-              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device.">
-        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
-      </action>
       <action id="android.emulator.xr.view.direction"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
               icon="StudioIcons.Emulator.XR.ROTATE"
@@ -231,7 +223,11 @@
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
       <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
               icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
-              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
+              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device">
+        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
       <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
@@ -270,13 +266,15 @@
       <reference ref="android.emulator.xr.recenter"/>
       <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
-      <reference ref="android.emulator.xr.hand.tracking"/>
-      <reference ref="android.emulator.xr.eye.tracking"/>
-      <reference ref="android.emulator.xr.hardware.input"/>
-      <reference ref="android.emulator.xr.view.direction"/>
-      <reference ref="android.emulator.xr.location.in.space.xy"/>
-      <reference ref="android.emulator.xr.location.in.space.z"/>
-      <separator/>
+      <group id="android.emulator.xr.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeGroup">
+        <reference ref="android.emulator.xr.hand.tracking"/>
+        <reference ref="android.emulator.xr.eye.tracking"/>
+        <reference ref="android.streaming.hardware.input"/>
+        <reference ref="android.emulator.xr.view.direction"/>
+        <reference ref="android.emulator.xr.location.in.space.xy"/>
+        <reference ref="android.emulator.xr.location.in.space.z"/>
+        <separator/>
+      </group>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
       <group id="android.emulator.wear.health.services"/>
@@ -285,7 +283,9 @@
       <reference ref="android.device.screen.record"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
-      <reference ref="android.streaming.hardware.input"/>
+      <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
+        <reference ref="android.streaming.hardware.input"/>
+      </group>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
