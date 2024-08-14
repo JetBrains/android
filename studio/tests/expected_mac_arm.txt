@@ -1999,6 +1999,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/core-3.5.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-common-2.2.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar
 Android Studio Preview.app/Contents/plugins/android/lib/database_inspector_java_proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/dec-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar

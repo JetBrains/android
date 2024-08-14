@@ -28,5 +28,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
     ],
 )
