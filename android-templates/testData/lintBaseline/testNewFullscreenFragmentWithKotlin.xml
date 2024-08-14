@@ -24,15 +24,4 @@
             column="63"/>
     </issue>
 
-    <issue
-        id="ClickableViewAccessibility"
-        message="Custom view ``Void`` has `setOnTouchListener` called on it but does not override `performClick`"
-        errorLine1="        dummyButton?.setOnTouchListener(delayHideTouchListener)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/pkg/FullscreenFragment.kt"
-            line="93"
-            column="9"/>
-    </issue>
-
 </issues>
