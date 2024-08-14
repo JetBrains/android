@@ -31,7 +31,7 @@ import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.internal.avd.QuickBoot
 import com.android.sdklib.internal.avd.SdCard
-import com.android.tools.idea.avdmanager.SkinUtils
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Files
 import java.nio.file.Path
@@ -63,7 +63,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   displayName = device.name
 
   sdCard = device.expandedStorage.toSdCard()
-  skin = OnDiskSkin(device.skin.path()).takeUnless { device.skin == SkinUtils.noSkin() }
+  skin = OnDiskSkin(device.skin.path()).takeUnless { device.skin == NoSkin.INSTANCE }
 
   screenOrientation = device.orientation
   cpuCoreCount = device.cpuCoreCount ?: 1

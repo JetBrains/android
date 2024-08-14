@@ -68,6 +68,7 @@ class VirtualDevicesTest {
       assertThat(avdName).isEqualTo("Automotive_1080p_landscape_")
       assertThat(device).isEqualTo(autoDevice)
       assertThat(displayName).isEqualTo(autoDevice.displayName)
+      assertThat(skin).isNull()
       assertThat(screenOrientation).isEqualTo(ScreenOrientation.LANDSCAPE)
       assertThat(configProperties()).containsKey(ConfigKey.CLUSTER_WIDTH)
     }
