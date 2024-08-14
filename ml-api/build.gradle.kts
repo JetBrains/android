@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (C) 2024 The Android Open Source Project
  *
@@ -43,4 +45,26 @@ sourceSets {
       srcDirs("src/resources")
     }
   }
+  test {
+    resources {
+      srcDirs("src/testSrc/resources")
+    }
+  }
+}
+
+// This is needed so that other tests can depend on ml-api-tests
+// i.e. testImplementation(project(":ml-api", configuration="test")) in ij-platform
+configurations {
+  val test by creating {
+    extendsFrom(configurations.testImplementation.get())
+  }
+}
+
+tasks.register<Jar>("testJar") {
+  archiveClassifier.set("tests")
+  from(sourceSets.test.get().output)
+}
+
+artifacts {
+  add("test", tasks.named<Jar>("testJar"))
 }
