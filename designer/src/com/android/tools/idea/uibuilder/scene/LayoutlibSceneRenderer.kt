@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.ShowFixFactory
@@ -36,7 +37,6 @@ import com.android.tools.rendering.ProblemSeverity
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.RenderResult
-import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -68,8 +68,7 @@ internal class LayoutlibSceneRenderer(
   private val disposeExecutor: Executor,
   private val model: NlModel,
   private val surface: NlDesignSurface,
-  private val renderTaskFactory:
-    (Configuration, RenderService, RenderLogger) -> CompletableFuture<RenderTask?>,
+  layoutScannerConfig: LayoutScannerConfiguration,
 ) : Disposable {
   private val scope = AndroidCoroutineScope(this)
   private val isDisposed = AtomicBoolean(false)
@@ -77,8 +76,8 @@ internal class LayoutlibSceneRenderer(
   private val renderTaskLock = ReentrantLock()
   private val renderResultLock = ReentrantLock()
 
-  /** If true, when a new RenderResult is an error it will retain the last successful image. */
-  var cacheSuccessfulRenderImage = false
+  val sceneRenderConfiguration =
+    LayoutlibSceneRenderConfiguration(model, surface, layoutScannerConfig)
 
   /** The version of Android resources when the last inflation was done. See [ResourceVersion] */
   var renderedVersion: ResourceVersion? = null
@@ -137,7 +136,7 @@ internal class LayoutlibSceneRenderer(
           oldResult = field
           field =
             if (
-              cacheSuccessfulRenderImage &&
+              sceneRenderConfiguration.cacheSuccessfulRenderImage &&
                 newResult.isErrorResult() &&
                 oldResult.containsValidImage()
             ) {
@@ -156,16 +155,8 @@ internal class LayoutlibSceneRenderer(
     }
 
   // TODO(b/335424569): remove this method, directly use the suspendable render
-  fun renderAsync(
-    forceInflate: Boolean,
-    logRenderErrors: Boolean,
-    reverseUpdate: AtomicBoolean,
-    elapsedFrameTimeMs: Long,
-    quality: Float,
-  ): CompletableFuture<RenderResult?> =
-    scope
-      .async { render(forceInflate, logRenderErrors, reverseUpdate, elapsedFrameTimeMs, quality) }
-      .asCompletableFuture()
+  fun renderAsync(reverseUpdate: AtomicBoolean): CompletableFuture<RenderResult?> =
+    scope.async { render(reverseUpdate) }.asCompletableFuture()
 
   /**
    * Render the model and update the view hierarchy.
@@ -180,26 +171,28 @@ internal class LayoutlibSceneRenderer(
    * [RenderResult] to be an error result.
    */
   private suspend fun render(
-    forceInflate: Boolean,
-    logRenderErrors: Boolean,
-    reverseUpdate: AtomicBoolean,
-    elapsedFrameTimeMs: Long,
-    quality: Float,
+    // TODO(b/335424569): remove reverseUpdate param
+    reverseUpdate: AtomicBoolean
   ): RenderResult? {
     var result: RenderResult? = null
     try {
       // Inflate only if needed
       val inflateResult =
-        if (renderTask != null && !forceInflate) null else inflate(logRenderErrors, reverseUpdate)
+        if (sceneRenderConfiguration.forceInflate.getAndSet(false) || renderTask == null)
+          inflate(reverseUpdate)
+        else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
         return null
       }
       renderTask?.let {
-        if (elapsedFrameTimeMs != -1L) {
-          it.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs))
+        if (sceneRenderConfiguration.elapsedFrameTimeMs != -1L) {
+          it.setElapsedFrameTimeNanos(
+            TimeUnit.MILLISECONDS.toNanos(sceneRenderConfiguration.elapsedFrameTimeMs)
+          )
         }
         // Make sure that the task's quality is up-to-date before rendering
+        val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
@@ -234,10 +227,7 @@ internal class LayoutlibSceneRenderer(
    *
    * It throws a [CancellationException] if cancelled midway.
    */
-  private suspend fun inflate(
-    logRenderErrors: Boolean,
-    reverseUpdate: AtomicBoolean,
-  ): RenderResult? {
+  private suspend fun inflate(reverseUpdate: AtomicBoolean): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
       return null
@@ -258,7 +248,8 @@ internal class LayoutlibSceneRenderer(
 
     val renderService = StudioRenderService.getInstance(model.project)
     val logger =
-      if (logRenderErrors) renderService.createHtmlLogger(project) else renderService.nopLogger
+      if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(project)
+      else renderService.nopLogger
 
     lateinit var result: RenderResult
     var newTask: RenderTask? = null
@@ -266,7 +257,7 @@ internal class LayoutlibSceneRenderer(
       withContext(NonCancellable) {
         // Avoid cancellation while waiting for render task creation to finish.
         // This is needed to avoid leaks and make sure that it's correctly disposed when needed.
-        newTask = renderTaskFactory(configuration, renderService, logger).await()
+        newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
       }
       result =
         newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(model.file, logger)

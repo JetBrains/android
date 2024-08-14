@@ -90,7 +90,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
   override fun validateAndUpdateLint(results: Map<LayoutlibSceneManager, RenderResult>) {
     lintIntegrator.clear()
     results.forEach { (manager, renderResult) ->
-      if (!manager.layoutScannerConfig.isIntegrateWithDefaultIssuePanel) {
+      if (!manager.sceneRenderConfiguration.layoutScannerConfig.isIntegrateWithDefaultIssuePanel) {
         return@forEach
       }
       when (val validatorResult = renderResult.validatorResult) {

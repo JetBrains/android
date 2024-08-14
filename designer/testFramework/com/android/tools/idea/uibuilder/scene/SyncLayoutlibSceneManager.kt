@@ -24,8 +24,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.res.ResourceNotificationManager
-import com.android.tools.rendering.RenderService.RenderTaskBuilder
-import com.android.tools.rendering.api.RenderModelModule
 import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
@@ -61,6 +59,11 @@ open class SyncLayoutlibSceneManager(
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
+
+  init {
+    sceneRenderConfiguration.setRenderModuleWrapperForTest { TestRenderModelModule(it) }
+    sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
+  }
 
   private fun <T> waitForFutureWithoutBlockingUiThread(
     future: CompletableFuture<T>
@@ -103,14 +106,6 @@ open class SyncLayoutlibSceneManager(
     return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate))
   }
 
-  override fun wrapRenderModule(core: RenderModelModule): RenderModelModule {
-    return TestRenderModelModule(core)
-  }
-
-  override fun setupRenderTaskBuilder(taskBuilder: RenderTaskBuilder): RenderTaskBuilder {
-    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager()
-  }
-
   fun putDefaultPropertyValue(
     component: NlComponent,
     namespace: ResourceNamespace,
@@ -118,7 +113,7 @@ open class SyncLayoutlibSceneManager(
     value: String,
   ) {
     if (renderResult == null) {
-      forceReinflate()
+      sceneRenderConfiguration.forceReinflate()
       requestRenderAsync().join()
     }
     val map: MutableMap<ResourceReference, ResourceValue> =

@@ -50,9 +50,11 @@ private val DEFAULT_NL_SUPPORTED_ACTIONS = ImmutableSet.copyOf(NlSupportedAction
 fun defaultSceneManagerProvider(surface: NlDesignSurface, model: NlModel): LayoutlibSceneManager {
   val sceneManager = LayoutlibSceneManager(model, surface, LayoutScannerEnabled())
   val settings = getProjectSettings(model.project)
-  sceneManager.setShowDecorations(settings.showDecorations)
-  sceneManager.setUseImagePool(settings.useLiveRendering)
-  sceneManager.quality = settings.quality
+  sceneManager.sceneRenderConfiguration.let { config ->
+    config.showDecorations = settings.showDecorations
+    config.useImagePool = settings.useLiveRendering
+    config.quality = settings.quality
+  }
   return sceneManager
 }
 
