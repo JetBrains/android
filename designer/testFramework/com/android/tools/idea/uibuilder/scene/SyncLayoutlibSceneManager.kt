@@ -29,11 +29,9 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.update.Update
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Function
 
 /** Number of seconds to wait for the render to complete in any of the render calls. */
 private const val RENDER_TIMEOUT_SECS = 60L
@@ -47,13 +45,6 @@ open class SyncLayoutlibSceneManager(
     model,
     surface,
     EdtExecutorService.getInstance(),
-    Function {
-      object : RenderingQueue {
-        override fun queue(update: Update) {
-          update.run()
-        }
-      }
-    },
     LayoutlibSceneManagerHierarchyProvider(),
     DISABLED,
   ) {

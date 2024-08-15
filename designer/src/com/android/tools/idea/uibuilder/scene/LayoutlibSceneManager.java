@@ -21,13 +21,9 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
-import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.tools.configurations.ConfigurationListener;
-import com.android.tools.idea.common.analytics.CommonUsageTracker;
-import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.ModelListener;
@@ -66,26 +62,21 @@ import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.Update;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -103,14 +94,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
-  private final RenderingQueue myRenderingQueue;
   // Variables to track previous values of the configuration bar for tracking purposes
   private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
-  private final Object myFuturesLock = new Object();
-  @GuardedBy("myFuturesLock")
-  private final LinkedList<CompletableFuture<Void>> myRenderFutures = new LinkedList<>();
-  @GuardedBy("myFuturesLock")
-  private final LinkedList<CompletableFuture<Void>> myPendingFutures = new LinkedList<>();
   @NotNull private final ViewEditor myViewEditor;
 
   /**
@@ -119,13 +104,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   // TODO(b/335424569): add a better explanation after moving more responsibilities to
   //  LayoutlibSceneRenderer
   private final LayoutlibSceneRenderer myLayoutlibSceneRenderer;
-
-  /**
-   * True if we are currently in the middle of a render. This attribute is used to prevent listeners from triggering unnecessary renders.
-   * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
-   */
-  @GuardedBy("myFuturesLock")
-  private Boolean myIsCurrentlyRendering = false;
 
   /**
    * If true, listen the resource change.
@@ -152,7 +130,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueFactory      a factory to create a {@link RenderingQueue}.
    * @param sceneComponentProvider     a {@link SceneComponentHierarchyProvider} providing the mapping from
    *                                   {@link NlComponent} to {@link SceneComponent}s.
    * @param layoutScannerConfig        a {@link LayoutScannerConfiguration} for layout validation from Accessibility Testing Framework.
@@ -160,12 +137,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface<? extends LayoutlibSceneManager> designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
-                                  @NotNull Function<Disposable, RenderingQueue> renderingQueueFactory,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
     myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, layoutScannerConfig);
-    myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
@@ -205,7 +180,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, LayoutScannerConfiguration)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, SceneComponentHierarchyProvider, LayoutScannerConfiguration)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
@@ -219,7 +194,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
-      MergingRenderingQueue::new,
       sceneComponentProvider,
       new LayoutScannerEnabled());
     getSceneRenderConfiguration().getLayoutScannerConfig().setLayoutScannerEnabled(false);
@@ -237,7 +211,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
-      MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
       config);
   }
@@ -447,33 +420,16 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       return CompletableFuture.completedFuture(null);
     }
 
-    CompletableFuture<Void> callback = new CompletableFuture<>();
-    synchronized (myFuturesLock) {
-      myPendingFutures.add(callback);
-      if (myIsCurrentlyRendering) {
-        return callback;
-      }
-      myIsCurrentlyRendering = true;
-    }
+    NlDesignSurface surface = getDesignSurface();
+    logConfigurationChange(surface);
+    getModel().resetLastChange();
 
-    myRenderingQueue.queue(createRenderUpdate(trigger, reverseUpdate));
-
-    return callback;
-  }
-
-  private Update createRenderUpdate(@Nullable LayoutEditorRenderResult.Trigger trigger, AtomicBoolean reverseUpdate) {
-    // This update is low priority so the model updates take precedence
-    return new Update("model.render", LOW_PRIORITY) {
-      @Override
-      public void run() {
-        renderAsync(trigger, reverseUpdate);
-      }
-
-      @Override
-      public boolean canEat(@NotNull Update update) {
-        return this.equals(update);
-      }
-    };
+    return myLayoutlibSceneRenderer.renderAsync(trigger, reverseUpdate)
+      .thenRunAsync(() -> {
+        if (!isDisposed.get()) {
+          update();
+        }
+      }, EdtExecutorService.getInstance());
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -605,86 +561,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   /**
-   * Renders the current model asynchronously. Once the render is complete, the render callbacks will be called.
-   * <p/>
-   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
-   */
-  @NotNull
-  private CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,
-                                                        AtomicBoolean reverseUpdate) {
-    if (isDisposed.get()) {
-      return CompletableFuture.completedFuture(null);
-    }
-
-    synchronized (myFuturesLock) {
-      // This is because at the moment render could also be called from requestLayoutAndRender in a synchronous mode
-      myIsCurrentlyRendering = true;
-      myRenderFutures.addAll(myPendingFutures);
-      myPendingFutures.clear();
-    }
-    NlDesignSurface surface = getDesignSurface();
-    logConfigurationChange(surface);
-    getModel().resetLastChange();
-
-    long renderStartTimeMs = System.currentTimeMillis();
-        return myLayoutlibSceneRenderer.renderAsync(reverseUpdate)
-      .thenApplyAsync(result -> {
-        if (!isDisposed.get()) {
-          update();
-        }
-
-        return result;
-      }, EdtExecutorService.getInstance())
-      .thenApplyAsync(result -> {
-        if (result != null) {
-          long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-          // In an unlikely event when result is disposed we can still safely request the size of the image
-          NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                      result.getRenderedImage().getWidth() *
-                                                                      result.getRenderedImage().getHeight() *
-                                                                      4L);
-          CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, CommonUsageTracker.RenderResultType.RENDER);
-        }
-        getDesignSurface().modelRendered();
-        completeRender();
-
-        return result;
-      }, AppExecutorUtil.getAppExecutorService());
-  }
-
-  private boolean hasPendingRenders() {
-    synchronized(myFuturesLock) {
-      return !myPendingFutures.isEmpty();
-    }
-  }
-
-  /**
-   * Completes all the futures created by {@link #requestRenderAsync()} and signals the current render as finished by
-   * setting {@link #myIsCurrentlyRendering} to false. Also, it is calling the render callbacks associated with
-   * the current render.
-   */
-  private void completeRender() {
-    ImmutableList<CompletableFuture<Void>> callbacks;
-    synchronized (myFuturesLock) {
-      callbacks = ImmutableList.copyOf(myRenderFutures);
-      myRenderFutures.clear();
-      myIsCurrentlyRendering = false;
-    }
-    callbacks.forEach(callback -> callback.complete(null));
-    // If there are pending futures, we should trigger the render update
-    if (hasPendingRenders()) {
-      requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()), new AtomicBoolean());
-    }
-  }
-
-  /**
    * Returns if there are any pending render requests.
    */
   @TestOnly
   public boolean isRendering() {
-    synchronized (myFuturesLock) {
-      return myIsCurrentlyRendering;
-    }
+    return myLayoutlibSceneRenderer.isRendering();
   }
 
   /**
@@ -796,7 +677,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   public boolean activate(@NotNull Object source) {
     boolean active = super.activate(source);
-
+    myLayoutlibSceneRenderer.activate();
     if (active && myUpdateAndRenderWhenActivated) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
       ResourceNotificationManager.ResourceVersion version =
@@ -814,9 +695,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public boolean deactivate(@NotNull Object source) {
     boolean deactivated = super.deactivate(source);
     if (deactivated) {
-      myRenderingQueue.deactivate();
-      clearAndCancelPendingFutures();
-      completeRender();
       myLayoutlibSceneRenderer.deactivate();
     }
 
@@ -844,19 +722,5 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   public int getInteractiveEventsCount() {
     return myInteractiveEventsCounter.get();
-  }
-
-  /**
-   * Cancels and clears all futures that were created by {@link #requestRenderAsync()} and stored in {@link #myPendingFutures}
-   * by completing them exceptionally with a {@link CancellationException}.
-   * This method does not interact with {@link #myRenderingQueue} as the pending futures are detached from the renders on the queue.
-   */
-  private void clearAndCancelPendingFutures() {
-    ImmutableList<CompletableFuture<Void>> callbacks;
-    synchronized (myFuturesLock) {
-      callbacks = ImmutableList.copyOf(myPendingFutures);
-      myPendingFutures.clear();
-    }
-    callbacks.forEach(callback -> callback.completeExceptionally(new CancellationException()));
   }
 }
