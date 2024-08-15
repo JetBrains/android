@@ -262,7 +262,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>  [selected]\n");
   }
 
-  public void testCopyIntoRootWhenNothingIsSelected() throws Exception {
+  public void testCopyIntoRootWhenNothingIsSelected() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
@@ -284,7 +284,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return (DesignSurfaceActionHandler)IdeUiService.getInstance().createUiDataContext(tree).getData(PlatformDataKeys.PASTE_PROVIDER);
   }
 
-  public void testPasteIntoLayoutAsFirstChild() throws Exception {
+  public void testPasteIntoLayoutAsFirstChild() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -304,7 +304,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>\n");
   }
 
-  public void testPasteIntoParentAfterButton() throws Exception {
+  public void testPasteIntoParentAfterButton() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -335,7 +335,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(actionHandler.isCopyEnabled(myDataContext)).isTrue();
   }
 
-  public void testPasteMultipleIntoLayout() throws Exception {
+  public void testPasteMultipleIntoLayout() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -356,7 +356,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "        <Button>  [selected]\n");
   }
 
-  public void testDropOnChain() throws Exception {
+  public void testDropOnChain() {
     SyncNlModel model = createModelWithConstraintLayout();
     NlComponentTree tree = createTree(model);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
@@ -391,7 +391,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        "    <AbsoluteLayout>\n");
   }
 
-  public void testPasteAfterCut() throws Exception {
+  public void testPasteAfterCut() {
     SyncNlModel model = createModel();
     NlComponentTree tree = createTree(model);
     DesignSurfaceActionHandler actionHandler = getActionHandler(tree);
