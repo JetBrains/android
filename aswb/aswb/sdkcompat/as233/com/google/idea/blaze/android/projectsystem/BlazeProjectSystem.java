@@ -187,8 +187,7 @@ public class BlazeProjectSystem implements AndroidProjectSystem {
   }
 
   @Override
-  public Collection<AndroidFacet> getAndroidFacetsWithPackageName(
-      Project project, String packageName) {
+  public Collection<AndroidFacet> getAndroidFacetsWithPackageName(String packageName) {
     return getAndroidFacetsWithPackageName(
         project, packageName, GlobalSearchScope.projectScope(project));
   }
