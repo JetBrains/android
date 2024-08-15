@@ -7,7 +7,7 @@ load(
     "PLUGIN_PACKAGES_VISIBILITY",
     "SKYLARK_PACKAGES_VISIBILITY",
 )
-load("//tools/vendor/google3/aswb/third_party/intellij/plugin/build_defs:build_defs.bzl", "intellij_plugin_library")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "intellij_plugin_library")
 
 licenses(["notice"])
 
@@ -17,10 +17,10 @@ java_library(
     visibility = SKYLARK_PACKAGES_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
     ],
 )
 

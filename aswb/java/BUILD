@@ -3,20 +3,20 @@ load(
     "DEFAULT_TEST_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/plugin/build_defs:build_defs.bzl",
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
     "stamped_plugin_xml",
 )
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/plugin/testing:test_defs.bzl",
+    "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
+load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_library(
     name = "java",
@@ -27,21 +27,21 @@ java_library(
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/actions",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/settings",
+        "//tools/adt/idea/aswb/common/util:concurrency",
+        "//tools/adt/idea/aswb/common/util:platform",
+        "//tools/adt/idea/aswb/common/util:transactions",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
+        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:junit",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/actions",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/settings",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/util:concurrency",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/util:platform",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/util:transactions",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/sdkcompat",
     ],
 )
 
@@ -94,6 +94,8 @@ intellij_unit_test_suite(
         ":java",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/plugin_api:coverage_for_tests",
@@ -102,8 +104,6 @@ intellij_unit_test_suite(
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api:truth",
         "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments:unit_test_utils",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -188,6 +188,8 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/shared",
@@ -196,8 +198,6 @@ intellij_integration_test_suite(
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/third_party/java/truth",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments:unit_test_utils",
         "@maven//:com.google.guava.guava",
     ],
 )
