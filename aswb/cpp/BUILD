@@ -3,20 +3,20 @@ load(
     "DEFAULT_TEST_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/plugin/build_defs:build_defs.bzl",
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
     "stamped_plugin_xml",
 )
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/plugin/testing:test_defs.bzl",
+    "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
+load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_library(
     name = "cpp",
@@ -31,16 +31,16 @@ java_library(
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/util:platform",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/util:platform",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/sdkcompat",
     ],
 )
 
@@ -101,11 +101,11 @@ intellij_unit_test_suite(
         ":cpp",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments:unit_test_utils",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -122,11 +122,11 @@ java_library(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/sdkcompat",
+        "//tools/adt/idea/aswb/testing:lib",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/sdkcompat",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/testing:lib",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -184,11 +184,11 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/sdkcompat",
         "@maven//:com.google.guava.guava",
     ],
 )
