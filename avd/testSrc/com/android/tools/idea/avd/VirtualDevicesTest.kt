@@ -18,12 +18,12 @@ package com.android.tools.idea.avd
 import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Paths
@@ -43,8 +43,6 @@ class VirtualDevicesTest {
       DeviceManager.createInstance(mock<AndroidSdkHandler>(), NoErrorsOrWarningsLogger())
     val allDevices = deviceManager.getDevices(DeviceManager.ALL_DEVICES).toList()
     val autoDevice = allDevices.first { it.id == "automotive_1080p_landscape" }
-    val systemImageManager =
-      mockSystemImageManager("system-images;android-33;android-automotive;x86_64")
     val systemImage = mockSystemImage("system-images;android-33;android-automotive;x86_64")
 
     whenever(avdManager.createAvdBuilder(any()))
@@ -59,7 +57,7 @@ class VirtualDevicesTest {
     val virtualDevice =
       autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(33))).toVirtualDevice()
 
-    VirtualDevices(avdManager, systemImageManager).add(virtualDevice, systemImage)
+    VirtualDevices(avdManager).add(virtualDevice, systemImage)
 
     val avdBuilderCaptor = argumentCaptor<AvdBuilder>()
     verify(avdManager).createAvd(avdBuilderCaptor.capture())
@@ -75,22 +73,12 @@ class VirtualDevicesTest {
   }
 
   private companion object {
-    private fun mockSystemImageManager(path: String): SystemImageManager {
+    private fun mockSystemImage(path: String): ISystemImage {
       val repoPackage = mock<RepoPackage>()
       whenever(repoPackage.path).thenReturn(path)
 
-      val sdklibImage = mock<com.android.sdklib.repository.targets.SystemImage>()
-      whenever(sdklibImage.`package`).thenReturn(repoPackage)
-
-      val manager = mock<SystemImageManager>()
-      whenever(manager.images).thenReturn(listOf(sdklibImage))
-
-      return manager
-    }
-
-    private fun mockSystemImage(path: String): SystemImage {
-      val image = mock<SystemImage>()
-      whenever(image.path).thenReturn(path)
+      val image = mock<ISystemImage>()
+      whenever(image.`package`).thenReturn(repoPackage)
 
       return image
     }
