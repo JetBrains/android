@@ -84,7 +84,7 @@ public class AndroidProjectInfo {
    * @return {@code true} if the project is an Android project that does not contain any build system-based model.
    */
   public boolean requiredAndroidModelMissing() {
-    List<AndroidFacet> androidFacets = ProjectSystemUtil.getAndroidFacets(myProject);
+    List<AndroidFacet> androidFacets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
     return ContainerUtil.exists(androidFacets, f -> AndroidModel.isRequired(f) && AndroidModel.get(f) == null);
   }
 
@@ -95,7 +95,7 @@ public class AndroidProjectInfo {
    */
   public boolean isLegacyIdeaAndroidProject() {
     // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
-    List<AndroidFacet> androidFacets = ProjectSystemUtil.getAndroidFacets(myProject);
+    List<AndroidFacet> androidFacets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
     return ContainerUtil.exists(androidFacets, f -> !AndroidModel.isRequired(f));
   }
 }
