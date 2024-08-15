@@ -281,6 +281,14 @@ public final class TransportFileManager implements TransportFileCopier {
     return paths;
   }
 
+  /**
+   * Pushes a file from the user's machine to {@link #DEVICE_DIR} on the device.
+   * If {@link #DEVICE_DIR} already contains an identical copy of the file, it won't be pushed.
+   * @param localPath The file path on the user's machine.
+   * @param fileName The name of the file to be pushed. This is the name the file will have on the device.
+   * @param executable Is the file executable.
+   * @return The file path on the device.
+   */
   private String pushFileToDevice(Path localPath, String fileName, boolean executable)
     throws AdbCommandRejectedException, IOException {
     // Refrain from using platform independent utility to concatenate path (ex: Paths.get) because this file path is intended for Android
