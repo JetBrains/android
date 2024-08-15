@@ -21,7 +21,7 @@ syntax = "proto3";
 
 package bazel_output_service_rev2;
 
-import "tools/vendor/google3/aswb/build/bazel/remote/execution/v2/remote_execution.proto";
+import "build/bazel/remote/execution/v2/remote_execution.proto";
 
 option java_package = "com.google.devtools.build.lib.remote";
 option java_outer_classname = "BazelOutputServiceREv2Proto";

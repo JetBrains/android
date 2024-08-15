@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright 2018 The Bazel Authors. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <SyncPlugin implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinSyncPlugin"/>
+    <QuerySyncPlugin implementation="com.google.idea.blaze.kotlin.qsync.BlazeKotlinQuerySyncPlugin"/>
+    <SyncListener implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinSyncPlugin$Listener"/>
+    <JavaLikeLanguage implementation="com.google.idea.blaze.kotlin.KotlinJavaLikeLanguage"/>
+    <JavaSyncAugmenter implementation="com.google.idea.blaze.kotlin.sync.importer.KotlinSyncAugmenter"/>
+    <SyncStatusContributor implementation="com.google.idea.blaze.kotlin.syncstatus.KotlinSyncStatusContributor"/>
+    <TestContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinTestContextProvider"/>
+    <BinaryContextProvider implementation="com.google.idea.blaze.kotlin.run.producers.KotlinBinaryContextProvider"/>
+    <blazeJavaDebuggingSetupHandler implementation="com.google.idea.blaze.kotlin.run.debug.BlazeKotlinDebuggingSetupHandler"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <programRunner implementation="com.google.idea.blaze.kotlin.run.debug.KotlinDebuggerRunner" id="BazelKotlinDebug" order="before BlazeJavaDebug"/>
+    <notificationGroup id="KotlinDebuggerNotification" displayType="BALLOON"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <projectConfigurator implementation="com.google.idea.blaze.kotlin.sync.BlazeKotlinProjectConfigurator"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <kotlinxCoroutinesLibFinder implementation="com.google.idea.blaze.kotlin.run.debug.BazelKotlinxCoroutinesLibFinder"/>
+    <kotlinxCoroutinesDebuggingLibProvider implementation="com.google.idea.blaze.kotlin.run.debug.BazelKotlinxCoroutinesDebuggingLibProvider"/>
+  </extensions>
+
+</idea-plugin>
