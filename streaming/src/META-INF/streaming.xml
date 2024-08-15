@@ -137,7 +137,7 @@
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HandTracking"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
               text="Hand Tracking"
-              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
@@ -145,7 +145,7 @@
       <action id="android.emulator.xr.eye.tracking"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$EyeTracking"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
-              text="Eye Tracking" description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+              text="Eye Tracking" description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
@@ -154,7 +154,7 @@
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
               icon="StudioIcons.Emulator.XR.ROTATE"
               text="View Direction"
-              description="Dragging mouse and arrow keys controls the view direction. The QWEASD keys control location in the virtual space.">
+              description="Dragging mouse and arrow keys controls the view direction. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control D" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
@@ -163,7 +163,7 @@
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceXY"
               icon="StudioIcons.Emulator.XR.PAN"
               text="Move Right/Left and Up/Down"
-              description="Dragging mouse moves left/right and up/down in the virtual space. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+              description="Dragging mouse moves left/right and up/down in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control L" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
@@ -172,7 +172,7 @@
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceZ"
               icon="StudioIcons.Emulator.XR.DOLLY"
               text="Move Forward/Backward"
-              description="Dragging mouse vertically moves forward/backward in the virtual space. The arrow keys control direction of the view. The QWEASD keys control location in the virtual space.">
+              description="Dragging mouse vertically moves forward/backward in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control F" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X 10.5+"/>
