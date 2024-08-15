@@ -34,6 +34,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.project.Project
@@ -71,7 +72,9 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,
       pluginExtensions =
-        listOf(DeviceSource::class providedBy { LocalVirtualDeviceSource.create(it) }),
+        listOf(
+          DeviceSource::class providedBy { LocalVirtualDeviceSource.create(it::refreshDevices) }
+        ),
       handleExtensions = emptyList(),
     )
   }
@@ -91,12 +94,16 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     return avdOptionsModel.createdAvd.orElse(null)
   }
 
-  override suspend fun editAvd(avdInfo: AvdInfo): AvdInfo? {
-    val avdOptionsModel = AvdOptionsModel(avdInfo)
-    withContext(uiThread) {
-      AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
+  override suspend fun editAvd(avdInfo: AvdInfo): Boolean {
+    if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
+      return EditVirtualDeviceDialog(project).show(avdInfo)
+    } else {
+      return withContext(uiThread) {
+        val avdOptionsModel = AvdOptionsModel(avdInfo)
+        AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
+        avdOptionsModel.createdAvd.isPresent
+      }
     }
-    return avdOptionsModel.createdAvd.orElse(null)
   }
 
   override suspend fun startAvd(avdInfo: AvdInfo): Unit =

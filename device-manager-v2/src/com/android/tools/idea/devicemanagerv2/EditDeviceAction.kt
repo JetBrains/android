@@ -39,6 +39,6 @@ class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Ac
       DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
     )
 
-    handle.launchCatchingDeviceActionException(project = e.project) { editAction?.edit() }
+    handle.launchCatchingDeviceActionException { handle.editAction?.edit() }
   }
 }
