@@ -657,8 +657,10 @@ android-studio/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
+android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
 android-studio/plugins/android-compose-ide-plugin/lib/compose-compiler.jar
 android-studio/plugins/android-ndk/lib/android-ndk.jar
+android-studio/plugins/android-ndk/lib/android-ndk.so.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 android-studio/plugins/android-ndk/resources/lldb/LICENSE.TXT
@@ -1956,6 +1958,7 @@ android-studio/plugins/android/lib/android-profilers.jar
 android-studio/plugins/android/lib/android-project-system-gradle-models.jar
 android-studio/plugins/android/lib/android-rt.jar
 android-studio/plugins/android/lib/android.jar
+android-studio/plugins/android/lib/android.so.jar
 android-studio/plugins/android/lib/animation-core-desktop-1.7.0-dev1743.jar
 android-studio/plugins/android/lib/animation-desktop-1.7.0-dev1743.jar
 android-studio/plugins/android/lib/artwork.jar
@@ -2491,6 +2494,7 @@ android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
+android-studio/plugins/design-tools/lib/design-tools.so.jar
 android-studio/plugins/design-tools/lib/layoutlib.jar
 android-studio/plugins/design-tools/resources/layoutlib/build.prop
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/AndroidClock.ttf
@@ -2712,6 +2716,7 @@ android-studio/plugins/devkit/lib/devkit-runtimeModuleRepository-jps.jar
 android-studio/plugins/devkit/lib/devkit.jar
 android-studio/plugins/directaccess/lib/adb_proxy_studio_proto.jar
 android-studio/plugins/directaccess/lib/directaccess.jar
+android-studio/plugins/directaccess/lib/directaccess.so.jar
 android-studio/plugins/directaccess/lib/ftl_client_java_proto.jar
 android-studio/plugins/directaccess/lib/google-api-services-cloudbilling-v1-rev20240119-2.0.0.jar
 android-studio/plugins/directaccess/lib/google-api-services-monitoring-v3-rev20230806-2.0.0.jar
@@ -2728,6 +2733,7 @@ android-studio/plugins/firebase-testing/lib/google-api-services-testing-v1-rev20
 android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 android-studio/plugins/firebase-testing/lib/jsch-0.1.55.jar
 android-studio/plugins/firebase/lib/firebase.jar
+android-studio/plugins/firebase/lib/firebase.so.jar
 android-studio/plugins/firebase/lib/firebase_java_proto.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/gemini/lib/aida_grpc.jar
@@ -2735,12 +2741,14 @@ android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar
 android-studio/plugins/gemini/lib/aiplugin.jar
 android-studio/plugins/gemini/lib/commonmark-0.22.0.jar
+android-studio/plugins/gemini/lib/gemini.so.jar
 android-studio/plugins/gemini/lib/gemini_plugin_proto.jar
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-v1-rev20230123-2.0.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
+android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
@@ -2826,6 +2834,7 @@ android-studio/plugins/rml-dfa-plugin/lib/rml-dfa-plugin.jar
 android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
+android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.so.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
 android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/terminal/shell-integrations/bash/bash-fig.bash
@@ -2841,6 +2850,7 @@ android-studio/plugins/terminal/shell-integrations/zsh/command-block-support.zsh
 android-studio/plugins/terminal/shell-integrations/zsh/zsh-integration.zsh
 android-studio/plugins/test-recorder/lib/swt.jar
 android-studio/plugins/test-recorder/lib/test-recorder.jar
+android-studio/plugins/test-recorder/lib/test-recorder.so.jar
 android-studio/plugins/test-recorder/lib/uiautomatorviewer.jar
 android-studio/plugins/testng/lib/testng-plugin.jar
 android-studio/plugins/testng/lib/testng-rt.jar
@@ -3224,6 +3234,7 @@ android-studio/plugins/toml/lib/toml.jar
 android-studio/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.jar
 android-studio/plugins/turboComplete/lib/turboComplete.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
+android-studio/plugins/url-assistant/lib/url-assistant.so.jar
 android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
 android-studio/plugins/vcs-git/lib/git4idea-rt.jar
 android-studio/plugins/vcs-git/lib/vcs-git.jar

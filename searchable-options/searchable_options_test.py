@@ -36,21 +36,13 @@ class SearchableOptionTests(unittest.TestCase):
       if plugin in plugin_list:
         lib_dir = os.path.join(plugins_dir, plugin, "lib")
         for jar in os.listdir(lib_dir):
-          if jar.endswith(".jar"):
+          if jar.endswith(".so.jar"):
             with zipfile.ZipFile(os.path.join(lib_dir, jar)) as jar_file:
-              has_searchable_options = False
-              has_search_entry = False
               for name in jar_file.namelist():
-                if re.match(r"search/.*searchableOptions\.xml", name):
-                  jar_file.extract(name, path=os.path.join(actual_dir, plugin, jar))
-                  has_searchable_options = True
-                if name == "search/":
-                  has_search_entry = True
-              if has_searchable_options and not has_search_entry:
-                self.fail("Jar %s contains searchable options xmls, but it does " % jar +
-                  "not have a search/ directory entry. IntelliJ requires the directory entry to find the .xmls")
+                if name.endswith(".json"):
+                  jar_file.extract(name, path=actual_dir)
 
-    eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir))
+    eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir, ignore = ["content.bzl"]))
     if not eq:
       print("Searchable options comparison failed.")
       print("The expected output is in outputs.zip, please update tools/adt/idea/searchable-options with it.")
@@ -62,11 +54,9 @@ class SearchableOptionTests(unittest.TestCase):
       self.fail("Searchable options differ")
 
   def same_folders(self, diff):
-    if diff.diff_files:
+    if diff.diff_files or diff.left_only or diff.right_only:
+      diff.report()
       return False
-    for sub_diff in diff.subdirs.values():
-      if not self.same_folders(sub_diff):
-        return False
     return True
 
 if __name__ == "__main__":
