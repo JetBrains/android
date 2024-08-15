@@ -25,13 +25,13 @@ import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
-import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerSyncListener;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -42,14 +42,12 @@ import com.google.wireless.android.sdk.stats.GradleModule;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -90,7 +88,6 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
   }
 
   @Test
-  @Ignore("b/354210253")
   public void testProductStructureUsageWithWearHardware() {
     trackGradleProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE, project -> {
       List<LoggedUsage> usages =
@@ -205,6 +202,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
   private PreparedTestProject trackGradleProject(@NotNull TemplateBasedTestProject testProject, @NotNull Consumer<Project> test) {
     final var preparedProject = prepareTestProject(projectRule, testProject);
     preparedProject.open(it -> it, project -> {
+      waitForProjectStructureUsageTracker(project);
       test.accept(project);
       return null;
     });
@@ -258,10 +256,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
   private void waitForProjectStructureUsageTracker(Project project) {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {
-        ProjectStructureUsageTrackerManager.getInstance(project).consumeBulkOperationsState(future -> {
-          PlatformTestUtil.waitForFuture(future, DEFAULT_TIMEOUT_PROJECT_STRUCTURE_TRACKER_MILLIS);
-          return null;
-        });
+        AndroidGradleTests.waitForProjectStructureUsageTracker(project);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

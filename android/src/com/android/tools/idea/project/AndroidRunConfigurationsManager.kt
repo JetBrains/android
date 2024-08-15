@@ -15,54 +15,37 @@
  */
 package com.android.tools.idea.project
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.util.concurrency.ThreadingAssertions
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 class AndroidRunConfigurationsManager(private val project: Project) {
 
-  private val operationsStates = mutableListOf<Future<*>>()
+  private val operationsStates= mutableListOf<Job>()
 
   fun createProjectRunConfigurations() {
-    val futureTaskOperation = CompletableFuture<Task>()
-    val taskCreateRunConfigurations =
-      object : Task.Backgroundable(project, "Setting up run configurations...") {
-        override fun run(indicator: ProgressIndicator) {
-          AndroidRunConfigurations.instance.createRunConfigurations(project)
-        }
-
-        override fun onFinished() {
-          super.onFinished()
-          futureTaskOperation.complete(this)
-        }
-
-        override fun isHeadless(): Boolean {
-          return false
-        }
+    project.coroutineScope().launch {
+      withBackgroundProgress(project, "Setting up run configurations...") {
+        AndroidRunConfigurations.instance.createRunConfigurations(project)
       }
-
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-
-      // Note: it is deadlock-safe to call "isDone" below as we know that isDone function is from
-      // CompletableFuture class - with simple implementation and no calls to "external" code
-      synchronized(operationsStates) {
-        operationsStates.removeIf { it.isDone }
-        operationsStates.add(futureTaskOperation)
+    }.also {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        synchronized(operationsStates) {
+          operationsStates.removeIf { it.isCompleted }
+          operationsStates.add(it)
+        }
       }
     }
-
-    ProgressManager.getInstance().run(taskCreateRunConfigurations)
   }
 
   @TestOnly
   @Throws(Exception::class)
-  fun consumeBulkOperationsState(stateConsumer: (Future<*>) -> Unit) {
+  fun consumeBulkOperationsState(stateConsumer: (Job) -> Unit) {
     ThreadingAssertions.assertEventDispatchThread()
     assert(ApplicationManager.getApplication().isUnitTestMode)
 

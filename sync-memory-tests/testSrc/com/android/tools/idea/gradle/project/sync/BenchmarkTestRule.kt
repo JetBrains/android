@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.memory.MemoryConstrainedTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.rules.RuleChain
@@ -51,9 +50,6 @@ fun createBenchmarkTestRule(projectName: String,
     useLatestGradle,
     useLatestKotlin
   ) { AndroidProjectRule.withIntegrationTestEnvironment() }
-  // TODO(b/354210253) This was temporarily added to avoid deadlock issue caused by IntelliJ 2024.2
-  StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(false)
-
   val wrappedRules =  RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
     .around(projectSetupRule)
     .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
