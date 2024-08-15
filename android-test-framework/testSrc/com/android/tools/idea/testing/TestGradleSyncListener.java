@@ -55,7 +55,10 @@ public class TestGradleSyncListener implements GradleSyncListener {
   }
 
   void await() throws InterruptedException {
-    myLatch.await(5, MINUTES);
+    boolean finished = myLatch.await(5, MINUTES);
+    if (!finished) {
+      throw new IllegalStateException("Sync Listener await timed out!");
+    }
   }
 
   public boolean isSyncSkipped() {
