@@ -210,7 +210,7 @@ public class Info {
         return;
       }
 
-      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
+      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject)) {
         if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
           modules.add(module);
         }
