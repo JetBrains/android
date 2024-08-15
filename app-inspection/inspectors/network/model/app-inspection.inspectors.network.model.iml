@@ -26,5 +26,16 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module-library">
+      <library name="brotli-dec-0.1.2">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../../prebuilts/tools/common/m2/repository/org/brotli/dec/0.1.2/dec-0.1.2.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../../../../../prebuilts/tools/common/m2/repository/org/brotli/dec/0.1.2/dec-0.1.2-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

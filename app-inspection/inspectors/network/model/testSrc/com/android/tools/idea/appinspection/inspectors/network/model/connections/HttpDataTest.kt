@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpHeader
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.io.ByteArrayOutputStream
+import java.util.Base64
 import java.util.zip.GZIPOutputStream
 import org.junit.Test
 
@@ -163,7 +164,7 @@ class HttpDataTest {
   }
 
   @Test
-  fun decodeMalformedGzipResponsePayload_showRawPayload() {
+  fun decodeMalformedCompressedResponsePayload_showRawPayload() {
     val malformedBytes = "Not a gzip".toByteArray()
     val data =
       createFakeHttpData(
@@ -177,6 +178,32 @@ class HttpDataTest {
         responsePayload = ByteString.copyFrom(malformedBytes),
       )
     assertThat(data.getReadableResponsePayload().toByteArray()).isEqualTo(malformedBytes)
+  }
+
+  /**
+   * The easiest way to create a Brotli content is by compressing on the command line using:
+   * ```
+   *    echo -n <content> | brotli -Z | base64
+   * ```
+   *
+   * The brotli command doesn't compress short strings unless they are highly compressible so the
+   * test uses `000000000000`
+   */
+  @Test
+  fun decodesBrotliResponsePayload() {
+    val payload = ByteString.copyFrom(Base64.getDecoder().decode("HwsA+CVgwoQAAA=="))
+    val data =
+      createFakeHttpData(
+        1,
+        responseHeaders =
+          listOf(
+            httpHeader("content-length", "10000"),
+            httpHeader("response-status-code", "200"),
+            httpHeader("content-encoding", "br"),
+          ),
+        responsePayload = payload,
+      )
+    assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("000000000000")
   }
 
   @Test
