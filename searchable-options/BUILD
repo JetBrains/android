@@ -1,8 +1,9 @@
 load("//tools/adt/idea/studio:studio.bzl", "searchable_options")
+load(":content.bzl", "SEARCHABLE_OPTIONS")
 
 searchable_options(
     name = "searchable-options",
-    files = glob(["*/**"]),
+    files = SEARCHABLE_OPTIONS,
     strip_prefix = "tools/adt/idea/searchable-options/",
     visibility = ["//visibility:public"],
 )
@@ -22,7 +23,6 @@ py_test(
     tags = [
         "block_network",
         "noci:studio-win",
-        "noci:studio-linux",  # TODO(b/350562167): fails with IntelliJ 2024.2.
     ],
 )
 
