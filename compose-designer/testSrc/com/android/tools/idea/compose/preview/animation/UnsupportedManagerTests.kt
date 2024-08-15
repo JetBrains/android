@@ -60,7 +60,7 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
 
     val clock = TestClock()
 
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
 
     withContext(uiThread) {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
