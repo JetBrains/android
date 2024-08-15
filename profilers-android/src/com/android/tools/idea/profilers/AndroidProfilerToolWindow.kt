@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.transport.TransportService
@@ -44,7 +45,9 @@ import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.intellij.execution.RunManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -108,6 +111,16 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
     else if (!IdeInfo.getInstance().isGameTools){
       StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
+    }
+
+    if (IdeInfo.getInstance().isGameTools && ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+      invokeLater {
+        AndroidNotification.getInstance(project).showBalloon(
+          "Unsupported feature detected",
+          "Standalone Profiler cannot be used in Task-Based UX mode. Please set the profiler.task.based.ux flag in Android Studio to off" +
+          " (or reset it to its default value) and restart the profiler.",
+          NotificationType.ERROR)
+      }
     }
 
     ideProfilerComponents = IntellijProfilerComponents(project, this, ideProfilerServices.featureTracker)
