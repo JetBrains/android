@@ -61,7 +61,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHand
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.google.common.base.Charsets;
-import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.ui.IdeUiService;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -795,7 +794,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     NlVisibilityGutterPanel gutterPanel = new NlVisibilityGutterPanel();
     Disposer.register(getTestRootDisposable(), gutterPanel);
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
-    NlComponentTree tree = new NlComponentTree(getProject(), surface, gutterPanel);
+    NlComponentTree tree = new NlComponentTree(surface, gutterPanel);
     Disposer.register(getTestRootDisposable(), tree);
     tree.getUpdateQueue().setPassThrough(true);
     tree.getUpdateQueue().flush();
