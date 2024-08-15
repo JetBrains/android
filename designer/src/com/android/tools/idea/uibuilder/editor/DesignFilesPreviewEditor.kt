@@ -281,10 +281,10 @@ private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationL
         // additional render request. Having an
         // additional rendering doesn't cause the performance issue, because this condition only
         // happens when animation is not playing.
-        it.setElapsedFrameTimeMs(0L)
+        it.sceneRenderConfiguration.elapsedFrameTimeMs = 0L
         it.requestRenderAsync().whenComplete { _, _ ->
           // The shape may be changed if it is a vector drawable. Reinflate it.
-          it.forceReinflate()
+          it.sceneRenderConfiguration.forceReinflate()
           // This rendering guarantees the elapsed frame time is 0 and it must re-inflates the
           // drawable to have the correct shape.
           it.requestRenderAsync()
@@ -295,9 +295,9 @@ private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationL
         // frames are dropped when it happens.
         // We don't handle that case because dropping some frames for the playing animation is
         // acceptable.
-        it.setElapsedFrameTimeMs(framePositionMs)
+        it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
         if (controller.forceElapsedReset) {
-          it.forceReinflate()
+          it.sceneRenderConfiguration.forceReinflate()
           controller.forceElapsedReset = false
         }
         it.requestRenderAsync()
@@ -393,7 +393,7 @@ private class AnimatedSelectorListener(val surface: DesignSurface<*>) : Animatio
         SdkConstants.TAG_ANIMATION_LIST ->
           animationListDelegate.animateTo(controller, framePositionMs)
         else -> {
-          it.setElapsedFrameTimeMs(framePositionMs)
+          it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
           it.requestRenderAsync()
         }
       }

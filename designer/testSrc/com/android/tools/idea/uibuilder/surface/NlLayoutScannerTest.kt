@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneRenderConfiguration
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
@@ -103,9 +104,13 @@ class NlLayoutScannerTest {
     val scanner = createScanner()
     val model = ScannerTestHelper().buildModel(0)
     val scannerConfig = LayoutScannerEnabled()
+    val renderConfig =
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
         Mockito.`when`(it.model).thenReturn(model)
       }
     val renderResult = Mockito.mock(RenderResult::class.java)
@@ -129,9 +134,13 @@ class NlLayoutScannerTest {
     val componentSize = 0
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
+    val renderConfig =
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
         Mockito.`when`(it.model).thenReturn(model)
       }
     val renderResult = Mockito.mock(RenderResult::class.java)
@@ -159,9 +168,13 @@ class NlLayoutScannerTest {
     val componentSize = 0
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
+    val renderConfig =
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
         Mockito.`when`(it.model).thenReturn(model)
       }
     val renderResult = helper.mockRenderResult(model)
