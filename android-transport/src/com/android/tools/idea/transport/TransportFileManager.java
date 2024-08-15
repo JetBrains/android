@@ -124,11 +124,9 @@ public final class TransportFileManager implements TransportFileCopier {
   private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
   @NotNull private final IDevice myDevice;
-  @NotNull private final MessageBus myMessageBus;
 
-  public TransportFileManager(@NotNull IDevice device, @NotNull MessageBus messageBus) {
+  public TransportFileManager(@NotNull IDevice device) {
     myDevice = device;
-    myMessageBus = messageBus;
   }
 
   public void copyFilesToDevice()

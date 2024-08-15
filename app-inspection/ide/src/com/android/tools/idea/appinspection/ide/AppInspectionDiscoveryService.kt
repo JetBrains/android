@@ -98,8 +98,7 @@ class AppInspectionDiscoveryService : Disposable {
 
   private fun IDevice.createJarCopier(): AppInspectionJarCopier {
     return object : AppInspectionJarCopier {
-      private val delegate =
-        TransportFileManager(this@createJarCopier, TransportService.getInstance().messageBus)
+      private val delegate = TransportFileManager(this@createJarCopier)
 
       override fun copyFileToDevice(jar: AppInspectorJar): List<String> =
         delegate.copyFileToDevice(jar.toDeployableFile())
