@@ -61,6 +61,7 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -337,6 +338,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       )
     })
   }
+
+  override fun getAndroidFacets() = super.getAndroidFacets().filter { it.module.isHolderModule() }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     val census = getGradleProjectCensus(project)
