@@ -32,8 +32,8 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
+import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1032,7 +1032,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
     "Enables running an XR AVD in the Running Devices tool window",
-    false);
+    ChannelDefault.enabledUpTo(DEV));
   //endregion
 
   //region Device Mirroring
