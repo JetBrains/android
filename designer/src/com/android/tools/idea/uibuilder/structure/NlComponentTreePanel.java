@@ -27,7 +27,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ScrollPaneFactory;
 import java.awt.BorderLayout;
@@ -45,10 +44,10 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   private final BackNavigationComponent myNavigationComponent;
   private final JPanel myTreeContainer = new JPanel(new BorderLayout());
 
-  public NlComponentTreePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
+  public NlComponentTreePanel(@NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
-    myTree = new NlComponentTree(project, null, myVisibilityGutter);
+    myTree = new NlComponentTree(null, myVisibilityGutter);
     myTreeContainer.setOpaque(true);
     myTreeContainer.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     myTreeContainer.add(myTree, BorderLayout.CENTER);

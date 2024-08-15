@@ -58,7 +58,7 @@ class NlTreeCellRendererTest {
   fun displayButton() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
     val panel = mock(NlVisibilityGutterPanel::class.java)
-    val tree = NlComponentTree(projectRule.project, null, panel)
+    val tree = NlComponentTree(null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button =
       MockNlComponent.create(
@@ -90,7 +90,7 @@ class NlTreeCellRendererTest {
   fun displayPreference() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
     val panel = mock(NlVisibilityGutterPanel::class.java)
-    val tree = NlComponentTree(projectRule.project, null, panel)
+    val tree = NlComponentTree(null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button =
       MockNlComponent.create(
@@ -129,7 +129,7 @@ class NlTreeCellRendererTest {
   fun displayPreferenceCompat() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
     val panel = mock(NlVisibilityGutterPanel::class.java)
-    val tree = NlComponentTree(projectRule.project, null, panel)
+    val tree = NlComponentTree(null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button =
       MockNlComponent.create(
@@ -170,7 +170,7 @@ class NlTreeCellRendererTest {
   fun displayPreferenceAndroidTitle() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
     val panel = mock(NlVisibilityGutterPanel::class.java)
-    val tree = NlComponentTree(projectRule.project, null, panel)
+    val tree = NlComponentTree(null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button =
       MockNlComponent.create(
@@ -211,7 +211,7 @@ class NlTreeCellRendererTest {
   fun displayPreferenceAppTitle() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
     val panel = mock(NlVisibilityGutterPanel::class.java)
-    val tree = NlComponentTree(projectRule.project, null, panel)
+    val tree = NlComponentTree(null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button =
       MockNlComponent.create(

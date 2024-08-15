@@ -54,7 +54,6 @@ import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.client.ClientSystemInfo;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
@@ -115,8 +114,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
 
-  public NlComponentTree(@NotNull Project project,
-                         @Nullable NlDesignSurface designSurface,
+  public NlComponentTree(@Nullable NlDesignSurface designSurface,
                          NlVisibilityGutterPanel visibilityGutter) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
