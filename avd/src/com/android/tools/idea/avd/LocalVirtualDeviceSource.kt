@@ -27,9 +27,6 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.WizardAction
@@ -194,7 +191,7 @@ internal class LocalVirtualDeviceSource(
     return true
   }
 
-  override val profiles: List<DeviceProfile>
+  override val profiles: List<VirtualDeviceProfile>
     get() =
       DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
         val androidVersions =
@@ -215,24 +212,4 @@ internal fun Device.toVirtualDeviceProfile(
     .build()
 
 internal fun VirtualDeviceProfile.toVirtualDevice() =
-  // TODO: Check that these are appropriate defaults
-  VirtualDevice(
-    name = device.displayName,
-    device = device,
-    androidVersion = apiLevels.last(),
-    // TODO(b/335267252): Set the skin appropriately.
-    skin = NoSkin.INSTANCE,
-    frontCamera = AvdCamera.EMULATED,
-    // TODO We're assuming the emulator supports this feature
-    rearCamera = AvdCamera.VIRTUAL_SCENE,
-    speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
-    latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-    orientation = device.defaultState.orientation,
-    defaultBoot = Boot.QUICK,
-    internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-    expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-    cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-    graphicAcceleration = GpuMode.AUTO,
-    simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-    vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-  )
+  VirtualDevice.withDefaults(device).copy(androidVersion = apiLevels.last())
