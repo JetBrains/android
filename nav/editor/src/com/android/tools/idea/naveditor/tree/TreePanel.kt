@@ -84,7 +84,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
   override fun setToolContext(toolContext: DesignSurface<*>?) {
     designSurface?.let {
-      it.selectionModel?.removeListener(contextSelectionListener)
+      it.selectionModel.removeListener(contextSelectionListener)
       it.models.firstOrNull()?.removeListener(modelListener)
       DataManager.removeDataProvider(componentTree)
     }
@@ -92,7 +92,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
     designSurface = toolContext
 
     designSurface?.let {
-      it.selectionModel?.addListener(contextSelectionListener)
+      it.selectionModel.addListener(contextSelectionListener)
       it.models.firstOrNull()?.let { model ->
         model.addListener(modelListener)
         update(model)
