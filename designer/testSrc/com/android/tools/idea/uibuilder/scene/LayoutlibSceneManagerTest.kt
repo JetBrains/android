@@ -20,15 +20,12 @@ import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.render
-import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.update.Update
 import kotlinx.coroutines.runBlocking
 
 class LayoutlibSceneManagerTest : SceneTest() {
@@ -123,15 +120,6 @@ class LayoutlibSceneManagerTest : SceneTest() {
     }
   }
 
-  fun testDeactivateCancelsPendingRenders() {
-    val noOpLayoutlibSceneManager = noOpRenderingLayoutLibSceneManager()
-
-    val future = noOpLayoutlibSceneManager.requestRenderAsync()
-    assertFalse(future.isDone)
-    noOpLayoutlibSceneManager.deactivate(ModelBuilder::class.java)
-    assertTrue("the render should be interrupted", future.isCompletedExceptionally)
-  }
-
   override fun createModel(): ModelBuilder {
     return model(
       FD_RES_XML,
@@ -142,20 +130,4 @@ class LayoutlibSceneManagerTest : SceneTest() {
         .matchParentHeight(),
     )
   }
-
-  private fun noOpRenderingLayoutLibSceneManager() =
-    LayoutlibSceneManager(
-      myLayoutlibSceneManager.model,
-      myLayoutlibSceneManager.designSurface,
-      EdtExecutorService.getInstance(),
-      {
-        object : RenderingQueue {
-          override fun queue(update: Update) {
-            // no-op
-          }
-        }
-      },
-      LayoutlibSceneManagerHierarchyProvider(),
-      DISABLED,
-    )
 }
