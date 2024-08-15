@@ -62,6 +62,8 @@ private class TestAdapter :
 private fun someDisplaySettings(name: String = "") =
   PreviewDisplaySettings(
     name = name,
+    baseName = name,
+    parameterName = null,
     group = null,
     showDecoration = false,
     showBackground = false,

@@ -59,7 +59,15 @@ class GlancePreviewElementTest {
     val previewElement1 =
       GlancePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            null,
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -70,7 +78,15 @@ class GlancePreviewElementTest {
     val previewElement2 =
       GlancePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            null,
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -86,7 +102,15 @@ class GlancePreviewElementTest {
     val originalPreviewElement =
       GlancePreviewElement(
         displaySettings =
-          PreviewDisplaySettings("some name", "some group", false, false, "0xffabcd"),
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            null,
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
         methodFqn = "someMethodFqn",
@@ -94,7 +118,15 @@ class GlancePreviewElementTest {
       )
 
     val newPreviewDisplaySettings =
-      PreviewDisplaySettings("derived name", "derived group", true, true, "0xffffff")
+      PreviewDisplaySettings(
+        "derived name",
+        "derived base name",
+        null,
+        "derived group",
+        true,
+        true,
+        "0xffffff",
+      )
     val newConfig =
       PreviewConfiguration.cleanAndGet(
         device = "id:derived_device",

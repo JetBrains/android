@@ -28,6 +28,7 @@ import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.annotations.getUAnnotations
 import com.android.tools.idea.preview.annotations.isAnnotatedWith
+import com.android.tools.idea.preview.buildParameterName
 import com.android.tools.idea.preview.buildPreviewName
 import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
@@ -212,6 +213,9 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
       overrideGroupName,
       buildPreviewName = { nameParameter ->
         this.buildPreviewName(annotatedMethod.name, nameParameter, UElement?::isPreviewAnnotation)
+      },
+      buildParameterName = { nameParameter ->
+        this.buildParameterName(nameParameter, UElement?::isPreviewAnnotation)
       },
     )
   }

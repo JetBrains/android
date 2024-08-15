@@ -47,7 +47,7 @@ private class TestModel(override var dataContext: DataContext) : DataContextHold
 }
 
 private fun simplestDisplaySettings(name: String = "") =
-  PreviewDisplaySettings(name, null, false, false, null)
+  PreviewDisplaySettings(name, name, null, null, false, false, null)
 
 class WearTilePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()

@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.preview.buildParameterName
 import com.android.tools.idea.preview.buildPreviewName
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -67,6 +68,8 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
   val displaySettings =
     PreviewDisplaySettings(
       buildPreviewName(uMethod.name, nameParameter = null, UElement?::isGlancePreviewAnnotation),
+      uMethod.name,
+      buildParameterName(null, UElement?::isGlancePreviewAnnotation),
       null,
       false,
       false,

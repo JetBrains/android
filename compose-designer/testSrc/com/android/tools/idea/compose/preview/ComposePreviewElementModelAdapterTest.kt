@@ -40,7 +40,7 @@ class ComposePreviewElementModelAdapterTest {
     val composable0 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
+        PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -50,7 +50,7 @@ class ComposePreviewElementModelAdapterTest {
     val composable0b =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
+        PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -60,7 +60,15 @@ class ComposePreviewElementModelAdapterTest {
     val composable1 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("Different name", null, false, false, null),
+        PreviewDisplaySettings(
+          "Different name",
+          "BaseName",
+          "ParameterName",
+          null,
+          false,
+          false,
+          null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -70,7 +78,15 @@ class ComposePreviewElementModelAdapterTest {
     val composable2 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("Different name", null, false, false, null),
+        PreviewDisplaySettings(
+          "Different name",
+          "BaseName",
+          "ParameterName",
+          null,
+          false,
+          false,
+          null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -91,7 +107,7 @@ class ComposePreviewElementModelAdapterTest {
     val composable0 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
+        PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -101,7 +117,7 @@ class ComposePreviewElementModelAdapterTest {
     val composable0b =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
+        PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -111,7 +127,15 @@ class ComposePreviewElementModelAdapterTest {
     val composable1 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName",
-        PreviewDisplaySettings("Different name", null, false, false, null),
+        PreviewDisplaySettings(
+          "Different name",
+          "BaseName",
+          "ParameterName",
+          null,
+          false,
+          false,
+          null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -121,7 +145,7 @@ class ComposePreviewElementModelAdapterTest {
     val composable2 =
       SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
         "composableMethodName2",
-        PreviewDisplaySettings("A name", null, false, false, null),
+        PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),

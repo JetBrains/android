@@ -884,6 +884,8 @@ class AnnotationFileComposePreviewElementFinderTest {
           override val displaySettings: PreviewDisplaySettings =
             PreviewDisplaySettings(
               it.displaySettings.name,
+              it.displaySettings.baseName,
+              it.displaySettings.parameterName,
               it.displaySettings.group,
               it.displaySettings.showDecoration,
               it.displaySettings.showBackground,
@@ -976,6 +978,8 @@ class AnnotationFileComposePreviewElementFinderTest {
           override val displaySettings: PreviewDisplaySettings =
             PreviewDisplaySettings(
               it.displaySettings.name,
+              it.displaySettings.baseName,
+              it.displaySettings.parameterName,
               it.displaySettings.group,
               it.displaySettings.showDecoration,
               it.displaySettings.showBackground,

@@ -87,6 +87,8 @@ class PreviewElementSortingTest {
       displaySettings =
         PreviewDisplaySettings(
           name = name,
+          baseName = "ComposableName",
+          parameterName = name,
           group = group,
           showDecoration = false,
           showBackground = false,
