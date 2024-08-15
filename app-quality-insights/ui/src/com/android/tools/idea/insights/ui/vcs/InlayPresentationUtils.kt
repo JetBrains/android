@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.LineCenteredInset
@@ -29,6 +28,7 @@ import java.awt.Point
 import java.awt.event.MouseEvent
 import java.util.EnumSet
 import javax.swing.JPanel
+import org.jetbrains.annotations.VisibleForTesting
 
 internal fun InlayPresentation.withLineCentered(editor: Editor): InlayPresentation {
   return LineCenteredInset(this, editor)
