@@ -18,6 +18,7 @@ PluginInfo = provider(
         "plugin_files": "A map from the final studio location to the file it goes there.",
         "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
         "platform": "The platform this plugin was compiled against",
+        "plugin_id": "The plugin id if known at build time, None otherwise",
     },
 )
 
@@ -221,7 +222,17 @@ def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
-    _check_plugin(ctx, ctx.outputs.plugin_metadata, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
+
+    # Ensure plugin id is known at build time
+    _check_plugin(
+        ctx,
+        ctx.outputs.plugin_metadata,
+        [f for (r, f) in module_deps],
+        ctx.attr.external_xmls,
+        verify_id = ctx.attr.name,
+        verify_deps = ctx.attr.deps,
+    )
+    plugin_id = ctx.attr.name
     plugin_files_linux = _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir)
     plugin_files_mac = _studio_plugin_os(ctx, MAC, module_deps, plugin_dir)
     plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir)
@@ -265,6 +276,7 @@ def _studio_plugin_impl(ctx):
             licenses = depset(ctx.files.licenses),
             overwrite_plugin_version = True,
             platform = ctx.attr._intellij_platform,
+            plugin_id = plugin_id,
         ),
         # Force 'chkplugin' to run by marking its output as a validation output.
         # See https://bazel.build/extending/rules#validation_actions for details.
@@ -311,35 +323,26 @@ _studio_plugin = rule(
 
 def _searchable_options_impl(ctx):
     searchable_options = {}
-    for f in ctx.files.searchable_options:
-        if not f.short_path.startswith(ctx.attr.strip_prefix):
-            fail("File " + f.short_path + " does not have the given prefix.")
-        path = f.short_path[len(ctx.attr.strip_prefix):]
-        parts = path.split("/")
-        if len(parts) < 2:
-            fail("File does not follow the <plugin>/<jar> convention.")
-        plugin, jar = parts[0], parts[1]
-        if plugin not in searchable_options:
-            searchable_options[plugin] = {}
-        if jar not in searchable_options[plugin]:
-            searchable_options[plugin][jar] = []
-        searchable_options[plugin][jar] += [f]
+    searchable_options_src = {}
+    for dep, plugin in ctx.attr.searchable_options.items():
+        if plugin not in searchable_options_src:
+            so_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.so.jar" % plugin)
+            searchable_options_src[plugin] = []
+            searchable_options[plugin] = so_jar
+        searchable_options_src[plugin].extend(dep[DefaultInfo].files.to_list())
 
-    so_jars = []
-    for plugin, jars in searchable_options.items():
-        for jar, so_files in jars.items():
-            so_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.%s.zip" % (plugin, jar))
-            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/", None)] + [("search/%s" % f.basename, f) for f in so_files], so_jar)
-            so_jars += [("plugins/%s/lib/%s" % (plugin, jar), so_jar)]
+    for id, srcs in searchable_options_src.items():
+        jar = searchable_options[id]
+        _zipper(ctx, "%s %s searchable options" % (id, jar), [(f.basename, f) for f in srcs], jar)
 
     return struct(
-        files = depset([f for (_, f) in so_jars]),
-        searchable_options = so_jars,
+        files = depset(searchable_options.values()),
+        searchable_options = searchable_options,
     )
 
 _searchable_options = rule(
     attrs = {
-        "searchable_options": attr.label_list(allow_files = True),
+        "searchable_options": attr.label_keyed_string_dict(allow_files = True),
         "compress": attr.bool(),
         "strip_prefix": attr.string(),
         "_zipper": attr.label(
@@ -788,7 +791,7 @@ def _android_studio_os(ctx, platform, out):
         for key in source_map:
             files += [(platform.base_path + source_map[key], key.files.to_list()[0])]
 
-    so_jars = {"%s%s%s" % (platform_prefix, platform.base_path, jar): f for (jar, f) in ctx.attr.searchable_options.searchable_options}
+    so_jars = ctx.attr.searchable_options.searchable_options
 
     licenses = []
     for p in ctx.attr.plugins:
@@ -799,12 +802,10 @@ def _android_studio_os(ctx, platform, out):
 
         licenses += [p[PluginInfo].licenses]
         this_plugin_full_files = {platform_prefix + platform.base_path + k: v for k, v in this_plugin_files.items()}
-        for k, f in this_plugin_full_files.items():
-            if k in so_jars:
-                jar_with_so = ctx.actions.declare_file(k + "%s.so.jar" % platform.name)
-                run_singlejar(ctx, [f, so_jars[k]], jar_with_so)
-                this_plugin_full_files[k] = jar_with_so
         all_files.update(this_plugin_full_files)
+
+        if p[PluginInfo].plugin_id in so_jars:
+            files += [("%splugins/%s/lib/%s" % (platform.base_path, pkey, pkey + ".so.jar"), so_jars[p[PluginInfo].plugin_id])]
 
     files += [(platform.base_path + "license/" + f.basename, f) for f in depset([], transitive = licenses).to_list()]
 
@@ -895,8 +896,11 @@ script_template = """\
 platform_by_name = {platform.name: platform for platform in [LINUX, MAC, MAC_ARM, WIN]}
 
 def _android_studio_impl(ctx):
-    plugins = [plugin[PluginInfo].directory for plugin in ctx.attr.plugins]
-    ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
+    plugin_list = []
+    for p in ctx.attr.plugins:
+        id = p[PluginInfo].plugin_id
+        plugin_list += [p[PluginInfo].directory + (": " + id if id else "")]
+    ctx.actions.write(ctx.outputs.plugins, "".join(["%s\n" % line for line in plugin_list]))
 
     outputs = {
         LINUX: ctx.outputs.linux,
@@ -1124,6 +1128,7 @@ def _intellij_plugin_import_impl(ctx):
         PluginInfo(
             directory = ctx.attr.target_dir,
             plugin_metadata = ctx.outputs.plugin_metadata,
+            plugin_id = None,
             module_deps = depset(),
             lib_deps = depset(ctx.attr.exports),
             licenses = depset(),

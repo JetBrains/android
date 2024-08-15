@@ -666,8 +666,10 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.sam-with-receiver
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
+Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/compose-compiler.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.jar
+Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.so.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/LICENSE.TXT
@@ -1977,6 +1979,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-project-system-gradle-models.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android.so.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-core-desktop-1.7.0-dev1743.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-desktop-1.7.0-dev1743.jar
 Android Studio Preview.app/Contents/plugins/android/lib/artwork.jar
@@ -2511,6 +2514,7 @@ Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMl
 Android Studio Preview.app/Contents/plugins/configurationScript/lib/configurationScript.jar
 Android Studio Preview.app/Contents/plugins/copyright/lib/copyright.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.jar
+Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.so.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/layoutlib.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/build.prop
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/AndroidClock.ttf
@@ -2732,6 +2736,7 @@ Android Studio Preview.app/Contents/plugins/devkit/lib/devkit-runtimeModuleRepos
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/adb_proxy_studio_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_java_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-cloudbilling-v1-rev20240119-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-monitoring-v3-rev20230806-2.0.0.jar
@@ -2747,6 +2752,7 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-serv
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
@@ -2754,12 +2760,14 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/commonmark-0.22.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/gemini.so.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-v1-rev20230123-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
+Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
@@ -2845,6 +2853,7 @@ Android Studio Preview.app/Contents/plugins/rml-dfa-plugin/lib/rml-dfa-plugin.ja
 Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
+Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.so.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/bash/bash-fig.bash
@@ -2860,6 +2869,7 @@ Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/comm
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zsh-integration.zsh
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/test-recorder.jar
+Android Studio Preview.app/Contents/plugins/test-recorder/lib/test-recorder.so.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/uiautomatorviewer.jar
 Android Studio Preview.app/Contents/plugins/testng/lib/testng-plugin.jar
 Android Studio Preview.app/Contents/plugins/testng/lib/testng-rt.jar
@@ -3243,6 +3253,7 @@ Android Studio Preview.app/Contents/plugins/toml/lib/toml.jar
 Android Studio Preview.app/Contents/plugins/turboComplete/lib/modules/intellij.turboComplete.languages.kotlin.jar
 Android Studio Preview.app/Contents/plugins/turboComplete/lib/turboComplete.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.jar
+Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.so.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/vcs-git.jar
