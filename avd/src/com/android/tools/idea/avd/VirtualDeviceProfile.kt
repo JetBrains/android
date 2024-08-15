@@ -119,7 +119,7 @@ internal data class VirtualDeviceProfile(
   }
 }
 
-private val Device.androidVersionRange: Range<AndroidVersion>
+internal val Device.androidVersionRange: Range<AndroidVersion>
   get() =
     allSoftware
       .map { Range.closed(AndroidVersion(it.minSdkLevel), AndroidVersion(it.maxSdkLevel)) }
