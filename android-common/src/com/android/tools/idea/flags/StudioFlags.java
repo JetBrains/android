@@ -2057,7 +2057,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "ai.rethink.action",
                     "Use AI to suggest better variable names",
                     "Enables AI to provide better variable renaming functionalities",
-                    false);
+                    ChannelDefault.enabledUpTo(CANARY));
 
 
   public static final Flag<Boolean> AI_RENAME_ACTION =
