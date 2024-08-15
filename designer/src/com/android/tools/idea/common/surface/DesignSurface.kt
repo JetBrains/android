@@ -60,7 +60,6 @@ import com.google.common.base.Predicate
 import com.google.common.collect.Collections2
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -1265,16 +1264,11 @@ abstract class DesignSurface<T : SceneManager>(
       focusedSceneView?.selectionModel?.primary?.tagDeprecated
     }
     sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
-      val selection = focusedSceneView?.selectionModel?.selection
-      if (selection != null) {
-        val list: MutableList<XmlTag> = Lists.newArrayListWithCapacity(selection.size)
-        for (component in selection) {
-          list.add(component.tagDeprecated)
-        }
-        return@lazy list.toArray<XmlTag>(XmlTag.EMPTY)
-      } else {
-        return@lazy null
-      }
+      focusedSceneView
+        ?.selectionModel
+        ?.selection
+        ?.map { it.tagDeprecated }
+        ?.toArray<XmlTag>(XmlTag.EMPTY)
     }
   }
 
