@@ -112,7 +112,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
+    TransportFileManager fileManager = new TransportFileManager(device);
     pushStartupAgentConfig(fileManager, project);
     String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME, executor.getId());
     String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);

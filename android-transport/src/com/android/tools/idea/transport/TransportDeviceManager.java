@@ -267,7 +267,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
         transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
         myMessageBus.syncPublisher(TOPIC).onPreTransportDaemonStart(transportDevice);
-        TransportFileManager fileManager = new TransportFileManager(myDevice, myMessageBus);
+        TransportFileManager fileManager = new TransportFileManager(myDevice);
         fileManager.copyFilesToDevice();
         // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
         // as long as the device is connected). The execution may exit this loop only via exceptions.
