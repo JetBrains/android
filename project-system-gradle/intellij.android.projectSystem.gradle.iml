@@ -64,5 +64,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle" />
     <orderEntry type="library" name="agp-version" level="project" />
+    <orderEntry type="module" module-name="intellij.android.lang" />
   </component>
 </module>
