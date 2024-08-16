@@ -21,32 +21,27 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.Filterable;
-import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.manipulation.Sortable;
-import org.junit.runner.manipulation.Sorter;
-import org.junit.runner.notification.RunNotifier;
 
-public class JUnit3RunnerWithInnersForBazel extends Runner implements Filterable, Sortable {
-  private final JUnit38ClassRunner delegate;
-
+/** A {@link Runner} that handles inner class runners */
+public class JUnit3RunnerWithInnersForBazel extends ExpectedFailureRunner {
   public JUnit3RunnerWithInnersForBazel(Class<?> aClass) {
-    TestSuite suite = new TestSuite(aClass.getCanonicalName());
-
-    addClassTests(aClass, suite);
-    this.delegate = new JUnit38ClassRunner(suite);
+    super(createDelegate(aClass));
   }
 
+  private static Runner createDelegate(Class<?> aClass) {
+    TestSuite suite = new TestSuite(aClass.getCanonicalName());
+    addClassTests(aClass, suite);
+    return new JUnit38ClassRunner(suite);
+  }
 
   private static void addClassTests(Class<?> aClass, TestSuite suite) {
     ArrayList<Test> tests = Collections.list(new TestSuite(aClass).tests());
     if (tests.size() == 1 && tests.get(0) instanceof TestCase && ((TestCase)tests.get(0)).getName().equals("warning")) {
       // ignore
-    } else {
+    }
+    else {
       for (Test test : tests) {
         suite.addTest(test);
       }
@@ -60,25 +55,5 @@ public class JUnit3RunnerWithInnersForBazel extends Runner implements Filterable
 
   private static boolean hasRunWith(Class<?> inner) {
     return inner.getAnnotation(RunWith.class) != null;
-  }
-
-  @Override
-  public Description getDescription() {
-    return delegate.getDescription();
-  }
-
-  @Override
-  public void run(RunNotifier runNotifier) {
-    delegate.run(runNotifier);
-  }
-
-  @Override
-  public void filter(Filter filter) throws NoTestsRemainException {
-    delegate.filter(filter);
-  }
-
-  @Override
-  public void sort(Sorter sorter) {
-    delegate.sort(sorter);
   }
 }

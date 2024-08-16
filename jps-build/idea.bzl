@@ -237,6 +237,9 @@ def _jps_test_impl(ctx):
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
+    if ctx.attr.expected_failures_file:
+        cmd += ["--env EXPECTED_FAILURES_FILE '" + ctx.expand_location("$(location " + ctx.attr.expected_failures_file + ")") + "'"]
+
     files = [
         ctx.file._test_runner,
         ctx.file._bazel_runner,
@@ -263,6 +266,7 @@ _jps_test = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
+        "expected_failures_file": attr.string(default = ""),
         "test_exclude_filter": attr.string_list(default = []),
         "test_filter": attr.string_list(default = []),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
@@ -284,6 +288,9 @@ def split(
 
 def jps_test(
         name,
+        shard_count = None,
+        expected_failures_file = None,
+        test_include_filter = None,
         split_tests = None,
         test_exclude_filter = None,
         env = None,
@@ -302,6 +309,9 @@ def jps_test(
                      a test filter, and a shard_count. A target is created per split, with one additional
                      target suffixed '_empty' that asserts that no tests were left out of the splits.
     """
+    if split_tests and expected_failures_file:
+        fail("Can't use 'split_tests' and 'expected_failures_file' together")
+
     if split_tests:
         names = []
         splits = []
@@ -337,8 +347,11 @@ def jps_test(
     else:
         _jps_test(
             name = name,
-            env = env,
+            expected_failures_file = expected_failures_file,
             test_exclude_filter = test_exclude_filter,
+            env = env,
+            test_filter = test_include_filter,
+            shard_count = shard_count,
             **kwargs
         )
 

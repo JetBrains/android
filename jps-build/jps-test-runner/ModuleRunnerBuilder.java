@@ -41,6 +41,6 @@ public class ModuleRunnerBuilder extends RunnerBuilder {
         return new JUnit3RunnerWithInnersForBazel(aClass);
       }
     }
-    return delegate.runnerForClass(aClass);
+    return new ExpectedFailureRunner(delegate.runnerForClass(aClass));
   }
 }
