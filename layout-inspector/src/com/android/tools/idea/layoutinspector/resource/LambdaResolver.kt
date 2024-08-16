@@ -24,9 +24,9 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
-import org.jetbrains.kotlin.analysis.api.KaSession
 import java.lang.Integer.min
 import java.util.IdentityHashMap
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -394,9 +394,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       foundComposableSibling = foundComposableSiblingBefore
     }
 
-    private fun KaSession?.hasComposableAnnotation(
-      expression: KtLambdaExpression
-    ): Boolean {
+    private fun KaSession?.hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
       val argument = expression.parent as? KtValueArgument ?: return false
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
       if (this != null) {

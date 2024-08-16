@@ -131,7 +131,9 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
   private fun buildSuperStatement(method: PsiMethod, superMethod: PsiMethod): String {
     return buildString {
       val containingClass = superMethod.containingClass
-      if (containingClass?.isInterface == true) { append("${containingClass.qualifiedName}.") }
+      if (containingClass?.isInterface == true) {
+        append("${containingClass.qualifiedName}.")
+      }
 
       append("super.${method.name}(")
       append(join(method.parameterList.parameters.map { it.name }, ","))
@@ -140,17 +142,18 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
   }
 
   private fun buildSuperStatement(method: KtNamedFunction, superMethod: PsiMethod): String {
-    val qualifiedClass = analyze(method) {
-      val ktCallableSymbol = method.symbol as? KaCallableSymbol ?: return@analyze null
-      val choices = ktCallableSymbol.directlyOverriddenSymbols.toList()
-      if (choices.size > 1) {
-        // We need to disambiguate the call
-        superMethod.containingClass?.let {
-          return@analyze it.qualifiedName
+    val qualifiedClass =
+      analyze(method) {
+        val ktCallableSymbol = method.symbol as? KaCallableSymbol ?: return@analyze null
+        val choices = ktCallableSymbol.directlyOverriddenSymbols.toList()
+        if (choices.size > 1) {
+          // We need to disambiguate the call
+          superMethod.containingClass?.let {
+            return@analyze it.qualifiedName
+          }
         }
+        return@analyze null
       }
-      return@analyze null
-    }
 
     return buildString {
       append("super")

@@ -287,8 +287,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val symbolWithVisibility =
-        elementToAnalyze.symbol as? KaDeclarationSymbol ?: return true
+      val symbolWithVisibility = elementToAnalyze.symbol as? KaDeclarationSymbol ?: return true
 
       @OptIn(KaExperimentalApi::class)
       return isVisible(
@@ -494,7 +493,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       elementOnWhichMethodCalled.callReturnTypeFqName()
         ?:
         // Case Modifier.%this%
-      ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
+        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 
@@ -569,8 +568,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, endOffset)
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-        @OptIn(KaIdeApi::class)
-        shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
+        @OptIn(KaIdeApi::class) shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
       }
       if (ktFile.importDirectives.all { it.importedFqName != FqName(COMPOSE_MODIFIER_FQN) }) {
         ktFile.addImport(FqName(COMPOSE_MODIFIER_FQN))
