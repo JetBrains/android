@@ -69,7 +69,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleKtTest",
         },
         "other": {
-            "shard_count": 4,
+            "shard_count": 10,
         },
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
