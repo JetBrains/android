@@ -493,8 +493,6 @@ val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGro
 
 fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
 
-fun Module.isHolderModule() : Boolean = getHolderModule() == this
-
 fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
