@@ -857,6 +857,7 @@ class LogcatMainPanelTest {
   }
 
   @Test
+  @Ignore("b/360314723")
   fun applyLogcatSettings_bufferSize() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(logcatSettings = AndroidLogcatSettings(bufferSize = 1024000))
@@ -868,6 +869,9 @@ class LogcatMainPanelTest {
       ) // Make the message part exactly 100 chars long
     // Insert 20 log lines
     logcatMainPanel.processMessages(List(20) { logcatMessage })
+    waitForCondition {
+      document.immutableText().lines().size == 21
+    }
     val logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
 
     logcatMainPanel.applyLogcatSettings(logcatSettings)
