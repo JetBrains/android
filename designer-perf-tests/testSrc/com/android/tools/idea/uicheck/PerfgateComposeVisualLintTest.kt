@@ -41,6 +41,10 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.config.REFERENCE_DESKTOP_SPEC
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
+import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.android.tools.rendering.RenderResult
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Before
@@ -59,15 +63,15 @@ data class ExtendedPreviewConfiguration(val configuration: PreviewConfiguration,
 
 internal val UiCheckConfigurations = listOf(
   // Reference Phone
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=411dp,height=891dp"), true),
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_PHONE_SPEC), true),
   // Reference Phone Landscape
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=411dp,height=891dp,orientation=landscape"), true),
   // Reference Foldable
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=673dp,height=841dp"), true),
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_FOLDABLE_SPEC), true),
   // Reference Tablet
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=1280dp,height=800dp,dpi=240"), true),
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_TABLET_SPEC), true),
   // Reference Desktop
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=1920dp,height=1080dp,dpi=160"), true),
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_DESKTOP_SPEC), true),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 0.85f), false),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1f), false),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1.15f), false),

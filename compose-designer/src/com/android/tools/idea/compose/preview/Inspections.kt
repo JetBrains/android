@@ -37,6 +37,10 @@ import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
+import com.android.tools.preview.config.REFERENCE_DESKTOP_SPEC
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
+import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -374,13 +378,13 @@ class PreviewDeviceShouldUseNewSpec :
       val device = argumentExpression.text
       val fixText =
         if (device.endsWith("PHONE")) {
-          "spec:width=411dp,height=891dp"
+          REFERENCE_PHONE_SPEC
         } else if (device.endsWith("FOLDABLE")) {
-          "spec:width=673dp,height=841dp"
+          REFERENCE_FOLDABLE_SPEC
         } else if (device.endsWith("TABLET")) {
-          "spec:width=1280dp,height=800dp,dpi=240"
+          REFERENCE_TABLET_SPEC
         } else if (device.endsWith("DESKTOP")) {
-          "spec:width=1920dp,height=1080dp,dpi=160"
+          REFERENCE_DESKTOP_SPEC
         } else {
           null
         }

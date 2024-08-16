@@ -59,10 +59,10 @@ import kotlin.reflect.KProperty
  */
 val referenceDeviceIds =
   mapOf(
-    "spec:width=411dp,height=891dp" to DEVICE_CLASS_PHONE_ID,
-    "spec:width=673dp,height=841dp" to DEVICE_CLASS_FOLDABLE_ID,
-    "spec:width=1280dp,height=800dp,dpi=240" to DEVICE_CLASS_TABLET_ID,
-    "spec:width=1920dp,height=1080dp,dpi=160" to DEVICE_CLASS_DESKTOP_ID
+    REFERENCE_PHONE_SPEC to DEVICE_CLASS_PHONE_ID,
+    REFERENCE_FOLDABLE_SPEC to DEVICE_CLASS_FOLDABLE_ID,
+    REFERENCE_TABLET_SPEC to DEVICE_CLASS_TABLET_ID,
+    REFERENCE_DESKTOP_SPEC to DEVICE_CLASS_DESKTOP_ID
   )
 
 /**
