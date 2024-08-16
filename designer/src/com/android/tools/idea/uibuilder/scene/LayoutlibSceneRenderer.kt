@@ -68,11 +68,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
-private class RenderRequest(
-  val trigger: LayoutEditorRenderResult.Trigger?,
-  // TODO(b/335424569): remove reverseUpdate
-  val reverseUpdate: AtomicBoolean,
-) {
+private class RenderRequest(val trigger: LayoutEditorRenderResult.Trigger?) {
   val requestTime: Long = System.currentTimeMillis()
 }
 
@@ -189,8 +185,14 @@ class LayoutlibSceneRenderer(
     scope.launch {
       requestsChannel.receiveAsFlow().collect {
         renderIsRunning.set(true)
-        if (isActive.get()) doRender(it)
-        else log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
+        if (isActive.get()) {
+          val reverseUpdate = AtomicBoolean(false)
+          val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
+          doRender(it, reverseUpdate)
+          if (rerenderIfNeeded && reverseUpdate.get()) {
+            doRender(it, reverseUpdate)
+          }
+        } else log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
         lastProcessedRenderRequestTime.emit(
           maxOf(lastProcessedRenderRequestTime.value, it.requestTime)
         )
@@ -207,17 +209,11 @@ class LayoutlibSceneRenderer(
    * replaced by a newer request that arrives later, before this one starts to execute.
    *
    * @param trigger reason that triggered the render, used for tracking purposes
-   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
-   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
-   *   this param)
    */
   // TODO(b/335424569): remove this method and make clients use requestRender or
   //  requestRenderAndWait
-  fun renderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
-  ): CompletableFuture<Unit> {
-    return scope.launch { requestRenderAndWait(trigger, reverseUpdate) }.asCompletableFuture()
+  fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?): CompletableFuture<Unit> {
+    return scope.launch { requestRenderAndWait(trigger) }.asCompletableFuture()
   }
 
   /**
@@ -227,12 +223,9 @@ class LayoutlibSceneRenderer(
    * replaced by a newer request that arrives later, before this one starts to execute.
    *
    * @param trigger reason that triggered the render, used for tracking purposes
-   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
-   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
-   *   this param)
    */
-  fun requestRender(trigger: LayoutEditorRenderResult.Trigger?, reverseUpdate: AtomicBoolean) {
-    scope.launch { enqueueRenderRequest(trigger, reverseUpdate) }
+  fun requestRender(trigger: LayoutEditorRenderResult.Trigger?) {
+    scope.launch { enqueueRenderRequest(trigger) }
   }
 
   /**
@@ -242,29 +235,20 @@ class LayoutlibSceneRenderer(
    * replaced by a newer request that arrives later, before this one starts to execute.
    *
    * @param trigger reason that triggered the render, used for tracking purposes
-   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
-   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
-   *   this param)
    */
-  suspend fun requestRenderAndWait(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
-  ) {
-    val request = enqueueRenderRequest(trigger, reverseUpdate)
+  suspend fun requestRenderAndWait(trigger: LayoutEditorRenderResult.Trigger?) {
+    val request = enqueueRenderRequest(trigger)
     // Suspends until this or any newer request is processed
     lastProcessedRenderRequestTime.first { it >= request.requestTime }
   }
 
   /** Creates a new [RenderRequest] request, adds it to the queue and returns it. */
   private suspend fun enqueueRenderRequest(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
+    trigger: LayoutEditorRenderResult.Trigger?
   ): RenderRequest {
     // Mutex is needed to guarantee that requests are sent to the channel in order of their
     // requestTime
-    return requestsLock.withLock {
-      RenderRequest(trigger, reverseUpdate).also { requestsChannel.send(it) }
-    }
+    return requestsLock.withLock { RenderRequest(trigger).also { requestsChannel.send(it) } }
   }
 
   /**
@@ -279,14 +263,17 @@ class LayoutlibSceneRenderer(
    * Note that [CancellationException]s will be caught by this method and cause the returned
    * [RenderResult] to be an error result.
    */
-  private suspend fun doRender(request: RenderRequest): RenderResult? {
+  private suspend fun doRender(
+    request: RenderRequest,
+    reverseUpdate: AtomicBoolean,
+  ): RenderResult? {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
     try {
       // Inflate only if needed
       val inflateResult =
         if (sceneRenderConfiguration.forceInflate.getAndSet(false) || renderTask == null)
-          inflate(request.reverseUpdate)
+          inflate(reverseUpdate)
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
@@ -306,7 +293,7 @@ class LayoutlibSceneRenderer(
           lastRenderQuality = quality
           // When the layout was inflated in this same call, we do not have to update the hierarchy
           // again
-          if (inflateResult == null) request.reverseUpdate.set(updateHierarchy(result))
+          if (inflateResult == null) reverseUpdate.set(updateHierarchy(result))
         }
       }
     } catch (throwable: Throwable) {
