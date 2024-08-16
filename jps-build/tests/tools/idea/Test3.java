@@ -65,7 +65,7 @@ public class Test3 extends TestCase {
         }
 
         public void testNested10() {
-            System.out.println("Test3::testNested10");
+          fail();
         }
     }    
 }
