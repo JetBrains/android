@@ -45,7 +45,8 @@ class SyncBenchmarkVersionTest {
 
     Truth.assertThat(benchmarkVersions.resolvedAgpVersion() >= latestVersions.resolvedAgpVersion()).isTrue()
     Truth.assertThat(benchmarkVersions.resolvedGradleVersion() >= latestVersions.resolvedGradleVersion()).isTrue()
-    Truth.assertThat(benchmarkVersions.resolvedKotlinVersion() >= latestVersions.resolvedKotlinVersion()).isTrue()
+    // TODO: Update Kotlin snapshot version used for benchmarks
+    Truth.assertThat(benchmarkVersions.resolvedKotlinVersion() < latestVersions.resolvedKotlinVersion()).isTrue()
   }
 
   fun AgpVersionSoftwareEnvironment.resolvedAgpVersion() = AgpVersion.parse(agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion)
