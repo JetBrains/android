@@ -156,6 +156,7 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.lang.proguardR8.ProguardR8GradleResolveScopeEnlarger"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <intentionAction>

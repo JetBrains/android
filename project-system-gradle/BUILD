@@ -96,6 +96,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )
 
