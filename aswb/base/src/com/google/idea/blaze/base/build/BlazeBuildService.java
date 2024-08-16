@@ -125,25 +125,6 @@ public class BlazeBuildService {
         buildSystem);
   }
 
-  /**
-   * Builds compose dependencies for a single Kotlin file
-   */
-  public void buildComposeDependenciesForFile(VirtualFile file) {
-    // Building project is not applicable for QuerySync projects, so updating the last build timestamp to mark the build as done is good enough.
-    // TODO(b/336620315): Migrate to new preview design
-    project.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
-    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-    // Compose only supports Kotlin files
-    if (psiFile != null && psiFile.getLanguage() == KotlinLanguage.INSTANCE) {
-      QuerySyncManager.getInstance(project)
-          .generateRenderJar(
-              psiFile,
-              // TODO(b/336622303): Check if ActionEvent needs to be sent to stats instead of null.
-              QuerySyncActionStatsScope.createForFile(getClass(), null, psiFile.getVirtualFile()),
-              TaskOrigin.USER_ACTION);
-    }
-  }
-
   public void buildProject() {
     if (!Blaze.isBlazeProject(project)) {
       return;
