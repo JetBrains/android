@@ -313,7 +313,9 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.code.gson.gson_2.6.2",
+        "@maven//:com.google.dagger.dagger-compiler_2.52",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
+        "@maven//:com.google.dagger.dagger_2.52",
         "@maven//:com.google.dagger.dagger_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.firebase.firebase-common_12.0.1",
@@ -2288,6 +2290,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob([
         "testData/Dagger2App/**",
+        "testData/Dagger2AppKotlinLib/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.annotator.DaggerSymbolResolutionTest"],
     tags = COMMON_TAGS + [
