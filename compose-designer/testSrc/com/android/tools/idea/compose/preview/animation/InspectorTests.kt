@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -24,12 +25,11 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.runInEdtAndGet
-import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
@@ -45,6 +45,8 @@ open class InspectorTests {
   lateinit var parentDisposable: Disposable
 
   lateinit var surface: NlDesignSurface
+
+  lateinit var animationPreview: ComposeAnimationPreview
 
   @Before
   open fun setUp() {
@@ -72,21 +74,18 @@ open class InspectorTests {
     ApplicationManager.getApplication().invokeAndWait {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
     }
-  }
 
-  @After
-  open fun tearDown() {
-    ComposeAnimationInspectorManager.closeCurrentInspector()
-  }
-
-  fun createAndOpenInspector(disposable: Disposable = parentDisposable): ComposeAnimationPreview {
-    Assert.assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
-    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
-      surface,
-      disposable,
-      psiFilePointer,
-    ) {}
-    Assert.assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())
-    return ComposeAnimationInspectorManager.currentInspector!!
+    animationPreview =
+      ComposeAnimationPreview(
+          surface.project,
+          ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
+          { surface.model?.let { surface.getSceneManager(it) } },
+          surface,
+          psiFilePointer,
+        )
+        .also {
+          it.animationClock = AnimationClock(TestClock())
+          Disposer.register(parentDisposable, it)
+        }
   }
 }

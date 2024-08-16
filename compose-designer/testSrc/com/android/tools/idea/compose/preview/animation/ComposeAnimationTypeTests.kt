@@ -44,7 +44,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ComposeAnimationManagerTests(private val animationType: ComposeAnimationType) :
+class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType) :
   InspectorTests() {
 
   companion object {
@@ -193,7 +193,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
         }
       }
 
-    val inspector = createAndOpenInspector()
+    animationPreview.animationClock = AnimationClock(clock)
 
     val animation =
       object : ComposeAnimation {
@@ -205,9 +205,9 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     var ui: FakeUi
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
+      animationPreview.addAnimation(animation).join()
       withContext(uiThread) {
-        ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
       }
@@ -255,7 +255,7 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
     clock: TestClock = TestClock(),
     checkToolbar: suspend (JComponent, FakeUi) -> Unit,
   ) {
-    val inspector = createAndOpenInspector()
+    animationPreview.animationClock = AnimationClock(clock)
 
     val animation =
       object : ComposeAnimation {
@@ -266,13 +266,13 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
 
     runBlocking {
       surface.sceneManagers.forEach { it.render() }
-      ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
-      assertTrue("No animation is added", 1 == inspector.animations.size)
+      animationPreview.addAnimation(animation).join()
+      assertTrue("No animation is added", 1 == animationPreview.animations.size)
       withContext(uiThread) {
-        val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+        val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
         ui.updateToolbars()
         ui.layout()
-        val cards = findAllCards(inspector.component)
+        val cards = findAllCards(animationPreview.component)
         assertEquals(1, cards.size)
         val toolbar = cards.first().component.findToolbar("AnimationCard") as JComponent
         checkToolbar(toolbar, ui)
