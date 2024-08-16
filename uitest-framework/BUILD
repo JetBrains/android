@@ -57,6 +57,5 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
     ],
 )
