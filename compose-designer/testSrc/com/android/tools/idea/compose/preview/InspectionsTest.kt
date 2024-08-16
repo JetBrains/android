@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ex.QuickFixWrapper
@@ -654,7 +656,7 @@ class InspectionsTest {
       // Phone constant with old spec
       const val PHONE = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"
       // Foldable with new spec
-      const val FOLDABLE = "spec:width=673dp,height=841dp"
+      const val FOLDABLE = "$REFERENCE_FOLDABLE_SPEC"
 
       @Composable
       @Preview(name = "Preview 1", device = PHONE)
@@ -691,10 +693,10 @@ class InspectionsTest {
       // Phone constant with old spec
       const val PHONE = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"
       // Foldable with new spec
-      const val FOLDABLE = "spec:width=673dp,height=841dp"
+      const val FOLDABLE = "$REFERENCE_FOLDABLE_SPEC"
 
       @Composable
-      @Preview(name = "Preview 1", device = "spec:width=411dp,height=891dp")
+      @Preview(name = "Preview 1", device = "$REFERENCE_PHONE_SPEC")
       fun Preview1() {
       }
 
