@@ -29,7 +29,7 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.source.tree.TreeElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -141,7 +141,7 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
 
   private fun buildSuperStatement(method: KtNamedFunction, superMethod: PsiMethod): String {
     val qualifiedClass = analyze(method) {
-      val ktCallableSymbol = method.symbol as? KtCallableSymbol ?: return@analyze null
+      val ktCallableSymbol = method.symbol as? KaCallableSymbol ?: return@analyze null
       val choices = ktCallableSymbol.directlyOverriddenSymbols.toList()
       if (choices.size > 1) {
         // We need to disambiguate the call

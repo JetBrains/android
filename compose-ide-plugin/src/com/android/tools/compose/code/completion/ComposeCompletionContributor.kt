@@ -43,7 +43,7 @@ import javax.swing.Icon
 import javax.swing.ImageIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -164,8 +164,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (KotlinPluginModeProvider.isK2Mode()) {
       val element = psiElement
       analyze(element) {
-        val functionSymbol = element.getFunctionLikeSymbol()
-        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnit }
+        val functionSymbol = element.symbol
+        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnitType }
         presentation.setTypeText(typeText, null)
         presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
       }
@@ -418,11 +418,11 @@ private data class FunctionInfo(
 
 private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
   analyze(this) {
-    val allParameters = getFunctionLikeSymbol().valueParameters
+    val allParameters = symbol.valueParameters
 
     val endsInRequiredLambda =
       allParameters.lastOrNull()?.let {
-        !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+        !it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue
       } ?: false
 
     val hasRequiredParametersBeforeLambda =

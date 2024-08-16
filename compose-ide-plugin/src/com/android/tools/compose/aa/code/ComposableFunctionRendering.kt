@@ -17,10 +17,10 @@ package com.android.tools.compose.aa.code
 
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 
 /**
@@ -31,8 +31,8 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
  * ensure that a lambda can be added in cases where the Composable function requires a function as
  * its final argument.
  */
-internal fun KtAnalysisSession.getComposableFunctionRenderParts(
-  functionSymbol: KtFunctionLikeSymbol
+internal fun KaSession.getComposableFunctionRenderParts(
+  functionSymbol: KaFunctionSymbol
 ): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
@@ -54,20 +54,20 @@ internal fun KtAnalysisSession.getComposableFunctionRenderParts(
   return ComposableFunctionRenderParts(allParameters.size, parameters, tail)
 }
 
-private fun KtAnalysisSession.renderValueParameters(
-  valueParamsInParen: List<KtValueParameterSymbol>,
+private fun KaSession.renderValueParameters(
+  valueParamsInParen: List<KaValueParameterSymbol>,
   closingString: String,
 ) = buildString {
   append("(")
   @OptIn(KaExperimentalApi::class)
   valueParamsInParen.joinTo(buffer = this) {
-    it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES)
+    it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES)
   }
   append(closingString)
   append(")")
 }
 
-private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
+private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean {
   if (valueParamSymbol.hasDefaultValue) return false
 
   // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
@@ -80,8 +80,8 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
   return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
 }
 
-internal fun KtAnalysisSession.isRequiredTrailingLambda(
-  valueParamSymbol: KtValueParameterSymbol
+internal fun KaSession.isRequiredTrailingLambda(
+  valueParamSymbol: KaValueParameterSymbol
 ): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a
   // vararg. In FE1.0, it was simple because vararg has an array type and checking that the
