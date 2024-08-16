@@ -33,15 +33,20 @@ import com.android.tools.layoutlib.isLayoutLibTarget
 import com.android.tools.preview.MAX_DIMENSION
 import com.android.tools.preview.MIN_DIMENSION
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.codeInspection.LocalInspectionToolSession
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
@@ -53,9 +58,11 @@ import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -327,4 +334,88 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
     } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+}
+
+/**
+ * Inspection that checks if the `@Preview` device is referencing an old constant of the `Devices`
+ * API, which uses the legacy device spec.
+ */
+class PreviewDeviceShouldUseNewSpec :
+  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    function: KtNamedFunction,
+    previewAnnotation: KtAnnotationEntry,
+  ) {
+    checkDeviceIsValid(holder, previewAnnotation)
+  }
+
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    annotationClass: KtClass,
+    previewAnnotation: KtAnnotationEntry,
+  ) {
+    checkDeviceIsValid(holder, previewAnnotation)
+  }
+
+  private fun checkDeviceIsValid(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreview parameters don't affect
+    // the Previews
+    if (!isPreview(previewAnnotation)) return
+
+    previewAnnotation.findValueArgument(PARAMETER_DEVICE)?.let {
+      val argumentExpression = it.getArgumentExpression() ?: return
+      val resolvedSpec = argumentExpression.evaluateConstant<String>() ?: return
+      if (!resolvedSpec.startsWith(SPEC_ID_PREFIX)) {
+        // Old constants started with "spec:id", e.g. "spec:id=reference_tablet[...]"
+        return
+      }
+
+      val device = argumentExpression.text
+      val fixText =
+        if (device.endsWith("PHONE")) {
+          "spec:width=411dp,height=891dp"
+        } else if (device.endsWith("FOLDABLE")) {
+          "spec:width=673dp,height=841dp"
+        } else if (device.endsWith("TABLET")) {
+          "spec:width=1280dp,height=800dp,dpi=240"
+        } else if (device.endsWith("DESKTOP")) {
+          "spec:width=1920dp,height=1080dp,dpi=160"
+        } else {
+          null
+        }
+
+      holder.registerProblem(
+        it.psiOrParent as PsiElement,
+        message("inspection.preview.device.legacy.spec.description"),
+        ProblemHighlightType.ERROR,
+        *LocalQuickFix.notNullElements(fixText?.let { DeviceQuickFix(argumentExpression, fixText) }),
+      )
+    }
+  }
+
+  override fun getStaticDescription() = message("inspection.preview.device.legacy.spec.description")
+
+  companion object {
+    private const val SPEC_ID_PREFIX = "spec:id"
+  }
+
+  /** Suggests [deviceSpec] as a quick-fix to a broken device spec being used. */
+  private class DeviceQuickFix(deviceExpression: KtExpression, private val deviceSpec: String) :
+    LocalQuickFixOnPsiElement(deviceExpression) {
+    override fun getFamilyName() = message("inspection.group.name")
+
+    override fun getText() = message("inspection.preview.device.legacy.spec.quick.fix")
+
+    override fun invoke(
+      project: Project,
+      file: PsiFile,
+      startElement: PsiElement,
+      endElement: PsiElement,
+    ) {
+      val fixedDeviceSpecText = "\"$deviceSpec\""
+      val psiFactory = KtPsiFactory(project = project, markGenerated = false)
+      startElement.replace(psiFactory.createExpression(fixedDeviceSpecText))
+    }
+  }
 }

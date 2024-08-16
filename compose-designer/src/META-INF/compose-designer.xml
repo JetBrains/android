@@ -162,6 +162,14 @@
                      key="inspection.preview.recursive.name"
                      level="WEAK WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDeviceShouldUseNewSpec"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.device.legacy.spec.name"
+                     level="WEAK WARNING"/>
+
     <languageInjectionContributor language="kotlin"
                                   implementationClass="com.android.tools.idea.compose.preview.util.device.ComposeDeviceSpecInjectionContributor"/>
 
