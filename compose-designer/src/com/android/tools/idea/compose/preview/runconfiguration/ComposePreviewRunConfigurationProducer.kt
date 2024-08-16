@@ -31,11 +31,10 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationApplicationWithArgumentsInfo
-import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
@@ -152,7 +151,7 @@ private fun KtParameter.providerClassNameK2(): String? {
     return analyze(this) {
       val annotatedSymbol = this@providerClassNameK2.symbol
       val annotationClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
-      val annotation = annotatedSymbol.annotationsByClassId(annotationClassId).singleOrNull()
+      val annotation = annotatedSymbol.annotations[annotationClassId].singleOrNull()
       annotation?.let(::findProviderClassId)?.asFqNameString()
     }
   }
@@ -160,11 +159,11 @@ private fun KtParameter.providerClassNameK2(): String? {
 
 private val PROVIDER_ARGUMENT_NAME = Name.identifier("provider")
 
-private fun findProviderClassId(annotation: KtAnnotationApplicationWithArgumentsInfo): ClassId? {
+private fun findProviderClassId(annotation: KaAnnotation): ClassId? {
   for (argument in annotation.arguments) {
     if (argument.name != PROVIDER_ARGUMENT_NAME) continue
-    val value = argument.expression as? KtKClassAnnotationValue ?: continue
-    val classType = value.type as? KtNonErrorClassType ?: continue
+    val value = argument.expression as? KaAnnotationValue.ClassLiteralValue ?: continue
+    val classType = value.type as? KaClassType ?: continue
     return classType.classId.takeUnless { it.isLocal }
   }
 

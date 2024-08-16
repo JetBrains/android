@@ -21,12 +21,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
@@ -128,16 +128,16 @@ private fun KotlinType.isStateType(stateTypeFqName: String) =
   (fqName?.asString() == stateTypeFqName ||
     supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
-private fun KtAnalysisSession.isStateType(type: KtType, stateClassId: ClassId): Boolean =
-  type is KtNonErrorClassType &&
-    (type.classId == stateClassId ||
-      type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == stateClassId })
+private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
+  type is KaClassType &&
+  (type.classId == stateClassId ||
+      type.allSupertypes(false).any { it is KaClassType && it.classId == stateClassId })
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
-      analyze(this) { getKtType()?.let { isStateType(it, stateClassId) } ?: false }
+      analyze(this) { expressionType?.let { isStateType(it, stateClassId) } ?: false }
     }
   } else {
     resolveExprType()?.isStateType(stateClassId.asFqNameString()) ?: false

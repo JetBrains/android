@@ -19,7 +19,7 @@ import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -46,7 +46,7 @@ fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderPa
     allowAnalysisOnEdt {
       analyze(this) {
         val functionLikeSymbol =
-          this@getComposableFunctionRenderParts.symbol as? KtFunctionLikeSymbol ?: return null
+          this@getComposableFunctionRenderParts.symbol as? KaFunctionSymbol ?: return null
         getComposableFunctionRenderParts(functionLikeSymbol)
       }
     }

@@ -18,13 +18,13 @@ package org.jetbrains.kotlin.android.quickfix
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
@@ -49,15 +49,15 @@ class K2AndroidViewConstructorFix(
 
     companion object {
         // Called from a background thread in an open analysis session.
-        private fun KtAnalysisSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
+        private fun KaSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
             val superTypeReference = diagnostic.psi
             val superTypeEntry = superTypeReference.getNonStrictParentOfType<KtSuperTypeEntry>() ?: return null
             val ktClass = superTypeEntry.containingClass() ?: return null
             if (ktClass.primaryConstructor != null) return null
 
-            val superType = superTypeReference.getKtType() as? KtNonErrorClassType ?: return null
+            val superType = superTypeReference.type as? KaClassType ?: return null
 
-            if (!isAndroidView(superType) && superType.getAllSuperTypes().none { isAndroidView(it) }) {
+            if (!isAndroidView(superType) && superType.allSupertypes(false).none { isAndroidView(it) }) {
                 return null
             }
 
@@ -79,7 +79,7 @@ class K2AndroidViewConstructorFix(
             // [ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES] for why we do this.)
             val useThreeParameterConstructor =
                 ktClass.superTypeListEntries
-                    .mapNotNull { it.typeReference?.getKtType() }
+                    .mapNotNull { it.typeReference?.type }
                     .any { classId(it) in KotlinAndroidViewConstructorUtils.ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES }
 
             return K2AndroidViewConstructorFix(superTypeEntry, useThreeParameterConstructor)
@@ -89,8 +89,8 @@ class K2AndroidViewConstructorFix(
             listOfNotNull(createForDiagnostic(diagnostic))
         }
 
-        private fun KtAnalysisSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classId
-        private fun KtAnalysisSession.isAndroidView(type: KtType): Boolean =
+        private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId
+        private fun KaSession.isAndroidView(type: KaType): Boolean =
             classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
     }
 }

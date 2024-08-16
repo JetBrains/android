@@ -20,8 +20,8 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -35,7 +35,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val functionSymbol = symbol as? KtFunctionLikeSymbol ?: return false
+                    val functionSymbol = symbol as? KaFunctionSymbol ?: return false
                     val receiverType = functionSymbol.receiverParameter?.type ?: return false
                     return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
                 }
@@ -49,7 +49,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val type = getKtType() as? KtFunctionalType ?: return false
+                    val type = expressionType as? KaFunctionType ?: return false
                     val extendedType = type.receiverType ?: return false
                     return baseClassIds.any { isSubclassOf(extendedType, it, strict = false) }
                 }
@@ -63,7 +63,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
-                    val classOrObjectSymbol = getClassOrObjectSymbol() ?: return false
+                    val classOrObjectSymbol = classSymbol ?: return false
                     return baseClassIds.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
                 }
             }

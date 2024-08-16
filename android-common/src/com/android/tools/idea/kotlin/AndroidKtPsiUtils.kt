@@ -28,21 +28,16 @@ import org.jetbrains.kotlin.analysis.api.KaInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
-import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.singleVariableAccessCall
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.symbols.psiSafe
 import org.jetbrains.kotlin.asJava.LightClassUtil
@@ -89,7 +84,7 @@ fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?
 
 // TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
 @OptIn(KaAllowAnalysisOnEdt::class)
-inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
+inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.() -> T): T =
   if (this != null) {
     block()
   } else {
@@ -101,10 +96,10 @@ inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAn
   }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
-fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      val symbol = getVariableSymbol() as? KtPropertySymbol ?: return false
+      val symbol = symbol as? KaPropertySymbol ?: return false
       return symbol.hasBackingField
     }
   } else {
@@ -117,10 +112,10 @@ fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Bool
  * Computes the qualified name of this [KtAnnotationEntry].
  * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
  */
-fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
+fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
+      resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
@@ -142,7 +137,7 @@ fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
   allowAnalysisFromWriteAction {
     allowAnalysisOnEdt {
       analyze(this) {
-        resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
+        resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
       }
     }
   }
@@ -152,7 +147,7 @@ fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
  * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
  *   Fortunately, type aliases are extremely uncommon for simple annotation types.
  */
-fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KaSession? = null): Boolean {
   // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in the Kotlin plugin.
   val shortName = shortName?.asString() ?: return false
   return fqName.endsWith(shortName) && fqName == getQualifiedName(analysisSession)
@@ -161,7 +156,7 @@ fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisS
 /**
  * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
  */
-fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KaSession? = null): Boolean {
   val shortName = shortName?.asString() ?: return false
   val fqNamesFiltered = fqNames.filter { it.endsWith(shortName) }
   if (fqNamesFiltered.isEmpty()) return false
@@ -177,7 +172,7 @@ fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAna
  * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a
  * set of fully qualified names [fqName].
  */
-fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
+fun KaSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
   val shortName = ktAnnotationEntry.shortName?.asString() ?: return false
   if (!fqName.endsWith(shortName)) return false
 
@@ -189,13 +184,13 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
-fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
+fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      val symbol = getClassOrObjectSymbol()
+      val symbol = classSymbol
       val classId = symbol?.classId ?: return null
 
-      if (symbol.classKind != KtClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
+      if (symbol.classKind != KaClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
         null
       } else {
         classId.asFqNameString()
@@ -218,7 +213,7 @@ fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String
  * the Java facade class generated instead.
  *
  */
-fun KtNamedFunction.getClassName(analysisSession: KtAnalysisSession? = null): String? =
+fun KtNamedFunction.getClassName(analysisSession: KaSession? = null): String? =
   if (isTopLevel) {
     ((parent as? KtFile)?.findFacadeClass())?.qualifiedName
   } else {
@@ -280,7 +275,7 @@ tailrec fun KaSession.evaluatePossiblePropertyExpression(expression: KtExpressio
   return expression.evaluate()
 }
 
-inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
+inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession? = null): T? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       evaluatePossiblePropertyExpression(this@evaluateConstant)
@@ -298,7 +293,7 @@ inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysis
  *
  * Based on InterpolatedStringInjectorProcessor in the Kotlin plugin.
  */
-fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null): String? =
+fun KtExpression.tryEvaluateConstant(analysisSession: KaSession? = null): String? =
   evaluateConstant<String>(analysisSession)
 
 /**
@@ -306,7 +301,7 @@ fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null)
  *
  * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
  */
-fun KtExpression.tryEvaluateConstantAsText(analysisSession: KtAnalysisSession? = null): String? =
+fun KtExpression.tryEvaluateConstantAsText(analysisSession: KaSession? = null): String? =
   evaluateConstant<Any>(analysisSession)?.toString()
 
 /**
@@ -347,7 +342,7 @@ fun KtClassOrObject.toPsiType() =
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
-    mapOnDeclarationSymbol { it.hasAnnotation(classId) } ?: (findAnnotationEntryByClassId(classId) != null)
+    mapOnDeclarationSymbol { classId in it.annotations } ?: (findAnnotationEntryByClassId(classId) != null)
   } else {
     findAnnotationK1(classId.asSingleFqName()) != null
   }
@@ -360,11 +355,11 @@ fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
   }
 
 private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? = mapOnDeclarationSymbol {
-  it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry
+  it.annotations[classId].singleOrNull()?.psi as? KtAnnotationEntry
 } ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
+private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDeclarationSymbol) -> T?): T? =
   allowAnalysisOnEdt {
     @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {
@@ -387,7 +382,7 @@ private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): K
     allowAnalysisFromWriteAction {
       analyze(this) {
         annotationEntries.find { annotationEntry ->
-          val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
+          val annotationConstructorCall = annotationEntry.resolveToCall()?.singleConstructorCallOrNull() ?: return null
           annotationConstructorCall.symbol.containingClassId == classId
         }
       }

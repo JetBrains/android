@@ -23,11 +23,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
-import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
-import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
+import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
@@ -86,7 +86,7 @@ class ComposeCreateComposableFunctionQuickFix(
       listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
     }
 
-    private fun KtAnalysisSession.createComposableFunctionQuickFixIfApplicable(
+    private fun KaSession.createComposableFunctionQuickFixIfApplicable(
       diagnostic: KaFirDiagnostic.UnresolvedReference
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
@@ -102,7 +102,7 @@ class ComposeCreateComposableFunctionQuickFix(
       val container = fullCallExpression.getExtractionContainers().firstOrNull() ?: return null
 
       val returnType = guessReturnType(fullCallExpression)
-      if (!returnType.isUnit) return null
+      if (!returnType.isUnitType) return null
 
       val newFunction = buildNewComposableFunction(unresolvedCall, unresolvedName, container)
       return ComposeCreateComposableFunctionQuickFix(unresolvedCall, newFunction, parentFunction)
@@ -114,7 +114,7 @@ class ComposeCreateComposableFunctionQuickFix(
      *
      * See b/267429486.
      */
-    private fun KtAnalysisSession.buildNewComposableFunction(
+    private fun KaSession.buildNewComposableFunction(
       unresolvedCall: KtCallExpression,
       unresolvedName: String,
       container: KtElement,
@@ -129,7 +129,7 @@ class ComposeCreateComposableFunctionQuickFix(
               val lastIndex = unresolvedCall.valueArguments.lastIndex
               unresolvedCall.valueArguments.forEachIndexed { index, arg ->
                 val isLastLambdaArgument = index == lastIndex && arg is KtLambdaArgument
-                val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
+                val type = arg.getArgumentExpression()?.expressionType ?: builtinTypes.any
                 val paramName =
                   if (isLastLambdaArgument) "content"
                   else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
@@ -137,7 +137,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 param(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
-                  type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
+                  type.render(KaTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
                 }",
                 )
               }
@@ -151,8 +151,8 @@ class ComposeCreateComposableFunctionQuickFix(
      * For the purpose of creating Composable functions, optimistically guesses that [expression] is
      * of type `Unit`.
      */
-    private fun KtAnalysisSession.guessReturnType(expression: KtExpression): KtType {
-      return (expression.getKtType() as? KtFunctionalType)?.returnType ?: builtinTypes.UNIT
+    private fun KaSession.guessReturnType(expression: KtExpression): KaType {
+      return (expression.expressionType as? KaFunctionType)?.returnType ?: builtinTypes.unit
     }
   }
 }

@@ -25,19 +25,14 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtArrayAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
-import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
@@ -148,21 +143,21 @@ private fun serializeAttrValueToString(value: JvmAnnotationAttributeValue?): Str
  *
  * Returns `null` if any attr value cannot be serialized.
  */
-private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
+private fun serializeKtAnnotationValue(value: KaAnnotationValue): String? {
   return when (value) {
-    is KtArrayAnnotationValue -> {
+    is KaAnnotationValue.ArrayValue -> {
       val childValues = value.values.map { serializeKtAnnotationValue(it) ?: return null }
       childValues.joinToString()
     }
-    is KtConstantAnnotationValue -> {
-      when (value.constantValue) {
-        is KaConstantValue.KaStringConstantValue ->
-          (value.constantValue as KaConstantValue.KaStringConstantValue).value
-        else -> value.constantValue.renderAsKotlinConstant()
+    is KaAnnotationValue.ConstantValue -> {
+      when (value.value) {
+        is KaConstantValue.StringValue ->
+          (value.value as KaConstantValue.StringValue).value
+        else -> value.value.render()
       }
     }
-    is KtEnumEntryAnnotationValue -> value.callableId?.asSingleFqName()?.asString()
-    is KtKClassAnnotationValue -> (value.type as? KtNonErrorClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
+    is KaAnnotationValue.EnumEntryValue -> value.callableId?.asSingleFqName()?.asString()
+    is KaAnnotationValue.ClassLiteralValue -> (value.type as? KaClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
     else -> null
   }
 }
@@ -277,10 +272,10 @@ private fun KtAnnotationEntry.getDescriptor() =
 private val AnnotationDescriptor.isQualifier: Boolean
   get() = annotationClass?.annotations?.hasAnnotation(DaggerClasses.Qualifier.fqName) == true
 
-private fun KtAnalysisSession.isQualifier(annotationClassId: ClassId?): Boolean =
+private fun KaSession.isQualifier(annotationClassId: ClassId?): Boolean =
   annotationClassId
-    ?.let { getClassOrObjectSymbolByClassId(it) }
-    ?.hasAnnotation(DaggerClasses.Qualifier.classId) == true
+    ?.let { findClass(it) }
+    ?.let { DaggerClasses.Qualifier.classId in it.annotations } == true
 
 private val PsiAnnotation.isQualifier: Boolean
   get() {
