@@ -95,16 +95,23 @@ import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_A
+import java.awt.event.KeyEvent.VK_D
 import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_E
 import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_P
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.KeyEvent.VK_W
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.nio.file.Path
@@ -371,14 +378,13 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrToolbarActions() {
-    val avdFolder = FakeEmulator.createXrAvd(emulatorRule.avdRoot, api = 34)
-    val panel = createWindowPanel(avdFolder)
+    val panel = createWindowPanelForXr()
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     // Check appearance.
@@ -404,7 +410,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Show Taskbar" }).isNotNull()
 
-    val xrInputController = EmulatorXrInputController.getInstance(project, panel.primaryEmulatorView!!.emulator)
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes = mapOf(
       "Hand Tracking" to XrInputMode.HAND,
@@ -424,6 +430,72 @@ class EmulatorToolWindowPanelTest {
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
+  }
+
+  @Test
+  fun testXrKeyboardNavigation() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
+    ui.keyboard.setFocus(emulatorView)
+    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain gRPC call log.
+    ui.keyboard.press(VK_ENTER)
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    // Keys not used for navigation produce keypress events.
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
+    ui.keyboard.release(VK_ENTER)
+    val keys = mapOf(
+      VK_W to "forward_held: true",
+      VK_A to "strafe_left_held: true",
+      VK_S to "backward_held: true",
+      VK_D to "strafe_right_held: true",
+      VK_Q to "down_held: true",
+      VK_E to "up_held: true",
+      VK_RIGHT to "rotate_right_held: true",
+      VK_LEFT to "rotate_left_held: true",
+      VK_UP to "rotate_up_held: true",
+      VK_DOWN to "rotate_down_held: true",
+      VK_PAGE_UP to "rotate_right_held: true rotate_up_held: true",
+      VK_PAGE_DOWN to "rotate_right_held: true rotate_up_held: true",
+      VK_HOME to "rotate_left_held: true rotate_up_held: true",
+      VK_END to "rotate_left_held: true rotate_up_held: true",
+    )
+    for ((k, event) in keys) {
+      ui.keyboard.press(k)
+      assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { $event } }")
+      ui.keyboard.release(k)
+      assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
+    }
+
+    // Two keys pressed together.
+    ui.keyboard.press(VK_D)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { nav_event { strafe_right_held: true } }")
+    ui.keyboard.press(VK_E)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { nav_event { strafe_right_held: true up_held: true } }")
+
+    // Switching to Hardware Input resets state of the navigation keys.
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
+    ui.keyboard.release(VK_D)
+    ui.keyboard.release(VK_E)
   }
 
   @Test
@@ -907,6 +979,11 @@ class EmulatorToolWindowPanelTest {
 
   private fun createWindowPanelForPhone(): EmulatorToolWindowPanel {
     val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
+    return createWindowPanel(avdFolder)
+  }
+
+  private fun createWindowPanelForXr(): EmulatorToolWindowPanel {
+    val avdFolder = FakeEmulator.createXrAvd(emulatorRule.avdRoot)
     return createWindowPanel(avdFolder)
   }
 

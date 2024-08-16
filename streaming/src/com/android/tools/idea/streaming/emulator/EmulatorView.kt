@@ -355,6 +355,16 @@ class EmulatorView(
 
   private var virtualSceneCameraVelocityController: VirtualSceneCameraVelocityController? = null
   private var xrInputController: EmulatorXrInputController? = null
+    get() {
+      if (field == null) {
+        if (emulator.connectionState == ConnectionState.CONNECTED && emulatorConfig.deviceType == DeviceType.XR) {
+          getProject()?.let { project ->
+            field = EmulatorXrInputController.getInstance(project, emulator)
+          }
+        }
+      }
+      return field
+    }
   private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
 
   init {
@@ -469,17 +479,10 @@ class EmulatorView(
           }
         }
       }
-      if (emulatorConfig.deviceType == DeviceType.XR) {
-        getProject()?.let { project ->
-          xrInputController = EmulatorXrInputController.getInstance(project, emulator)
-        }
-      }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       lastScreenshot = null
-      if (xrInputController != null) {
-        xrInputController = null
-      }
+      xrInputController = null
       hideLongRunningOperationIndicatorInstantly()
       showDisconnectedStateMessage("Disconnected from the Emulator")
     }
@@ -834,6 +837,11 @@ class EmulatorView(
         return
       }
 
+      if (xrInputController?.keyPressed(event.keyCode, event.modifiersEx) == true) {
+        event.consume()
+        return
+      }
+
       if (virtualSceneCameraOperating) {
         when (event.keyCode) {
           VK_LEFT, VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
@@ -857,6 +865,11 @@ class EmulatorView(
 
       if (isHardwareInputEnabled()) {
         hardwareInput.forwardEvent(event)
+        return
+      }
+
+      if (xrInputController?.keyReleased(event.keyCode, event.modifiersEx) == true) {
+        event.consume()
         return
       }
 
