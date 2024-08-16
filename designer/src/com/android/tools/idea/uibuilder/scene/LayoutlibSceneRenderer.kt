@@ -306,7 +306,7 @@ class LayoutlibSceneRenderer(
           lastRenderQuality = quality
           // When the layout was inflated in this same call, we do not have to update the hierarchy
           // again
-          if (inflateResult != null) request.reverseUpdate.set(updateHierarchy(result))
+          if (inflateResult == null) request.reverseUpdate.set(updateHierarchy(result))
         }
       }
     } catch (throwable: Throwable) {
