@@ -662,8 +662,8 @@ class EmulatorView(
         event.consume()
       }
 
-      override fun mouseDragged(e: MouseEvent) {
-        mouseMoved(e)
+      override fun mouseDragged(event: MouseEvent) {
+        mouseMoved(event)
       }
 
       override fun mouseEntered(event: MouseEvent) {
