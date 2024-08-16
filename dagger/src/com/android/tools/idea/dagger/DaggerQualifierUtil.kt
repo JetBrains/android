@@ -26,11 +26,11 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
@@ -151,13 +151,13 @@ private fun serializeKtAnnotationValue(value: KaAnnotationValue): String? {
     }
     is KaAnnotationValue.ConstantValue -> {
       when (value.value) {
-        is KaConstantValue.StringValue ->
-          (value.value as KaConstantValue.StringValue).value
+        is KaConstantValue.StringValue -> (value.value as KaConstantValue.StringValue).value
         else -> value.value.render()
       }
     }
     is KaAnnotationValue.EnumEntryValue -> value.callableId?.asSingleFqName()?.asString()
-    is KaAnnotationValue.ClassLiteralValue -> (value.type as? KaClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
+    is KaAnnotationValue.ClassLiteralValue ->
+      (value.type as? KaClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
     else -> null
   }
 }
