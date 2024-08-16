@@ -26,7 +26,6 @@ import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -145,8 +144,16 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * @return A provider for finding .class output files and external .jars.
    */
   fun getClassJarProvider(): ClassJarProvider
+
   /**
-   * Returns a list of [AndroidFacet]s by given package name.
+   * Returns a collection of [AndroidFacet]s corresponding to project system entities.  Note that this can be different from the
+   * collection of all [AndroidFacet]s in the project, if (for example) the project system represents a project system entity with
+   * more than one module, each with their own [AndroidFacet].
+   */
+  fun getAndroidFacets(): Collection<AndroidFacet> = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+
+  /**
+   * Returns a collection of [AndroidFacet]s by given package name.
    */
   fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet>
 
@@ -233,30 +240,23 @@ fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModu
  * module that contains the other source set modules as children. If you need to obtain the actual module for the currently active source
  * set then please use [getMainModule] on the return [Module] objects.
  */
-fun Project.getAndroidModulesForDisplay(): List<Module> {
-  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).filter { module ->
-    module.isHolderModule()
-  }
-}
+fun Project.getAndroidModulesForDisplay(): List<Module> = getProjectSystem().getAndroidFacets().map { it.module }
 
 /**
- * Returns a list of AndroidFacets attached to holder modules.
+ * Returns a list of the substantively-distinct [AndroidFacet]s in the project.
  *
- * Note: A copy of AndroidFacet is attached to all source set modules so we need to filter only the ones belong to holder modules here.
+ * Note: there might be modules in the project that the project system associates with [AndroidFacet], which are not returned from this
+ * method; for example, representing individual SourceSets as IDEA [Module]s each with an [AndroidFacet] attached.  Facets corresponding
+ * to these subsidiary modules are filtered out here by the Project System.
  */
-fun Project.getAndroidFacets(): List<AndroidFacet> {
-  return this.let {
-    ProjectFacetManager.getInstance(this).getFacets(AndroidFacet.ID).filter { facet ->
-    facet.module.isHolderModule()
-    }
-  }
-}
+fun Project.getAndroidFacets(): List<AndroidFacet> = getProjectSystem().getAndroidFacets().toList()
+
 
 /**
  * Indicates whether the given project has at least one module backed by build models.
  */
 fun Project.requiresAndroidModel(): Boolean {
-  val androidFacets: List<AndroidFacet> = getAndroidFacets()
+  val androidFacets: List<AndroidFacet> = ProjectFacetManager.getInstance(this).getFacets(AndroidFacet.ID)
   return ContainerUtil.exists(androidFacets) { facet: AndroidFacet -> AndroidModel.isRequired(facet) }
 }
 
