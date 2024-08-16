@@ -19,15 +19,15 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaJavaFieldSymbol
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAnnotatorBase() {
     override fun KtNameReferenceExpression.resolveToResourceReference(): ResourceReference? = analyze(this) {
-        val javaFieldSymbol = mainReference.resolveToSymbol() as? KtJavaFieldSymbol ?: return null
+        val javaFieldSymbol = mainReference.resolveToSymbol() as? KaJavaFieldSymbol ?: return null
         val type = getAndroidResourceType(javaFieldSymbol) ?: return null
         return if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
             val referenceType = getResourceReferenceType(javaFieldSymbol)
@@ -42,7 +42,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
         /**
          * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
          */
-        private fun KtAnalysisSession.getAndroidResourceType(field: KtJavaFieldSymbol): ResourceType? {
+        private fun KaSession.getAndroidResourceType(field: KaJavaFieldSymbol): ResourceType? {
             if (getResourceReferenceType(field) == ResourceReferenceType.NONE) {
                 return null
             }
@@ -54,7 +54,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
         /**
          * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
          */
-        private fun KtAnalysisSession.getResourceReferenceType(field: KtJavaFieldSymbol): ResourceReferenceType {
+        private fun KaSession.getResourceReferenceType(field: KaJavaFieldSymbol): ResourceReferenceType {
             val containingClassId = field.callableId?.classId ?: return ResourceReferenceType.NONE
             val rClassName = containingClassId.parentClassId?.shortClassName ?: return ResourceReferenceType.NONE
 

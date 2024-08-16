@@ -15,19 +15,19 @@
  */
 package org.jetbrains.kotlin.android.inspection
 
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtTypeParameterSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtCapturedType
-import org.jetbrains.kotlin.analysis.api.types.KtDefinitelyNotNullType
-import org.jetbrains.kotlin.analysis.api.types.KtErrorType
-import org.jetbrains.kotlin.analysis.api.types.KtFlexibleType
-import org.jetbrains.kotlin.analysis.api.types.KtType
-import org.jetbrains.kotlin.analysis.api.types.KtTypeNullability
-import org.jetbrains.kotlin.analysis.api.types.KtTypeParameterType
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
+import org.jetbrains.kotlin.analysis.api.types.KaCapturedType
+import org.jetbrains.kotlin.analysis.api.types.KaDefinitelyNotNullType
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
+import org.jetbrains.kotlin.analysis.api.types.KaFlexibleType
+import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.analysis.api.types.KaTypeNullability
+import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
 
@@ -35,7 +35,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     override fun KtCallExpression.classifyFindViewCall(
         cast: KtBinaryExpressionWithTypeRHS
     ): FindViewCallInfo? = analyze(this) {
-        val calleeSymbol = resolveCall()?.successfulFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return null
+        val calleeSymbol = resolveToCall()?.successfulFunctionCallOrNull()?.symbol as? KaNamedFunctionSymbol ?: return null
         if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
 
         // The function must take a single type parameter (T)...
@@ -47,11 +47,11 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
         // The target type of the cast must satisfy all of T's bounds.
         // We discard the ? on the cast target type when we execute the quickfix, so we need to check
         // against the non-nullable type here.
-        val castTargetType = cast.right?.getKtType() ?: return null
-        if (castTargetType is KtErrorType) return null
+        val castTargetType = cast.right?.type ?: return null
+        if (castTargetType is KaErrorType) return null
 
-        val castTargetTypeNonNull = castTargetType.withNullability(KtTypeNullability.NON_NULLABLE)
-        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubTypeOf(it) }) return null
+        val castTargetTypeNonNull = castTargetType.withNullability(KaTypeNullability.NON_NULLABLE)
+        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubtypeOf(it) }) return null
 
         return FindViewCallInfo(
             returnTypeNullability = when {
@@ -63,12 +63,12 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     }
 
     companion object {
-        private tailrec fun KtAnalysisSession.unwrapToTypeParameterSymbol(type: KtType): KtTypeParameterSymbol? =
+        private tailrec fun KaSession.unwrapToTypeParameterSymbol(type: KaType): KaTypeParameterSymbol? =
             when (val expanded = type.fullyExpandedType) {
-                is KtTypeParameterType -> expanded.symbol
-                is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
-                is KtDefinitelyNotNullType -> unwrapToTypeParameterSymbol(expanded.original)
-                is KtCapturedType -> {
+                is KaTypeParameterType -> expanded.symbol
+                is KaFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
+                is KaDefinitelyNotNullType -> unwrapToTypeParameterSymbol(expanded.original)
+                is KaCapturedType -> {
                     val projectedType = expanded.projection.type
                     if (projectedType != null) {
                         unwrapToTypeParameterSymbol(projectedType)

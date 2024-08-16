@@ -42,11 +42,11 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaIdeApi
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
+import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
@@ -108,7 +108,7 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  */
 class ComposeModifierCompletionContributor : CompletionContributor() {
   @Suppress("UnstableApiUsage")
-  private fun KtAnalysisSession.fillCompletionVariants(
+  private fun KaSession.fillCompletionVariants(
     parameters: CompletionParameters,
     nameExpression: KtSimpleNameExpression,
     isMethodCalledOnImportedModifier: Boolean,
@@ -159,7 +159,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // one more time, we need to filter them out.
     if (isMethodCalledOnImportedModifier) {
       val extensionFunctionsNames =
-        extensionFunctionSymbols.mapNotNull { (it as? KtNamedSymbol)?.name?.asString() }.toSet()
+        extensionFunctionSymbols.mapNotNull { (it as? KaNamedSymbol)?.name?.asString() }.toSet()
       resultSet.runRemainingContributors(parameters) { completionResult ->
         consumerCompletionResultFromRemainingContributor(
           completionResult,
@@ -288,12 +288,12 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
       val symbolWithVisibility =
-        elementToAnalyze.symbol as? KtSymbolWithVisibility ?: return true
+        elementToAnalyze.symbol as? KaDeclarationSymbol ?: return true
 
       @OptIn(KaExperimentalApi::class)
       return isVisible(
         symbolWithVisibility,
-        useSiteFile = ktFile.getFileSymbol(),
+        useSiteFile = ktFile.symbol,
         position = completionPosition,
       )
     }
@@ -312,8 +312,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   }
 
   @Suppress("UnstableApiUsage")
-  private fun KtAnalysisSession.toLookupElements(
-    functionSymbols: List<KtCallableSymbol>,
+  private fun KaSession.toLookupElements(
+    functionSymbols: List<KaCallableSymbol>,
     lookupElementFactory: KotlinFirLookupElementFactory,
     importStrategyDetector: ImportStrategyDetector,
     weight: Double,
@@ -321,7 +321,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   ) =
     functionSymbols.map { symbol ->
       with(lookupElementFactory) {
-        val lookupElement = createLookupElement(symbol as KtNamedSymbol, importStrategyDetector)
+        val lookupElement = createLookupElement(symbol as KaNamedSymbol, importStrategyDetector)
         PrioritizedLookupElement.withPriority(
           ModifierLookupElement(lookupElement, insertModifier),
           weight,
@@ -397,19 +397,19 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       as KtSimpleNameExpression
   }
 
-  private fun KtAnalysisSession.getExtensionFunctionsForModifier(
+  private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
     prefixMatcher: PrefixMatcher,
-  ): Collection<KtCallableSymbol> {
+  ): Collection<KaCallableSymbol> {
     val modifierCallExpression =
       nameExpression.parent as? KtDotQualifiedExpression ?: return emptyList()
     val receiverExpression =
       modifierCallExpression.receiverExpression as? KtExpression ?: return emptyList()
-    val receiverType = receiverExpression.getKtType() ?: return emptyList()
+    val receiverType = receiverExpression.expressionType ?: return emptyList()
 
     val file = nameExpression.containingFile as KtFile
-    val fileSymbol = file.getFileSymbol()
+    val fileSymbol = file.symbol
 
     return KtSymbolFromIndexProvider.createForElement(file)
       .getTopLevelExtensionCallableSymbolsByNameFilter(
@@ -418,7 +418,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       )
       .filter {
         @OptIn(KaExperimentalApi::class)
-        isVisible(it as KtSymbolWithVisibility, fileSymbol, receiverExpression, originalPosition)
+        isVisible(it as KaDeclarationSymbol, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
   }
@@ -494,7 +494,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       elementOnWhichMethodCalled.callReturnTypeFqName()
         ?:
         // Case Modifier.%this%
-        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
+      ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 
