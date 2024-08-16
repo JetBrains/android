@@ -29,8 +29,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -50,8 +49,7 @@ class ResourceLookupTest {
 
   @Test
   fun testUpdateConfiguration() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel())
+    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example.test")
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
     val process = MODERN_DEVICE.createProcess("com.example.test")
@@ -69,8 +67,7 @@ class ResourceLookupTest {
 
   @Test
   fun testUpdateConfigurationWithApplicationIdSuffix() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel("com.example.test.debug"))
+    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example.test.debug")
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
     val process = MODERN_DEVICE.createProcess("com.example.test.debug")

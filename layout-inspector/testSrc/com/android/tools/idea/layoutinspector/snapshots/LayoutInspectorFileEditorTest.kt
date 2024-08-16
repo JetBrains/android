@@ -25,10 +25,9 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
@@ -88,8 +87,9 @@ class LayoutInspectorFileEditorTest {
 
   @Test
   fun editorCreatesCorrectSettings() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel("com.google.samples.apps.sunflower"))
+    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest(
+      "com.google.samples.apps.sunflower"
+    )
     val editor =
       LayoutInspectorFileEditor(
         projectRule.project,
@@ -115,8 +115,9 @@ class LayoutInspectorFileEditorTest {
 
   @Test
   fun editorCreatesCorrectSettingsForCompose() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel("com.example.mysemantics"))
+    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest(
+      "com.example.mysemantics"
+    )
     val editor =
       LayoutInspectorFileEditor(
         projectRule.project,

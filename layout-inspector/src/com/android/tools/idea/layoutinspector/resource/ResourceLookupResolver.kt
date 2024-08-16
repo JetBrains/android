@@ -51,10 +51,9 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertyType.COLOR
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -68,7 +67,6 @@ import com.android.tools.idea.res.resolveStateList
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -94,9 +92,8 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
  * The namespaces from the agent are using the real package names.
  */
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
-  return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).firstOrNull {
-    it.module.isMainModule() &&
-      AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
+  return project.getProjectSystem().findModulesWithApplicationId(packageName).firstNotNullOfOrNull {
+    AndroidFacet.getInstance(it)
   }
 }
 
