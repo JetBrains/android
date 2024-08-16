@@ -62,7 +62,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
         }
         .build()
     PlatformTestUtil.waitForFuture(mySurface!!.addModelWithoutRender(myModel!!))
-    myTree = NlComponentTree(project, mySurface, myPanel)
+    myTree = NlComponentTree(mySurface, myPanel)
     myTree!!.updateQueue.isPassThrough = true
     myTree!!.updateQueue.flush()
     Disposer.register(myDisposable!!, myTree!!)

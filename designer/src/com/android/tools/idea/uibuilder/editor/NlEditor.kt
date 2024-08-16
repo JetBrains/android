@@ -89,9 +89,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
         NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED)
       )
     } else {
-      definitions.add(
-        NlLegacyComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED)
-      )
+      definitions.add(NlLegacyComponentTreeDefinition(Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     }
     return definitions.build()
   }
