@@ -72,6 +72,9 @@ class LayoutlibSceneRenderConfiguration(
   /** Returns true when a re-inflation will be forced in the next render. */
   fun isForceReinflate() = forceInflate.get()
 
+  /** When true, a re-render of the model will be done after the next render if needed. */
+  val doubleRenderIfNeeded = AtomicBoolean(false)
+
   /**
    * If true, when a render fails, the result will retain the last successful image.
    *
