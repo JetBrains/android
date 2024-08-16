@@ -8,5 +8,5 @@ android_library(
         "8",
     ],
     manifest = "AndroidManifest.xml",
-    visibility = ["//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/querysync/javatests/com/google/idea/blaze/qsync/testdata:__subpackages__"],
+    visibility = ["//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:__subpackages__"],
 )
