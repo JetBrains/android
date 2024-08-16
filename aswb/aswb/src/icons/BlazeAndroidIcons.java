@@ -21,7 +21,7 @@ import javax.swing.Icon;
 /** Class to manage icons used by the Blaze plugin. */
 public class BlazeAndroidIcons {
 
-  private static final String BASE = "/tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/";
+  private static final String BASE = "/tools/adt/idea/aswb/";
 
   public static final Icon MobileInstallRun =
       load("aswb/resources/icons/mobileInstallRun.png"); // 16x16
