@@ -214,6 +214,9 @@
   <extensions defaultExtensionNs="org.jetbrains.android.facet">
     <resourceFolderManagerToken implementation="org.jetbrains.android.facet.ResourceFolderManagerGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.run.configuration.editors">
+    <androidWearConfigurationEditorToken implementation="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
