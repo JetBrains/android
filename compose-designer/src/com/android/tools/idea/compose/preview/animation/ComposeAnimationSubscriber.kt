@@ -39,6 +39,7 @@ object ComposeAnimationSubscriber {
   private var animationHandler: ComposeAnimationHandler? = null
 
   fun setHandler(handler: ComposeAnimationHandler?) {
+    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
     animationHandler = handler
   }
 
@@ -95,13 +96,7 @@ object ComposeAnimationSubscriber {
     }
   }
 
-  /** Removes all the subscribed animations. */
-  fun removeAllAnimations() {
-    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
-  }
-
-  @TestOnly
-  fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
+  @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
 
   @JvmStatic
   @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform

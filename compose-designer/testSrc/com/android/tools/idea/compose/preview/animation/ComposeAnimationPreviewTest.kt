@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.scene.render
@@ -31,52 +30,33 @@ import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
-import com.android.tools.rendering.classloading.NopClassLocator
-import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform
-import com.android.tools.rendering.classloading.loaders.AsmTransformingLoader
-import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
-import java.io.IOException
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Test
 import org.mockito.Mockito
 
 class ComposeAnimationPreviewTest : InspectorTests() {
-
-  private fun getClock() = TestClock()
 
   private val animations =
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
 
   private suspend fun subscribeAnimations(animations: List<ComposeAnimation>) {
     surface.sceneManagers.forEach { it.render() }
-    val clock = getClock()
-    animations.forEach { ComposeAnimationSubscriber.onAnimationSubscribed(clock, it) }
+    animations.forEach { animationPreview.addAnimation(it).join() }
   }
 
   private suspend fun createFakeUiForInspector(inspector: ComposeAnimationPreview) =
@@ -102,150 +82,77 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   }
 
   @Test
-  fun subscribeAndUnsubscribe() = runBlocking {
-    createAndOpenInspector()
-
-    val animation = createComposeAnimation()
-    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-
-    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), animation)
-    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-
-    val otherAnimation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(otherAnimation)
-    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation)
-    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-  }
-
-  @Test
-  fun closingInspectorClearsSubscriptions() = runBlocking {
-    createAndOpenInspector()
-
-    ComposeAnimationSubscriber.onAnimationSubscribed(getClock(), createComposeAnimation())
-    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-
-    ComposeAnimationInspectorManager.closeCurrentInspector()
-    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-  }
-
-  @Test
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() = runBlocking {
-    val inspector = createAndOpenInspector()
     UIUtil.pump() // Wait for UI to dispatch all events
     // When first opening the inspector, we show the panel informing there are no supported
     // animations to be displayed
-    assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.animations.size)
+    assertNotNull(animationPreview.noAnimationsPanel())
+    assertNull(animationPreview.tabbedPane.parent)
+    assertEquals(0, animationPreview.animations.size)
 
-    val clock = getClock()
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
-    assertNull(inspector.noAnimationsPanel())
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
+    animationPreview.addAnimation(animation).join()
+    assertNull(animationPreview.noAnimationsPanel())
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(1, animationPreview.animations.size)
 
     // After subscribing an animation, we should display the tabbedPane
     val anotherAnimation = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, anotherAnimation)
-    assertNull(inspector.noAnimationsPanel())
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(2, inspector.animations.size)
+    animationPreview.addAnimation(anotherAnimation).join()
+    assertNull(animationPreview.noAnimationsPanel())
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(2, animationPreview.animations.size)
 
     // After unsubscribing from one animation, animation panel still shown.
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation)
-    assertNull(inspector.noAnimationsPanel())
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
+    animationPreview.removeAnimation(animation).join()
+    assertNull(animationPreview.noAnimationsPanel())
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(1, animationPreview.animations.size)
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no
     // animations panel
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(anotherAnimation)
-    assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.animations.size)
+    animationPreview.removeAnimation(anotherAnimation).join()
+    assertNotNull(animationPreview.noAnimationsPanel())
+    assertNull(animationPreview.tabbedPane.parent)
+    assertEquals(0, animationPreview.animations.size)
 
     // After subscribing again to the animation, we should display the tabbedPane
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation)
-    assertNull(inspector.noAnimationsPanel())
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
+    animationPreview.addAnimation(animation).join()
+    assertNull(animationPreview.noAnimationsPanel())
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(1, animationPreview.animations.size)
   }
 
   @Test
   fun oneTabPerSubscribedAnimation() = runBlocking {
-    val inspector = createAndOpenInspector()
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.animations.size)
+    assertNull(animationPreview.tabbedPane.parent)
+    assertEquals(0, animationPreview.animations.size)
 
     val animation1 = createComposeAnimation()
-    val clock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation1)
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
+    animationPreview.addAnimation(animation1).join()
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(1, animationPreview.animations.size)
 
     val animation2 = createComposeAnimation()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation2)
-    assertEquals(2, inspector.animations.size)
+    animationPreview.addAnimation(animation2).join()
+    assertEquals(2, animationPreview.animations.size)
 
-    ComposeAnimationSubscriber.onAnimationUnsubscribed(animation1)
-    assertEquals(1, inspector.animations.size)
-  }
-
-  @Test
-  fun subscriptionNewClockClearsPreviousClockAnimations() = runBlocking {
-    val inspector = createAndOpenInspector()
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.animations.size)
-
-    val clock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, createComposeAnimation())
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
-
-    val anotherClock = getClock()
-    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    println("Animations tab: ${inspector.animations}")
-    assertEquals(1, inspector.animations.size)
-
-    ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    assertEquals(2, inspector.animations.size)
-  }
-
-  @Test
-  fun onOpenNewInspectorCallbackClearedWhenClosingInspector() {
-    var callbackCalls = 0
-    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
-      surface,
-      parentDisposable,
-      psiFilePointer,
-    ) {
-      callbackCalls++
-    }
-    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
-    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
-    assertEquals(2, callbackCalls)
-
-    ComposeAnimationInspectorManager.closeCurrentInspector()
-    ComposeAnimationInspectorManager.onAnimationInspectorOpened()
-    assertEquals(2, callbackCalls)
+    animationPreview.removeAnimation(animation1).join()
+    assertEquals(1, animationPreview.animations.size)
   }
 
   @Test
   fun comboBoxesDisplayComposeAnimationStates() = runBlocking {
-    val inspector = createAndOpenInspector()
     val animationStates = setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
     val transitionAnimation = createTransitionAnimation(animationStates)
 
     subscribeAnimations(listOf(transitionAnimation))
 
-    val ui = createFakeUiForInspector(inspector)
+    val ui = createFakeUiForInspector(animationPreview)
 
     // Find the AnimationCard toolbar
-    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+    val animationCardToolbar = animationPreview.component.findToolbar("AnimationCard") as JComponent
 
     // Assertions
     assertEquals(5, animationCardToolbar.componentCount)
@@ -264,7 +171,6 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @Test
   fun animatedVisibilityComboBoxDisplayAllVisibilityStates() = runBlocking {
-    val inspector = createAndOpenInspector()
     val animatedVisibilityAnimation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -274,10 +180,10 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
     subscribeAnimations(listOf(animatedVisibilityAnimation))
 
-    val ui = createFakeUiForInspector(inspector)
+    val ui = createFakeUiForInspector(animationPreview)
 
     // Find the AnimationCard toolbar
-    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+    val animationCardToolbar = animationPreview.component.findToolbar("AnimationCard") as JComponent
 
     // Assertions
     assertEquals(3, animationCardToolbar.componentCount)
@@ -294,14 +200,12 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @Test
   fun changeClockTime() = runBlocking {
-    val inspector = createAndOpenInspector()
-
     subscribeAnimations(listOf(createTransitionAnimation()))
 
     withContext(uiThread) {
       // We can get any of the combo boxes, since "from" and "to" states should be the same.
       val sliders =
-        TreeWalker(inspector.component)
+        TreeWalker(animationPreview.component)
           .descendantStream()
           .filter { it is JSlider }
           .collect(Collectors.toList())
@@ -319,13 +223,12 @@ class ComposeAnimationPreviewTest : InspectorTests() {
   @Test
   fun playbackControlActions() = runBlocking {
     val numberOfPlaybackControls = 6 // loop, go to start, play, go to end, speed, separator
-    val inspector = createAndOpenInspector()
 
     subscribeAnimations(listOf(createTransitionAnimation()))
 
     withContext(uiThread) {
       val toolbars =
-        TreeWalker(inspector.component)
+        TreeWalker(animationPreview.component)
           .descendantStream()
           .filter { it is ActionToolbarImpl }
           .collect(Collectors.toList())
@@ -367,18 +270,16 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @Test
   fun resizeInspector() = runBlocking {
-    val inspector = createAndOpenInspector()
     subscribeAnimations(listOf(createTransitionAnimation()))
 
-    inspector.component.setSize(
-      inspector.component.size.width * 2,
-      inspector.component.size.height * 2,
+    animationPreview.component.setSize(
+      animationPreview.component.size.width * 2,
+      animationPreview.component.size.height * 2,
     )
   }
 
   @Test
   fun animationStatesInferredForBoolean() = runBlocking {
-    val inspector = createAndOpenInspector()
     val transitionAnimation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -388,10 +289,10 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
     subscribeAnimations(listOf(transitionAnimation))
 
-    val ui = createFakeUiForInspector(inspector)
+    val ui = createFakeUiForInspector(animationPreview)
 
     // Find the AnimationCard toolbar
-    val animationCardToolbar = inspector.component.findToolbar("AnimationCard") as JComponent
+    val animationCardToolbar = animationPreview.component.findToolbar("AnimationCard") as JComponent
 
     // Assertions
     assertEquals(5, animationCardToolbar.componentCount)
@@ -413,8 +314,6 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @Test
   fun tabsAreNamedFromAnimationLabel() = runBlocking {
-    val inspector = createAndOpenInspector()
-
     val animation1 = createComposeAnimation("repeatedLabel")
 
     val animationWithSameLabel = createComposeAnimation("repeatedLabel")
@@ -438,34 +337,33 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       )
     )
 
-    assertEquals(5, inspector.animations.size)
-    assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
+    assertEquals(5, animationPreview.animations.size)
+    assertEquals("repeatedLabel", animationPreview.getAnimationTitleAt(0))
     assertEquals(
       "repeatedLabel (1)",
-      inspector.getAnimationTitleAt(1),
+      animationPreview.getAnimationTitleAt(1),
     ) // repeated titles get their index incremented
     assertEquals(
       "Animated Value",
-      inspector.getAnimationTitleAt(2),
+      animationPreview.getAnimationTitleAt(2),
     ) // null labels use default title
     assertEquals(
       "Transition Animation",
-      inspector.getAnimationTitleAt(3),
+      animationPreview.getAnimationTitleAt(3),
     ) // null labels use default title
     assertEquals(
       "Animated Visibility",
-      inspector.getAnimationTitleAt(4),
+      animationPreview.getAnimationTitleAt(4),
     ) // null labels use default title
   }
 
   @Test
   fun `cards and timeline elements are added to coordination panel`() = runBlocking {
-    val inspector = createAndOpenInspector()
     subscribeAnimations(animations)
 
     withContext(uiThread) {
-      val cards = findAllCards(inspector.component)
-      val timeline = TestUtils.findTimeline(inspector.component)
+      val cards = findAllCards(animationPreview.component)
+      val timeline = TestUtils.findTimeline(animationPreview.component)
       // 11 cards and 11 TimelineElements are added to coordination panel.
       assertEquals(11, cards.size)
       assertInstanceOf<AnimationCard>(cards[0])
@@ -481,175 +379,55 @@ class ComposeAnimationPreviewTest : InspectorTests() {
       assertInstanceOf<LabelCard>(cards[10])
       assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
-      assertEquals(1, inspector.tabbedPane.tabCount)
+      assertEquals(1, animationPreview.tabbedPane.tabCount)
     }
   }
 
   @Test
   fun `managers are created for each animation`(): Unit = runBlocking {
-    val inspector = createAndOpenInspector()
     subscribeAnimations(animations)
 
-    assertEquals(11, inspector.animations.size)
-    assertInstanceOf<ComposeAnimationManager>(inspector.animations[0])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
-    assertInstanceOf<ComposeAnimationManager>(inspector.animations[2])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[3])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[4])
-    assertInstanceOf<ComposeAnimationManager>(inspector.animations[5])
-    assertInstanceOf<ComposeAnimationManager>(inspector.animations[6])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[7])
-    assertInstanceOf<ComposeAnimationManager>(inspector.animations[8])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[9])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[10])
+    assertEquals(11, animationPreview.animations.size)
+    assertInstanceOf<ComposeAnimationManager>(animationPreview.animations[0])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[1])
+    assertInstanceOf<ComposeAnimationManager>(animationPreview.animations[2])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[3])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[4])
+    assertInstanceOf<ComposeAnimationManager>(animationPreview.animations[5])
+    assertInstanceOf<ComposeAnimationManager>(animationPreview.animations[6])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[7])
+    assertInstanceOf<ComposeAnimationManager>(animationPreview.animations[8])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[9])
+    assertInstanceOf<UnsupportedAnimationManager>(animationPreview.animations[10])
   }
 
   @Test
-  fun invalidateInspector() {
-    val psiFile =
-      projectRule.fixture.addFileToProject(
-        "src/main/NewTest.kt",
-        """
-      fun main() {}
-    """
-          .trimIndent(),
-      )
-    val anotherPsiFile =
-      projectRule.fixture.addFileToProject(
-        "src/main/AnotherTest.kt",
-        """
-      fun main() {}
-    """
-          .trimIndent(),
-      )
+  fun invalidateInspector() = runBlocking {
+    subscribeAnimations(animations)
 
-    lateinit var psiPointerOne: SmartPsiElementPointer<PsiFile>
-    lateinit var psiPointerTwo: SmartPsiElementPointer<PsiFile>
-    lateinit var anotherPsiPointer: SmartPsiElementPointer<PsiFile>
+    assertEquals(11, animationPreview.animations.size)
+    assertNull(animationPreview.noAnimationsPanel())
 
-    ApplicationManager.getApplication().invokeAndWait {
-      psiPointerOne = SmartPointerManager.createPointer(psiFile)
-      psiPointerTwo = SmartPointerManager.createPointer(psiFile)
-      anotherPsiPointer = SmartPointerManager.createPointer(anotherPsiFile)
-    }
-
-    ComposeAnimationInspectorManager.createAnimationInspectorPanel(
-      surface,
-      parentDisposable,
-      psiPointerOne,
-    ) {}
-
-    runBlocking {
-      subscribeAnimations(animations)
-
-      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
-      assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
-
-      ComposeAnimationInspectorManager.invalidate(anotherPsiPointer).join()
-      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(11, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
-      assertNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
-
-      ComposeAnimationInspectorManager.invalidate(psiPointerTwo).join()
-      assertNotNull(ComposeAnimationInspectorManager.currentInspector)
-      assertEquals(0, ComposeAnimationInspectorManager.currentInspector!!.animations.size)
-      assertNotNull(ComposeAnimationInspectorManager.currentInspector!!.noAnimationsPanel())
-    }
+    animationPreview.invalidatePanel().join()
+    assertEquals(0, animationPreview.animations.size)
+    assertNotNull(animationPreview.noAnimationsPanel())
   }
 
   @Test
   fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() = runBlocking {
-    val inspector = createAndOpenInspector()
     subscribeAnimations(listOf(createComposeAnimation()))
 
-    assertNotNull(inspector.tabbedPane.parent)
-    assertEquals(1, inspector.animations.size)
-    assertNull(inspector.noAnimationsPanel())
-    assertEquals(1, inspector.animationPreviewCardsCount())
+    assertNotNull(animationPreview.tabbedPane.parent)
+    assertEquals(1, animationPreview.animations.size)
+    assertNull(animationPreview.noAnimationsPanel())
+    assertEquals(1, animationPreview.animationPreviewCardsCount())
 
-    ComposeAnimationInspectorManager.invalidate(psiFilePointer).join()
-    assertNotNull(inspector.noAnimationsPanel())
-    assertNull(inspector.tabbedPane.parent)
-    assertEquals(0, inspector.animations.size)
-    assertEquals(0, inspector.animationPreviewCardsCount())
+    animationPreview.invalidatePanel().join()
+    assertNotNull(animationPreview.noAnimationsPanel())
+    assertNull(animationPreview.tabbedPane.parent)
+    assertEquals(0, animationPreview.animations.size)
+    assertEquals(0, animationPreview.animationPreviewCardsCount())
   }
-
-  @Test
-  @Throws(IOException::class, ClassNotFoundException::class)
-  fun classLoaderRedirectsSubscriptionToAnimationManager() {
-    class PreviewAnimationClockClassLoader :
-      DelegatingClassLoader(
-        this.javaClass.classLoader,
-        AsmTransformingLoader(
-          toClassTransform({ PreviewAnimationClockMethodTransform(it) }),
-          ClassLoaderLoader(
-            createUrlClassLoader(
-              listOf(
-                resolveWorkspacePath("tools/adt/idea/compose-designer/testData/classloader")
-                  .resolve("composeanimation.jar")
-              )
-            )
-          ),
-          NopClassLocator,
-        ),
-      ) {
-      fun loadPreviewAnimationClock(): Class<*> =
-        loadClass("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
-    }
-    createAndOpenInspector()
-
-    val previewAnimationClockClassLoader = PreviewAnimationClockClassLoader()
-    val previewAnimationClock = previewAnimationClockClassLoader.loadPreviewAnimationClock()
-    val notifySubscribe =
-      previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
-    val animation = createComposeAnimation()
-    notifySubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-
-    val notifyUnsubscribe =
-      previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
-    notifyUnsubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
-  }
-
-  @Test
-  fun animationClockWrapsComposeClockViaReflection() {
-    val animationClock = AnimationClock(getClock())
-    // Check that we can find a couple of methods from TestClock
-    assertNotNull(animationClock.getAnimatedPropertiesFunction)
-    assertNotNull(animationClock.updateAnimatedVisibilityStateFunction)
-    // getAnimatedVisibilityState is mangled in TestClock, but we should be able to find it.
-    assertNotNull(animationClock.getAnimatedVisibilityStateFunction)
-
-    try {
-      // We should throw an Exception if we can't find the given function in the underlying clock,
-      // and it's up to the caller to handle this.
-      animationClock.findClockFunction("unknownFunction")
-      fail("Expected to fail, as `unknownFunction` is not a function of TestClock.")
-    } catch (ignored: NullPointerException) {}
-
-    // getAnimatedVisibilityState is a supported function, but its name is mangled. We should find
-    // it when looking for the function without
-    // the hash suffix, not when we specify it.
-    assertNotNull(animationClock.findClockFunction("getAnimatedVisibilityState"))
-    try {
-      animationClock.findClockFunction("getAnimatedVisibilityState-xga21d")
-      fail(
-        "Expected to fail, as `getAnimatedVisibilityState-xga21d` should not be found when looking for the mangled name."
-      )
-    } catch (ignored: NullPointerException) {}
-  }
-
-  @Test
-  fun inspectorShouldBeClosedWhenParentIsDisposed() {
-    val disposable = Disposer.newDisposable()
-    createAndOpenInspector(disposable)
-    assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())
-    Disposer.dispose(disposable)
-    assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
-  }
-
 
   private fun ComposeAnimationPreview.getAnimationTitleAt(index: Int): String =
     findAllCards(this.component)[index].findLabel().text
