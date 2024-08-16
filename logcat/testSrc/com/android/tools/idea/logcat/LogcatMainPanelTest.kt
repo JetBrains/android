@@ -857,7 +857,6 @@ class LogcatMainPanelTest {
   }
 
   @Test
-  @Ignore("b/360314723")
   fun applyLogcatSettings_bufferSize() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(logcatSettings = AndroidLogcatSettings(bufferSize = 1024000))
@@ -867,15 +866,11 @@ class LogcatMainPanelTest {
       logcatMessage(
         message = "foo".padStart(97, ' ')
       ) // Make the message part exactly 100 chars long
-    // Insert 20 log lines
-    logcatMainPanel.processMessages(List(20) { logcatMessage })
-    waitForCondition {
-      document.immutableText().lines().size == 21
-    }
     val logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
 
     logcatMainPanel.applyLogcatSettings(logcatSettings)
 
+    logcatMainPanel.processMessages(List(20) { logcatMessage })
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(document.immutableText().length).isAtMost(1024 + logcatMessage.length())
       // backlog trims by message length
