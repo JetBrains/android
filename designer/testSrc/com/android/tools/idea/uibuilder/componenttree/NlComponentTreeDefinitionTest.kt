@@ -456,7 +456,6 @@ class NlComponentTreeDefinitionTest {
     val model = createFlowModel()
     val table = attach(content, model)
     val tableModel = table.tableModel
-    val textA = model.treeReader.find("a")!!
     val button = model.treeReader.find("b")!!
     val linear = model.treeReader.find("linear")!!
     val imageViewXml =
