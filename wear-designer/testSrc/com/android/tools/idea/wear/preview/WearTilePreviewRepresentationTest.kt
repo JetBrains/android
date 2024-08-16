@@ -38,6 +38,7 @@ import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
@@ -124,14 +125,12 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val previewGroupManager =
-        preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name) as PreviewGroupManager
+      val dataContext = preview.mainSurfaceDataContext
+      val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("groupA")
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-
-      val dataContext = DataContext { preview.previewView.mainSurface.getData(it) }
 
       // Select preview group "groupA"
       run {
@@ -412,11 +411,16 @@ class WearTilePreviewRepresentationTest {
     assertThat(preview.previewView.galleryMode).isNotNull()
   }
 
+  private val WearTilePreviewRepresentation.mainSurfaceDataContext
+    get() =
+      DataManager.getInstance()
+        .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = previewView.mainSurface.getData(PreviewModeManager.KEY.name) as PreviewModeManager
+    get() = PreviewModeManager.KEY.getData(mainSurfaceDataContext)!!
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = previewView.mainSurface.getData(PreviewFlowManager.KEY.name) as PreviewFlowManager<*>
+    get() = PreviewFlowManager.KEY.getData(mainSurfaceDataContext)!!
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {

@@ -53,7 +53,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
-import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.ZoomChange;
@@ -80,6 +79,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -119,7 +119,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -221,23 +220,21 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
 
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
-    if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
-      NlComponent selection = getSelectionModel().getPrimary();
-      if (selection != null && NavComponentHelperKt.isAction(selection)) {
-        Scene scene = getScene();
-        if (scene != null) {
-          SceneComponent sceneComponent = scene.getSceneComponent(selection);
-          if (sceneComponent != null) {
-            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, getFocusedSceneView().getContext());
-            if (p2d != null) {
-              return new Point((int)p2d.x, (int)p2d.y);
-            }
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    super.uiDataSnapshot(sink);
+    NlComponent selection = getSelectionModel().getPrimary();
+    if (selection != null && NavComponentHelperKt.isAction(selection)) {
+      Scene scene = getScene();
+      if (scene != null) {
+        SceneComponent sceneComponent = scene.getSceneComponent(selection);
+        if (sceneComponent != null) {
+          Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, getFocusedSceneView().getContext());
+          if (p2d != null) {
+            sink.set(PlatformDataKeys.CONTEXT_MENU_POINT, new Point((int)p2d.x, (int)p2d.y));
           }
         }
       }
     }
-    return super.getData(dataId);
   }
 
   @NotNull

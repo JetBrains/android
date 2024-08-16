@@ -60,7 +60,10 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.DataSink.Companion.uiDataSnapshot
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -152,7 +155,7 @@ private class ComponentTreePanel(
         .withNodeType(NlComponentNodeType { repaint() })
         .withNodeType(NlComponentReferenceNodeType())
         .withAutoScroll()
-        .withDataProvider { dataId -> getData(dataId) }
+        .withDataProvider { dataId -> EdtNoGetDataProvider { sink -> uiDataSnapshot(sink) } }
         .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
         .withBadgeSupport(IssueBadgeColumn())
         .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
@@ -303,16 +306,16 @@ private class ComponentTreePanel(
   /**
    * Provide a `DELETE_ELEMENT_PROVIDER` when only [NlComponentReference]s are selected.
    *
-   * Otherwise simply delegate to whatever the surface is offering.
+   * Otherwise, simply delegate to whatever the surface is offering.
    */
-  private fun getData(dataId: String): Any? {
+  private fun uiDataSnapshot(sink: DataSink) {
     val referencesOnly =
       componentTree.selectionModel.currentSelection.all { it is NlComponentReference }
-    if (referencesOnly && PlatformDataKeys.DELETE_ELEMENT_PROVIDER.`is`(dataId)) {
+    if (referencesOnly) {
       // Provide a way to delete a reference from a helper
-      return referenceDeleteProvider
+      sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = referenceDeleteProvider
     }
-    return surface?.getData(dataId)
+    uiDataSnapshot(sink, surface)
   }
 
   /** The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface. */

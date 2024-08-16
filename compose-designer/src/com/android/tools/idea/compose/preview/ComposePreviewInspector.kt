@@ -20,6 +20,8 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ui.popup.JBPopup
 
 /**
@@ -40,8 +42,10 @@ class ComposePreviewInspector(
    * the Swing coordinate.
    */
   fun inspect(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    val dataContext =
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
     val inspectionEnabled =
-      COMPOSE_PREVIEW_MANAGER.getData(surface)?.isInspectionTooltipEnabled ?: false
+      COMPOSE_PREVIEW_MANAGER.getData(dataContext)?.isInspectionTooltipEnabled ?: false
     if (!inspectionEnabled) {
       currentViewInfo = null
       currentTooltipPopup?.cancel()
