@@ -24,7 +24,7 @@ import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.sdklib.devices.Hardware;
+import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
@@ -92,43 +92,17 @@ public class AvdWizardUtils {
   private static final int MAX_RAM_MB = 2048;
 
   /**
-   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
-   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
-   * is usually detrimental to development system performance and most likely not needed by the
-   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
-   * apps running simultaneously)
+   * Get the maximum amount of ram to use by default for an AVD based on the given Device. The user
+   * may set a higher amount of RAM if warranted.
    *
-   * @param hardware the hardware to look up the default amount of RAM on
-   * @return the amount of RAM to default an AVD to for the given hardware
+   * <p>With modern devices, this is typically a lower limit than the physical hardware, since more
+   * than that is usually detrimental to development system performance and most likely not needed
+   * by the emulated app (e.g. it's intended to let the hardware run smoothly with lots of services
+   * and apps running simultaneously)
    */
   @NotNull
-  public static Storage getDefaultRam(@NotNull Hardware hardware) {
-    return getMaxPossibleRam(hardware.getRam());
-  }
-
-  /**
-   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
-   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
-   * is usually detrimental to development system performance and most likely not needed by the
-   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
-   * apps running simultaneously)
-   *
-   * @return the amount of RAM to default an AVD to for the given hardware
-   */
-  @NotNull
-  public static Storage getMaxPossibleRam() {
+  public static Storage getMaxDefaultRam(Device device) {
     return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
-  }
-
-  /**
-   * Limits the ram to {@link #MAX_RAM_MB}
-   */
-  @NotNull
-  private static Storage getMaxPossibleRam(Storage ram) {
-    if (ram.getSizeAsUnit(Storage.Unit.MiB) >= MAX_RAM_MB) {
-      return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
-    }
-    return ram;
   }
 
   /**
