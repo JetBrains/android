@@ -16,15 +16,17 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -37,6 +39,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -68,9 +71,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
       if (module == null || !super.isModuleAccepted(module)) {
         return false
       }
-      val facet = AndroidFacet.getInstance(module) ?: return false
-      if (!module.isHolderModule()) return false
-      return facet.getModuleSystem().type == AndroidModuleSystem.Type.TYPE_APP
+      return AndroidWearConfigurationEditorToken.isModuleAccepted(module)
     }
   }
 
@@ -126,7 +127,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     (component as DialogPanel).reset()
   }
 
-  private fun getComponentSearchScope(module: Module) = module.getMainModule().getModuleSystem().getResolveScope(ScopeType.MAIN)
+  private fun getComponentSearchScope(module: Module) = AndroidWearConfigurationEditorToken.getComponentSearchScope(module)
 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
@@ -213,5 +214,35 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     }.distinct()
       .sorted()
       .toSet()
+  }
+}
+
+interface AndroidWearConfigurationEditorToken<P : AndroidProjectSystem>: Token {
+  fun isModuleAccepted(projectSystem: P, module: Module): Boolean = defaultIsModuleAccepted(module)
+  fun getComponentSearchScope(projectSystem: P, module: Module): GlobalSearchScope
+
+  companion object {
+    val EP_NAME = ExtensionPointName<AndroidWearConfigurationEditorToken<AndroidProjectSystem>>("com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken")
+
+    fun isModuleAccepted(module: Module): Boolean {
+      val projectSystem = module.project.getProjectSystem()
+      return when (val token = projectSystem.getTokenOrNull(EP_NAME)) {
+        null -> defaultIsModuleAccepted(module)
+        else -> token.isModuleAccepted(projectSystem, module)
+      }
+    }
+
+    private fun defaultIsModuleAccepted(module: Module): Boolean {
+      val facet = AndroidFacet.getInstance(module) ?: return false
+      return facet.getModuleSystem().type == AndroidModuleSystem.Type.TYPE_APP
+    }
+
+    fun getComponentSearchScope(module: Module): GlobalSearchScope {
+      val projectSystem = module.project.getProjectSystem()
+      return when (val token = projectSystem.getTokenOrNull(EP_NAME)) {
+        null -> module.getModuleSystem().getResolveScope(ScopeType.MAIN)
+        else -> token.getComponentSearchScope(projectSystem, module)
+      }
+    }
   }
 }

@@ -718,6 +718,8 @@
                     interface="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken"
                     interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken"
+                    interface="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
