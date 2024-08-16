@@ -27,7 +27,7 @@ class AvdSpec(
     private var hardwareProfile: String = "Nexus 5"
     private var systemImageGroup: SystemImageGroups = SystemImageGroups.X86
     private var systemImageSpec: ChooseSystemImageStepFixture.SystemImage =
-      ChooseSystemImageStepFixture.SystemImage("Android 13", "33", "x86_64", "Android 13")
+      ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0")
 
     private var avdName: String? = null
 
