@@ -58,7 +58,7 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidRunConfigurationsManager;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -578,7 +578,7 @@ public class AndroidGradleTests {
       // then try and find a non-lib facet
       for (Module module : modules) {
         // Look for holder modules only in MPSS case. Otherwise any of the module group can match.
-        if (!ModuleSystemUtil.isHolderModule(module)) {
+        if (!LinkedAndroidModuleGroupUtilsKt.isHolderModule(module)) {
           continue;
         }
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);

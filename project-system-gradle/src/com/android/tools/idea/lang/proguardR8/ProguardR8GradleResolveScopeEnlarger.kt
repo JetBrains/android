@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.proguardR8
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
