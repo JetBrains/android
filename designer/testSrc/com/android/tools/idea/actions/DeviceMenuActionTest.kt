@@ -103,6 +103,9 @@ class DeviceMenuActionTest {
         getReferenceDevicesExpected() +
           """
           Phones
+                  Pixel 9 (411 × 923 dp, 420dpi)
+                  Pixel 9 Pro XL (448 × 997 dp, xxhdpi)
+                  Pixel 9 Pro (427 × 952 dp, xxhdpi)
                   Pixel 8 (411 × 914 dp, 420dpi)
                   Pixel 8 Pro (448 × 997 dp, xxhdpi)
                   Pixel 8a (411 × 914 dp, 420dpi)
@@ -131,6 +134,7 @@ class DeviceMenuActionTest {
                   XR Device No GPU (592 × 640 dp, xhdpi)
                   XR Device (1184 × 1280 dp, xhdpi)
               Tablets
+                  Pixel 9 Pro Fold (791 × 820 dp, 420dpi)
                   Pixel Tablet (1280 × 800 dp, xhdpi)
                   Pixel C (1280 × 900 dp, xhdpi)
                   Nexus 10 (1280 × 800 dp, xhdpi)
