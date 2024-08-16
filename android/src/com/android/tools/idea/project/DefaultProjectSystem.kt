@@ -176,7 +176,7 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     }
   }
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> {
+  override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
     // TODO(b/148300410)
     val projectScope = GlobalSearchScope.projectScope(project)
     return ProjectFacetManager.getInstance(project)

@@ -341,7 +341,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
   override fun getAndroidFacets() = super.getAndroidFacets().filter { it.module.isHolderModule() }
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
+  override fun getAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     val census = getGradleProjectCensus(project)
     return census.packageToModule[packageName]?.mapNotNull { it.androidFacet } ?: emptyList()
   }
