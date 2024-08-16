@@ -28,7 +28,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import javax.swing.Icon
@@ -59,7 +58,7 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
     val toolbar =
       ActionManager.getInstance().createActionToolbar("InsightFeedbackPanel", actionGroup, true)
     toolbar.targetComponent = this
-    toolbar.minimumButtonSize = JBUI.size(26)
+    toolbar.minimumButtonSize = MINIMUM_ACTION_BUTTON_SIZE
     add(toolbar.component, BorderLayout.CENTER)
   }
 

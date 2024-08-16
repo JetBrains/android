@@ -18,6 +18,8 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.LoadingState
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -50,12 +52,13 @@ class InsightContentPanel(
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-) : JPanel(), Disposable {
+) : JPanel(), DataProvider, Disposable {
 
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane()
   private val feedbackPanel = InsightFeedbackPanel()
+  private val insightBottomPanel = InsightBottomPanel()
 
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
@@ -119,7 +122,8 @@ class InsightContentPanel(
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
       border = JBUI.Borders.empty()
-      add(insightScrollPanel)
+      add(insightScrollPanel, BorderLayout.CENTER)
+      add(insightBottomPanel, BorderLayout.SOUTH)
     }
 
   private val emptyOrErrorPanel: JPanel =
@@ -255,9 +259,20 @@ class InsightContentPanel(
     } else {
       loadingPanel.stopLoading()
     }
-    insightPanel.isVisible = !startLoading
+    togglePanelVisibilities(!startLoading)
     cardLayout.show(this, card)
   }
 
+  private fun togglePanelVisibilities(visibility: Boolean) {
+    insightPanel.isVisible = visibility
+    insightBottomPanel.isVisible = visibility
+  }
+
   override fun dispose() = Unit
+
+  override fun getData(dataId: String) =
+    when {
+      PlatformDataKeys.COPY_PROVIDER.`is`(dataId) -> insightTextPane
+      else -> null
+    }
 }
