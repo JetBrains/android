@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
+import static com.google.common.collect.Comparators.min;
+import static java.util.Comparator.comparing;
+
 import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
@@ -528,7 +531,7 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
     myScreenFoldedWidth3.set(screen.getFoldedWidth3());
     myScreenFoldedHeight3.set(screen.getFoldedHeight3());
-    myRamStorage.set(AvdWizardUtils.getDefaultRam(defaultHardware));
+    myRamStorage.set(min(defaultHardware.getRam(), AvdWizardUtils.getMaxDefaultRam(device), comparing(Storage::getSize)));
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
