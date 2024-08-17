@@ -97,7 +97,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DELETE = load("studio/icons/common/delete.svg", "intui/icons/common/delete.svg", 55368258, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/common/edit.svg", "intui/icons/common/edit.svg", -1443582273, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_DECORATOR = load("studio/icons/common/error-decorator.svg", "intui/icons/common/error-decorator.svg", 1752370570, 2);
-    /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", -1267613464, 2);
+    /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", "intui/icons/common/error-inline.svg", -1267613464, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_STACK = load("studio/icons/common/error-stack.svg", "intui/icons/common/error-stack.svg", 1724576961, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR = load("studio/icons/common/error.svg", "intui/icons/common/error.svg", -1991257582, 2);
     /** 16x16 */ public static final @NotNull Icon EXPORT = load("studio/icons/common/export.svg", "intui/icons/common/export.svg", -414706009, 2);
@@ -106,7 +106,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/common/group.svg", "intui/icons/common/group.svg", -616944603, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("studio/icons/common/help.svg", "intui/icons/common/help.svg", 1868521137, 2);
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", "intui/icons/common/import-data.svg", 2036891466, 2);
-    /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", -2140866011, 2);
+    /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", "intui/icons/common/info-inline.svg", -2140866011, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("studio/icons/common/info.svg", "intui/icons/common/info.svg", 216054291, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("studio/icons/common/link.svg", "intui/icons/common/link.svg", 636172221, 2);
     /** 17x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", "intui/icons/common/list-view.svg", -1580146156, 2);
@@ -129,12 +129,12 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("studio/icons/common/screenshot.svg", "intui/icons/common/screenshot.svg", 1540467097, 2);
     /** 16x16 */ public static final @NotNull Icon SEARCH = load("studio/icons/common/search.svg", "intui/icons/common/search.svg", 1371267813, 2);
     /** 16x16 */ public static final @NotNull Icon SETTINGS = load("studio/icons/common/settings.svg", "intui/icons/common/settings.svg", 1783337616, 2);
-    /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("studio/icons/common/success-inline.svg", 622028579, 2);
+    /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("studio/icons/common/success-inline.svg", "intui/icons/common/success-inline.svg", 622028579, 2);
     /** 16x16 */ public static final @NotNull Icon SUCCESS = load("studio/icons/common/success.svg", "intui/icons/common/success.svg", -683128264, 2);
     /** 16x16 */ public static final @NotNull Icon TYPO_STACK = load("studio/icons/common/typo-stack.svg", "intui/icons/common/typo-stack.svg", 1178996725, 2);
     /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("studio/icons/common/video-capture.svg", "intui/icons/common/video-capture.svg", -1824493774, 2);
     /** 16x16 */ public static final @NotNull Icon VISIBILITY_INLINE = load("studio/icons/common/visibility-inline.svg", "intui/icons/common/visibility-inline.svg", 2092521706, 2);
-    /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("studio/icons/common/warning-inline.svg", 1942569773, 2);
+    /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("studio/icons/common/warning-inline.svg", "intui/icons/common/warning-inline.svg", 1942569773, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING_STACK = load("studio/icons/common/warning-stack.svg", "intui/icons/common/warning-stack.svg", -1949741817, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING = load("studio/icons/common/warning.svg", "intui/icons/common/warning.svg", 485473669, 2);
     /** 16x16 */ public static final @NotNull Icon WEAK_WARNING_STACK = load("studio/icons/common/weak-warning-stack.svg", "intui/icons/common/weak-warning-stack.svg", -674353934, 2);
