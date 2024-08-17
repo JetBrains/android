@@ -2034,6 +2034,7 @@ java_test(
             "@externsdk//:emulator",
             "@externsdk//:system-images",
         ],
+        "//conditions:default": [],
     }) + [
         ":espresso_recorder_deps",
         "//prebuilts/studio/sdk:emulator",
