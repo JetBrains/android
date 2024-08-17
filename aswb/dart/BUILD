@@ -3,18 +3,18 @@ load(
     "DEFAULT_TEST_VISIBILITY",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
-load("//tools/vendor/google3/aswb/third_party/intellij/plugin/build_defs:build_defs.bzl", "intellij_plugin_library")
-load("//tools/vendor/google3/aswb/third_party/intellij/plugin/testing:test_defs.bzl", "intellij_unit_test_suite")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "intellij_plugin_library")
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "intellij_unit_test_suite")
 
 java_library(
     name = "dart",
     srcs = glob(["src/**/*.java"]),
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
     ],
 )
 
@@ -35,11 +35,11 @@ intellij_unit_test_suite(
         ":dart",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
         "@maven//:com.google.guava.guava",
     ],
 )
