@@ -223,10 +223,9 @@ public final class AvdOptionsModel extends WizardModel {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
 
-        ScreenSize size = ScreenSize.getScreenSize(myAvdDeviceData.diagonalScreenSize().get());
-        Density density = myAvdDeviceData.density().get();
-
         myVmHeapStorage.set(EmulatedProperties.defaultVmHeapSize(myDevice.getValue()));
+        myInternalStorage.set(EmulatedProperties.defaultInternalStorage(myDevice.getValue()));
+
         if (myAvdDeviceData.getHasSdCard().get()) {
           // has sdcard in device, go with default setting
           myUseBuiltInSdCard.set(true);
