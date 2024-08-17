@@ -176,8 +176,8 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     while (mask != 0) {
       if (mask and 1 != 0) {
         when (key) {
-          NavigationKey.MOVE_RIGHT.ordinal -> navigationEvent.setStrafeRightHeld(true)
-          NavigationKey.MOVE_LEFT.ordinal -> navigationEvent.setStrafeLeftHeld(true)
+          NavigationKey.MOVE_RIGHT.ordinal -> navigationEvent.setRightHeld(true)
+          NavigationKey.MOVE_LEFT.ordinal -> navigationEvent.setLeftHeld(true)
           NavigationKey.MOVE_UP.ordinal -> navigationEvent.setUpHeld(true)
           NavigationKey.MOVE_DOWN.ordinal -> navigationEvent.setDownHeld(true)
           NavigationKey.MOVE_FORWARD.ordinal -> navigationEvent.setForwardHeld(true)

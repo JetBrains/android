@@ -462,9 +462,9 @@ class EmulatorToolWindowPanelTest {
     ui.keyboard.release(VK_ENTER)
     val keys = mapOf(
       VK_W to "forward_held: true",
-      VK_A to "strafe_left_held: true",
+      VK_A to "left_held: true",
       VK_S to "backward_held: true",
-      VK_D to "strafe_right_held: true",
+      VK_D to "right_held: true",
       VK_Q to "down_held: true",
       VK_E to "up_held: true",
       VK_RIGHT to "rotate_right_held: true",
@@ -486,10 +486,10 @@ class EmulatorToolWindowPanelTest {
     // Two keys pressed together.
     ui.keyboard.press(VK_D)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_input_event { nav_event { strafe_right_held: true } }")
+        .isEqualTo("xr_input_event { nav_event { right_held: true } }")
     ui.keyboard.press(VK_E)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_input_event { nav_event { strafe_right_held: true up_held: true } }")
+        .isEqualTo("xr_input_event { nav_event { right_held: true up_held: true } }")
 
     // Switching to Hardware Input resets state of the navigation keys.
     ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
