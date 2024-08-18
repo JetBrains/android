@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.intellij.psi.PsiFile
 
 class DeclarativeDslTransformerFactory : GradleDslTransformerFactory {

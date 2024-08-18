@@ -71,11 +71,9 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
-        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
-        "//tools/adt/idea/lint:intellij.lint[module, test]",
-        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 
