@@ -53,7 +53,10 @@ intellij_plugin_library(
     name = "plugin_library",
     plugin_xmls = ["src/META-INF/blaze-base.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":base"],
+    deps = [
+        ":base",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/indexing",
+    ],
 )
 
 java_library(
