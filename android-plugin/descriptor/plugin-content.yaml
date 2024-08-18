@@ -222,6 +222,8 @@
   - name: intellij.android.buildCommon
 - name: lib/ffmpeg-6.0-1.5.9.jar
 - name: lib/ffmpeg-linux-x64-6.0-1.5.9.jar
+- name: lib/ffmpeg-macos-aarch64-6.0-1.5.9.jar
+- name: lib/ffmpeg-macos-x64-6.0-1.5.9.jar
 - name: lib/ffmpeg-windows-x64-6.0-1.5.9.jar
 - name: lib/inspectors-common.jar
   modules:
@@ -231,6 +233,8 @@
 - name: lib/instantapps-api.jar
 - name: lib/javacpp-1.5.9.jar
 - name: lib/javacpp-linux-x64-1.5.9.jar
+- name: lib/javacpp-macos-aarch64-1.5.9.jar
+- name: lib/javacpp-macos-x64-1.5.9.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
 - name: lib/jb-r8.jar
 - name: lib/jewel-ide-laf-bridge.jar
