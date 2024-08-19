@@ -22,8 +22,8 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.analysis.api.types.KaType
@@ -130,7 +130,7 @@ private fun KotlinType.isStateType(stateTypeFqName: String) =
 
 private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
   type is KaClassType &&
-  (type.classId == stateClassId ||
+    (type.classId == stateClassId ||
       type.allSupertypes(false).any { it is KaClassType && it.classId == stateClassId })
 
 @OptIn(KaAllowAnalysisOnEdt::class)
