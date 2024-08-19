@@ -93,56 +93,64 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
       // Process requests with collectLatest {}, which automatically cancels any unfinished processing if a new state arrives.
       requestFlow.collectLatest { request ->
         project.trackActivity(FileSystemWarmUpActivityKey) {
-          RequestProcessor(request).processRequest()
+          processRequest(request)
         }
       }
     }
   }
 
-  private inner class RequestProcessor(private val request: Request) {
+  private suspend fun processRequest(request: Request) {
+    logger.info("Processing file system warm-up request...")
+    withContext(Dispatchers.IO.limitedParallelism(fileSystemWarmUpExperimentThreads.value)) {
+      val processedFiles: Int
+      val processedInMs = measureTimeMillis {
+        processedFiles = FileProcessor.processFiles(request.roots)
+      }
+      logger.info("File system warm-up request processed ${processedFiles} files in ${processedInMs}ms.")
+    }
+  }
+
+  private class FileProcessor private constructor(private val processorCoroutineScope: CoroutineScope) {
+    private val logger = thisLogger()
     private val processedFileCounter = AtomicInteger()
     private val queuedFileCounter = AtomicInteger()
-    private val limitedParallelismDispatcher = Dispatchers.IO.limitedParallelism(fileSystemWarmUpExperimentThreads.value)
 
-    suspend fun processRequest() {
-      logger.info("Processing file system warm-up request...")
-      val processedInMs = measureTimeMillis {
-        supervisorScope {
-          withContext(limitedParallelismDispatcher) {
-            suspend fun processFile(file: VirtualFile) {
-              val children = readAction {
-                val filesProcessed = processedFileCounter.incrementAndGet()
-                if (filesProcessed % 10_000 == 0) {
-                  logger.info("File system warm-up progress: $filesProcessed (${queuedFileCounter.get()})")
-                }
-                when {
-                  !file.isInLocalFileSystem -> return@readAction arrayOf()
-                  file.isDirectory -> file.children
-                  else -> {
-                    file.fileType
-                    arrayOf()
-                  }
-                }
-              }
+    private fun launchFileProcessing(fileOrDir: VirtualFile) {
+      queuedFileCounter.incrementAndGet()
+      processorCoroutineScope.launch {
+        processFile(fileOrDir)
+      }
+    }
 
-              children.forEach {
-                queuedFileCounter.incrementAndGet()
-                launch {
-                  processFile(it)
-                }
-              }
-            }
-
-            request.roots.forEach {
-              queuedFileCounter.incrementAndGet()
-              launch {
-                processFile(it)
-              }
-            }
+    private suspend fun processFile(file: VirtualFile) {
+      val children = readAction {
+        val filesProcessed = processedFileCounter.incrementAndGet()
+        if (filesProcessed % 10_000 == 0) {
+          logger.info("File system warm-up progress: $filesProcessed (${queuedFileCounter.get()})")
+        }
+        when {
+          !file.isInLocalFileSystem -> return@readAction arrayOf()
+          file.isDirectory -> file.children
+          else -> {
+            file.fileType
+            arrayOf()
           }
         }
       }
-      logger.info("File system warm-up request processed ${queuedFileCounter.get()} files in ${processedInMs}ms.")
+
+      children.forEach {
+        launchFileProcessing(it)
+      }
+    }
+
+    companion object {
+      suspend fun processFiles(files: Set<VirtualFile>): Int {
+        return supervisorScope {
+          val fileProcessor = FileProcessor(this)
+          files.forEach { fileProcessor.launchFileProcessing(it) }
+          fileProcessor.queuedFileCounter
+        }.get()
+      }
     }
   }
 }
