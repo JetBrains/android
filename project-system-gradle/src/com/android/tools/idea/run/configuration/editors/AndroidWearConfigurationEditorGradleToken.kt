@@ -20,7 +20,7 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.intellij.openapi.module.Module
 import com.intellij.psi.search.GlobalSearchScope
 

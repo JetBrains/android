@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -102,7 +102,7 @@ public class MemorySettingsRecommendationTest {
     ModuleManager moduleManager = mock(ModuleManager.class);
     Module[] modules = new Module[moduleCount];
     Module module = myRule.getModule();
-    assertTrue(ModuleSystemUtil.isHolderModule(module));
+    assertTrue(LinkedAndroidModuleGroupUtilsKt.isHolderModule(module));
     Arrays.fill(modules, module);
     when(moduleManager.getModules()).thenReturn(modules);
 
