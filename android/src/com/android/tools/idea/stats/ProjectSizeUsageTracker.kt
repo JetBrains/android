@@ -82,7 +82,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
   }
 
   override fun run() {
-    project.coroutineScope().launch {
+    project.coroutineScope.launch {
       withBackgroundProgress(project, "Computing project size", true) {
         val builder = AndroidStudioEvent
           .newBuilder()

@@ -189,13 +189,21 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   }
 }
 
-/** Returns a coroutine scope that is tied to the [com.intellij.openapi.application.Application]'s lifecycle. */
-fun applicationCoroutineScope(context: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
-  AndroidCoroutineScope(service<ApplicationCoroutineScopeDisposable>(), context)
+private val APPLICATION_SCOPE: Key<CoroutineScope> = Key.create(::APPLICATION_SCOPE.qualifiedName<AndroidCoroutinesAware>())
 
-/** Returns a coroutine scope that is tied to the [Project]'s lifecycle. */
-fun Project.coroutineScope(context: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
-  AndroidCoroutineScope(service<ProjectDisposable>(), context)
+/** Returns a singleton coroutine scope that is tied to the [com.intellij.openapi.application.Application]'s lifecycle. */
+val applicationCoroutineScope: CoroutineScope
+  get() {
+    return ApplicationManager.getApplication().let {
+      (it as UserDataHolderEx).putUserDataIfAbsent(APPLICATION_SCOPE, AndroidCoroutineScope(service<ApplicationCoroutineScopeDisposable>()))
+    }
+  }
+
+private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName<AndroidCoroutinesAware>())
+
+@Suppress("IncorrectParentDisposable")
+val Project.coroutineScope: CoroutineScope
+  get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
 
 /**
  * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
@@ -222,11 +230,6 @@ fun CoroutineScope.scopeDisposable(): Disposable {
  */
 @Service(Service.Level.APP)
 private class ApplicationCoroutineScopeDisposable : Disposable {
-  override fun dispose() {}
-}
-
-@Service(Service.Level.APP)
-private class ProjectDisposable : Disposable {
   override fun dispose() {}
 }
 

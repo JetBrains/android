@@ -29,7 +29,7 @@ class AndroidRunConfigurationsManager(private val project: Project) {
   private val operationsStates= mutableListOf<Job>()
 
   fun createProjectRunConfigurations() {
-    project.coroutineScope().launch {
+    project.coroutineScope.launch {
       withBackgroundProgress(project, "Setting up run configurations...") {
         AndroidRunConfigurations.instance.createRunConfigurations(project)
       }
