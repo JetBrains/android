@@ -34,8 +34,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
 
 public class AndroidStudioInstallation {
 
@@ -123,7 +125,7 @@ public class AndroidStudioInstallation {
     System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
   }
 
-  private void bundlePlugin(Path pluginZipPath) throws IOException {
+  public void bundlePlugin(Path pluginZipPath) throws IOException {
     if (!Files.exists(pluginZipPath)) {
       throw new IllegalStateException("Plugin zip file wasn't found. Path: " + pluginZipPath);
     }
@@ -132,6 +134,24 @@ public class AndroidStudioInstallation {
     Files.createDirectories(pluginsDir);
 
     unzip(pluginZipPath, pluginsDir);
+  }
+
+  /** Removes the plugin under the provided folder name, under `android-studio/plugins/` */
+  public void removePlugin(String folderName) {
+    deleteDirectoryRecursively(workDir.resolve("android-studio/plugins/" + folderName));
+  }
+
+  /** Deletes the target directory and all of of its items */
+  private void deleteDirectoryRecursively(Path directoryPath) {
+    try {
+      Files.walk(directoryPath)
+        .sorted(Comparator.reverseOrder())
+        .map(Path::toFile)
+        .forEach(File::delete);
+      System.out.println("Successfully deleted directory: " + directoryPath);
+    } catch (IOException e) {
+      System.err.println("Error deleting directory: " + directoryPath + " - " + e.getMessage());
+    }
   }
 
   private void createVmOptionsFile() throws IOException {
