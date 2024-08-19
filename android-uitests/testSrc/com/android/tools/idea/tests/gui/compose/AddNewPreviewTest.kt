@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.jvm.Throws
 
 @RunWith(GuiTestRemoteRunner::class)
-@Ignore("b/353981758")
 class AddNewPreviewTest {
 
   @get:Rule

@@ -30,6 +30,8 @@ import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
@@ -165,7 +167,7 @@ class GradleBuildSystemFilePreviewServicesTest {
     }
 
     @Test
-    fun `ignores build finished if started late`() {
+    fun `still reports build finished if started late but with none scope`() {
       val listener = CapturingBuildListener()
       services.subscribeBuildListener(project, project, listener)
 
@@ -175,8 +177,9 @@ class GradleBuildSystemFilePreviewServicesTest {
       publisher.buildFinished(BuildStatus.SUCCESS, context)
 
       // Does not crash.
-      assertThat(listener.capturedMode).isNull()
-      assertThat(listener.capturedResult).isNull()
+      assertThat(listener.capturedMode).isEqualTo(BuildMode.COMPILE)
+      assertThat(listener.capturedResult?.get()?.status).isEqualTo(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+      assertThat(listener.capturedResult?.get()?.scope).isEqualTo(GlobalSearchScope.EMPTY_SCOPE)
     }
 
     private fun createBuildContext(buildMode: com.android.tools.idea.gradle.util.BuildMode) = BuildContext(
