@@ -148,7 +148,9 @@ private fun KtAnnotationEntry.providerClassName(): String? {
   return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 
-/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
+/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter.
+ * TODO: Remove allowAnalysisOnEdt as it is not needed anymore
+ */
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
