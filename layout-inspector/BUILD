@@ -76,11 +76,11 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/android-34",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/skiaparser/test_support",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/layout-inspector/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//prebuilts/studio/skiaparser/test_support",
     ],
     test_jvm_flags = select({
         "//tools/base/bazel/platforms:macos-arm64": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/mac-arm"],
