@@ -464,6 +464,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     val fix =
       create()
+        .name("Replace")
         .composite(
           create()
             .replace()
