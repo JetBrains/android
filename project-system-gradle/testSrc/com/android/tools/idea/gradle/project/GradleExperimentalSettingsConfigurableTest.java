@@ -66,6 +66,12 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertTrue(myConfigurable.isModified());
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(true);
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testPreApplyCallback() {
@@ -98,6 +104,12 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
     assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
+
+    myConfigurable.enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(true);
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
+    assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = true;
+    assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
   }
 
   public void testApply() throws ConfigurationException {
@@ -106,6 +118,7 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     myConfigurable.enableParallelSync(true);
     myConfigurable.enableGradleApiOptimization(true);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
+    myConfigurable.enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(true);
 
     myConfigurable.apply();
 
@@ -113,12 +126,14 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertTrue(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
+    assertTrue(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
 
     myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
     myConfigurable.enableParallelSync(false);
     myConfigurable.enableGradleApiOptimization(false);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(false);
+    myConfigurable.enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(false);
 
     myConfigurable.apply();
 
@@ -127,6 +142,7 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
     assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertFalse(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
+    assertFalse(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
   }
 
   public void testReset() {
@@ -135,6 +151,7 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     mySettings.ENABLE_PARALLEL_SYNC = true;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = true;
 
     myConfigurable.reset();
 
@@ -143,12 +160,14 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
     assertTrue(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
+    assertTrue(myConfigurable.isShowAgpVersionChooserInNewProjectWizard());
 
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     mySettings.ENABLE_PARALLEL_SYNC = false;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
 
     myConfigurable.reset();
 
@@ -158,5 +177,7 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
     assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
+    assertFalse(myConfigurable.isShowAgpVersionChooserInNewProjectWizard());
+
   }
 }

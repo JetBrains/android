@@ -124,6 +124,11 @@ public final class StudioFlags {
     "Show a combobox to select the version of Android Gradle plugin used for the new project",
     IdeaIsInternalDefault.INSTANCE);
 
+  public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING = new BooleanFlag(
+    NPW, "show.agp.version.combobox.experimental.option", "Show experimental setting allowing enabling AGP version combobox",
+    "Show a checkbox in experimental settings, which when enabled shows a combobox to select the version of Android Gradle plugin used for the new project",
+    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> NPW_INCLUDE_ALL_COMPATIBLE_ANDROID_GRADLE_PLUGIN_VERSIONS = new BooleanFlag(
     NPW, "show.agp.version.combobox.all.versions", "List all previous versions of AGP",
     "List all versions of AGP in the new project wizard combo box. " +

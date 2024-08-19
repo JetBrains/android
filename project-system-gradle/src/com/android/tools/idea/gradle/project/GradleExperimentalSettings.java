@@ -38,6 +38,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
 
   public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
 
+  public boolean SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
+
   @NotNull
   public static GradleExperimentalSettings getInstance() {
     return ApplicationManager.getApplication().getService(GradleExperimentalSettings.class);
