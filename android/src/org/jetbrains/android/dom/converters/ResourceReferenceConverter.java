@@ -297,7 +297,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         if (valueText != null && valueText.startsWith(ID_PREFIX) && valueText.length() > ID_PREFIX.length()) {
           String name = valueText.substring(ID_PREFIX.length());
           ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
-          if (!value.startsWith(doToString(ref))) {
+          if (!value.startsWith(convertToString(ref))) {
             result.add(ref);
           }
         }
@@ -308,7 +308,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     Collection<String> ids = StudioResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
     for (String name : ids) {
       ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
-      if (!value.startsWith(doToString(ref))) {
+      if (!value.startsWith(convertToString(ref))) {
         result.add(ref);
       }
     }
@@ -666,11 +666,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public String toString(@Nullable ResourceValue element, @Nullable ConvertContext context) {
-    return doToString(element);
+  public final String toString(@Nullable ResourceValue element, ConvertContext context) {
+    return convertToString(element);
   }
 
-  private String doToString(ResourceValue element) {
+  public @Nullable String convertToString(@Nullable ResourceValue element) {
     if (element == null) {
       return null;
     }

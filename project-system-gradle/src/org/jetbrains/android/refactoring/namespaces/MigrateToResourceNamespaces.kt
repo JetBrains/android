@@ -336,14 +336,13 @@ class MigrateToResourceNamespacesProcessor(
             }
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
-            val newStringValue = usageInfo.converter.toString(
+            val newStringValue = usageInfo.converter.convertToString(
               ResourceValue.referenceTo(
                 resourceValue.prefix,
                 namespace,
                 resourceValue.resourceType,
                 resourceValue.resourceName
-              ),
-              null
+              )
             ) ?: ""
 
             when (xmlElement) {
