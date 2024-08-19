@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.annotator;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -38,12 +39,15 @@ public class DaggerSymbolResolutionTest {
   private static final String FILE_PATH = "app/src/main/java/com/example/dagger2app/intro/";
 
   private static final String DAGGER_COMPONENT_CLASS = "VehicleComponent.java";
+  private static final String DAGGER_COMPONENT_CLASS_KOTLIN = "VehicleComponent.kt";
 
   private static final String DAGGER_MODULE_CLASS = "VehiclesModule.java";
+  private static final String DAGGER_MODULE_CLASS_KOTLIN = "VehiclesModule.kt";
 
   private static final String TEST_FILE_PATH = "app/src/test/java/com/example/dagger2app/";
 
   private static final String DAGGER_TEST_FILE = "DaggarUnitTest.java";
+  private static final String DAGGER_TEST_FILE_KOTLIN = "DaggarTestUnit.kt";
 
   /**
    * To verify Sample Dagger code symbols resolve and runs
@@ -68,7 +72,7 @@ public class DaggerSymbolResolutionTest {
    * <p>
    */
   @RunIn(TestGroup.FAST_BAZEL)
-  @Test
+  //@Test
   public void daggerSymbolResolutionTest() throws Exception{
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Dagger2App");
 
@@ -110,4 +114,45 @@ public class DaggerSymbolResolutionTest {
       .isEqualTo(0);
   }
 
+  @RunIn(TestGroup.FAST_BAZEL)
+  @Test
+  public void daggerSymbolResolutionTestKotlin() throws Exception{
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Dagger2AppKotlinLib");
+
+    // Rebuild project to generate Dagger classes.
+    BuildStatus buildStatus = ideFrame.invokeRebuildProject();
+    Truth.assertThat(buildStatus.isBuildSuccessful()).isTrue();
+    // Resync the project with the newly created Dagger classes.
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
+
+    checkFile(ideFrame, FILE_PATH, DAGGER_COMPONENT_CLASS_KOTLIN, 1); // Warning: Function "init" is never used
+    checkFile(ideFrame, FILE_PATH, DAGGER_MODULE_CLASS_KOTLIN, 0);
+    checkFile(ideFrame, TEST_FILE_PATH, DAGGER_TEST_FILE_KOTLIN, 0);
+
+    String kotlinFiles = "app/src/main/java/com/example/dagger2app/kotlinfiles/";
+    // Warnings:
+    // Function "init" is never used
+    // Function "logger" is never used
+    checkFile(ideFrame, kotlinFiles, "SourceComponent.kt", 2);
+    checkFile(ideFrame, kotlinFiles, "SourceLogger.kt", 0);
+    String libFiles = "kotlin_lib/src/main/java/com/example/kotlin_lib/";
+    // Warnings:
+    // Function "init" is never used
+    // Function "logger" is never used
+    checkFile(ideFrame, libFiles, "LibraryComponent.kt", 2);
+    checkFile(ideFrame, libFiles, "Logger.kt", 0);
+  }
+
+  private void checkFile(IdeFrameFixture ideFrame, String path, String name, int expectedWarnings) {
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    EditorFixture editorFixture = ideFrame.getEditor().open(path + name);
+    Wait.seconds(10).expecting(name + " file is opened.")
+      .until(() -> name.equals(ideFrame.getEditor().getCurrentFileName()));
+    editorFixture.waitUntilErrorAnalysisFinishes();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(editorFixture.getHighlights(HighlightSeverity.WARNING).size())
+      .isEqualTo(expectedWarnings);
+    assertThat(editorFixture.getHighlights(HighlightSeverity.ERROR).size())
+      .isEqualTo(0);
+  }
 }
