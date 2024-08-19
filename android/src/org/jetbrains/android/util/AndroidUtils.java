@@ -38,7 +38,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
-import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
@@ -75,6 +74,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
@@ -579,7 +579,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {
-    return StringUtil.isJavaIdentifier(candidate) && !JavaLexer.isKeyword(candidate, LanguageLevel.JDK_1_5);
+    return StringUtil.isJavaIdentifier(candidate) && !PsiUtil.isKeyword(candidate, LanguageLevel.JDK_1_5);
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
