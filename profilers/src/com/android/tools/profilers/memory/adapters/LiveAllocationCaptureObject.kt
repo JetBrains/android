@@ -38,8 +38,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
-import gnu.trove.TIntObjectHashMap
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.objectweb.asm.Type
 import java.io.OutputStream
 import java.util.TreeMap
@@ -65,13 +65,13 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
                                             ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build()
                                           )
   private val classDb = ClassDb()
-  private val instanceMap = TIntObjectHashMap<LiveAllocationInstanceObject>()
-  private val callstackMap = TIntObjectHashMap<AllocationStack>()
+  private val instanceMap = Int2ObjectOpenHashMap<LiveAllocationInstanceObject>()
+  private val callstackMap = Int2ObjectOpenHashMap<AllocationStack>()
 
   // Mapping from unsymbolized addresses to symbolized native frames
-  private val nativeFrameMap = TLongObjectHashMap<NativeFrame>()
-  private val methodIdMap = TLongObjectHashMap<AllocationStack.StackFrame>()
-  private val threadIdMap = TIntObjectHashMap<ThreadId>()
+  private val nativeFrameMap = Long2ObjectOpenHashMap<NativeFrame>()
+  private val methodIdMap = Long2ObjectOpenHashMap<AllocationStack.StackFrame>()
+  private val threadIdMap = Int2ObjectOpenHashMap<ThreadId>()
   private val jniMemoryRegionMap = TreeMap<Long, Memory.MemoryMap.MemoryRegion>()
   private val heapSets = mutableListOf(HeapSet(this, CaptureObject.DEFAULT_HEAP_NAME, 0),  // default
                                        HeapSet(this, CaptureObject.IMAGE_HEAP_NAME, 1),  // image
@@ -160,8 +160,6 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   // Update myContextEndTimeNs and Callstack information
   private fun updateAllocationContexts(endTimeNs: Long) {
     if (contextEndTimeNs < endTimeNs) {
-      fun<T> TIntObjectHashMap<T>.putIfAbsent(k: Int, v: T) { if (!containsKey(k)) { put(k, v) } }
-      fun<T> TLongObjectHashMap<T>.putIfAbsent(k: Long, v: T) { if (!containsKey(k)) { put(k, v) } }
       for (contexts in getAllocationContexts(contextEndTimeNs, endTimeNs)) {
         // We don't have super class information at the moment so just assign invalid id as the super class id.
         contexts.classesList.forEach { classDb.registerClass(it.classId.toLong(), Type.getType(it.className).className) }
