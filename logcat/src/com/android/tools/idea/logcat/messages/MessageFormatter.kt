@@ -16,9 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.SYSTEM_HEADER
-import com.android.tools.idea.logcat.hyperlinks.StudioBotFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.studiobot.StudioBot
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
@@ -73,11 +71,19 @@ internal class MessageFormatter(
 
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
+        // Allow extensions to rewrite exception traces
+        // e.g. Gemini plugin can add a link to invoke Gemini
+        val exceptionFormatters = ExceptionMessageRewriter.EP_NAME.extensionList
         val msg =
           when {
-            !StudioBot.getInstance().isAvailable() -> message.message
-            exceptionLinePattern.containsMatchIn(message.message) ->
-              insertStudioBotText(message.message)
+            exceptionFormatters.isEmpty() -> message.message
+            exceptionLinePattern.containsMatchIn(message.message) -> {
+              var result = message.message
+              for (formatter in exceptionFormatters) {
+                result = formatter.rewrite(result)
+              }
+              result
+            }
             else -> message.message
           }
 
@@ -97,11 +103,5 @@ internal class MessageFormatter(
   fun reset() {
     previousTag = null
     previousPid = null
-  }
-
-  private fun insertStudioBotText(message: String): String {
-    val split = message.split("\n", ignoreCase = false, limit = 2)
-    assert(split.size > 1)
-    return "${split[0]} ${StudioBotFilter.linkText}\n${split[1]}"
   }
 }

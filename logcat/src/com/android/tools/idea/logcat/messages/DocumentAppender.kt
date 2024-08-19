@@ -29,7 +29,7 @@ import com.intellij.openapi.util.Key
 import kotlin.math.max
 import org.jetbrains.annotations.VisibleForTesting
 
-internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
+val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
 internal class DocumentAppender(
   project: Project,
