@@ -27,7 +27,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.junit.rules.ExternalResource
 
 /** A Rule that provides a Logcat Editor to a test */
-internal class LogcatEditorRule(private val projectRule: ProjectRule) : ExternalResource() {
+class LogcatEditorRule(private val projectRule: ProjectRule) : ExternalResource() {
   lateinit var editor: EditorEx
     private set
 

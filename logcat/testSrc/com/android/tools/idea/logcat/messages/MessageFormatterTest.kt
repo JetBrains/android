@@ -29,12 +29,12 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.android.tools.idea.logcat.util.logcatMessage
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerExtension
 import java.time.Instant
 import java.time.ZoneId
 import org.junit.Rule
@@ -45,9 +45,8 @@ private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 
 /** Tests for [MessageFormatter] */
 class MessageFormatterTest {
-  @get:Rule
-  val rule =
-    RuleChain(ApplicationRule(), ApplicationServiceRule(StudioBot::class.java, TestStudioBot))
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule)
 
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
@@ -629,10 +628,17 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_exception_studioBotEnabled() {
-    TestStudioBot.available = true
+  fun formatMessages_exception_withCustomFormatter() {
+    val rewriter =
+      object : ExceptionMessageRewriter {
+        override fun rewrite(message: String): String {
+          val split = message.split("\n", ignoreCase = false, limit = 2)
+          return "${split[0]} (Ask Gemini)\n${split[1]}"
+        }
+      }
+    ApplicationManager.getApplication()
+      .registerExtension(ExceptionMessageRewriter.EP_NAME, rewriter, disposableRule.disposable)
     val textAccumulator = TextAccumulator()
-
     messageFormatter.formatMessages(
       formattingOptions,
       textAccumulator,
@@ -648,8 +654,7 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_exception_studioBotDisabled() {
-    TestStudioBot.available = false
+  fun formatMessages_exception_withoutCustomFormatter() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
@@ -664,14 +669,6 @@ class MessageFormatterTest {
           "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception\n" +
           "                                                                                                    \tat com.example(File.kt:1)"
       )
-  }
-
-  private object TestStudioBot : StudioBot.StubStudioBot() {
-    var available = true
-
-    override fun isAvailable(): Boolean = available
-
-    override fun isContextAllowed(project: Project): Boolean = true
   }
 }
 
