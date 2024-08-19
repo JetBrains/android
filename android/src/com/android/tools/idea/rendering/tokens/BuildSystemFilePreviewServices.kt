@@ -101,7 +101,10 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
        */
       val status: BuildStatus,
       /**
-       * A predicate (a global search scope) that can be used to test whether a virtual file was included in the scope of the build.
+       * A predicate (a global search scope) that can be used to test whether a virtual file is known to be included in the scope of the
+       * build.
+       *
+       * Implementations may narrow the scope of a [BuildMode.COMPILE] build if the exact scope is not known.
        */
       val scope: GlobalSearchScope
     )
