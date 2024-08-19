@@ -69,11 +69,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.enableInspections(inspection)
 
-    // Running highlighting seems to be important too; it has a side effect of making sure
-    // for example the element.analyze() call in getKotlinSurrounder properly is able
-    // to analyze method bodies.
-    myFixture.doHighlighting()
-
     val original = file.text
 
     val actions = myFixture.filterAvailableIntentions(fixPrefix)
