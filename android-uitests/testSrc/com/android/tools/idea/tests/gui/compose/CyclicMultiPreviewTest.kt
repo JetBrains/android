@@ -30,7 +30,6 @@ import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
-@Ignore("b/353981758")
 class CyclicMultiPreviewTest {
 
   @get:Rule
