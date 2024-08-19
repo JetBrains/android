@@ -16,23 +16,27 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Ordering;
+import com.android.tools.idea.diagnostics.util.FrameInfo;
+import com.android.tools.idea.diagnostics.util.ThreadCallTree;
 import com.intellij.openapi.diagnostic.Logger;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import java.util.function.BiConsumer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ThreadSamplingReportContributor implements DiagnosticReportContributor {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.ThreadSamplingReportContributor");
@@ -186,7 +190,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
     // Setup debug data
     long captureTimeMs = totalFreezeDurationMs - timeElapsedBeforeCollectionStartedMs;
-    long timeInAwtThreadMs = awtThread != null ? awtThread.myRootFrame.myTimeSpent : 0;
+    long timeInAwtThreadMs = awtThread != null ? awtThread.getRootFrame().getTimeSpent() : 0;
 
     // Add debug data for freezes with at least 5 seconds of capture time and missing at least half of samples fromh that period
     if (captureTimeMs >= 5_000 && timeInAwtThreadMs < captureTimeMs/2) {
@@ -215,7 +219,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   @NotNull
   private String createHotPathStackTrace(@Nullable ThreadCallTree thread, long totalFreezeDurationMs) {
     final StringBuilder sb = new StringBuilder();
-    final String threadName = thread != null ? thread.myThreadName : "MissingAWTThread";
+    final String threadName = thread != null ? thread.getThreadName() : "MissingAWTThread";
     sb.append("\"").append(threadName).append("\" tid=0x0 runnable\n")
       .append("     java.lang.Thread.State: RUNNABLE\n")
       .append("     Frozen for ")
@@ -223,7 +227,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
       .append("secs\n");
 
     // Special case if there was no AWT thread or it didn't collect any frames.
-    FrameInfo frame = thread != null ? thread.myRootFrame : null;
+    FrameInfo frame = thread != null ? thread.getRootFrame() : null;
     if (frame == null) {
       sb.append("\tat ")
         .append(ThreadSamplingReportContributor.class.getName())
@@ -233,11 +237,11 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     // Collect frames to output them in reverse order
     ArrayList<FrameInfo> frames = new ArrayList<>();
     while (frame != null) {
-      if (frame.myStackTraceElement != null) {
+      if (frame.getStackTraceElement() != null) {
         frames.add(frame);
       }
       frame = frame.getHottestSubframe();
-      if (frame != null && frame.myTimeSpent < myConfiguration.getFrameTimeIgnoreThresholdMs()) {
+      if (frame != null && frame.getTimeSpent() < myConfiguration.getFrameTimeIgnoreThresholdMs()) {
         // Don't include frames below threshold
         break;
       }
@@ -254,198 +258,6 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   @Nullable
   private static ThreadCallTree getAwtThread(@NotNull Collection<ThreadCallTree> threadMap) {
-    return threadMap.stream().filter(t -> t.myThreadName.startsWith("AWT-EventQueue-")).findFirst().orElse(null);
-  }
-
-  private static class ThreadCallTree {
-    private long myThreadId;
-    private final String myThreadName;
-    private final FrameInfo myRootFrame;
-
-    public ThreadCallTree(long threadId, String threadName) {
-      myThreadId = threadId;
-      myThreadName = threadName;
-      myRootFrame = new FrameInfo(null);
-    }
-
-    public void addThreadInfo(ThreadInfo ti, long timeSpent) {
-      myRootFrame.addThreadInfo(ti, timeSpent);
-    }
-
-    public String getReportString(long frameTimeIgnoreThresholdMs) {
-      return myThreadName + ", TID: " + myThreadId + myRootFrame.getReportString(frameTimeIgnoreThresholdMs);
-    }
-  }
-
-  private static class FrameInfo {
-    public static final FrameInfo[] EMPTY_FRAME_INFOS = {};
-    private static final String INDENT_STRING = "  ";
-    private static final String INDENT_MARK_STRING = "+ ";
-    private static final String[][] ourIdleApplicationImplThread = new String[][]{
-      {
-        "java.lang.Thread.run",
-        "java.util.concurrent.ThreadPoolExecutor$Worker.run",
-        "java.util.concurrent.ThreadPoolExecutor.runWorker",
-        "java.util.concurrent.ThreadPoolExecutor.getTask",
-        "java.util.concurrent.SynchronousQueue.poll",
-        "java.util.concurrent.SynchronousQueue$TransferStack.transfer",
-        "java.util.concurrent.SynchronousQueue$TransferStack.awaitFulfill",
-        "java.util.concurrent.locks.LockSupport.parkNanos",
-        "sun.misc.Unsafe.park"
-      }, {
-      "java.util.concurrent.ForkJoinWorkerThread.run",
-      "java.util.concurrent.ForkJoinPool.runWorker",
-      "java.util.concurrent.ForkJoinPool.awaitWork",
-      "sun.misc.Unsafe.park"
-    }, {
-      "java.lang.Thread.run",
-      "java.util.concurrent.ThreadPoolExecutor$Worker.run",
-      "java.util.concurrent.ThreadPoolExecutor.runWorker",
-      "java.util.concurrent.ThreadPoolExecutor.getTask",
-      "java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take",
-      "java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take",
-      "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await",
-      "java.util.concurrent.locks.LockSupport.park",
-      "sun.misc.Unsafe.park"
-    }
-    };
-    private static final boolean INCLUDE_SOURCE_INFO_IN_REPORT = true;
-
-    private static final Comparator<StackTraceElement> STACK_TRACE_ELEMENT_COMPARATOR_NO_SOURCE =
-      (a, b) ->
-        ComparisonChain.start().
-          compare(a.getClassName(), b.getClassName(), Ordering.natural().nullsFirst()).
-                         compare(a.getMethodName(), b.getMethodName(), Ordering.natural().nullsFirst()).
-                         result();
-
-    private static final Comparator<StackTraceElement> STACK_TRACE_ELEMENT_COMPARATOR_WITH_SOURCE =
-      (a, b) ->
-        ComparisonChain.start().
-          compare(a.getClassName(), b.getClassName(), Ordering.natural().nullsFirst()).
-                         compare(a.getMethodName(), b.getMethodName(), Ordering.natural().nullsFirst()).
-                         compare(a.getFileName(), b.getFileName(), Ordering.natural().nullsFirst()).
-                         compare(a.getLineNumber(), b.getLineNumber(), Ordering.natural().nullsFirst()).
-                         result();
-
-    private static final Comparator<StackTraceElement> STACK_TRACE_ELEMENT_COMPARATOR =
-      INCLUDE_SOURCE_INFO_IN_REPORT ? STACK_TRACE_ELEMENT_COMPARATOR_WITH_SOURCE : STACK_TRACE_ELEMENT_COMPARATOR_NO_SOURCE;
-
-    private static final Comparator<FrameInfo> FRAME_INFO_COMPARATOR =
-      (a, b) ->
-        ComparisonChain.start().
-          compare(b.myTimeSpent, a.myTimeSpent).
-                         compare(a.myStackTraceElement, b.myStackTraceElement, STACK_TRACE_ELEMENT_COMPARATOR).
-                         result();
-
-    private final StackTraceElement myStackTraceElement;
-    private final SortedMap<StackTraceElement, FrameInfo> myChildren;
-    private long myTimeSpent;
-
-    private FrameInfo(@Nullable StackTraceElement element) {
-      myChildren = new TreeMap<>(STACK_TRACE_ELEMENT_COMPARATOR);
-      myStackTraceElement = element;
-    }
-
-    @Nullable
-    public FrameInfo getHottestSubframe() {
-      FrameInfo result = null;
-      for (FrameInfo fi : myChildren.values()) {
-        if (result == null || fi.myTimeSpent > result.myTimeSpent) {
-          result = fi;
-        }
-      }
-      return result;
-    }
-
-    public void addThreadInfo(@NotNull ThreadInfo ti, long timeSpent) {
-      if (isIdleThread(ti)) {
-        return;
-      }
-      addStack(ti.getStackTrace(), timeSpent);
-    }
-
-    private void addStack(@NotNull StackTraceElement[] stackTrace, long timeSpent) {
-      FrameInfo currentFrameInfo = this;
-      int index = stackTrace.length - 1;
-      while (index >= 0) {
-        currentFrameInfo.myTimeSpent += timeSpent;
-        StackTraceElement element = stackTrace[index];
-        FrameInfo fi = currentFrameInfo.myChildren.get(element);
-        if (fi == null) {
-          fi = new FrameInfo(element);
-          currentFrameInfo.myChildren.put(element, fi);
-        }
-        currentFrameInfo = fi;
-        index--;
-      }
-      currentFrameInfo.myTimeSpent += timeSpent;
-    }
-
-    public String getReportString(long frameTimeIgnoreThreshold) {
-      StringBuilder indentString = new StringBuilder();
-      return getReportStringWithIndent(frameTimeIgnoreThreshold, indentString, false);
-    }
-
-    @NotNull
-    private String getReportStringWithIndent(long frameTimeIgnoreThreshold, @NotNull StringBuilder indentString, boolean addMark) {
-      StringBuilder sb = new StringBuilder();
-      if (addMark) {
-        sb.append(indentString.subSequence(0, indentString.length() - INDENT_MARK_STRING.length()));
-        sb.append(INDENT_MARK_STRING);
-      }
-      else {
-        sb.append(indentString);
-      }
-      appendStackTraceForCurrentFrame(sb);
-      sb.append(" [").append(myTimeSpent).append("ms]");
-      sb.append('\n');
-
-      FrameInfo[] childFrames = myChildren.values().toArray(EMPTY_FRAME_INFOS);
-      Arrays.sort(childFrames, FRAME_INFO_COMPARATOR);
-
-      boolean shouldIndent = Arrays.stream(childFrames).filter(fi -> fi.myTimeSpent > frameTimeIgnoreThreshold).count() > 1;
-      if (shouldIndent) indentString.append(INDENT_STRING);
-      for (FrameInfo fi : childFrames) {
-        if (fi.myTimeSpent > frameTimeIgnoreThreshold) {
-          sb.append(fi.getReportStringWithIndent(frameTimeIgnoreThreshold, indentString, shouldIndent));
-        }
-      }
-
-      if (shouldIndent) indentString.delete(indentString.length() - INDENT_STRING.length(), indentString.length());
-      return sb.toString();
-    }
-
-    private void appendStackTraceForCurrentFrame(@NotNull StringBuilder sb) {
-      if (myStackTraceElement != null) {
-        if (INCLUDE_SOURCE_INFO_IN_REPORT) {
-          sb.append(myStackTraceElement.toString());
-        }
-        else {
-          sb.append(myStackTraceElement.getClassName());
-          sb.append(".");
-          sb.append(myStackTraceElement.getMethodName());
-          sb.append(myStackTraceElement.isNativeMethod() ? "(Native Method)" : "");
-        }
-      }
-    }
-
-    private static boolean isIdleThread(ThreadInfo ti) {
-      StackTraceElement[] stackTraceElements = ti.getStackTrace();
-      for (String[] templateIdleStack : ourIdleApplicationImplThread) {
-        if (stackTraceElements.length == templateIdleStack.length) {
-          int i;
-          for (i = 0; i < templateIdleStack.length; i++) {
-            StackTraceElement stackTraceElement = stackTraceElements[stackTraceElements.length - i - 1];
-            if (!templateIdleStack[i].equals(stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName())) {
-              break;
-            }
-          }
-          if (i == templateIdleStack.length) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
+    return threadMap.stream().filter(t -> t.getThreadName().startsWith("AWT-EventQueue-")).findFirst().orElse(null);
   }
 }
