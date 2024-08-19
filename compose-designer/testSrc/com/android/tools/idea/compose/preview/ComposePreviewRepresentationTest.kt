@@ -577,7 +577,7 @@ class ComposePreviewRepresentationTest {
     project.putUserData(FileEditorManagerImpl.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope()),
+      FileEditorManagerImpl(project, project.coroutineScope),
       projectRule.fixture.testRootDisposable,
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)

@@ -46,7 +46,7 @@ internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHe
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    project.coroutineScope(uiThread).launch {
+    project.coroutineScope.launch(uiThread) {
       when (val backupInfo = e.getBackupInfo()) {
         is Invalid ->
           actionHelper.showWarning(

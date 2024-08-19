@@ -112,7 +112,7 @@ class StatefulButton(
       myButton.isEnabled = false
       val loadingIcon = AsyncProcessIcon("Loading")
       buttonPanel.add(loadingIcon)
-      project.coroutineScope().launch {
+      project.coroutineScope.launch {
         myStateManager.init(project, action)
         withContext(uiThread) {
           myButton.isVisible = false

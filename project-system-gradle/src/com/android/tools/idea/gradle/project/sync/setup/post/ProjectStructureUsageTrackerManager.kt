@@ -60,7 +60,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
   private val operationsStates= mutableListOf<Job>()
 
   fun trackProjectStructure() {
-    project.coroutineScope().async {
+    project.coroutineScope.async {
       doTrackProjectStructure()
     }.also {
       if (ApplicationManager.getApplication().isUnitTestMode) {
