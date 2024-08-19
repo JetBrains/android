@@ -23,6 +23,5 @@
     <kotlinIndicesHelperExtension implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidIndicesHelperExtension"/>
     <gradleProjectImportHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsGradleImportHandler"/>
     <completionInformationProvider implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsCompletionInformationProvider" />
-    <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
   </extensions>
 </idea-plugin>
