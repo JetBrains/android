@@ -25,8 +25,8 @@ import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAndWait
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert
@@ -80,7 +80,7 @@ class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    VirtualFileManager.getInstance().syncRefresh()
+    VfsTestUtil.syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     val activityFile = projectRule.project.baseDir.findFileByRelativePath(
