@@ -16,6 +16,8 @@
 package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
@@ -27,8 +29,9 @@ import com.intellij.psi.search.SearchScope
 /**
  * Adds a main module to resolve scope of [ProguardR8FileType] files located in holder module.
  */
-class ProguardR8ResolveScopeEnlarger : ResolveScopeEnlarger() {
+class ProguardR8GradleResolveScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
+    if (project.getProjectSystem() !is GradleProjectSystem) return null
     if (file.fileType == ProguardR8FileType.INSTANCE) {
       val module = ModuleUtil.findModuleForFile(file, project)?.takeIf { it.isHolderModule() } ?: return null
 
