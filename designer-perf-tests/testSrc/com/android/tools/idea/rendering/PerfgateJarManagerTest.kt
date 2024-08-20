@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.rendering.classloading.loaders.JarManager
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
@@ -31,6 +32,7 @@ import java.nio.file.spi.FileSystemProvider
 import kotlin.io.path.deleteIfExists
 import kotlin.random.Random
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 
 private const val NUMBER_OF_SAMPLES = 40
@@ -89,6 +91,7 @@ private fun createJarFile(outputJar: Jar, fileCount: Int, fileSizeBytes: Int) {
 
 class PerfgateJarManagerTest {
   private val numberOfFiles = 40
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private fun createSampleJar(): Jar {
     val outDirectory = Files.createTempDirectory("out")
@@ -106,7 +109,7 @@ class PerfgateJarManagerTest {
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
-        val jarManager = JarManager.withNoCache()
+        val jarManager = JarManager.withNoCache(projectRule.project, projectRule.testRootDisposable)
         // val jarManager = JarManager.withCache(true)
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
@@ -129,7 +132,7 @@ class PerfgateJarManagerTest {
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
-        val jarManager = JarManager()
+        val jarManager = JarManager.getInstance(projectRule.project)
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
           jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
@@ -154,7 +157,7 @@ class PerfgateJarManagerTest {
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
-        val jarManager = JarManager()
+        val jarManager = JarManager.getInstance(projectRule.project)
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
           jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
