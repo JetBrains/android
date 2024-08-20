@@ -2600,6 +2600,7 @@ fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, buildStart
           e.printStackTrace()
         }
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(this)
     }
   }
   finally {
