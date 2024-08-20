@@ -33,6 +33,7 @@ import com.android.sdklib.devices.Sensor;
 import com.android.sdklib.devices.Software;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition;
@@ -531,7 +532,7 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
     myScreenFoldedWidth3.set(screen.getFoldedWidth3());
     myScreenFoldedHeight3.set(screen.getFoldedHeight3());
-    myRamStorage.set(min(defaultHardware.getRam(), AvdWizardUtils.getMaxDefaultRam(device), comparing(Storage::getSize)));
+    myRamStorage.set(EmulatedProperties.defaultRamSize(device));
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());

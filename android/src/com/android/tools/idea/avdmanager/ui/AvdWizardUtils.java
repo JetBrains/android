@@ -88,23 +88,6 @@ public class AvdWizardUtils {
 
   private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
 
-  /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
-  private static final int MAX_RAM_MB = 2048;
-
-  /**
-   * Get the maximum amount of ram to use by default for an AVD based on the given Device. The user
-   * may set a higher amount of RAM if warranted.
-   *
-   * <p>With modern devices, this is typically a lower limit than the physical hardware, since more
-   * than that is usually detrimental to development system performance and most likely not needed
-   * by the emulated app (e.g. it's intended to let the hardware run smoothly with lots of services
-   * and apps running simultaneously)
-   */
-  @NotNull
-  public static Storage getMaxDefaultRam(Device device) {
-    return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
-  }
-
   /**
    * Return the max number of cores that an AVD can use on this development system.
    */
