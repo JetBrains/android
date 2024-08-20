@@ -20,6 +20,7 @@ import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.navigation.NavigationItem;
@@ -68,6 +69,6 @@ public class GoToAndroidResourceContributor extends GoToSymbolProvider {
 
   @Override
   protected boolean acceptModule(@NotNull Module module) {
-    return AndroidFacet.getInstance(module) != null && isMainModule(module);
+    return ProjectSystemUtil.getModuleSystem(module).isProductionAndroidModule();
   }
 }
