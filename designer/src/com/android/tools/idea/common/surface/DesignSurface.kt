@@ -114,6 +114,7 @@ import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
+
 /** Filter got [DesignSurface.models] to avoid returning disposed elements */
 val FILTER_DISPOSED_MODELS =
   Predicate<NlModel> { input: NlModel? -> input != null && !input.module.isDisposed }
@@ -728,6 +729,32 @@ abstract class DesignSurface<T : SceneManager>(
       zoomController.zoomToFit()
     }
     return true
+  }
+
+  /**
+   * Apply zoom to fit if there is a stored zoom in the persistent settings, it does nothing
+   * otherwise.
+   *
+   * Because zoom to fit scale gets calculated whenever [DesignSurface] changes its space or number
+   * of items, this function clear-up the stored zoom and replace it with the newly calculated zoom
+   * to fit value.
+   */
+  fun zoomToFitIfStorageNotEmpty() {
+    if (isZoomStored()) {
+      zoomController.zoomToFit()
+    }
+  }
+
+  /**
+   * Checks if there is zoom level stored from persistent settings.
+   *
+   * @return true if persistent settings contains a stored zoom, false otherwise.
+   */
+  private fun isZoomStored(): Boolean {
+    val model = model ?: return false
+    return getInstance(model.project)
+      .surfaceState
+      .loadFileScale(project, model.virtualFile, zoomController) != null
   }
 
   /**

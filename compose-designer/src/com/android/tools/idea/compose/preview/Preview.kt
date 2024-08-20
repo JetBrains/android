@@ -1517,7 +1517,11 @@ class ComposePreviewRepresentation(
         invalidateAndRefresh()
         withContext(uiThread) {
           surface.repaint()
-          surface.zoomController.zoomToFit()
+          // In this stage on the first opening of Preview we are still loading the items meaning we
+          // might calculate the wrong zoom-to-fit value.
+          // If we are entering from a different Preview mode such as Ui Check, we want instead
+          // clear up the previous stored zoom and apply zoom-to-fit
+          surface.zoomToFitIfStorageNotEmpty()
         }
       }
       is PreviewMode.Interactive -> {
