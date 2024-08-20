@@ -19,7 +19,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
-import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
@@ -83,15 +82,16 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
       ModuleManager.getInstance(project).modules.forEach {
         ModuleClassLoaderManager.get().clearCache(it)
       }
-      JarManager.getInstance(project).clearCache()
     }
   }
 
   override fun dispose() {}
 }
 
-private val PRELOADER: Key<StudioPreloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
-val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
+private val PRELOADER: Key<StudioPreloader> =
+  Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
+val HATCHERY: Key<ModuleClassLoaderHatchery> =
+  Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
 
 private fun <T> UserDataHolder.getOrCreate(key: Key<T>, factory: () -> T): T {
   getUserData(key)?.let {
@@ -103,26 +103,27 @@ private fun <T> UserDataHolder.getOrCreate(key: Key<T>, factory: () -> T): T {
 @VisibleForTesting
 private fun Module.getOrCreateHatchery() =
   getOrCreate(HATCHERY) {
-    if (!isDisposed) ModuleClassLoaderHatchery(parentDisposable = this) else throw AlreadyDisposedException("Module was already disposed")
+    if (!isDisposed) ModuleClassLoaderHatchery(parentDisposable = this)
+    else throw AlreadyDisposedException("Module was already disposed")
   }
 
 /** A [ClassLoader] for the [Module] dependencies. */
-class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClassLoader>, Disposable {
+class StudioModuleClassLoaderManager :
+  ModuleClassLoaderManager<StudioModuleClassLoader>, Disposable {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
   /**
-   * Creates a [MultiMap] to be used as a storage of [ModuleClassLoader] holders. We would like
-   * the implementation to be different in prod and in tests:
+   * Creates a [MultiMap] to be used as a storage of [ModuleClassLoader] holders. We would like the
+   * implementation to be different in prod and in tests:
    *
-   * In Prod, it should be a Set of value WEAK references. So that in case we do not release the holder
-   * (due to some unexpected flow) it is not retained by the [StudioModuleClassLoaderManager]
+   * In Prod, it should be a Set of value WEAK references. So that in case we do not release the
+   * holder (due to some unexpected flow) it is not retained by the [StudioModuleClassLoaderManager]
    *
    * In Tests, we would like it to be a Set of STRONG references. So that any unreleased references
    * got caught by the LeakHunter.
    */
-  private val holders: MultiMap<StudioModuleClassLoader, ModuleClassLoaderManager.Reference<*>> = if (ApplicationManager.getApplication().isUnitTestMode)
-    WeakMultiMap.create()
-  else
-    WeakMultiMap.createWithWeakValues()
+  private val holders: MultiMap<StudioModuleClassLoader, ModuleClassLoaderManager.Reference<*>> =
+    if (ApplicationManager.getApplication().isUnitTestMode) WeakMultiMap.create()
+    else WeakMultiMap.createWithWeakValues()
 
   override fun dispose() {
     holders.keySet().mapNotNull { it.module }.forEach { clearCache(it) }
@@ -133,7 +134,9 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
     if (!holders.isEmpty) {
       val referencesString =
         holders.entrySet().joinToString { "${it.key} held by ${it.value.joinToString(", ")}" }
-      throw AssertionError("Class loaders were not released correctly by the tests\n$referencesString\n")
+      throw AssertionError(
+        "Class loaders were not released correctly by the tests\n$referencesString\n"
+      )
     }
   }
 
@@ -142,10 +145,13 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
    * sessions.
    */
   @Synchronized
-  override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext,
-                         additionalProjectTransformation: ClassTransform,
-                         additionalNonProjectTransformation: ClassTransform,
-                         onNewModuleClassLoader: Runnable): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
+  override fun getShared(
+    parent: ClassLoader?,
+    moduleRenderContext: ModuleRenderContext,
+    additionalProjectTransformation: ClassTransform,
+    additionalNonProjectTransformation: ClassTransform,
+    onNewModuleClassLoader: Runnable,
+  ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     val module: Module? = moduleRenderContext.module
     var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
@@ -159,8 +165,12 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
     if (moduleClassLoader != null) {
       val invalidate =
         moduleClassLoader.isDisposed ||
-        !moduleClassLoader.isCompatible(parent, combinedProjectTransformations, combinedNonProjectTransformations) ||
-        !moduleClassLoader.isUserCodeUpToDate
+          !moduleClassLoader.isCompatible(
+            parent,
+            combinedProjectTransformations,
+            combinedNonProjectTransformations,
+          ) ||
+          !moduleClassLoader.isUserCodeUpToDate
 
       if (invalidate) {
         oldClassLoader = moduleClassLoader
@@ -170,18 +180,31 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
+      moduleRenderContext.module
+        ?.project
+        ?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
-        LOG.debug { "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule.loggingId(it)) }}" }
+        LOG.debug {
+          "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule.loggingId(it)) }}"
+        }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
-        moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
-          parent, combinedProjectTransformations, combinedNonProjectTransformations)
-      moduleClassLoader = preloadedClassLoader ?: StudioModuleClassLoader(parent,
-                                                                          moduleRenderContext,
-                                                                          combinedProjectTransformations,
-                                                                          combinedNonProjectTransformations,
-                                                                          createDiagnostics())
+        moduleRenderContext.module
+          ?.getOrCreateHatchery()
+          ?.requestClassLoader(
+            parent,
+            combinedProjectTransformations,
+            combinedNonProjectTransformations,
+          )
+      moduleClassLoader =
+        preloadedClassLoader
+          ?: StudioModuleClassLoader(
+            parent,
+            moduleRenderContext,
+            combinedProjectTransformations,
+            combinedNonProjectTransformations,
+            createDiagnostics(),
+          )
       module?.putUserData(PRELOADER, StudioPreloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
@@ -191,34 +214,51 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
         it.dispose()
       }
     }
-    val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, moduleClassLoader).also {
-      LOG.debug { "New ModuleClassLoader reference $it to $moduleClassLoader" }
-    }
+    val newModuleClassLoaderReference =
+      ModuleClassLoaderManager.Reference(this, moduleClassLoader).also {
+        LOG.debug { "New ModuleClassLoader reference $it to $moduleClassLoader" }
+      }
     holders.putValue(moduleClassLoader, newModuleClassLoaderReference)
     return newModuleClassLoaderReference
   }
 
   /**
-   * Return a [StudioModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
-   * [StudioModuleClassLoader] is not shared and the caller has full ownership of it.
+   * Return a [StudioModuleClassLoader] for a [Module] to be used for rendering. Similar to
+   * [getShared] but guarantees that the returned [StudioModuleClassLoader] is not shared and the
+   * caller has full ownership of it.
    */
   @Synchronized
-  override fun getPrivate(parent: ClassLoader?,
-                          moduleRenderContext: ModuleRenderContext,
-                          additionalProjectTransformation: ClassTransform,
-                          additionalNonProjectTransformation: ClassTransform): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
+  override fun getPrivate(
+    parent: ClassLoader?,
+    moduleRenderContext: ModuleRenderContext,
+    additionalProjectTransformation: ClassTransform,
+    additionalNonProjectTransformation: ClassTransform,
+  ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
+    moduleRenderContext.module
+      ?.project
+      ?.getService(ModuleClassLoaderProjectHelperService::class.java)
 
-    val combinedProjectTransformations = combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
-    val combinedNonProjectTransformations = combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
+    val combinedProjectTransformations =
+      combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
+    val combinedNonProjectTransformations =
+      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     val preloadedClassLoader: StudioModuleClassLoader? =
-      moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
-        parent, combinedProjectTransformations, combinedNonProjectTransformations)
-    return (preloadedClassLoader ?: StudioModuleClassLoader(parent, moduleRenderContext,
-                                                            combinedProjectTransformations,
-                                                            combinedNonProjectTransformations,
-                                                            createDiagnostics()))
+      moduleRenderContext.module
+        ?.getOrCreateHatchery()
+        ?.requestClassLoader(
+          parent,
+          combinedProjectTransformations,
+          combinedNonProjectTransformations,
+        )
+    return (preloadedClassLoader
+        ?: StudioModuleClassLoader(
+          parent,
+          moduleRenderContext,
+          combinedProjectTransformations,
+          combinedNonProjectTransformations,
+          createDiagnostics(),
+        ))
       .let {
         val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, it)
         LOG.debug { "New ModuleClassLoader reference $newModuleClassLoaderReference to $it" }
@@ -228,11 +268,16 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
   }
 
   @VisibleForTesting
-  fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? = mcl.copy(createDiagnostics())
+  fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? =
+    mcl.copy(createDiagnostics())
 
   @Synchronized
   override fun clearCache(module: Module) {
-    holders.keySet().toList().filter { it.module?.getHolderModule() == module.getHolderModule() }.forEach { holders.remove(it) }
+    holders
+      .keySet()
+      .toList()
+      .filter { it.module?.getHolderModule() == module.getHolderModule() }
+      .forEach { holders.remove(it) }
     setOf(module.getHolderModule(), module).forEach { mdl ->
       mdl.removeUserData(PRELOADER)?.dispose()
       mdl.getUserData(HATCHERY)?.destroy()
@@ -249,7 +294,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
     if (holders.containsKey(moduleClassLoader)) {
       return false
     }
-    // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
+    // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one
+    // to free the resources, but we also
     // recreate a new one for faster load next time
     moduleClassLoader.module?.let { module ->
       if (module.isDisposed) {
@@ -264,7 +310,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                 donorInformation.moduleRenderContext,
                 donorInformation.projectTransform,
                 donorInformation.nonProjectTransformation,
-                createDiagnostics()
+                createDiagnostics(),
               )
             }
           }
@@ -272,11 +318,16 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       } else {
         module.removeUserData(PRELOADER)?.cancel()
         val newClassLoader = createCopy(moduleClassLoader) ?: return@let
-        // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
-        val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
+        // We first load dependencies classes and then project classes since the latter reference
+        // the former and not vice versa
+        val classesToLoad =
+          moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
         module.putUserData(PRELOADER, StudioPreloader(newClassLoader, classesToLoad))
       }
-      if (holders.isEmpty) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the resources
+      if (
+        holders.isEmpty
+      ) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the
+          // resources
         module.getUserData(HATCHERY)?.destroy()
       }
     }
@@ -288,7 +339,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
    * therefore can be disposed if no longer managed.
    */
   override fun release(moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>) {
-    LOG.debug { "release reference $moduleClassLoaderReference"}
+    LOG.debug { "release reference $moduleClassLoaderReference" }
     val classLoader = moduleClassLoaderReference.classLoader as StudioModuleClassLoader
     unHold(moduleClassLoaderReference)
     if (stopManagingIfNotHeld(classLoader)) {
@@ -316,6 +367,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
-    fun get(): StudioModuleClassLoaderManager = ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
+    fun get(): StudioModuleClassLoaderManager =
+      ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
   }
 }
