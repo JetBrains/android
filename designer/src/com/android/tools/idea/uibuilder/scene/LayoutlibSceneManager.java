@@ -424,12 +424,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     logConfigurationChange(surface);
     getModel().resetLastChange();
 
-    return myLayoutlibSceneRenderer.renderAsync(trigger, reverseUpdate)
-      .thenRunAsync(() -> {
-        if (!isDisposed.get()) {
-          update();
-        }
-      }, EdtExecutorService.getInstance());
+    return myLayoutlibSceneRenderer.renderAsync(trigger, reverseUpdate).thenCompose((unit -> CompletableFuture.completedFuture(null)));
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
