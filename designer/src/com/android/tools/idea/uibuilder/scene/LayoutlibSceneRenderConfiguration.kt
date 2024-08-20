@@ -189,7 +189,7 @@ class LayoutlibSceneRenderConfiguration(
   }
 
   /** Creates a new [RenderTask] for the [model] using the current configuration values */
-  suspend fun createRenderTask(
+  internal suspend fun createRenderTask(
     configuration: Configuration,
     renderService: RenderService,
     logger: RenderLogger,
