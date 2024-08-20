@@ -110,6 +110,12 @@ sealed class LoadingState<out T> {
     }
   }
 
+  data object ToSNotAccepted : Failure() {
+    override val message = null
+
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
   /** Generic(catch all) failure. */
   data class UnknownFailure(override val message: String?, override val cause: Throwable? = null) :
     Failure() {
