@@ -61,6 +61,7 @@ import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies
@@ -639,6 +640,8 @@ class GradleModuleSystem(
     }
     return getNameFromGradlePath(module) ?: super.getDisplayNameForModule()
   }
+
+  override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
