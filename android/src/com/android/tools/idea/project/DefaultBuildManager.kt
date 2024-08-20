@@ -17,24 +17,46 @@ package com.android.tools.idea.project
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildResult
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildResult
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.util.Disposer
 
 object DefaultBuildManager : ProjectSystemBuildManager {
+  private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
   private var lastResult = BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN)
 
-  override fun compileProject() {
+  private fun buildStarted(mode: BuildMode) {
+    isBuilding = true
+    // use a copy to avoid concurrent modification
+    val listeners = listeners.toList()
+    listeners.forEach { it.buildStarted(mode) }
+  }
+
+  private fun buildCompleted(mode: BuildMode, status: ProjectSystemBuildManager.BuildStatus) {
     lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
+    // use a copy to avoid concurrent modification
+    val listeners = listeners.toList()
+    listeners.forEach { it.beforeBuildCompleted(lastResult) }
+    isBuilding = false
+    listeners.forEach { it.buildCompleted(lastResult) }
+  }
+
+  override fun compileProject() {
+    buildStarted(BuildMode.COMPILE_OR_ASSEMBLE)
+    buildCompleted(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
   }
 
   override fun getLastBuildResult(): BuildResult = lastResult
 
+  override fun addBuildListener(
+    parentDisposable: Disposable,
+    buildListener: ProjectSystemBuildManager.BuildListener,
+  ) {
+    listeners.add(buildListener)
+    Disposer.register(parentDisposable) { listeners.remove(buildListener) }
+  }
 
-  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {}
-
-  @get:UiThread
-  override val isBuilding = false
+  @get:UiThread override var isBuilding = false
 }
