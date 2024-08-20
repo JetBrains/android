@@ -17,6 +17,7 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
@@ -31,6 +32,7 @@ import com.google.wireless.android.sdk.stats.KotlinGradlePerformance.FirUsage
 import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
+import com.google.wireless.android.sdk.stats.StartupEvent
 import com.google.wireless.android.sdk.stats.VfsRefresh
 import com.intellij.ide.ui.experimental.ExperimentalUiCollector
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
@@ -40,30 +42,44 @@ import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.internal.statistic.eventLog.events.EventFields
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
+import java.lang.Boolean.getBoolean
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import kotlin.io.path.isDirectory
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
+
+  private val logExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidStudioEventLogger", 1)
+
   override fun cleanup() {}
   override fun getActiveLogFile(): Nothing? = null
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
-    when (group.id) {
-      "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
-      "experimental.ui.interactions" -> logNewUIStateChange(eventId, data)
-      "file.types" -> logFileType(eventId, data)
-      "file.types.usage" -> logFileTypeUsage(eventId, data)
-      "kotlin.gradle.performance" -> logKotlinGradlePerformance(eventId, data)
-      "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
-      "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
-      "vfs" -> logVfsEvent(eventId, data)
-      "xdebugger.actions" -> logDebuggerEvent(eventId, data)
-    }
-    return CompletableFuture.completedFuture(null)
+    val callbacks = mapOf("debugger.breakpoints.usage" to ::logDebuggerBreakpointsUsage,
+                          "experimental.ui.interactions" to ::logNewUIStateChange,
+                          "file.types" to ::logFileType,
+                          "file.types.usage" to ::logFileTypeUsage,
+                          "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
+                          "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
+                          "run.configuration.exec" to ::logRunConfigurationExec,
+                          "startup" to ::logStartupEvent,
+                          "vfs" to ::logVfsEvent,
+                          "xdebugger.actions" to ::logDebuggerEvent)
+    val c = callbacks[group.id] ?: return CompletableFuture.completedFuture(null)
+    val builder = c(eventId, data) ?: return CompletableFuture.completedFuture(null)
+    return CompletableFuture.runAsync({
+      UsageTracker.log(builder)
+      dumpStudioEventToDirectory(builder, group)
+    }, logExecutor)
   }
 
   override fun logAsync(group: EventLogGroup,
@@ -79,18 +95,18 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
 
   override fun rollOver() {}
 
-  private fun logNewUIStateChange(eventId: String, data: Map<String, Any>) {
+  private fun logNewUIStateChange(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     if (eventId != "switch.ui") {
-      return
+      return null
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+    return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.INTELLIJ_NEW_UI_SWITCH
       intellijNewUiSwitch = IntelliJNewUISwitch.newBuilder().apply {
         switchSource = getSwitchSource(data)
         (data["exp_ui"] as? Boolean)?.let { newUi = it }
       }.build()
-    })
+    }
   }
 
   private fun getSwitchSource(data: Map<String, Any>): IntelliJNewUISwitch.SwitchSource {
@@ -111,29 +127,29 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }
   }
 
-  private fun logFileType(eventId: String, data: Map<String, Any>) {
+  private fun logFileType(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     // filter out events that Jetbrains does not require
     if (eventId != "file.in.project") {
-      return
+      return null
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+    return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.FILE_TYPE
       fileType = FileType.newBuilder().apply {
         (data["file_type"] as? String)?.let { fileType = it }
         (data["plugin_type"] as? String)?.let { pluginType = it }
         (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
       }.build()
-    }.withProjectId(data))
+    }.withProjectId(data)
   }
 
-  private fun logFileTypeUsage(eventId: String, data: Map<String, Any>) {
+  private fun logFileTypeUsage(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     // filter out events that Jetbrains does not require
     if (eventId == "registered") {
-      return
+      return null
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+    return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.FILE_USAGE
       fileUsage = FileUsage.newBuilder().apply {
         (data["file_path"] as? String)?.let { filePath = it }
@@ -148,15 +164,15 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
           else -> FileUsage.EventType.UNKNOWN_TYPE
         }
       }.build()
-    }.withProjectId(data))
+    }.withProjectId(data)
   }
 
-  private fun logKotlinGradlePerformance(eventId: String, data: Map<String, Any>) {
+  private fun logKotlinGradlePerformance(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     if (eventId != "All") {
-      return
+      return null
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+    return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
       kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
         data.getString(StringMetrics.USE_FIR)?.let { useFir = firUsage(it) }
@@ -174,7 +190,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
         data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
       }.build()
-    }.withProjectId(data, "project_path"))
+    }.withProjectId(data, "project_path")
   }
 
   private fun Map<String, Any>.getBoolean(metric: BooleanMetrics): Boolean? {
@@ -198,13 +214,13 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }
   }
 
-  private fun logKotlinProjectConfiguration(eventId: String, data: Map<String, Any>) {
+  private fun logKotlinProjectConfiguration(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     // filter out events that Jetbrains does not require
     if (eventId == "invoked") {
-      return
+      return null
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+    return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
       kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
         (data["system"] as? String?)?.let { system = it }
@@ -219,11 +235,11 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
           else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
         }
       }.build()
-    }.withProjectId(data))
+    }.withProjectId(data)
   }
 
-  private fun logRunConfigurationExec(eventId: String, data: Map<String, Any>) {
-    val builder = when (eventId) {
+  private fun logRunConfigurationExec(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    return when (eventId) {
       "started" -> AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.RUN_START_DATA
         runStartData = RunStartData.newBuilder().apply {
@@ -241,32 +257,73 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         }.build()
       }
 
-      else -> return
-    }
-
-    UsageTracker.log(builder.withProjectId(data))
+      else -> return null
+    }.withProjectId(data)
   }
 
-  private fun logVfsEvent(eventId: String, data: Map<String, Any>) {
+  private fun logVfsEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     if (!eventId.equals("refreshed")) { // eventId as declared in com.intellij.openapi.vfs.newvfs.RefreshProgress
-      return
+      return null
     }
 
     (data["duration_ms"] as? Long)?.let { durationMs ->
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.VFS_REFRESH)
-                         .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs)))
+      return AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.VFS_REFRESH)
+        .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs))
+    }
+    return null
+  }
+
+  private fun logStartupEvent(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
+    val type = when (eventId) {
+      "totalDuration" -> StartupEvent.Type.TOTAL_DURATION
+
+      "splash" -> StartupEvent.Type.SPLASH
+
+      "bootstrap" -> StartupEvent.Type.BOOTSTRAP
+
+      "appInit" -> StartupEvent.Type.APP_INIT
+
+      "splashShown" -> StartupEvent.Type.SPLASH_SHOWN
+
+      "splashHidden" -> StartupEvent.Type.SPLASH_HIDDEN
+
+      "projectFrameVisible" -> StartupEvent.Type.PROJECT_FRAME_VISIBLE
+
+      else -> return null
+    }
+    return AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.STARTUP_EVENT).setStartupEvent(
+      StartupEvent.newBuilder().setType(type).setDurationMs(data["duration"] as Int))
+  }
+
+  @Suppress("SpellCheckingInspection")
+  private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+
+  private fun formatTime(time: ZonedDateTime): String = dateFormat.format(time)
+
+  private fun dumpStudioEventToDirectory(studioEvent: AndroidStudioEvent.Builder, group: EventLogGroup) {
+    if (!getBoolean("studio.event.dump.group.${group.id}")) {
+      return
+    }
+
+    System.getProperty("studio.event.dump.dir")?.let { traceDir ->
+      val traceDirPath = Path.of(traceDir)
+      if (traceDirPath.isDirectory()) {
+        val studioEventFile = traceDirPath.resolve("${studioEvent.kind.name}-${formatTime(ZonedDateTime.now())}.textproto")
+        Files.createFile(studioEventFile)
+        Files.writeString(studioEventFile, TextFormat.printer().printToString(studioEvent))
+      }
     }
   }
 
-  private fun logDebuggerBreakpointsUsage(eventId: String, data: Map<String, Any>) {
+  private fun logDebuggerBreakpointsUsage(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     when (eventId) {
       "breakpoint.added" -> {
-        val type = data["type"] as? String ?: return
-        val pluginType = data["plugin_type"] as? String ?: return
-        val withinSession = data["within_session"] as? Boolean ?: return
+        val type = data["type"] as? String ?: return null
+        val pluginType = data["plugin_type"] as? String ?: return null
+        val withinSession = data["within_session"] as? Boolean ?: return null
 
-        val studioEvent = AndroidStudioEvent.newBuilder()
+        return AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.DEBUGGER_EVENT)
           .setDebuggerEvent(
             DebuggerEvent.newBuilder()
@@ -278,25 +335,24 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                   .setInSession(withinSession)
               )
           )
-
-        UsageTracker.log(studioEvent)
       }
     }
+    return null
   }
 
 
-  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>) {
+  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
     val event = when (eventId) {
       XDebuggerActionsCollector.EVENT_FRAMES_UPDATED -> {
         @Suppress("UnstableApiUsage")
-        val durationMs = data[EventFields.DurationMs.name] as? Long ?: return
-        val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return
+        val durationMs = data[EventFields.DurationMs.name] as? Long ?: return null
+        val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return null
 
         @Suppress("UNCHECKED_CAST")
-        val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return
+        val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return null
 
         @Suppress("UNCHECKED_CAST")
-        val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return
+        val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return null
 
         val fileTypeInfos = fileTypes.zip(framesPerFileType).map { (type, frames) ->
           FileTypeInfo.newBuilder()
@@ -314,12 +370,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
           )
       }
 
-      else -> return
+      else -> return null
     }
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(DEBUGGER_EVENT)
-        .setDebuggerEvent(event))
+    return AndroidStudioEvent.newBuilder().setKind(DEBUGGER_EVENT).setDebuggerEvent(event)
   }
 
   /**
