@@ -25,11 +25,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
@@ -847,6 +849,60 @@ class PsiUtilsTest {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNull()
+    }
+  }
+
+  @Test
+  fun isComposableLambdaArgument_isComposable() {
+    fixture.loadNewFile("Foo.kt", """
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HigherLevelComposable(child: @Composable () -> Unit) {
+        child()
+      }
+
+      @Composable
+      fun foo() {
+         HigherLevelComposable {
+           println(1)
+         }
+      }
+    """.trimIndent())
+
+    runReadAction {
+      val higherLevelComposableLambdaArgument = fixture.getEnclosing<KtElement>("println(1)")
+                                                  .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
+      assertThat(higherLevelComposableLambdaArgument.isComposableLambdaArgument()).isEqualTo(true)
+    }
+  }
+
+  @Test
+  fun isComposableLambdaArgument_isNotComposable() {
+    fixture.loadNewFile("Foo.kt", """
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HigherLevelComposable(child: () -> Unit) {
+        child()
+      }
+
+      fun HigherLevel(child: () -> Unit) {
+        child()
+      }
+
+      @Composable
+      fun foo() {
+         HigherLevel {
+           println(2411)
+         }
+      }
+    """.trimIndent())
+
+    runReadAction {
+      val lambdaArgument = fixture.getEnclosing<KtElement>("println(2411)")
+                             .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
+      assertThat(lambdaArgument.isComposableLambdaArgument()).isEqualTo(false)
     }
   }
 
