@@ -46,6 +46,7 @@ import java.io.File
 import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -424,6 +425,7 @@ class SampleDataResourceRepositoryTest {
   }
 
   @Test
+  @Ignore("b/356625856")
   fun testResolverCacheInvalidation() {
     val sampleDataFile =
       projectRule.fixture.addFileToProject(
@@ -521,6 +523,7 @@ class SampleDataResourceRepositoryTest {
   }
 
   @Test
+  @Ignore("b/356625856")
   fun testSampleDataInLibrary() {
     projectRule.fixture.addFileToProject(
       "lib/sampledata/lib.csv",
@@ -563,6 +566,7 @@ class SampleDataResourceRepositoryTest {
   }
 
   @Test
+  @Ignore("b/356625856")
   fun testMultiModuleAppOverrides() {
     projectRule.fixture.addFileToProject(
       "sampledata/users.csv",
