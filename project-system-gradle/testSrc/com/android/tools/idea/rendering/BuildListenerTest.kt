@@ -41,12 +41,10 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-@Ignore("b/354210253")
 class BuildListenerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -138,6 +136,8 @@ class BuildListenerTest {
         * setupBuildListener
         ->startedListening
         * buildFinished
+        ->buildStarted
+        ->buildSucceeded
       """.trimIndent()
       )
     }
@@ -167,6 +167,8 @@ class BuildListenerTest {
         ->buildSucceeded
         ->startedListening
         * buildFinished
+        ->buildStarted
+        ->buildSucceeded
       """.trimIndent() // Note the artificially nested builds and `->startedListening` after the nested one.
       )
     }
@@ -196,6 +198,8 @@ class BuildListenerTest {
         * setupBuildListener
         ->startedListening
         * buildFinished
+        ->buildStarted
+        ->buildSucceeded
       """.trimIndent()
       )
     }
