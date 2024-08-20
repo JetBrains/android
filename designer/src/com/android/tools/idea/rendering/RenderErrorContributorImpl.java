@@ -133,13 +133,12 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
   private final HtmlLinkManager myLinkManager;
-  private final HyperlinkListener myLinkHandler;
+  private final LinkHandler myLinkHandler;
   @NotNull private final Module myModule;
   @NotNull protected final PsiFile mySourceFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final RenderContext myRenderContext;
   private final boolean myHasRequestedCustomViews;
-  private final EditorDesignSurface myDesignSurface;
 
   /**
    * {@link HyperlinkListener} that does not hold a reference to any of the inputs.
@@ -156,6 +155,14 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       myEditorDesignSurfaceReference = new WeakReference<>(surface);
       myModuleReference = new WeakReference<>(module);
       mySourceFileReference = new WeakReference<>(sourceFile);
+    }
+
+    public void forceUserRequestedRefresh() {
+      EditorDesignSurface surface = myEditorDesignSurfaceReference.get();
+      if (surface != null) {
+        RenderUtils.clearCache(surface.getConfigurations());
+        surface.forceUserRequestedRefresh();
+      }
     }
 
     @Override
@@ -191,19 +198,12 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       linkManager.handleUrl(e.getDescription(), module, sourceFile, true, new HtmlLinkManager.RefreshableSurface() {
         @Override
         public void handleRefreshRenderUrl() {
-          EditorDesignSurface surface = myEditorDesignSurfaceReference.get();
-          if (surface != null) {
-            RenderUtils.clearCache(surface.getConfigurations());
-            surface.forceUserRequestedRefresh();
-          }
+          forceUserRequestedRefresh();
         }
 
         @Override
         public void requestRender() {
-          EditorDesignSurface surface = myEditorDesignSurfaceReference.get();
-          if (surface != null) {
-            surface.forceUserRequestedRefresh();
-          }
+          forceUserRequestedRefresh();
         }
       });
     }
@@ -216,7 +216,6 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     myLogger = result.getLogger();
     myRenderContext = result.getRenderContext();
     myHasRequestedCustomViews = result.hasRequestedCustomViews();
-    myDesignSurface = surface;
     myLinkManager = result.getLogger().getLinkManager();
     myLinkHandler = new LinkHandler(
       result.getLogger().getLinkManager(),
@@ -680,10 +679,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.add("(")
         .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createActionLink((module) -> {
           new SetAttributeFix(applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).executeCommand();
-
-          if (myDesignSurface != null) {
-            myDesignSurface.forceUserRequestedRefresh();
-          }
+          myLinkHandler.forceUserRequestedRefresh();
         })).add(")");
 
       addIssue()
@@ -935,9 +931,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       if (clientData != null) {
         builder.addLink(" (Ignore for this session)", myLinkManager.createActionLink((module) -> {
           RenderLogger.ignoreFidelityWarning(clientData);
-          if (myDesignSurface != null) {
-            myDesignSurface.forceUserRequestedRefresh();
-          }
+          myLinkHandler.forceUserRequestedRefresh();
         }));
       }
       builder.newline();
@@ -955,9 +949,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     builder.endList();
     builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createActionLink((module) -> {
       RenderLogger.ignoreAllFidelityWarnings();
-      if (myDesignSurface != null) {
-        myDesignSurface.forceUserRequestedRefresh();
-      }
+      myLinkHandler.forceUserRequestedRefresh();
     }));
     builder.newline();
 
