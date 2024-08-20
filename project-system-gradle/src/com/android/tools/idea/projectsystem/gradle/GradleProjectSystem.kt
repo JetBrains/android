@@ -61,6 +61,8 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -365,6 +367,15 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
    */
   override fun supportsProfilingMode() = true
 
+  override fun getProjectSystemModuleTypeComparator(): Comparator<Module> = gradleProjectSystemModuleTypeComparator
+}
+
+private val gradleProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt {
+  when {
+    it.isMainModule() -> 0
+    it.isAndroidTestModule() -> 1
+    else -> 2
+  }
 }
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
