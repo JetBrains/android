@@ -102,7 +102,7 @@ open class SyncLayoutlibSceneManager(
     value: String,
   ) {
     if (renderResult == null) {
-      sceneRenderConfiguration.forceReinflate()
+      sceneRenderConfiguration.needsInflation.set(true)
       requestRenderAsync().join()
     }
     val map: MutableMap<ResourceReference, ResourceValue> =

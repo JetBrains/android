@@ -365,7 +365,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     public void modelChanged(@NotNull NlModel model) {
       NlDesignSurface surface = getDesignSurface();
       // The structure might have changed, force a re-inflate
-      getSceneRenderConfiguration().forceReinflate();
+      getSceneRenderConfiguration().getNeedsInflation().set(true);
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
       // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
@@ -449,7 +449,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   @NotNull
   public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
-    getSceneRenderConfiguration().forceReinflate();
+    getSceneRenderConfiguration().getNeedsInflation().set(true);
     return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
   }
 
@@ -665,7 +665,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
       if (!version.equals(myLayoutlibSceneRenderer.getRenderedVersion())) {
-        getSceneRenderConfiguration().forceReinflate();
+        getSceneRenderConfiguration().getNeedsInflation().set(true);
       }
       requestLayoutAndRenderAsync();
     }
