@@ -31,7 +31,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /** Number of seconds to wait for the render to complete in any of the render calls. */
 private const val RENDER_TIMEOUT_SECS = 60L
@@ -88,13 +87,12 @@ open class SyncLayoutlibSceneManager(
   }
 
   override fun requestRenderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
+    trigger: LayoutEditorRenderResult.Trigger?
   ): CompletableFuture<Void> {
     if (ignoreRenderRequests) {
       return CompletableFuture.completedFuture(null)
     }
-    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate))
+    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger))
   }
 
   fun putDefaultPropertyValue(

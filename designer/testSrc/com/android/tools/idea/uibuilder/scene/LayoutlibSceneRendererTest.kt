@@ -41,7 +41,6 @@ import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
@@ -112,18 +111,18 @@ class LayoutlibSceneRendererTest {
   @Test
   fun testInflateAndRender() = runBlocking {
     // First render, inflation and render should happen
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 1 }
     assertEquals("expected inflation on first render but didn't happen", 1, taskInflateCount.get())
 
     // Re-render, inflation shouldn't happen but render should
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 2 }
     assertEquals("unexpected inflation on re-render", 1, taskInflateCount.get())
 
     // Re-render with forceReinflate, inflation and render should happen
     renderer.sceneRenderConfiguration.forceReinflate()
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 3 }
     assertEquals("expected inflation on forceInflate but didn't happen", 2, taskInflateCount.get())
 
@@ -131,7 +130,7 @@ class LayoutlibSceneRendererTest {
     // inflation error
     simulatedInflateResult = createRenderResult(Result.Status.ERROR_INFLATION)
     renderer.sceneRenderConfiguration.forceReinflate()
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     assertFails {
       delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 4 }
     }
@@ -145,7 +144,7 @@ class LayoutlibSceneRendererTest {
     // Re-render after inflation error, inflation should happen without forcing it and render
     // should also happen
     simulatedInflateResult = createRenderResult(Result.Status.SUCCESS)
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 4 }
     assertEquals("expected inflation but didn't happen", 4, taskInflateCount.get())
   }
@@ -155,7 +154,7 @@ class LayoutlibSceneRendererTest {
     blockInflationAndRequestRender()
     // Add 5 requests
     renderer.sceneRenderConfiguration.forceReinflate()
-    repeat(5) { renderer.requestRender(null, AtomicBoolean(false)) }
+    repeat(5) { renderer.requestRender(trigger = null) }
     // inflation should still be blocked
     assertFails {
       delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
@@ -175,7 +174,7 @@ class LayoutlibSceneRendererTest {
     blockInflationAndRequestRender()
     // Add 5 requests
     renderer.sceneRenderConfiguration.forceReinflate()
-    repeat(5) { renderer.requestRender(null, AtomicBoolean(false)) }
+    repeat(5) { renderer.requestRender(trigger = null) }
     // inflation should still be blocked
     assertFails {
       delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
@@ -199,10 +198,10 @@ class LayoutlibSceneRendererTest {
   fun testRenderAndWait() = runBlocking {
     blockInflationAndRequestRender()
     val requestRenderAndWaitJob =
-      launch(workerThread) { renderer.requestRenderAndWait(null, AtomicBoolean(false)) }
+      launch(workerThread) { renderer.requestRenderAndWait(trigger = null) }
     delay(1000)
     renderer.sceneRenderConfiguration.forceReinflate()
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
 
     // Inflation should still be blocked, and the renderAndWait shouldn't have finished
     assertTrue(requestRenderAndWaitJob.isActive)
@@ -224,7 +223,7 @@ class LayoutlibSceneRendererTest {
   private fun blockInflationAndRequestRender() = runBlocking {
     inflateLatch = CountDownLatch(1)
     renderer.sceneRenderConfiguration.forceReinflate()
-    renderer.requestRender(null, AtomicBoolean(false))
+    renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { renderer.isRendering() }
     assertFails {
       delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }

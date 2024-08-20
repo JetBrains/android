@@ -369,15 +369,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
       // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
-      AtomicBoolean doubleRender = new AtomicBoolean();
-      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()), doubleRender)
-        .thenCompose(v -> {
-          if (doubleRender.get()) {
-            return requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()), new AtomicBoolean());
-          } else {
-            return CompletableFuture.completedFuture(null);
-          }
-        }).thenRunAsync(() ->
+      myLayoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
+      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
+        .thenRunAsync(() ->
                         mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
     }
@@ -414,7 +408,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @return {@link CompletableFuture} that will be completed once the render has been done.
    */
   @NotNull
-  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,  AtomicBoolean reverseUpdate) {
+  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
       return CompletableFuture.completedFuture(null);
@@ -424,7 +418,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     logConfigurationChange(surface);
     getModel().resetLastChange();
 
-    return myLayoutlibSceneRenderer.renderAsync(trigger, reverseUpdate).thenCompose((unit -> CompletableFuture.completedFuture(null)));
+    return myLayoutlibSceneRenderer.renderAsync(trigger).thenCompose((unit) -> CompletableFuture.completedFuture(null));
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -446,7 +440,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   @NotNull
   public CompletableFuture<Void> requestRenderAsync() {
-    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()), new AtomicBoolean());
+    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
@@ -456,7 +450,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @NotNull
   public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
     getSceneRenderConfiguration().forceReinflate();
-    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER, new AtomicBoolean());
+    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
   }
 
   @Override
@@ -471,15 +465,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
     // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
     // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
-    AtomicBoolean doubleRender = new AtomicBoolean();
-    return requestRenderAsync(trigger, doubleRender)
-      .thenCompose(v -> {
-        if (doubleRender.get()) {
-          return requestRenderAsync(trigger, new AtomicBoolean());
-        } else {
-          return CompletableFuture.completedFuture(null);
-        }
-      })
+    myLayoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
+    return requestRenderAsync(trigger)
       .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(false), AppExecutorUtil.getAppExecutorService());
   }
 
