@@ -27,10 +27,12 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
@@ -80,6 +82,21 @@ fun PsiElement.isComposableFunction(): Boolean =
   } else {
     this.getComposableAnnotation() != null
   }
+
+/**
+ *
+ */
+@RequiresBackgroundThread
+fun KtLambdaArgument.isComposableLambdaArgument(): Boolean {
+  val callExpression = parent as KtCallExpression
+  val lambdaExpression = getLambdaExpression() ?: return false
+  analyze(callExpression) {
+    val call = callExpression.resolveToCall()?.singleFunctionCallOrNull() ?: return false
+    val parameterTypeForLambda = call.argumentMapping[lambdaExpression]?.returnType ?: return false
+    parameterTypeForLambda
+    return parameterTypeForLambda.annotations.classIds.any { it == COMPOSABLE_CLASS_ID }
+  }
+}
 
 fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
   (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) {

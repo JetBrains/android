@@ -173,6 +173,10 @@
     <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
+  
+  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.debugger.base.util">
+    <classNameCalculatorExtension implementation="com.android.tools.compose.debug.ComposeClassNameCalculatorExtension"/>
+  </extensions>
 
   <actions>
     <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup">
