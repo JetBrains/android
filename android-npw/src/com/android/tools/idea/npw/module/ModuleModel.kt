@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
@@ -68,7 +69,8 @@ abstract class ModuleModel(
     else createDefaultModuleTemplate(project, name)
   },
   val moduleParent: String,
-  override val wizardContext: WizardUiContext
+  override val wizardContext: WizardUiContext,
+  val recommendedBuildSdk: AndroidVersion? = null
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
@@ -123,7 +125,8 @@ abstract class ModuleModel(
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
-        setBuildVersion(androidSdkInfo.value, project)
+        val buildVersion = if (recommendedBuildSdk != null) androidSdkInfo.value.withBuildSdk(recommendedBuildSdk) else androidSdkInfo.value
+        setBuildVersion(buildVersion, project)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary
       }

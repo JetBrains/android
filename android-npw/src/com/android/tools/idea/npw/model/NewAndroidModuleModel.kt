@@ -18,10 +18,11 @@ package com.android.tools.idea.npw.model
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -30,6 +31,7 @@ import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericMo
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -55,6 +57,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
@@ -125,7 +128,8 @@ class NewAndroidModuleModel(
   override val category: ObjectProperty<Category>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false,
-  wizardContext: WizardUiContext
+  wizardContext: WizardUiContext,
+  recommendedBuildSdk: AndroidVersion?
 ) : ModuleModel(
   "",
   commandName,
@@ -133,7 +137,8 @@ class NewAndroidModuleModel(
   projectModelData,
   template,
   moduleParent,
-  wizardContext
+  wizardContext,
+  recommendedBuildSdk
 ) {
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
     projectTemplateDataBuilder = projectTemplateDataBuilder,
@@ -234,10 +239,16 @@ class NewAndroidModuleModel(
       formFactor = ObjectValueProperty(formFactor),
       category = ObjectValueProperty(category),
       isLibrary = isLibrary,
-      wizardContext = NEW_MODULE
+      wizardContext = NEW_MODULE,
+      recommendedBuildSdk = project.findNewModuleRecommendedBuildSdk()
     )
   }
 }
+
+internal fun Project.findNewModuleRecommendedBuildSdk(): AndroidVersion? =
+  modules.mapNotNull { module -> StudioAndroidModuleInfo.getInstance(module) }
+    .mapNotNull { it.buildSdkVersion }
+    .maxByOrNull { it.apiLevel }
 
 private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
   FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
