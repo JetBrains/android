@@ -22,7 +22,7 @@ import com.intellij.openapi.diagnostic.Logger
  * This interface will be implemented by stages that are used as an intermediate stage before entering a terminal stage. One example
  * is the CpuProfilerStage. It is an InterimStage as it serves as the intermediate stage between starting and displaying a CPU trace.
  */
-interface InterimStage {
+interface InterimStage: TaskStage {
   private val LOGGER: Logger
     get() = Logger.getInstance(InterimStage::class.java)
 
