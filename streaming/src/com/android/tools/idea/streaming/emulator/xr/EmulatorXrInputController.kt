@@ -19,7 +19,9 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.InputEvent
 import com.android.emulator.control.XrInputEvent
 import com.android.emulator.control.XrInputEvent.NavButtonPressEvent
+import com.android.emulator.control.XrInputEvent.RelativeMoveEvent
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -27,6 +29,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import io.ktor.util.collections.ConcurrentMap
+import java.awt.Point
+import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_HOME
@@ -39,6 +43,12 @@ import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseWheelEvent
+
+// TODO: Adjust this coefficient when XR gRPC API is implemented.
+private const val MOUSE_WHEEL_NAVIGATION_FACTOR = 120.0
 
 /**
  * Orchestrates mouse and keyboard input for XR devices. Thread safe.
@@ -48,7 +58,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   @Volatile var inputMode: XrInputMode = XrInputMode.HAND
     @UiThread set(value) {
       if (field != value) {
-        if (!areNavigationButtonsEnabled(value)) {
+        if (!areNavigationKeysEnabled(value)) {
           pressedKeysMask = 0 // Reset keyboard navigation state.
         }
         field = value
@@ -74,60 +84,188 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val controlKeys
     get() = emulatorSettings.cameraVelocityControls.keys
+  private var mouseDragReferencePoint: Point? = null
+  var mouseScaleFactor: Double = 1.0
   private val inputEvent = InputEvent.newBuilder()
   private val xrInputEvent = XrInputEvent.newBuilder()
   private val navigationEvent = NavButtonPressEvent.newBuilder()
+  private val relativeMoveEvent = RelativeMoveEvent.newBuilder()
 
   init {
     Disposer.register(emulator, this)
   }
 
   /**
-   * Notifies the controller that a key was pressed. Returns true if the key event was consumed by
-   * the controller.
+   * Notifies the controller that a key was pressed.
+   * Returns true if the input event has been consumed.
    */
   @UiThread
-  fun keyPressed(keyCode: Int, modifiers: Int): Boolean {
-    if (!areNavigationButtonsEnabled(inputMode)) {
+  fun keyPressed(event: KeyEvent): Boolean {
+    if (!areNavigationKeysEnabled(inputMode)) {
       return false
     }
-    if (modifiers != 0) {
+    if (event.modifiersEx != 0) {
       pressedKeysMask = 0
       return false
     }
-    val mask = keyToMask(keyCode)
+    val mask = keyToMask(event.keyCode)
     if (mask == 0) {
       return false
     }
     pressedKeysMask = pressedKeysMask or mask
+    event.consume()
     return true
   }
 
   /**
-   * Notifies the controller that a key was released. Returns true if the key event was consumed by
-   * the controller.
+   * Notifies the controller that a key was released.
+   * Returns true if the input event has been consumed.
    */
   @UiThread
-  fun keyReleased(keyCode: Int, modifiers: Int): Boolean {
-    if (!areNavigationButtonsEnabled(inputMode)) {
+  fun keyReleased(event: KeyEvent): Boolean {
+    if (!areNavigationKeysEnabled(inputMode)) {
       return false
     }
-    if (modifiers != 0) {
+    if (event.modifiersEx != 0) {
       pressedKeysMask = 0
       return false
     }
-    val mask = keyToMask(keyCode)
+    val mask = keyToMask(event.keyCode)
     if (mask == 0) {
       return false
     }
     pressedKeysMask = pressedKeysMask and mask.inv()
+    event.consume()
+    return true
+  }
+
+  /**
+   * Notifies the controller that a mouse button was pressed.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mousePressed(event: MouseEvent): Boolean {
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    if (event.button == BUTTON1) {
+      mouseDragReferencePoint = event.point
+    }
+    event.consume()
+    return true
+  }
+
+  /**
+   * Notifies the controller that a mouse button was released.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseReleased(event: MouseEvent): Boolean {
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    if (event.button == BUTTON1) {
+      mouseDragReferencePoint = null
+    }
+    event.consume()
+    return true
+  }
+
+  /**
+   * Notifies the controller that the mouse entered the panel sending events to this controller.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseEntered(event: MouseEvent): Boolean {
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    if (event.modifiersEx and MouseEvent.BUTTON1_DOWN_MASK != 0) {
+      mouseDragReferencePoint = event.point
+    }
+    event.consume()
+    return true
+  }
+
+  /**
+   * Notifies the controller that the mouse exited the panel sending events to this controller.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseExited(event: MouseEvent): Boolean {
+    return false
+  }
+
+  /**
+   * Notifies the controller that the mouse button was dragged.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseDragged(event: MouseEvent): Boolean {
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    val referencePoint = mouseDragReferencePoint
+    if (referencePoint != null) {
+      val deltaX = if (inputMode == XrInputMode.LOCATION_IN_SPACE_Z) 0 else (event.x - referencePoint.x).scaled(mouseScaleFactor)
+      val deltaY = (event.y - referencePoint.y).scaled(mouseScaleFactor)
+      mouseDragReferencePoint = event.point
+      if (deltaX != 0 || deltaY != 0) {
+        relativeMoveEvent.setRelX(deltaX)
+        relativeMoveEvent.setRelY(deltaY)
+        when (inputMode) {
+          XrInputMode.VIEW_DIRECTION -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE
+          XrInputMode.LOCATION_IN_SPACE_XY -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_PAN
+          XrInputMode.LOCATION_IN_SPACE_Z -> relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM
+          else -> throw Error("Internal error") // Unreachable due to the !isMouseUsedForNavigation check above.
+        }
+        xrInputEvent.clear()
+        xrInputEvent.setMoveEvent(relativeMoveEvent)
+        inputEvent.clear()
+        inputEvent.setXrInputEvent(xrInputEvent)
+        sendInputEvent(inputEvent.build())
+      }
+    }
+    event.consume()
+    return true
+  }
+
+  /**
+   * Notifies the controller that the mouse was moved.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseMoved(event: MouseEvent): Boolean {
+    return false
+  }
+
+  /**
+   * Notifies the controller that the mouse wheel was moved.
+   * Returns true if the input event has been consumed.
+   */
+  @UiThread
+  fun mouseWheelMoved(event: MouseWheelEvent): Boolean {
+    if (!isMouseUsedForNavigation(inputMode)) {
+      return false
+    }
+    relativeMoveEvent.setRelX(0)
+    // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
+    val delta = -event.wheelRotation.scaled(MOUSE_WHEEL_NAVIGATION_FACTOR * mouseScaleFactor)
+    relativeMoveEvent.setRelY(delta)
+    relativeMoveEvent.intent = RelativeMoveEvent.Intent.XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM
+    xrInputEvent.clear()
+    xrInputEvent.setMoveEvent(relativeMoveEvent)
+    inputEvent.clear()
+    inputEvent.setXrInputEvent(xrInputEvent)
+    sendInputEvent(inputEvent.build())
+    event.consume()
     return true
   }
 
   override fun dispose() {
   }
 
-  private fun areNavigationButtonsEnabled(inputMode: XrInputMode): Boolean {
+  private fun areNavigationKeysEnabled(inputMode: XrInputMode): Boolean {
     return when (inputMode) {
       XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
@@ -196,6 +334,13 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     inputEvent.clear()
     inputEvent.setXrInputEvent(xrInputEvent)
     sendInputEvent(inputEvent.build())
+  }
+
+  private fun isMouseUsedForNavigation(inputMode: XrInputMode): Boolean {
+    return when (inputMode) {
+      XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
+      else -> false
+    }
   }
 
   private fun sendInputEvent(inputEvent: InputEvent) {

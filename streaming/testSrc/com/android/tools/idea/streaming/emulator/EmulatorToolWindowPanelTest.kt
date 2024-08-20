@@ -433,6 +433,47 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testXrMouseInput() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    val testCases = mapOf(
+      XrInputMode.HAND to "xr_hand_event",
+      XrInputMode.EYE to "xr_eye_event",
+      XrInputMode.HARDWARE to "mouse_event",
+    )
+    var streamInputCall: GrpcCallRecord? = null
+    for ((inputMode, expectedEvent) in testCases) {
+      xrInputController.inputMode = inputMode
+      ui.mouse.moveTo(100, 100)
+      val call = streamInputCall ?: emulator.getNextGrpcCall(2.seconds).also { streamInputCall = it }
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 }")
+      ui.mouse.press(100, 100)
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 buttons: 1 }")
+      ui.mouse.dragTo(500, 200)
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 buttons: 1 }")
+      ui.mouse.release()
+      assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 2135 y: 684 }")
+    }
+  }
+
+  @Test
   fun testXrKeyboardNavigation() {
     val panel = createWindowPanelForXr()
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
@@ -450,14 +491,14 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
     ui.keyboard.setFocus(emulatorView)
-    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain gRPC call log.
     ui.keyboard.press(VK_ENTER)
     val streamInputCall = emulator.getNextGrpcCall(2.seconds)
-    // Keys not used for navigation produce keypress events.
+    // Keys that are not used for navigation produce keypress events.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
     ui.keyboard.release(VK_ENTER)
     val keys = mapOf(
@@ -496,6 +537,96 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { nav_event { } }")
     ui.keyboard.release(VK_D)
     ui.keyboard.release(VK_E)
+  }
+
+  @Test
+  fun testXrMouseViewRotation() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+
+    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 100)
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_x: 1707 } }")
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_y: 1707 } }")
+    ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
+    ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
+    ui.mouse.dragTo(100, 435)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_x: -853 rel_y: 1707 } }")
+  }
+
+  @Test
+  fun testXrMouseMovementInSpace() {
+    val panel = createWindowPanelForXr()
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: fail()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(600, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
+    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
+
+    val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
+    // Moving in the view plane dragging the mouse.
+    xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_XY
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 100)
+    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_x: 1707 } }")
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_y: 1707 } }")
+    ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
+    ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
+    ui.mouse.dragTo(100, 435)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { rel_x: -853 rel_y: 1707 } }")
+    ui.mouse.release()
+
+    // Moving forward and backward by rotating the mouse wheel.
+    ui.mouse.wheel(10, 100, 1)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: -512 } }")
+    ui.mouse.wheel(10, 100, -3)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: 1536 } }")
+
+    // Moving forward by dragging the mouse.
+    xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_Z
+    ui.mouse.press(100, 100)
+    ui.mouse.dragTo(500, 500)
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
+        .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ZOOM rel_y: 1707 } }")
+    ui.mouse.release()
   }
 
   @Test

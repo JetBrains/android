@@ -56,6 +56,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -175,6 +176,9 @@ import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
 import com.android.emulator.control.Notification as EmulatorNotification
+
+/** Number of device pixels per single tick of the mouse wheel. */
+private const val MOUSE_WHEEL_FACTOR = 120
 
 /**
  * A view of the Emulator display optionally encased in the device frame.
@@ -329,7 +333,8 @@ class EmulatorView(
       else -> null
     }
 
-    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isHardwareInputEnabled()
+    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isHardwareInputEnabled() &&
+                     xrInputController == null
   }
 
   private var virtualSceneCameraActive = false
@@ -545,6 +550,9 @@ class EmulatorView(
     }
 
     frameNumber = screenshotShape.frameNumber
+    xrInputController?.mouseScaleFactor =
+        min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
+
     notifyFrameListeners(displayRect, screenshot.image)
 
     if (multiTouchMode) {
@@ -837,8 +845,7 @@ class EmulatorView(
         return
       }
 
-      if (xrInputController?.keyPressed(event.keyCode, event.modifiersEx) == true) {
-        event.consume()
+      if (xrInputController?.keyPressed(event) == true) {
         return
       }
 
@@ -868,8 +875,7 @@ class EmulatorView(
         return
       }
 
-      if (xrInputController?.keyReleased(event.keyCode, event.modifiersEx) == true) {
-        event.consume()
+      if (xrInputController?.keyReleased(event) == true) {
         return
       }
 
@@ -957,6 +963,9 @@ class EmulatorView(
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
+      if (xrInputController?.mousePressed(event) == true) {
+        return
+      }
       buttons = buttons or getButtonBit(event.button)
       if (isInsideDisplay(event)) {
         lastTouchCoordinates = Point(event.x, event.y)
@@ -966,6 +975,9 @@ class EmulatorView(
     }
 
     override fun mouseReleased(event: MouseEvent) {
+      if (xrInputController?.mouseReleased(event) == true) {
+        return
+      }
       buttons = buttons and getButtonBit(event.button).inv()
       if (event.button == BUTTON1) {
         lastTouchCoordinates = null
@@ -976,20 +988,29 @@ class EmulatorView(
 
     override fun mouseEntered(event: MouseEvent) {
       mouseIsInside = true
+      if (xrInputController?.mouseEntered(event) == true) {
+        return
+      }
       updateMultiTouchMode(event)
     }
 
     override fun mouseExited(event: MouseEvent) {
+      mouseIsInside = false
+      if (xrInputController?.mouseExited(event) == true) {
+        return
+      }
       if (lastTouchCoordinates != null) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
         sendMouseEvent(event.x, event.y, 0)
       }
       lastTouchCoordinates = null
-      mouseIsInside = false
       updateMultiTouchMode(event)
     }
 
     override fun mouseDragged(event: MouseEvent) {
+      if (xrInputController?.mouseDragged(event) == true) {
+        return
+      }
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating && lastTouchCoordinates != null) {
         sendMouseEvent(event.x, event.y, buttons, drag = true)
@@ -997,6 +1018,9 @@ class EmulatorView(
     }
 
     override fun mouseMoved(event: MouseEvent) {
+      if (xrInputController?.mouseMoved(event) == true) {
+        return
+      }
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating && !multiTouchMode) {
         sendMouseEvent(event.x, event.y, 0)
@@ -1007,8 +1031,12 @@ class EmulatorView(
       if (event.wheelRotation == 0 || event.scrollType != WHEEL_UNIT_SCROLL) {
         return
       }
+      if (xrInputController?.mouseWheelMoved(event) == true) {
+        return
+      }
       // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
-      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120)).build()
+      val wheelEvent = WheelEvent.newBuilder().setDy(-event.wheelRotation * MOUSE_WHEEL_FACTOR)
+      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(wheelEvent).build()
       emulator.getOrCreateInputEventSender().onNext(inputEvent)
     }
 
@@ -1093,12 +1121,16 @@ class EmulatorView(
                 .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure)))
       }
       else {
-        inputEvent.setMouseEvent(
-            MouseEventMessage.newBuilder()
-                .setDisplay(displayId)
-                .setX(displayX)
-                .setY(displayY)
-                .setButtons(buttons))
+        val mouseEvent = MouseEventMessage.newBuilder()
+          .setDisplay(displayId)
+          .setX(displayX)
+          .setY(displayY)
+          .setButtons(buttons)
+        when (xrInputController?.inputMode) {
+          XrInputMode.HAND -> inputEvent.setXrHandEvent(mouseEvent)
+          XrInputMode.EYE -> inputEvent.setXrEyeEvent(mouseEvent)
+          else -> inputEvent.setMouseEvent(mouseEvent)
+        }
       }
       emulator.getOrCreateInputEventSender().onNext(inputEvent.build())
     }
