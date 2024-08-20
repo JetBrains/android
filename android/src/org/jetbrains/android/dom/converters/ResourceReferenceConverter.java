@@ -666,7 +666,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public final String toString(@Nullable ResourceValue element, ConvertContext context) {
+  public final String toString(@Nullable ResourceValue element, @NotNull ConvertContext context) {
     return convertToString(element);
   }
 
