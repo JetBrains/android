@@ -89,6 +89,7 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerKeys
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
@@ -102,12 +103,6 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.nio.file.Path
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import javax.swing.JComponent
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -123,6 +118,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.nio.file.Path
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import javax.swing.JComponent
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
@@ -571,7 +572,7 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testRerunUiCheckAction() {
     // Use the real FileEditorManager
-    project.putUserData(FileEditorManagerImpl.ALLOW_IN_LIGHT_PROJECT, true)
+    project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
       FileEditorManager::class.java,
       FileEditorManagerImpl(project, project.coroutineScope()),
