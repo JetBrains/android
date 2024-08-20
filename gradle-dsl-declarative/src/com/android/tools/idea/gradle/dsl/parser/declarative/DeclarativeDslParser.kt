@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
@@ -28,13 +28,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeFactory
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeLiteral
-import com.android.tools.idea.gradle.declarative.psi.DeclarativePsiFactory
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeRecursiveVisitor
-import com.android.tools.idea.gradle.declarative.psi.kind
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
+import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.intellij.psi.PsiElement
 
 class DeclarativeDslParser(
