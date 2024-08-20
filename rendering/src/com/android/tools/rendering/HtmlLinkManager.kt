@@ -158,7 +158,7 @@ interface HtmlLinkManager {
     fun requestRender()
   }
 
-  interface CommandLink : Runnable {
+  interface CommandLink {
     fun executeCommand()
   }
 }
