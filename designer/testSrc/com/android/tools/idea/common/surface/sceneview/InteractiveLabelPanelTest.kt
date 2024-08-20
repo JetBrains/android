@@ -24,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -64,7 +65,9 @@ class InteractiveLabelPanelTest {
         }
 
       val label =
-        InteractiveLabelPanel(settings, scope, ::labelClicked).apply { size = Dimension(250, 50) }
+        InteractiveLabelPanel(settings, scope, MutableStateFlow(false), ::labelClicked).apply {
+          size = Dimension(250, 50)
+        }
       FakeUi(label).also { it.clickOn(label) }
       withTimeout(TimeUnit.SECONDS.toMillis(5)) { assertEquals(1, clickCount) }
     }
