@@ -28,9 +28,7 @@ import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch

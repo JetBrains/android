@@ -51,5 +51,6 @@
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
   </component>
 </module>

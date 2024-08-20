@@ -526,8 +526,6 @@ fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE
 
 fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
 
-fun Module.isMainModule() : Boolean = getMainModule() == this
-
 fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
