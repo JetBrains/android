@@ -131,7 +131,6 @@ class DeviceMenuActionTest {
                   Nexus 6 (411 × 731 dp, 560dpi)
                   Nexus 6P (411 × 731 dp, 560dpi)
                   Nexus 5X (411 × 731 dp, 420dpi)
-                  XR Device No GPU (592 × 640 dp, xhdpi)
                   XR Device (1184 × 1280 dp, xhdpi)
               Tablets
                   Pixel 9 Pro Fold (791 × 820 dp, 420dpi)
