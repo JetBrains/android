@@ -139,7 +139,7 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
       Files.createDirectories(reportDir)
 
       val now = ZonedDateTime.now()
-      val reportFileName = "$TYPING_LATENCY_DUMP_PREFIX-${formatTime(ZonedDateTime.now())}-${now.toInstant().toEpochMilli()}.txt"
+      val reportFileName = "$TYPING_LATENCY_DUMP_PREFIX-${formatTime(now)}-${now.toInstant().toEpochMilli()}.txt"
       val reportFilePath = reportDir.resolve(reportFileName)
 
       try {
