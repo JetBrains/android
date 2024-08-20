@@ -84,7 +84,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public Object fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public Object fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (s != null && s.contains("${")) {
       // This string still contains placeholders
       return new PlaceholderValue(s);
@@ -95,7 +95,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public String toString(@Nullable Object o, ConvertContext context) {
+  public String toString(@Nullable Object o, @NotNull ConvertContext context) {
     if (o instanceof PlaceholderValue) {
       return ((PlaceholderValue)o).myValueWithPlaceholders;
     }
