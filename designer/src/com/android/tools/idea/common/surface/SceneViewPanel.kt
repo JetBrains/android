@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.organization.SceneViewHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
+import com.android.tools.idea.common.surface.organization.findGroups
 import com.android.tools.idea.common.surface.organization.paintLines
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
@@ -44,8 +45,11 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
@@ -69,6 +73,7 @@ class SceneViewPanel(
   private val shouldRenderErrorsPanel: () -> Boolean,
   layoutManager: PositionableContentLayoutManager,
 ) : JPanel(layoutManager) {
+
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
    * the {@link SceneView} is less than the minimum, this enum describes how to align the content
@@ -109,6 +114,9 @@ class SceneViewPanel(
 
   val groups = mutableMapOf<OrganizationGroup, MutableList<JComponent>>()
 
+  /** True if layout supports organization. */
+  private val isOrganizationEnabled = MutableStateFlow(false)
+
   private val sceneScopes = mutableMapOf<JComponent, CoroutineScope>()
 
   override fun remove(comp: Component?) {
@@ -134,12 +142,15 @@ class SceneViewPanel(
             headers.forEach { remove(it) }
             groups.clear()
           }
+          isOrganizationEnabled.value = layoutOption.organizationEnabled
         }
       }
     }
   }
 
   private var organizationWasEnabled = false
+
+  private var activeGroups: ImmutableSet<OrganizationGroup> = persistentSetOf()
 
   @UiThread
   private fun revalidateSceneViews() {
@@ -149,7 +160,7 @@ class SceneViewPanel(
 
     if (
       designSurfaceSceneViews == currentSceneViews &&
-        organizationWasEnabled == organizationIsEnabled()
+        organizationWasEnabled == isOrganizationEnabled.value
     )
       return // No updates
 
@@ -157,10 +168,12 @@ class SceneViewPanel(
     removeAll()
 
     // Headers to be added.
-    organizationWasEnabled = organizationIsEnabled()
+    organizationWasEnabled = isOrganizationEnabled.value
+    activeGroups =
+      if (organizationWasEnabled) designSurfaceSceneViews.findGroups() else persistentSetOf()
     val headers =
       if (organizationWasEnabled)
-        designSurfaceSceneViews.createOrganizationHeaders(
+        activeGroups.createOrganizationHeaders(
           this,
           if (useTestNonComposeHeaders) ::createTestOrganizationHeader
           else ::createOrganizationHeader,
@@ -181,7 +194,15 @@ class SceneViewPanel(
         if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
 
       val sceneScope = this.scope.createChildScope()
-      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView, sceneScope)
+      val partOfTheGroup =
+        activeGroups.contains(sceneView.scene.sceneManager.model.organizationGroup)
+      val labelPanel =
+        actionManagerProvider()
+          .createSceneViewLabel(
+            sceneView,
+            sceneScope,
+            if (partOfTheGroup) isOrganizationEnabled else MutableStateFlow(false),
+          )
       val peerPanel =
         SceneViewPeerPanel(
             sceneScope,
@@ -192,6 +213,7 @@ class SceneViewPanel(
             leftBar,
             rightBar,
             errorsPanel,
+            isOrganizationEnabled,
           )
           .also { it.alignmentX = sceneViewAlignment }
 
@@ -207,13 +229,6 @@ class SceneViewPanel(
       sceneScopes[peerPanel] = sceneScope
     }
   }
-
-  /** @return true if layout supports organization. */
-  private fun organizationIsEnabled() =
-    (layout as? NlDesignSurfacePositionableContentLayoutManager)
-      ?.currentLayout
-      ?.value
-      ?.organizationEnabled == true
 
   /** Use [createTestOrganizationHeader] instead of [createOrganizationHeader] if true. */
   private var useTestNonComposeHeaders = false

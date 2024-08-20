@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 /** Common preview [ActionManager] for the [DesignSurface]. */
 class CommonPreviewActionManager(
@@ -49,10 +50,15 @@ class CommonPreviewActionManager(
 
   override fun getSceneViewStatusIconAction(): AnAction = PreviewStatusIcon()
 
-  override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
+  override fun createSceneViewLabel(
+    sceneView: SceneView,
+    scope: CoroutineScope,
+    isPartOfOrganizationGroup: StateFlow<Boolean>,
+  ): LabelPanel {
     return InteractiveLabelPanel(
       sceneView.sceneManager.model.displaySettings,
       scope,
+      isPartOfOrganizationGroup,
       suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
   }
