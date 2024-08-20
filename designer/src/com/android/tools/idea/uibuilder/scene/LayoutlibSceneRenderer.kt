@@ -123,6 +123,7 @@ class LayoutlibSceneRenderer(
           // TODO(b/168445543): move session clock to RenderTask
           sessionClock = RealTimeSessionClock()
           field = newTask
+          if (field == null) sceneRenderConfiguration.needsInflation.set(true)
         }
       }
       try {
@@ -255,7 +256,7 @@ class LayoutlibSceneRenderer(
    * Render the model and update the view hierarchy.
    *
    * This method will also [inflate] the model when forced or needed (i.e. when
-   * [LayoutlibSceneRenderConfiguration.forceInflate] is true or when [renderTask] is null).
+   * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
    *
    * Returns the [RenderResult] of the render operation, which might be an error result, or null if
    * the model could not be rendered (e.g. because the inflation failed).
@@ -271,8 +272,13 @@ class LayoutlibSceneRenderer(
     val renderStartTimeMs = System.currentTimeMillis()
     try {
       // Inflate only if needed
+      if (renderTask == null && !sceneRenderConfiguration.needsInflation.get()) {
+        log.warn(
+          "Configuration indicates that inflation is not needed, but renderTask is null, reinflating anyway"
+        )
+      }
       val inflateResult =
-        if (sceneRenderConfiguration.forceInflate.getAndSet(false) || renderTask == null)
+        if (sceneRenderConfiguration.needsInflation.getAndSet(false) || renderTask == null)
           inflate(reverseUpdate)
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {

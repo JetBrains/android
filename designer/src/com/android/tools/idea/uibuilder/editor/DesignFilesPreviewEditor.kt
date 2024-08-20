@@ -284,7 +284,7 @@ private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationL
         it.sceneRenderConfiguration.elapsedFrameTimeMs = 0L
         it.requestRenderAsync().whenComplete { _, _ ->
           // The shape may be changed if it is a vector drawable. Reinflate it.
-          it.sceneRenderConfiguration.forceReinflate()
+          it.sceneRenderConfiguration.needsInflation.set(true)
           // This rendering guarantees the elapsed frame time is 0 and it must re-inflates the
           // drawable to have the correct shape.
           it.requestRenderAsync()
@@ -297,7 +297,7 @@ private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationL
         // acceptable.
         it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
         if (controller.forceElapsedReset) {
-          it.sceneRenderConfiguration.forceReinflate()
+          it.sceneRenderConfiguration.needsInflation.set(true)
           controller.forceElapsedReset = false
         }
         it.requestRenderAsync()

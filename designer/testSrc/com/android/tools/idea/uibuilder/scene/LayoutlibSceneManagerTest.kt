@@ -68,7 +68,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
   fun testDoNotCacheSuccessfulRenderImage() = runBlocking {
     myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = false
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.sceneRenderConfiguration.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)
@@ -93,7 +93,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
   fun testCacheSuccessfulRenderImage() = runBlocking {
     myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = true
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.sceneRenderConfiguration.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)

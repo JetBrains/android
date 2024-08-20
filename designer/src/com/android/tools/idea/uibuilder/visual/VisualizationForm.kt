@@ -606,7 +606,7 @@ class VisualizationForm(
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
-            manager.sceneRenderConfiguration.forceReinflate()
+            manager.sceneRenderConfiguration.needsInflation.set(true)
             return@thenCompose manager
               .requestRenderAsync()
               .thenRunAsync(

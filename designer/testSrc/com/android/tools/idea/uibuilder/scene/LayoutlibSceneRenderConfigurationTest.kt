@@ -25,57 +25,57 @@ import org.mockito.Mockito
 class LayoutlibSceneRenderConfigurationTest {
   private val sceneRenderConfiguration =
     LayoutlibSceneRenderConfiguration(
-      Mockito.mock(NlModel::class.java),
-      Mockito.mock(NlDesignSurface::class.java),
-      LayoutScannerConfiguration.DISABLED,
-    )
+        Mockito.mock(NlModel::class.java),
+        Mockito.mock(NlDesignSurface::class.java),
+        LayoutScannerConfiguration.DISABLED,
+      )
+      .apply { needsInflation.set(false) }
 
   @Test
   fun testChangingShowDecorationsForcesReinflate() {
-    val asd = Mockito.mock(NlDesignSurface::class.java)
     val defaultShowDecorations = sceneRenderConfiguration.showDecorations
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isFalse()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isFalse()
 
     sceneRenderConfiguration.showDecorations = !defaultShowDecorations
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
 
     sceneRenderConfiguration.showDecorations = defaultShowDecorations
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
   }
 
   @Test
   fun testChangingUsePrivateClassLoaderForcesReinflate() {
     val defaultUsePrivateClassLoader = sceneRenderConfiguration.usePrivateClassLoader
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isFalse()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isFalse()
 
     sceneRenderConfiguration.usePrivateClassLoader = !defaultUsePrivateClassLoader
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
 
     sceneRenderConfiguration.usePrivateClassLoader = defaultUsePrivateClassLoader
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
   }
 
   @Test
   fun testSettingShrinkRenderingForcesReinflate() {
     val defaultShrinkRendering = sceneRenderConfiguration.useShrinkRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isFalse()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isFalse()
 
     sceneRenderConfiguration.useShrinkRendering = !defaultShrinkRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
 
     sceneRenderConfiguration.useShrinkRendering = defaultShrinkRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
   }
 
   @Test
   fun testSettingTransparentRenderingForcesReinflate() {
     val defaultTransparentRendering = sceneRenderConfiguration.useTransparentRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isFalse()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isFalse()
 
     sceneRenderConfiguration.useTransparentRendering = !defaultTransparentRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
 
     sceneRenderConfiguration.useTransparentRendering = defaultTransparentRendering
-    assertThat(sceneRenderConfiguration.isForceReinflate()).isTrue()
+    assertThat(sceneRenderConfiguration.needsInflation.get()).isTrue()
   }
 }
