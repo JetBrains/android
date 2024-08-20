@@ -15,16 +15,17 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Multimaps.flatteningToMultimap;
-import static com.google.idea.blaze.common.proto.ProtoStringInterner.intern;
 import static java.util.Objects.requireNonNull;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -34,6 +35,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.devtools.build.lib.query2.proto.proto2api.Build;
 import com.google.devtools.build.lib.query2.proto.proto2api.Build.Target;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.query.Query.SourceFile;
 import java.io.BufferedInputStream;
@@ -42,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -141,17 +144,18 @@ public abstract class QuerySummary {
     Map<String, Query.Rule> ruleMap = Maps.newHashMap();
     Set<String> packagesWithErrors = Sets.newHashSet();
     Build.Target target;
-    while ((target = intern(Target.parseDelimitedFrom(protoInputStream))) != null) {
+    while ((target = Target.parseDelimitedFrom(protoInputStream)) != null) {
       switch (target.getType()) {
         case SOURCE_FILE:
           Query.SourceFile sourceFile =
               Query.SourceFile.newBuilder()
-                  .setLocation(target.getSourceFile().getLocation())
-                  .addAllSubinclude(target.getSourceFile().getSubincludeList())
+                  .setLocation(intern(target.getSourceFile().getLocation()))
+                  .addAllSubinclude(intern(target.getSourceFile().getSubincludeList()))
                   .build();
-          sourceFileMap.put(target.getSourceFile().getName(), sourceFile);
+          String sourceFileName = intern(target.getSourceFile().getName());
+          sourceFileMap.put(sourceFileName, sourceFile);
           if (target.getSourceFile().getPackageContainsErrors()) {
-            packagesWithErrors.add(target.getSourceFile().getName());
+            packagesWithErrors.add(sourceFileName);
           }
           break;
         case RULE:
@@ -159,47 +163,48 @@ public abstract class QuerySummary {
           //   We could filter the rules here, or even create rule-specific proto messages to
           //   reduce the size of the output proto.
           Query.Rule.Builder rule =
-              Query.Rule.newBuilder().setRuleClass(target.getRule().getRuleClass());
+              Query.Rule.newBuilder().setRuleClass(intern(target.getRule().getRuleClass()));
           for (Build.Attribute a : target.getRule().getAttributeList()) {
-            if (SRCS_ATTRIBUTES.contains(a.getName())) {
-              rule.addAllSources(a.getStringListValueList());
-            } else if (a.getName().equals("hdrs")) {
-              rule.addAllHdrs(a.getStringListValueList());
-            } else if (attributeIsTrackedDependency(a.getName(), target)) {
+            String attributeName = intern(a.getName());
+            if (SRCS_ATTRIBUTES.contains(attributeName)) {
+              rule.addAllSources(intern(a.getStringListValueList()));
+            } else if (attributeName.equals("hdrs")) {
+              rule.addAllHdrs(intern(a.getStringListValueList()));
+            } else if (attributeIsTrackedDependency(attributeName, target)) {
               if (a.hasStringValue()) {
-                rule.addDeps(a.getStringValue());
+                rule.addDeps(intern(a.getStringValue()));
               } else {
-                rule.addAllDeps(a.getStringListValueList());
+                rule.addAllDeps(intern(a.getStringListValueList()));
               }
-            } else if (RUNTIME_DEP_ATTRIBUTES.contains(a.getName())) {
+            } else if (RUNTIME_DEP_ATTRIBUTES.contains(attributeName)) {
               if (a.hasStringValue()) {
-                rule.addRuntimeDeps(a.getStringValue());
+                rule.addRuntimeDeps(intern(a.getStringValue()));
               } else {
-                rule.addAllRuntimeDeps(a.getStringListValueList());
+                rule.addAllRuntimeDeps(intern(a.getStringListValueList()));
               }
-            } else if (a.getName().equals("idl_srcs")) {
-              rule.addAllIdlSources(a.getStringListValueList());
-            } else if (a.getName().equals("resource_files")) {
-              rule.addAllResourceFiles(a.getStringListValueList());
-            } else if (a.getName().equals("manifest")) {
-              rule.setManifest(a.getStringValue());
-            } else if (a.getName().equals("custom_package")) {
-              rule.setCustomPackage(a.getStringValue());
-            } else if (a.getName().equals("copts")) {
-              rule.addAllCopts(a.getStringListValueList());
-            } else if (a.getName().equals("tags")) {
-              rule.addAllTags(a.getStringListValueList());
-            } else if (a.getName().equals("main_class")) {
-              rule.setMainClass(a.getStringValue());
+            } else if (attributeName.equals("idl_srcs")) {
+              rule.addAllIdlSources(intern(a.getStringListValueList()));
+            } else if (attributeName.equals("resource_files")) {
+              rule.addAllResourceFiles(intern(a.getStringListValueList()));
+            } else if (attributeName.equals("manifest")) {
+              rule.setManifest(intern(a.getStringValue()));
+            } else if (attributeName.equals("custom_package")) {
+              rule.setCustomPackage(intern((a.getStringValue())));
+            } else if (attributeName.equals("copts")) {
+              rule.addAllCopts(intern(a.getStringListValueList()));
+            } else if (attributeName.equals("tags")) {
+              rule.addAllTags(intern(a.getStringListValueList()));
+            } else if (attributeName.equals("main_class")) {
+              rule.setMainClass(intern(a.getStringValue()));
             }
 
-            if (a.getName().equals("test_app")) {
-              rule.setTestApp(a.getStringValue());
-            } else if (a.getName().equals("instruments")) {
-              rule.setInstruments(a.getStringValue());
+            if (attributeName.equals("test_app")) {
+              rule.setTestApp(intern(a.getStringValue()));
+            } else if (attributeName.equals("instruments")) {
+              rule.setInstruments(intern(a.getStringValue()));
             }
           }
-          ruleMap.put(Label.of(target.getRule().getName()).toString(), rule.build());
+          ruleMap.put(intern(Label.of(target.getRule().getName()).toString()), rule.build());
           break;
         default:
           break;
@@ -321,14 +326,14 @@ public abstract class QuerySummary {
     public Builder putAllSourceFiles(Map<Label, Query.SourceFile> sourceFileMap) {
       builder.putAllSourceFiles(
           sourceFileMap.entrySet().stream()
-              .collect(toImmutableMap(e -> e.getKey().toString(), Map.Entry::getValue)));
+              .collect(toImmutableMap(e -> intern(e.getKey().toString()), Map.Entry::getValue)));
       return this;
     }
 
     public Builder putAllRules(Map<Label, Query.Rule> rulesMap) {
       builder.putAllRules(
           rulesMap.entrySet().stream()
-              .collect(toImmutableMap(e -> e.getKey().toString(), Map.Entry::getValue)));
+              .collect(toImmutableMap(e -> intern(e.getKey().toString()), Map.Entry::getValue)));
       return this;
     }
 
@@ -337,12 +342,21 @@ public abstract class QuerySummary {
           // TODO: b/334110669 - Consider multi workspace-builds.
           .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, "BUILD"))
           .map(Label::toString)
+          .map(QuerySummary::intern)
           .forEach(builder::addPackagesWithErrors);
       return this;
     }
 
     public QuerySummary build() {
-      return QuerySummary.create(intern(builder.build()));
+      return QuerySummary.create(builder.build());
     }
+  }
+
+  private static String intern(String s) {
+    return Interners.STRING.intern(s);
+  }
+
+  private static ImmutableList<String> intern(List<String> list) {
+    return list.stream().map(Interners.STRING::intern).collect(toImmutableList());
   }
 }
