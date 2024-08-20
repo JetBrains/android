@@ -128,7 +128,7 @@ public class AndroidStudioInstallation {
       throw new IllegalStateException("Plugin zip file wasn't found. Path: " + pluginZipPath);
     }
 
-    Path pluginsDir = workDir.resolve("android-studio/plugins");
+    Path pluginsDir = studioDir.resolve("plugins");
     Files.createDirectories(pluginsDir);
 
     unzip(pluginZipPath, pluginsDir);
