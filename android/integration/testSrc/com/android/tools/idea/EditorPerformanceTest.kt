@@ -59,6 +59,7 @@ class EditorPerformanceTest {
     metricCollector.collect("completion", "firstCodeAnalysis", "semanticHighlighting")
     metricCollector.collectChildMetrics("findUsagesParent", "findUsages")
     metricCollector.collectChildMetrics("findUsagesParent", "findUsages_firstUsage")
+    metricCollector.collectChildMetrics("completion", "invokeCompletion")
   }
 
   private fun checkCompletionTestCase(studio: AndroidStudio, completionPosition: CompletionPosition, isWarmup: Boolean) {
