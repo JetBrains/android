@@ -24,17 +24,14 @@ import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.util.ThreeState
 import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
 import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
-import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
@@ -146,28 +143,5 @@ class ComposePositionManager(
     position: SourcePosition,
   ): ClassPrepareRequest? {
     return createPrepareRequests(requestor, position).firstOrNull()
-  }
-
-  /**
-   * Compute the name of the ComposableSingletons class for the given file.
-   *
-   * The Compose compiler plugin creates per-file ComposableSingletons classes to cache composable
-   * lambdas without captured variables. We need to locate these classes in order to search them for
-   * breakpoint locations.
-   *
-   * NOTE: The pattern for ComposableSingletons classes needs to be kept in sync with the code in
-   * `ComposerLambdaMemoization.getOrCreateComposableSingletonsClass`. The optimization was
-   * introduced in I8c967b14c5d9bf67e5646e60f630f2e29e006366
-   */
-  private fun computeComposableSingletonsClassName(file: KtFile): String {
-    // The code in `ComposerLambdaMemoization` always uses the file short name and
-    // ignores `JvmName` annotations, but (implicitly) respects `JvmPackageName`
-    // annotations.
-    val filePath = file.virtualFile?.path ?: file.name
-    val fileName = filePath.split('/').last()
-    val shortName = PackagePartClassUtils.getFilePartShortName(fileName)
-    val fileClassFqName =
-      runReadAction { JvmFileClassUtil.getFileClassInfoNoResolve(file) }.facadeClassFqName
-    return "${fileClassFqName.parent().asString()}.ComposableSingletons\$$shortName"
   }
 }
