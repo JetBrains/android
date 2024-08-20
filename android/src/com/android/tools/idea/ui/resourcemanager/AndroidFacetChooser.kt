@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditorManager
