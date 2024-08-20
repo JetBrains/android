@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
@@ -87,6 +88,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.facet.isTestModule
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -125,17 +127,17 @@ class GradleModuleSystem(
 ) : AndroidModuleSystem,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
-  override val type: AndroidModuleSystem.Type
+  override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
-      IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidModuleSystem.Type.TYPE_APP
-      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidModuleSystem.Type.TYPE_ATOM
-      IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
-      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidModuleSystem.Type.TYPE_FEATURE
-      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidModuleSystem.Type.TYPE_INSTANTAPP
-      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidModuleSystem.Type.TYPE_LIBRARY
-      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidModuleSystem.Type.TYPE_LIBRARY
-      IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidModuleSystem.Type.TYPE_TEST
-      null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
+      IdeAndroidProjectType.PROJECT_TYPE_APP -> Type.TYPE_APP
+      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> Type.TYPE_ATOM
+      IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> Type.TYPE_DYNAMIC_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Type.TYPE_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Type.TYPE_INSTANTAPP
+      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      null -> Type.TYPE_NON_ANDROID
     }
 
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.createWithoutTests(module)
@@ -473,8 +475,8 @@ class GradleModuleSystem(
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
     val type = type
-    val mainModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) null else module.getMainModule()
-    val androidTestModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
+    val mainModule = if (type == Type.TYPE_TEST) null else module.getMainModule()
+    val androidTestModule = if (type == Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
     val unitTestModule = module.getUnitTestModule()
     val fixturesModule = module.getTestFixturesModule()
     val screenshotTestModule = module.getScreenshotTestModule()
@@ -642,6 +644,17 @@ class GradleModuleSystem(
   }
 
   override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
+
+  override fun isValidForAndroidRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isMainModule()
+    else -> super.isValidForAndroidRunConfiguration()
+  }
+
+  override fun isValidForAndroidTestRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> module.isAndroidTestModule()
+    Type.TYPE_TEST -> module.isMainModule()
+    else -> super.isValidForAndroidTestRunConfiguration()
+  }
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
