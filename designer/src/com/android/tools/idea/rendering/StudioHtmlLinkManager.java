@@ -284,16 +284,18 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       myFile = file;
     }
 
+    protected abstract void run();
+
     @Override
-    public void executeCommand() {
-      WriteCommandAction.writeCommandAction(myFile.getProject(), myFile).withName(myCommandName).run(() -> run());
+    public final void executeCommand() {
+      WriteCommandAction.writeCommandAction(myFile.getProject(), myFile).withName(myCommandName).run(this::run);
     }
   }
 
   @NotNull
   @Override
   public String createCommandLink(@NotNull CommandLink command) {
-    return createActionLink(module -> command.run());
+    return createActionLink(module -> command.executeCommand());
   }
 
   @NotNull
