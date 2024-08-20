@@ -59,18 +59,16 @@ class LayoutlibSceneRenderConfiguration(
   var renderingTopic: RenderingTopic = RenderingTopic.NOT_SPECIFIED
 
   /**
-   * When true, a re-inflation of the model will be forced on the next render, causing the existing
-   * [RenderTask] to be disposed and replaced by a newer one.
+   * When true, the model will be inflated on the next render, causing the existing [RenderTask] to
+   * be disposed and replaced by a newer one.
+   *
+   * Clients of this render configuration should set this to true to indicate the need of
+   * re-inflating. And the corresponding [LayoutlibSceneRenderer] will reset this to false after the
+   * inflation is done.
+   *
+   * The initial value is true because the model needs to be inflated on the first render.
    */
-  internal val forceInflate = AtomicBoolean(false)
-
-  /** Should be used to indicate that a re-inflation needs to be forced in the next render. */
-  fun forceReinflate() {
-    forceInflate.set(true)
-  }
-
-  /** Returns true when a re-inflation will be forced in the next render. */
-  fun isForceReinflate() = forceInflate.get()
+  val needsInflation = AtomicBoolean(true)
 
   /** When true, a re-render of the model will be done after the next render if needed. */
   val doubleRenderIfNeeded = AtomicBoolean(false)
@@ -93,7 +91,7 @@ class LayoutlibSceneRenderConfiguration(
     set(value) {
       if (field != value) {
         field = value
-        forceInflate.set(true)
+        needsInflation.set(true)
       }
     }
 
@@ -102,7 +100,7 @@ class LayoutlibSceneRenderConfiguration(
     set(value) {
       if (field != value) {
         field = value
-        forceInflate.set(true)
+        needsInflation.set(true)
       }
     }
 
@@ -112,7 +110,7 @@ class LayoutlibSceneRenderConfiguration(
       if (field != value) {
         field = value
         // Showing decorations changes the XML content of the render so requires re-inflation
-        forceInflate.set(true)
+        needsInflation.set(true)
       }
     }
 
@@ -135,7 +133,7 @@ class LayoutlibSceneRenderConfiguration(
       if (field != value) {
         field = value
         // Showing decorations changes the XML content of the render so requires re-inflation
-        forceInflate.set(true)
+        needsInflation.set(true)
       }
     }
 

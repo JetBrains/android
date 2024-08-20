@@ -225,7 +225,7 @@ internal constructor(
 
   override fun forceRefresh(): CompletableFuture<Void> {
     return requestSequentialRender {
-      it.sceneRenderConfiguration.forceReinflate()
+      it.sceneRenderConfiguration.needsInflation.set(true)
       it.requestRenderAsync()
     }
   }
@@ -373,7 +373,7 @@ internal constructor(
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
     return requestSequentialRender {
-        it.sceneRenderConfiguration.forceReinflate()
+        it.sceneRenderConfiguration.needsInflation.set(true)
         it.requestUserInitiatedRenderAsync()
       }
       .whenComplete { _, _ -> refreshProgressIndicator.processFinish() }

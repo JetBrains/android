@@ -317,7 +317,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       val sceneManager =
         configureLayoutlibSceneManager(previewElement.displaySettings, newSceneManager).also {
           if (forceReinflate) {
-            it.sceneRenderConfiguration.forceReinflate()
+            it.sceneRenderConfiguration.needsInflation.set(true)
           }
           if (invalidatePreviousRender) {
             it.invalidateCachedResponse()
@@ -364,7 +364,7 @@ private suspend fun renderAndTrack(
   refreshEventBuilder: PreviewRefreshEventBuilder?,
   onCompleteCallback: (Throwable?) -> Unit = {},
 ) {
-  val inflate = sceneManager.sceneRenderConfiguration.isForceReinflate()
+  val inflate = sceneManager.sceneRenderConfiguration.needsInflation.get()
   val quality = sceneManager.sceneRenderConfiguration.quality
   val startMs = System.currentTimeMillis()
   sceneManager.render {

@@ -422,7 +422,7 @@ class CustomViewPreviewRepresentation(
           // repaint.
           surface.deactivate()
           surface.models.first().let { model ->
-            surface.getSceneManager(model)!!.sceneRenderConfiguration.forceReinflate()
+            surface.getSceneManager(model)!!.sceneRenderConfiguration.needsInflation.set(true)
             model.updateFileContentBlocking(fileContent)
           }
         }
