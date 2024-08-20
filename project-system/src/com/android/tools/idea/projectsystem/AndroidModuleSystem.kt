@@ -396,6 +396,26 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   //  all the modules in this linked module group".  The difference shows up in projects that have type = Type.TEST under Gradle, where
   //  the main module of that linked group is not a production module.
   fun isProductionAndroidModule() = AndroidFacet.getInstance(module) != null
+
+  /**
+   * Is this module suitable for use in an [AndroidRunConfiguration] editor?
+   */
+  fun isValidForAndroidRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> true
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
+    Type.TYPE_NON_ANDROID -> false
+    Type.TYPE_LIBRARY, Type.TYPE_TEST -> false // Valid for AndroidTestRunConfiguration instead.
+  }
+
+  /**
+   * Is this module suitable for use in an [AndroidTestRunConfiguration] editor?
+   */
+  fun isValidForAndroidTestRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> false
+    Type.TYPE_TEST -> true
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
+    Type.TYPE_NON_ANDROID -> false
+  }
 }
 
 /**

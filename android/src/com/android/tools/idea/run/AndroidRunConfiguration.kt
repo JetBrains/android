@@ -182,15 +182,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
     return AndroidRunConfigurationEditor(
       project, Predicate { module: Module? ->
-        if (module == null) return@Predicate false
-        val facet = AndroidFacet.getInstance(module) ?: return@Predicate false
-        val moduleSystem = facet.getModuleSystem()
-        when (moduleSystem.type) {
-          AndroidModuleSystem.Type.TYPE_APP, AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> return@Predicate module.isMainModule()
-          AndroidModuleSystem.Type.TYPE_ATOM, AndroidModuleSystem.Type.TYPE_FEATURE, AndroidModuleSystem.Type.TYPE_INSTANTAPP -> return@Predicate false // Legacy not-supported module types.
-          AndroidModuleSystem.Type.TYPE_NON_ANDROID -> return@Predicate false
-          AndroidModuleSystem.Type.TYPE_LIBRARY, AndroidModuleSystem.Type.TYPE_TEST -> return@Predicate false // Supported via AndroidTestRunConfiguration.
-        }
+        return@Predicate module?.getModuleSystem()?.isValidForAndroidRunConfiguration() ?: false
       }, this, true, false
     ) { moduleSelector: ConfigurationModuleSelector -> ApplicationRunParameters(project, moduleSelector) }
   }
