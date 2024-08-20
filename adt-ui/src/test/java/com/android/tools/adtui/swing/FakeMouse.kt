@@ -81,7 +81,6 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
       dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false)
       this.cursor = Cursor(cursor, x, y)
     }
-    this.focus = target
   }
 
   /** Like [dragTo] but with relative values. */
@@ -115,7 +114,6 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     if (target != null) {
       dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 1, false)
     }
-    this.focus = target
   }
 
   fun release() {
@@ -216,6 +214,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
         point.component, eventType, System.currentTimeMillis(), keyboard.toModifiersCode() or modifiers,
         point.x, point.y, clickCount, popupTrigger, button)
     point.component.dispatchEvent(event)
+    focus = if (eventType == MouseEvent.MOUSE_EXITED) null else point.component
   }
 
   private fun dispatchMouseWheelEvent(x: Int, y: Int, rotation: Int) {
@@ -224,6 +223,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
         point.component, MouseEvent.MOUSE_WHEEL, System.currentTimeMillis(), keyboard.toModifiersCode(),
         point.x, point.y, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation)
     point.component.dispatchEvent(event)
+    focus = point.component
   }
 
   enum class Button(val code: Int, val mask: Int) {
