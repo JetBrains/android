@@ -148,6 +148,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

@@ -20,10 +20,10 @@ import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.analytics.CommonUsageTracker
+import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.ShowFixFactory
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createHtmlLogger
@@ -38,6 +38,7 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -53,17 +54,31 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
+private class RenderRequest(
+  val trigger: LayoutEditorRenderResult.Trigger?,
+  // TODO(b/335424569): remove reverseUpdate
+  val reverseUpdate: AtomicBoolean,
+) {
+  val requestTime: Long = System.currentTimeMillis()
+}
+
 // TODO(b/335424569): this class is meant to be used for extracting the rendering responsibilities
 //   out of LayoutlibSceneManager. Add proper class description later.
-internal class LayoutlibSceneRenderer(
+class LayoutlibSceneRenderer(
   parentDisposable: Disposable,
   private val disposeExecutor: Executor,
   private val model: NlModel,
@@ -75,6 +90,10 @@ internal class LayoutlibSceneRenderer(
   private val updateHierarchyLock = ReentrantLock()
   private val renderTaskLock = ReentrantLock()
   private val renderResultLock = ReentrantLock()
+  private val isActive = AtomicBoolean(true)
+  private val renderIsRunning = AtomicBoolean(false)
+  private val log = Logger.getInstance(LayoutlibSceneRenderer::class.java)
+  private val requestsLock = Mutex()
 
   val sceneRenderConfiguration =
     LayoutlibSceneRenderConfiguration(model, surface, layoutScannerConfig)
@@ -94,15 +113,15 @@ internal class LayoutlibSceneRenderer(
     Disposer.register(parentDisposable, this)
   }
 
-  // TODO(b/335424569): make this field private, or at least its setter
+  // TODO(b/335424569): make this field private
   @GuardedBy("renderTaskLock")
   var renderTask: RenderTask? = null
     get() = renderTaskLock.withLock { field }
-    set(newTask) {
+    private set(newTask) {
       val oldTask: RenderTask?
       renderTaskLock.withLock {
-        // If renderer already disposed, any new task should be immediately disposed
-        if (isDisposed.get() && newTask != null) oldTask = newTask
+        // If renderer is inactive or disposed, any new task should be immediately disposed
+        if (isDisposedOrDeactivated() && newTask != null) oldTask = newTask
         else {
           oldTask = field
           // TODO(b/168445543): move session clock to RenderTask
@@ -130,8 +149,8 @@ internal class LayoutlibSceneRenderer(
       val oldResult: RenderResult?
       renderResultLock.withLock {
         if (field === newResult) return
-        // If renderer already disposed, any new result should be immediately disposed
-        if (isDisposed.get() && newResult != null) oldResult = newResult
+        // If renderer is inactive or disposed, any new result should be immediately disposed
+        if (isDisposedOrDeactivated() && newResult != null) oldResult = newResult
         else {
           oldResult = field
           field =
@@ -154,15 +173,105 @@ internal class LayoutlibSceneRenderer(
       oldResult?.dispose()
     }
 
-  // TODO(b/335424569): remove this method, directly use the suspendable render
-  fun renderAsync(reverseUpdate: AtomicBoolean): CompletableFuture<RenderResult?> =
-    scope.async { render(reverseUpdate) }.asCompletableFuture()
+  /**
+   * This channel will receive all render requests but will keep at most one in its queue, dropping
+   * old requests waiting to be processed when a newer comes in.
+   */
+  private val requestsChannel = Channel<RenderRequest>(capacity = Channel.Factory.CONFLATED)
+
+  /**
+   * This flow contains the [RenderRequest.requestTime] of the latest request that has finished to
+   * be processed, regardless of the result.
+   */
+  private val lastProcessedRenderRequestTime = MutableStateFlow<Long>(-1)
+
+  init {
+    scope.launch {
+      requestsChannel.receiveAsFlow().collect {
+        renderIsRunning.set(true)
+        if (isActive.get()) doRender(it)
+        else log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
+        lastProcessedRenderRequestTime.emit(
+          maxOf(lastProcessedRenderRequestTime.value, it.requestTime)
+        )
+        renderIsRunning.set(false)
+      }
+    }
+  }
+
+  /**
+   * Adds a new [RenderRequest] to the queue and returns a future that will be completed once this
+   * request or some other newer request is completed.
+   *
+   * Note that it's not guaranteed that this specific request will be executed, as it could be
+   * replaced by a newer request that arrives later, before this one starts to execute.
+   *
+   * @param trigger reason that triggered the render, used for tracking purposes
+   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
+   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
+   *   this param)
+   */
+  // TODO(b/335424569): remove this method and make clients use requestRender or
+  //  requestRenderAndWait
+  fun renderAsync(
+    trigger: LayoutEditorRenderResult.Trigger?,
+    reverseUpdate: AtomicBoolean,
+  ): CompletableFuture<Unit> {
+    return scope.launch { requestRenderAndWait(trigger, reverseUpdate) }.asCompletableFuture()
+  }
+
+  /**
+   * Adds a new [RenderRequest] to the queue and returns immediately.
+   *
+   * Note that it's not guaranteed that this specific request will be executed, as it could be
+   * replaced by a newer request that arrives later, before this one starts to execute.
+   *
+   * @param trigger reason that triggered the render, used for tracking purposes
+   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
+   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
+   *   this param)
+   */
+  fun requestRender(trigger: LayoutEditorRenderResult.Trigger?, reverseUpdate: AtomicBoolean) {
+    scope.launch { enqueueRenderRequest(trigger, reverseUpdate) }
+  }
+
+  /**
+   * Adds a new [RenderRequest] to the queue and waits for it or some newer request to complete.
+   *
+   * Note that it's not guaranteed that this specific request will be executed, as it could be
+   * replaced by a newer request that arrives later, before this one starts to execute.
+   *
+   * @param trigger reason that triggered the render, used for tracking purposes
+   * @param reverseUpdate used by the render process to indicate that the hierarchy was updated,
+   *   some callers currently use this to sometimes execute a re-render (TODO(b/335424569): remove
+   *   this param)
+   */
+  suspend fun requestRenderAndWait(
+    trigger: LayoutEditorRenderResult.Trigger?,
+    reverseUpdate: AtomicBoolean,
+  ) {
+    val request = enqueueRenderRequest(trigger, reverseUpdate)
+    // Suspends until this or any newer request is processed
+    lastProcessedRenderRequestTime.first { it >= request.requestTime }
+  }
+
+  /** Creates a new [RenderRequest] request, adds it to the queue and returns it. */
+  private suspend fun enqueueRenderRequest(
+    trigger: LayoutEditorRenderResult.Trigger?,
+    reverseUpdate: AtomicBoolean,
+  ): RenderRequest {
+    // Mutex is needed to guarantee that requests are sent to the channel in order of their
+    // requestTime
+    return requestsLock.withLock {
+      RenderRequest(trigger, reverseUpdate).also { requestsChannel.send(it) }
+    }
+  }
 
   /**
    * Render the model and update the view hierarchy.
    *
-   * This method will also [inflate] the model when forced or needed (i.e. when [forceInflate] is
-   * true or when [renderTask] is null).
+   * This method will also [inflate] the model when forced or needed (i.e. when
+   * [LayoutlibSceneRenderConfiguration.forceInflate] is true or when [renderTask] is null).
    *
    * Returns the [RenderResult] of the render operation, which might be an error result, or null if
    * the model could not be rendered (e.g. because the inflation failed).
@@ -170,16 +279,14 @@ internal class LayoutlibSceneRenderer(
    * Note that [CancellationException]s will be caught by this method and cause the returned
    * [RenderResult] to be an error result.
    */
-  private suspend fun render(
-    // TODO(b/335424569): remove reverseUpdate param
-    reverseUpdate: AtomicBoolean
-  ): RenderResult? {
+  private suspend fun doRender(request: RenderRequest): RenderResult? {
     var result: RenderResult? = null
+    val renderStartTimeMs = System.currentTimeMillis()
     try {
       // Inflate only if needed
       val inflateResult =
         if (sceneRenderConfiguration.forceInflate.getAndSet(false) || renderTask == null)
-          inflate(reverseUpdate)
+          inflate(request.reverseUpdate)
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
@@ -199,7 +306,7 @@ internal class LayoutlibSceneRenderer(
           lastRenderQuality = quality
           // When the layout was inflated in this same call, we do not have to update the hierarchy
           // again
-          if (inflateResult != null) reverseUpdate.set(updateHierarchy(result))
+          if (inflateResult != null) request.reverseUpdate.set(updateHierarchy(result))
         }
       }
     } catch (throwable: Throwable) {
@@ -215,6 +322,20 @@ internal class LayoutlibSceneRenderer(
     }
 
     result?.let { renderResult = result }
+
+    // Notify surface and track metrics async
+    val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
+    scope.launch {
+      surface.modelRendered()
+      result?.let {
+        // In an unlikely event when result is disposed we can still safely request the size of the
+        // image
+        NlDiagnosticsManager.getWriteInstance(surface)
+          .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
+        CommonUsageTracker.getInstance(surface)
+          .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
+      }
+    }
     return result
   }
 
@@ -277,7 +398,7 @@ internal class LayoutlibSceneRenderer(
           renderTask = newTask
           reverseUpdate.set(updateHierarchy(result))
           // Do more updates async
-          scope.launch(workerThread) {
+          scope.launch {
             model.notifyListenersModelDerivedDataChanged()
             CommonUsageTracker.getInstance(surface)
               .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
@@ -351,17 +472,29 @@ internal class LayoutlibSceneRenderer(
     return reverseUpdate
   }
 
-  fun deactivate() {
-    renderTask = null
-    renderResult = null
+  fun activate() {
+    isActive.set(true)
   }
+
+  fun deactivate() {
+    if (isActive.getAndSet(false)) {
+      renderTask = null
+      renderResult = null
+    }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun isRendering() = isActive.get() && (!requestsChannel.isEmpty || renderIsRunning.get())
 
   override fun dispose() {
     if (isDisposed.getAndSet(true)) return
+    requestsChannel.close()
     if (ApplicationManager.getApplication().isReadAccessAllowed) {
       // dispose is called by the project close using the read lock. Invoke the render task dispose
       // later without the lock.
       disposeExecutor.execute(::deactivate)
     } else deactivate()
   }
+
+  private fun isDisposedOrDeactivated() = isDisposed.get() || !isActive.get()
 }
