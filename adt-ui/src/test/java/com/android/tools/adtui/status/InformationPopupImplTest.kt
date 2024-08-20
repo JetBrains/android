@@ -177,7 +177,7 @@ class InformationPopupImplTest {
     }
 
     val fakeUi = FakeUi(parent, 1.0, true)
-    popup.showPopup({ }, parent)
+    popup.showPopup(disposableRule.disposable , parent)
 
     assertEquals(
       "Action 1, Action 2",
