@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import java.net.SocketTimeoutException
@@ -42,7 +43,9 @@ class InsightContentPanelTest {
   private val testRootDisposable
     get() = controllerRule.disposable
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
   private lateinit var currentInsightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private lateinit var insightContentPanel: InsightContentPanel
