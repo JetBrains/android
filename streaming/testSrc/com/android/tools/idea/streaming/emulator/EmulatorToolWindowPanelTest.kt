@@ -427,6 +427,14 @@ class EmulatorToolWindowPanelTest {
       assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
+
+    ui.mouseClickOn(ui.getComponent<ActionButton> { it.action.templateText == "Show Taskbar" })
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { action: SHOW_TASKBAR }")
+
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2.seconds)
@@ -450,7 +458,6 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
-    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     val testCases = mapOf(
@@ -462,7 +469,7 @@ class EmulatorToolWindowPanelTest {
     for ((inputMode, expectedEvent) in testCases) {
       xrInputController.inputMode = inputMode
       ui.mouse.moveTo(100, 100)
-      val call = streamInputCall ?: emulator.getNextGrpcCall(2.seconds).also { streamInputCall = it }
+      val call = streamInputCall ?: getNextGrpcCallIgnoringStreamScreenshot().also { streamInputCall = it }
       assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 }")
       ui.mouse.press(100, 100)
       assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("$expectedEvent { x: 428 y: 258 buttons: 1 }")
@@ -491,13 +498,12 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
-    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
     ui.keyboard.setFocus(emulatorView)
     ui.keyboard.press(VK_ENTER)
-    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     // Keys that are not used for navigation produce keypress events.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
     ui.keyboard.release(VK_ENTER)
@@ -558,12 +564,11 @@ class EmulatorToolWindowPanelTest {
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
 
-    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     xrInputController.inputMode = XrInputMode.VIEW_DIRECTION
     ui.mouse.press(100, 100)
     ui.mouse.dragTo(500, 100)
-    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
         .isEqualTo("xr_input_event { move_event { intent: XR_MOVE_EVENT_INTENT_VIEWPORT_ROTATE rel_x: 1707 } }")
     ui.mouse.dragTo(500, 500)
@@ -594,14 +599,13 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
-    try { emulator.getNextGrpcCall(2.seconds) } catch (_: TimeoutException) {} // Drain the gRPC call log.
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     // Moving in the view plane dragging the mouse.
     xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_XY
     ui.mouse.press(100, 100)
     ui.mouse.dragTo(500, 100)
-    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_x: 1707 } }")
     ui.mouse.dragTo(500, 500)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_input_event { move_event { rel_y: 1707 } }")
@@ -1159,6 +1163,9 @@ class EmulatorToolWindowPanelTest {
     return emulatorView.frameNumber
   }
 
+  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
+      emulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
+
   private val EmulatorToolWindowPanel.primaryEmulatorView
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
@@ -1182,5 +1189,8 @@ class EmulatorToolWindowPanelTest {
     return TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
+
+val IGNORE_SCREENSHOT_CALL_FILTER =
+    FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamScreenshot")
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest"

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.emulator.control.InputEvent
+import com.android.emulator.control.XrCommand
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -24,7 +26,8 @@ class EmulatorXrRecenterAction : AbstractEmulatorAction(configFilter = { it.devi
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulator = getEmulatorController(event) ?: return
-    getEmulatorView(event)?.findNotificationHolderPanel()?.showFadeOutNotification("This action is not implemented yet")
+    val message = InputEvent.newBuilder().setXrCommand(XrCommand.newBuilder().setAction(XrCommand.Action.RECENTER))
+    emulator.getOrCreateInputEventSender().onNext(message.build())
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
