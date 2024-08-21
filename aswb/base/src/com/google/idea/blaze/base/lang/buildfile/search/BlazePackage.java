@@ -15,12 +15,10 @@
  */
 package com.google.idea.blaze.base.lang.buildfile.search;
 
-import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.lang.buildfile.psi.BuildFile;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.workspace.WorkspaceHelper;
-import com.intellij.history.core.Paths;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PackagePrefixFileSystemItem;
 import com.intellij.psi.PsiDirectory;
@@ -28,9 +26,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathUtil;
-import com.intellij.util.Processor;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 /**
@@ -113,8 +110,10 @@ public class BlazePackage {
    */
   @Nullable
   public String getPackageRelativePath(String filePath) {
-    String packageFilePath = PathUtil.getParentPath(buildFile.getFilePath());
-    return Paths.relativeIfUnder(filePath, packageFilePath);
+    final Path packageDirPath = Path.of(PathUtil.getParentPath(buildFile.getFilePath()));
+    Path filePathPath = Path.of(filePath);
+    return filePathPath.startsWith(packageDirPath) ? filePathPath.subpath(packageDirPath.getNameCount(), filePathPath.getNameCount())
+      .toString() : null;
   }
 
   /** Formats the child file path as a BUILD label (i.e. "//package_path[:relative_path]") */
@@ -137,41 +136,13 @@ public class BlazePackage {
     if (child == null) {
       return null;
     }
-    String packagePath = PathUtil.getParentPath(buildFile.getFilePath());
-    return Paths.relativeIfUnder(child.getPath(), packagePath);
-  }
-
-  /**
-   * Walks the directory tree, processing all files accessible by this package (i.e. not processing
-   * child packages).
-   */
-  public void processPackageFiles(Processor<PsiFile> processor) {
-    PsiDirectory dir = getContainingDirectory();
-    if (dir == null) {
-      return;
-    }
-    processPackageFiles(processor, dir);
-  }
-
-  private static void processPackageFiles(Processor<PsiFile> processor, PsiDirectory directory) {
-    processDirectory(processor, directory);
-    for (PsiDirectory child : directory.getSubdirectories()) {
-      if (!isBlazePackage(child)) {
-        processPackageFiles(processor, directory);
-      }
-    }
+    return getPackageRelativePath(child.getPath());
   }
 
   public static boolean isBlazePackage(PsiDirectory dir) {
     return Blaze.getBuildSystemProvider(dir.getProject())
             .findBuildFileInDirectory(dir.getVirtualFile())
         != null;
-  }
-
-  private static void processDirectory(Processor<PsiFile> processor, PsiDirectory directory) {
-    for (PsiFile file : directory.getFiles()) {
-      processor.process(file);
-    }
   }
 
   @Override
@@ -196,29 +167,5 @@ public class BlazePackage {
     return String.format(
         "%s package: %s",
         Blaze.buildSystemName(buildFile.getProject()), buildFile.getPackageLabel());
-  }
-
-  public static boolean hasBlazePackageChild(
-      PsiDirectory directory, Predicate<PsiDirectory> searchDirectory) {
-    BuildSystemProvider buildSystemProvider = Blaze.getBuildSystemProvider(directory.getProject());
-    return hasBlazePackageChild(searchDirectory, buildSystemProvider, directory);
-  }
-
-  private static boolean hasBlazePackageChild(
-      Predicate<PsiDirectory> searchDirectory,
-      BuildSystemProvider buildSystemProvider,
-      PsiDirectory directory) {
-    if (!searchDirectory.test(directory)) {
-      return false;
-    }
-    if (buildSystemProvider.findBuildFileInDirectory(directory.getVirtualFile()) != null) {
-      return true;
-    }
-    for (PsiDirectory child : directory.getSubdirectories()) {
-      if (hasBlazePackageChild(searchDirectory, buildSystemProvider, child)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
