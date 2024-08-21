@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
@@ -270,6 +271,9 @@ class LayoutlibSceneRenderer(
   ): RenderResult? {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
+
+    // Wrapping into blockingContext because model.file requires read action
+    val file = blockingContext { model.file }
     try {
       // Inflate only if needed
       if (renderTask == null && !sceneRenderConfiguration.needsInflation.get()) {
@@ -308,7 +312,7 @@ class LayoutlibSceneRenderer(
       if (!model.isDisposed) {
         result =
           createRenderTaskErrorResult(
-            model.file,
+            file,
             (throwable as? CompletionException)?.cause ?: throwable,
           )
       }
@@ -346,11 +350,13 @@ class LayoutlibSceneRenderer(
     if (project.isDisposed || isDisposed.get()) {
       return null
     }
+    // Wrapping into blockingContext because model.file requires read action
+    val file = blockingContext { model.file }
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
     // disk contents, so we have to push any edits to disk before rendering)
-    model.file.saveFileIfNecessary()
+    file.saveFileIfNecessary()
 
     // Record the current version we're rendering from; we'll use that in #activate to make sure
     // we're picking up any external changes
@@ -358,14 +364,14 @@ class LayoutlibSceneRenderer(
     val configuration: Configuration = model.configuration
     val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
     renderedVersion =
-      resourceNotificationManager.getCurrentVersion(facet, model.file, configuration)
+      resourceNotificationManager.getCurrentVersion(facet, file, configuration)
 
-    val renderService = StudioRenderService.getInstance(model.project)
+    val renderService = StudioRenderService.getInstance(project)
     val logger =
       if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(project)
       else renderService.nopLogger
 
-    lateinit var result: RenderResult
+    var result: RenderResult? = null
     var newTask: RenderTask? = null
     try {
       withContext(NonCancellable) {
@@ -374,33 +380,31 @@ class LayoutlibSceneRenderer(
         newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
       }
       result =
-        newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(model.file, logger)
+        newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
     } catch (throwable: Throwable) {
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
-      result = createRenderTaskErrorResult(model.file, throwable)
       if (throwable is CancellationException) {
         // Re-throw any CancellationException to correctly propagate cancellations upward
         throw throwable
       }
+      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
+      result = createRenderTaskErrorResult(file, throwable)
     } finally {
       // Make sure not to cancel the post-inflation work needed to keep this renderer in a
       // consistent state
-      withContext(NonCancellable) {
-        renderResult = result
-        if (result.renderResult.isSuccess && !isDisposed.get()) {
-          renderTask = newTask
-          reverseUpdate.set(updateHierarchy(result))
-          // Do more updates async
-          scope.launch {
-            model.notifyListenersModelDerivedDataChanged()
-            CommonUsageTracker.getInstance(surface)
-              .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
-          }
-        } else {
-          // If the result is not successful or the renderer is disposed, then we discard the task.
-          newTask?.dispose()
-          renderTask = null
+      renderResult = result
+      if (result?.renderResult?.isSuccess == true && !isDisposed.get()) {
+        renderTask = newTask
+        reverseUpdate.set(updateHierarchy(result))
+        // Do more updates async
+        scope.launch {
+          model.notifyListenersModelDerivedDataChanged()
+          CommonUsageTracker.getInstance(surface)
+            .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
         }
+      } else {
+        // If the result is not successful or the renderer is disposed, then we discard the task.
+        newTask?.dispose()
+        renderTask = null
       }
     }
     return result
