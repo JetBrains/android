@@ -60,7 +60,7 @@ public abstract class QuerySpec implements Formattable {
             + ")");
   }
 
-  // LINT.ThenChange(/tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/aswb/testdata/projects/test_projects.bzl)
+  // LINT.ThenChange(/tools/adt/idea/aswb/aswb/testdata/projects/test_projects.bzl)
 
   @Override
   public final String toString() {

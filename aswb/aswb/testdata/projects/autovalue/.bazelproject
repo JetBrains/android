@@ -1,0 +1,7 @@
+
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/autovalue
+
+android_sdk_platform: android-34
+
+

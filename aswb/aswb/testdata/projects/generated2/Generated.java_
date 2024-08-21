@@ -1,0 +1,8 @@
+package com.example;
+
+public class Generated {
+
+  public Generated() {
+  }
+
+}
