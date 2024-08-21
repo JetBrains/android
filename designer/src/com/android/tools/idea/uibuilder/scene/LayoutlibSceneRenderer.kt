@@ -73,8 +73,18 @@ private class RenderRequest(val trigger: LayoutEditorRenderResult.Trigger?) {
   val requestTime: Long = System.currentTimeMillis()
 }
 
-// TODO(b/335424569): this class is meant to be used for extracting the rendering responsibilities
-//   out of LayoutlibSceneManager. Add proper class description later.
+/**
+ * Class responsible for inflation and rendering of the given [NlModel]. It's configurable via its
+ * [sceneRenderConfiguration]. This class is also responsible for handling render requests by
+ * enqueueing them, skipping some and processing others (see [requestsChannel]), and handling the
+ * lifecycle of its associated [RenderTask]s and [RenderResult]s.
+ *
+ * @param parentDisposable parent to use when registering this renderer into the [Disposer], usually
+ *   the scene manager using this renderer.
+ * @param disposeExecutor executor where deactivation should be executed when disposing.
+ * @param model the [NlModel] that this renderer will be rendering.
+ * @param surface the [NlDesignSurface] where the model is being displayed.
+ */
 class LayoutlibSceneRenderer(
   parentDisposable: Disposable,
   private val disposeExecutor: Executor,
@@ -82,16 +92,30 @@ class LayoutlibSceneRenderer(
   private val surface: NlDesignSurface,
   layoutScannerConfig: LayoutScannerConfiguration,
 ) : Disposable {
-  private val scope = AndroidCoroutineScope(this)
+  private val log = Logger.getInstance(LayoutlibSceneRenderer::class.java)
   private val isDisposed = AtomicBoolean(false)
-  private val updateHierarchyLock = ReentrantLock()
-  private val renderTaskLock = ReentrantLock()
-  private val renderResultLock = ReentrantLock()
   private val isActive = AtomicBoolean(true)
   private val renderIsRunning = AtomicBoolean(false)
-  private val log = Logger.getInstance(LayoutlibSceneRenderer::class.java)
+
+  /**
+   * Worker thread based coroutine scope used for processing render requests, and performing
+   * inflation and rendering.
+   */
+  private val scope = AndroidCoroutineScope(this)
+
+  /** Lock guarding execution of [NlModelHierarchyUpdater.updateHierarchy] for [model]. */
+  private val updateHierarchyLock = ReentrantLock()
+
+  /** Lock guarding read and write of [renderTask]. */
+  private val renderTaskLock = ReentrantLock()
+
+  /** Lock guarding read and write of [renderResult]. */
+  private val renderResultLock = ReentrantLock()
+
+  /** Lock guarding the enqueueing of requests into [requestsChannel]. */
   private val requestsLock = Mutex()
 
+  /** The configuration to use when inflating and rendering, and for creating new [RenderTask]s. */
   val sceneRenderConfiguration =
     LayoutlibSceneRenderConfiguration(model, surface, layoutScannerConfig)
 
@@ -311,10 +335,7 @@ class LayoutlibSceneRenderer(
       // created instead when cancellations or other errors happen.
       if (!model.isDisposed) {
         result =
-          createRenderTaskErrorResult(
-            file,
-            (throwable as? CompletionException)?.cause ?: throwable,
-          )
+          createRenderTaskErrorResult(file, (throwable as? CompletionException)?.cause ?: throwable)
       }
     }
 
@@ -363,8 +384,7 @@ class LayoutlibSceneRenderer(
     val facet: AndroidFacet = model.facet
     val configuration: Configuration = model.configuration
     val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
-    renderedVersion =
-      resourceNotificationManager.getCurrentVersion(facet, file, configuration)
+    renderedVersion = resourceNotificationManager.getCurrentVersion(facet, file, configuration)
 
     val renderService = StudioRenderService.getInstance(project)
     val logger =
@@ -379,8 +399,7 @@ class LayoutlibSceneRenderer(
         // This is needed to avoid leaks and make sure that it's correctly disposed when needed.
         newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
       }
-      result =
-        newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
+      result = newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
     } catch (throwable: Throwable) {
       if (throwable is CancellationException) {
         // Re-throw any CancellationException to correctly propagate cancellations upward
@@ -454,6 +473,7 @@ class LayoutlibSceneRenderer(
     this?.renderedImage?.let { it.width > 1 && it.height > 1 } ?: false
 
   // TODO(b/335424569): make this method private
+  /** Updates the hierarchy based on the [model]'s render/inflate result. */
   fun updateHierarchy(result: RenderResult?): Boolean {
     var reverseUpdate = false
     try {
@@ -480,6 +500,10 @@ class LayoutlibSceneRenderer(
     }
   }
 
+  /**
+   * Returns true when there are running or pending render requests and the renderer is not
+   * currently deactivated.
+   */
   @OptIn(ExperimentalCoroutinesApi::class)
   fun isRendering() = isActive.get() && (!requestsChannel.isEmpty || renderIsRunning.get())
 
