@@ -38,7 +38,6 @@ import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.diagnostics.typing.TypingEventWatcher;
-import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.google.common.base.Charsets;
@@ -67,7 +66,6 @@ import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.EssentialHighlightingMode;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.actions.CopyAction;
@@ -150,7 +148,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import kotlin.Suppress;
 import org.HdrHistogram.SingleWriterRecorder;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -515,7 +512,7 @@ public final class AndroidStudioSystemHealthMonitor {
     ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
     ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
     ourNonBundledPluginsExceptionCount.set(getPersistedExceptionCount(NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
-    sendInitialIDEModes();
+    sendInitialIdeMode();
 
     StudioCrashDetection.start();
     startActivityMonitoring();
@@ -560,19 +557,7 @@ public final class AndroidStudioSystemHealthMonitor {
     SystemHealthDataCollection.getInstance().start();
   }
 
-  /**
-   * Send the initial mode of Studio including whether it is in Power Save Mode
-   * or Essential Highlighting Mode.
-   *
-   */
-  private void sendInitialIDEModes() {
-    // Essential Highlighting
-    String essentialAction = metricsNameForClass(EssentialsModeToggleAction.class);
-    UIActionStats.Builder essentialMode = getInitialUIStateAction();
-    essentialMode.setActionClassName(essentialAction);
-    essentialMode.setTogglingOn(EssentialHighlightingMode.INSTANCE.isEnabled());
-    AndroidStudioEvent.Builder essentialModeBuilder = buildStudioUiEvent(essentialMode);
-
+  private void sendInitialIdeMode() {
     // Power save mode
     String powerSaveAction = metricsNameForClass(ActionManager.getInstance().getAction("TogglePowerSave").getClass());
     UIActionStats.Builder powerSaveMode = getInitialUIStateAction();
@@ -580,7 +565,6 @@ public final class AndroidStudioSystemHealthMonitor {
     powerSaveMode.setTogglingOn(PowerSaveMode.isEnabled());
     AndroidStudioEvent.Builder powerSaveModeBuilder = buildStudioUiEvent(powerSaveMode);
 
-    UsageTracker.log(essentialModeBuilder);
     UsageTracker.log(powerSaveModeBuilder);
   }
 
