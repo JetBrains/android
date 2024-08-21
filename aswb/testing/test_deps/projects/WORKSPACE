@@ -1,0 +1,5 @@
+workspace(name = "aswb_test_projects")
+
+register_toolchains(
+    "//:cc_toolchain_for_linux_x86_64",
+)
