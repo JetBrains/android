@@ -77,7 +77,7 @@ class ViewBindingSamePackageModulesTest {
           GlobalSearchScope.everythingScope(project),
         )
       )
-      .hasLength(2)
+      .hasLength(6)
     fixture.findClass(libBindingClassName, context)
 
     // Before, this would return null, because lib2's entry used to overwrite lib1's entry
