@@ -4,18 +4,13 @@ package org.jetbrains.android;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.actionSystem.Constraints;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,8 +26,6 @@ public final class AndroidPlugin {
     public void customize(@NotNull ActionManager actionManager) {
       if (!IdeInfo.getInstance().isAndroidStudio()) {
         initializeForNonStudio(actionManager);
-      } else {
-        overrideEssentialHighlightingAction(actionManager);
       }
     }
   }
@@ -51,23 +44,4 @@ public final class AndroidPlugin {
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
-
-  /**
-   * Set up "Essential Highlighting" action to be behind feature flag.
-   * <p>
-   * In Intellij platform it is currently internal action, and only available in internal mode.
-   * For Android Studio make it non-internal and controlled by server side flag.
-   */
-  private static void overrideEssentialHighlightingAction(ActionManager actionManager) {
-    ToggleAction studioAction = new EssentialsModeToggleAction();
-    // when using Essentials mode, don't show essential-highlighting notifications
-    PropertiesComponent.getInstance().setValue("ignore.essential-highlighting.mode", true);
-    if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
-      Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
-    } else {
-      AnAction group = actionManager.getAction("PowerSaveGroup");
-      ((DefaultActionGroup)group).add(studioAction, Constraints.LAST, actionManager);
-    }
-  }
-
 }
