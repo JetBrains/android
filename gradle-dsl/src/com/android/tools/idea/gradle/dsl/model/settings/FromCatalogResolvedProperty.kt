@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.dsl.model.settings
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.*
+import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform
 import com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogDslElement
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 
 class FromCatalogResolvedProperty(private val dslElement: VersionCatalogDslElement,
                                   private val delegate: ResolvedPropertyModelImpl,
@@ -46,6 +50,27 @@ class FromCatalogResolvedProperty(private val dslElement: VersionCatalogDslEleme
     delegate.setValue(value)
   }
 
+  @Suppress("UNCHECKED_CAST")
+  override fun <T> getValue(typeReference: TypeReference<T>): T? {
+    val fromValue = delegate.getValue(typeReference)
+    if (fromValue is String && currentType == FILES) {
+      return getRootRelativeTomlPath(fromValue) as? T
+    }
+    return fromValue
+  }
+
   override fun toString(): String = delegate.toString()
 
+  /**
+   * Returns a version catalog path, relative to the root project directory (makes sense for an included build of a composite build).
+   * For example, a settings file of an included build `app` declares a version catalog path `gradle/libs.versions.toml`.
+   * In this case, a root relative path `app/gradle/libs.versions.toml` will be returned.
+   */
+  private fun getRootRelativeTomlPath(buildRelativeTomlPath: String): String? {
+    val settingsFile: VirtualFile = dslElement.dslFile.file
+    val buildDirectory = settingsFile.parent
+    val tomlFile = buildDirectory.findFileByRelativePath(buildRelativeTomlPath) ?: return null
+    val rootProjectPath: VirtualFile = dslElement.dslFile.project.guessProjectDir() ?: return null
+    return VfsUtilCore.getRelativePath(tomlFile, rootProjectPath, VfsUtilCore.VFS_SEPARATOR_CHAR)
+  }
 }
