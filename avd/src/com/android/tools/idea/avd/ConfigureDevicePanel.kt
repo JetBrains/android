@@ -68,7 +68,7 @@ private fun Tabs(
     images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
 
   // TODO: http://b/335494340
-  var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.first())) }
+  var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.firstOrNull())) }
 
   val additionalSettingsPanelState = remember {
     AdditionalSettingsPanelState(configureDevicePanelState.device)

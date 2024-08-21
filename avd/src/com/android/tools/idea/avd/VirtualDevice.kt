@@ -113,7 +113,6 @@ internal fun VirtualDevice.copyFrom(avdInfo: AvdBuilder): VirtualDevice {
 
 internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   this.device = device.device
-  avdName = device.name
   displayName = device.name
 
   sdCard = device.expandedStorage.toSdCard()

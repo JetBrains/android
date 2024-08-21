@@ -25,7 +25,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
@@ -52,19 +51,19 @@ import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
-  private val provisioner: LocalEmulatorProvisionerPlugin,
+  private val refreshDevices: () -> Unit,
   systemImages: ImmutableCollection<ISystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   private var systemImages by mutableStateOf(systemImages)
 
   companion object {
-    internal fun create(provisioner: LocalEmulatorProvisionerPlugin): LocalVirtualDeviceSource {
+    internal fun create(refreshDevices: () -> Unit): LocalVirtualDeviceSource {
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(provisioner, ISystemImages.get(), skins)
+      return LocalVirtualDeviceSource(refreshDevices, ISystemImages.get(), skins)
     }
 
     private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
@@ -145,7 +144,7 @@ internal class LocalVirtualDeviceSource(
   private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
     withContext(AndroidDispatchers.diskIoThread) {
       VirtualDevices().add(device, image)
-      provisioner.refreshDevices()
+      refreshDevices()
     }
     return true
   }

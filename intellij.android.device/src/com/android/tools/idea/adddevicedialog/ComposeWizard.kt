@@ -46,8 +46,11 @@ import org.jetbrains.jewel.foundation.enableNewSwingCompositing
  *
  * Pages are implemented by composable functions of the type `@Composable WizardPageScope.() ->
  * Unit`.
+ *
+ * TODO(b/361168375): Consider making this more broadly available. If parts of Studio unrelated to
+ *   the Add Device Dialog want to use this, it should be moved to adt.ui.compose.
  */
-internal class ComposeWizard(
+class ComposeWizard(
   val project: Project?,
   title: String,
   initialPage: @Composable WizardPageScope.() -> Unit,
