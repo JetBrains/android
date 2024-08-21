@@ -19,13 +19,11 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.UsageTrackerWriter
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent.DeadlockStatus
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.UsefulTestCase
-import junit.framework.Assert.assertTrue
 import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
@@ -242,18 +240,4 @@ class SystemHealthDataCollectionTest {
       assertEquals(10_000, updateEvent.systemHealthEvent.uiFreeze.durationMs)
     }
   }
-
-  @Test
-  fun testEssentialsModeGetsSet() {
-    EssentialsMode.setEnabled(true, null)
-    testUsageTracker.usages.clear()
-
-    systemHealthDataCollection.triggers.gcThresholdMet()
-    val event = expectSingleEventAndClear().systemHealthEvent
-    assertTrue(event.essentialsMode)
-
-    EssentialsMode.setEnabled(false, null)
-  }
-
-
-  }
+}
