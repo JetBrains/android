@@ -244,14 +244,6 @@ def extract(workspace, dir, delete_after, metadata):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
-  # Workaround for b/267679210.
-  print("Patching app.jar to work around b/267679210")
-  for platform in PLATFORMS:
-    app_jar_path = path + HOME_PATHS[platform] + "/lib/app.jar"
-    os.system(f"unzip {app_jar_path} __index__ -d {workspace}")
-    os.system(f"jar uf {app_jar_path} -C {workspace} __index__")
-    os.remove(f"{workspace}/__index__")
-
   # TODO(b/328622823): IntelliJ normally loads plugins by consulting plugin-classpath.txt, but
   # this does not work for Android Studio because plugin-classpath.txt is missing our Android
   # plugins (which we bundle later during the Bazel build).
