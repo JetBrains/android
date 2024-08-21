@@ -148,11 +148,7 @@ class GutterIconFactory {
           // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
           // not see the preview next to the code when referencing invalid drawables.
           String message = String.format("Could not read/render icon image %1$s", file.getPresentableUrl());
-          if (ApplicationManager.getApplication().isUnitTestMode()) {
-            LOG.error(message, e);
-          } else {
-            LOG.debug(message, e);
-          }
+          LOG.debug(message, e);
           image = null;
         } finally {
           Disposer.dispose(renderer);
@@ -168,11 +164,7 @@ class GutterIconFactory {
     }
     catch (Throwable e) {
       String message = String.format("Could not read/render icon image %1$s", file.getPresentableUrl());
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        LOG.error(message, e);
-      } else {
-        LOG.warn(message, e);
-      }
+      LOG.warn(message, e);
     }
 
     return null;
