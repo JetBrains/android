@@ -1,0 +1,7 @@
+
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/sample1
+
+android_sdk_platform: android-34
+
+

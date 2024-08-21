@@ -1,0 +1,9 @@
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/generated_tests
+
+test_sources:
+  tools/adt/idea/aswb/aswb/testdata/projects/generated_tests
+
+android_sdk_platform: android-34
+
+
