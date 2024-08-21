@@ -56,7 +56,22 @@ message ClientContext {
 // target.
 // E.g. for BigQuery SQL generation, this could reference the Dataset
 // or Table names (go/backend-resources-context-eg).
+//(-- api-linter: core::0123::resource-annotation=disabled
+//     aip.dev/not-precedent: This does not refer to resources returned by this
+//     API. --)
 message BackendResourcesContext {
+  // (-- api-linter: core::0123::resource-annotation=disabled
+  //     aip.dev/not-precedent: This is not the resource returned by this API.
+  //     This refers to any of a diverse set of GCP resources that the end user
+  //     is querying Duet about. --)
+  // The full resource names
+  // (https://cloud.google.com/apis/design/resource_names) of the GCP resources
+  // that are referenced or relevant to the Duet query.
+  // For example, a BigQuery SQL generation in the context of a particular
+  // BigQuery table would set this to:
+  // `//bigquery.googleapis.com/bigquery/v2/projects/{projectId}/datasets/{datasetId}/tables/{tableId}`
+  repeated string full_resource_names = 2;
+
   // Represents GCP product-specific backend resources context.
   // (-- Extensibility point; GCP team can wrap any proto inside this --)
   // (-- api-linter: core::0146::any=disabled
