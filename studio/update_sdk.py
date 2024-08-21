@@ -8,6 +8,7 @@ import tarfile
 import re
 import glob
 import shutil
+import subprocess
 import json
 import xml.etree.ElementTree as ET
 import intellij
@@ -165,13 +166,13 @@ def check_artifacts(dir):
 
 def download(workspace, bid):
   fetch_artifact = "/google/data/ro/projects/android/fetch_artifact"
-  auth_flag = ""
+  auth_flags = []
   if os.path.exists("/usr/bin/prodcertstatus"):
-    if os.system("prodcertstatus"):
+    if subprocess.run("prodcertstatus").returncode != 0:
       sys.exit("You need prodaccess to download artifacts")
   else:
     fetch_artifact = "/usr/bin/fetch_artifact"
-    auth_flag = "--use_oauth2"
+    auth_flags.append("--use_oauth2")
     if not os.path.exists(fetch_artifact):
       sys.exit("""You need to install fetch_artifact:
 sudo glinux-add-repo android stable && \\
@@ -192,9 +193,9 @@ sudo apt install android-fetch-artifact""")
     "manifest_%s.xml" % bid,
   ]
   for artifact in artifacts:
-    os.system(
-        "%s %s --bid %s --target IntelliJ '%s' %s"
-        % (fetch_artifact, auth_flag, bid, artifact, dir))
+    subprocess.check_call([
+      fetch_artifact, *auth_flags, "--bid", bid, "--target", "IntelliJ", artifact, dir
+    ])
 
   return dir
 
@@ -223,10 +224,10 @@ def extract(workspace, dir, delete_after, metadata):
 
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
-  os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin", dir + "/" + mac))
+  subprocess.check_call(["unzip", "-q", "-d", path + "/darwin", dir + "/" + mac])
   print("Unzipping mac aarch64 distribution...")
   # Call to unzip to preserve mac symlinks
-  os.system("unzip -q -d \"%s\" \"%s\"" % (path + "/darwin_aarch64", dir + "/" + mac_arm))
+  subprocess.check_call(["unzip", "-q", "-d", path + "/darwin_aarch64", dir + "/" + mac_arm])
   # Mac is the only one that contains the version in the directory, rename for
   # consistency with other platforms and easier tooling
   apps = ["/darwin/" + app for app in os.listdir(path + "/darwin") if app.startswith("Android Studio")]
