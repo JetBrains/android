@@ -15,57 +15,50 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.ServerStatus
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.project.Project
 
 /**
- * Amount of time to wait for device to come online after pairing.
- * This is the default timeout for [AdbServiceWrapper.waitForOnlineDevice]
+ * Amount of time to wait for device to come online after pairing. This is the default timeout for
+ * [AdbServiceWrapper.waitForOnlineDevice]
  */
 internal const val ADB_DEVICE_CONNECT_MILLIS = 120_000L
 
-/**
- * List of ADB services required for ADB over Wi-FI pairing
- */
+/** List of ADB services required for ADB over Wi-FI pairing */
 interface AdbServiceWrapper {
   /**
    * Executes a command using the ADB executable configured for the [Project]
    *
-   * [args] List of argument to pass to ADB executable
-   * [stdin] String to pass as "stdin" to the ADB executable, to be used if there is interaction required
+   * [args] List of argument to pass to ADB executable [stdin] String to pass as "stdin" to the ADB
+   * executable, to be used if there is interaction required
    */
-  @AnyThread
-  suspend fun executeCommand(args: List<String>, stdin: String = ""): AdbCommandResult
+  @AnyThread suspend fun executeCommand(args: List<String>, stdin: String = ""): AdbCommandResult
 
   /**
-   * Returns when the device corresponding to [pairingResult] is visible as a `connected`
-   * device to the underlying ADB implementation.
+   * Returns when the device corresponding to [pairingResult] is visible as a `connected` device to
+   * the underlying ADB implementation.
    *
    * Throws a [AdbCommandException] in case the device does not show up as online within a
    * "reasonable" timeout (chosen by the implementation).
    */
-  @AnyThread
-  suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice
+  @AnyThread suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice
+
+  /** Retrieve ADB server-status */
+  @AnyThread suspend fun getServerStatus(): ServerStatus
 }
 
-/**
- * Snapshot of an [IDevice] when the corresponding device was online
- */
+/** Snapshot of an [IDevice] when the corresponding device was online */
 data class AdbOnlineDevice(val id: String, val properties: Map<String, String>) {
   val displayString: String
     get() {
       // TODO: Use DeviceNameRenderer class when it has moved out of android.core module
       val manufacturer = properties[IDevice.PROP_DEVICE_MANUFACTURER] ?: ""
       val model = properties[IDevice.PROP_DEVICE_MODEL] ?: id
-      return if (model.startsWith(manufacturer, true))
-        model
-      else
-        "$manufacturer $model"
+      return if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
     }
 }
 
-/**
- * Result of executing an ADB command using [AdbServiceWrapper.executeCommand]
- */
+/** Result of executing an ADB command using [AdbServiceWrapper.executeCommand] */
 data class AdbCommandResult(val errorCode: Int, val stdout: List<String>, val stderr: List<String>)
