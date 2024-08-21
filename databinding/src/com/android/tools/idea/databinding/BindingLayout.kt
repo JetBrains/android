@@ -23,6 +23,7 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
@@ -63,14 +64,20 @@ private constructor(
      * production, so the following plays it safe to avoid crashing. See: b/140308533
      */
     fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
-      val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
+      val modulePackage =
+        if (facet.module.isAndroidTestModule()) facet.getModuleSystem().getTestPackageName()
+        else facet.getModuleSystem().getPackageName()
+      if (modulePackage == null) return null
+
       val file = resource.getSourceAsVirtualFile() ?: return null
       val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
       if (
         data.viewBindingIgnore ||
           (data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled())
-      )
+      ) {
         return null
+      }
+
       return BindingLayout(facet, modulePackage, file, data, resource)
     }
   }
