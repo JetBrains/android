@@ -60,6 +60,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
           pressedKeysMask = 0 // Reset keyboard navigation state.
+          mouseDragReferencePoint = null
         }
         field = value
       }
