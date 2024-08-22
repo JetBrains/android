@@ -38,15 +38,14 @@ abstract class EditorDesignSurface(layout: LayoutManager) : AdtPrimaryPanel(layo
   abstract val configurations: ImmutableCollection<Configuration>
 
   /**
-   * When called, this will trigger a re-inflate and refresh of the layout and returns a [CompletableFuture] that will complete
-   * when the refresh has completed.
+   * When called, this will trigger a re-inflate and refresh of the layout.
+   *
    * Only call this method if the action is initiated by the user, call [forceRefresh] otherwise.
    */
-  abstract fun forceUserRequestedRefresh(): CompletableFuture<Void>
+  abstract fun forceUserRequestedRefresh()
 
   /**
-   * When called, this will trigger a re-inflate and refresh of the layout and returns a [CompletableFuture] that will complete
-   * when the refresh has completed.
+   * When called, this will trigger a re-inflate and refresh of the layout.
    */
-  abstract fun forceRefresh(): CompletableFuture<Void>
+  abstract fun forceRefresh()
 }
