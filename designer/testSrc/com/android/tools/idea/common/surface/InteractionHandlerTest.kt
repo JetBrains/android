@@ -36,7 +36,6 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.MouseEvent
-import java.util.concurrent.CompletableFuture
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Assert.assertFalse
@@ -147,10 +146,9 @@ private class Surface(
 
   override val scrollToVisibleOffset = Dimension()
 
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
-    CompletableFuture.completedFuture(null)
+  override fun forceUserRequestedRefresh() {}
 
-  override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun forceRefresh() {}
 
   override val selectableComponents: List<NlComponent>
     get() = emptyList()

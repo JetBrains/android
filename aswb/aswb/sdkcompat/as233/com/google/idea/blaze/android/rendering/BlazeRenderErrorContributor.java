@@ -162,14 +162,14 @@ public class BlazeRenderErrorContributor implements RenderErrorContributor {
               } catch (InvocationTargetException ex) {
                 throw new RuntimeException("Error invoking target getConfigurations(): " + ex);
               }
-              var unused = designSurface.forceUserRequestedRefresh();
+              designSurface.forceUserRequestedRefresh();
             }
           }
 
           @Override
           public void requestRender() {
             if (designSurface != null) {
-              var unused = designSurface.forceUserRequestedRefresh();
+              designSurface.forceUserRequestedRefresh();
             }
           }
         });
