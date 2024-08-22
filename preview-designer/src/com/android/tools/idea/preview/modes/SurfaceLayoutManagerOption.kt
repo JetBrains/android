@@ -211,3 +211,10 @@ val GRID_EXPERIMENTAL_LAYOUT_OPTION =
 
 /** The default layout that should appear when the Preview is open. */
 val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION
+
+/** List of available layouts for the Preview Surface. */
+val PREVIEW_LAYOUT_OPTIONS =
+  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION) +
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
+      listOf(LIST_EXPERIMENTAL_LAYOUT_OPTION, GRID_EXPERIMENTAL_LAYOUT_OPTION)
+    else emptyList()

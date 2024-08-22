@@ -23,11 +23,6 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_EXPERIMENTAL_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -39,13 +34,6 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
-
-/** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_OPTIONS =
-  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION) +
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      listOf(LIST_EXPERIMENTAL_LAYOUT_OPTION, GRID_EXPERIMENTAL_LAYOUT_OPTION)
-    else emptyList()
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
