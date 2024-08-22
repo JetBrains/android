@@ -207,9 +207,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
       return false
     }
 
-    val androidTestModule =
-      (if (module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) module.getMainModule() else module.getAndroidTestModule())
-      ?: return false
+    val androidTestModule = AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration(module) ?: return false
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
       androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
