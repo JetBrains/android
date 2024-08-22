@@ -39,14 +39,18 @@ import kotlinx.collections.immutable.toImmutableList
 internal typealias DeviceAttribute<V> = RowAttribute<DeviceProfile, V>
 
 @Composable
-internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = Modifier) {
+internal fun DeviceFilters(
+  profiles: List<DeviceProfile>,
+  filterState: DeviceFilterState,
+  modifier: Modifier = Modifier,
+) {
   val scrollState = rememberScrollState()
   Box(modifier.fillMaxSize()) {
     Column(Modifier.padding(6.dp).testTag("DeviceFilters").verticalScroll(scrollState)) {
       ApiFilter(filterState.apiLevelFilter)
-      SingleSelectionDropdown(filterState.formFactorFilter)
+      SingleSelectionDropdown(FormFactor.uniqueValuesOf(profiles), filterState.formFactorFilter)
       for (attribute in DeviceSetAttributes) {
-        SetFilter(filterState[attribute])
+        SetFilter(attribute, profiles, filterState)
       }
     }
     VerticalScrollbar(
@@ -56,13 +60,23 @@ internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = 
   }
 }
 
+@Composable
+internal fun <V> SetFilter(
+  attribute: DeviceAttribute<V>,
+  values: List<DeviceProfile>,
+  state: DeviceFilterState,
+  modifier: Modifier = Modifier,
+) {
+  SetFilter(attribute.uniqueValuesOf(values), state[attribute], modifier)
+}
+
 @Stable
-internal class DeviceFilterState(profiles: List<DeviceProfile>) : RowFilter<DeviceProfile> {
+internal class DeviceFilterState : RowFilter<DeviceProfile> {
   private val setFilters: ImmutableList<SetFilterState<DeviceProfile, *>> =
-    DeviceSetAttributes.map { it.initialSetFilterState(profiles) }.toImmutableList()
+    DeviceSetAttributes.map { SetFilterState(it) }.toImmutableList()
 
   val apiLevelFilter = ApiLevelSelectionState()
-  val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone", profiles)
+  val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
 
   val textFilter = TextFilterState()
 
