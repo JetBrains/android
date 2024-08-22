@@ -40,7 +40,7 @@ class AddDeviceWizardTest {
   fun apiLevel() {
     val source = TestDeviceSource()
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
+    val wizard = TestComposeWizard { DeviceGridPage(source) }
     composeTestRule.setContent { wizard.Content() }
 
     composeTestRule.onNodeWithText("Latest").performClick()
@@ -62,7 +62,7 @@ class AddDeviceWizardTest {
         }
       }
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
+    val wizard = TestComposeWizard { DeviceGridPage(source) }
     composeTestRule.setContent { wizard.Content() }
 
     composeTestRule.onNodeWithText("Pixel Fold").performClick()
@@ -93,7 +93,7 @@ class AddDeviceWizardTest {
       }
 
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
+    val wizard = TestComposeWizard { DeviceGridPage(source) }
     composeTestRule.setContent { wizard.Content() }
 
     assertThat(wizard.nextAction.action).isNull()
