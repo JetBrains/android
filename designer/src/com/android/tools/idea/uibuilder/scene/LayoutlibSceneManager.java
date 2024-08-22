@@ -390,7 +390,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model) {
-      requestLayoutAndRenderAsync();
+      requestRenderAsync();
     }
   }
 
@@ -451,23 +451,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
     getSceneRenderConfiguration().getNeedsInflation().set(true);
     return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
-  }
-
-  @Override
-  @NotNull
-  public CompletableFuture<Void> requestLayoutAndRenderAsync() {
-    // Don't re-render if we're just showing the blueprint
-    if (myLayoutlibSceneRenderer.getRenderedVersion() != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
-      return requestLayoutAsync(false);
-    }
-
-    LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
-    // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
-    // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
-    // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
-    myLayoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
-    return requestRenderAsync(trigger)
-      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(false), AppExecutorUtil.getAppExecutorService());
   }
 
   /**
@@ -667,7 +650,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       if (!version.equals(myLayoutlibSceneRenderer.getRenderedVersion())) {
         getSceneRenderConfiguration().getNeedsInflation().set(true);
       }
-      requestLayoutAndRenderAsync();
+      requestRenderAsync();
     }
 
     return active;
