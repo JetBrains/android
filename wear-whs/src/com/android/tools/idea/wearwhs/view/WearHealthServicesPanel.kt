@@ -22,13 +22,16 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
@@ -75,6 +78,9 @@ private const val PADDING = 15
 private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
 private const val NOTIFICATION_GROUP_ID = "Wear Health Services Notification"
 private val TEMPORARY_MESSAGE_DISPLAY_DURATION = 2.seconds
+
+internal const val LEARN_MORE_URL =
+  "https://developer.android.com/health-and-fitness/guides/health-services/simulated-data#use_the_health_services_sensor_panel"
 
 private fun createCenterPanel(
   stateManager: WearHealthServicesStateManager,
@@ -274,7 +280,15 @@ private fun createWearHealthServicesPanelHeader(
 ): JPanel = panel {
   row(
     JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
-  ) {}
+  ) {
+    cell(
+        ActionLink(message("wear.whs.panel.learn.more")).apply {
+          addActionListener { BrowserUtil.browse(LEARN_MORE_URL) }
+          setExternalLinkIcon()
+        }
+      )
+      .align(AlignX.RIGHT)
+  }
   separator()
 
   val capabilitiesComboBox =
