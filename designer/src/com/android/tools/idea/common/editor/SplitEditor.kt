@@ -19,7 +19,8 @@ import com.android.tools.adtui.TreeWalker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
@@ -145,15 +145,14 @@ abstract class SplitEditor<P : FileEditor>(
   }
 
   private fun getFakeActionEvent() =
-    AnActionEvent(
-      null,
+    AnActionEvent.createEvent(
       CustomizedDataContext.withSnapshot(DataManager.getInstance().getDataContext(component)) { sink ->
         sink[PlatformCoreDataKeys.FILE_EDITOR] = this
       },
-      "",
-      Presentation(),
-      ActionManager.getInstance(),
-      0,
+      null,
+      ActionPlaces.UNKNOWN,
+      ActionUiKind.NONE,
+      null
     )
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
