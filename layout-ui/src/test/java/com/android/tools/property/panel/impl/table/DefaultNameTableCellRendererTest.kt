@@ -31,13 +31,13 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.NewUI
 import icons.StudioIcons
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 
 private const val TOOLTIP_PROPERTY = "JComponent.helpTooltip"
 
