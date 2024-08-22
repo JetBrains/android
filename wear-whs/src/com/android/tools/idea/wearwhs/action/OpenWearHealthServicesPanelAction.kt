@@ -85,6 +85,9 @@ class OpenWearHealthServicesPanelAction :
     AndroidCoroutineScope(balloon).launch {
       panel.onUserApplyChangesFlow.collect { balloon.hide() }
     }
+    AndroidCoroutineScope(balloon).launch {
+      panel.onUserTriggerEventFlow.collect { balloon.hide() }
+    }
 
     // Show the UI settings popup relative to the ActionButton.
     // If such a component is not found use the displayView. The action was likely activated from

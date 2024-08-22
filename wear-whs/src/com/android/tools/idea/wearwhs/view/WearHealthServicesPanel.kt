@@ -270,6 +270,7 @@ private fun createWearHealthServicesPanelHeader(
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
   notifyUser: (String, MessageType) -> Unit,
+  onTriggerEventChannel: Channel<Unit>,
 ): JPanel = panel {
   row(
     JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
@@ -300,6 +301,7 @@ private fun createWearHealthServicesPanelHeader(
                     eventTriggerGroup.eventTriggers.map { eventTrigger ->
                       CommonAction(eventTrigger.eventLabel, null) {
                         workerScope.launch {
+                          onTriggerEventChannel.send(Unit)
                           stateManager
                             .triggerEvent(eventTrigger)
                             .onSuccess {
@@ -370,6 +372,11 @@ data class WearHealthServicesPanel(
    * applied.
    */
   val onUserApplyChangesFlow: Flow<Unit>,
+  /**
+   * Flow receiving an element when the user triggers an event. The event might still fail to be
+   * triggered.
+   */
+  val onUserTriggerEventFlow: Flow<Unit>,
 )
 
 private sealed class PanelInformation(val message: String) {
@@ -415,6 +422,7 @@ internal fun createWearHealthServicesPanel(
     }
 
   val onApplyChangesChannel = Channel<Unit>()
+  val onTriggerEventChannel = Channel<Unit>()
   val footer =
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
@@ -499,7 +507,13 @@ internal fun createWearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
         add(
-          createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope, ::notifyUser),
+          createWearHealthServicesPanelHeader(
+            stateManager,
+            uiScope,
+            workerScope,
+            ::notifyUser,
+            onTriggerEventChannel,
+          ),
           BorderLayout.NORTH,
         )
         add(content, BorderLayout.CENTER)
@@ -510,5 +524,6 @@ internal fun createWearHealthServicesPanel(
         focusTraversalPolicy = LayoutFocusTraversalPolicy()
       },
     onUserApplyChangesFlow = onApplyChangesChannel.receiveAsFlow(),
+    onUserTriggerEventFlow = onTriggerEventChannel.receiveAsFlow(),
   )
 }
