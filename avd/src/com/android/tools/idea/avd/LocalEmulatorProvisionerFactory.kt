@@ -20,10 +20,9 @@ import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
-import com.android.sdklib.deviceprovisioner.providedBy
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.AddDeviceWizard
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -71,10 +70,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
         ),
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,
-      pluginExtensions =
-        listOf(
-          DeviceSource::class providedBy { LocalVirtualDeviceSource.create(it::refreshDevices) }
-        ),
+      pluginExtensions = emptyList(),
       handleExtensions = emptyList(),
     )
   }
@@ -86,12 +82,19 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
 
-  override suspend fun createAvd(): AvdInfo? {
-    val avdOptionsModel = AvdOptionsModel(null)
-    withContext(uiThread) {
-      AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
+  override suspend fun createAvd(): Boolean {
+    if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
+      val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
+      return withContext(uiThread) {
+        AddDeviceWizard(listOf(source), project).createDialog().showAndGet()
+      }
+    } else {
+      val avdOptionsModel = AvdOptionsModel(null)
+      withContext(uiThread) {
+        AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
+      }
+      return avdOptionsModel.createdAvd.isPresent
     }
-    return avdOptionsModel.createdAvd.orElse(null)
   }
 
   override suspend fun editAvd(avdInfo: AvdInfo): Boolean {

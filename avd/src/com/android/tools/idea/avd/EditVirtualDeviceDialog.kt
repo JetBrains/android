@@ -34,7 +34,7 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
       withContext(AndroidDispatchers.workerThread) {
         // TODO(b/361167314): We shouldn't need to depend on LocalVirtualDeviceSource to get the
         // ConfigurationPage.
-        LocalVirtualDeviceSource.create(refreshDevices = { /* not used for editing */ })
+        LocalVirtualDeviceSource.create()
       }
 
     return withContext(AndroidDispatchers.uiThread) {
