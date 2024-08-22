@@ -80,6 +80,7 @@ import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS

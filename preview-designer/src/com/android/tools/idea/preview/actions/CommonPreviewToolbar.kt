@@ -17,9 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
@@ -32,10 +30,7 @@ class CommonPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surf
       // TODO(b/292057010) Enable group filtering for Gallery mode.
       GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
         .visibleOnlyInDefaultPreview(),
-      CommonViewControlAction(
-          layoutOptions = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-        )
-        .visibleOnlyInStaticPreview(),
+      CommonViewControlAction(layoutOptions = PREVIEW_LAYOUT_OPTIONS).visibleOnlyInStaticPreview(),
     )
   }
 
