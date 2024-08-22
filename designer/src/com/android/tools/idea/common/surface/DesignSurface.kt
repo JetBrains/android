@@ -1175,7 +1175,7 @@ abstract class DesignSurface<T : SceneManager>(
     if (sceneManagers.isEmpty()) {
       return CompletableFuture.completedFuture(null)
     }
-    return requestSequentialRender { it.requestLayoutAndRenderAsync() }
+    return requestSequentialRender { it.requestRenderAsync() }
   }
 
   /**
