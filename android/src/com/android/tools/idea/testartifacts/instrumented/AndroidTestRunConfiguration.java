@@ -19,6 +19,7 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isAndroidTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -252,8 +253,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
+    Module moduleForAndroidTest;
     try {
       testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
+      Module module = configurationModule.getModule();
+      if (module == null) throw new IllegalStateException("Test module not specified and not caught in checkModuleAndClassName");
+      Module androidTestModule = getModuleForAndroidTestRunConfiguration(module);
+      if (androidTestModule == null) {
+        String name = module.getName();
+        throw new RuntimeConfigurationException("Cannot find android tests for module '" + name + "'");
+      }
+      moduleForAndroidTest = androidTestModule;
     }
     catch (RuntimeConfigurationException e) {
       // We can't proceed without a test class.
@@ -279,7 +289,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
-        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(getConfigurationModule().getAndroidTestModule());
+        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(moduleForAndroidTest);
         if (!testClass.isInheritor(testCaseClass, true)) {
           errors.add(ValidationError.fatal(JUnitBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
