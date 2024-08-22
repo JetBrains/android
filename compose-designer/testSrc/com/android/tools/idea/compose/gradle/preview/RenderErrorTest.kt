@@ -46,6 +46,7 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -316,8 +317,9 @@ class RenderErrorTest {
     sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
     val dataContext = IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel)
-    val visibleActions = Utils.expandActionGroup(DefaultActionGroup(actions), PresentationFactory(),
-                            dataContext, ActionPlaces.UNKNOWN)
+    val visibleActions = Utils.expandActionGroup(
+      DefaultActionGroup(actions), PresentationFactory(),
+      dataContext, ActionPlaces.UNKNOWN, ActionUiKind.NONE)
     return visibleActions.size
   }
 
