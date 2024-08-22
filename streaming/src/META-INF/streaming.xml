@@ -117,13 +117,23 @@
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift T" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.xr.recenter"
-              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
-              icon="StudioIcons.Emulator.XR.RESET_POSITION"
-              text="Reset View" description="Reset the view to the default">
-        <keyboard-shortcut first-keystroke="control R" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
+      <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
+        <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
+        <keyboard-shortcut first-keystroke="control shift H" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.overview.button" class="com.android.tools.idea.streaming.actions.StreamingOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device">
+        <keyboard-shortcut first-keystroke="control shift W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.xr.show.taskbar"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrShowTaskbarAction"
@@ -145,7 +155,8 @@
       <action id="android.emulator.xr.eye.tracking"
               class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$EyeTracking"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
-              text="Eye Tracking" description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+              text="Eye Tracking"
+              description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
@@ -177,23 +188,13 @@
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
-        <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
-        <keyboard-shortcut first-keystroke="control shift H" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.device.overview.button" class="com.android.tools.idea.streaming.actions.StreamingOverviewButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device">
-        <keyboard-shortcut first-keystroke="control shift W" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
+      <action id="android.emulator.xr.recenter"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
+              icon="StudioIcons.Emulator.XR.RESET_POSITION"
+              text="Reset View" description="Reset the view to the default">
+        <keyboard-shortcut first-keystroke="control R" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device">
@@ -262,8 +263,6 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
-      <separator/>
-      <reference ref="android.emulator.xr.recenter"/>
       <reference ref="android.emulator.xr.show.taskbar"/>
       <separator/>
       <group id="android.emulator.xr.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeGroup">
@@ -275,6 +274,8 @@
         <reference ref="android.emulator.xr.location.in.space.z"/>
         <separator/>
       </group>
+      <reference ref="android.emulator.xr.recenter"/>
+      <separator/>
       <reference ref="android.streaming.ui.settings"/>
       <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
       <group id="android.emulator.wear.health.services"/>
