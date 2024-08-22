@@ -53,6 +53,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -476,6 +477,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
     }
@@ -490,6 +492,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
     }
@@ -502,6 +505,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -521,6 +525,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -595,6 +600,18 @@ class WearHealthServicesPanelTest {
           }
       }
     }
+
+  @Test
+  fun `test trigger event flow notification`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+    val triggerEventFlow = whsPanel.onUserTriggerEventFlow
+
+    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+    val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+    triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+    withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
+  }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
