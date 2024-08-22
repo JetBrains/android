@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearwhs.view
 
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -31,6 +32,7 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
@@ -38,6 +40,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -49,14 +52,18 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mockStatic
 
 @RunsInEdt
 class WearHealthServicesPanelTest {
@@ -611,6 +618,27 @@ class WearHealthServicesPanelTest {
     triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
 
     withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
+  }
+
+  @Test
+  fun `has learn more link`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val learnMoreLink =
+      fakeUi.waitForDescendant<ActionLink> { it.text == message("wear.whs.panel.learn.more") }
+    mockStatic(BrowserUtil::class.java).use { browserUtil ->
+      val url = CompletableDeferred<String>()
+      browserUtil
+        .whenever<String> { BrowserUtil.browse(anyString()) }
+        .thenAnswer {
+          url.complete(it.getArgument(0) as String)
+          Unit
+        }
+
+      learnMoreLink.doClick()
+
+      assertEquals(LEARN_MORE_URL, url.await())
+    }
   }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
