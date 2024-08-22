@@ -22,7 +22,6 @@ import com.android.tools.idea.res.isResourceSubdirectory
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -61,7 +60,7 @@ class ShowFileInResourceManagerAction
     val project = e.getData(CommonDataKeys.PROJECT)
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
     val isSupported = isSupportedInResManager(file, project)
-    if (ActionPlaces.isPopupPlace(e.place)) {
+    if (e.isFromContextMenu) {
       // Popups should only show enabled actions.
       e.presentation.isEnabledAndVisible = isSupported
     } else {
