@@ -152,7 +152,7 @@ internal constructor(
 
         for (manager in sceneManagers) {
           manager.updateSceneView()
-          manager.requestLayoutAndRenderAsync()
+          manager.requestRenderAsync()
         }
         revalidateScrollArea()
       }
@@ -271,7 +271,7 @@ internal constructor(
     screenViewProvider.colorBlindFilter = mode
     for (manager in sceneManagers) {
       manager.updateSceneView()
-      manager.requestLayoutAndRenderAsync()
+      manager.requestRenderAsync()
     }
     revalidateScrollArea()
   }
