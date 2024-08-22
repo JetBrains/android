@@ -20,6 +20,7 @@ import com.android.tools.adtui.status.IssueNotificationAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -53,13 +54,12 @@ fun ProjectRule.createFakeActionEvent(
     }
 
   val mouseEvent = createFakeMouseEvent()
-  AnActionEvent.createFromInputEvent(
-    mouseEvent,
-    ActionPlaces.EDITOR_POPUP,
-    PresentationFactory().getPresentation(issueNotificationAction),
+  AnActionEvent.createEvent(
     ActionToolbar.getDataContextFor(mouseEvent.component),
-    false,
-    true,
+    PresentationFactory().getPresentation(issueNotificationAction),
+    ActionPlaces.EDITOR_POPUP,
+    ActionUiKind.TOOLBAR,
+    mouseEvent,
   )
   return AnActionEvent.createFromInputEvent(mouseEvent, "", Presentation(), dataContext)
 }
