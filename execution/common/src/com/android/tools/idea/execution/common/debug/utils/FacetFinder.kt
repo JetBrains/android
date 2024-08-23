@@ -97,7 +97,7 @@ object FacetFinder {
         facet = androidFacet,
         applicationId = definingModuleSystem.getApplicationIdProvider().let {
           when {
-            definingModule.isAndroidTestModule() -> it.testPackageName ?: error("testPackageName is null")
+            definingModule.isAndroidTestModule() || definingModuleSystem.type == AndroidModuleSystem.Type.TYPE_TEST -> it.testPackageName ?: error("testPackageName is null")
             else -> it.packageName
           }
         }
