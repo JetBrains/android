@@ -155,7 +155,7 @@ private class ComponentTreePanel(
         .withNodeType(NlComponentNodeType { repaint() })
         .withNodeType(NlComponentReferenceNodeType())
         .withAutoScroll()
-        .withDataProvider { dataId -> EdtNoGetDataProvider { sink -> uiDataSnapshot(sink) } }
+        .withDataProvider(EdtNoGetDataProvider { sink -> uiDataSnapshot(sink) })
         .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
         .withBadgeSupport(IssueBadgeColumn())
         .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
