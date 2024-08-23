@@ -1,0 +1,7 @@
+
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/android1/project
+derive_targets_from_directories: true
+android_sdk_platform: android-34
+
+

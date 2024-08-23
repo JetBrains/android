@@ -1,0 +1,6 @@
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/gensrc_conflict
+
+android_sdk_platform: android-34
+
+

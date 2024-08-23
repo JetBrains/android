@@ -1,0 +1,8 @@
+
+directories:
+  tools/adt/idea/aswb/aswb/testdata/projects/kotlin1
+
+android_sdk_platform: android-34
+
+additional_languages:
+  kotlin

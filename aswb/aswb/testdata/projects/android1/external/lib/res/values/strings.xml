@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="external_click_me_button" translatable="false">Say hello, External!</string>
+  <string name="external_thinking_face" translatable="false">🤔</string>
+</resources>
