@@ -16,16 +16,14 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.adblib.AdbSession
+import com.android.adblib.activityManager
 import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.selector
 import com.android.adblib.serialNumber
-import com.android.adblib.shellCommand
 import com.android.adblib.tools.debugging.JdwpProcess
 import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.adblib.tools.debugging.properties
 import com.android.adblib.tools.debugging.sendDdmsExit
-import com.android.adblib.withTextCollector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.Device
@@ -118,12 +116,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      adbSession.scope.launch {
-        adbSession.deviceServices
-          .shellCommand(process.device.selector, "am force-stop $packageName")
-          .withTextCollector()
-          .executeAsSingleOutput {}
-      }
+      adbSession.scope.launch { process.device.activityManager.forceStop(packageName) }
     }
   }
 
@@ -143,7 +136,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      process.scope.launch { process.withJdwpSession { sendDdmsExit(1) } }
+      process.scope.launch { process.sendDdmsExit(1) }
     }
   }
 
@@ -183,12 +176,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
       process: JdwpProcess,
       packageName: String,
     ) {
-      adbSession.scope.launch {
-        adbSession.deviceServices
-          .shellCommand(process.device.selector, "am crash $packageName")
-          .withTextCollector()
-          .executeAsSingleOutput {}
-      }
+      adbSession.scope.launch { process.device.activityManager.crash(packageName) }
     }
   }
 }
