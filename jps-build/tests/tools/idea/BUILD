@@ -13,7 +13,7 @@ jps_library(
     name = "jps_lib",
     cmd = "build.sh",
     download_cache = "tools/adt/idea/jps-build/tests/cache",
-    module = "module.to.build",
+    module = "module.to.test",
     target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":source",
