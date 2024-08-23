@@ -63,10 +63,7 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -260,10 +257,10 @@ class NlComponentTreeDefinitionTest {
   @RunsInEdt
   @Test
   fun testGotoDeclarationFromKeyboard() {
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
+
     val content = createToolContent()
     val model = createFlowModel()
-    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, model.surface) }
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
     val table = attach(content, model)
     val textView = model.treeReader.find("a")!!
     model.surface.selectionModel.setSelection(listOf(textView))
