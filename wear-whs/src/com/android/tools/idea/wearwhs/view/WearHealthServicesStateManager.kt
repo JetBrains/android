@@ -21,9 +21,8 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.view.Preset.ALL
-import com.android.tools.idea.wearwhs.view.Preset.CUSTOM
 import com.android.tools.idea.wearwhs.view.Preset.STANDARD
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.PropertyKey
 
@@ -31,9 +30,6 @@ import org.jetbrains.annotations.PropertyKey
 internal interface WearHealthServicesStateManager {
   /** Capabilities of WHS. */
   val capabilitiesList: List<WhsCapability>
-
-  /** State flow for the current preset. */
-  val preset: MutableStateFlow<Preset>
 
   /** Sets the current capability enabled state. */
   suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean)
@@ -71,6 +67,9 @@ internal interface WearHealthServicesStateManager {
   /** Triggers given event on the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 
+  /** Loads a capability preset. */
+  fun loadPreset(preset: Preset): Job
+
   /** Used to get/set the serial number of the currently running emulator. */
   var serialNumber: String?
 
@@ -86,12 +85,11 @@ internal interface WearHealthServicesStateManager {
  *
  * [STANDARD] corresponds to a basic set of sensors which are likely to be supported by most
  * devices, e.g. heart rate, location. [ALL] includes less common capabilities as well, such as
- * elevation gain. [CUSTOM] allows the user to select which capabilities to enable.
+ * elevation gain.
  */
 internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelKey: String) {
   STANDARD("wear.whs.panel.capabilities.standard"),
-  ALL("wear.whs.panel.capabilities.all"),
-  CUSTOM("wear.whs.panel.capabilities.custom");
+  ALL("wear.whs.panel.capabilities.all");
 
   override fun toString() = message(labelKey)
 }
