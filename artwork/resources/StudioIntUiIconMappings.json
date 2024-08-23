@@ -687,9 +687,9 @@
           "upload.svg": "studio/icons/profiler/toolbar/upload.svg"
         },
         "memoryleakstask": {
-          "leaking-maybe.svg": "studio/icons/profiler/memoryleakstask/leaking-maybe.svg",
-          "leaking-no.svg": "studio/icons/profiler/memoryleakstask/leaking-no.svg",
-          "leaking-yes.svg": "studio/icons/profiler/memoryleakstask/leaking-yes.svg"
+          "leak-maybe.svg": "studio/icons/profiler/memoryleakstask/leak-maybe.svg",
+          "leak-no.svg": "studio/icons/profiler/memoryleakstask/leak-no.svg",
+          "leak-yes.svg": "studio/icons/profiler/memoryleakstask/leak-yes.svg"
         },
         "tasks": {
           "app-startup-insights.svg": "studio/icons/profiler/tasks/app-startup-insights.svg",

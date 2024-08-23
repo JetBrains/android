@@ -734,9 +734,9 @@ public final class StudioIcons {
     }
 
     public static final class Memoryleakstask {
-      /** 16x16 */ public static final @NotNull Icon LEAK_MAYBE = load("studio/icons/profiler/memoryleakstask/leak-maybe.svg", 1282998888, 2);
-      /** 16x16 */ public static final @NotNull Icon LEAK_NO = load("studio/icons/profiler/memoryleakstask/leak-no.svg", 725363233, 2);
-      /** 16x16 */ public static final @NotNull Icon LEAK_YES = load("studio/icons/profiler/memoryleakstask/leak-yes.svg", 459106998, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_MAYBE = load("studio/icons/profiler/memoryleakstask/leak-maybe.svg", "intui/icons/profiler/memoryleakstask/leak-maybe.svg", 1282998888, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_NO = load("studio/icons/profiler/memoryleakstask/leak-no.svg", "intui/icons/profiler/memoryleakstask/leak-no.svg", 725363233, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_YES = load("studio/icons/profiler/memoryleakstask/leak-yes.svg", "intui/icons/profiler/memoryleakstask/leak-yes.svg", 459106998, 2);
     }
 
     public static final class Overlays {
