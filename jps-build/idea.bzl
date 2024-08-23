@@ -128,26 +128,10 @@ def _sources(ctx, use_short_path):
         ix += 1
     return sources, files
 
-def _jps_library_impl(ctx):
-    # This library can be executed both as `bazel build` and as `bazel run`. The paths in those modes must be different,
-    # so we construct two sets of sources arguments (one with short_path and one with path). Additionally, when building
-    # we need to declare the output.
-    run_sources, run_files = _sources(ctx, True)
-    run_cmd = [
-        ctx.attr._jps_build.files_to_run.executable.short_path,
-    ] + ["--source=" + s.short_path for s in run_sources]
-
-    build_sources, build_files = _sources(ctx, False)
-    build_args = [
-        "--out_file",
-        ctx.outputs.zip.path,
-    ] + ["--source=" + s.path for s in build_sources]
-
+def _jps_build(cmd, module):
     args = [
-        "--download_cache",
-        ctx.attr.download_cache,
         "--command",
-        ctx.attr.cmd,
+        cmd,
         "--working_directory",
         "tools/idea",
         "--output_dir",
@@ -156,7 +140,7 @@ def _jps_library_impl(ctx):
         "tools/idea/build/jps-bootstrap-work/",
     ]
     bootstrap_args = [
-        "-Didea.test.module=" + ctx.attr.module,
+        "-Didea.test.module=" + module,
         "-Dintellij.build.output.root={jps_bin_cwd}/out/studio",
         "-Dkotlin.plugin.kind=AS",
         "-Dintellij.build.dev.mode=false",
@@ -166,9 +150,31 @@ def _jps_library_impl(ctx):
         "TestModuleTarget",
     ]
     args.extend(["--arg=" + a for a in bootstrap_args])
+    return args
+
+def _jps_update_library_impl(ctx):
+    args = _jps_build(ctx.attr.cmd, ctx.attr.module)
+    args.extend([
+        "--download_cache",
+        ctx.attr.download_cache,
+    ])
+    run_sources, run_files = _sources(ctx, True)
+    run_cmd = [
+        ctx.attr._jps_build.files_to_run.executable.short_path,
+    ] + ["--source=" + s.short_path for s in run_sources]
+
     ctx.actions.write(output = ctx.outputs.executable, content = " ".join(run_cmd + args), is_executable = True)
     runfiles = ctx.runfiles(files = run_files)
     runfiles = runfiles.merge(ctx.attr._jps_build.default_runfiles)
+    return [DefaultInfo(files = depset([ctx.outputs.executable]), executable = ctx.outputs.executable, runfiles = runfiles)]
+
+def _jps_library_impl(ctx):
+    args = _jps_build(ctx.attr.cmd, ctx.attr.module)
+    build_sources, build_files = _sources(ctx, False)
+    build_args = [
+        "--out_file",
+        ctx.outputs.zip.path,
+    ] + ["--source=" + s.path for s in build_sources]
     ctx.actions.run(
         outputs = [ctx.outputs.zip],
         inputs = build_files,
@@ -177,13 +183,38 @@ def _jps_library_impl(ctx):
         arguments = build_args + args,
         mnemonic = "JpsBuild",
     )
-
     return [
-        DefaultInfo(files = depset([ctx.outputs.executable]), executable = ctx.outputs.executable, runfiles = runfiles),
+        DefaultInfo(files = depset([ctx.outputs.zip])),
         JpsSourceInfo(files = [], strip_prefix = "", zips = [ctx.outputs.zip]),
     ]
 
-jps_library = rule(
+def jps_library(
+        name,
+        download_cache,
+        **kwargs):
+    _jps_library(
+        name = name,
+        **kwargs
+    )
+
+    _jps_update_library(
+        name = name + "_update_cache",
+        download_cache = download_cache,
+        **kwargs
+    )
+
+_jps_library = rule(
+    attrs = {
+        "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build", executable = True, cfg = "exec"),
+        "deps": attr.label_list(allow_files = True),
+        "module": attr.string(),
+        "cmd": attr.string(default = "platform/jps-bootstrap/jps-bootstrap.sh"),
+    },
+    outputs = {"zip": "%{name}.zip"},
+    implementation = _jps_library_impl,
+)
+
+_jps_update_library = rule(
     attrs = {
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build", executable = True, cfg = "exec"),
         "deps": attr.label_list(allow_files = True),
@@ -191,11 +222,8 @@ jps_library = rule(
         "download_cache": attr.string(),
         "cmd": attr.string(default = "platform/jps-bootstrap/jps-bootstrap.sh"),
     },
-    outputs = {
-        "zip": "%{name}.zip",
-    },
     executable = True,
-    implementation = _jps_library_impl,
+    implementation = _jps_update_library_impl,
 )
 
 def _jps_test_impl(ctx):
