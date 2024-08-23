@@ -26,8 +26,8 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
@@ -86,7 +86,7 @@ class ActionDispatcher(
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
   private val defaultFilters: Filters,
-  private val cache: AppInsightsCache,
+  private val codeContextResolver: CodeContextResolver,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -362,6 +362,8 @@ class ActionDispatcher(
             action.eventId,
             action.variantId,
             timeFilter,
+            state.selectedEvent?.let { codeContextResolver.getSource(it.stacktraceGroup) }
+              ?: emptyList(),
           )
         eventEmitter(AiInsightFetched(fetchedInsight))
       }

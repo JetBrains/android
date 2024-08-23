@@ -35,6 +35,7 @@ iml_module(
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
     ],
 )
 

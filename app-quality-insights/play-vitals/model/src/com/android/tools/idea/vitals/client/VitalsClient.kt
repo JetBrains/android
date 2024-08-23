@@ -44,6 +44,7 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.runGrpcCatching
+import com.android.tools.idea.insights.codecontext.CodeContext
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.io.grpc.ClientInterceptor
@@ -226,6 +227,7 @@ class VitalsClient(
     eventId: String,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
+    codeContext: List<CodeContext>,
   ): LoadingState.Done<AiInsight> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }

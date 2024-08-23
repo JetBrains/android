@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.analytics
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
 import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.intellij.openapi.components.service
 
 private const val EXPERIMENT_CONTROL = "experiments/aqi/aqi.code.context.experiment.1"
 private const val EXPERIMENT_TOP_SOURCE = "experiments/aqi/aqi.code.context.experiment.2"
@@ -32,9 +33,18 @@ private val experimentToExpectedMap =
     EXPERIMENT_ALL_SOURCES to ExperimentType.ALL_SOURCES,
   )
 
-object AppInsightExperimentFetcher {
+interface AppInsightsExperimentFetcher {
+  fun getCurrentExperiment(): ExperimentType
 
-  fun getCurrentExperiment(): ExperimentType {
+  companion object {
+    val instance: AppInsightsExperimentFetcher
+      get() = service<AppInsightsExperimentFetcher>()
+  }
+}
+
+class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
+
+  override fun getCurrentExperiment(): ExperimentType {
     experimentToExpectedMap.entries.forEach { (flag, expected) ->
       if (isFlagExpected(flag, expected)) return expected
     }
