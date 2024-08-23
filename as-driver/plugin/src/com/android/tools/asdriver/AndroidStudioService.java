@@ -47,8 +47,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -59,7 +57,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.platform.backend.observation.Observation;
@@ -72,6 +69,7 @@ import com.jetbrains.performancePlugin.CommandsRunner;
 import com.jetbrains.performancePlugin.PlaybackRunnerExtended;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -84,6 +82,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -783,5 +782,99 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     } finally {
       responseObserver.onCompleted();
     }
+  }
+
+  @Override
+  public void openProject(ASDriver.OpenProjectRequest request, StreamObserver<ASDriver.OpenProjectResponse> responseObserver) {
+    ASDriver.OpenProjectResponse.Builder responseBuilder = ASDriver.OpenProjectResponse.newBuilder();
+    responseBuilder.setResult(ASDriver.OpenProjectResponse.Result.ERROR);
+
+    try {
+      // The OpenFile action cannot be run synchronously (with .invokeAndWait) because it opens a modal dialog and won't return until the
+      // dialog is complete. Instead, we run with .invokeLater and use a semaphore to ensure that the action has at least been started
+      // before we continue.
+      Semaphore actionInvoked = new Semaphore(0);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        AnAction openFileAction;
+        AnActionEvent openFileEvent;
+
+        try {
+          openFileAction = ActionManager.getInstance().getAction("OpenFile");
+          if (openFileAction == null) {
+            responseBuilder.setErrorMessage("Could not find OpenFile action.");
+            return;
+          }
+
+          DataContext dataContext = getDataContext(null, ASDriver.ExecuteActionRequest.DataContextSource.DEFAULT);
+          if (dataContext == null) {
+            responseBuilder.setErrorMessage("Could not create data context.");
+            return;
+          }
+
+          openFileEvent = AnActionEvent.createFromAnAction(openFileAction, null, ActionPlaces.UNKNOWN, dataContext);
+        }
+        finally {
+          actionInvoked.release();
+        }
+
+        ActionUtil.performActionDumbAwareWithCallbacks(openFileAction, openFileEvent);
+      });
+
+      actionInvoked.acquire();
+      if (!responseBuilder.getErrorMessage().isEmpty()) {
+        // If we couldn't launch the action, go ahead and return here.
+        System.err.println(responseBuilder.getErrorMessage());
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+        return;
+      }
+
+      // Wait for the "open file" dialog's path text field to be available.
+      StudioInteractionService studioInteractionService = new StudioInteractionService();
+      List<ASDriver.ComponentMatcher> projectPathFieldMatcher =
+        List.of(
+          ASDriver.ComponentMatcher.newBuilder()
+            .setSwingClassRegexMatch(
+              ASDriver.SwingClassRegexMatch.newBuilder().setRegex(".*BasicComboBoxEditor\\$BorderlessTextField$")
+            ).build());
+
+      studioInteractionService.waitForComponent(projectPathFieldMatcher, false);
+
+      // Even after the field is available and editable, it is still updating as the VFS gets the directory structure. Setting the text
+      // right away sometimes fails on Windows, so waiting a couple seconds allows it to finish updates before continuing.
+      Thread.sleep(2000);
+
+      studioInteractionService.findAndSetTextOnComponent(projectPathFieldMatcher, request.getProjectPath());
+      Thread.sleep(2000);
+
+      studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("OK"));
+
+      if (request.getNewWindow()) {
+        studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("New Window"));
+
+        // Workaround for b/361777156: click "New Window" twice.
+        studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("New Window"));
+      }
+      else {
+        studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("This Window"));
+      }
+
+      responseBuilder.setResult(ASDriver.OpenProjectResponse.Result.OK);
+    } catch (Exception e) {
+      responseBuilder.setErrorMessage(e.toString());
+    }
+
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  private List<ASDriver.ComponentMatcher> createExactTextComponentMatcher(String text) {
+    return List.of(
+      ASDriver.ComponentMatcher.newBuilder()
+        .setComponentTextMatch(
+          ASDriver.ComponentTextMatch.newBuilder()
+            .setText(text)
+            .setMatchMode(ASDriver.ComponentTextMatch.MatchMode.EXACT)
+        ).build());
   }
 }
