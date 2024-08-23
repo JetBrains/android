@@ -54,6 +54,7 @@ import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceVi
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.base.Predicate
@@ -110,6 +111,7 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -157,6 +159,9 @@ abstract class DesignSurface<T : SceneManager>(
   InteractableScenesSurface,
   ScaleListener,
   UiDataProvider {
+
+  /** [CoroutineScope] to be used by any operations constrained to the zoom changes. */
+  protected val zoomControllerScope = AndroidCoroutineScope(parentDisposable)
 
   init {
     Disposer.register(parentDisposable, this)
