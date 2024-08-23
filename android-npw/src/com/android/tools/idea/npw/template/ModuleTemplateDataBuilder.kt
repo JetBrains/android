@@ -19,10 +19,9 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.SdkConstants.FD_TEST
 import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidVersion.VersionCodes.P
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -31,6 +30,7 @@ import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -269,12 +269,13 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     formFactor = FormFactor.Mobile
     category = Category.Activity
     themesData = ThemesData(appName = getAppNameForTheme(project.name))
+    val npwCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
     apis = ApiTemplateData(
-      buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
-      targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
+      buildApi = ApiVersion(npwCompileSdkVersion, npwCompileSdkVersion.toString()),
+      targetApi = ApiVersion(npwCompileSdkVersion, npwCompileSdkVersion.toString()),
       minApi = ApiVersion(LOWEST_ACTIVE_API, LOWEST_ACTIVE_API.toString()),
       // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = HIGHEST_KNOWN_STABLE_API.coerceAtMost(P)
+      appCompatVersion = npwCompileSdkVersion.coerceAtMost(P)
     )
   }
 }
