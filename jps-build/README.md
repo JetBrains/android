@@ -24,9 +24,9 @@ jps_library(
 )
 ```
 
-`jps_library` generates a `.zip` file containing the output of the compilation of a given module and its transitive dependencies. The `.zip` is not a default output of the rule, and it's named `${name}.zip`.
+`jps_library` generates a `.zip` file containing the output of the compilation of a given module and its transitive dependencies. The generated file can be obtained by running `bazel build ${name}`, and will be called `{$name}.zip`.
 
-`jps_library` can be executed with `bazel run`. In this mode it will run the build without a sandbox and copy all donwloaded data to the `download_cache` location.
+`jps_library` will generate a rule that can be executed with `bazel run`. This rule is called `${name}_update_cache`. Executing `bazel run ${name}_update_cache` will run the build without a sandbox and copy all donwloaded data to the `download_cache` location.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
