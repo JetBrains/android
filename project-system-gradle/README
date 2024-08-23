@@ -1,0 +1,8 @@
+Tests running gradle are now split into 11 small sub-targets instead of running in one target on 15 shards.
+This way tests are more efficient and it is easier to work with when you need to reproduce some flakiness
+or fight test timeouts.
+
+Group for the test is defined by package suffix, e.g.  `runsGradleBuild` or `runsGradleErrors`.
+
+All targets are listed in runsGradleTargets.txt and can be executed all-together using:
+bazel test --config=remote --nocache_test_results -- $(<project-system-gradle/runsGradleTargets.txt)
