@@ -238,7 +238,6 @@ class ComposePreviewTest {
     fixture.editor.close()
   }
 
-  @Ignore("b/355391435")
   @Test
   @Throws(Exception::class)
   fun testAnimationInspector() {

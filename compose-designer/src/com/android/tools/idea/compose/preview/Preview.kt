@@ -26,10 +26,13 @@ import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationInspectorManager
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
@@ -129,8 +132,10 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.SlowOperations
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.time.Duration
@@ -609,8 +614,7 @@ class ComposePreviewRepresentation(
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
-        mode.value is PreviewMode.AnimationInspection ->
-          ComposeAnimationInspectorManager.currentInspector?.component
+        mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
         else -> null
       }
   }
@@ -830,7 +834,7 @@ class ComposePreviewRepresentation(
       composeWorkBench.updateProgress(message("panel.building"))
       // When building, invalidate the Animation Preview, since the animations are now obsolete and
       // new ones will be subscribed once build is complete and refresh is triggered.
-      ComposeAnimationInspectorManager.invalidate(psiFilePointer)
+      currentAnimationPreview?.invalidatePanel()
       requestVisibilityAndNotificationsUpdate()
     }
   }
@@ -1536,21 +1540,28 @@ class ComposePreviewRepresentation(
         )
       }
       is PreviewMode.AnimationInspection -> {
-        ComposeAnimationInspectorManager.onAnimationInspectorOpened()
+        ComposeAnimationListener.messageBus
+          .syncPublisher(ComposeAnimationListener.TOPIC)
+          .newAnimationPreviewIsOpening()
         sceneComponentProvider.enabled = false
 
         withContext(uiThread) {
-          // Open the animation inspection panel
-          ComposeAnimationInspectorManager.createAnimationInspectorPanel(
-            surface,
-            this@ComposePreviewRepresentation,
-            psiFilePointer,
-          ) {
-            // Close this inspection panel, making all the necessary UI changes (e.g. changing
-            // background and refreshing the preview) before
-            // opening a new one.
-            updateAnimationPanelVisibility()
-          }
+          val animationPreview = createAnimationPreviewPanel(surface, psiFilePointer)
+          currentAnimationPreview = animationPreview
+
+          // Subscribe to bus message for closing the inspector from other files
+          ComposeAnimationListener.messageBus
+            .connect(animationPreview)
+            .subscribe(
+              ComposeAnimationListener.TOPIC,
+              object : ComposeAnimationListener {
+                override fun newAnimationPreviewIsOpening() {
+                  restorePrevious()
+                }
+              },
+            )
+
+          ComposeAnimationSubscriber.setHandler(animationPreview)
           updateAnimationPanelVisibility()
         }
         invalidateAndRefresh()
@@ -1577,18 +1588,44 @@ class ComposePreviewRepresentation(
         onUiCheckPreviewStop()
       }
       is PreviewMode.AnimationInspection -> {
-        log.debug("Stopping Animation Preview")
-        requestVisibilityAndNotificationsUpdate()
-        withContext(uiThread) {
-          // Close the animation inspection panel
-          ComposeAnimationInspectorManager.closeCurrentInspector()
+        currentAnimationPreview?.let {
+          Disposer.dispose(it)
+          it.tracker.closeAnimationInspector()
         }
-        // Swap the components back
-        updateAnimationPanelVisibility()
+        currentAnimationPreview = null
+        requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Gallery -> {
         withContext(uiThread) { composeWorkBench.galleryMode = null }
       }
     }
+  }
+
+  private fun createAnimationPreviewPanel(
+    surface: DesignSurface<LayoutlibSceneManager>,
+    psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  ): ComposeAnimationPreview {
+    return ComposeAnimationPreview(
+        surface.project,
+        ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
+        { surface.model?.let { surface.getSceneManager(it) } },
+        surface,
+        psiFilePointer,
+      )
+      .also {
+        Disposer.register(this@ComposePreviewRepresentation, it)
+        it.tracker.openAnimationInspector()
+      }
+  }
+
+  private var currentAnimationPreview: ComposeAnimationPreview? = null
+
+  private interface ComposeAnimationListener {
+    companion object {
+      val TOPIC = Topic.create("Compose Animation Preview", ComposeAnimationListener::class.java)
+      val messageBus = ApplicationManager.getApplication().messageBus
+    }
+
+    fun newAnimationPreviewIsOpening()
   }
 }
