@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -31,7 +32,7 @@ import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
 
-class AddDeviceWizardTest {
+class DeviceGridPageTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
@@ -43,7 +44,7 @@ class AddDeviceWizardTest {
         }
       }
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(source) }
+    val wizard = TestComposeWizard { TestDeviceGridPage(source) }
     composeTestRule.setContent { wizard.Content() }
 
     composeTestRule.onNodeWithText("Pixel Fold").performClick()
@@ -74,7 +75,7 @@ class AddDeviceWizardTest {
       }
 
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(source) }
+    val wizard = TestComposeWizard { TestDeviceGridPage(source) }
     composeTestRule.setContent { wizard.Content() }
 
     assertThat(wizard.nextAction.action).isNull()
@@ -106,4 +107,14 @@ class AddDeviceWizardTest {
     composeTestRule.onNodeWithText("Pixel Fold").assertIsSelected()
     assertThat(wizard.nextAction.action).isNotNull()
   }
+}
+
+@Composable
+private fun WizardPageScope.TestDeviceGridPage(source: TestDeviceSource) {
+  val filterState = TestDeviceFilterState()
+  DeviceGridPage(
+    source,
+    filterContent = { profiles -> TestDeviceFilters(profiles, filterState) },
+    filterState = filterState,
+  )
 }

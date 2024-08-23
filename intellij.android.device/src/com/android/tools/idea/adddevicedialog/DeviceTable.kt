@@ -43,6 +43,7 @@ import org.jetbrains.jewel.ui.component.TextField
 @Composable
 internal fun DeviceTable(
   devices: List<DeviceProfile>,
+  filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
   filterState: DeviceFilterState = remember { DeviceFilterState() },
@@ -91,7 +92,7 @@ internal fun DeviceTable(
       )
     } else {
       HorizontalSplitLayout(
-        first = { DeviceFilters(devices, filterState, modifier = it) },
+        first = { DeviceFiltersPanel(it) { filterContent() } },
         second = {
           Row(modifier = it) {
             val filteredDevices = devices.filter(filterState::apply)
