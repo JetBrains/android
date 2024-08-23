@@ -38,7 +38,7 @@ class DeviceTableTest {
     composeTestRule.setContent {
       val source = TestDeviceSource()
       source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-      DeviceTable(source.profiles.value.value)
+      TestDeviceTable(source.profiles.value.value)
     }
 
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertIsDisplayed()
@@ -57,7 +57,7 @@ class DeviceTableTest {
 
     composeTestRule.setContent {
       val profiles by source.profiles.collectAsState()
-      DeviceTable(profiles.value)
+      TestDeviceTable(profiles.value)
     }
 
     val googleFilter = hasText("Google") and hasAnyAncestor(hasTestTag("DeviceFilters"))
@@ -77,7 +77,7 @@ class DeviceTableTest {
     composeTestRule.setContent {
       val source = TestDeviceSource()
       source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-      DeviceTable(source.profiles.value.value)
+      TestDeviceTable(source.profiles.value.value)
     }
 
     composeTestRule.onNode(hasSetTextAction()).performTextReplacement("sam")
@@ -92,7 +92,7 @@ class DeviceTableTest {
     composeTestRule.setContent {
       val source = TestDeviceSource()
       source.apply { TestDevices.allTestDevices.forEach { add(it) } }
-      DeviceTable(source.profiles.value.value)
+      TestDeviceTable(source.profiles.value.value)
     }
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()
