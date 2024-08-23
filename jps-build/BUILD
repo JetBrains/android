@@ -6,6 +6,12 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "jps_import",
+    srcs = ["jps_import.py"],
+    visibility = ["//visibility:public"],
+)
+
 py_test(
     name = "jps_build_test",
     srcs = [

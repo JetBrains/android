@@ -183,6 +183,21 @@ def _jps_library_impl(ctx):
         arguments = build_args + args,
         mnemonic = "JpsBuild",
     )
+    ctx.actions.run(
+        outputs = [ctx.outputs.jar],
+        inputs = [ctx.outputs.zip],
+        tools = [ctx.executable._jps_import],
+        executable = ctx.executable._jps_import,
+        arguments = [
+            "--src",
+            ctx.outputs.zip.path,
+            "--dest",
+            ctx.outputs.jar.path,
+            "--module",
+            ctx.attr.module,
+        ],
+        mnemonic = "JpsImport",
+    )
     return [
         DefaultInfo(files = depset([ctx.outputs.zip])),
         JpsSourceInfo(files = [], strip_prefix = "", zips = [ctx.outputs.zip]),
@@ -191,26 +206,40 @@ def _jps_library_impl(ctx):
 def jps_library(
         name,
         download_cache,
+        visibility = None,
         **kwargs):
     _jps_library(
         name = name,
+        visibility = visibility,
         **kwargs
+    )
+
+    native.java_import(
+        name = name + "_import",
+        jars = [":%s.jar" % name],
+        neverlink = 1,
+        visibility = visibility,
     )
 
     _jps_update_library(
         name = name + "_update_cache",
         download_cache = download_cache,
+        visibility = visibility,
         **kwargs
     )
 
 _jps_library = rule(
     attrs = {
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build", executable = True, cfg = "exec"),
+        "_jps_import": attr.label(default = "//tools/adt/idea/jps-build:jps_import", executable = True, cfg = "exec"),
         "deps": attr.label_list(allow_files = True),
         "module": attr.string(),
         "cmd": attr.string(default = "platform/jps-bootstrap/jps-bootstrap.sh"),
     },
-    outputs = {"zip": "%{name}.zip"},
+    outputs = {
+        "zip": "%{name}.zip",
+        "jar": "%{name}.jar",
+    },
     implementation = _jps_library_impl,
 )
 
