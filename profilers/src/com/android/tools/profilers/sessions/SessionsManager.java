@@ -38,6 +38,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact;
 import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
@@ -165,6 +166,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
+    myArtifactsFetchers.add(LeakCanarySessionArtifact::getSessionArtifacts);
   }
 
   @NotNull

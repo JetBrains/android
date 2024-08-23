@@ -23,6 +23,7 @@ enum class ProfilerTaskType(val description: String, val prefersProfileable: Boo
   JAVA_KOTLIN_METHOD_RECORDING("Java/Kotlin Method Recording", true, 4),
   NATIVE_ALLOCATIONS("Native Allocations", true, 5),
   LIVE_VIEW("Live View", true, 6),
+  LEAKCANARY("LeakCanary", false, 7),
   UNSPECIFIED("Unspecified", false, Int.MAX_VALUE);
 
   companion object {
