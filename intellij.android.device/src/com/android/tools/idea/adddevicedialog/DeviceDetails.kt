@@ -36,11 +36,7 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun DeviceDetails(
-  device: DeviceProfile,
-  apiLevelSelection: ApiLevelSelection,
-  modifier: Modifier = Modifier,
-) {
+fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
   Column(
     verticalArrangement = Arrangement.spacedBy(4.dp),
     modifier = modifier.padding(4.dp).verticalScroll(rememberScrollState()),
@@ -66,7 +62,6 @@ fun DeviceDetails(
 
     Header("System Image")
     if (device.apiLevels.size > 1) {
-      LabeledValue("Selected API", apiLevelSelection.apply(device).toString())
       LabeledValue(
         "Supported APIs",
         // TODO: Join to a range?

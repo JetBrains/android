@@ -47,7 +47,6 @@ internal fun DeviceFilters(
   val scrollState = rememberScrollState()
   Box(modifier.fillMaxSize()) {
     Column(Modifier.padding(6.dp).testTag("DeviceFilters").verticalScroll(scrollState)) {
-      ApiFilter(filterState.apiLevelFilter)
       SingleSelectionDropdown(FormFactor.uniqueValuesOf(profiles), filterState.formFactorFilter)
       for (attribute in DeviceSetAttributes) {
         SetFilter(attribute, profiles, filterState)
@@ -75,7 +74,6 @@ internal class DeviceFilterState : RowFilter<DeviceProfile> {
   private val setFilters: ImmutableList<SetFilterState<DeviceProfile, *>> =
     DeviceSetAttributes.map { SetFilterState(it) }.toImmutableList()
 
-  val apiLevelFilter = ApiLevelSelectionState()
   val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
 
   val textFilter = TextFilterState()
@@ -84,10 +82,7 @@ internal class DeviceFilterState : RowFilter<DeviceProfile> {
     setFilters.find { it.attribute == attribute } as SetFilterState<DeviceProfile, V>
 
   override fun apply(row: DeviceProfile): Boolean {
-    return setFilters.all { it.apply(row) } &&
-      formFactorFilter.apply(row) &&
-      apiLevelFilter.apply(row) &&
-      textFilter.apply(row)
+    return setFilters.all { it.apply(row) } && formFactorFilter.apply(row) && textFilter.apply(row)
   }
 }
 
