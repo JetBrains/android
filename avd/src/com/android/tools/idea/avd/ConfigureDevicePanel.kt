@@ -21,12 +21,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
+import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Path
 import java.util.EnumSet
+import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -76,8 +79,19 @@ private fun Tabs(
   val servicesSet =
     images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
 
+  val androidVersions = images.map { it.androidVersion }.relevantVersions()
+
   // TODO: http://b/335494340
-  var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.firstOrNull())) }
+  var devicePanelState by remember {
+    mutableStateOf(
+      DevicePanelState(
+        AndroidVersionSelection(
+          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+        ),
+        servicesSet.firstOrNull(),
+      )
+    )
+  }
 
   val additionalSettingsPanelState = remember {
     AdditionalSettingsPanelState(configureDevicePanelState.device)
@@ -88,6 +102,7 @@ private fun Tabs(
       DevicePanel(
         configureDevicePanelState,
         devicePanelState,
+        androidVersions,
         servicesSet,
         images,
         onDevicePanelStateChange = { devicePanelState = it },
@@ -101,6 +116,19 @@ private fun Tabs(
         onImportButtonClick,
       )
   }
+}
+
+/**
+ * Reduce this set of versions to the stable versions, plus any preview versions that are newer than
+ * the latest stable, sorted newest first. Strip extension levels.
+ */
+private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
+  val (previewVersions, stableVersions) =
+    mapTo(TreeSet()) { AndroidVersion(it.apiLevel, it.codename) }.partition { it.isPreview }
+  val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
+  return (previewVersions.filter { it > latestStableVersion } + stableVersions)
+    .sortedDescending()
+    .toImmutableList()
 }
 
 internal class ConfigureDevicePanelState

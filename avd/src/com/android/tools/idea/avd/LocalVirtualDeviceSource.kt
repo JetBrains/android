@@ -25,6 +25,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.tools.adtui.device.DeviceArtDescriptor
@@ -76,16 +77,8 @@ internal class LocalVirtualDeviceSource(
     }
 
     private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
-      // TODO: http://b/347053479
-      if (image.androidVersion.isPreview) {
-        return false
-      }
-
-      if (image.androidVersion.apiLevel != device.androidVersion.apiLevel) {
-        return false
-      }
-
-      return DeviceSystemImageMatcher.matches(device.device, image)
+      return image.androidVersion.apiLevel >= SdkVersionInfo.LOWEST_ACTIVE_API &&
+        DeviceSystemImageMatcher.matches(device.device, image)
     }
 
     private fun resolve(deviceSkin: Path, imageSkins: Iterable<Path>) =

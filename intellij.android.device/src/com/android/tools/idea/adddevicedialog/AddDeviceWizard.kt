@@ -63,11 +63,7 @@ internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
         nextAction = WizardAction.Disabled
         finishAction = WizardAction.Disabled
       } else {
-        val apiLevelForSelectedProfile =
-          filterState.apiLevelFilter.apiLevelSelection.apply(selection)
-        val profileWithSelectedApi =
-          selection.update { apiLevels = sortedSetOf(apiLevelForSelectedProfile) }
-        source.apply { selectionUpdated(profileWithSelectedApi) }
+        source.apply { selectionUpdated(selection) }
       }
     }
   }
