@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.analytics.AppInsightExperimentFetcher
+import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
 import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -98,7 +99,7 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
   private fun logFeedback(sentiment: Sentiment, e: AnActionEvent) {
     val tracker = e.getData(APP_INSIGHTS_TRACKER_KEY) ?: return
     val crashType = e.getData(FAILURE_TYPE_KEY)?.toCrashType() ?: return
-    val experiment = AppInsightExperimentFetcher.getCurrentExperiment()
+    val experiment = service<AppInsightsExperimentFetcher>().getCurrentExperiment()
 
     tracker.logInsightSentiment(sentiment, experiment.toExperiment(), crashType)
   }

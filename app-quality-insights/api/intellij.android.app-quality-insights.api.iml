@@ -51,5 +51,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

@@ -17,8 +17,8 @@ package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
-import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.events.ActiveConnectionChanged
 import com.android.tools.idea.insights.events.AddNoteRequested
 import com.android.tools.idea.insights.events.ChangeEvent
@@ -85,7 +85,6 @@ class AppInsightsProjectLevelControllerImpl(
   private val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 
   override val state: SharedFlow<AppInsightsState>
@@ -98,7 +97,7 @@ class AppInsightsProjectLevelControllerImpl(
       clock,
       appInsightsClient,
       defaultFilters,
-      cache,
+      CodeContextResolverImpl(project),
       ::doEmit,
       onErrorAction,
     )

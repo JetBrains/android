@@ -236,7 +236,6 @@ class VitalsConfigurationManager(
               )
             },
             defaultFilters = createVitalsFilters(),
-            cache = cache,
           )
         controllerDeferred.complete(vitalsController)
       }

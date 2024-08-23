@@ -18,4 +18,7 @@
     <extensionPoint qualifiedName="com.android.tools.idea.insights.vcs.vcsForAppInsights"
                     interface="com.android.tools.idea.insights.vcs.VcsForAppInsights"/>
   </extensionPoints>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher" serviceImplementation="com.android.tools.idea.insights.analytics.AppInsightExperimentFetcherImpl" />
+  </extensions>
 </idea-plugin>

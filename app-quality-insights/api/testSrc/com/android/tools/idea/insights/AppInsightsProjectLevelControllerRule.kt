@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.codecontext.CodeContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
@@ -102,7 +103,6 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
-        cache = cache,
       )
     internalState = Channel(capacity = 3)
     scope.launch { controller.state.collect { internalState.send(it) } }
@@ -369,10 +369,11 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   override suspend fun fetchInsight(
     connection: Connection,
-    insightIssueId: IssueId,
+    issueId: IssueId,
     eventId: String,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
+    codeContext: List<CodeContext>,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
