@@ -26,20 +26,24 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager.getApplication
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import com.intellij.util.progress.sleepCancellable
+import com.intellij.util.application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Notify users is there is any dependency with blocking issues in the project
  */
-class SdkIndexIssuesSyncListener : GradleSyncListenerWithRoot {
+class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : GradleSyncListenerWithRoot {
   private var wasNotificationShown = false
 
   companion object {
@@ -56,8 +60,11 @@ class SdkIndexIssuesSyncListener : GradleSyncListenerWithRoot {
 
   private fun checkForFlagAndNotify(project: Project) {
     if (StudioFlags.SHOW_SUMMARY_NOTIFICATION.get()) {
-      getApplication().executeOnPooledThread {
-        notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)
+      coroutineScope.launch {
+        val notification = notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)
+        if (application.isUnitTestMode) {
+          project.service<EventStreamForTesting>().notifications.send(notification)
+        }
       }
     }
     else {
@@ -65,8 +72,7 @@ class SdkIndexIssuesSyncListener : GradleSyncListenerWithRoot {
     }
   }
 
-  @VisibleForTesting
-  fun notifyBlockingIssuesIfNeeded(project: Project, sdkIndex: GooglePlaySdkIndex): Notification? {
+  private suspend fun notifyBlockingIssuesIfNeeded(project: Project, sdkIndex: GooglePlaySdkIndex): Notification? {
     if (project.isDisposed) {
       return null
     }
@@ -80,13 +86,11 @@ class SdkIndexIssuesSyncListener : GradleSyncListenerWithRoot {
       .mapNotNull { it.component }
       .toSet()
     // Wait for SDK Index to be ready up to one minute (it might need to download data)
-    ProgressManager.getInstance().runProcess({
-      var maxRetries = 60
-      while (!sdkIndex.isReady() && maxRetries > 0) {
-        sleepCancellable(1000)
-        maxRetries -= 1
-      }
-    }, EmptyProgressIndicator())
+    var maxRetries = 60
+    while (!sdkIndex.isReady() && maxRetries > 0) {
+      delay(1000)
+      maxRetries -= 1
+    }
     val numOfBlockingIssues = dependencies.count { library ->
       sdkIndex.hasLibraryBlockingIssues(library.group, library.name, library.version.toString())
     }
@@ -114,4 +118,10 @@ class SdkIndexIssuesSyncListener : GradleSyncListenerWithRoot {
   }
 
   class SdkIndexNotification(val message: String): Notification(SDK_INDEX_NOTIFICATION_GROUP, message, NotificationType.WARNING)
+
+  @VisibleForTesting
+  @Service(Service.Level.PROJECT)
+  class EventStreamForTesting {
+    val notifications = Channel<Notification?>(capacity = 1, onBufferOverflow = DROP_OLDEST)
+  }
 }
