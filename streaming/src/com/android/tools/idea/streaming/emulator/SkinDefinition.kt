@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.Slow
+import com.android.io.readImage
 import com.android.io.writeImage
 import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
@@ -24,20 +25,20 @@ import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.util.ui.ImageUtil
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
-import javax.imageio.ImageIO
 
 /**
  * Description of AVD frame and mask.
@@ -65,16 +66,18 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     val scaleY = displayHeight.toDouble() / rotatedDisplaySize.height
     val displayCornerWidth = rotatedDisplayCornerSize.width.scaled(scaleX)
     val displayCornerHeight = rotatedDisplayCornerSize.height.scaled(scaleY)
-    // To avoid visible seams between parts of the skin scale the frame margins separately from the display.
+    // To avoid visible seams between parts of the skin, scale the frame margins separately from the display.
     val frameX = rotatedFrameRect.x.scaled(scaleX)
     val frameY = rotatedFrameRect.y.scaled(scaleY)
     val frameWidth = -frameX + displayWidth + (rotatedFrameRect.right - rotatedDisplaySize.width).scaled(scaleX)
     val frameHeight = -frameY + displayHeight + (rotatedFrameRect.bottom - rotatedDisplaySize.height).scaled(scaleY)
     val frameRect = Rectangle(frameX, frameY, frameWidth, frameHeight)
-    val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
-    val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(displayOrientationQuadrants, scaleX, scaleY) }.toList()
+    val imageTransformer = ImageTransformer(displayOrientationQuadrants, scaleX, scaleY)
+    val frameImages = layout.frameImages.mapNotNull { it.rotatedAndScaled(imageTransformer) }.toList()
+    val maskImages = layout.maskImages.mapNotNull { it.rotatedAndScaled(imageTransformer) }.toList()
+    val buttons = layout.buttons.mapNotNull { it.image.rotatedAndScaled(imageTransformer)?.let { image -> SkinButton(it.keyName, image) } }
     return SkinLayout(Dimension(displayWidth, displayHeight), Dimension(displayCornerWidth, displayCornerHeight),
-                      frameRect, frameImages, maskImages)
+                      frameRect, frameImages, maskImages, buttons)
   }
 
   /**
@@ -99,20 +102,19 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     return size.rotatedByQuadrants(displayRotationQuadrants)
   }
 
-  internal data class LayoutDescriptor(
+  private data class LayoutDescriptor(
     val displaySize: Dimension,
     val displayCornerRadius: Int,
     val frameRectangle: Rectangle,
-    val part: Part
+    val part: Part,
   ) {
 
-    val backgroundFile: URL?
-      get() = part.backgroundFile
+    private val imageLoader = ImageLoader()
 
     fun createLayout(): SkinLayout {
       val backgroundImages: List<AnchoredImage>
       val maskImages: List<AnchoredImage>
-      val background = part.backgroundFile?.let { readImage(it) }
+      val background = part.backgroundFile?.let { imageLoader.loadImage(it) }
 
       val mask = when {
         background != null && isTransparentNearCenterOfDisplay(background, displaySize, frameRectangle) -> {
@@ -121,14 +123,14 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
             // If running in a non-IDE environment and the mask file is specified in the layout but is absent on disk,
             // create the missing mask file.
             if (ApplicationManager.getApplication() == null && part.maskFile != null) {
-              val maskFile = Paths.get(part.maskFile.toURI())
+              val maskFile = part.maskFile
               if (Files.notExists(maskFile)) {
                 writeImage("WEBP", maskFile)
               }
             }
           }
         }
-        part.maskFile != null -> readImage(part.maskFile)
+        part.maskFile != null -> imageLoader.loadImage(part.maskFile)
         else -> null
       }
 
@@ -136,29 +138,59 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       maskImages = mask?.let { disassembleMask(it, displaySize) } ?: emptyList()
 
       val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
+      // Create skin buttons. Reanchoring to the nearest display corner is done to reduce scaling inaccuracies later on.
+      val buttons = part.buttons.mapNotNull { buttonDescriptor ->
+        buttonDescriptor.createButton(imageLoader)?.let {
+          SkinButton(it.keyName, it.image.translatedAndReanchored(adjustedFrameRectangle.x, adjustedFrameRectangle.y, displaySize))
+        }
+      }
       return SkinLayout(displaySize, Dimension(displayCornerRadius, displayCornerRadius), adjustedFrameRectangle,
-                        backgroundImages, maskImages)
-    }
-
-    private fun readImage(url: URL): BufferedImage? {
-      var image: BufferedImage? = null
-      try {
-        image = ImageIO.read(url)
-      }
-      catch (e: IOException) {
-        // Ignore to return null.
-      }
-
-      if (image == null) {
-        val file = Paths.get(url.toURI())
-        val detail = if (Files.notExists(file)) " - the file does not exist" else ""
-        thisLogger().warn("Failed to read Emulator skin image ${file}${detail}")
-      }
-      return image
+                        backgroundImages, maskImages, buttons)
     }
   }
 
-  internal data class Part(val backgroundFile: URL?, val maskFile: URL?)
+  private data class Part(val backgroundFile: Path?, val maskFile: Path?, val buttons: List<ButtonDescriptor>)
+
+  private data class ButtonDescriptor(val keyName: String, val offset: Point, val imageFile: Path) {
+
+    fun createButton(imageLoader: ImageLoader): SkinButton? {
+      val image = imageLoader.loadImage(imageFile) ?: return null
+      val anchoredImage = AnchoredImage(image, Dimension(image.width, image.height), AnchorPoint.TOP_LEFT, offset)
+      return SkinButton(keyName, anchoredImage)
+    }
+  }
+
+  private class ImageLoader {
+
+    private val loadedImages = HashMap<Path, BufferedImage?>()
+
+    fun loadImage(imageFile: Path): BufferedImage? {
+      return loadedImages.computeIfAbsent(imageFile) { readImage(it) }
+    }
+
+    private fun readImage(file: Path): BufferedImage? {
+      return try {
+        normalizeImage(file.readImage())
+      }
+      catch (e: IOException) {
+        val detail = if (Files.notExists(file)) "the file does not exist" else e.message ?: ""
+        val separator = if (detail.isEmpty()) "" else " - "
+        logger<SkinDefinition>().warn("Failed to read Emulator skin image $file$separator$detail")
+        null
+      }
+    }
+
+    private fun normalizeImage(image: BufferedImage): BufferedImage {
+      if (image.type == BufferedImage.TYPE_INT_ARGB) {
+        return image
+      }
+      val result = ImageUtil.createImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+      val g = result.createGraphics()
+      g.drawImage(image, 0, 0, null)
+      g.dispose()
+      return result
+    }
+  }
 
   companion object {
     @Slow
@@ -190,7 +222,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @Slow
     @Throws(IOException::class, InvalidSkinException::class)
     @JvmStatic
-    internal fun createLayoutDescriptor(skinFolder: Path): LayoutDescriptor {
+    private fun createLayoutDescriptor(skinFolder: Path): LayoutDescriptor {
       val layoutFile = skinFolder.resolve("layout")
       val contents = Files.readAllBytes(layoutFile).toString(UTF_8)
       val skin = SkinLayoutDefinition.parseString(contents)
@@ -199,16 +231,19 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       var cornerRadius = 0
       // Process part nodes. The "onion" and "controls" nodes are ignored because they don't
       // contribute to the device frame appearance.
-      val partsByName = hashMapOf<String, Part>()
+      val partsByName = mutableMapOf<String, Part>()
       val partNodes = skin.getNode("parts")?.children ?: throw InvalidSkinException("Missing \"parts\" element")
       for ((name, node) in partNodes.entries) {
-        if (name == "onion" || name == "controls") {
-          continue
-        }
-        if (name == "device" || name == "primary" || displayWidth == 0 || displayHeight == 0) {
-          displayWidth = node.getValue("display.width")?.toInt() ?: 0
-          displayHeight = node.getValue("display.height")?.toInt() ?: 0
-          cornerRadius = node.getValue("display.corner_radius")?.toInt() ?: 0
+        when (name) {
+          "device", "primary" -> {
+            if (displayWidth == 0 || displayHeight == 0) {
+              displayWidth = node.getValue("display.width")?.toInt() ?: 0
+              displayHeight = node.getValue("display.height")?.toInt() ?: 0
+              cornerRadius = node.getValue("display.corner_radius")?.toInt() ?: 0
+            }
+          }
+
+          "onion", "controls" -> continue
         }
         partsByName[name] = createPart(node, skinFolder)
       }
@@ -258,7 +293,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     }
 
     /**
-     * Returns the skin rectangle rotated with the display according to [rotation].
+     * Returns the rectangle rotated with the display according to [rotation].
      *
      * @param rotation the requested rotation
      * @param displaySize the display dimensions before rotation
@@ -277,13 +312,34 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     private fun createPart(partNode: SkinLayoutDefinition, skinFolder: Path): Part {
       val background = getReferencedFile(partNode, "background.image", skinFolder)
       val mask = getReferencedFile(partNode, "foreground.mask", skinFolder)
-      return Part(background, mask)
+      val buttons = mutableListOf<ButtonDescriptor>()
+      val buttonsNode = partNode.getNode("buttons")
+      if (buttonsNode != null) {
+        for ((buttonName, node) in buttonsNode.children) {
+          val keyName = when (buttonName) {
+            "back" -> "GoBack"
+            "home" -> "GoHome"
+            "power" -> "Power"
+            "search" -> "Search"
+            "soft-left" -> "Menu"
+            "volume-down" -> "AudioVolumeDown"
+            "volume-up" -> "AudioVolumeUp"
+            else -> continue
+          }
+          val x = node.getValue("x")?.toInt() ?: continue
+          val y = node.getValue("y")?.toInt() ?: continue
+          val imageFile = getReferencedFile(node, "image", skinFolder) ?: continue
+          buttons.add(ButtonDescriptor(keyName, Point(x, y), imageFile))
+        }
+      }
+
+      return Part(background, mask, buttons)
     }
 
     @JvmStatic
-    private fun getReferencedFile(node: SkinLayoutDefinition, propertyName: String, skinFolder: Path): URL? {
+    private fun getReferencedFile(node: SkinLayoutDefinition, propertyName: String, skinFolder: Path): Path? {
       val filename = node.getValue(propertyName) ?: return null
-      return skinFolder.resolve(filename).toUri().toURL()
+      return skinFolder.resolve(filename)
     }
 
     @JvmStatic
@@ -292,7 +348,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
     /**
      * Crops the background image and breaks it into 8 pieces, 4 for sides and 4 for corners of the frame.
-     */
+    internal */
     @JvmStatic
     private fun disassembleFrame(background: BufferedImage, frameRectangle: Rectangle, displaySize: Dimension): List<AnchoredImage> {
       // Display edges in coordinates of the cropped background image.
@@ -494,6 +550,10 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @JvmStatic
     private val Rectangle.bottom
       get() = y + height
+
+    @TestOnly
+    @JvmStatic
+    internal fun getBackgroundImageFile(skinFolder: Path): Path? = createLayoutDescriptor(skinFolder).part.backgroundFile
 
     private const val ALPHA_MASK = 0xFF shl 24
   }
