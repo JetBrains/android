@@ -51,19 +51,18 @@ import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
-  private val refreshDevices: () -> Unit,
   systemImages: ImmutableCollection<ISystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   private var systemImages by mutableStateOf(systemImages)
 
   companion object {
-    internal fun create(refreshDevices: () -> Unit): LocalVirtualDeviceSource {
+    internal fun create(): LocalVirtualDeviceSource {
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(refreshDevices, ISystemImages.get(), skins)
+      return LocalVirtualDeviceSource(ISystemImages.get(), skins)
     }
 
     private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
@@ -142,10 +141,7 @@ internal class LocalVirtualDeviceSource(
   }
 
   private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
-    withContext(AndroidDispatchers.diskIoThread) {
-      VirtualDevices().add(device, image)
-      refreshDevices()
-    }
+    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices().add(device, image) }
     return true
   }
 

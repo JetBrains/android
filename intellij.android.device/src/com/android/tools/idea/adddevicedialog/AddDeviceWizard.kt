@@ -20,7 +20,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import com.intellij.openapi.project.Project
 
-internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
+class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
   fun createDialog(): ComposeWizard {
     return ComposeWizard(project, "Add Device") { DeviceGridPage(sources) }
   }
