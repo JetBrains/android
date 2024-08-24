@@ -193,6 +193,12 @@ internal fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension =
     if (scaleX == 1.0 && scaleY == 1.0) this else Dimension(width.scaled(scaleX), height.scaled(scaleY))
 
 /**
+ * Returns this [Rectangle] scaled independently along X and Y axes.
+ */
+internal fun Rectangle.scaled(scaleX: Double, scaleY: Double): Rectangle =
+    if (scaleX == 1.0 && scaleY == 1.0) this else Rectangle(x.scaled(scaleX), y.scaled(scaleY), width.scaled(scaleX), height.scaled(scaleY))
+
+/**
  * Returns this [Point] scaled by the given factor.
  */
 internal fun Point.scaled(scale: Double): Point =

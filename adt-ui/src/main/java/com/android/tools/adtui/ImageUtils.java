@@ -143,6 +143,25 @@ public class ImageUtils {
    */
   public static @NotNull BufferedImage rotateByQuadrantsAndScale(
       @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
+    int imageType = source.getType();
+    if (imageType == BufferedImage.TYPE_CUSTOM) {
+      imageType = BufferedImage.TYPE_INT_ARGB;
+    }
+    return rotateByQuadrantsAndScale(source, numQuadrants, destinationWidth, destinationHeight, imageType);
+  }
+
+  /**
+   * Rotates the given image by the given number of quadrants and scales it to the given dimensions.
+   *
+   * @param source the source image
+   * @param numQuadrants the number of quadrants to rotate by counterclockwise
+   * @param destinationWidth the width of the resulting image
+   * @param destinationHeight the height of the resulting image
+   * @param imageType the type of the image to produce
+   * @return the rotated and scaled image
+   */
+  public static @NotNull BufferedImage rotateByQuadrantsAndScale(
+      @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight, int imageType) {
     numQuadrants = numQuadrants & 0x3;
     if (numQuadrants == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
       return source;
@@ -186,7 +205,7 @@ public class ImageUtils {
         break;
     }
 
-    BufferedImage result = new BufferedImage(destinationWidth, destinationHeight, source.getType());
+    BufferedImage result = new BufferedImage(destinationWidth, destinationHeight, imageType);
     AffineTransform transform = new AffineTransform();
     // Please notice that the transformations are applied in the reverse order, starting from rotation.
     transform.translate(shiftX, shiftY);

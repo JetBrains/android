@@ -21,8 +21,8 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getSkinFolder
+import com.android.utils.HashCodes
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.awt.Dimension
@@ -33,13 +33,13 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.function.Consumer
 import java.util.function.Predicate
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlin.test.fail
 
 /**
  * Tests for [SkinDefinition] and related classes.
@@ -54,7 +54,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_2_XL() {
     val folder = getSkinFolder("pixel_2_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1623, 3322))
@@ -97,7 +97,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_3_XL() {
     val folder = getSkinFolder("pixel_3_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method without scaling.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1584, 3245))
@@ -146,7 +146,7 @@ class SkinDefinitionTest {
   @Test
   fun testVeryTinyScale() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the createScaledLayout method with scaling.
     val layout = skin.createScaledLayout(8, 16, 0)
@@ -158,7 +158,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4() {
     val folder = getSkinFolder("pixel_4")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -171,7 +171,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4_xl() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -184,9 +184,50 @@ class SkinDefinitionTest {
   @Test
   fun testTwoDisplays() {
     val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
     // Check the skin layout.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(2348, 1080))
+  }
+
+  @Test
+  fun testSkinButtons() {
+    val folder = getSkinFolder("nexus_one")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
+    // Check the skin layout.
+    val layout = skin.createScaledLayout(400, 240, 1)
+    val buttons = layout.buttons
+    assertThat(buttons).hasSize(7)
+    assertThat(buttons[0].keyName).isEqualTo("GoBack")
+    assertThat(buttons[0].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[0].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_RIGHT)
+    assertThat(buttons[0].image.offset).isEqualTo(Point(7, -77))
+    assertThat(buttons[1].keyName).isEqualTo("Menu")
+    assertThat(buttons[1].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[1].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_RIGHT)
+    assertThat(buttons[1].image.offset).isEqualTo(Point(7, -137))
+    assertThat(buttons[1].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[2].keyName).isEqualTo("GoHome")
+    assertThat(buttons[2].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[2].image.anchorPoint).isEqualTo(AnchorPoint.TOP_RIGHT)
+    assertThat(buttons[2].image.offset).isEqualTo(Point(7, 43))
+    assertThat(buttons[2].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[3].keyName).isEqualTo("Search")
+    assertThat(buttons[3].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[3].image.anchorPoint).isEqualTo(AnchorPoint.TOP_RIGHT)
+    assertThat(buttons[3].image.offset).isEqualTo(Point(7, -18))
+    assertThat(buttons[3].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[4].keyName).isEqualTo("AudioVolumeUp")
+    assertThat(buttons[4].image.size).isEqualTo(Dimension(25, 34))
+    assertThat(buttons[4].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[4].image.offset).isEqualTo(Point(33, -19))
+    assertThat(buttons[5].keyName).isEqualTo("AudioVolumeDown")
+    assertThat(buttons[5].image.size).isEqualTo(Dimension(25, 34))
+    assertThat(buttons[5].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[5].image.offset).isEqualTo(Point(64, -19))
+    assertThat(buttons[6].keyName).isEqualTo("Power")
+    assertThat(buttons[6].image.size).isEqualTo(Dimension(29, 34))
+    assertThat(buttons[6].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[6].image.offset).isEqualTo(Point(-65, -81))
   }
 
   @Test
@@ -260,7 +301,7 @@ class SkinDefinitionTest {
   }
 
   private fun validateLayout(skinLayout: SkinLayout, skinFolder: Path): List<String> {
-    val backgroundImageFile = getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
+    val backgroundImageFile = SkinDefinition.getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
     val backgroundImage = try {
       backgroundImageFile.readImage()
     }
@@ -357,11 +398,6 @@ class SkinDefinitionTest {
     return problems
   }
 
-  private fun getBackgroundImageFile(skinFolder: Path): Path? {
-    val backgroundFileUrl = SkinDefinition.createLayoutDescriptor(skinFolder).backgroundFile ?: return null
-    return Paths.get(backgroundFileUrl.toURI())
-  }
-
   private fun findBoundsOfContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>): Rectangle {
     var minX = start.x
     var maxX = start.x
@@ -441,7 +477,13 @@ private fun BufferedImage.isNotOpaque(point: Point): Boolean {
   return !isOpaque(point)
 }
 
-private data class Point(val x: Int, val y: Int) // Unlike java.awt.Point this class has an efficient hashCode method.
+/** The `hashCode` method is overloaded for efficiency. The [java.awt.Point.equals] method is ok. */
+private class Point(x: Int, y: Int) : java.awt.Point(x, y) {
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(x, y)
+  }
+}
 
 private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
                                Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))
