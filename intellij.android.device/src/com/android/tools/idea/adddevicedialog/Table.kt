@@ -201,8 +201,9 @@ fun <T> Table(
   rows: List<T>,
   rowId: (T) -> Any,
   modifier: Modifier = Modifier,
+  tableSortState: TableSortState<T> = remember { TableSortState() },
   tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
-  tableSortState: TableSortState<T> = remember { TableSortState<T>() },
+  onRowClick: (T) -> Unit = { tableSelectionState.selection = it },
 ) {
   Column(modifier.padding(ROW_PADDING)) {
     TableHeader(
@@ -228,7 +229,7 @@ fun <T> Table(
           TableRow(
             sortedRows[index],
             selected = sortedRows[index] == tableSelectionState.selection,
-            onClick = { row -> tableSelectionState.selection = row },
+            onRowClick,
             columns,
           )
         }

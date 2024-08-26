@@ -69,7 +69,6 @@ internal constructor(
         name = device.displayName,
         device = device,
         androidVersion = device.androidVersionRange.upperEndpoint(),
-        // TODO(b/335267252): Set the skin appropriately.
         skin = NoSkin.INSTANCE,
         frontCamera = AvdCamera.EMULATED,
         // TODO We're assuming the emulator supports this feature
