@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.getUInt
@@ -625,7 +626,6 @@ private const val CHANNEL_HEADER_LENGTH = 20
 internal var BIT_RATE_STABILITY_FRAME_COUNT = 1000
 
 private val ZERO_POINT = Point()
-private const val ALPHA_MASK = 0xFF shl 24
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)

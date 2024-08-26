@@ -32,7 +32,7 @@ class TemplateIcon(private val delegateIcon: Icon) : JBScalableIcon() {
 
   fun cropBlankWidth() {
     val image = ImageUtil.toBufferedImage(IconUtil.toImage(delegateIcon), true)
-    ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null)?.run {
+    ImageUtils.getCropBounds(image, ImageUtils::isTransparentPixel, null)?.run {
       cropRectangle.x = x
       cropRectangle.width = width
     }

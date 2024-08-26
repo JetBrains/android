@@ -19,10 +19,8 @@ import static com.android.utils.XmlUtils.getSubTags;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
-import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,6 +32,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,6 +51,7 @@ import org.w3c.dom.NodeList;
  */
 public class DeviceArtDescriptor {
   @NotNull public static final DeviceArtDescriptor NONE = new DeviceArtDescriptor(null, null);
+  public static final double EPSILON = 1e-5;
 
   private final String myId;
   private final String myName;
@@ -84,7 +84,7 @@ public class DeviceArtDescriptor {
   }
 
   private static List<File> getDescriptorFiles(@Nullable File[] additionalRoots) {
-    Set<File> roots = new HashSet<File>();
+    Set<File> roots = new HashSet<>();
 
     File base = getBundledDescriptorsFolder();
     if (base != null) {
@@ -95,7 +95,7 @@ public class DeviceArtDescriptor {
       Collections.addAll(roots, additionalRoots);
     }
 
-    List<File> files = new ArrayList<File>(roots.size());
+    List<File> files = new ArrayList<>(roots.size());
     for (File root : roots) {
       File file = getDescriptorFile(root);
       if (file != null) {
@@ -112,7 +112,7 @@ public class DeviceArtDescriptor {
 
     for (File file : files)
       try {
-        String xml = Files.toString(file, Charsets.UTF_8);
+        String xml = Files.asCharSource(file, StandardCharsets.UTF_8).read();
         Document document = XmlUtils.parseDocumentSilently(xml, false);
         if (document != null) {
           File baseFolder = file.getParentFile();
@@ -169,7 +169,7 @@ public class DeviceArtDescriptor {
   }
 
   @NotNull
-  public OrientationData getArtDescriptor(@NotNull ScreenOrientation orientation) {
+  private OrientationData getArtDescriptor(@NotNull ScreenOrientation orientation) {
     return orientation == ScreenOrientation.PORTRAIT ? myPortrait : myLandscape;
   }
 
@@ -243,7 +243,7 @@ public class DeviceArtDescriptor {
     // Make sure that the aspect ratio is nearly identical to the image aspect ratio
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     double descriptorAspectRatio = getAspectRatio(orientation);
-    return Math.abs(imgAspectRatio - descriptorAspectRatio) < ImageUtils.EPSILON;
+    return Math.abs(imgAspectRatio - descriptorAspectRatio) < EPSILON;
   }
 
   @Override
