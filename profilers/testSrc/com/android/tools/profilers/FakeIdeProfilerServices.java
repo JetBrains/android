@@ -134,6 +134,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myTraceboxEnabled = false;
 
   /**
+   * Whether the LeakCanary task should be visible.
+   */
+  private boolean myLeakCanaryEnabled = false;
+
+  /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
    */
@@ -286,6 +291,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isTraceboxEnabled() {
         return myTraceboxEnabled;
+      }
+
+      @Override
+      public boolean isLeakCanaryEnabled() {
+        return myLeakCanaryEnabled;
       }
     };
   }
@@ -472,5 +482,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableTaskBasedUx(boolean enabled) {
     myTaskBasedUxEnabled = enabled;
+  }
+
+  public void enableLeakCanary(boolean enabled) {
+    myLeakCanaryEnabled = enabled;
   }
 }

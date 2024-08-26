@@ -77,6 +77,7 @@ class TaskGridTest {
     myManager = myProfilers.sessionsManager
     taskGridModel = TaskGridModel {}
     ideProfilerServices.enableTaskBasedUx(true)
+    ideProfilerServices.enableLeakCanary(true)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
   }
@@ -139,7 +140,7 @@ class TaskGridTest {
 
   @Test
   fun `correct number of task grid items are displayed and clickable`() {
-    // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
+    // There should be one task grid item for every task handler. Eight task handlers were added in the setup step of this test.
     composeTestRule.setContent {
       TaskGrid(taskGridModel, myProfilers.taskHandlers.keys.toList())
     }

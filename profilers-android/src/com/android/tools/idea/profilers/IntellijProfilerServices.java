@@ -503,5 +503,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isTraceboxEnabled() {
       return StudioFlags.PROFILER_TRACEBOX.get();
     }
+
+    @Override
+    public boolean isLeakCanaryEnabled() {
+      return StudioFlags.PROFILER_LEAKCANARY.get();
+    }
   }
 }
