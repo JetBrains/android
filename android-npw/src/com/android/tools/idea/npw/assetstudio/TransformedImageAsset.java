@@ -287,7 +287,7 @@ public final class TransformedImageAsset {
   private Rectangle2D calculateTrimRectangle(@NotNull String xmlDrawable) {
     Future<BufferedImage> futureImage = myContext.renderDrawable(xmlDrawable, myTargetSize);
     Future<Rectangle2D> rectangleFuture = Futures.lazyTransform(futureImage, (BufferedImage image) -> {
-      Rectangle bounds = ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null);
+      Rectangle bounds = ImageUtils.getCropBounds(image, ImageUtils::isTransparentPixel, null);
       if (bounds == null) {
         return new Rectangle(myTargetSize);  // Do not trim a completely transparent image.
       }
