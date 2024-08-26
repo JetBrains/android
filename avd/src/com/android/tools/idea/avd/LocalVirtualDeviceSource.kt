@@ -27,11 +27,13 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
+import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
+import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
@@ -45,6 +47,7 @@ import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
 import java.awt.Component
+import java.nio.file.Path
 import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -84,6 +87,14 @@ internal class LocalVirtualDeviceSource(
 
       return DeviceSystemImageMatcher.matches(device.device, image)
     }
+
+    private fun resolve(deviceSkin: Path, imageSkins: Iterable<Path>) =
+      DeviceSkinResolver.resolve(
+        deviceSkin,
+        imageSkins,
+        AndroidSdks.getInstance().tryToChooseSdkHandler().location,
+        DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath(),
+      )
   }
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
@@ -104,8 +115,7 @@ internal class LocalVirtualDeviceSource(
     val images = systemImages.filter { matches(device, it) }.toImmutableList()
 
     // TODO: http://b/342003916
-    val configureDevicePanelState =
-      remember(device) { ConfigureDevicePanelState(device, skins, image ?: images.first()) }
+    val configureDevicePanelState = remember(device) { configureDevicePanelState(device, image) }
 
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
@@ -115,6 +125,12 @@ internal class LocalVirtualDeviceSource(
       configureDevicePanelState,
       images,
       onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
+      onSystemImageTableRowClick = {
+        configureDevicePanelState.systemImageTableSelectionState.selection = it
+
+        val skin = resolve(configureDevicePanelState.device.skin.path(), it.skins)
+        configureDevicePanelState.setSkin(skin)
+      },
       onImportButtonClick = {
         // TODO Validate the skin
         val skin =
@@ -126,7 +142,7 @@ internal class LocalVirtualDeviceSource(
           )
 
         if (skin != null) {
-          configureDevicePanelState.importSkin(skin.toNioPath())
+          configureDevicePanelState.setSkin(skin.toNioPath())
         }
       },
     )
@@ -145,6 +161,20 @@ internal class LocalVirtualDeviceSource(
         }
       }
     }
+  }
+
+  private fun configureDevicePanelState(
+    device: VirtualDevice,
+    image: ISystemImage?,
+  ): ConfigureDevicePanelState {
+    val state = ConfigureDevicePanelState(device, skins, image)
+
+    if (image == null) {
+      val skin = device.device.defaultHardware.skinFile
+      state.setSkin(resolve(if (skin == null) SkinUtils.noSkin() else skin.toPath(), emptyList()))
+    }
+
+    return state
   }
 
   private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
