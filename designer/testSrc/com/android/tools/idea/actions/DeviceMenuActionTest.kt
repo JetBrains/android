@@ -133,7 +133,7 @@ class DeviceMenuActionTest {
                   Nexus 5X (411 × 731 dp, 420dpi)
                   XR Device (1184 × 1280 dp, xhdpi)
               Tablets
-                  Pixel 9 Pro Fold (791 × 820 dp, 420dpi)
+                  Pixel 9 Pro Fold (852 × 883 dp, 390dpi)
                   Pixel Tablet (1280 × 800 dp, xhdpi)
                   Pixel C (1280 × 900 dp, xhdpi)
                   Nexus 10 (1280 × 800 dp, xhdpi)
