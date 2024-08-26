@@ -50,8 +50,8 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   val grpcChannel = FakeGrpcChannel("LeakCanaryTaskHandlerTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
-  private val timeStamp1 = System.nanoTime().minus(3000000)
-  private val timeStamp3 = System.nanoTime().minus(1000000)
+  private val timeStamp1 = System.currentTimeMillis()
+  private val timeStamp3 = System.currentTimeMillis() + 300000
   private lateinit var leakCanaryTaskHandler: LeakCanaryTaskHandler
 
   @Before
@@ -81,7 +81,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     assertNotNull(leakCanaryTaskHandler.stage)
     assertNotNull(leakCanaryTaskHandler.stage as LeakCanaryModel)
     // By default, no leaks exist
-    assertEquals(0, (leakCanaryTaskHandler.stage as LeakCanaryModel).leaksDetectedCount.value)
+    assertEquals(0, (leakCanaryTaskHandler.stage as LeakCanaryModel).leaks.value.size)
     assertSame(leakCanaryTaskHandler.stage as LeakCanaryModel, profilers.stage as LeakCanaryModel)
   }
 
@@ -102,12 +102,10 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Verify leak events
-    assertEquals(4, stage.leakEvents.size) // 4 events are sent
-    assertEquals(4, stage.leaksDetectedCount.value) // All 4 events triggered a leak detected event
+    assertEquals(4, stage.leaks.value.size) // 4 events are sent
     leakCanaryTaskHandler.stopTask()
     // After stage exit we get all events
-    assertEquals(4, stage.leakEvents.size) // 4 events are sent
-    assertEquals(4, stage.leaksDetectedCount.value) // All 4 events triggered a leak detected event
+    assertEquals(4, stage.leaks.value.size) // 4 events are sent
   }
 
   @Test
