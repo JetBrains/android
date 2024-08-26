@@ -1,7 +1,6 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.welcome.wizard;
 
-import com.intellij.ide.cloudConfig.CloudConfigProvider;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.IntelliJLaf;
 import com.intellij.ide.ui.laf.LafManagerImpl;
@@ -212,16 +211,6 @@ public class CustomizeUIThemeStepPanel extends JPanel {
     if (ApplicationManager.getApplication() != null) {
       if (StartupUiUtil.isUnderDarcula()) return DARCULA;
       return INTELLIJ;
-    }
-    CloudConfigProvider provider = CloudConfigProvider.getProvider();
-    if (provider != null) {
-      String lafClassName = provider.getLafClassName();
-      if (lafClassName != null) {
-        ThemeInfo result = ContainerUtil.find(myThemes, theme -> lafClassName.equals(theme.laf));
-        if (result != null) {
-          return result;
-        }
-      }
     }
     return myThemes.iterator().next();
   }
