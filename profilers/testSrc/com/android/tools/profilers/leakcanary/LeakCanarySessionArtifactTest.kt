@@ -107,8 +107,8 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     profilers.sessionsManager.mySessionMetaDatas[mockSession.sessionId] = mockSessionMetadata
     val leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata)
     leakCanarySessionArtifact.doSelect()
-    assertEquals(3, (profilers.stage as LeakCanaryModel).leakEvents.size)
-    assertEquals(3, (profilers.stage as LeakCanaryModel).leaksDetectedCount.value)
+    assertTrue { profilers.stage is LeakCanaryModel }
+    assertEquals(3, (profilers.stage as LeakCanaryModel).leaks.value.size)
   }
 
   @Test
@@ -130,8 +130,8 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     profilers.sessionsManager.mySessionMetaDatas[mockSession.sessionId] = mockSessionMetadata
     val leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata)
     leakCanarySessionArtifact.doSelect()
-    assertEquals(0, (profilers.stage as LeakCanaryModel).leakEvents.size)
-    assertEquals(0, (profilers.stage as LeakCanaryModel).leaksDetectedCount.value)
+    assertTrue { profilers.stage is LeakCanaryModel }
+    assertEquals(0, (profilers.stage as LeakCanaryModel).leaks.value.size)
   }
 
   @Test
