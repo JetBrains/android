@@ -18,13 +18,21 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.profilers.commands.util.FakeLogcatService
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.LeakCanary
+import com.android.tools.profiler.proto.Transport
+import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.collect.ImmutableList
 import com.intellij.mock.MockApplication
 import com.intellij.mock.MockProjectEx
@@ -43,6 +51,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
@@ -59,6 +68,18 @@ class LeakCanaryLogcatCommandHandlerTest {
   private lateinit var mockLogcatService: FakeLogcatService
   private lateinit var handler: LeakCanaryLogcatCommandHandler
 
+  private val timer = FakeTimer()
+
+  // Needed for GetCurrentTime
+  private val service = FakeTransportService(timer)
+  @get:Rule
+  var grpcChannel = FakeGrpcChannel("LeakCanaryLogcatCommandHandlerTest", service)
+  private val channel: ManagedChannel = InProcessChannelBuilder.forName(grpcChannel.name).usePlaintext().directExecutor().build()
+  private var transportServiceGrpc = TransportServiceGrpc.newBlockingStub(channel)
+  private val startTime = System.nanoTime()
+  // endTime should be greater than startTime
+  private val endTime = System.nanoTime() + 10000000
+
   @get:Rule
   val disposableRule = DisposableRule()
 
@@ -70,7 +91,9 @@ class LeakCanaryLogcatCommandHandlerTest {
     mockLogcatService = FakeLogcatService()
     mockProjectDevice(disposableRule.disposable, app)
     ApplicationManager.setApplication(app, disposableRule.disposable)
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    transportServiceGrpc = spy(TransportServiceGrpc.newBlockingStub(channel))
+    `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(startTime).build())
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
   }
 
   @Test
@@ -105,7 +128,7 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   @Test
   fun testLeakCanaryLogWithDifferentTag() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
     // Before pushing messages wait for logcat to setup
@@ -125,15 +148,19 @@ class LeakCanaryLogcatCommandHandlerTest {
         LogcatHeader(LogLevel.DEBUG, 1, 2, "app1", "", "LeakCanaryRandom", Instant.ofEpochMilli(1000)),
         "====================================",
       )
+
     mockLogcatService.logMessages(message1, message2, message3)
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
-    assertEquals(mockEventQueue.size, 0)
+    // Start event should exist in event queue.
+    assertEquals(mockEventQueue.size, 1)
+    verifyStartEvent()
+    verifyEndEvent()
   }
 
   @Test
   fun testMixOfLeakCanaryAndOtherLogs() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
     // Before pushing messages wait for logcat to setup properly
@@ -166,15 +193,21 @@ class LeakCanaryLogcatCommandHandlerTest {
     mockLogcatService.logMessages(message1, message2, message3, message4, message2, message3, message5)
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
-    assertEquals(mockEventQueue.size, 1)
-    // Only LeakCanary tagged logs is taken. Initial "===" exist even though 'Heap Analysis' is considered the start of leak log.
-    assertEquals(mockEventQueue.first.leakcanaryLogcat.logcatMessage,
+    assertEquals(mockEventQueue.size, 2)
+    verifyStartEvent()
+
+    val leakCanaryEvent = mockEventQueue.poll()
+    // Only LeakCanary tagged logs is taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered
+    // the start of leak log.
+    assertEquals(leakCanaryEvent.leakcanaryLogcat.logcatMessage,
                  "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
+
+    verifyEndEvent()
   }
 
   @Test
   fun testRunAndLogcatDetection() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
     // Before pushing messages wait for logcat to setup
@@ -197,15 +230,20 @@ class LeakCanaryLogcatCommandHandlerTest {
     mockLogcatService.logMessages(message1, message2, message3)
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
-    assertEquals(mockEventQueue.size, 1)
-    // LeakCanary tagged logs is taken
-    assertEquals(mockEventQueue.first.leakcanaryLogcat.logcatMessage,
+
+    assertEquals(mockEventQueue.size, 2)
+
+    verifyStartEvent()
+    val leakCanaryEvent = mockEventQueue.poll()
+    // Only LeakCanary tagged logs are taken. Initial prefix and suffix of '=' characters exist even though 'Heap Analysis' is considered the start of leak log.
+    assertEquals(leakCanaryEvent.leakcanaryLogcat.logcatMessage,
                  "====================================\nHEAP ANALYSIS RESULT\nMETADATA\n====================================\n")
+    verifyEndEvent()
   }
 
   @Test
   fun testLogcatWithMultipleLeaks() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
     // Before pushing messages wait for logcat to setup
@@ -220,18 +258,22 @@ class LeakCanaryLogcatCommandHandlerTest {
 
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
-    // All leaks in logcat are detected and added to queue
-    assertEquals(mockEventQueue.size, 4)
+    // All leaks in logcat are detected and added to queue along with start event.
+    assertEquals(mockEventQueue.size, 5)
     var index = 0
+    verifyStartEvent()
+
     // Verify all logcat leakCanary messages
-    mockEventQueue.forEach { event ->
+    while (!mockEventQueue.isEmpty()) {
+      val event = mockEventQueue.poll()
       assertEquals(event.leakcanaryLogcat.logcatMessage.trim(), fakedMessages[index++].trim())
     }
+    verifyEndEvent()
   }
 
   @Test
   fun testLogcatWithCompleteLeakAfterInCompleteLeak() = runTest {
-    handler = LeakCanaryLogcatCommandHandler(mockDevice, mockEventQueue)
+    handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
     // Before pushing messages wait for logcat to setup
@@ -257,12 +299,44 @@ class LeakCanaryLogcatCommandHandlerTest {
     waitForEvent(this)
 
     // Only complete leak is taken into consideration and incomplete leaks are eliminated
-    assertEquals(mockEventQueue.size, 1)
+    assertEquals(mockEventQueue.size, 2)
 
+    verifyStartEvent()
     var index = 0
-    mockEventQueue.forEach { event ->
+    while (!mockEventQueue.isEmpty()) {
+      val event = mockEventQueue.poll()
+      // Confirm that the data from the file written to logcat is what was read and that incomplete message appended to logcat are be
+      // ignored.
       assertEquals(event.leakcanaryLogcat.logcatMessage.trim(), fakedMessages[index++].trim())
     }
+    verifyEndEvent()
+  }
+
+  private fun verifyStartEvent() {
+    val startEvent = mockEventQueue.poll()
+    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO, startEvent.kind)
+    assertEquals(123, startEvent.groupId)
+    assertEquals(startTime, startEvent.leakCanaryLogcatInfo.logcatStarted.timestamp)
+    assertEquals(0, startEvent.leakCanaryLogcatInfo.logcatEnded.startTimestamp)
+  }
+
+  private fun verifyEndEvent() {
+    `when`(transportServiceGrpc.getCurrentTime(any())).thenReturn(Transport.TimeResponse.newBuilder().setTimestampNs(endTime).build())
+    handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.STOP_LOGCAT_TRACKING).setPid(123).build())
+    assertEquals(mockEventQueue.size, 2) // End event is received
+    val leakInfoEndEvent = mockEventQueue.poll()
+    val sessionEndEvent = mockEventQueue.poll()
+    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO, leakInfoEndEvent.kind)
+    assertEquals(123, leakInfoEndEvent.groupId)
+    assertEquals(startTime, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.startTimestamp)
+    assertTrue(leakInfoEndEvent.isEnded)
+    assertEquals(endTime, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.endTimestamp)
+    assertEquals(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.status)
+
+    assertEquals(Common.Event.Kind.SESSION, sessionEndEvent.kind)
+    assertEquals(0, sessionEndEvent.groupId)
+    assertEquals(endTime, sessionEndEvent.timestamp)
+    assertEquals(true, sessionEndEvent.isEnded)
   }
 
   private fun waitForEvent(testScope: TestScope) {

@@ -227,7 +227,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
       ProfilerTaskType.HEAP_DUMP, TaskMetadata.ProfilerTaskType.HEAP_DUMP,
       ProfilerTaskType.NATIVE_ALLOCATIONS, TaskMetadata.ProfilerTaskType.NATIVE_ALLOCATIONS,
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, TaskMetadata.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
-      ProfilerTaskType.LIVE_VIEW, TaskMetadata.ProfilerTaskType.LIVE_VIEW
+      ProfilerTaskType.LIVE_VIEW, TaskMetadata.ProfilerTaskType.LIVE_VIEW,
+      // TODO(cl/667445926): Awaiting proto approval
+      ProfilerTaskType.LEAKCANARY, TaskMetadata.ProfilerTaskType.PROFILER_TASK_TYPE_UNSPECIFIED
     );
 
   private final ImmutableMap<Common.Process.ExposureLevel, TaskMetadata.ExposureLevel> PROCESS_EXPOSURE_LEVEL_MAP =
