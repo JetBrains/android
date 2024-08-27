@@ -102,10 +102,16 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
   fun collectTypingLatencyDumpsAndSendReport() {
     val typingLatencyFolder = "${TYPING_LATENCY_DUMP_PREFIX}-${buildName()}"
     val reportDir = PathManager.getLogDir().resolve(typingLatencyFolder)
+    if (!reportDir.toFile().exists()) {
+      return
+    }
     val reportFile = reportDir.toFile().listFiles()?.filter { e ->
       e.name.startsWith(TYPING_LATENCY_DUMP_PREFIX)
     }?.sortedWith { o1, o2 -> o1.name.compareTo(o2.name) }?.lastOrNull()
-    StudioCrashReporter.getInstance().submit(TypingLatencyCrashReport(Files.readString(reportFile?.toPath()), slowTypingEventsCount))
+    if (reportFile == null) {
+      return
+    }
+    StudioCrashReporter.getInstance().submit(TypingLatencyCrashReport(Files.readString(reportFile.toPath()), slowTypingEventsCount))
     FileUtils.deleteDirectory(reportDir.toFile())
   }
 
@@ -229,7 +235,7 @@ class TypingEventWatcher(private val coroutineScope: CoroutineScope) : EventWatc
     private val LOG: Logger
       get() = logger<TypingEventWatcher>()
 
-    const val TYPING_LATENCY_SERVER_FLAG_NAME = "diagnostics/typing_latency"
+    const val TYPING_LATENCY_SERVER_FLAG_NAME = "diagnostics/typing_latency_report"
     const val TYPING_LATENCY_DUMP_PREFIX = "slowTypingLatency"
   }
 }
