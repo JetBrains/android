@@ -35,6 +35,7 @@ import com.google.wireless.android.sdk.stats.BackupUsageEvent.Source.RUN_MENU
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -45,11 +46,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import kotlin.io.path.pathString
 
 /** Tests for [BackupManagerImpl] */
 @RunsInEdt
@@ -92,11 +95,30 @@ internal class BackupManagerImplTest {
   }
 
   @Test
-  fun restore_success(): Unit = runBlocking {
+  fun restore_success_absolutePath(): Unit = runBlocking {
+    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
+    val serialNumber = "serial"
+    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else  "/path/file")
+    whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
+      .thenReturn(BackupResult.Success)
+
+    backupManagerImpl.restore(
+      serialNumber,
+      backupFile,
+      BackupManager.Source.RUN_MENU,
+      notify = true,
+    )
+
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(restoreUsageEvent(RUN_MENU, SUCCESS))
+  }
+
+  @Test
+  fun restore_success_relativePath(): Unit = runBlocking {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
+    whenever(mockBackupService.restore(eq(serialNumber), eq(Path.of(project.basePath ?: "", backupFile.pathString)), anyOrNull()))
       .thenReturn(BackupResult.Success)
 
     backupManagerImpl.restore(
@@ -148,7 +170,7 @@ internal class BackupManagerImplTest {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
+    whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
       .thenReturn(
         BackupResult.Error(ErrorCode.GMSCORE_IS_TOO_OLD, BackupException(ErrorCode.GMSCORE_IS_TOO_OLD, "Error"))
       )
@@ -215,7 +237,7 @@ internal class BackupManagerImplTest {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
+    whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
       .thenReturn(BackupResult.Error(errorCode, RuntimeException()))
 
     backupManagerImpl.restore(
