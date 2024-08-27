@@ -26,6 +26,16 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
 
+data class SdkIndexLinkQuickFixNoLog(
+  override val text: String,
+  val url: String,
+  val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
+): PsQuickFix, Serializable {
+  override fun execute(context: PsContext) {
+    browseFunction(url)
+  }
+}
+
 data class SdkIndexLinkQuickFix(
   override val text: String,
   val url: String,
