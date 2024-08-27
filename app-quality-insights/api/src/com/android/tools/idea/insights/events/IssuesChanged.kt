@@ -52,6 +52,7 @@ data class IssuesChanged(
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           currentEvents = LoadingState.Ready(null),
+          currentInsight = LoadingState.Ready(null),
         ),
         Action.NONE,
       )
@@ -137,7 +138,8 @@ data class IssuesChanged(
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
-        if (newSelectedIssue != null) actionsForSelectedIssue(key, newSelectedIssue.id)
+        if (newSelectedIssue != null)
+          actionsForSelectedIssue(key, newSelectedIssue.id, newSelectedIssue.sampleEvent)
         else Action.NONE,
     )
   }

@@ -370,7 +370,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
-    eventId: String,
+    event: Event,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
     codeContext: List<CodeContext>,
