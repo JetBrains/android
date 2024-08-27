@@ -59,8 +59,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
   override fun getTaskName() = "LeakCanary"
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {
-    val result = artifact is LeakCanarySessionArtifact
-    return result
+    return artifact is LeakCanarySessionArtifact
   }
 
   override fun createStartTaskArgs(isStartupTask: Boolean) = LeakCanaryTaskArgs(false, null)

@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Trace.TraceConfiguration
 import com.android.tools.profiler.proto.Trace.TraceInfo
@@ -82,9 +83,10 @@ object SessionArtifactUtils {
     return HeapProfdSessionArtifact(profilers, session, sessionMetadata, info)
   }
 
-  fun createLeakCanarySessionArtifact(profilers: StudioProfilers, session: Common.Session): LeakCanarySessionArtifact {
+  fun createLeakCanarySessionArtifact(profilers: StudioProfilers, session: Common.Session,
+                                      infoEvent: LeakCanary.LeakCanaryLogcatInfo): LeakCanarySessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
-    return LeakCanarySessionArtifact(profilers, session, sessionMetadata)
+    return LeakCanarySessionArtifact(profilers, session, sessionMetadata, infoEvent.logcatEnded)
   }
 
   fun createAllocationSessionArtifact(profilers: StudioProfilers, session: Common.Session,

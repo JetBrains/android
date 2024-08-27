@@ -56,15 +56,16 @@ class LeakCanaryModelTest : WithFakeTimer {
 
   @Test
   fun `Leak canary stage enter - success case with multiple events`() {
+    val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(
                                          "SingleApplicationLeak.txt", // 1 application leak
                                          "SingleApplicationLeakAnalyzeCmd.txt", // 1 application leak
                                          "MultiApplicationLeak.txt", // 2 application leak with different signature
                                          "NoLeak.txt"
-                                       )))
+                                       ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -89,9 +90,9 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "SingleApplicationLeakAnalyzeCmd.txt", // 1 application leak
                                          "MultiApplicationLeak.txt", // 2 application leak with different signature
                                          "NoLeak.txt"
-                                       )))
+                                       ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -111,13 +112,14 @@ class LeakCanaryModelTest : WithFakeTimer {
 
   @Test
   fun `Leak canary stage enter - Invalid leaks are skipped`() {
+    val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
                                        FakeLeakCanaryCommandHandler(timer, profilers, listOf(
                                          "SingleApplicationLeak.txt",
                                          "InValidLeak.txt"
-                                       )))
+                                       ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -134,10 +136,11 @@ class LeakCanaryModelTest : WithFakeTimer {
 
   @Test
   fun `Leak canary stage enter - no leak events`() {
+    val startTime = System.currentTimeMillis()
     transportService.setCommandHandler(Commands.Command.CommandType.START_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
     // Wait for the listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -158,9 +161,9 @@ class LeakCanaryModelTest : WithFakeTimer {
                                          "InValidLeak.txt",
                                          "InValidLeak.txt",
                                          "InValidLeak.txt"
-                                       )))
+                                       ), startTime))
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_LOGCAT_TRACKING,
-                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf()))
+                                       FakeLeakCanaryCommandHandler(timer, profilers, listOf(), startTime))
     stage.startListening()
     // Wait for listener to receive events
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -184,11 +187,10 @@ class LeakCanaryModelTest : WithFakeTimer {
 
 class FakeLeakCanaryCommandHandler(timer: FakeTimer,
                                    val profilers: StudioProfilers,
-                                   val leaksToSendFiles: List<String>) : CommandHandler(timer) {
+                                   val leaksToSendFiles: List<String>,
+                                   val startTimestamp: Long) : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command,
                              events: MutableList<Common.Event>) {
-
-    val currentTime = System.currentTimeMillis()
 
     if (command.type == Commands.Command.CommandType.START_LOGCAT_TRACKING) {
       // Start tracking info event
@@ -201,10 +203,10 @@ class FakeLeakCanaryCommandHandler(timer: FakeTimer,
                                               .setLogcatStarted(
                                                 LeakCanary.LeakCanaryLogcatStarted
                                                   .newBuilder()
-                                                  .setTimestamp(currentTime)
+                                                  .setTimestamp(startTimestamp)
                                                   .build())
                                               .build())
-                   .setTimestamp(currentTime)
+                   .setTimestamp(startTimestamp)
                    .build())
       leaksToSendFiles.forEach {leakToSendFile ->
         events.add(getLeakCanaryEvent(profilers, leakToSendFile))
@@ -220,15 +222,15 @@ class FakeLeakCanaryCommandHandler(timer: FakeTimer,
                                               .setLogcatEnded(LeakCanary.LeakCanaryLogcatEnded
                                                                .newBuilder()
                                                                .setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
-                                                               .setStartTimestamp(currentTime)
-                                                               .setEndTimestamp(currentTime)
+                                                               .setStartTimestamp(startTimestamp)
+                                                               .setEndTimestamp(System.currentTimeMillis())
                                                                .build())
                                               .build())
-                   .setTimestamp(currentTime)
+                   .setTimestamp(System.currentTimeMillis())
                    .build())
 
       // Stop session event
-      Common.Event.newBuilder().setTimestamp(currentTime)
+      Common.Event.newBuilder().setTimestamp(System.currentTimeMillis())
         .setPid(profilers.session.pid)
         .setGroupId(profilers.session.sessionId)
         .setKind(Common.Event.Kind.SESSION)
