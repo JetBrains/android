@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.PrintOutput;
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
@@ -35,6 +34,7 @@ import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
 import java.io.IOException;
@@ -56,19 +56,19 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
   private static final ImmutableSet<String> JAVA_SRC_EXTENSIONS = ImmutableSet.of("java", "kt");
 
   private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
-  private final BuildArtifactCache buildCache;
+  private final CachedArtifactProvider cachedArtifactProvider;
   private final ProjectDefinition projectDefinition;
   private final PackageStatementParser packageReader;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcs(
-      Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
-      ProjectDefinition projectDefinition,
-      BuildArtifactCache buildCache,
-      PackageStatementParser packageReader) {
+    Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
+    ProjectDefinition projectDefinition,
+    CachedArtifactProvider cachedArtifactProvider,
+    PackageStatementParser packageReader) {
     this.builtTargetsSupplier = builtTargetsSupplier;
     this.projectDefinition = projectDefinition;
-    this.buildCache = buildCache;
+    this.cachedArtifactProvider = cachedArtifactProvider;
     this.packageReader = packageReader;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
   }
@@ -108,7 +108,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
   public void update(ProjectProtoUpdate update) throws BuildException {
     ArtifactDirectoryBuilder javaSrc = update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC);
     ArtifactDirectoryBuilder javatestsSrc =
-        update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
+      update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
     ArrayListMultimap<Path, ArtifactWithOrigin> srcsByJavaPath = ArrayListMultimap.create();
     for (TargetBuildInfo target : builtTargetsSupplier.get()) {
       if (target.javaInfo().isEmpty()) {
@@ -120,9 +120,11 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
       }
       for (BuildArtifact genSrc : javaInfo.genSrcs()) {
         if (JAVA_SRC_EXTENSIONS.contains(genSrc.getExtension())) {
-          String javaPackage = readJavaPackage(genSrc);
+          String javaPackage = readJavaPackage(genSrc, testSourceMatcher.matches(genSrc.target().getPackage())
+                                                       ? ArtifactDirectories.JAVA_GEN_TESTSRC
+                                                       : ArtifactDirectories.JAVA_GEN_SRC);
           Path finalDest =
-              Path.of(javaPackage.replace('.', '/')).resolve(genSrc.path().getFileName());
+            Path.of(javaPackage.replace('.', '/')).resolve(genSrc.path().getFileName());
           srcsByJavaPath.put(finalDest, ArtifactWithOrigin.create(genSrc, target.buildContext()));
         }
       }
@@ -133,38 +135,39 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
       // before warning, check that the conflicting sources do actually differ. If they're the
       // same artifact underneath, there's no actual conflict.
       long uniqueDigests =
-          candidates.stream()
-              .map(ArtifactWithOrigin::artifact)
-              .map(BuildArtifact::digest)
-              .distinct()
-              .count();
+        candidates.stream()
+          .map(ArtifactWithOrigin::artifact)
+          .map(BuildArtifact::digest)
+          .distinct()
+          .count();
       if (uniqueDigests > 1) {
         update
-            .context()
-            .output(
-                PrintOutput.error(
-                    "WARNING: your project contains conflicting generated java sources for:\n"
-                        + "  %s\n"
-                        + "From:\n"
-                        + "  %s",
-                    finalDest,
-                    candidates.stream()
-                        .map(
-                            a ->
-                                String.format(
-                                    "%s (%s built %s ago)",
-                                    a.artifact().path(),
-                                    a.artifact().target(),
-                                    formatDuration(
-                                        Duration.between(a.origin().startTime(), Instant.now()))))
-                        .collect(joining("\n  "))));
+          .context()
+          .output(
+            PrintOutput.error(
+              "WARNING: your project contains conflicting generated java sources for:\n"
+              + "  %s\n"
+              + "From:\n"
+              + "  %s",
+              finalDest,
+              candidates.stream()
+                .map(
+                  a ->
+                    String.format(
+                      "%s (%s built %s ago)",
+                      a.artifact().path(),
+                      a.artifact().target(),
+                      formatDuration(
+                        Duration.between(a.origin().startTime(), Instant.now()))))
+                .collect(joining("\n  "))));
         update.context().setHasWarnings();
       }
 
       ArtifactWithOrigin chosen = candidates.stream().min((a, b) -> a.compareTo(b)).orElseThrow();
       if (testSourceMatcher.matches(chosen.artifact().target().getPackage())) {
         javatestsSrc.addIfNewer(finalDest, chosen.artifact(), chosen.origin());
-      } else {
+      }
+      else {
         javaSrc.addIfNewer(finalDest, chosen.artifact(), chosen.origin());
       }
     }
@@ -172,13 +175,13 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
       if (!gensrcDir.isEmpty()) {
         ProjectProto.ProjectPath pathProto = gensrcDir.root().toProto();
         ProjectProto.ContentEntry.Builder genSourcesContentEntry =
-            ProjectProto.ContentEntry.newBuilder().setRoot(pathProto);
+          ProjectProto.ContentEntry.newBuilder().setRoot(pathProto);
         genSourcesContentEntry.addSources(
-            ProjectProto.SourceFolder.newBuilder()
-                .setProjectPath(pathProto)
-                .setIsGenerated(true)
-                .setIsTest(gensrcDir == javatestsSrc)
-                .setPackagePrefix(""));
+          ProjectProto.SourceFolder.newBuilder()
+            .setProjectPath(pathProto)
+            .setIsGenerated(true)
+            .setIsTest(gensrcDir == javatestsSrc)
+            .setPackagePrefix(""));
         update.workspaceModule().addContentEntries(genSourcesContentEntry.build());
       }
     }
@@ -190,7 +193,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
    */
   private String formatDuration(Duration p) {
     for (ChronoUnit unit :
-        ImmutableList.of(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES)) {
+      ImmutableList.of(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES)) {
       long durationInUnits = p.getSeconds() / unit.getDuration().getSeconds();
       if (durationInUnits > 0) {
         return String.format("%d %s", durationInUnits, unit);
@@ -199,11 +202,14 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
     return String.format("%d seconds", p.getSeconds());
   }
 
-  /** Parses the java package statement from a build artifact. */
-  private String readJavaPackage(BuildArtifact genSrc) throws BuildException {
-    try (InputStream javaSrcStream = genSrc.blockingGetFrom(buildCache).byteSource().openStream()) {
+  /**
+   * Parses the java package statement from a build artifact.
+   */
+  private String readJavaPackage(BuildArtifact genSrc, ProjectPath artifactDirectory) throws BuildException {
+    try (InputStream javaSrcStream = cachedArtifactProvider.apply(genSrc, artifactDirectory).byteSource().openStream()) {
       return packageReader.readPackage(javaSrcStream);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new BuildException("Failed to read package name for " + genSrc, e);
     }
   }
