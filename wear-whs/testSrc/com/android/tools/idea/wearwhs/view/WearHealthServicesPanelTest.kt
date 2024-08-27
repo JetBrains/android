@@ -36,7 +36,6 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -106,6 +105,7 @@ class WearHealthServicesPanelTest {
           stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
+        .also { it.serialNumber = "some serial number" }
     whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
   }
 
@@ -143,7 +143,6 @@ class WearHealthServicesPanelTest {
 
       stateManager.forceUpdateState()
 
-      stateManager.preset.value = Preset.CUSTOM
       stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
       stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
       stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
@@ -261,19 +260,31 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `test panel disables checkboxes and dropdown during an exercise`() =
+  fun `test panel disables checkboxes and load preset button during an exercise`() =
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
 
-      fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && it.isEnabled }
+      fakeUi.waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.load.preset") && it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.heart.rate.label")) && it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.steps.label")) && it.isEnabled
+      }
 
       deviceManager.activeExercise = true
 
-      fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && !it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && !it.isEnabled }
+      fakeUi.waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.load.preset") && !it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.heart.rate.label")) && !it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.steps.label")) && !it.isEnabled
+      }
     }
 
   @Test

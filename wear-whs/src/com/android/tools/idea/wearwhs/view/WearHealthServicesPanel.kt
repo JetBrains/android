@@ -25,7 +25,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
-import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.ActionLink
@@ -43,7 +49,6 @@ import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.Toolkit
 import java.util.Collections
-import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -155,7 +160,6 @@ private fun createCenterPanel(
               checkBox.addActionListener {
                 workerScope.launch {
                   stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
-                  stateManager.preset.value = Preset.CUSTOM
                 }
               }
             }
@@ -291,17 +295,37 @@ private fun createWearHealthServicesPanelHeader(
   }
   separator()
 
-  val capabilitiesComboBox =
-    ComboBox<Preset>().apply { model = DefaultComboBoxModel(Preset.values()) }
-  capabilitiesComboBox.addActionListener {
-    stateManager.preset.value = (capabilitiesComboBox.selectedItem as Preset)
-  }
-  stateManager.preset.onEach { capabilitiesComboBox.selectedItem = it }.launchIn(uiScope)
+  val presetActionGroup =
+    object : ActionGroup(null, true) {
+      override fun getChildren(e: AnActionEvent?) =
+        Preset.entries
+          .map {
+            object : AnAction(message(it.labelKey)) {
+              override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+              override fun actionPerformed(e: AnActionEvent) {
+                stateManager.loadPreset(it)
+              }
+            }
+          }
+          .toTypedArray()
+    }
+
+  val loadCapabilityPresetButton =
+    JButton(message("wear.whs.panel.load.preset")).apply {
+      addActionListener {
+        val popup =
+          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, presetActionGroup)
+        JBPopupMenu.showBelow(this, popup.component)
+      }
+    }
+
   stateManager.ongoingExercise
     .onEach {
-      capabilitiesComboBox.isEnabled = !it
-      capabilitiesComboBox.toolTipText =
-        if (it) message("wear.whs.panel.disabled.during.exercise") else null
+      loadCapabilityPresetButton.isEnabled = !it
+      loadCapabilityPresetButton.toolTipText =
+        if (it) message("wear.whs.panel.disabled.during.exercise")
+        else message("wear.whs.panel.load.preset.tooltip")
     }
     .launchIn(uiScope)
   val eventTriggersDropDownButton =
@@ -370,7 +394,7 @@ private fun createWearHealthServicesPanelHeader(
 
   twoColumnsRow(
     {
-      cell(capabilitiesComboBox)
+      cell(loadCapabilityPresetButton)
       cell(eventTriggersDropDownButton)
     },
     { cell(statusLabel) },
