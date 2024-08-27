@@ -421,6 +421,7 @@ internal fun createWearHealthServicesPanel(
       if (isPanelShowing) {
         informationFlow.value = PanelInformation.TemporaryMessage(message)
       } else {
+        informationFlow.value = PanelInformation.EmptyMessage
         Notifications.Bus.notify(
           Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
         )
