@@ -1067,7 +1067,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           android.sdk.root = $sdkFolder
           """.trimIndent()
 
-
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google Play.
           Pkg.Revision=1
@@ -1191,7 +1190,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sdCard = false
           android.sdk.root = $sdkFolder
           """.trimIndent()
-
 
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
