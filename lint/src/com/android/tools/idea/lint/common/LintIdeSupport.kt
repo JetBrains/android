@@ -21,7 +21,6 @@ import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -42,11 +41,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import java.io.File
-import java.util.EnumSet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
+import java.io.File
+import java.util.EnumSet
 
 /**
  * Extension point for the general lint support to look up services it does not directly depend
@@ -95,8 +94,7 @@ abstract class LintIdeSupport {
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
         fileType === TomlFileType ||
-        (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() &&
-          file.name.endsWith(EXT_GRADLE_DECLARATIVE))
+      file.name.endsWith(EXT_GRADLE_DECLARATIVE)
     ) {
       return true
     }
