@@ -42,6 +42,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.CheckedDisposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
@@ -531,6 +533,18 @@ final public class RenderService implements Disposable {
      */
     @NotNull
     public CompletableFuture<RenderTask> build() {
+      return build(Disposer.newCheckedDisposable());
+    }
+
+    /**
+     * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
+     * can not be created.
+     *
+     * @param disposable A {@link CheckedDisposable} that represents the lifecycle of the operation initiating this build.
+     *                   You can check `disposable.isDisposed()` to see if the operation has been cancelled
+     */
+    @NotNull
+    public CompletableFuture<RenderTask> build(@NotNull CheckedDisposable disposable) {
       RenderTaskAllocationTracker tracker = new RenderTaskAllocationTrackerImpl(myContext.getModule().getEnvironment().isInTest());
       StackTraceCapture stackTraceCaptureElement = tracker.captureAllocationStackTrace();
 
@@ -554,6 +568,9 @@ final public class RenderService implements Disposable {
 
         LayoutLibrary layoutLib;
         try {
+          if (disposable.isDisposed()) {
+            return null;
+          }
           layoutLib = LayoutlibFactory.getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironment().getLayoutlibContext());
         }
         catch (UnsupportedJavaRuntimeException e) {
@@ -573,15 +590,17 @@ final public class RenderService implements Disposable {
               ERROR, message, myLogger.getLinkManager(), e, module.getEnvironment().getActionFixFactory()));
           return null;
         }
-
+        if (disposable.isDisposed()) {
+          return null;
+        }
+        RenderTask task = null;
         try {
-          RenderTask task =
+          task =
             new RenderTask(myContext, myContext.getModule().getEnvironment().getModuleClassLoaderManager(), myLogger, layoutLib,
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
-
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }
@@ -606,12 +625,20 @@ final public class RenderService implements Disposable {
           if (myCustomContentHierarchyParser != null) {
             task.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
           }
+          if (disposable.isDisposed()) {
+            task.dispose();
+            return null;
+          }
 
           return task;
         } catch (NoDeviceException e) {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
           return null;
-        } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
+        }
+        catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
+          if (task != null) {
+            task.dispose();
+          }
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
           if (!module.isDisposed()) {
             throw e;
