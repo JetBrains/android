@@ -1,0 +1,114 @@
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights.client
+
+import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.ChatService
+import com.android.tools.idea.studiobot.Content
+import com.android.tools.idea.studiobot.GenerationConfig
+import com.android.tools.idea.studiobot.MimeType
+import com.android.tools.idea.studiobot.Model
+import com.android.tools.idea.studiobot.ModelConfig
+import com.android.tools.idea.studiobot.ModelType
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.prompts.FileWithSelection
+import com.android.tools.idea.studiobot.prompts.Prompt
+import com.android.tools.idea.testing.disposable
+import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import com.intellij.util.application
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+class GeminiAiInsightClientTest {
+
+  @get:Rule val projectRule = ProjectRule()
+
+  private val fakeStudioBot =
+    object : StudioBot {
+      override val MAX_QUERY_CHARS = 1000
+
+      override fun aiExcludeService(project: Project) = AiExcludeService.FakeAiExcludeService()
+
+      override fun chat(project: Project) = ChatService.StubChatService()
+
+      override fun model(project: Project, modelType: ModelType) =
+        object : Model {
+          override fun config() = ModelConfig(emptySet(), 1000, 1000, true)
+
+          override suspend fun generateCode(
+            userQuery: String,
+            fileContext: FileWithSelection?,
+            language: MimeType,
+            config: GenerationConfig,
+            history: Prompt?,
+            legacyClientSidePrompt: Prompt?,
+            isTransformUseCase: Boolean,
+          ): List<Content> {
+            return emptyList()
+          }
+
+          override fun generateContent(prompt: Prompt, config: GenerationConfig) = flow {
+            assertThat(prompt.messages.size).isEqualTo(1)
+            val message = prompt.messages[0]
+            assertThat(message.chunks.size).isEqualTo(1)
+            val chunk = message.chunks[0] as Prompt.TextChunk
+            assertThat(chunk.filesUsed).isEmpty()
+            assertThat(chunk.text)
+              .isEqualTo(
+                "Explain this exception from my app running on DeviceName with Android version ApiLevel:\n" +
+                  "Exception:\n" +
+                  "```\n" +
+                  "stack\n" +
+                  "\tTrace\n" +
+                  "```"
+              )
+            emit(Content.TextContent("TextContent start"))
+            emit(Content.FunctionCall("someFunctionName", emptyMap()))
+            emit(Content.TextContent("This is added after FunctionCall"))
+          }
+        }
+    }
+
+  @Before
+  fun setup() {
+    application.replaceService(StudioBot::class.java, fakeStudioBot, projectRule.disposable)
+  }
+
+  @Test
+  fun `test gemini client`() = runBlocking {
+    val client = GeminiAiInsightClient.create(projectRule.project)
+
+    val request =
+      GeminiInsightsRequest.newBuilder()
+        .apply {
+          deviceName = "DeviceName"
+          apiLevel = "ApiLevel"
+          stackTrace = "stack\n\tTrace"
+        }
+        .build()
+
+    val insight = client.fetchCrashInsight("", request)
+
+    assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+  }
+}

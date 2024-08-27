@@ -34,15 +34,18 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.StatsGroup
+import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
+import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.zeroCounts
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
 import com.android.tools.idea.vitals.TEST_ISSUE2
@@ -57,9 +60,11 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.Freshness
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
+import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.DateTime
-import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule
 import kotlinx.coroutines.runBlocking
@@ -69,7 +74,7 @@ import org.junit.Test
 
 class VitalsClientTest {
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val database = FakeVitalsDatabase(TEST_CONNECTION_1)
   private val clock = FakeClock()
@@ -112,7 +117,14 @@ class VitalsClientTest {
   fun `client returns top cached issues when offline`() = runTest {
     val cache = AppInsightsCacheImpl()
     val grpcClient = TestVitalsGrpcClient() // return empty result for every API call.
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     cache.populateIssues(TEST_CONNECTION_1, listOf(TEST_ISSUE1))
 
@@ -175,7 +187,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -234,7 +253,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -260,7 +286,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -310,7 +337,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -342,7 +370,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -396,7 +425,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     // Verify list connections returns expected result
     val result = client.listConnections()
@@ -414,5 +450,39 @@ class VitalsClientTest {
     // Verify the cache contains both connections and issues computed in the previous steps
     assertThat(cache.getRecentConnections()).containsExactly(TEST_CONNECTION_1)
     assertThat(cache.getTopIssues(issueRequest)).containsExactly(ISSUE1.zeroCounts())
+  }
+
+  @Test
+  fun `fetch insight populates proto fields correctly`() = runBlocking {
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        ISSUE1.sampleEvent,
+        null,
+        TimeIntervalFilter.ONE_DAY,
+        emptyList(),
+      )
+
+    val value = (insight as LoadingState.Ready).value
+    val request = GeminiInsightsRequest.parseFrom(BaseEncoding.base64().decode(value.rawInsight))
+    assertThat(request.deviceName).isEqualTo("Google Pixel 4a")
+    assertThat(request.apiLevel).isEqualTo("12")
+    assertThat(request.stackTrace)
+      .isEqualTo(
+        "retrofit2.HttpException: HTTP 401 " +
+          "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)" +
+          "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)"
+      )
   }
 }

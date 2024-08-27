@@ -60,7 +60,7 @@ class SelectedIssueVariantChangedTest {
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id, ISSUE_VARIANT2.id) and
             Action.ListEvents(ISSUE1.id, ISSUE_VARIANT2.id, null) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.sampleEvent.eventId, ISSUE_VARIANT2.id)
+            Action.FetchInsight(ISSUE1.id, ISSUE1.sampleEvent, ISSUE_VARIANT2.id)
         )
     }
   }
@@ -88,7 +88,7 @@ class SelectedIssueVariantChangedTest {
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id, null) and
             Action.ListEvents(ISSUE1.id, null, null) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.sampleEvent.eventId, null)
+            Action.FetchInsight(ISSUE1.id, ISSUE1.sampleEvent, null)
         )
     }
   }

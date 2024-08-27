@@ -359,7 +359,7 @@ class ActionDispatcher(
           appInsightsClient.fetchInsight(
             connection,
             action.id,
-            action.eventId,
+            action.event,
             action.variantId,
             timeFilter,
             state.selectedEvent?.let { codeContextResolver.getSource(it.stacktraceGroup) }

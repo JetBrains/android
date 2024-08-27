@@ -37,9 +37,11 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
@@ -55,9 +57,11 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
+import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -69,11 +73,13 @@ private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 private const val MAX_CONCURRENT_CALLS = 10
 
 class VitalsClient(
+  project: Project,
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
   private val interceptor: ClientInterceptor,
   private val grpcClient: VitalsGrpcClient =
     VitalsGrpcClientImpl.create(parentDisposable, interceptor),
+  private val aiInsightClient: AiInsightClient = GeminiAiInsightClient.create(project),
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 
@@ -224,12 +230,12 @@ class VitalsClient(
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
-    eventId: String,
+    event: Event,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
     codeContext: List<CodeContext>,
   ): LoadingState.Done<AiInsight> {
-    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
+    return LoadingState.Ready(aiInsightClient.fetchCrashInsight("", event.toGeminiInsightRequest()))
   }
 
   private suspend fun fetchIssues(
@@ -404,3 +410,27 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     }
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
+
+private fun Event.toGeminiInsightRequest() =
+  GeminiInsightsRequest.newBuilder()
+    .apply {
+      val device = eventData.device.let { "${it.manufacturer} ${it.model}" }
+      val api = eventData.operatingSystemInfo.displayVersion
+      val eventStackTrace = prettyStackTrace()
+
+      deviceName = device
+      apiLevel = api
+      stackTrace = eventStackTrace
+    }
+    .build()
+
+private fun Event.prettyStackTrace() =
+  buildString {
+      stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
+        if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
+          appendLine(exception.rawExceptionMessage)
+          append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
+        }
+      }
+    }
+    .trim()

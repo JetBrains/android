@@ -971,6 +971,7 @@ class AppInsightsProjectLevelControllerTest {
             currentEvents = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null),
+            currentInsight = LoadingState.Ready(null),
           )
         )
       return@runBlocking
@@ -1029,6 +1030,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
+          currentInsight = LoadingState.Ready(null),
         )
       )
 

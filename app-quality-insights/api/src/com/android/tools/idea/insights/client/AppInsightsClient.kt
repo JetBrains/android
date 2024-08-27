@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueId
@@ -99,7 +100,7 @@ interface AppInsightsClient {
   suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
-    eventId: String,
+    event: Event,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
     codeContext: List<CodeContext>,
