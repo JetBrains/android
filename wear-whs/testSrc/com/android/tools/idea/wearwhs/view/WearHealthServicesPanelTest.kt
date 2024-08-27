@@ -132,7 +132,7 @@ class WearHealthServicesPanelTest {
       testDataPath = testDataPath,
       fileNameBase = "screens/whs-panel-default",
       actual = fakeUi.render(),
-      maxPercentDifferent = 4.0,
+      maxPercentDifferent = 0.0,
     )
   }
 
@@ -163,7 +163,7 @@ class WearHealthServicesPanelTest {
         testDataPath = testDataPath,
         fileNameBase = "screens/whs-panel-state-manager-modified",
         actual = fakeUi.render(),
-        maxPercentDifferent = 4.0,
+        maxPercentDifferent = 0.0,
       )
     }
 
