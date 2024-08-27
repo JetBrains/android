@@ -66,6 +66,8 @@ internal fun transformAndShowDiff(
             config = GenerationConfig(candidateCount = 1),
             userQuery = "",
             fileContext = null,
+            // TODO(b/356347457): Properly migrate to new `generateCode` API
+            history = prompt,
           )
           .first()
           .text
