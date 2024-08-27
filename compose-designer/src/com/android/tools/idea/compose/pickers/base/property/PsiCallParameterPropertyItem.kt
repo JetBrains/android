@@ -29,8 +29,8 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
