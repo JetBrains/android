@@ -141,7 +141,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       // Create skin buttons. Reanchoring to the nearest display corner is done to reduce scaling inaccuracies later on.
       val buttons = part.buttons.mapNotNull { buttonDescriptor ->
         buttonDescriptor.createButton(imageLoader)?.let {
-          SkinButton(it.keyName, it.image.translatedAndReanchored(adjustedFrameRectangle.x, adjustedFrameRectangle.y, displaySize))
+          SkinButton(it.keyName, it.image.translatedAndReanchored(frameRectangle.x, frameRectangle.y, displaySize))
         }
       }
       return SkinLayout(displaySize, Dimension(displayCornerRadius, displayCornerRadius), adjustedFrameRectangle,
