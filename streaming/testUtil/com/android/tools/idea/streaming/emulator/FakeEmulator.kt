@@ -50,7 +50,6 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
-import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.repository.targets.SystemImageManager
@@ -1068,7 +1067,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           android.sdk.root = $sdkFolder
           """.trimIndent()
 
-
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google Play.
           Pkg.Revision=1
@@ -1192,7 +1190,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sdCard = false
           android.sdk.root = $sdkFolder
           """.trimIndent()
-
 
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
