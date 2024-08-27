@@ -17,13 +17,13 @@ package com.android.tools.idea.naveditor.tree
 
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -55,7 +55,7 @@ class NavComponentTreeTest : NavTestCase() {
     }
 
     surface = NavDesignSurface(project, myRootDisposable)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     panel = TreePanel()
     panel.setToolContext(surface)

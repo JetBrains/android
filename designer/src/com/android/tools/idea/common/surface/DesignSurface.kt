@@ -1064,10 +1064,10 @@ abstract class DesignSurface<T : SceneManager>(
    * @see [addAndRenderModel]
    * @see [removeModel]
    */
-  open fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+  open fun setModel(newModel: NlModel?) {
     val oldModel = model
     if (newModel === oldModel) {
-      return CompletableFuture.completedFuture(null)
+      return
     }
 
     if (oldModel != null) {
@@ -1075,13 +1075,10 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
     if (newModel == null) {
-      return CompletableFuture.completedFuture(null)
+      return
     }
 
-    return CompletableFuture.supplyAsync(
-        { addModel(newModel) },
-        AppExecutorUtil.getAppExecutorService(),
-      )
+    CompletableFuture.runAsync({ addModel(newModel) }, AppExecutorUtil.getAppExecutorService())
       .thenCompose { requestRender() }
       .whenCompleteAsync(
         { _, _ ->
@@ -1096,7 +1093,6 @@ abstract class DesignSurface<T : SceneManager>(
         },
         EdtExecutorService.getInstance(),
       )
-      .thenRun {}
   }
 
   /**

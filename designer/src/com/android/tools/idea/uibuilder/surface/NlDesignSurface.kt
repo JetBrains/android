@@ -311,9 +311,9 @@ internal constructor(
   override val scrollToVisibleOffset =
     Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
 
-  override fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+  override fun setModel(newModel: NlModel?) {
     accessoryPanel.setModel(model)
-    return super.setModel(newModel)
+    super.setModel(newModel)
   }
 
   override fun dispose() {
