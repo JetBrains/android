@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.ChangeType
@@ -126,7 +127,7 @@ class AddDestinationMenuTest {
 
       _surface = NavDesignSurface(projectRule.project, disposableRule.disposable)
       surface.setSize(1000, 1000)
-      PlatformTestUtil.waitForFuture(surface.setModel(model))
+      DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
       _menu = AddDestinationMenu(surface)
       setupMainMenuPanel()
   }
@@ -599,7 +600,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project, testRootDisposable)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val blankFragment = Destination.RegularDestination(
       model.treeReader.components[0], "fragment", null, psiClass, layoutFile = xmlFile)

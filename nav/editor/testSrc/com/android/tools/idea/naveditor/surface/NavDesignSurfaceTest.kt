@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKotlinUtils.safeEq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.Coordinates
@@ -52,7 +53,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
@@ -93,7 +93,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
     TestNavUsageTracker.create(model).use { tracker ->
-      PlatformTestUtil.waitForFuture(surface.setModel(model))
+      DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
       val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
         .withNavigationContents()
@@ -113,7 +113,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         fragment("fragment2", layout = "fragment_blank", name = "mytest.navtest.BlankFragment")
       }
     }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -134,7 +134,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         fragment("fragment2", name = "mytest.navtest.BlankFragment")
       }
     }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -156,7 +156,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       assertEquals(model.treeReader.components[0], surface.currentNavigation)
       val subnav = model.treeReader.find("subnav")!!
@@ -173,7 +173,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         include("navigation")
       }
     }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("nav")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -192,7 +192,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val modelListener = mock(ModelListener::class.java)
     val surfaceListener = mock(DesignSurfaceListener::class.java)
     model.addListener(modelListener)
@@ -362,7 +362,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -407,7 +407,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     var root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -458,7 +458,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
     @Suppress("UNCHECKED_CAST")
     val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
     whenever(editor.workBench).thenReturn(workbench)
@@ -569,7 +569,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
 
     addClass("import androidx.navigation.*;\n" +
              "@Navigator.Name(\"activity_sub\")\n" +
@@ -617,7 +617,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.find("root")!!
     val fragment1 = model.treeReader.find("fragment1")!!

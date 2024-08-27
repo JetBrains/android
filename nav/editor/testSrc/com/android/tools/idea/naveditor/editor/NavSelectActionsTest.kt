@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -24,7 +25,6 @@ import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
@@ -52,7 +52,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val action = SelectNextAction()
 
@@ -88,7 +88,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val action = SelectPreviousAction()
 
@@ -115,7 +115,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val root = model.treeReader.find("root")!!
