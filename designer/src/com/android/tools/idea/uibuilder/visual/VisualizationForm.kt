@@ -34,6 +34,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
@@ -72,8 +74,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.SlowOperations
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
@@ -88,6 +88,9 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -100,6 +103,7 @@ class VisualizationForm(
   parentDisposable: Disposable,
   private val initializer: ContentInitializer,
 ) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
+  private val scope = AndroidCoroutineScope(this)
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
   private val myRoot = JPanel(BorderLayout())
@@ -138,7 +142,6 @@ class VisualizationForm(
     )
   private val myUpdateQueue: MergingUpdateQueue
 
-  /** [CompletableFuture] of the next model load. This is kept so the load can be cancelled. */
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
   private val analyticsManager: NlAnalyticsManager
@@ -371,88 +374,62 @@ class VisualizationForm(
     }
     val targetFile = myFile!!
     val file = PsiManager.getInstance(project).findFile(targetFile)
-    var facet: AndroidFacet? = null
     updateActionToolbar(myActionToolbarPanel)
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore.
-    // There is no need to hold
-    // to the Future since Future.cancel does not really interrupt the work.
     val isRequestCancelled = AtomicBoolean(false)
     myCancelPendingModelLoad = isRequestCancelled
     // Asynchronously load the model and refresh the preview once it's ready
-    CompletableFuture.supplyAsync(
-        {
-          facet =
-            (if (file != null) AndroidFacet.getInstance(file) else null)
-              ?: return@supplyAsync emptyList()
-          // Hide the content while adding the models.
-          val models =
-            myCurrentModelsProvider.createNlModels(
-              this,
-              file!!,
-              AndroidBuildTargetReference.from(facet!!, targetFile),
-            )
-          if (models.isEmpty()) {
-            myWorkBench.showLoading("No Device Found")
-            return@supplyAsync null
-          }
-          models
-        },
-        AppExecutorUtil.getAppExecutorService(),
-      )
-      .thenApplyAsync(
-        { models: List<NlModel>? ->
-          if (models == null || isRequestCancelled.get()) {
-            unregisterResourceNotification(myFile)
-            return@thenApplyAsync emptyList()
-          }
-          myWorkBench.showContent()
-          interruptRendering()
-          ApplicationManager.getApplication().invokeLater {
-            surface.registerIndicator(myProgressIndicator)
-          }
-          models
-        },
-        EdtExecutorService.getInstance(),
-      )
-      .thenCompose { models: List<NlModel> ->
+    scope.launch {
+      val facet = if (file != null) AndroidFacet.getInstance(file) else null
+      val models =
+        facet?.let {
+          myCurrentModelsProvider.createNlModels(
+            this@VisualizationForm,
+            file!!,
+            AndroidBuildTargetReference.from(it, targetFile),
+          )
+        } ?: emptyList()
+      if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
+      if (models.isEmpty() || isRequestCancelled.get()) {
+        unregisterResourceNotification(myFile)
+      } else {
+        myWorkBench.showContent()
+        interruptRendering()
+        ApplicationManager.getApplication().invokeLater {
+          surface.registerIndicator(myProgressIndicator)
+        }
         // In visualization tool, we add model and layout the scroll pane before rendering
         CompletableFuture.allOf(
             *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
           )
-          .whenCompleteAsync(
-            { _, _ ->
-              // Re-layout and set scale before rendering. This may be processed delayed but we have
-              // known the preview number and sizes because the
-              // models are added, so it would layout correctly.
-              surface.invalidate()
-              val lastScaling =
-                VisualizationToolProjectSettings.getInstance(project).projectState.scale
-              if (!surface.zoomController.setScale(lastScaling)) {
-                // Update scroll area because the scaling doesn't change, which keeps the old scroll
-                // area and may not suitable to new
-                // configuration set.
-                surface.revalidateScrollArea()
-              }
-            },
-            EdtExecutorService.getInstance(),
-          )
-          .thenCompose { renderCurrentModels() }
-          // We render the model sequentially to avoid memory and performance issue.
-          .thenRunAsync(
-            {
-              ApplicationManager.getApplication().invokeLater {
-                surface.unregisterIndicator(myProgressIndicator)
-              }
-              if (!isRequestCancelled.get() && facet?.isDisposed == false) {
-                activateEditor(models.isNotEmpty())
-              } else {
-                removeAndDisposeModels(models)
-              }
-            },
-            EdtExecutorService.getInstance(),
-          )
+          .await()
       }
+      // Re-layout and set scale before rendering. This may be processed delayed but we have
+      // known the preview number and sizes because the
+      // models are added, so it would layout correctly.
+      withContext(uiThread) {
+        surface.invalidate()
+        val lastScaling = VisualizationToolProjectSettings.getInstance(project).projectState.scale
+        if (!surface.zoomController.setScale(lastScaling)) {
+          // Update scroll area because the scaling doesn't change, which keeps the old scroll
+          // area and may not suitable to new
+          // configuration set.
+          surface.revalidateScrollArea()
+        }
+      }
+
+      renderCurrentModels()
+
+      ApplicationManager.getApplication().invokeLater {
+        surface.unregisterIndicator(myProgressIndicator)
+      }
+      if (!isRequestCancelled.get() && facet?.isDisposed == false) {
+        withContext(uiThread) { activateEditor(models.isNotEmpty()) }
+      } else {
+        removeAndDisposeModels(models)
+      }
+    }
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
@@ -570,7 +547,8 @@ class VisualizationForm(
             ApplicationManager.getApplication().invokeLater {
               surface.registerIndicator(myProgressIndicator)
             }
-            renderCurrentModels().thenRun {
+            scope.launch {
+              renderCurrentModels()
               ApplicationManager.getApplication().invokeLater {
                 surface.unregisterIndicator(myProgressIndicator)
               }
@@ -585,7 +563,7 @@ class VisualizationForm(
     }
   }
 
-  private fun renderCurrentModels(): CompletableFuture<Void> {
+  private suspend fun renderCurrentModels() {
     interruptRendering()
     val isRenderingCanceled = AtomicBoolean(false)
     val cancelTask = Runnable { isRenderingCanceled.set(true) }
@@ -596,31 +574,20 @@ class VisualizationForm(
       } finally {
         myCancelRenderingTaskLock.unlock()
       }
-    var renderFuture = CompletableFuture.completedFuture<Void?>(null)
     visualLintHandler.clearIssueProviderAndBaseConfigurationIssue()
 
     // This render the added components.
     for (manager in surface.sceneManagers) {
-      renderFuture =
-        renderFuture.thenCompose {
-          if (isRenderingCanceled.get()) {
-            return@thenCompose CompletableFuture.completedFuture<Void?>(null)
-          } else {
-            manager.sceneRenderConfiguration.needsInflation.set(true)
-            return@thenCompose manager
-              .requestRenderAsync()
-              .thenRunAsync(
-                {
-                  visualLintHandler.afterRenderCompleted(manager) {
-                    !isActive || isRenderingCanceled.get()
-                  }
-                },
-                AppExecutorUtil.getAppExecutorService(),
-              )
-          }
+      if (!isRenderingCanceled.get()) {
+        manager.sceneRenderConfiguration.needsInflation.set(true)
+        // TODO(b/335424569): replace by requestRenderAndWait when available
+        manager.requestRenderAsync().await()
+        scope.launch {
+          visualLintHandler.afterRenderCompleted(manager) { !isActive || isRenderingCanceled.get() }
         }
+      }
     }
-    return renderFuture.thenRun { surface.issueModel.updateErrorsList() }
+    surface.issueModel.updateErrorsList()
   }
 
   private fun interruptRendering() {
