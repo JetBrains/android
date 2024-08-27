@@ -32,7 +32,7 @@ import com.intellij.openapi.vfs.newvfs.persistent.FSRecords
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestBase.getModulePath
-import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
+import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -358,7 +358,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     }
 
     private fun getFirstBusyDaemonPid(): Long? {
-      val daemon = GradleDaemonServices.getDaemonsStatus().find {it.status == "BUSY"} ?: return null
+      val daemon = getDaemonsStatus().find {it.status == "BUSY"} ?: return null
       return daemon.pid
     }
 

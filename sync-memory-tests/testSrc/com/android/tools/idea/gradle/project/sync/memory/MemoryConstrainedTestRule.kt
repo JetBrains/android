@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
+import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
 import org.junit.rules.ExternalResource
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
@@ -53,7 +53,7 @@ class MemoryConstrainedTestRule(
       // It might be the case where there are no daemons,
       // in which case we just reset the accumulatedd time
       // First item in the list will be the latest started daemon
-      val daemonPid = GradleDaemonServices.getDaemonsStatus().firstOrNull()?.pid?.toLong() ?: ProcessHandle.allProcesses().toList().filter {
+      val daemonPid = getDaemonsStatus().firstOrNull()?.pid?.toLong() ?: ProcessHandle.allProcesses().toList().filter {
         it.info().commandLine().getOrNull()?.contains("GradleDaemon") ?: false
       }.map { it.pid() }.singleOrNull()
 
