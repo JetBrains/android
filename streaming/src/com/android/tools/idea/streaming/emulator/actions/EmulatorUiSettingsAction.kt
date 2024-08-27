@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
@@ -33,7 +34,13 @@ private val isSettingsPickerEnabled: Boolean
 /**
  * Opens a picker with UI settings of an emulator.
  */
-internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = { it.api >= 33 && isSettingsPickerEnabled }) {
+internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
+  configFilter = {
+    it.api >= 33 &&
+    isSettingsPickerEnabled &&
+    it.deviceType != DeviceType.AUTOMOTIVE
+  }
+) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
