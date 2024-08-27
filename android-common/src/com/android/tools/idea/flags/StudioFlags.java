@@ -256,6 +256,10 @@ public final class StudioFlags {
     "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
     true);
 
+  public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(PROFILER, "leakcanary", "LeakCanary",
+                                                                          "Enables the integration of leakCanary and display of leaks",
+                                                                          false);
+
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
   //endregion
