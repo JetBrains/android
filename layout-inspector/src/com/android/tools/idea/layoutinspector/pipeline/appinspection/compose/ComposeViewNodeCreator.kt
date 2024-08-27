@@ -21,18 +21,20 @@ import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import java.awt.Rectangle
+import java.awt.Point
+import java.awt.Shape
 import java.util.EnumSet
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
 
 /**
- * Helper class which handles the logic of using data from a
- * [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to create [ComposeViewNode]s.
+ * Helper class for creating [ComposeViewNode]s.
+ *
+ * @param result A compose tree received from the compose agent
+ * @param origin The offset applied to each node to display in screen coordinates
  */
-class ComposeViewNodeCreator(result: GetComposablesResult) {
+class ComposeViewNodeCreator(result: GetComposablesResult, private val origin: Point) {
   private val response = result.response
   private val pendingRecompositionCountReset = result.pendingRecompositionCountReset
   private val stringTable = StringTableImpl(response.stringsList)
@@ -79,26 +81,42 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
    * This can return null if the ID passed in isn't found, either because it's not an
    * AndroidComposeView or it references a view not referenced by this particular
    * [GetComposablesResponse].
+   *
+   * @param viewLocation The location of the View with specified [id]. For embedded this is in
+   *   screen coordinates, for standalone this is in window coordinates.
    */
-  fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
+  fun createForViewId(
+    id: Long,
+    viewLocation: Point,
+    shouldInterrupt: () -> Boolean,
+  ): List<ComposeViewNode>? {
     androidViews.clear()
     val result =
-      ViewNode.writeAccess { roots[id]?.map { node -> node.convert(shouldInterrupt, this) } }
+      ViewNode.writeAccess {
+        roots[id]?.map { node -> node.convert(shouldInterrupt, viewLocation, this) }
+      }
     nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
     return result
   }
 
   private fun ComposableNode.convert(
     shouldInterrupt: () -> Boolean,
+    viewLocation: Point,
     access: ViewNode.WriteAccess,
   ): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
 
-    val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
-    val renderBounds =
-      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val layoutBounds = bounds.layout.toRectangle().apply { translate(-origin.x, -origin.y) }
+
+    // The Quad coordinates are supplied relative to the View that contains the composables.
+    // We need to convert them to the coordinates the inspector works in.
+    val renderBounds: Shape =
+      bounds.render
+        .takeIf { it != Quad.getDefaultInstance() }
+        ?.toPolygon()
+        ?.apply { translate(viewLocation.x, viewLocation.y) } ?: layoutBounds
     val actualFlags =
       if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
     val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
@@ -130,7 +148,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     if ((actualFlags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
       access.apply {
         childrenList.mapTo(node.children) {
-          val child = it.convert(shouldInterrupt, access).apply { parent = node }
+          val child = it.convert(shouldInterrupt, viewLocation, access).apply { parent = node }
           node.recompositions.addChildCount(child.recompositions)
           child
         }
@@ -139,7 +157,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       access.apply {
         var last: ComposeViewNode? = null
         childrenList.asReversed().forEach { child ->
-          val next = child.convert(shouldInterrupt, access)
+          val next = child.convert(shouldInterrupt, viewLocation, access)
           addSingleChild(next, last)
           last = next
         }

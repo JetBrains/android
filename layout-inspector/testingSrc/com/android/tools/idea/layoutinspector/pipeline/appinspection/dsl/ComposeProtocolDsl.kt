@@ -75,6 +75,10 @@ fun ComposableBounds(layout: Rect, render: Quad? = null): Bounds {
     .build()
 }
 
+fun ComposableRectBounds(x: Int, y: Int, w: Int, h: Int): Bounds {
+  return Bounds.newBuilder().apply { this.layout = ComposableRect(x, y, w, h) }.build()
+}
+
 fun ComposableRect(w: Int, h: Int): Rect = ComposableRect(0, 0, w, h)
 
 fun ComposableRect(x: Int, y: Int, w: Int, h: Int): Rect {

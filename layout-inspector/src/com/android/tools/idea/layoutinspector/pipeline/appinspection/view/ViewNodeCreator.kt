@@ -21,8 +21,9 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeViewNodeCreator
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import java.awt.Rectangle
+import java.awt.Point
 
 private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
 
@@ -39,7 +40,8 @@ class ViewNodeCreator(
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
-  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it) }
+  private val origin = getOrigin(layoutEvent)
+  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it, origin) }
 
   /** The collected capabilities based on the loaded data. */
   val dynamicCapabilities: Set<Capability>
@@ -67,11 +69,12 @@ class ViewNodeCreator(
     val resource = view.resource.convert().createReference(strings)
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
-    val layoutBounds = view.bounds.layout.let { Rectangle(it.x, it.y, it.w, it.h) }
+    val layoutBounds = view.bounds.layout.toRectangle().apply { translate(-origin.x, -origin.y) }
     val renderBounds =
       view.bounds.render
         .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
-        ?.toShape() ?: layoutBounds
+        ?.toPolygon()
+        ?.apply { translate(-origin.x, -origin.y) } ?: layoutBounds
 
     val node =
       ViewNode(
@@ -86,7 +89,8 @@ class ViewNodeCreator(
       )
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()
-    composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child ->
+    composeNodeCreator?.createForViewId(view.id, layoutBounds.location, shouldInterrupt)?.forEach {
+      child ->
       children.add(child)
     }
     val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()
@@ -120,5 +124,17 @@ class ViewNodeCreator(
       }
     }
     return node
+  }
+
+  /**
+   * Get the origin for all the [ViewNode]s. For embedded we use screen coordinates, for standalone
+   * we use window coordinates.
+   */
+  private fun getOrigin(event: LayoutInspectorViewProtocol.LayoutEvent): Point {
+    if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      return Point()
+    } else {
+      return event.appContext.windowBounds.toRectangle().location
+    }
   }
 }
