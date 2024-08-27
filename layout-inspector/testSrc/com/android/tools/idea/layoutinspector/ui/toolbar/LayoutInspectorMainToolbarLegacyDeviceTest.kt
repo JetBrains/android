@@ -38,6 +38,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Rule
 import org.junit.Test
@@ -67,11 +68,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
       waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
 
       val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = toolbar.getToggleLiveUpdatesActionButton()
       assertThat(toggle.isEnabled).isFalse()
       assertThat(getPresentation(toggle).description)
         .isEqualTo("Live updates not available for devices below API 29")
@@ -87,11 +84,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
       waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
 
       val toolbar = createToolbar()
-
-      val toggle =
-        toolbar.component.components.find {
-          it is ActionButton && it.action is ToggleLiveUpdatesAction
-        } as ActionButton
+      val toggle = toolbar.getToggleLiveUpdatesActionButton()
       assertThat(toggle.isEnabled).isFalse()
       assertThat(getPresentation(toggle).description)
         .isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
@@ -99,12 +92,22 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
-    return createStandaloneLayoutInspectorToolbar(
-      projectRule.testRootDisposable,
-      JPanel(),
-      layoutInspectorRule.inspector,
-      fakeAction,
-    )
+    val toolbar =
+      createStandaloneLayoutInspectorToolbar(
+        projectRule.testRootDisposable,
+        JPanel(),
+        layoutInspectorRule.inspector,
+        fakeAction,
+      )
+    return toolbar
+  }
+
+  private fun ActionToolbar.getToggleLiveUpdatesActionButton(): ActionButton {
+    waitForCondition(10.seconds) {
+      component.components.any { it is ActionButton && it.action is ToggleLiveUpdatesAction }
+    }
+    return component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction }
+      as ActionButton
   }
 
   private fun getPresentation(button: ActionButton): Presentation {
