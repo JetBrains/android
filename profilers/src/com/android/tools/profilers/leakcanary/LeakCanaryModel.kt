@@ -59,7 +59,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
     deregisterLeakCanaryListeners()
   }
 
-  private fun setIsRecording(isRecording: Boolean) {
+  fun setIsRecording(isRecording: Boolean) {
     _isRecording.value = isRecording
   }
 
