@@ -51,6 +51,10 @@ class SdkIndexLintWithoutVersionsTest : SdkIndexTestBase() {
         listOf(
           "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console",
         ),
+        // Error
+        listOf(
+          "com.startapp:inapp-sdk version 3.9.1 contains unsafe unzipping patterns.",
+        ),
         // Warning
         listOf(
           "androidx.annotation:annotation version 1.0.0 has been reported as outdated by its author",
