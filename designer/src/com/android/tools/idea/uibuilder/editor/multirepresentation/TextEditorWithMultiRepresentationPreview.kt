@@ -25,10 +25,10 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout]. */
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
@@ -98,19 +98,22 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
    * Action that replaces the default "Show Editor" action with one that registers when the user has
    * clicked it explicitly.
    */
-  private val _showEditorAction: SplitEditorAction = SplitEditorActionDelegate(super.showEditorAction)
+  private val _showEditorAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.showEditorAction)
 
   /**
    * Action that replaces the default "Show Editor And Preview" action with one that registers when
    * the user has clicked it explicitly.
    */
-  private var _showEditorAndPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.showEditorAndPreviewAction)
+  private var _showEditorAndPreviewAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.showEditorAndPreviewAction)
 
   /**
    * Action that replaces the default "Show Preview" action with one that registers when the user
    * has clicked it explicitly.
    */
-  private var _showPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.showPreviewAction)
+  private var _showPreviewAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.showPreviewAction)
 
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
