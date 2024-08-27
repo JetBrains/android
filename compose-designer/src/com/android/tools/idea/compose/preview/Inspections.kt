@@ -118,7 +118,7 @@ open class PreviewAnnotationInFunctionWithParametersInspection :
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, has
  * at most one `@PreviewParameter`.
  */
-class PreviewMultipleParameterProvidersInspection :
+open class PreviewMultipleParameterProvidersInspection :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
@@ -157,21 +157,21 @@ class PreviewMultipleParameterProvidersInspection :
     message("inspection.no.multiple.preview.provider.description")
 }
 
-class ComposePreviewNeedsComposableAnnotationInspection :
+open class ComposePreviewNeedsComposableAnnotationInspection :
   PreviewNeedsComposableAnnotationInspection(
     message("inspection.no.composable.description"),
     composePreviewGroupDisplayName,
     ComposePreviewAnnotationChecker,
   )
 
-class ComposePreviewMustBeTopLevelFunction :
+open class ComposePreviewMustBeTopLevelFunction :
   PreviewMustBeTopLevelFunction(
     message("inspection.top.level.function"),
     composePreviewGroupDisplayName,
     ComposePreviewAnnotationChecker,
   )
 
-class ComposePreviewDimensionRespectsLimit :
+open class ComposePreviewDimensionRespectsLimit :
   PreviewDimensionRespectsLimit(
     PARAMETER_WIDTH_DP,
     PARAMETER_HEIGHT_DP,
@@ -183,7 +183,7 @@ class ComposePreviewDimensionRespectsLimit :
   )
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
-class PreviewFontScaleMustBeGreaterThanZero :
+open class PreviewFontScaleMustBeGreaterThanZero :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
@@ -224,7 +224,7 @@ class PreviewFontScaleMustBeGreaterThanZero :
 }
 
 /** Inspection that checks if `@Preview` apiLevel is valid. */
-class PreviewApiLevelMustBeValid :
+open class PreviewApiLevelMustBeValid :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
