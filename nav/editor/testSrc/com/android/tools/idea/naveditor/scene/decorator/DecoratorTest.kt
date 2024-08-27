@@ -39,6 +39,7 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
 import java.awt.Color
@@ -66,7 +67,7 @@ class DecoratorTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    surface = NavDesignSurface(project, myRootDisposable)
+    surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
   }
 
   fun testFragment() {

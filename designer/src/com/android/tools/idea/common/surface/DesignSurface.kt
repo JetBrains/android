@@ -139,7 +139,6 @@ val FILTER_DISPOSED_MODELS =
  */
 abstract class DesignSurface<T : SceneManager>(
   val project: Project,
-  val parentDisposable: Disposable,
   actionManagerProvider: (DesignSurface<T>) -> ActionManager<out DesignSurface<T>>,
   interactableProvider: (DesignSurface<T>) -> Interactable = { SurfaceInteractable(it) },
   interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
@@ -160,12 +159,10 @@ abstract class DesignSurface<T : SceneManager>(
   ScaleListener,
   UiDataProvider {
 
-  /** [CoroutineScope] to be used by any operations constrained to the zoom changes. */
-  protected val zoomControllerScope = AndroidCoroutineScope(parentDisposable)
+  /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
+  protected val scope = AndroidCoroutineScope(this)
 
   init {
-    Disposer.register(parentDisposable, this)
-
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a
     // temporarily NlMode.
@@ -217,7 +214,7 @@ abstract class DesignSurface<T : SceneManager>(
         sceneViewProvider = ::sceneViews,
         interactionLayersProvider = ::getLayers,
         actionManagerProvider = ::actionManager,
-        disposable = this,
+        scope = scope,
         shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
         layoutManager = positionableLayoutManagerProvider(this),
       )

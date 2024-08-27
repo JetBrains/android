@@ -31,13 +31,11 @@ import com.android.tools.idea.common.surface.organization.createOrganizationHead
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
 import com.android.tools.idea.common.surface.organization.paintLines
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
-import com.intellij.openapi.Disposable
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -57,7 +55,7 @@ import org.jetbrains.annotations.TestOnly
  * @param interactionLayersProvider A [Layer] provider that returns the additional interaction
  *   [Layer]s, if any
  * @param actionManagerProvider provides an [ActionManager]
- * @param disposable
+ * @param scope CoroutineScope with lifetime of parent [DesignSurface]
  * @param shouldRenderErrorsPanel Returns true whether render error panels should be rendered when
  *   [SceneView] in this surface have render errors.
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and
@@ -67,7 +65,7 @@ class SceneViewPanel(
   private val sceneViewProvider: () -> Collection<SceneView>,
   private val interactionLayersProvider: () -> Collection<Layer>,
   private val actionManagerProvider: () -> ActionManager<*>,
-  private val disposable: Disposable,
+  private val scope: CoroutineScope,
   private val shouldRenderErrorsPanel: () -> Boolean,
   layoutManager: PositionableContentLayoutManager,
 ) : JPanel(layoutManager) {
@@ -110,8 +108,6 @@ class SceneViewPanel(
   }
 
   val groups = mutableMapOf<OrganizationGroup, MutableList<JComponent>>()
-
-  private val scope = AndroidCoroutineScope(disposable)
 
   private val sceneScopes = mutableMapOf<JComponent, CoroutineScope>()
 

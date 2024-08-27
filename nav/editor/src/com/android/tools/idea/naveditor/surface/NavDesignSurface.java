@@ -78,7 +78,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
@@ -92,6 +91,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -152,15 +152,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   private final NavDesignSurfaceZoomController myZoomController;
 
   @TestOnly
-  public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    this(project, null, parentDisposable);
+  public NavDesignSurface(@NotNull Project project) {
+    this(project, null);
   }
 
   /**
    * {@code editorPanel} should only be null in tests
    */
-  public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface),
+  public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel) {
+    super(project, surface -> new NavActionManager((NavDesignSurface)surface),
           SurfaceInteractable::new,
           (NavInteractionHandler::new),
           (surface) -> (PositionableContentLayoutManager)(new SinglePositionableContentLayoutManager()),

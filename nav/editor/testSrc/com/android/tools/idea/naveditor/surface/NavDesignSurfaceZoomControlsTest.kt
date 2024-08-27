@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -218,10 +219,9 @@ class NavDesignSurfaceZoomControlsTest {
     val surface =
       UIUtil.invokeAndWaitIfNeeded(
         Computable {
-          NavDesignSurface(
-            androidProjectRule.project,
-            androidProjectRule.fixture.testRootDisposable,
-          )
+          NavDesignSurface(androidProjectRule.project).also {
+            Disposer.register(androidProjectRule.testRootDisposable, it)
+          }
         }
       )
 
@@ -299,10 +299,9 @@ class NavDesignSurfaceZoomControlsTest {
     val surface =
       UIUtil.invokeAndWaitIfNeeded(
         Computable {
-          NavDesignSurface(
-            androidProjectRule.project,
-            androidProjectRule.fixture.testRootDisposable,
-          )
+          NavDesignSurface(androidProjectRule.project).also {
+            Disposer.register(androidProjectRule.testRootDisposable, it)
+          }
         }
       )
 
@@ -382,10 +381,9 @@ class NavDesignSurfaceZoomControlsTest {
     val surface =
       UIUtil.invokeAndWaitIfNeeded(
         Computable {
-          NavDesignSurface(
-            androidProjectRule.project,
-            androidProjectRule.fixture.testRootDisposable,
-          )
+          NavDesignSurface(androidProjectRule.project).also {
+            Disposer.register(androidProjectRule.testRootDisposable, it)
+          }
         }
       )
 

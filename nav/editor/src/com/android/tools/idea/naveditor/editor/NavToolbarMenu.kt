@@ -72,7 +72,7 @@ abstract class NavToolbarMenu(
         .setRequestFocus(
           true
         ) // Note that this seems non-functional, since it requests focus before the balloon is
-          // shown
+        // shown
         .setBorderColor(secondaryPanelBackground)
         .setFillColor(BACKGROUND_COLOR)
         .createBalloon()

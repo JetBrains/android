@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.tree.TreePanelDefinition
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -51,7 +52,12 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
       myProject,
       myFile,
       WorkBench(myProject, WORKBENCH_NAME, this, this),
-      { NavDesignSurface(myProject, it, this).apply { name = "Navigation" } },
+      {
+        NavDesignSurface(myProject, it).apply {
+          Disposer.register(this@NavEditor, this)
+          name = "Navigation"
+        }
+      },
       NavComponentRegistrar,
       {
         listOf(

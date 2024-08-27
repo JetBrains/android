@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
@@ -48,7 +49,7 @@ class NavSelectActionsTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val action = SelectNextAction()
@@ -83,7 +84,7 @@ class NavSelectActionsTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val action = SelectPreviousAction()
@@ -111,7 +112,7 @@ class NavSelectActionsTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     surface.selectionModel.setSelection(ImmutableList.of())
 
