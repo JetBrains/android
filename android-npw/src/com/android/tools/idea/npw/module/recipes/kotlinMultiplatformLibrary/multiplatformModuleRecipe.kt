@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary
 
 import com.android.SdkConstants
 import com.android.tools.idea.npw.module.recipes.addInstrumentedTests
-import com.android.tools.idea.npw.module.recipes.addLocalTests
+import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestWithKotlinTest
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleAndroidMain
@@ -77,16 +77,16 @@ private fun RecipeExecutor.generateModule(
   addAndroidMain(packageName, data.srcDir, language)
   data.commonSrcDir?.let { dir ->
     addCommonMain(packageName, dir, language)
-    addCommonTestDependencies()
+    addCommonTestDependencies(projectData.kotlinVersion)
   }
 
-  addLocalTests(packageName, data.unitTestDir, language)
+  addMultiplatformLocalTests(packageName, data.unitTestDir)
   addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
   addInstrumentedTestDependencies()
 }
 
-fun RecipeExecutor.addCommonTestDependencies() {
-  addDependency("junit:junit:4.+", "implementation", minRev = "4.13.2", sourceSetName = "commonTest")
+fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {
+  addDependency("org.jetbrains.kotlin:kotlin-test:+", "implementation", minRev = kotlinVersion, sourceSetName = "commonTest")
 }
 
 fun RecipeExecutor.addInstrumentedTestDependencies() {
@@ -112,5 +112,14 @@ fun RecipeExecutor.addCommonMain(
   save(
     exampleCommonMain(packageName),
     outFolder.resolve("Platform.$ext")
+  )
+}
+
+fun RecipeExecutor.addMultiplatformLocalTests(
+  packageName: String, localTestOut: File
+) {
+  save(
+    exampleUnitTestWithKotlinTest(packageName),
+    localTestOut.resolve("ExampleUnitTest.kt")
   )
 }
