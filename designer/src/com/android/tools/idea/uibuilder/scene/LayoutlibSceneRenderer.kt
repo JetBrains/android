@@ -55,11 +55,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -68,7 +65,6 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
 private class RenderRequest(val trigger: LayoutEditorRenderResult.Trigger?) {
@@ -400,12 +396,7 @@ class LayoutlibSceneRenderer(
     var result: RenderResult? = null
     var newTask: RenderTask? = null
     try {
-      withContext(NonCancellable) {
-        // Avoid cancellation while waiting for render task creation to finish.
-        // This is needed to avoid leaks and make sure that it's correctly disposed when needed.
-        newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
-      }
-      coroutineContext.ensureActive()
+      newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
       result =
         newTask?.let { doInflate(it, logger) }
           ?: createRenderTaskErrorResult(blockingContext { model.file }, logger)

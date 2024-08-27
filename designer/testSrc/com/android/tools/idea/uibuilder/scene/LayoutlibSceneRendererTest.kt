@@ -53,6 +53,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -98,7 +99,7 @@ class LayoutlibSceneRendererTest {
         model.surface as NlDesignSurface,
         LayoutScannerConfiguration.DISABLED,
       )
-    whenever(renderTaskBuilderMock.build())
+    whenever(renderTaskBuilderMock.build(any()))
       .thenReturn(CompletableFuture.completedFuture(renderTaskMock))
     renderer.sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { renderTaskBuilderMock }
   }
