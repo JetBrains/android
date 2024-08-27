@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -313,7 +314,6 @@ class NlSurfaceBuilder(
     val surface =
       NlDesignSurface(
         project,
-        parentDisposable,
         sceneManagerProvider,
         surfaceLayoutOption ?: DEFAULT_OPTION,
         _actionManagerProvider,
@@ -330,6 +330,8 @@ class NlSurfaceBuilder(
         _maxZoomToFitLevel,
         _visualLintIssueProviderFactory,
       )
+
+    Disposer.register(parentDisposable, surface)
 
     _screenViewProvider?.let { surface.setScreenViewProvider(it, _setDefaultScreenViewProvider) }
 

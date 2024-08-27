@@ -28,9 +28,9 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -79,8 +79,8 @@ class InteractionHandlerTest {
         }
       }
 
-    val surface =
-      Surface(rule.project, rule.testRootDisposable, handlerProvider, actionManagerProvider)
+    val surface = Surface(rule.project, handlerProvider, actionManagerProvider)
+    Disposer.register(rule.testRootDisposable, surface)
     val toolbar = surface.actionManager.designSurfaceToolbar
 
     val otherComponent = JPanel()
@@ -119,13 +119,11 @@ class InteractionHandlerTest {
 
 private class Surface(
   project: Project,
-  disposable: Disposable,
   interact: (DesignSurface<SceneManager>) -> InteractionHandler,
   actionManager: (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>>,
 ) :
   DesignSurface<SceneManager>(
     project = project,
-    parentDisposable = disposable,
     actionManagerProvider = actionManager,
     interactionProviderCreator = interact,
     positionableLayoutManagerProvider = { TestLayoutManager(it) },

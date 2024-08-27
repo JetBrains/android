@@ -26,6 +26,7 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.mock
@@ -47,7 +48,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
@@ -83,7 +85,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
@@ -236,7 +239,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment1 = model.treeReader.find("fragment1")!!
     val fragment2 = model.treeReader.find("fragment2")!!
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
@@ -270,7 +274,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val action1 = model.treeReader.find("a1")!!
     val action2 = model.treeReader.find("a2")!!
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
@@ -291,7 +296,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val root = model.treeReader.find("root")!!
     val fragment1 = model.treeReader.find("fragment1")!!
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 

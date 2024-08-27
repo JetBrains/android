@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -53,7 +54,7 @@ class NavComponentTreeTest : NavTestCase() {
         }
       }
 
-    surface = NavDesignSurface(project, myRootDisposable)
+    surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     panel = TreePanel()
