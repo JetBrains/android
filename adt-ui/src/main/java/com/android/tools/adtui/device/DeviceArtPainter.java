@@ -28,8 +28,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
@@ -38,7 +36,6 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -48,15 +45,17 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A device frame painter is capable of directly painting a device frame surrounding
- * a given screen shot rectangle, or creating a new {@link BufferedImage} where it paints
+ * a given screenshot rectangle, or creating a new {@link BufferedImage} where it paints
  * both a screenshot and a surrounding device frame. It can also answer information about
  * how much extra space in the horizontal and vertical directions a device frame would
  * require (for zoom-to-fit geometry calculations).
@@ -70,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
 public class DeviceArtPainter {
   @NotNull private static final DeviceArtPainter ourInstance = new DeviceArtPainter();
   @Nullable private static volatile String ourSystemPath;
-  @NotNull private Map<Device,DeviceData> myDeviceData = Maps.newHashMap();
+  @NotNull private final Map<Device, DeviceData> myDeviceData = new HashMap<>();
   @Nullable private List<DeviceArtDescriptor> myDescriptors;
 
   /** Use {@link #getInstance()} */
@@ -80,15 +79,6 @@ public class DeviceArtPainter {
   @NotNull
   public static DeviceArtPainter getInstance() {
     return ourInstance;
-  }
-
-  /** Returns true if we have a dedicated frame image for the given device */
-  public boolean hasDeviceFrame(@Nullable Device device) {
-    DeviceData deviceData = getDeviceData(device);
-    if (deviceData == null) {
-      return false;
-    }
-    return !deviceData.getDescriptor().isStretchable();
   }
 
   @Nullable
@@ -111,15 +101,12 @@ public class DeviceArtPainter {
     String name = device.getDisplayName();
 
     // Make generic devices use the frames as well:
-    if (id.equals("3.7in WVGA (Nexus One)")) {
-      id = "nexus_one";
-    } else if (id.equals("4in WVGA (Nexus S)")) {
-      id = "nexus_s";
-    } else if (id.equals("4.65in 720p (Galaxy Nexus)")) {
-      id = "galaxy_nexus";
-    } else {
-      id = id.replace(' ', '_');
-    }
+    id = switch (id) {
+      case "3.7in WVGA (Nexus One)" -> "nexus_one";
+      case "4in WVGA (Nexus S)" -> "nexus_s";
+      case "4.65in 720p (Galaxy Nexus)" -> "galaxy_nexus";
+      default -> id.replace(' ', '_');
+    };
     DeviceArtDescriptor descriptor = findDescriptor(id, name);
     if (descriptor == null) {
       // Fallback to generic stretchable images
@@ -168,41 +155,6 @@ public class DeviceArtPainter {
     return myDescriptors;
   }
 
-  /**
-   * Paint the device frame for the given device around the screenshot coordinates (x1,y1) to (x2,y2), optionally
-   * with glare and shadow effects
-   */
-  public void paintFrame(@NotNull Graphics g,
-                         @NotNull Device device,
-                         @NotNull ScreenOrientation orientation,
-                         boolean showEffects,
-                         int x1,
-                         int y1,
-                         int height) {
-    DeviceData data = getDeviceData(device);
-    if (data == null || height == 0) {
-      return;
-    }
-
-    FrameData frame = data.getFrameData(orientation, Integer.MAX_VALUE);
-    BufferedImage image = frame.getImage(showEffects);
-    if (image != null) {
-      double scale = height / (double)frame.getScreenHeight();
-      int dx1 = (int)(x1 - scale * frame.getScreenX());
-      int dy1 = (int)(y1 - scale * frame.getScreenY());
-      int dx2 = dx1 + (int)(scale * image.getWidth());
-      int dy2 = dy1 + (int)(scale * image.getHeight());
-      g.drawImage(image,
-                  dx1, dy1, dx2, dy2,
-                  // sx1, sy1, sx2, sy2
-                  0,
-                  0,
-                  image.getWidth(),
-                  image.getHeight(),
-                  null);
-    }
-  }
-
   /** Creates a frame around the given image, using the given descriptor. */
   public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor) {
     return createFrame(image, descriptor, false, false);
@@ -211,7 +163,8 @@ public class DeviceArtPainter {
   public static @NotNull BufferedImage createFrame(@NotNull BufferedImage image, @NotNull DeviceArtDescriptor descriptor,
                                                    boolean addShadow, boolean addReflection) {
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
-    ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
+    ScreenOrientation orientation = imgAspectRatio >= (1 - DeviceArtDescriptor.EPSILON) ?
+                                    ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
     if (!descriptor.canFrameImage(image, orientation)) {
       return image;
@@ -237,7 +190,7 @@ public class DeviceArtPainter {
       } else if (screen.width < image.getWidth()) {
         // if the frame isn't stretchable, but is smaller than the image, then scale down the image
         double scale = (double) screen.width / image.getWidth();
-        if (Math.abs(scale - 1.0) > ImageUtils.EPSILON) {
+        if (Math.abs(scale - 1.0) > DeviceArtDescriptor.EPSILON) {
           image = ImageUtils.scale(image, scale, scale);
         }
       }
@@ -389,40 +342,6 @@ public class DeviceArtPainter {
     return scaledImage;
   }
 
-  @Nullable
-  public Rectangle computeBounds(int imageWidth,
-                                 int imageHeight,
-                                 @NotNull Device device,
-                                 @NotNull ScreenOrientation orientation,
-                                 double scale) {
-    DeviceData data = getDeviceData(device);
-    int scaledHeight = (int)(scale * imageHeight);
-    if (data == null || scaledHeight == 0) {
-      return null;
-    }
-
-    // Tweak the scale down slightly; without this, rounding errors can lead to the frame image
-    // being one or two pixels larger than the screen, such that the underlying theme background
-    // shines through, which is quite visible on a black phone frame with a black navigation bar
-    // for example
-    scale = (scaledHeight - 1) / (double)imageHeight;
-
-    int scaledWidth = (int)(imageWidth * scale);
-    boolean portrait = orientation != ScreenOrientation.LANDSCAPE;
-    FrameData frame = portrait ? data.getPortraitData(scaledHeight) : data.getLandscapeData(scaledHeight);
-    int framedWidth = (int)(imageWidth * scale * frame.getFrameWidth() / (double) frame.getScreenWidth());
-    int framedHeight = (int)(imageHeight * scale * frame.getFrameHeight() / (double) frame.getScreenHeight());
-    if (framedWidth <= 0 || framedHeight <= 0) {
-      return null;
-    }
-
-    double downScale = framedHeight / (double)frame.getFrameHeight();
-    int screenX = (int)(downScale * frame.getScreenX());
-    int screenY = (int)(downScale * frame.getScreenY());
-
-    return new Rectangle(screenX, screenY, scaledWidth, scaledHeight);
-  }
-
   @NotNull
   private static BufferedImage stretchImage(BufferedImage image, int width, int height) {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
@@ -436,58 +355,6 @@ public class DeviceArtPainter {
     ninePatch.draw(g, 0, 0, width, height);
     g.dispose();
     return composite;
-  }
-
-  @Nullable
-  public Point getScreenPosition(@NotNull Device device, @NotNull ScreenOrientation orientation, int screenHeight) {
-    DeviceData data = getDeviceData(device);
-    if (data == null) {
-      return null;
-    }
-
-    FrameData frame = data.getFrameData(orientation, Integer.MAX_VALUE);
-    int screenX = frame.getScreenX();
-    int screenY = frame.getScreenY();
-
-    double scale = screenHeight / (double) frame.getScreenHeight();
-    screenX *= scale;
-    screenY *= scale;
-    // TODO: Also consider the frame scale?
-
-    return new Point(screenX, screenY);
-  }
-
-  /** Like {@link #getFrameWidthOverhead} and {@link #getFrameHeightOverhead}, but returns the max of the two */
-  public double getFrameMaxOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
-    DeviceData data = getDeviceData(device);
-    if (data == null) {
-      return 1;
-    }
-
-    FrameData frame = data.getFrameData(orientation, Integer.MAX_VALUE);
-    return Math.max(frame.getFrameWidth() / (double) frame.getScreenWidth(), frame.getFrameHeight() / (double) frame.getScreenHeight());
-  }
-
-  /** Returns how much wider (as a factor of the width of the screenshot) the image will be with a device frame added in */
-  public double getFrameWidthOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
-    DeviceData data = getDeviceData(device);
-    if (data == null) {
-      return 1;
-    }
-
-    FrameData frame = data.getFrameData(orientation, Integer.MAX_VALUE);
-    return frame.getFrameHeight() / (double) frame.getScreenHeight();
-  }
-
-  /** Returns how much taller (as a factor of the height of the screenshot) the image will be with a device frame added in */
-  public double getFrameHeightOverhead(@NotNull Device device, @NotNull ScreenOrientation orientation) {
-    DeviceData data = getDeviceData(device);
-    if (data == null) {
-      return 1;
-    }
-
-    FrameData frame = data.getFrameData(orientation, Integer.MAX_VALUE);
-    return frame.getFrameWidth() / (double) frame.getScreenWidth();
   }
 
   /** Information about a particular device; keeps both portrait and landscape data, as well as multiple target image sizes */
@@ -577,14 +444,14 @@ public class DeviceArtPainter {
     private final int myCropY1;
     private final int myCropX2;
     private final int myCropY2;
-    private int myFrameWidth;
-    private int myFrameHeight;
+    private final int myFrameWidth;
+    private final int myFrameHeight;
     private final FrameData myDouble;
 
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<BufferedImage>(null);
+    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<>(null);
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<BufferedImage>(null);
+    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<>(null);
 
     private boolean isPortrait() {
       return myOrientation == ScreenOrientation.PORTRAIT;
@@ -734,9 +601,9 @@ public class DeviceArtPainter {
         // Generic device
         // Store resolution as well, since we need different pre-cached images for different resolutions
         sb.append('-');
-        sb.append(Integer.toString(myWidth));
+        sb.append(myWidth);
         sb.append('x');
-        sb.append(Integer.toString(myHeight));
+        sb.append(myHeight);
       }
       sb.append('-');
       sb.append(isPortrait() ? "port" : "land");
@@ -822,9 +689,9 @@ public class DeviceArtPainter {
 
       if (image != null) {
         if (showEffects) {
-          myEffectsImage = new SoftReference<BufferedImage>(image);
+          myEffectsImage = new SoftReference<>(image);
         } else {
-          myPlainImage = new SoftReference<BufferedImage>(image);
+          myPlainImage = new SoftReference<>(image);
         }
       }
 
@@ -874,12 +741,11 @@ public class DeviceArtPainter {
 
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
-      Graphics g = composite.createGraphics();
+      Graphics2D g = composite.createGraphics();
       g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
-      Graphics2D g2d = (Graphics2D)g;
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
       BufferedImage mask = getImage(descriptor.getMask(myOrientation));
 
@@ -897,17 +763,17 @@ public class DeviceArtPainter {
         // Ensure that the shadow background doesn't overlap the transparent screen rectangle in the middle
         //noinspection UseJBColor
         g.setColor(new Color(0, true));
-        Composite prevComposite = g2d.getComposite();
+        Composite prevComposite = g.getComposite();
         // Wipe out alpha channel
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
 
         if (mask != null) {
-          g2d.setComposite(AlphaComposite.DstOut);
-          g2d.drawImage(mask, -cropX1, -cropY1, null);
+          g.setComposite(AlphaComposite.DstOut);
+          g.drawImage(mask, -cropX1, -cropY1, null);
         } else {
-          g2d.fillRect(myX, myY, myWidth, myHeight);
+          g.fillRect(myX, myY, myWidth, myHeight);
         }
-        g2d.setComposite(prevComposite);
+        g.setComposite(prevComposite);
       }
 
       if (mask != null) {
@@ -915,11 +781,11 @@ public class DeviceArtPainter {
         BufferedImage maskedImage = new BufferedImage(background.getWidth(), background.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D maskGraphics = maskedImage.createGraphics();
         maskGraphics.drawImage(background, 0, 0, null);
-        Composite prevComposite = g2d.getComposite();
+        Composite prevComposite = g.getComposite();
         maskGraphics.setComposite(AlphaComposite.DstOut);
         maskGraphics.drawImage(mask, 0, 0, null);
         maskGraphics.dispose();
-        g2d.setComposite(prevComposite);
+        g.setComposite(prevComposite);
         g.drawImage(maskedImage, 0, 0, myFrameWidth, myFrameHeight, cropX1, cropY1, cropX2, cropY2, null);
       } else {
         // More efficient painting of the hole

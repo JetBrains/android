@@ -59,15 +59,8 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
 public class ImageUtils {
-  public static final double EPSILON = 1e-5;
-
-  /**
-   * Filter that checks pixels for being completely transparent.
-   */
-  public static final CropFilter TRANSPARENCY_FILTER = (bufferedImage, x, y) -> {
-    int rgb = bufferedImage.getRGB(x, y);
-    return (rgb & 0xFF000000) == 0;
-  };
+  /** Mask of the alpha channel in the ARGB color representation. */
+  public static final int ALPHA_MASK = 0xFF000000;
 
   /**
    * Rotates the given image by the given number of quadrants.
@@ -586,7 +579,7 @@ public class ImageUtils {
    */
   @Nullable
   public static BufferedImage cropBlank(@Nullable BufferedImage image, @Nullable Rectangle initialCrop, int imageType) {
-    return crop(image, TRANSPARENCY_FILTER, initialCrop, imageType);
+    return crop(image, ImageUtils::isTransparentPixel, initialCrop, imageType);
   }
 
   /**
@@ -759,13 +752,22 @@ public class ImageUtils {
   public static boolean isNonOpaque(@NotNull BufferedImage image) {
     for (int y = 0; y < image.getHeight(); y++) {
       for (int x = 0; x < image.getWidth(); x++) {
-        int rgb = image.getRGB(x, y);
-        if (((rgb & 0xFF000000) ^ 0xFF000000) != 0) {
+        if (!isOpaquePixel(image, x, y)) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  /** Checks if the image is fully transparent at the given coordinates. */
+  public static boolean isTransparentPixel(BufferedImage image, int x, int y) {
+    return (image.getRGB(x, y) & ALPHA_MASK) == 0;
+  }
+
+  /** Checks if the image is fully opaque at the given coordinates. */
+  public static boolean isOpaquePixel(BufferedImage image, int x, int y) {
+    return (image.getRGB(x, y) & ALPHA_MASK) == ALPHA_MASK;
   }
 
   /**

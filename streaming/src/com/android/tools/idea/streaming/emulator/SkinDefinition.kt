@@ -18,9 +18,9 @@ package com.android.tools.idea.streaming.emulator
 import com.android.annotations.concurrency.Slow
 import com.android.io.readImage
 import com.android.io.writeImage
-import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
+import com.android.tools.adtui.ImageUtils.isTransparentPixel
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
@@ -494,10 +494,6 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     }
 
     @JvmStatic
-    private fun isTransparentPixel(image: BufferedImage, x: Int, y: Int): Boolean =
-      image.getRGB(x, y) and ALPHA_MASK == 0
-
-    @JvmStatic
     private fun createAnchoredImage(mask: BufferedImage, cropBounds: Rectangle, displaySize: Dimension): AnchoredImage {
       val anchorPoint =
         if (cropBounds.x > displaySize.width / 2) {
@@ -537,11 +533,11 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
     @JvmStatic
     private fun BufferedImage.cropped(cropBounds: Rectangle): BufferedImage =
-      getCroppedImage(this, cropBounds, -1)
+        getCroppedImage(this, cropBounds, -1)
 
     @JvmStatic
     private fun getCropBounds(image: BufferedImage, initialCrop: Rectangle?): Rectangle? =
-      getCropBounds(image, TRANSPARENCY_FILTER, initialCrop)
+        getCropBounds(image, ::isTransparentPixel, initialCrop)
 
     @JvmStatic
     private val Rectangle.right
@@ -554,8 +550,6 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @TestOnly
     @JvmStatic
     internal fun getBackgroundImageFile(skinFolder: Path): Path? = createLayoutDescriptor(skinFolder).part.backgroundFile
-
-    private const val ALPHA_MASK = 0xFF shl 24
   }
 }
 

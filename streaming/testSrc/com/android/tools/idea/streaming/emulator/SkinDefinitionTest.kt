@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getSkinFolder
@@ -311,7 +312,7 @@ class SkinDefinitionTest {
     val displaySize = skinLayout.displaySize
     val center = Point(displaySize.width / 2 - skinLayout.frameRectangle.x,
                        displaySize.height / 2 - skinLayout.frameRectangle.y)
-    if (!backgroundImage.isTransparent(center)) {
+    if (!backgroundImage.isTransparentPixel(center)) {
       return listOf("The background image is not transparent near the center of the display")
     }
 
@@ -321,7 +322,7 @@ class SkinDefinitionTest {
       problems.add("The ${backgroundImageFile.fileName} image can be cropped without loosing any information")
     }
 
-    val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparent)
+    val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparentPixel)
     if (transparentAreaBounds.width != displaySize.width) {
       problems.add("The width of the display area in the skin image (${transparentAreaBounds.width})" +
                      " doesn't match the layout file (${displaySize.width})")
@@ -330,7 +331,7 @@ class SkinDefinitionTest {
       problems.add("The height of the display area in the skin image (${transparentAreaBounds.height})" +
                      " doesn't match the layout file (${displaySize.height})")
     }
-    val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNotOpaque)
+    val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNonOpaquePixel)
     if (nonOpaqueAreaBounds.x != transparentAreaBounds.x) {
       problems.add("Partially transparent pixels near the left edge of the display area")
     }
@@ -362,12 +363,12 @@ class SkinDefinitionTest {
         var interior = halfSize + 1 // Distance between the display corner and inner boundary of the frame near the corner.
         for (d in 0..halfSize) {
           if (exterior < 0) {
-            if (image.isOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+            if (image.isOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               exterior = d
             }
           }
           else {
-            if (image.isNotOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+            if (image.isNonOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               interior = d
               break
             }
@@ -465,16 +466,16 @@ class SkinDefinitionTest {
   }
 }
 
-private fun BufferedImage.isTransparent(point: Point): Boolean {
-  return getRGB(point.x, point.y) and ALPHA_MASK == 0
+private fun BufferedImage.isTransparentPixel(point: Point): Boolean {
+  return ImageUtils.isTransparentPixel(this, point.x, point.y)
 }
 
-private fun BufferedImage.isOpaque(point: Point): Boolean {
-  return getRGB(point.x, point.y) and ALPHA_MASK == ALPHA_MASK
+private fun BufferedImage.isOpaquePixel(point: Point): Boolean {
+  return ImageUtils.isOpaquePixel(this, point.x, point.y)
 }
 
-private fun BufferedImage.isNotOpaque(point: Point): Boolean {
-  return !isOpaque(point)
+private fun BufferedImage.isNonOpaquePixel(point: Point): Boolean {
+  return !isOpaquePixel(point)
 }
 
 /** The `hashCode` method is overloaded for efficiency. The [java.awt.Point.equals] method is ok. */
@@ -487,7 +488,5 @@ private class Point(x: Int, y: Int) : java.awt.Point(x, y) {
 
 private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
                                Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))
-
-private const val ALPHA_MASK = 0xFF shl 24
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/SkinDefinitionTest"
