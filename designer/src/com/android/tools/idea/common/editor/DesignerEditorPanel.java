@@ -98,6 +98,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface<?> mySurface;
+  @NotNull private final DesignSurfaceListener mySurfaceListener;
   @NotNull private final Map<NlModel, ModelListener> myModelToListeners = new HashMap<>();
 
   @NotNull private final ModelLintIssueAnnotator myModelLintIssueAnnotator;
@@ -190,13 +191,14 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     myToolWindowDefinitions = toolWindowDefinitions;
 
-    // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
-    // initialization of the model to when the user actually needs it.
-    if (bottomModelComponent != null) {
-      mySurface.addListener(new DesignSurfaceListener() {
-        @Override
-        @UiThread
-        public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
+    // The rest of the initialization is done once the state of the surface is set to a visible
+    // state. This allows to defer the heavy initialization of the model to when the user actually
+    // needs it.
+    mySurfaceListener = new DesignSurfaceListener() {
+      @Override
+      @UiThread
+      public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
+        if (bottomModelComponent != null) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
           }
@@ -205,8 +207,19 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
             myContentPanel.add(myBottomComponent, BorderLayout.SOUTH);
           }
         }
-      });
-    }
+        if (model == null) return;
+        // Update the workbench context on state change, so we can have different contexts for
+        // each mode.
+        myWorkBench.setContext(getState().name());
+        myWorkBench.init(
+          myContentPanel,
+          mySurface,
+          myToolWindowDefinitions.apply(model.getFacet()),
+          getState() == State.SPLIT
+        );
+      }
+    };
+    mySurface.addListener(mySurfaceListener);
   }
 
   /**
@@ -371,17 +384,15 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           it.removeListener(listener);
         }
       });
-    CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
-    modelSetFuture.whenComplete((result, ex) -> {
-      ModelListener listener = new ModelListener() {
-        @Override
-        public void modelDerivedDataChanged(@NotNull NlModel model) {
-          myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
-        }
-      };
-      myModelToListeners.put(model, listener);
-      model.addListener(listener);
-    });
+    mySurface.setModel(model);
+    ModelListener listener = new ModelListener() {
+      @Override
+      public void modelDerivedDataChanged(@NotNull NlModel model) {
+        myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
+      }
+    };
+    myModelToListeners.put(model, listener);
+    model.addListener(listener);
 
     if (myAccessoryPanel != null) {
       float initialProportion = PropertiesComponent.getInstance().getFloat(ACCESSORY_PROPORTION, 0.5f);
@@ -403,15 +414,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     else {
       myContentPanel.add(mySurface, BorderLayout.CENTER);
     }
-
-    modelSetFuture.whenCompleteAsync(
-      (result, ex) -> {
-        // Update the workbench context on state change, so we can have different contexts for each mode.
-        myWorkBench.setContext(getState().name());
-        myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet()),
-                         getState() == State.SPLIT);
-      },
-      EdtExecutorService.getInstance());
   }
 
   @Nullable
@@ -447,6 +449,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    mySurface.removeListener(mySurfaceListener);
     Set<NlModel> keys = myModelToListeners.keySet();
     for (NlModel model : keys) {
       ModelListener listener = myModelToListeners.remove(model);
