@@ -486,12 +486,14 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
 
   val inAndroidTest = testScopes.isAndroidTestSource(file)
   val inUnitTest = testScopes.isUnitTestSource(file)
+  val inScreenshotTest = testScopes.isScreenshotTestSource(file)
 
   return when {
-    !inUnitTest && inAndroidTest -> ScopeType.ANDROID_TEST
-    inUnitTest && !inAndroidTest -> ScopeType.UNIT_TEST
+    !inUnitTest && inAndroidTest && !inScreenshotTest -> ScopeType.ANDROID_TEST
+    inUnitTest && !inAndroidTest && !inScreenshotTest -> ScopeType.UNIT_TEST
+    !inUnitTest && !inAndroidTest && inScreenshotTest -> ScopeType.SCREENSHOT_TEST
     else -> throw IllegalStateException(
-      "Unexpected Test Scope: $file in $project appears to be both in Unit Tests and Android Tests, but should only be part of one.")
+      "Unexpected Test Scope: $file in $project is not in exactly one test source set.")
   }
 }
 
