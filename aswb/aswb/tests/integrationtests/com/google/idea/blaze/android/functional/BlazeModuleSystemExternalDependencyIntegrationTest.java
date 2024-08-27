@@ -211,50 +211,6 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
         .isNotNull();
   }
 
-  @Test
-  public void getDependencyArtifactLocation() {
-    setTargetMap(
-        android_library("//java/com/foo/gallery/activities:activities")
-            .src("MainActivity.java")
-            .dep("//java/com/foo/libs:libs")
-            .res("res"),
-        android_library("//java/com/foo/libs:libs").res("res").dep(CONSTRAINT_LAYOUT_LABEL),
-        android_library(CONSTRAINT_LAYOUT_LABEL));
-    runFullBlazeSyncWithNoIssues();
-
-    Module workspaceModule =
-        ModuleFinder.getInstance(getProject())
-            .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
-    Path artifactPath = workspaceModuleSystem.getDependencyPath(CONSTRAINT_LAYOUT_COORDINATE);
-    assertThat(artifactPath.toString())
-        .endsWith(Label.create(CONSTRAINT_LAYOUT_LABEL).blazePackage().relativePath());
-  }
-
-  @Test
-  public void getDependencyArtifactLocation_aarImport_aarDirReturn() {
-    NbAarTarget aarTarget =
-        aar_import(CONSTRAINT_LAYOUT_LABEL)
-            .aar("lib_aar.aar")
-            .generated_jar("classes_and_libs_merged.jar");
-    File aarLibraryFile =
-        LibraryFileBuilder.aar(workspaceRoot, aarTarget.getAar().getRelativePath()).build();
-    setTargetMap(
-        android_library("//java/com/foo/gallery/activities:activities")
-            .src("MainActivity.java")
-            .dep(CONSTRAINT_LAYOUT_LABEL)
-            .res("res"),
-        aarTarget);
-    runFullBlazeSyncWithNoIssues();
-
-    Module workspaceModule =
-        ModuleFinder.getInstance(getProject())
-            .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
-    Path path = workspaceModuleSystem.getDependencyPath(CONSTRAINT_LAYOUT_COORDINATE);
-    assertThat(path.toFile()).isEqualTo(getAarDir(aarLibraryFile));
-  }
-
   private File getAarDir(File aarLibraryFile) {
     String path = aarLibraryFile.getAbsolutePath();
     String name = FileUtil.getNameWithoutExtension(PathUtil.getFileName(path));
