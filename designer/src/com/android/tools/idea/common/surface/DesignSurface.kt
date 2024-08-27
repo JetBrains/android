@@ -142,7 +142,7 @@ abstract class DesignSurface<T : SceneManager>(
   actionManagerProvider: (DesignSurface<T>) -> ActionManager<out DesignSurface<T>>,
   interactableProvider: (DesignSurface<T>) -> Interactable = { SurfaceInteractable(it) },
   interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
-  val positionableLayoutManagerProvider: (DesignSurface<T>) -> PositionableContentLayoutManager,
+  positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open.
   // "open" can be removed if we remove the mocks.
@@ -216,7 +216,7 @@ abstract class DesignSurface<T : SceneManager>(
         actionManagerProvider = ::actionManager,
         scope = scope,
         shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
-        layoutManager = positionableLayoutManagerProvider(this),
+        layoutManager = positionableLayoutManager,
       )
       .apply {
         background = this@DesignSurface.background

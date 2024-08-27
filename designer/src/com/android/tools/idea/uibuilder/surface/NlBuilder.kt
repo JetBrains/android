@@ -29,6 +29,8 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.RenderSettings.Companion.getProjectSettings
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -40,6 +42,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -311,11 +314,13 @@ class NlSurfaceBuilder(
     check(!(minScale > maxScale)) {
       "The max scale ($maxScale) is lower than min scale ($minScale)"
     }
+
+    val nlDesignSurfacePositionableContentLayoutManager =
+      NlDesignSurfacePositionableContentLayoutManager(surfaceLayoutOption ?: DEFAULT_OPTION)
     val surface =
       NlDesignSurface(
         project,
         sceneManagerProvider,
-        surfaceLayoutOption ?: DEFAULT_OPTION,
         _actionManagerProvider,
         _interactableProvider,
         _interactionHandlerProvider,
@@ -329,9 +334,17 @@ class NlSurfaceBuilder(
         _shouldRenderErrorsPanel,
         _maxZoomToFitLevel,
         _visualLintIssueProviderFactory,
+        nlDesignSurfacePositionableContentLayoutManager,
       )
 
     Disposer.register(parentDisposable, surface)
+
+    nlDesignSurfacePositionableContentLayoutManager.surface = surface
+    AndroidCoroutineScope(surface).launch(uiThread) {
+      nlDesignSurfacePositionableContentLayoutManager.currentLayout.collect {
+        surface.onLayoutUpdated(it)
+      }
+    }
 
     _screenViewProvider?.let { surface.setScreenViewProvider(it, _setDefaultScreenViewProvider) }
 

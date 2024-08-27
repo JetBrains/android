@@ -121,15 +121,19 @@ private class Surface(
   project: Project,
   interact: (DesignSurface<SceneManager>) -> InteractionHandler,
   actionManager: (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>>,
+  testLayoutManager: TestLayoutManager = TestLayoutManager(),
 ) :
   DesignSurface<SceneManager>(
     project = project,
     actionManagerProvider = actionManager,
     interactionProviderCreator = interact,
-    positionableLayoutManagerProvider = { TestLayoutManager(it) },
+    positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE,
   ) {
+  init {
+    testLayoutManager.surface = this
+  }
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = null

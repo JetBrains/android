@@ -71,7 +71,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Iterables
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.diagnostic.Logger
@@ -82,7 +81,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
-import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import java.util.stream.Collectors
 import kotlin.math.max
@@ -100,7 +98,6 @@ class NlDesignSurface
 internal constructor(
   project: Project,
   private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
-  defaultLayoutOption: SurfaceLayoutOption,
   actionManagerProvider:
     (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
         out DesignSurface<LayoutlibSceneManager>
@@ -117,19 +114,14 @@ internal constructor(
   private val shouldRenderErrorsPanel: Boolean,
   maxZoomToFitLevel: Double,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
+  nlDesignSurfacePositionableContentLayoutManager: NlDesignSurfacePositionableContentLayoutManager,
 ) :
   DesignSurface<LayoutlibSceneManager>(
     project,
     actionManagerProvider,
     interactableProvider,
     interactionHandlerProvider,
-    { surface ->
-      NlDesignSurfacePositionableContentLayoutManager(
-        surface as NlDesignSurface,
-        surface as Disposable,
-        defaultLayoutOption,
-      )
-    },
+    nlDesignSurfacePositionableContentLayoutManager,
     actionHandlerProvider,
     selectionModel,
     zoomControlsPolicy,
@@ -577,7 +569,7 @@ internal constructor(
     isRenderingSynchronously = enabled
 
     // If animation is enabled, scanner must be paused.
-    layoutScannerControl?.let { if (enabled) it.pause() else it.resume() }
+    if (enabled) layoutScannerControl.pause() else layoutScannerControl.resume()
   }
 
   /** Return whenever surface is rotating. */
