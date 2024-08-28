@@ -65,7 +65,7 @@ class VersionCatalogDependencyReferenceContributorTest {
       lib = "group:name:1.0"
       li^b2 = "group:name:1.0"
       [bundles]
-      bundle = [ "lib", "lib2" ]
+      bundle = [ "lib", "li|b2" ]
       bundle2 = [ "lib", "li|b2" ]
     """.trimIndent())
   }
@@ -108,13 +108,12 @@ class VersionCatalogDependencyReferenceContributorTest {
   }
 
   private fun doTest(tomlContent: String) {
-    val caret = tomlContent.indexOf('|')
-    Truth.assertWithMessage("The tomlContent must include | somewhere to point to the caret position").that(caret).isNotEqualTo(-1)
-
-    val withoutCaret = tomlContent.substring(0, caret) + tomlContent.substring(caret + 1)
+    val carets = "\\|".toRegex().findAll(tomlContent)
+    Truth.assertWithMessage("The tomlContent must include | somewhere to point to the caret position").that(carets.toList()).isNotEmpty()
+    val withoutCaret = tomlContent.replace("|", "")
 
     val resolvedElementPosition = withoutCaret.indexOf('^')
-    Truth.assertWithMessage("The tomlContent must include ^ somewhere to point the resolved element").that(caret).isNotEqualTo(-1)
+    Truth.assertWithMessage("The tomlContent must include ^ somewhere to point the resolved element").that(resolvedElementPosition).isNotEqualTo(-1)
 
     val cleanToml = withoutCaret.substring(0, resolvedElementPosition) + withoutCaret.substring(resolvedElementPosition + 1)
 
@@ -123,10 +122,12 @@ class VersionCatalogDependencyReferenceContributorTest {
     projectRule.fixture.openFileInEditor(tomlFile)
     runReadAction {
       val file = PsiManager.getInstance(projectRule.project).findFile(tomlFile)!!
-      val referee = file.findElementAt(caret)!!.parent
-      assertThat(referee.references.size).isAtLeast(1)
-      val resolved = file.findElementAt(resolvedElementPosition)!!.parent
-      assertThat(referee.references.map(PsiReference::resolve)).contains(resolved)
+      carets.forEach { caret ->
+        val referee = file.findElementAt(caret.range.first)!!.parent
+        assertThat(referee.references.size).isAtLeast(1)
+        val resolved = file.findElementAt(resolvedElementPosition)!!.parent
+        assertThat(referee.references.map(PsiReference::resolve)).contains(resolved)
+      }
     }
   }
 
