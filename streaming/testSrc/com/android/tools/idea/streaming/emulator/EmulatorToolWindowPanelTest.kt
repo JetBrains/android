@@ -772,8 +772,8 @@ class EmulatorToolWindowPanelTest {
     // Check camera movement.
     val velocityExpectations =
         mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
-    val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
-                                                       "android.emulation.control.EmulatorController/streamScreenshot")
+    val callFilter = FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamClipboard",
+                                                         "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.code)
 
