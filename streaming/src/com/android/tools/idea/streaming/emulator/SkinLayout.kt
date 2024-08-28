@@ -48,7 +48,7 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
    * Draws frame and mask to the given graphics context. The [displayRectangle]  parameter defines
    * the coordinates and the scaled size of the display.
    */
-  fun drawFrameAndMask(g: Graphics2D, displayRectangle: Rectangle) {
+  fun drawFrameAndMask(g: Graphics2D, displayRectangle: Rectangle, highlightedButtonKey: String? = null) {
     if (frameImages.isNotEmpty() || maskImages.isNotEmpty()) {
       val scaleX = displayRectangle.width.toDouble() / displaySize.width
       val scaleY = displayRectangle.height.toDouble() / displaySize.height
@@ -60,6 +60,12 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
       for (image in maskImages) {
         drawImage(g, image, displayRectangle, scaleX, scaleY, transform)
       }
+      if (highlightedButtonKey != null) {
+        val highlightedButton = buttons.find { it.keyName == highlightedButtonKey }
+        if (highlightedButton != null) {
+          drawImage(g, highlightedButton.image, displayRectangle, scaleX, scaleY, transform)
+        }
+      }
     }
   }
 
@@ -70,6 +76,29 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
     transform.setToTranslation(x.toDouble(), y.toDouble())
     transform.scale(scaleX, scaleY)
     g.drawImage(anchoredImage.image, transform, null)
+  }
+
+  /**
+   * Returns the skin button containing the given coordinates, or null if not found.
+   * The coordinates are considered contained in a button if they are located inside the button
+   * rectangle and the corresponding pixel of the button image is not fully transparent.
+   */
+  fun findSkinButtonContaining(x: Int, y: Int): SkinButton? {
+    for (button in buttons) {
+      val anchoredImage = button.image
+      val relativeX = x - anchoredImage.offset.x - anchoredImage.anchorPoint.x * displaySize.width
+      if (relativeX < 0 || relativeX >= anchoredImage.size.width) {
+        continue
+      }
+      val relativeY = y - anchoredImage.offset.y - anchoredImage.anchorPoint.y * displaySize.height
+      if (relativeY < 0 || relativeY >= anchoredImage.size.height) {
+        continue
+      }
+      if (!ImageUtils.isTransparentPixel(anchoredImage.image, relativeX, relativeY)) {
+        return button
+      }
+    }
+    return null
   }
 }
 
