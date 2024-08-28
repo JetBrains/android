@@ -112,10 +112,13 @@ class DeviceGridPageTest {
 @Composable
 private fun WizardPageScope.TestDeviceGridPage(source: TestDeviceSource) {
   val filterState = TestDeviceFilterState()
-  DeviceGridPage(
-    source,
-    testDeviceTableColumns,
-    filterContent = { profiles -> TestDeviceFilters(profiles, filterState) },
-    filterState = filterState,
-  )
+  DeviceLoadingPage(source) { profiles ->
+    DeviceGridPage(
+      profiles,
+      testDeviceTableColumns,
+      filterContent = { TestDeviceFilters(profiles, filterState) },
+      filterState = filterState,
+      onSelectionUpdated = { with(source) { selectionUpdated(it) } },
+    )
+  }
 }
