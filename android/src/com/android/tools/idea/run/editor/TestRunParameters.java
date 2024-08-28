@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.run.editor.TestRunParameters.TestRunParametersToken.getModuleForPackageChooser;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_ALL_IN_MODULE;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
@@ -133,7 +134,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
           return null;
         }
         final PackageChooserDialog dialog = new PackageChooserDialog(ExecutionBundle.message("choose.package.dialog.title"),
-                                                                     ModuleSystemUtil.getAndroidTestModule(module));
+                                                                     getModuleForPackageChooser(module));
         dialog.selectPackage(myTestPackageComponent.getComponent().getText());
         dialog.show();
         final PsiPackage aPackage = dialog.getSelectedPackage();
@@ -329,5 +330,19 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       new ExtensionPointName<>("com.android.tools.idea.run.editor.testRunParametersToken");
 
     boolean canSelectInstrumentationRunnerClass(@NotNull P projectSystem);
+
+    default @NotNull Module getModuleForPackageChooser(@NotNull P projectSystem, @NotNull Module module) {
+      return module;
+    }
+
+    static @NotNull Module getModuleForPackageChooser(@NotNull Module module) {
+      Project project = module.getProject();
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      return EP_NAME.getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst()
+        .map(it -> it.getModuleForPackageChooser(projectSystem, module))
+        .orElse(module);
+    }
   }
 }
