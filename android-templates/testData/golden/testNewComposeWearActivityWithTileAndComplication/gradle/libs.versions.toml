@@ -8,11 +8,11 @@ composeFoundation = "1.2.1"
 wearToolingPreview = "1.0.0"
 activityCompose = "1.8.0"
 coreSplashscreen = "1.0.1"
-tiles = "1.1.0"
-tilesMaterial = "1.1.0"
-horologistComposeTools = "0.4.8"
-horologistTiles = "0.4.8"
-watchfaceComplicationsDataSourceKtx = "1.1.1"
+tiles = "1.4.0"
+tilesMaterial = "1.4.0"
+horologistComposeTools = "0.6.17"
+horologistTiles = "0.6.17"
+watchfaceComplicationsDataSourceKtx = "1.2.1"
 
 [libraries]
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
