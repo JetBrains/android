@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.wear.preview.animation
 
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.wear.preview.WearTilePreviewElement
@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * A specialized [AnimationPreview] for Wear Tile animations, providing controls and visualization
@@ -41,7 +42,7 @@ class WearTileAnimationPreview(
   private val wearPreviewElement: WearTilePreviewElement<*>,
   private val tracker: WearTileAnimationTracker,
 ) :
-  AnimationPreview<SupportedAnimationManager>(
+  AnimationPreview<SupportedWearTileAnimationManager>(
     project,
     sceneManagerProvider = getter@{
         val modelForElement =
@@ -55,7 +56,15 @@ class WearTileAnimationPreview(
   ) {
 
   override suspend fun setClockTime(newValue: Int, longTimeout: Boolean) {
-    // TODO("Not yet implemented")
+    executeInRenderSession(longTimeout) {
+      animations.forEach {
+        if (!it.frozenState.value.isFrozen) {
+          it.animation.setTime(newValue.toLong())
+        } else {
+          it.animation.setTime(it.frozenState.value.frozenAt.toLong())
+        }
+      }
+    }
   }
 
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
@@ -64,8 +73,37 @@ class WearTileAnimationPreview(
       ?.let { maxDurationPerIteration.value = it.toLong() }
   }
 
+  private suspend fun createAnimationManager(
+    animation: ProtoAnimation
+  ): SupportedWearTileAnimationManager {
+    var title = ""
+    executeInRenderSession { title = animation.name }
+    return SupportedWearTileAnimationManager(
+      animation,
+      tracker,
+      getCurrentTime = { clockControl.currentValue() },
+      ::executeInRenderSession,
+      tabbedPane,
+      surface,
+      title,
+      playbackControls,
+      {
+        updateTimelineElements()
+        renderAnimation()
+      },
+      scope,
+    )
+  }
+
   private suspend fun updateAllAnimations(protoAnimations: List<ProtoAnimation>) {
-    // TODO("Not yet implemented")
+    invalidatePanel().join()
+    protoAnimations.forEach {
+      val tab = withContext(AndroidDispatchers.uiThread) { createAnimationManager(it) }
+      tab.setup()
+      withContext(AndroidDispatchers.uiThread) { addAnimationManager(tab) }
+    }
+    updateMaxDuration(true)
+    updateTimelineElements()
   }
 
   init {
