@@ -34,9 +34,9 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
 }
 
 @Stable
-internal class DeviceGridState(profiles: List<DeviceProfile>) {
+internal class DeviceGridState {
   val selectionState = TableSelectionState<DeviceProfile>()
-  val filterState = DeviceFilterState(profiles)
+  val filterState = DeviceFilterState()
 }
 
 @Composable
@@ -53,7 +53,7 @@ internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
       Box(Modifier.fillMaxSize()) { Text("Loading devices...", Modifier.align(Alignment.Center)) }
     }
     is LoadingState.Ready -> {
-      val pageState = getOrCreateState { DeviceGridState(profiles.value) }
+      val pageState = getOrCreateState { DeviceGridState() }
       val selectionState = pageState.selectionState
       val filterState = pageState.filterState
       DeviceTable(profiles.value, tableSelectionState = selectionState, filterState = filterState)

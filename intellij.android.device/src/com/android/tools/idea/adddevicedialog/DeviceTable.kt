@@ -45,7 +45,7 @@ internal fun DeviceTable(
   devices: List<DeviceProfile>,
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
-  filterState: DeviceFilterState = remember { DeviceFilterState(devices) },
+  filterState: DeviceFilterState = remember { DeviceFilterState() },
 ) {
   var showDetails by remember { mutableStateOf(false) }
 
@@ -98,7 +98,7 @@ internal fun DeviceTable(
       )
     } else {
       HorizontalSplitLayout(
-        first = { DeviceFilters(filterState, modifier = it) },
+        first = { DeviceFilters(devices, filterState, modifier = it) },
         second = {
           Row(modifier = it) {
             val filteredDevices = devices.filter(filterState::apply)

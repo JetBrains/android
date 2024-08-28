@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -44,6 +48,28 @@ class DeviceTableTest {
 
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun addNewDevices() {
+    val source = TestDeviceSource()
+    source.add(TestDevices.pixelFold)
+
+    composeTestRule.setContent {
+      val profiles by source.profiles.collectAsState()
+      DeviceTable(profiles.value)
+    }
+
+    val googleFilter = hasText("Google") and hasAnyAncestor(hasTestTag("DeviceFilters"))
+    val genericFilter = hasText("Generic") and hasAnyAncestor(hasTestTag("DeviceFilters"))
+
+    composeTestRule.onNode(googleFilter, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNode(genericFilter, useUnmergedTree = true).assertDoesNotExist()
+
+    source.add(TestDevices.mediumPhone)
+
+    composeTestRule.onNode(googleFilter, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNode(genericFilter, useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
