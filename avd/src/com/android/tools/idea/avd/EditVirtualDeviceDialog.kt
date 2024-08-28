@@ -21,20 +21,23 @@ import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdName
 import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.withContext
 
 internal class EditVirtualDeviceDialog(val project: Project?) {
   suspend fun show(avdInfo: AvdInfo): Boolean {
-    val deviceSource =
+    val skins =
       withContext(AndroidDispatchers.workerThread) {
-        // TODO(b/361167314): We shouldn't need to depend on LocalVirtualDeviceSource to get the
-        // ConfigurationPage.
-        LocalVirtualDeviceSource.create()
+        SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
+          .toImmutableList()
       }
 
     return withContext(AndroidDispatchers.uiThread) {
@@ -58,23 +61,21 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
 
       val wizard =
         ComposeWizard(project, "Edit Device") {
-          with(deviceSource) {
-            ConfigurationPage(device, avdInfo.systemImage) { device, image ->
-              builder.copyFrom(device)
+          ConfigurationPage(device, avdInfo.systemImage, skins) { device, image ->
+            builder.copyFrom(device)
 
-              // At this point, builder.avdName still reflects its on-disk location. If the user
-              // updated the display name, try to update avdName to reflect the new display name.
-              if (avdInfo.displayName != builder.displayName) {
-                builder.avdName =
-                  avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
-              }
-              builder.systemImage = image
-              val success =
-                withContext(AndroidDispatchers.diskIoThread) {
-                  avdManager.editAvd(avdInfo, builder) != null
-                }
-              return@ConfigurationPage success
+            // At this point, builder.avdName still reflects its on-disk location. If the user
+            // updated the display name, try to update avdName to reflect the new display name.
+            if (avdInfo.displayName != builder.displayName) {
+              builder.avdName =
+                avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
             }
+            builder.systemImage = image
+            val success =
+              withContext(AndroidDispatchers.diskIoThread) {
+                avdManager.editAvd(avdInfo, builder) != null
+              }
+            return@ConfigurationPage success
           }
         }
       return@withContext wizard.showAndGet()
