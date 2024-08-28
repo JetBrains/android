@@ -26,9 +26,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import java.io.File
-import junit.framework.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -137,34 +135,5 @@ class DataBindingInspectionVerificationTest {
         fixture.configureFromExistingVirtualFile(entry.virtualFile)
         fixture.checkHighlighting(false, false, false)
       }
-  }
-
-  @Ignore // Run this test manually if you want to generate a new exclude list
-  @Test
-  @RunsInEdt
-  fun printExcludedListToConsole() {
-    val excludedPaths = mutableListOf<String>()
-    for (entry in allFileEntriesUnderRoots) {
-      try {
-        fixture.configureFromExistingVirtualFile(entry.virtualFile)
-        fixture.checkHighlighting(false, false, false)
-      } catch (_: Throwable) {
-        excludedPaths.add(entry.relativePath)
-      }
-    }
-
-    if (excludedPaths.isNotEmpty()) {
-      // Copy/paste console this output over the "excludedFiles" property above and reformat code
-      excludedPaths.sort() // For consistent output across runs
-
-      println("private val excludedFiles = setOf(")
-      println(excludedPaths.joinToString(",\n") { "\"$it\"" })
-      println(")")
-    } else {
-      // If here, delete the excludedFiles field and close b/122983052
-      println("Congrats - there are no more invalid paths!")
-    }
-
-    fail("This test should only be enabled temporarily and not run under normal conditions.")
   }
 }

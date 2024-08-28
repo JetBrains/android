@@ -37,7 +37,9 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -64,12 +66,8 @@ private val BACKING_FILE_MARKER: Key<Any> = Key("LIGHT_BINDING_CLASS_BACKING_FIL
 @ThreadSafe
 class LayoutBindingModuleCache(val module: Module) : Disposable {
   companion object {
-    // We are using facet.mainModule as a temporary workaround. This is needed because main,
-    // unitTest and androidTest modules all access the same resources (all the resources). Ideally,
-    // they should only access their own resources.
     @JvmStatic
-    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache =
-      facet.module.getMainModule().service()
+    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.module.service()
   }
 
   /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
@@ -79,8 +77,17 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * Search scope which includes any light binding classes generated in this cache for the current
    * module.
    */
-  val lightBindingClassSearchScope: GlobalSearchScope =
-    LightBindingClassSearchScope(moduleBindingClassMarker)
+  val lightBindingClassSearchScope: GlobalSearchScope
+    get() {
+      val localSearchScope = LightBindingClassSearchScope(moduleBindingClassMarker)
+      if (!module.isAndroidTestModule()) return localSearchScope
+
+      val mainModuleSearchScope =
+        module.getMainModule().androidFacet?.let { getInstance(it).lightBindingClassSearchScope }
+          ?: return localSearchScope
+
+      return GlobalSearchScope.union(listOf(localSearchScope, mainModuleSearchScope))
+    }
 
   private val _dataBindingMode = AtomicReference(DataBindingMode.NONE)
   var dataBindingMode: DataBindingMode
