@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.avd.LocalEmulatorProvisionerFactory
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.DefaultDeviceProvisionerFactory
 import com.intellij.openapi.ui.FrameWrapper
 
 class DeviceManagerWelcomeScreenFrame :
@@ -38,8 +39,12 @@ class DeviceManagerWelcomeScreenFrame :
         DeviceProvisioner.create(
           scope,
           session,
-          listOf(LocalEmulatorProvisionerFactory().create(scope, session, null)),
+          listOf(
+            DefaultDeviceProvisionerFactory().create(scope),
+            LocalEmulatorProvisionerFactory().create(scope, session, null),
+          ),
         ),
+        deviceFilter = { it.isVirtual == true && it.isRemote != true },
       )
   }
 }

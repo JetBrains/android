@@ -190,6 +190,7 @@ class DeviceManagerPanelTest {
         emptyList(),
         emptyList(),
         pairedDevices.consumeAsFlow().stateIn(scope, SharingStarted.Lazily, emptyMap()),
+        deviceFilter = { true },
       )
     val deviceTable = panel.deviceTable
 
