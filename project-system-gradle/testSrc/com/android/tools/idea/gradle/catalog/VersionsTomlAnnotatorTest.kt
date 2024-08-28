@@ -81,6 +81,43 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
+  fun checkPluginLiteral() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+      bb = "plugin:version"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkLibraryDeclaration() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [libraries]
+      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+      bb = "group:name" # assuming BOM is there
+      cc = "group:name:version"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkLibraryDeclaration2() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [libraries]
+      aa = { module = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR} }
+      bb = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkManualIterationThroughTree() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml", """
       [plugins]
@@ -582,9 +619,9 @@ class VersionsTomlAnnotatorTest {
       bundles = "some:plugin"
 
       [libraries]
-      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library"
-      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library"
-      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library"
+      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
 
       [versions]
       plugins = "some:plugin"
