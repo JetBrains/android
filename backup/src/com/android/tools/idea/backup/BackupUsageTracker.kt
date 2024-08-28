@@ -82,4 +82,6 @@ private fun ErrorCode.toProto() =
     ErrorCode.INVALID_BACKUP_FILE -> BackupUsageEvent.Result.INVALID_BACKUP_FILE
     ErrorCode.UNEXPECTED_ERROR -> BackupUsageEvent.Result.UNEXPECTED_ERROR
     ErrorCode.PLAY_STORE_NOT_INSTALLED -> BackupUsageEvent.Result.PLAY_STORE_NOT_INSTALLED
+    // TODO(aalbert): Add BackupUsageEvent.Result.BACKUP_NOT_ALLOWED
+    ErrorCode.BACKUP_NOT_ALLOWED -> BackupUsageEvent.Result.BACKUP_FAILED
   }
