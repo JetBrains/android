@@ -1037,6 +1037,14 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
     "Enables running an XR AVD in the Running Devices tool window",
     ChannelDefault.enabledUpTo(DEV));
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
+    "Enables hand tracking input mode for XR AVDs",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_EYE_TRACKING = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.eye.tracking", "Enable eye tracking input mode for XR AVDs",
+    "Enables eye tracking input mode for XR AVDs",
+    false);
   //endregion
 
   //region Device Mirroring

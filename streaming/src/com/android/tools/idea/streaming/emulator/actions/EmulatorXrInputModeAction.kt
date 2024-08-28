@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.enableRichTooltip
 import com.android.tools.idea.streaming.actions.getDisplayView
@@ -45,7 +46,9 @@ sealed class EmulatorXrInputModeAction(private val inputMode: XrInputMode) : Tog
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = getEmulatorConfig(event)?.deviceType == DeviceType.XR
+    event.presentation.isEnabledAndVisible = getEmulatorConfig(event)?.deviceType == DeviceType.XR &&
+                                             (inputMode != XrInputMode.HAND || StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) &&
+                                             (inputMode != XrInputMode.EYE || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
     enableRichTooltip(event.presentation)
   }
 

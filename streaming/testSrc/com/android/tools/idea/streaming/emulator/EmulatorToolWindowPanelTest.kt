@@ -30,6 +30,7 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
@@ -46,6 +47,7 @@ import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -151,6 +153,9 @@ class EmulatorToolWindowPanelTest {
 
   @Before
   fun setUp() {
+    StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
     HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
