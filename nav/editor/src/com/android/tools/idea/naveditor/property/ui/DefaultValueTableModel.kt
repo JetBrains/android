@@ -19,6 +19,7 @@ import javax.swing.table.AbstractTableModel
 
 class DefaultValueTableModel(val list: List<DefaultValueModel>) : AbstractTableModel() {
   override fun getRowCount() = list.size
+
   override fun getColumnCount() = 3
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): String? {

@@ -30,31 +30,38 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
-
 private const val WORKBENCH_NAME = "NAV_EDITOR"
 
 const val NAV_EDITOR_ID = "nav-designer"
 
-private fun getDefaultSurfaceState(): DesignerEditorPanel.State = when (AndroidEditorSettings.getInstance().globalState.preferredEditorMode) {
-  AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
-  AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
-  else -> DesignerEditorPanel.State.FULL
-}
+private fun getDefaultSurfaceState(): DesignerEditorPanel.State =
+  when (AndroidEditorSettings.getInstance().globalState.preferredEditorMode) {
+    AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
+    AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
+    else -> DesignerEditorPanel.State.FULL
+  }
 
 open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
 
   override fun getEditorId() = NAV_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
-                        { NavDesignSurface(myProject, it, this).apply { name = "Navigation" } }, NavComponentRegistrar,
-                        {
-                          listOf(
-                            NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
-                            TreePanelDefinition(),
-                            HostPanelDefinition()
-                          )
-                        }, getDefaultSurfaceState())
+    DesignerEditorPanel(
+      this,
+      myProject,
+      myFile,
+      WorkBench(myProject, WORKBENCH_NAME, this, this),
+      { NavDesignSurface(myProject, it, this).apply { name = "Navigation" } },
+      NavComponentRegistrar,
+      {
+        listOf(
+          NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
+          TreePanelDefinition(),
+          HostPanelDefinition(),
+        )
+      },
+      getDefaultSurfaceState(),
+    )
 
   override fun getName() = "Design"
 }

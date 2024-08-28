@@ -80,13 +80,6 @@ import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.dynamicModules
-import org.jetbrains.android.dom.navigation.getClassesForTag
-import org.jetbrains.android.dom.navigation.isInProject
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.jetbrains.android.util.AndroidUtils
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.HierarchyEvent
@@ -104,12 +97,17 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.dynamicModules
+import org.jetbrains.android.dom.navigation.getClassesForTag
+import org.jetbrains.android.dom.navigation.isInProject
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.android.util.AndroidUtils
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
 
-/**
- * "Add" popup menu in the navigation editor.
- */
+/** "Add" popup menu in the navigation editor. */
 open class AddDestinationMenu(surface: NavDesignSurface) :
   NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
@@ -119,7 +117,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     // TODO(147157941): Get the Icon provider with AssetPreviewManager
     SlowResourcePreviewManager(
       ImageCache.createImageCache(model.project),
-      LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver))
+      LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver),
+    )
   }
 
   private val renderer = AdtSecondaryPanel(BorderLayout())
@@ -158,17 +157,31 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
       val parent = surface.currentNavigation.parentSequence().last()
-      val existingClasses = parent.flatten().map { it?.className }.filter { it != null }.collect(Collectors.toCollection { TreeSet() })
+      val existingClasses =
+        parent
+          .flatten()
+          .map { it?.className }
+          .filter { it != null }
+          .collect(Collectors.toCollection { TreeSet() })
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
+        for ((psiClass, dynamicModule) in
+          getClassesForTag(module, tag).filterKeys {
+            !existingClasses.contains(it.qualifiedName)
+          }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()
-            val destination = Destination.RegularDestination(
-              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile,
-              dynamicModuleName = dynamicModule)
+            val destination =
+              Destination.RegularDestination(
+                parent,
+                tag,
+                destinationClass = psiClass,
+                inProject = inProject,
+                layoutFile = layoutFile,
+                dynamicModuleName = dynamicModule,
+              )
             classToDestination[psiClass] = destination
           }
         }
@@ -177,8 +190,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val result = classToDestination.values.toMutableList()
       val existingIncludes = parent.children.filter { it.isInclude }.map { it.includeFile }
 
-      for (navPsi in resourceManager.findResourceFiles(ResourceNamespace.TODO(),
-                                                       ResourceFolderType.NAVIGATION).filterIsInstance<XmlFile>()) {
+      for (navPsi in
+        resourceManager
+          .findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.NAVIGATION)
+          .filterIsInstance<XmlFile>()) {
         if (model.file == navPsi || existingIncludes.contains(navPsi)) {
           continue
         }
@@ -191,13 +206,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return result
     }
 
-  @VisibleForTesting
-  lateinit var destinationsList: JBList<Destination>
+  @VisibleForTesting lateinit var destinationsList: JBList<Destination>
 
   var maxIconWidth: Int = 0
 
-  @VisibleForTesting
-  lateinit var searchField: SearchTextField
+  @VisibleForTesting lateinit var searchField: SearchTextField
 
   override val mainPanel: JPanel
     get() {
@@ -205,8 +218,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return createSelectionPanel()
     }
 
-  @VisibleForTesting
-  lateinit var createNewDestinationButton: ActionButtonWithText
+  @VisibleForTesting lateinit var createNewDestinationButton: ActionButtonWithText
 
   private var neverShown = true
 
@@ -220,20 +232,34 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     searchField = SearchTextField()
     searchField.textEditor.putClientProperty("JTextField.Search.Gap", JBUI.scale(3))
     searchField.textEditor.putClientProperty("JTextField.Search.GapEmptyText", JBUI.scale(-1))
-    searchField.textEditor.putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, SearchFieldStatusTextVisibility.isVisibleFunction)
+    searchField.textEditor.putClientProperty(
+      TextComponentEmptyText.STATUS_VISIBLE_FUNCTION,
+      SearchFieldStatusTextVisibility.isVisibleFunction,
+    )
     searchField.textEditor.emptyText.text = "Search existing destinations"
     result.add(searchField)
 
-    val action: AnAction = object : AnAction("Create new destination") {
-      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    val action: AnAction =
+      object : AnAction("Create new destination") {
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-      override fun actionPerformed(e: AnActionEvent) {
-        createNewDestination()
+        override fun actionPerformed(e: AnActionEvent) {
+          createNewDestination()
+        }
       }
-    }
-    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation.clone(), "Toolbar", JBDimension(0, 45))
+    createNewDestinationButton =
+      ActionButtonWithText(
+        action,
+        action.templatePresentation.clone(),
+        "Toolbar",
+        JBDimension(0, 45),
+      )
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
-    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
+    buttonPanel.border =
+      CompoundBorder(
+        JBUI.Borders.empty(1, 1),
+        DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f),
+      )
     buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
     buttonPanel.background = BACKGROUND_COLOR
     val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
@@ -260,16 +286,19 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     destinationsList.setPaintBusy(true)
     destinationsList.setCellRenderer { list, value, index, selected, _ ->
       val iconCallback = { file: VirtualFile, dimension: Dimension ->
-        iconProvider.getIcon(DesignAsset(file, listOf(), ResourceType.LAYOUT),
-                             dimension.width,
-                             dimension.height,
-                             list,
-                             { list.getCellBounds(index, index)?.let(list::repaint) },
-                             { index in list.firstVisibleIndex..list.lastVisibleIndex })
+        iconProvider.getIcon(
+          DesignAsset(file, listOf(), ResourceType.LAYOUT),
+          dimension.width,
+          dimension.height,
+          list,
+          { list.getCellBounds(index, index)?.let(list::repaint) },
+          { index in list.firstVisibleIndex..list.lastVisibleIndex },
+        )
       }
 
       thumbnailRenderer.icon = IconUtil.createImageIcon(value.thumbnail(iconCallback, list))
-      thumbnailRenderer.iconTextGap = (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
+      thumbnailRenderer.iconTextGap =
+        (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
       primaryTextRenderer.text = value.label
       secondaryTextRenderer.text = value.typeLabel
       renderer.isOpaque = selected
@@ -277,15 +306,17 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     destinationsList.background = BACKGROUND_COLOR
 
-    destinationsList.addMouseListener(object : MouseAdapter() {
-      override fun mouseExited(e: MouseEvent?) {
-        destinationsList.clearSelection()
-      }
+    destinationsList.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseExited(e: MouseEvent?) {
+          destinationsList.clearSelection()
+        }
 
-      override fun mouseClicked(event: MouseEvent) {
-        destinationsList.selectedValue?.let { addDestination(it) }
+        override fun mouseClicked(event: MouseEvent) {
+          destinationsList.selectedValue?.let { addDestination(it) }
+        }
       }
-    })
+    )
 
     destinationsList.addMouseMotionListener(
       object : MouseAdapter() {
@@ -293,51 +324,57 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val index = destinationsList.locationToIndex(event.point)
           if (index != -1) {
             destinationsList.selectedIndex = index
-          }
-          else {
+          } else {
             destinationsList.clearSelection()
           }
         }
       }
     )
 
-    destinationsList.addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(e: KeyEvent?) {
-        if (e?.keyChar == '\n' || e?.keyCode == VK_ENTER) {
-          destinationsList.selectedValue?.let { addDestination(it) }
-        }
-        else {
-          searchField.requestFocus()
-          application.invokeLater { searchField.dispatchEvent(e) }
-        }
-      }
-    })
-    scrollable.add(destinationsList, BorderLayout.CENTER)
-
-    ProgressManager.getInstance().runProcessWithProgressAsynchronously(
-      object : Task.Backgroundable(surface.project, "Get Available Destinations") {
-        override fun run(indicator: ProgressIndicator) {
-          val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
-          val listModel = FilteringListModel(CollectionListModel(dests))
-          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.lowercase()) }
-          searchField.addDocumentListener(
-            object : DocumentAdapter() {
-              override fun textChanged(e: DocumentEvent) {
-                listModel.refilter()
-              }
-            }
-          )
-
-          application.invokeLater {
-            @Suppress("UNCHECKED_CAST")
-            destinationsList.model = listModel
-
-            destinationsList.setPaintBusy(false)
-            destinationsList.emptyText.text = "No existing destinations"
+    destinationsList.addKeyListener(
+      object : KeyAdapter() {
+        override fun keyTyped(e: KeyEvent?) {
+          if (e?.keyChar == '\n' || e?.keyCode == VK_ENTER) {
+            destinationsList.selectedValue?.let { addDestination(it) }
+          } else {
+            searchField.requestFocus()
+            application.invokeLater { searchField.dispatchEvent(e) }
           }
         }
-      }, EmptyProgressIndicator())
+      }
+    )
+    scrollable.add(destinationsList, BorderLayout.CENTER)
+
+    ProgressManager.getInstance()
+      .runProcessWithProgressAsynchronously(
+        object : Task.Backgroundable(surface.project, "Get Available Destinations") {
+          override fun run(indicator: ProgressIndicator) {
+            val dests =
+              DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
+            maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
+            val listModel = FilteringListModel(CollectionListModel(dests))
+            listModel.setFilter { destination ->
+              destination.label.toLowerCase().contains(searchField.text.lowercase())
+            }
+            searchField.addDocumentListener(
+              object : DocumentAdapter() {
+                override fun textChanged(e: DocumentEvent) {
+                  listModel.refilter()
+                }
+              }
+            )
+
+            application.invokeLater {
+              @Suppress("UNCHECKED_CAST")
+              destinationsList.model = listModel
+
+              destinationsList.setPaintBusy(false)
+              destinationsList.emptyText.text = "No existing destinations"
+            }
+          }
+        },
+        EmptyProgressIndicator(),
+      )
 
     result.isFocusCycleRoot = true
     result.focusTraversalPolicy = LayoutFocusTraversalPolicy()
@@ -352,14 +389,21 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     val module = model.module
     val facet = AndroidFacet.getInstance(module)
     // Find navigation resource folder.
-    val targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(DataManager.getInstance().getDataContext(surface))?.parent
+    val targetDirectory =
+      CommonDataKeys.VIRTUAL_FILE.getData(DataManager.getInstance().getDataContext(surface))?.parent
     if (facet == null || targetDirectory == null) {
       return
     }
 
     // returned argument to receive created files from wizard.
     val createdFiles = mutableListOf<File>()
-    NewAndroidFragmentAction.openNewFragmentWizard(facet, model.project, targetDirectory, createdFiles, false)
+    NewAndroidFragmentAction.openNewFragmentWizard(
+      facet,
+      model.project,
+      targetDirectory,
+      createdFiles,
+      false,
+    )
     postNewDestinationFileCreated(model, createdFiles)
   }
 
@@ -375,7 +419,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       for (file in createdFiles) {
         val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
         val psiFile = PsiUtil.getPsiFile(model.project, virtualFile)
-        if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+        if (
+          psiFile is XmlFile &&
+            resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT
+        ) {
           layoutFile = psiFile
         }
         if (psiFile is PsiClassOwner) {
@@ -383,17 +430,28 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
       if (psiClass != null) {
-        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
+        NavUsageTracker.getInstance(surface.model)
+          .createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT)
+          .log()
 
-        // If the new destination requires a dependency that hasn't been added yet we might not be able to
-        // get the tag name from the navigation schema. Default to fragment since we're being called from
+        // If the new destination requires a dependency that hasn't been added yet we might not be
+        // able to
+        // get the tag name from the navigation schema. Default to fragment since we're being called
+        // from
         // the new fragment wizard.
-        val tag = schema.getTagsForDestinationClass(psiClass)?.singleOrNull()
-                  ?: schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)
-                  ?: return@runWhenSmart
+        val tag =
+          schema.getTagsForDestinationClass(psiClass)?.singleOrNull()
+            ?: schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)
+            ?: return@runWhenSmart
 
         val destination =
-          Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass, layoutFile = layoutFile)
+          Destination.RegularDestination(
+            surface.currentNavigation,
+            tag,
+            null,
+            psiClass,
+            layoutFile = layoutFile,
+          )
         addDestination(destination)
       }
       createdFiles.clear()
@@ -410,20 +468,29 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     hideBalloon()
     val model = surface.model
     lateinit var component: NlComponent
-    WriteCommandAction.runWriteCommandAction(surface.project, "Add ${destination.label}", null, Runnable {
-      destination.addToGraph()
-      component = destination.component ?: return@Runnable
-      if (component.isInclude) {
-        NavUsageTracker.getInstance(model).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
-      }
-      else {
-        NavUsageTracker.getInstance(model).createEvent(
-          NavEditorEvent.NavEditorEventType.ADD_DESTINATION).withDestinationInfo(component).log()
-      }
-      component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
-      // explicitly update so the new SceneComponent is created
-      model?.let { surface.getSceneManager(it) }!!.requestRenderAsync()
-    }, model?.file)
+    WriteCommandAction.runWriteCommandAction(
+      surface.project,
+      "Add ${destination.label}",
+      null,
+      Runnable {
+        destination.addToGraph()
+        component = destination.component ?: return@Runnable
+        if (component.isInclude) {
+          NavUsageTracker.getInstance(model)
+            .createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE)
+            .log()
+        } else {
+          NavUsageTracker.getInstance(model)
+            .createEvent(NavEditorEvent.NavEditorEventType.ADD_DESTINATION)
+            .withDestinationInfo(component)
+            .log()
+        }
+        component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
+        // explicitly update so the new SceneComponent is created
+        model?.let { surface.getSceneManager(it) }!!.requestRenderAsync()
+      },
+      model?.file,
+    )
 
     addDynamicDependency(destination)
 
@@ -446,11 +513,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     token.modifyProject(projectSystem, AddDestinationMenuToken.Data(destination, surface))
   }
 
-  private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {
+  private fun getAllLayoutFiles(): Map<PsiClass?, XmlFile> {
     val module = surface.models.firstOrNull()?.module ?: return mapOf()
     val result = getLayoutFilesForModule(module).toMutableMap()
 
-    for(dynamicModule in dynamicModules(module)) {
+    for (dynamicModule in dynamicModules(module)) {
       result.putAll(getLayoutFilesForModule(dynamicModule))
     }
 
@@ -460,16 +527,21 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private fun getLayoutFilesForModule(module: Module): Map<PsiClass?, XmlFile> {
     val resourceManager = LocalResourceManager.getInstance(module) ?: return mapOf()
 
-    return resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+    return resourceManager
+      .findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
       .filterIsInstance<XmlFile>()
       .associateBy { AndroidUtils.getContextClass(module, it) }
   }
 }
 
-interface AddDestinationMenuToken<P : AndroidProjectSystem>: Token {
+interface AddDestinationMenuToken<P : AndroidProjectSystem> : Token {
   companion object {
-    val EP_NAME = ExtensionPointName<AddDestinationMenuToken<AndroidProjectSystem>>("com.android.tools.idea.naveditor.editor.addDestinationMenuToken")
+    val EP_NAME =
+      ExtensionPointName<AddDestinationMenuToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.naveditor.editor.addDestinationMenuToken"
+      )
   }
+
   fun modifyProject(projectSystem: P, data: Data)
 
   data class Data(val destination: Destination, val surface: NavDesignSurface)

@@ -19,10 +19,10 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
@@ -50,7 +50,6 @@ import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -59,9 +58,7 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-/**
- * Provides and handles actions in the navigation editor
- */
+/** Provides and handles actions in the navigation editor */
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction()
@@ -93,9 +90,18 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
-    val keyEvent = if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
-    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
+    val keyEvent =
+      if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    registerAction(
+      addToNewGraphAction,
+      KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent),
+      focusablePane,
+    )
+    addToNewGraphAction.registerCustomShortcutSet(
+      KeyEvent.VK_G,
+      AdtUiUtils.getActionMask(),
+      focusablePane,
+    )
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
@@ -131,8 +137,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    val dataContext = DataManager.getInstance().customizeDataContext(
-      DataContext.EMPTY_CONTEXT, mySurface)
+    val dataContext =
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface)
     orientationAction.updateActionsImmediately(dataContext)
 
     group.add(selectAllAction)
@@ -150,11 +156,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(gotoComponentAction)
   }
 
-  private fun addDestinationGroup(
-    group: DefaultActionGroup,
-    component: NlComponent
-  ) {
-    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", component)
+  private fun addDestinationGroup(group: DefaultActionGroup, component: NlComponent) {
+    val activateComponentAction =
+      ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", component)
     group.add(activateComponentAction)
 
     group.addSeparator()
@@ -170,10 +174,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(gotoComponentAction)
   }
 
-  private fun addActionGroup(
-    group: DefaultActionGroup,
-    component: NlComponent
-  ) {
+  private fun addActionGroup(group: DefaultActionGroup, component: NlComponent) {
     val parent = component.parent ?: throw IllegalStateException()
     group.add(EditExistingAction(parent, component))
 
@@ -213,7 +214,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   override fun getToolbarActions(newSelection: List<NlComponent>) =
     DefaultActionGroup().apply {
-      // This is called whenever the selection changes, but since our contents are static they can be cached.
+      // This is called whenever the selection changes, but since our contents are static they can
+      // be cached.
       add(addDestinationMenu)
       add(nestedGraphToolbarAction)
 

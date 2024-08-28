@@ -29,25 +29,19 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Point
 import kotlin.math.absoluteValue
+import org.intellij.lang.annotations.JdkConstants
 
-/**
- * Implements a target allowing dragging a nav editor screen
- */
+/** Implements a target allowing dragging a nav editor screen */
 class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponentTarget {
   private val DEBUG_RENDERER = false
 
-  @AndroidDpCoordinate
-  private var offsetX = 0
-  @AndroidDpCoordinate
-  private var offsetY = 0
-  @AndroidDpCoordinate
-  private var firstMouseX = 0
-  @AndroidDpCoordinate
-  private var firstMouseY = 0
+  @AndroidDpCoordinate private var offsetX = 0
+  @AndroidDpCoordinate private var offsetY = 0
+  @AndroidDpCoordinate private var firstMouseX = 0
+  @AndroidDpCoordinate private var firstMouseY = 0
   private var changedComponent = false
 
   private val targetSnapper: TargetSnapper = TargetSnapper()
@@ -59,7 +53,7 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  //region Layout
+  // region Layout
   /////////////////////////////////////////////////////////////////////////////
 
   override fun newSelection(): List<SceneComponent?>? {
@@ -67,22 +61,24 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
       val selection = getComponent().scene.selection
       return if (selection.size == 1) {
         ImmutableList.of(getComponent())
-      }
-      else {
+      } else {
         val scene = myComponent.scene
-        selection.stream().map { c: NlComponent? ->
-          scene.getSceneComponent(c)
-        }.collect(ImmutableList.toImmutableList())
+        selection
+          .stream()
+          .map { c: NlComponent? -> scene.getSceneComponent(c) }
+          .collect(ImmutableList.toImmutableList())
       }
     }
     return null
   }
 
-  override fun layout(sceneTransform: SceneContext,
-                      @AndroidDpCoordinate l: Int,
-                      @AndroidDpCoordinate t: Int,
-                      @AndroidDpCoordinate r: Int,
-                      @AndroidDpCoordinate b: Int): Boolean {
+  override fun layout(
+    sceneTransform: SceneContext,
+    @AndroidDpCoordinate l: Int,
+    @AndroidDpCoordinate t: Int,
+    @AndroidDpCoordinate r: Int,
+    @AndroidDpCoordinate b: Int,
+  ): Boolean {
     var l = l
     var t = t
     var r = r
@@ -106,14 +102,21 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
     return false
   }
 
-  //endregion
+  // endregion
   /////////////////////////////////////////////////////////////////////////////
-  //region Display
+  // region Display
   /////////////////////////////////////////////////////////////////////////////
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     if (DEBUG_RENDERER) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) JBColor.yellow else JBColor.green)
+      list.addRect(
+        sceneContext,
+        myLeft,
+        myTop,
+        myRight,
+        myBottom,
+        if (mIsOver) JBColor.yellow else JBColor.green,
+      )
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red)
     }
@@ -123,13 +126,12 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
   override fun isHittable(): Boolean {
     return if (myComponent.isSelected) {
       myComponent.canShowBaseline() || !myComponent.isDragging
-    }
-    else true
+    } else true
   }
 
-  //endregion
+  // endregion
   /////////////////////////////////////////////////////////////////////////////
-  //region Mouse Handling
+  // region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
 
   override fun getPreferenceLevel(): Int {
@@ -147,10 +149,17 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
     changedComponent = false
     targetSnapper.reset()
     targetSnapper.gatherNotches(myComponent)
-    component.children.forEachIndexed { i, child -> childOffsets[i] = Point(x - child.drawX, y - child.drawY) }
+    component.children.forEachIndexed { i, child ->
+      childOffsets[i] = Point(x - child.drawX, y - child.drawY)
+    }
   }
 
-  override fun mouseDrag(@NavCoordinate x: Int, @NavCoordinate y: Int, closestTarget: List<Target>, context: SceneContext) {
+  override fun mouseDrag(
+    @NavCoordinate x: Int,
+    @NavCoordinate y: Int,
+    closestTarget: List<Target>,
+    context: SceneContext,
+  ) {
     val parent = myComponent.parent ?: return
 
     myComponent.isDragging = true
@@ -173,7 +182,11 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
     }
   }
 
-  override fun mouseRelease(@NavCoordinate x: Int, @NavCoordinate y: Int, closestTargets: List<Target>) {
+  override fun mouseRelease(
+    @NavCoordinate x: Int,
+    @NavCoordinate y: Int,
+    closestTargets: List<Target>,
+  ) {
     if (!myComponent.isDragging) {
       return
     }
@@ -189,9 +202,7 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
     }
   }
 
-  /**
-   * Reset the status when the dragging is canceled.
-   */
+  /** Reset the status when the dragging is canceled. */
   override fun mouseCancel() {
     val originalX = firstMouseX - offsetX
     val originalY = firstMouseY - offsetY
@@ -208,8 +219,9 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
     myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
   }
 
-  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor =
+    Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
-  //endregion
+  // endregion
   /////////////////////////////////////////////////////////////////////////////
 }

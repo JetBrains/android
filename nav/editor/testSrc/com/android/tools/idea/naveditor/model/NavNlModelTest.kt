@@ -24,74 +24,76 @@ import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileDocumentManager
 
-/**
- * Tests for [NlModel] as used in the navigation editor
- */
+/** Tests for [NlModel] as used in the navigation editor */
 class NavNlModelTest : NavTestCase() {
 
   fun testAddChild() {
     val treeDumper = NlTreeDumper()
-    val modelBuilder = modelBuilder("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
+    val modelBuilder =
+      modelBuilder("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          fragment("fragment2")
+        }
       }
-    }
     val model = modelBuilder.build()
 
-    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
         "    NlComponent{tag=<fragment>, instance=1}\n" +
         "    NlComponent{tag=<fragment>, instance=2}",
-        treeDumper.toTree(model.treeReader.components))
+      treeDumper.toTree(model.treeReader.components),
+    )
 
     // Add child
-    val parent = modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!! as NavModelBuilderUtil.NavigationComponentDescriptor
+    val parent =
+      modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!!
+        as NavModelBuilderUtil.NavigationComponentDescriptor
     assertThat(parent).isNotNull()
     parent.action("action", "fragment1")
     modelBuilder.updateModel(model)
 
-    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
         "    NlComponent{tag=<fragment>, instance=1}\n" +
         "    NlComponent{tag=<fragment>, instance=2}\n" +
         "    NlComponent{tag=<action>, instance=3}",
-        treeDumper.toTree(model.treeReader.components))
+      treeDumper.toTree(model.treeReader.components),
+    )
   }
 
   fun testDeleteChild() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("f1") {
-          action("a1", destination = "f2")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("f1") { action("a1", destination = "f2") }
+          fragment("f2")
         }
-        fragment("f2")
       }
-    }
 
     model.treeWriter.delete(listOf(model.treeReader.find("a1")))
     FileDocumentManager.getInstance().saveAllDocuments()
     val result = String(model.virtualFile.contentsToByteArray())
     // ensure that we end up with a self-closing tag
-    assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\nandroid:id=\"@+id/f1\"/>\n")
+    assertThat(result.replace("\n *".toRegex(), "\n"))
+      .contains("<fragment\nandroid:id=\"@+id/f1\"/>\n")
   }
 
   fun testTooltips() {
-    val model = model("nav.xml") {
-      navigation {
-        action("global", destination = "f1")
-        fragment("f1") {
-          action("exit", destination = "foo")
+    val model =
+      model("nav.xml") {
+        navigation {
+          action("global", destination = "f1")
+          fragment("f1") { action("exit", destination = "foo") }
         }
       }
-    }
 
     assertEquals("global", model.treeReader.find("global")?.tooltipText)
     assertEquals("exit", model.treeReader.find("exit")?.tooltipText)
   }
 
   fun testIsOrHasSuperclass() {
-    val model = modelBuilder("nav.xml") {
-      navigation("root")
-    }.build()
+    val model = modelBuilder("nav.xml") { navigation("root") }.build()
 
     val root = model.treeReader.find("root")!!
     assertFalse(root.isOrHasSuperclass("foo"))

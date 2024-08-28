@@ -38,19 +38,16 @@ import java.awt.Color
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.Rectangle2D
 
-/**
- * Tests for action hit providers
- */
+/** Tests for action hit providers */
 class ActionHitProviderTest : NavTestCase() {
   fun testSelect() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action1", destination = "fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") { action("action1", destination = "fragment2") }
+          fragment("fragment2")
         }
-        fragment("fragment2")
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.getSceneManager(model)!!)
@@ -66,26 +63,30 @@ class ActionHitProviderTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(DisplayList(), 0, view)
 
-
     val guiInputHandler = surface.guiInputHandler
     guiInputHandler.startListening()
 
-    LayoutTestUtilities.clickMouse(guiInputHandler, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
-                                   Coordinates.getSwingYDip(view, component.centerY), 0)
+    LayoutTestUtilities.clickMouse(
+      guiInputHandler,
+      BUTTON1,
+      1,
+      Coordinates.getSwingXDip(view, 300),
+      Coordinates.getSwingYDip(view, component.centerY),
+      0,
+    )
 
     assertEquals(model.treeReader.find("action1"), surface.selectionModel.primary)
     guiInputHandler.stopListening()
   }
 
   fun testHighlight() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action1", destination = "fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") { action("action1", destination = "fragment2") }
+          fragment("fragment2")
         }
-        fragment("fragment2")
       }
-    }
 
     val scene = model.surface.scene!!
 
@@ -101,7 +102,14 @@ class ActionHitProviderTest : NavTestCase() {
       verifyScene(model.surface) { inOrder, g ->
         verifyDrawAction(inOrder, g, color)
 
-        verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+        verifyDrawHeader(
+          inOrder,
+          g,
+          Rectangle2D.Float(490f, 389f, 76.5f, 11f),
+          0.5,
+          "fragment1",
+          isStart = true,
+        )
         verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5)
 
         verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 11f), 0.5, "fragment2")
@@ -134,4 +142,3 @@ class ActionHitProviderTest : NavTestCase() {
     assertThat(getDestinationDirection(rect6, rect1)).isEqualTo(ConnectionDirection.BOTTOM)
   }
 }
-

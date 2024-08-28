@@ -30,23 +30,21 @@ class NavFileInspectionTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val navRule = NavEditorRule(projectRule)
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(navRule).around(disposableRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(navRule).around(disposableRule)!!
 
   @Before
   fun setUp() {
-    runReadAction {
-      NavigationSchema.createIfNecessary(projectRule.module)
-    }
+    runReadAction { NavigationSchema.createIfNecessary(projectRule.module) }
     projectRule.fixture.enableInspections(NavFileInspection::class.java)
   }
 
   @Test
   fun testEmptyNames() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "res/navigation/abstract_classes_check_nav.xml",
-      // language=xml
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "res/navigation/abstract_classes_check_nav.xml",
+        // language=xml
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -67,8 +65,9 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting()
@@ -76,10 +75,11 @@ class NavFileInspectionTest {
 
   @Test
   fun testAbstractClassesNames() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "res/navigation/abstract_classes_check_nav.xml",
-      // language=xml
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "res/navigation/abstract_classes_check_nav.xml",
+        // language=xml
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -97,8 +97,9 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting()
@@ -106,10 +107,11 @@ class NavFileInspectionTest {
 
   @Test
   fun testIncompatibleClassesNames() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "res/navigation/abstract_classes_check_nav.xml",
-      // language=xml
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "res/navigation/abstract_classes_check_nav.xml",
+        // language=xml
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -127,8 +129,9 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting()
@@ -136,10 +139,11 @@ class NavFileInspectionTest {
 
   @Test
   fun testCompatibleClassesNames() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "res/navigation/abstract_classes_check_nav.xml",
-      // language=xml
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "res/navigation/abstract_classes_check_nav.xml",
+        // language=xml
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -157,8 +161,9 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting()

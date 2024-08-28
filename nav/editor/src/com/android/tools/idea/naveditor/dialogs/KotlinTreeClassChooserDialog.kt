@@ -21,30 +21,34 @@ import com.intellij.ide.util.TreeJavaClassChooserDialog
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
+import javax.swing.tree.DefaultMutableTreeNode
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.projectView.KtClassOrObjectTreeNode
 import org.jetbrains.kotlin.psi.KtClassOrObject
-import javax.swing.tree.DefaultMutableTreeNode
-
 
 interface KotlinTreeClassChooserFactory {
-  fun createKotlinTreeClassChooser(title: String,
-                                   project: Project,
-                                   scope: GlobalSearchScope,
-                                   base: PsiClass?,
-                                   initialClass: PsiClass?,
-                                   classFilter: ClassFilter): TreeClassChooser
+  fun createKotlinTreeClassChooser(
+    title: String,
+    project: Project,
+    scope: GlobalSearchScope,
+    base: PsiClass?,
+    initialClass: PsiClass?,
+    classFilter: ClassFilter,
+  ): TreeClassChooser
 
   companion object {
-    private val instance = object : KotlinTreeClassChooserFactory {
-      override fun createKotlinTreeClassChooser(title: String,
-                                                project: Project,
-                                                scope: GlobalSearchScope,
-                                                base: PsiClass?,
-                                                initialClass: PsiClass?,
-                                                classFilter: ClassFilter): TreeClassChooser =
-        KotlinTreeClassChooserDialog(title, project, scope, base, initialClass, classFilter)
-    }
+    private val instance =
+      object : KotlinTreeClassChooserFactory {
+        override fun createKotlinTreeClassChooser(
+          title: String,
+          project: Project,
+          scope: GlobalSearchScope,
+          base: PsiClass?,
+          initialClass: PsiClass?,
+          classFilter: ClassFilter,
+        ): TreeClassChooser =
+          KotlinTreeClassChooserDialog(title, project, scope, base, initialClass, classFilter)
+      }
 
     fun getInstance(): KotlinTreeClassChooserFactory = instance
   }
@@ -55,22 +59,26 @@ interface KotlinTreeClassChooserFactory {
  *
  * The class works around https://youtrack.jetbrains.com/issue/KTIJ-7948.
  */
-private class KotlinTreeClassChooserDialog(title: String,
-                                           project: Project,
-                                           scope: GlobalSearchScope,
-                                           private val base: PsiClass?,
-                                           initialClass: PsiClass?,
-                                           classFilter: ClassFilter)
-  : TreeJavaClassChooserDialog(title, project, scope, classFilter, base, initialClass, false) {
+private class KotlinTreeClassChooserDialog(
+  title: String,
+  project: Project,
+  scope: GlobalSearchScope,
+  private val base: PsiClass?,
+  initialClass: PsiClass?,
+  classFilter: ClassFilter,
+) : TreeJavaClassChooserDialog(title, project, scope, classFilter, base, initialClass, false) {
   override fun getSelectedFromTreeUserObject(node: DefaultMutableTreeNode?): PsiClass? {
-    val psiClass = super.getSelectedFromTreeUserObject(node)
-                   ?: node!!.userObject?.let { userObject ->
-                     if (userObject !is KtClassOrObjectTreeNode) null else (userObject.value as KtClassOrObject).toLightClass()
-                   }
+    val psiClass =
+      super.getSelectedFromTreeUserObject(node)
+        ?: node!!.userObject?.let { userObject ->
+          if (userObject !is KtClassOrObjectTreeNode) null
+          else (userObject.value as KtClassOrObject).toLightClass()
+        }
 
-    val isAccepted = psiClass?.let {
-      it.isInheritor(base ?: return@let false, true) && filter.isAccepted(psiClass)
-    } ?: false
+    val isAccepted =
+      psiClass?.let {
+        it.isInheritor(base ?: return@let false, true) && filter.isAccepted(psiClass)
+      } ?: false
 
     return if (isAccepted) psiClass else null
   }

@@ -26,14 +26,19 @@ import com.android.tools.idea.naveditor.scene.ACTION_HANDLE_OFFSET
 import com.android.tools.idea.naveditor.scene.OUTER_RADIUS_LARGE
 
 /*
-  Augments the hit region for destinations which support actions to include the action handle
- */
+ Augments the hit region for destinations which support actions to include the action handle
+*/
 object NavActionSourceHitProvider : DefaultHitProvider() {
-  override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
+  override fun addHit(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    picker: ScenePicker,
+  ) {
     NavDestinationHitProvider.addHit(component, sceneTransform, picker)
 
     val sceneView = sceneTransform.surface?.focusedSceneView ?: return
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    @SwingCoordinate
+    val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
     @SwingCoordinate var x = drawRectangle.x + drawRectangle.width
     if (component.nlComponent.isFragment) {

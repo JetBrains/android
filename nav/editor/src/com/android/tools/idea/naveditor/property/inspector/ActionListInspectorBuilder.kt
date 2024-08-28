@@ -16,10 +16,10 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.property.ui.ActionCellRenderer
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
@@ -27,28 +27,26 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder(private val model: NlPropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NlPropertiesModel) :
+  ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
   override fun title(component: NlComponent) =
     if (component.isNavigation) {
       "Global Actions"
-    }
-    else {
+    } else {
       "Actions"
     }
 
   override fun addActionText(component: NlComponent) =
     if (component.isNavigation) {
       "Add global action"
-    }
-    else {
+    } else {
       "Add action"
     }
 
   override fun deleteActionText(component: NlComponent) =
     if (component.isNavigation) {
       "Remove global action"
-    }
-    else {
+    } else {
       "Remove action"
     }
 
@@ -83,7 +81,13 @@ class ActionListInspectorBuilder(private val model: NlPropertiesModel) : Compone
   override fun isApplicable(component: NlComponent) = component.supportsActions
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, component, parent, NavEditorEvent.Source.PROPERTY_INSPECTOR)
+    val dialog =
+      AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        component,
+        parent,
+        NavEditorEvent.Source.PROPERTY_INSPECTOR,
+      )
     showAndUpdateFromDialog(dialog, parent.model, component != null)
   }
 }

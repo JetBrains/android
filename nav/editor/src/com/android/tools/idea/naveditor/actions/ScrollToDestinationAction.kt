@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ScrollToDestinationAction(private val component: NlComponent): AnAction("Scroll into view") {
+class ScrollToDestinationAction(private val component: NlComponent) : AnAction("Scroll into view") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

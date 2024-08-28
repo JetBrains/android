@@ -26,18 +26,22 @@ import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.Color
 
-class DrawActionHandle(private val center: SwingPoint,
-                       private val initialOuterRadius: SwingLength,
-                       private val finalOuterRadius: SwingLength,
-                       private val initialInnerRadius: SwingLength,
-                       private val finalInnerRadius: SwingLength,
-                       private val duration: Int,
-                       private val outerColor: Color,
-                       private val innerColor: Color
+class DrawActionHandle(
+  private val center: SwingPoint,
+  private val initialOuterRadius: SwingLength,
+  private val finalOuterRadius: SwingLength,
+  private val initialInnerRadius: SwingLength,
+  private val finalInnerRadius: SwingLength,
+  private val duration: Int,
+  private val outerColor: Color,
+  private val innerColor: Color,
 ) : CompositeDrawCommand(TARGET_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircleLerp(center, initialInnerRadius, finalInnerRadius, duration)
-    return listOf(FillShape(outerCircle, outerColor), DrawShape(innerCircle, innerColor, HANDLE_STROKE))
+    return listOf(
+      FillShape(outerCircle, outerColor),
+      DrawShape(innerCircle, innerColor, HANDLE_STROKE),
+    )
   }
 }

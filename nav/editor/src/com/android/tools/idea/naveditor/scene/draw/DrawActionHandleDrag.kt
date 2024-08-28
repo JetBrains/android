@@ -26,14 +26,20 @@ import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.makeCircle
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 
-class DrawActionHandleDrag(private val center: SwingPoint,
-                                private val initialOuterRadius: SwingLength,
-                                private val finalOuterRadius: SwingLength,
-                                private val innerRadius: SwingLength,
-                                private val duration: Int) : CompositeDrawCommand(TARGET_LEVEL) {
+class DrawActionHandleDrag(
+  private val center: SwingPoint,
+  private val initialOuterRadius: SwingLength,
+  private val finalOuterRadius: SwingLength,
+  private val innerRadius: SwingLength,
+  private val duration: Int,
+) : CompositeDrawCommand(TARGET_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircle(center, innerRadius)
-    return listOf(FillShape(outerCircle, primaryPanelBackground), FillShape(innerCircle, SELECTED), DrawLineToMouse(center))
+    return listOf(
+      FillShape(outerCircle, primaryPanelBackground),
+      FillShape(innerCircle, SELECTED),
+      DrawLineToMouse(center),
+    )
   }
 }

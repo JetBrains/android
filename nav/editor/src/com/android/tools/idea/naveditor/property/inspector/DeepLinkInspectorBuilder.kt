@@ -18,16 +18,19 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
-import com.android.tools.idea.naveditor.model.supportsDeeplinks
 import com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog
+import com.android.tools.idea.naveditor.model.supportsDeeplinks
 import com.android.tools.idea.naveditor.property.ui.DeepLinkCellRenderer
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_DEEP_LINK
 
-class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, DeepLinkCellRenderer()) {
+class DeepLinkInspectorBuilder :
+  ComponentListInspectorBuilder(TAG_DEEP_LINK, DeepLinkCellRenderer()) {
   override fun title(component: NlComponent) = "Deep Links"
+
   override fun addActionText(component: NlComponent) = "Add deep link"
+
   override fun deleteActionText(component: NlComponent) = "Remove deep link"
 
   override fun onAdd(parent: NlComponent) {
@@ -45,9 +48,10 @@ class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, De
 
     if (dialog.showAndGet()) {
       dialog.save()
-      NavUsageTracker.getInstance(parent.model).createEvent(if (component == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
-        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
+      NavUsageTracker.getInstance(parent.model)
+        .createEvent(if (component == null) CREATE_DEEP_LINK else EDIT_DEEP_LINK)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+        .log()
     }
   }
 }
-

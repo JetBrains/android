@@ -31,17 +31,24 @@ import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.BasicStroke
 import java.awt.Color
 
-private val ACTION_STROKE = SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+private val ACTION_STROKE =
+  SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-abstract class DrawActionBase(protected val scale: Scale,
-                              protected val color: Color,
-                              protected val isPopAction: Boolean,
-                              level: Int = 0) : CompositeDrawCommand(level) {
+abstract class DrawActionBase(
+  protected val scale: Scale,
+  protected val color: Color,
+  protected val isPopAction: Boolean,
+  level: Int = 0,
+) : CompositeDrawCommand(level) {
 
   final override fun buildCommands(): List<DrawCommand> {
     val (shape, arrowRectangle, direction) = buildAction()
 
-    val list = mutableListOf(DrawShape(shape, color, ACTION_STROKE), makeDrawArrowCommand(arrowRectangle, direction))
+    val list =
+      mutableListOf(
+        DrawShape(shape, color, ACTION_STROKE),
+        makeDrawArrowCommand(arrowRectangle, direction),
+      )
 
     if (isPopAction) {
       list.add(DrawIcon(POP_ACTION, getPopIconRectangle(), color))
@@ -50,24 +57,29 @@ abstract class DrawActionBase(protected val scale: Scale,
     return list
   }
 
-  private fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection): DrawCommand {
+  private fun makeDrawArrowCommand(
+    rectangle: SwingRectangle,
+    direction: ArrowDirection,
+  ): DrawCommand {
     val left = rectangle.x
     val right = left + rectangle.width
 
-    val xValues = when (direction) {
-      ArrowDirection.LEFT -> arrayOf(right, left, right)
-      ArrowDirection.RIGHT -> arrayOf(left, right, left)
-      else -> arrayOf(left, left + (right - left) / 2, right)
-    }
+    val xValues =
+      when (direction) {
+        ArrowDirection.LEFT -> arrayOf(right, left, right)
+        ArrowDirection.RIGHT -> arrayOf(left, right, left)
+        else -> arrayOf(left, left + (right - left) / 2, right)
+      }
 
     val top = rectangle.y
     val bottom = top + rectangle.height
 
-    val yValues = when (direction) {
-      ArrowDirection.UP -> arrayOf(bottom, top, bottom)
-      ArrowDirection.DOWN -> arrayOf(top, bottom, top)
-      else -> arrayOf(top, top + (bottom - top) / 2, bottom)
-    }
+    val yValues =
+      when (direction) {
+        ArrowDirection.UP -> arrayOf(bottom, top, bottom)
+        ArrowDirection.DOWN -> arrayOf(top, bottom, top)
+        else -> arrayOf(top, top + (bottom - top) / 2, bottom)
+      }
 
     val path = SwingPath()
     path.moveTo(xValues[0], yValues[0])
@@ -81,6 +93,12 @@ abstract class DrawActionBase(protected val scale: Scale,
   }
 
   protected abstract fun getPopIconRectangle(): SwingRectangle
+
   protected abstract fun buildAction(): Action
-  protected data class Action(val shape: SwingShape, val arrowRectangle: SwingRectangle, val direction: ArrowDirection)
+
+  protected data class Action(
+    val shape: SwingShape,
+    val arrowRectangle: SwingRectangle,
+    val direction: ArrowDirection,
+  )
 }

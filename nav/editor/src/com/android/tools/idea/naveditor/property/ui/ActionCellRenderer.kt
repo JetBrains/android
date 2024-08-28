@@ -22,7 +22,13 @@ import icons.StudioIcons.NavEditor.Properties.ACTION
 import javax.swing.JList
 
 class ActionCellRenderer : NavListCellRenderer(ACTION) {
-  override fun customizeCellRenderer(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    list: JList<out NlComponent>,
+    value: NlComponent?,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean,
+  ) {
     super.customizeCellRenderer(list, value, index, selected, hasFocus)
 
     val destination = value?.actionDestinationId ?: ""

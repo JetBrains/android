@@ -41,7 +41,8 @@ private const val VIEW_NAME = "NavEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a destination or action on the Design surface."
 
-class NavPropertiesView(model: NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
+class NavPropertiesView(model: NlPropertiesModel) :
+  PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
   private val enumSupportProvider = NavEnumSupportProvider()
   private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)

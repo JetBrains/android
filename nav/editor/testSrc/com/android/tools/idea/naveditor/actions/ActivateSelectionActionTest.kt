@@ -28,12 +28,13 @@ import org.mockito.Mockito.verify
 
 class ActivateSelectionActionTest : NavTestCase() {
   fun testActivateSelectionAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment")
-        navigation("nested")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment")
+          navigation("nested")
+        }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)

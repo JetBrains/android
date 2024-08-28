@@ -35,11 +35,14 @@ import java.awt.Color
 
 const val HIGHLIGHTED_CLIENT_PROPERTY = "actionHighlighted"
 
-/**
- * [ActionDecorator] responsible for creating draw commands for actions.
- */
+/** [ActionDecorator] responsible for creating draw commands for actions. */
 object ActionDecorator : NavBaseDecorator() {
-  override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
+  override fun addContent(
+    list: DisplayList,
+    time: Long,
+    sceneContext: SceneContext,
+    component: SceneComponent,
+  ) {
     val nlComponent = component.nlComponent
     val color = actionColor(component)
     val view = component.scene.designSurface.focusedSceneView ?: return
@@ -48,21 +51,22 @@ object ActionDecorator : NavBaseDecorator() {
     val scale = sceneContext.inlineScale
     when (actionType) {
       ActionType.NONE -> return
-      ActionType.GLOBAL, ActionType.EXIT -> {
+      ActionType.GLOBAL,
+      ActionType.EXIT -> {
         val drawRect = component.inlineDrawRect(view)
         list.add(DrawHorizontalAction(drawRect, scale, color, isPopAction))
       }
       else -> {
         val scene = component.scene
 
-        val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
+        val sourceNlComponent =
+          scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
         val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
         val sourceRect = sourceSceneComponent.inlineDrawRect(view)
 
         if (actionType == ActionType.SELF) {
           list.add(DrawSelfAction(sourceRect, scale, color, isPopAction))
-        }
-        else {
+        } else {
           val targetNlComponent = nlComponent.effectiveDestination ?: return
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
           val destRect = destinationSceneComponent.inlineDrawRect(view)
@@ -75,8 +79,10 @@ object ActionDecorator : NavBaseDecorator() {
 
   private fun actionColor(component: SceneComponent): Color {
     return when {
-      component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
-      component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
+      component.isSelected ||
+        component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
+      component.drawState == SceneComponent.DrawState.HOVER ||
+        component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
       else -> ACTION
     }
   }

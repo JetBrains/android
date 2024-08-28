@@ -39,7 +39,8 @@ class ToSelfAction(private val component: NlComponent) : AnAction("To Self") {
       val action = component.createSelfAction()
       surface.selectionModel.setSelection(listOfNotNull(action))
       if (action != null) {
-        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.getInstance(surface.model)
+          .createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.CONTEXT_MENU)
           .log()

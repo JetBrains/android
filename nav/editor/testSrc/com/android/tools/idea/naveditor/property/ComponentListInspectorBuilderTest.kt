@@ -35,78 +35,91 @@ import javax.swing.ListModel
 
 class ComponentListInspectorBuilderTest : NavTestCase() {
   fun testActionListInspectorBuilder() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action2", destination = "activity1")
-          action("action3", destination = "fragment1")
-          action("action1", destination = "fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            action("action2", destination = "activity1")
+            action("action3", destination = "fragment1")
+            action("action1", destination = "fragment2")
+          }
+          fragment("fragment2")
+          activity("activity1")
         }
-        fragment("fragment2")
-        activity("activity1")
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
-    val expected = arrayOf("action2", "action3", "action1").mapNotNull{ model.treeReader.find(it) }
+    val expected = arrayOf("action2", "action3", "action1").mapNotNull { model.treeReader.find(it) }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
 
   fun testArgumentInspectorBuilder() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          argument("argument2")
-          argument("argument3")
-          argument("argument1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            argument("argument2")
+            argument("argument3")
+            argument("argument1")
+          }
         }
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
-    val expected = arrayOf("argument2", "argument3", "argument1").map { name -> fragment1.children.first { it.argumentName == name } }
+    val expected =
+      arrayOf("argument2", "argument3", "argument1").map { name ->
+        fragment1.children.first { it.argumentName == name }
+      }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
   fun testArgumentInspectorBuilderForNavigationRoot() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        argument("argumentRoot")
-        fragment("fragment1") {
-          argument("argument2")
-          argument("argument3")
-          argument("argument1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          argument("argumentRoot")
+          fragment("fragment1") {
+            argument("argument2")
+            argument("argument3")
+            argument("argument1")
+          }
         }
       }
-    }
 
     val navRoot = model.treeReader.find("root")!!
-    val expected = arrayOf("argumentRoot").map { name -> navRoot.children.first { it.argumentName == name } }
+    val expected =
+      arrayOf("argumentRoot").map { name -> navRoot.children.first { it.argumentName == name } }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(navRoot, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
   fun testDeepLinkInspectorBuilder() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          deeplink("deepLink2", "www.bar.com", true)
-          deeplink("deepLink3", "www.baz.com", true)
-          deeplink("deepLink1", "www.foo.com", true)
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            deeplink("deepLink2", "www.bar.com", true)
+            deeplink("deepLink3", "www.baz.com", true)
+            deeplink("deepLink1", "www.foo.com", true)
+          }
         }
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
-    val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull { model.treeReader.find(it) }
+    val expected =
+      arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull { model.treeReader.find(it) }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }
 
-  private fun verifyPanel(component: NlComponent, propertiesModel: NlPropertiesModel,
-                          builder: InspectorBuilder<NlPropertyItem>, expected: List<NlComponent>) {
+  private fun verifyPanel(
+    component: NlComponent,
+    propertiesModel: NlPropertiesModel,
+    builder: InspectorBuilder<NlPropertyItem>,
+    expected: List<NlComponent>,
+  ) {
     val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(component))
     val panel = FakeInspectorPanel()
@@ -127,15 +140,16 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
   }
 
   fun testSelectionHighlighted() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action1", destination = "fragment2")
-          action("action2", destination = "activity1")
-          action("action3", destination = "fragment1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            action("action1", destination = "fragment2")
+            action("action2", destination = "activity1")
+            action("action3", destination = "fragment1")
+          }
         }
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
 
@@ -161,15 +175,16 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
   }
 
   fun testUpdates() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action1", destination = "fragment1")
-          action("action2", destination = "fragment1")
-          action("action3", destination = "fragment1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            action("action1", destination = "fragment1")
+            action("action2", destination = "fragment1")
+            action("action3", destination = "fragment1")
+          }
         }
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
 
@@ -190,7 +205,10 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     assertEquals(2, listModel.size)
   }
 
-  private fun verifyClientProperties(model: ListModel<NlComponent>, vararg expectedValues: Boolean) {
+  private fun verifyClientProperties(
+    model: ListModel<NlComponent>,
+    vararg expectedValues: Boolean,
+  ) {
     assertEquals(model.size, expectedValues.size)
 
     expectedValues.forEachIndexed { i, expected ->
@@ -198,11 +216,9 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
       if (expected) {
         assertEquals(true, property)
-      }
-      else {
+      } else {
         assertNull(property)
       }
     }
   }
 }
-

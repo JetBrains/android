@@ -40,7 +40,8 @@ class AddGlobalAction(private val component: NlComponent) : AnAction("Global") {
       val action = component.parent?.createAction(component.id)
       surface.selectionModel.setSelection(listOfNotNull(action))
       if (action != null) {
-        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.getInstance(surface.model)
+          .createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.CONTEXT_MENU)
           .log()

@@ -27,10 +27,8 @@ import java.awt.Graphics2D
 
 private val text1 = "Click "
 private val text2 = " to add a destination"
-@SwingCoordinate
-private val FONT_SIZE = JBUI.scale(13)
-@SwingCoordinate
-private val VERTICAL_OFFSET = JBUI.scale(3)
+@SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
+@SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
 class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
@@ -43,7 +41,12 @@ class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
     g.drawString(text1, x, y)
     x += g.fontMetrics.stringWidth(text1)
 
-    ADD_DESTINATION.paintIcon(null, g, x, y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET))
+    ADD_DESTINATION.paintIcon(
+      null,
+      g,
+      x,
+      y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET),
+    )
     x += ADD_DESTINATION.iconWidth
 
     g.drawString(text2, x, y)
