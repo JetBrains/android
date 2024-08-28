@@ -33,6 +33,8 @@ object TaskBasedUxStrings {
   const val STOPPING_IN_PROGRESS = "Stopping..."
   const val STOP_RECORDING = "Stop recording and show results"
   const val STOPPING_TIME_WARNING = "It might take up to a minute for the recording to stop."
+  const val ACTION_BAR_RECORDING = "Recording:"
+  const val ACTION_BAR_STOP_RECORDING = "Stop Recording"
 
   // Icon description strings
   const val TASK_CONFIG_DIALOG_DESC = "Task Configurations"
