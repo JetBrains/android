@@ -1591,7 +1591,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_ANIMATION_INSPECTOR = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.animation.inspector.enabled", "Enable Wear Tile Preview Animation Inspector",
     "If enabled, a Wear Tile Animation Inspector functionality is available in Preview",
-    false);
+    ChannelDefault.enabledUpTo(CANARY));
   // endregion
 
   // region Wear Health Services
