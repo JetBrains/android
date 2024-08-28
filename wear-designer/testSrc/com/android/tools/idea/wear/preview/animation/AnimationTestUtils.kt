@@ -16,16 +16,47 @@
 package com.android.tools.idea.wear.preview.animation
 
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
-import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
-class TestDynamicTypeAnimator(private val duration: Long = 100, private val startDelay: Long = 10) :
+class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FLOAT) :
   DynamicTypeAnimator {
-  override var typeEvaluator: DynamicTypeAnimator.TypeEvaluator<*> =
-    object : DynamicTypeAnimator.TypeEvaluator<Any> {
-      override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any {
-        return if (fraction == 0f) startValue else endValue
-      }
+  class FloatEvaluator : DynamicTypeAnimator.TypeEvaluator<Float> {
+    override fun evaluate(fraction: Float, startValue: Float, endValue: Float): Float {
+      return if (fraction == 0f) startValue else endValue
     }
+  }
+
+  class IntEvaluator : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  class ArgbEvaluator : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  class Unknowm : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  var duration: Long = 100
+  var startDelay: Long = 10
+
+  override var typeEvaluator =
+    when (type) {
+      ProtoAnimation.TYPE.FLOAT -> FloatEvaluator()
+      ProtoAnimation.TYPE.INT -> IntEvaluator()
+      ProtoAnimation.TYPE.COLOR -> ArgbEvaluator()
+      else -> Unknowm()
+    }
+
+  private var _startValue: Any? = null
+
+  private var _endValue: Any? = null
 
   private var animationFrameTime: Long = 0
 
@@ -33,6 +64,8 @@ class TestDynamicTypeAnimator(private val duration: Long = 100, private val star
 
   override fun setFloatValues(vararg values: Float) {
     _floatValues = values
+    _startValue = values[0]
+    _endValue = values[1]
   }
 
   fun getFloatValues(): FloatArray {
@@ -43,6 +76,8 @@ class TestDynamicTypeAnimator(private val duration: Long = 100, private val star
 
   override fun setIntValues(vararg values: Int) {
     _intValues = values
+    _startValue = values[0]
+    _endValue = values[1]
   }
 
   fun getIntValues(): IntArray {
@@ -53,18 +88,26 @@ class TestDynamicTypeAnimator(private val duration: Long = 100, private val star
     animationFrameTime = newTime
   }
 
-  override fun getPropertyValuesHolders(): Array<PropertyValuesHolder?>? {
-    return null
+  fun getAnimationFrameTime(): Long {
+    return animationFrameTime
   }
 
-  private var _lastAnimatedValue: Any? = null
-
-  fun setLastAnimatedValue(newValue: Any?) {
-    _lastAnimatedValue = newValue
+  override fun getStartValue(): Any? {
+    return _startValue
   }
 
-  override fun getLastAnimatedValue(): Any? {
-    return _lastAnimatedValue
+  override fun getEndValue(): Any? {
+    return _endValue
+  }
+
+  private var _lastCurrentValue: Any? = null
+
+  fun setCurrentValue(newValue: Any?) {
+    _lastCurrentValue = newValue
+  }
+
+  override fun getCurrentValue(): Any? {
+    return _lastCurrentValue ?: _startValue
   }
 
   override fun getDurationMs(): Long {

@@ -15,8 +15,6 @@
  */
 package androidx.wear.protolayout.expression.pipeline
 
-import org.jetbrains.android.dom.animator.PropertyValuesHolder
-
 /** Interface that should match the one from the AndroidX library */
 interface DynamicTypeAnimator {
 
@@ -52,20 +50,25 @@ interface DynamicTypeAnimator {
   fun advanceToAnimationTime(newTime: Long)
 
   /**
-   * Gets a collection of PropertyValuesHolder objects, each of which holds information about a
-   * single animated property.
+   * Gets the start value of the animation.
    *
-   * @return A collection of PropertyValuesHolder objects or null if values animate between are not
-   *   set.
+   * @return The start value of the animation or null if value wasn't set.
    */
-  fun getPropertyValuesHolders(): Array<PropertyValuesHolder?>?
+  fun getStartValue(): Any?
+
+  /**
+   * Gets the end value of the animation.
+   *
+   * @return The end value of the animation.
+   */
+  fun getEndValue(): Any?
 
   /**
    * Gets the last value of the animated property at the current time in the animation.
    *
-   * @return The last calculated animated value.
+   * @return The last calculated animated value or null if value wasn't set.
    */
-  fun getLastAnimatedValue(): Any?
+  fun getCurrentValue(): Any?
 
   /**
    * Gets the duration of the animation, in milliseconds.
