@@ -25,6 +25,7 @@ import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
@@ -35,7 +36,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.prevLeaf
 import com.intellij.psi.util.startOffset
-import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.kotlin.idea.util.ElementKind
 import org.jetbrains.kotlin.idea.util.findElements
 import org.jetbrains.kotlin.idea.util.isLineBreak
@@ -93,7 +93,7 @@ class ComposeSurroundWithWidgetActionGroup :
         }
       }
 
-    return ListPopupImpl(project, step)
+    return JBPopupFactory.getInstance().createListPopup(project, step) { it }
   }
 
   override fun getFamilyName() = ComposeBundle.message("surround.with.widget.intention.text")

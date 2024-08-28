@@ -24,13 +24,13 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.ui.popup.list.ListPopupImpl
-import com.intellij.ui.popup.list.PopupListElementRenderer
+import com.intellij.ui.popup.list.GroupedItemsListRenderer
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
@@ -111,32 +111,24 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       return
     }
 
-    // Copied from KotlinAddImportAction
-    object : ListPopupImpl(project, getVariantSelectionPopup(project, file, suggestions)) {
-        override fun getListElementRenderer(): ListCellRenderer<AutoImportVariant> {
-          val baseRenderer =
-            super.getListElementRenderer() as PopupListElementRenderer<AutoImportVariant>
-          val psiRenderer = SafeArgsPsiElementCellRenderer()
-          return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
-            JPanel(BorderLayout()).apply {
-              baseRenderer.getListCellRendererComponent(
+    // Follow approach from KotlinAddImportAction and use JBPopupFactory tp create popup
+    JBPopupFactory.getInstance()
+      .createListPopup(project, getVariantSelectionPopup(project, file, suggestions)) producer@{
+        val baseRenderer = it as? GroupedItemsListRenderer<Any> ?: return@producer it
+        val psiRenderer = SafeArgsPsiElementCellRenderer()
+        ListCellRenderer<AutoImportVariant> { list, value, index, isSelected, cellHasFocus ->
+          JPanel(BorderLayout()).apply {
+            baseRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+            add(baseRenderer.nextStepLabel, BorderLayout.EAST)
+            add(
+              psiRenderer.getListCellRendererComponent(
                 list,
-                value,
+                value.declarationToImport(project),
                 index,
                 isSelected,
                 cellHasFocus,
               )
-              add(baseRenderer.nextStepLabel, BorderLayout.EAST)
-              add(
-                psiRenderer.getListCellRendererComponent(
-                  list,
-                  value.declarationToImport(project),
-                  index,
-                  isSelected,
-                  cellHasFocus,
-                )
-              )
-            }
+            )
           }
         }
       }
