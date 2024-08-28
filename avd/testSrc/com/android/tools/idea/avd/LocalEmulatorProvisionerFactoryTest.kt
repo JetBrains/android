@@ -24,7 +24,6 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.FakeAvdManager
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
@@ -51,7 +50,7 @@ class LocalEmulatorProvisionerFactoryTest {
       LocalEmulatorProvisionerFactory()
         .create(session.scope, session, projectRule.project, avdManager)
         as LocalEmulatorProvisionerPlugin
-    provisioner = DeviceProvisioner.create(session, listOf(plugin), StudioDefaultDeviceIcons)
+    provisioner = DeviceProvisioner.create(session.scope, session, listOf(plugin))
   }
 
   @After

@@ -34,13 +34,14 @@ class DeviceProvisionerService(private val project: Project) : Disposable {
   // case, the service will be retained as a child of the root disposable and leaked.
   val deviceProvisioner: DeviceProvisioner by lazy {
     val session = AdbLibService.getSession(project)
-    val coroutineScope = session.scope.createChildScope(isSupervisor = true, parentDisposable = this)
+    val coroutineScope =
+      session.scope.createChildScope(isSupervisor = true, parentDisposable = this)
 
     DeviceProvisioner.create(
       coroutineScope,
       session,
       DeviceProvisionerFactory.createProvisioners(coroutineScope, project),
-      StudioDefaultDeviceIcons)
+    )
   }
 
   override fun dispose() {}
