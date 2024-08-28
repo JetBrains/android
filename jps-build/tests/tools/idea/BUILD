@@ -32,6 +32,11 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+java_library(
+    name = "custom_dependency",
+    srcs = ["Class.java"],
+)
+
 jps_test(
     name = "test1",
     download_cache = "tools/adt/idea/jps-build/tests/test_cache",
@@ -39,6 +44,9 @@ jps_test(
     module = "module.to.test",
     test_include_filter = ["com.android.tools.test.Test1"],
     test_suite = "com.android.tools.test.ModuleTestSuite",
+    runtime_deps = [
+        ":custom_dependency",
+    ],
     deps = [
         ":jps_lib",
         ":source",
@@ -104,6 +112,9 @@ jps_test(
         "com.android.tools.test.Test3.Nested2#testNested10",
     ],
     test_suite = "com.android.tools.test.ModuleTestSuite",
+    runtime_deps = [
+        ":custom_dependency",
+    ],
     deps = [
         ":jps_lib",
         ":source",
