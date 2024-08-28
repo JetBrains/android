@@ -51,6 +51,11 @@ public class Test1 {
     }
 
     @Test
+    public void testClassPath() throws Exception {
+        Class<?> clazz = Test.class.getClassLoader().loadClass("my.custom.Class");
+    }
+
+    @Test
     public void testFilterIndividualTest() {
         throw new RuntimeException("I always fail");
     }

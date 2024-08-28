@@ -261,6 +261,9 @@ def _jps_test_impl(ctx):
     jvmargs_file = ctx.actions.declare_file("%s.jvmargs" % ctx.attr.name)
     ctx.actions.write(output = jvmargs_file, content = "".join([o + "\n" for o in ctx.fragments.java.default_jvm_opts]))
 
+    runtime_deps = [ctx.file._bazel_runner] + ctx.files.runtime_deps
+    runtime_deps_paths = ["$PWD/" + f.short_path for f in runtime_deps]
+
     cmd = [
         ctx.attr._jps_build.files_to_run.executable.short_path,
     ] + [
@@ -285,7 +288,7 @@ def _jps_test_impl(ctx):
         "home/.cache",
         "--download_cache",
         ctx.attr.download_cache,
-        "--env BAZEL_RUNNER $PWD/" + ctx.file._bazel_runner.short_path,
+        "--env RUNTIME_DEPS " + ":".join(runtime_deps_paths),
         "--env JVM_ARGS_FILE $PWD/" + jvmargs_file.short_path,
         "--env JAVA_BIN $PWD/" + ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path,
         "--env TEST_SUITE '" + ctx.attr.test_suite + "'",
@@ -297,9 +300,8 @@ def _jps_test_impl(ctx):
     if ctx.attr.expected_failures_file:
         cmd += ["--env EXPECTED_FAILURES_FILE '" + ctx.expand_location("$(location " + ctx.attr.expected_failures_file + ")") + "'"]
 
-    files = [
+    files = runtime_deps + [
         ctx.file._test_runner,
-        ctx.file._bazel_runner,
         jvmargs_file,
     ] + files
 
@@ -323,6 +325,7 @@ _jps_test = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
+        "runtime_deps": attr.label_list(providers = [JavaInfo]),
         "expected_failures_file": attr.string(default = ""),
         "test_exclude_filter": attr.string_list(default = []),
         "test_filter": attr.string_list(default = []),
