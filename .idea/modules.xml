@@ -44,6 +44,9 @@
       <module fileurl="file://$PROJECT_DIR$/assistant/intellij.android.assistant-test.iml" filepath="$PROJECT_DIR$/assistant/intellij.android.assistant-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/avd/intellij.android.avd.iml" filepath="$PROJECT_DIR$/avd/intellij.android.avd.iml" />
       <module fileurl="file://$PROJECT_DIR$/intellij.android.avdmanager.tests/intellij.android.avdmanager.tests.iml" filepath="$PROJECT_DIR$/intellij.android.avdmanager.tests/intellij.android.avdmanager.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/intellij.android.backup.iml" filepath="$PROJECT_DIR$/backup/intellij.android.backup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/intellij.android.backup.api.iml" filepath="$PROJECT_DIR$/backup/intellij.android.backup.api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/intellij.android.backup.tests.iml" filepath="$PROJECT_DIR$/backup/intellij.android.backup.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/bleak/intellij.android.bleak.iml" filepath="$PROJECT_DIR$/bleak/intellij.android.bleak.iml" />
       <module fileurl="file://$PROJECT_DIR$/bleak-config/intellij.android.bleak-config.iml" filepath="$PROJECT_DIR$/bleak-config/intellij.android.bleak-config.iml" />
       <module fileurl="file://$PROJECT_DIR$/build-attribution/intellij.android.build-attribution.iml" filepath="$PROJECT_DIR$/build-attribution/intellij.android.build-attribution.iml" />
@@ -260,7 +263,6 @@
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/intellij.android.whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/intellij.android.whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/intellij.android.whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/intellij.android.whats-new-assistant-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/wizard/intellij.android.wizard.iml" filepath="$PROJECT_DIR$/wizard/intellij.android.wizard.iml" />
