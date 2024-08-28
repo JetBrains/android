@@ -237,16 +237,14 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     }
   }
 
-  @NotNull
   @Override
-  public CompletableFuture<Void> forceUserRequestedRefresh() {
-    return forceRefresh();
+  public void forceUserRequestedRefresh() {
+    // Ignored for nav editor
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> forceRefresh() {
+  public void forceRefresh() {
     // Ignored for nav editor
-    return CompletableFuture.completedFuture(null);
   }
 
   @NotNull

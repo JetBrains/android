@@ -233,8 +233,8 @@ internal constructor(
     revalidateScrollArea()
   }
 
-  override fun forceRefresh(): CompletableFuture<Void> {
-    return requestSequentialRender {
+  override fun forceRefresh() {
+    requestSequentialRender {
       it.sceneRenderConfiguration.needsInflation.set(true)
       it.requestRenderAsync()
     }
@@ -378,11 +378,11 @@ internal constructor(
     return sceneManagers.any { it.renderResult != null }
   }
 
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> {
+  override fun forceUserRequestedRefresh() {
     // When the user initiates the refresh, give some feedback via progress indicator.
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
-    return requestSequentialRender {
+    requestSequentialRender {
         it.sceneRenderConfiguration.needsInflation.set(true)
         it.requestUserInitiatedRenderAsync()
       }

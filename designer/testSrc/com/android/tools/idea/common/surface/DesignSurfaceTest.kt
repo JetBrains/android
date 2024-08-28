@@ -363,10 +363,9 @@ class TestDesignSurface(
 
   override val scrollToVisibleOffset = Dimension()
 
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
-    CompletableFuture.completedFuture(null)
+  override fun forceUserRequestedRefresh() {}
 
-  override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun forceRefresh() {}
 
   override val selectableComponents: List<NlComponent>
     get() = emptyList()
