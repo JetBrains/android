@@ -32,6 +32,7 @@ import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
+import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -258,6 +259,9 @@ class EmulatorView(
       if (field != value) {
         field = value
         requestScreenshotFeed()
+        if (!value) {
+          highlightedSkinButtonKey = null
+        }
       }
     }
 
@@ -292,10 +296,41 @@ class EmulatorView(
    */
   private var lastTouchCoordinates: Point? = null
 
+  /** Last mouse coordinates of the mouse cursor if it is inside the view. */
+  private var mouseCoordinates: Point? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        highlightedSkinButtonKey = if (value == null) null else findSkinButtonContaining(value)
+      }
+    }
+
   /**
-   * Which MOUSE_ENTERED or MOUSE_EXITED is observed at the last time.
+   * The key name of the highlighted skin button, if any. Changing this value controls the highlight
+   * shown to the user.
    */
-  private var mouseIsInside: Boolean = false
+  private var highlightedSkinButtonKey: String? = null
+    set(value) {
+      if (field != value) {
+        if (field != null && field == pressedSkinButtonKey) {
+          pressedSkinButtonKey = null
+        }
+        field = value
+        repaint()
+      }
+    }
+  /**
+   * The key name of the pressed skin button, if any. Changing this value has a side effect of
+   * sending a key event to the emulator.
+   */
+  private var pressedSkinButtonKey: String? = null
+    set(value) {
+      if (field != value) {
+        field?.let { emulator.sendKeyEvent(it, eventType = KeyEventType.keyup) }
+        field = value
+        value?.let { emulator.sendKeyEvent(it, eventType = KeyEventType.keydown) }
+      }
+    }
 
   /**
    * Last observed modifier state.
@@ -333,8 +368,8 @@ class EmulatorView(
       else -> null
     }
 
-    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isHardwareInputEnabled() &&
-                     xrInputController == null
+    multiTouchMode = mouseCoordinates != null && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 &&
+                     !isHardwareInputEnabled() && xrInputController == null
   }
 
   private var virtualSceneCameraActive = false
@@ -462,6 +497,7 @@ class EmulatorView(
     super.setBounds(x, y, width, height)
     if (resized) {
       requestScreenshotFeed()
+      mouseCoordinates = null
     }
   }
 
@@ -562,7 +598,7 @@ class EmulatorView(
     savedClip?.let { g.clip = it }
 
     // Draw device frame and mask.
-    skin?.drawFrameAndMask(g, displayRect)
+    skin?.drawFrameAndMask(g, displayRect, highlightedSkinButtonKey)
 
     if (!screenshot.painted) {
       screenshot.painted = true
@@ -732,6 +768,21 @@ class EmulatorView(
   override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
     super.hardwareInputStateChanged(event, enabled)
     updateCameraPromptAndMultiTouchFeedback(event.inputEvent!!)
+  }
+
+  /** Returns the key name of the skin button containing [point], or null if not found.  */
+  private fun findSkinButtonContaining(point: Point): String? {
+    if (!deviceFrameVisible) {
+      return null
+    }
+    val skin = lastScreenshot?.skinLayout ?: return null
+    val displayRect = displayRectangle ?: return null
+    val x = point.x.scaled(screenScale)
+    val y = point.y.scaled(screenScale)
+    if (displayRect.contains(point)) {
+      return null
+    }
+    return skin.findSkinButtonContaining(x - displayRect.x, y - displayRect.y)?.keyName
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
@@ -963,31 +1014,37 @@ class EmulatorView(
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
+      buttons = buttons or getButtonBit(event.button)
+      mouseCoordinates = event.point
       if (xrInputController?.mousePressed(event) == true) {
         return
       }
-      buttons = buttons or getButtonBit(event.button)
       if (isInsideDisplay(event)) {
         lastTouchCoordinates = Point(event.x, event.y)
         updateMultiTouchMode(event)
         sendMouseEvent(event.x, event.y, buttons)
       }
+      else if (event.button == BUTTON1 && highlightedSkinButtonKey != null) {
+        pressedSkinButtonKey = highlightedSkinButtonKey
+      }
     }
 
     override fun mouseReleased(event: MouseEvent) {
+      buttons = buttons and getButtonBit(event.button).inv()
+      mouseCoordinates = event.point
       if (xrInputController?.mouseReleased(event) == true) {
         return
       }
-      buttons = buttons and getButtonBit(event.button).inv()
       if (event.button == BUTTON1) {
         lastTouchCoordinates = null
         updateMultiTouchMode(event)
+        pressedSkinButtonKey = null
       }
       sendMouseEvent(event.x, event.y, buttons)
     }
 
     override fun mouseEntered(event: MouseEvent) {
-      mouseIsInside = true
+      mouseCoordinates = event.point
       if (xrInputController?.mouseEntered(event) == true) {
         return
       }
@@ -995,7 +1052,7 @@ class EmulatorView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      mouseIsInside = false
+      mouseCoordinates = null
       if (xrInputController?.mouseExited(event) == true) {
         return
       }
@@ -1008,6 +1065,7 @@ class EmulatorView(
     }
 
     override fun mouseDragged(event: MouseEvent) {
+      mouseCoordinates = event.point
       if (xrInputController?.mouseDragged(event) == true) {
         return
       }
@@ -1018,6 +1076,7 @@ class EmulatorView(
     }
 
     override fun mouseMoved(event: MouseEvent) {
+      mouseCoordinates = event.point
       if (xrInputController?.mouseMoved(event) == true) {
         return
       }
@@ -1028,6 +1087,7 @@ class EmulatorView(
     }
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {
+      mouseCoordinates = event.point
       if (event.wheelRotation == 0 || event.scrollType != WHEEL_UNIT_SCROLL) {
         return
       }
@@ -1483,7 +1543,6 @@ private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
 private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * PI / 180
 
 private val ZERO_POINT = Point()
-private const val ALPHA_MASK = 0xFF shl 24
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)

@@ -515,6 +515,25 @@ class EmulatorViewTest {
   }
 
   @Test
+  fun testSkinButtons() {
+    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createAvdWithSkinButtons(path) }
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+
+    // Check initial appearance.
+    fakeUi.root.size = Dimension(110, 200)
+    fakeUi.layoutAndDispatchEvents()
+    val call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 180 height: 275")
+    fakeUi.mouse.moveTo(23, 166)
+    assertAppearance("SkinButtons1")
+    fakeUi.mouse.press(23, 166)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"GoBack\" }")
+    fakeUi.mouse.release()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"GoBack\" }")
+  }
+
+  @Test
   fun testMouseMoveSendGrpc() {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 1.0)
@@ -924,6 +943,10 @@ class EmulatorViewTest {
   }
 
   @Throws(TimeoutException::class)
+  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
+      fakeEmulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
+
+  @Throws(TimeoutException::class)
   private fun waitForFrame() {
     waitForCondition(2.seconds) {
       view.emulator.connectionState == ConnectionState.CONNECTED &&
@@ -952,5 +975,8 @@ private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent>
 
 private fun getKeyStroke(action: String) =
     KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
+
+private val IGNORE_SCREENSHOT_CALL_FILTER =
+    FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamScreenshot")
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorViewTest/golden"

@@ -22,4 +22,5 @@ import com.android.sdklib.deviceprovisioner.DeviceType
  */
 class EmulatorOverviewButtonAction :
     EmulatorPushButtonAction("AppSwitch",
-                             configFilter = { it.deviceType != DeviceType.AUTOMOTIVE && (it.deviceType != DeviceType.WEAR || it.api < 28) })
+                             configFilter = { it.deviceType != DeviceType.AUTOMOTIVE && (it.deviceType != DeviceType.WEAR || it.api < 28) },
+                             skinOverridesConfigFilter = true)

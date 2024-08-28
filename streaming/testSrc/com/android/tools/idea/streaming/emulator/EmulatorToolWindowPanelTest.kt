@@ -1190,7 +1190,7 @@ class EmulatorToolWindowPanelTest {
   }
 }
 
-val IGNORE_SCREENSHOT_CALL_FILTER =
+private val IGNORE_SCREENSHOT_CALL_FILTER =
     FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamScreenshot")
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest"
