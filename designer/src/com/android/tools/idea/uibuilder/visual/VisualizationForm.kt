@@ -700,7 +700,9 @@ class VisualizationForm(
       surface.models
         .mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.sceneRenderConfiguration.showDecorations = state }
-      surface.requestRender().thenRun {
+      scope.launch {
+        // TODO(b/335424569): replace by requestRenderAndWait when available
+        surface.sceneManagers.forEach { it.requestRenderAsync().await() }
         if (!Disposer.isDisposed(visualizationForm.myWorkBench)) {
           visualizationForm.myWorkBench.showContent()
         }
