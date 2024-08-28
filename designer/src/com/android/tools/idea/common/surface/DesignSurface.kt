@@ -96,7 +96,6 @@ import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
-import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1155,20 +1154,12 @@ abstract class DesignSurface<T : SceneManager>(
       )
   }
 
-  private val renderFutures = mutableListOf<CompletableFuture<Void>>()
-
-  /** Returns true if this surface is currently refreshing. */
-  fun isRefreshing(): Boolean {
-    synchronized(renderFutures) {
-      return renderFutures.isNotEmpty()
-    }
-  }
-
   /**
    * Invalidates all models and request a render of the layout. This will re-inflate the [NlModel]s
    * and render them sequentially. The result [CompletableFuture] will notify when all the
    * renderings have completed.
    */
+  // TODO(b/361786751): make this method suspendable or remove it
   open fun requestRender(): CompletableFuture<out Void?> {
     if (sceneManagers.isEmpty()) {
       return CompletableFuture.completedFuture(null)
@@ -1183,42 +1174,16 @@ abstract class DesignSurface<T : SceneManager>(
    *   choose the preferred rendering request.
    * @return A callback which is triggered when the scheduled rendering are completed.
    */
+  // TODO(b/361786751): make this method suspendable or remove it
   protected fun requestSequentialRender(
     renderRequest: (T) -> CompletableFuture<Void>
   ): CompletableFuture<Void> {
-    val callback = CompletableFuture<Void>()
-    synchronized(renderFutures) {
-      if (renderFutures.isNotEmpty()) {
-        // TODO: This may make the rendered previews not match the last status of NlModel if the
-        // modifications happen during rendering.
-        // Similar case happens in LayoutlibSceneManager#requestRender function, both need to be
-        // fixed.
-        renderFutures.add(callback)
-        return callback
-      } else {
-        renderFutures.add(callback)
-      }
-    }
-
     // Cascading the CompletableFuture to make them executing sequentially.
     var renderFuture = CompletableFuture.completedFuture<Void?>(null)
     for (manager in sceneManagers) {
-      renderFuture =
-        renderFuture.thenCompose {
-          val future = renderRequest(manager)
-          invalidate()
-          future
-        }
+      renderFuture = renderFuture.thenCompose { renderRequest(manager) }
     }
-    renderFuture.thenRun {
-      synchronized(renderFutures) {
-        renderFutures.forEach { it.complete(null) }
-        renderFutures.clear()
-      }
-      updateNotifications()
-    }
-
-    return callback
+    return renderFuture
   }
 
   private var lintIssueProvider: LintIssueProvider? = null
@@ -1301,14 +1266,6 @@ abstract class DesignSurface<T : SceneManager>(
     clearListeners()
     guiInputHandler.stopListening()
     Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
-    synchronized(renderFutures) {
-      for (future in renderFutures) {
-        try {
-          future.cancel(true)
-        } catch (ignored: CancellationException) {}
-      }
-      renderFutures.clear()
-    }
     if (repaintTimer.isRunning) {
       repaintTimer.stop()
     }
