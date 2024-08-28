@@ -24,7 +24,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  *
