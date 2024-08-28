@@ -31,11 +31,13 @@ import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
 import java.awt.Font
 
-class DrawHeader(private val rectangle: SwingRectangle,
-                 private val scale: Scale,
-                 private val text: String,
-                 private val isStart: Boolean,
-                 private val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawHeader(
+  private val rectangle: SwingRectangle,
+  private val scale: Scale,
+  private val text: String,
+  private val isStart: Boolean,
+  private val hasDeepLink: Boolean,
+) : CompositeDrawCommand(COMPONENT_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 
@@ -52,13 +54,17 @@ class DrawHeader(private val rectangle: SwingRectangle,
     }
 
     if (hasDeepLink) {
-      val deepLinkRect = SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
+      val deepLinkRect =
+        SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
       list.add(DrawIcon(DEEPLINK, deepLinkRect))
       textWidth -= iconSize + textPadding
     }
 
-    val textRectangle = SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
-    list.add(DrawTruncatedText(text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
+    val textRectangle =
+      SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
+    list.add(
+      DrawTruncatedText(text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false)
+    )
 
     return list
   }

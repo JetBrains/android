@@ -57,14 +57,17 @@ class DefaultValueModelTest : NavTestCase() {
           argument("argument1", "string", value = "foo")
           argument("argument2", "int", value = "10")
         }
-        action("action1", "fragment1") {
-          argument("argument2", value = "15")
-        }
+        action("action1", "fragment1") { argument("argument2", value = "15") }
       }
     }
   }
 
-  private fun assertEquals(defaultValueModel: DefaultValueModel, name: String, type: String, defaultValue: String) {
+  private fun assertEquals(
+    defaultValueModel: DefaultValueModel,
+    name: String,
+    type: String,
+    defaultValue: String,
+  ) {
     assertEquals(defaultValueModel.name, name)
     assertEquals(defaultValueModel.type, type)
     assertEquals(defaultValueModel.defaultValue, defaultValue)

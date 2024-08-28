@@ -27,14 +27,19 @@ import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawActivity
 
 /**
- * [SceneDecorator] responsible for creating draw commands for one activity in the navigation editor.
+ * [SceneDecorator] responsible for creating draw commands for one activity in the navigation
+ * editor.
  */
-
 private val ACTIVITY_PADDING = scaledAndroidLength(8f)
 private val ACTIVITY_TEXT_HEIGHT = scaledAndroidLength(26f)
 
 object ActivityDecorator : NavScreenDecorator() {
-  override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
+  override fun addContent(
+    list: DisplayList,
+    time: Long,
+    sceneContext: SceneContext,
+    component: SceneComponent,
+  ) {
     super.addContent(list, time, sceneContext, component)
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return
@@ -56,6 +61,16 @@ object ActivityDecorator : NavScreenDecorator() {
     val textColor = textColor(component)
     val image = buildImage(sceneContext, component, imageRectangle)
 
-    list.add(DrawActivity(drawRectangle, imageRectangle, scale, frameColor, frameThickness, textColor, image))
+    list.add(
+      DrawActivity(
+        drawRectangle,
+        imageRectangle,
+        scale,
+        frameColor,
+        frameThickness,
+        textColor,
+        image,
+      )
+    )
   }
 }

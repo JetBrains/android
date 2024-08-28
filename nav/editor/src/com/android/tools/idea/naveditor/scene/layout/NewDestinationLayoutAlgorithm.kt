@@ -28,7 +28,6 @@ const val NEW_DESTINATION_MARKER_PROPERTY = "new.destination"
 @SwingCoordinate private val INCREMENTAL_OFFSET = JBUI.scale(30)
 @SwingCoordinate private val TOLERANCE = JBUI.scale(5)
 
-
 class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
   override fun doLayout(component: SceneComponent): Boolean {
     if (component.nlComponent.getClientProperty(NEW_DESTINATION_MARKER_PROPERTY) != true) {
@@ -47,9 +46,12 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
 
     val children = surface.scene?.root?.children!!
 
-    while (children.any {
-        Math.abs(it.getDrawX(0) - point.x) < tolerance && Math.abs(it.getDrawY(0) - point.y) < tolerance
-      }) {
+    while (
+      children.any {
+        Math.abs(it.getDrawX(0) - point.x) < tolerance &&
+          Math.abs(it.getDrawY(0) - point.y) < tolerance
+      }
+    ) {
       point.translate(incrementalOffset, incrementalOffset)
     }
     component.setPosition(point.x, point.y)

@@ -116,12 +116,13 @@ class NavPropertiesViewTest : NavTestCase() {
   }
 
   fun testInclude() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1")
-        include("include1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1")
+          include("include1")
+        }
       }
-    }
 
     val root = model.treeReader.find("root")!!
     val include = root.children.first { it.tagName == TAG_INCLUDE }
@@ -139,16 +140,13 @@ class NavPropertiesViewTest : NavTestCase() {
   }
 
   fun testArgument() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        action("action1", destination = "fragment1") {
-          argument("argument")
-        }
-        fragment("fragment1") {
-          argument("argument")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          action("action1", destination = "fragment1") { argument("argument") }
+          fragment("fragment1") { argument("argument") }
         }
       }
-    }
 
     val root = model.treeReader.find("action1")!!
     val include = root.children.first { it.tagName == TAG_ARGUMENT }
@@ -158,19 +156,18 @@ class NavPropertiesViewTest : NavTestCase() {
   }
 
   private fun setupPanel(name: String): FakeInspectorPanel {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1") {
-          action("action1", "nested1")
-          deeplink("deeplink1", "www.foo.com")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1") {
+            action("action1", "nested1")
+            deeplink("deeplink1", "www.foo.com")
+          }
+          activity("activity1")
+          navigation("nested1", "fragment2") { fragment("fragment2") }
+          include("include1")
         }
-        activity("activity1")
-        navigation("nested1", "fragment2") {
-          fragment("fragment2")
-        }
-        include("include1")
       }
-    }
 
     val component = model.treeReader.find(name)!!
     return setupPanel(component, model.facet)
@@ -200,7 +197,12 @@ class NavPropertiesViewTest : NavTestCase() {
     assertEquals(FakeLineType.PANEL, inspector.lines[line].type)
   }
 
-  private fun checkEditor(inspector: FakeInspectorPanel, line: Int, namespace: String, name: String) {
+  private fun checkEditor(
+    inspector: FakeInspectorPanel,
+    line: Int,
+    namespace: String,
+    name: String,
+  ) {
     assertTrue(line < inspector.lines.size)
     assertEquals(FakeLineType.PROPERTY, inspector.lines[line].type)
     assertEquals(name, inspector.lines[line].editorModel?.property?.name)

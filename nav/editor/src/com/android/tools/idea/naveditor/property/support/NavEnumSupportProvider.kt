@@ -48,26 +48,28 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
 
     val component = components[0]
 
-    val values = when (property.namespace) {
-      AUTO_URI -> {
-        when (property.name) {
-          ATTR_DESTINATION,
-          ATTR_POP_UP_TO -> getDestinations(component)
-          ATTR_START_DESTINATION -> getStartDestinations(component)
-          else -> return null
-        }
-      }
-      ANDROID_URI -> {
-        when (property.name) {
-          ATTR_NAME -> {
-            val classes = SlowOperations.allowSlowOperations(ThrowableComputable { getClasses(component) })
-            return ClassEnumSupport(emptyList.plus(classes))
+    val values =
+      when (property.namespace) {
+        AUTO_URI -> {
+          when (property.name) {
+            ATTR_DESTINATION,
+            ATTR_POP_UP_TO -> getDestinations(component)
+            ATTR_START_DESTINATION -> getStartDestinations(component)
+            else -> return null
           }
-          else -> return null
         }
+        ANDROID_URI -> {
+          when (property.name) {
+            ATTR_NAME -> {
+              val classes =
+                SlowOperations.allowSlowOperations(ThrowableComputable { getClasses(component) })
+              return ClassEnumSupport(emptyList.plus(classes))
+            }
+            else -> return null
+          }
+        }
+        else -> return null
       }
-      else -> return null
-    }
 
     return DestinationEnumSupport(emptyList.plus(values))
   }
@@ -95,7 +97,14 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
     private fun getClasses(component: NlComponent): List<EnumValue> {
       return getClassesForTag(component.model.module, component.tagName)
         .filterKeys { it.qualifiedName != null }
-        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key.qualifiedName!!), it.value, it.key.isInProject()) }
+        .map {
+          ClassEnumValue(
+            it.key.qualifiedName!!,
+            displayString(it.key.qualifiedName!!),
+            it.value,
+            it.key.isInProject(),
+          )
+        }
         .sortedWith(compareBy({ !it.isInProject }, { it.display }))
         .toList()
     }

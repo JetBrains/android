@@ -33,17 +33,13 @@ import java.awt.geom.AffineTransform
 private const val UNAVAILABLE_TEXT_1 = "Preview"
 private const val UNAVAILABLE_TEXT_2 = "Unavailable"
 private const val LOADING_TEXT_1 = "Loading..."
-@NavCoordinate
-private val TEXT_PADDING = JBUI.scale(4)
-@NavCoordinate
-private val FONT_SIZE = JBUI.scale(14)
+@NavCoordinate private val TEXT_PADDING = JBUI.scale(4)
+@NavCoordinate private val FONT_SIZE = JBUI.scale(14)
 private const val FONT_NAME = "Default"
 
-/**
- * [DrawCommand] that draws a screen in the navigation editor.
- */
-class DrawNavScreen(private val rectangle: SwingRectangle,
-                    private val image: RefinableImage) : DrawCommandBase() {
+/** [DrawCommand] that draws a screen in the navigation editor. */
+class DrawNavScreen(private val rectangle: SwingRectangle, private val image: RefinableImage) :
+  DrawCommandBase() {
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.clip(rectangle.value)
@@ -53,17 +49,13 @@ class DrawNavScreen(private val rectangle: SwingRectangle,
       val transform = AffineTransform()
       transform.translate(rectangle.x.toDouble(), rectangle.y.toDouble())
       UIUtil.drawImage(g, image, rectangle.x.toInt(), rectangle.y.toInt(), null)
-    }
-    else if (lastCompleted.refined == null) {
+    } else if (lastCompleted.refined == null) {
       drawText(UNAVAILABLE_TEXT_1, UNAVAILABLE_TEXT_2, g, sceneContext)
-    }
-    else {
+    } else {
       drawText(LOADING_TEXT_1, null, g, sceneContext)
     }
     if (lastCompleted.refined != null) {
-      lastCompleted.refined.thenRun {
-        sceneContext.repaint()
-      }
+      lastCompleted.refined.thenRun { sceneContext.repaint() }
     }
   }
 
@@ -86,5 +78,4 @@ class DrawNavScreen(private val rectangle: SwingRectangle,
       g.drawString(text2, x, y)
     }
   }
-
 }

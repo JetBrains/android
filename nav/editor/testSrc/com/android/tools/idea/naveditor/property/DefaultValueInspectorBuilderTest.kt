@@ -26,18 +26,17 @@ import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 
 class DefaultValueInspectorBuilderTest : NavTestCase() {
   fun testValues() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          argument("argument1", "int", value = "10")
-          argument("argument3", "float", value = "20f")
-          argument("argument2", "string", value = "foo")
-        }
-        action("action1", "fragment1") {
-          argument("argument1", value = "15")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            argument("argument1", "int", value = "10")
+            argument("argument3", "float", value = "20f")
+            argument("argument2", "string", value = "foo")
+          }
+          action("action1", "fragment1") { argument("argument1", value = "15") }
         }
       }
-    }
 
     val action1 = model.treeReader.find("action1")!!
 
@@ -58,16 +57,15 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
   }
 
   fun testUpdates() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          argument("argument1", "int", value = "10")
-        }
-        action("action1", "fragment1") {
-          argument("argument1", value = "15")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            argument("argument1", "int", value = "10")
+          }
+          action("action1", "fragment1") { argument("argument1", value = "15") }
         }
       }
-    }
 
     val action1 = model.treeReader.find("action1")!!
 
@@ -90,10 +88,15 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
     assertEquals(tableModel, 0, "argument1", "int", "")
   }
 
-  private fun assertEquals(table: DefaultValueTableModel, row: Int, name: String, type: String, defaultValue: String) {
+  private fun assertEquals(
+    table: DefaultValueTableModel,
+    row: Int,
+    name: String,
+    type: String,
+    defaultValue: String,
+  ) {
     assertEquals(table.getValueAt(row, 0), name)
     assertEquals(table.getValueAt(row, 1), type)
     assertEquals(table.getValueAt(row, 2), defaultValue)
   }
 }
-

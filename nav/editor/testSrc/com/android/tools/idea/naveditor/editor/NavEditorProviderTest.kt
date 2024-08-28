@@ -29,6 +29,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
 import junit.framework.Assert.assertFalse
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
@@ -36,12 +37,10 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
 
 class NavEditorProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val provider = NavEditorProvider()
 
@@ -64,10 +63,11 @@ class NavEditorProviderTest {
 
   @Language("XML")
   private fun layoutContent(): String {
-    val layout = ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
-      .withBounds(0, 0, 1000, 1000)
-      .matchParentWidth()
-      .matchParentHeight()
+    val layout =
+      ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
     val sb = StringBuilder(1000)
     layout.appendXml(sb, 0)
     return sb.toString()
@@ -75,20 +75,21 @@ class NavEditorProviderTest {
 }
 
 class NavEditorProviderWithNavEditorTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val navEditorRule = NavEditorRule(projectRule)
 
-
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule).around(disposableRule)
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule).around(navEditorRule).around(disposableRule)
 
   @RunsInEdt
   @Test
   fun testCaretNotification() = runBlocking {
-    @Language("XML") val fileContents = """
+    @Language("XML")
+    val fileContents =
+      """
       <navigation xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:app="http://schemas.android.com/apk/res-auto"
           app:startDestination="@id/donutList">
@@ -119,14 +120,19 @@ class NavEditorProviderWithNavEditorTest {
     editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
     assertThat(surface.selectionModel.selection).isEqualTo(model.treeReader.components)
     editor.editor.caretModel.moveCaretRelatively(10, 2, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.treeReader.find("donutList")))
+    assertThat(surface.selectionModel.selection)
+      .isEqualTo(listOf(model.treeReader.find("donutList")))
     editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.treeReader.find("action_donutList_to_donutEntryDialogFragment")))
+    assertThat(surface.selectionModel.selection)
+      .isEqualTo(listOf(model.treeReader.find("action_donutList_to_donutEntryDialogFragment")))
     editor.editor.caretModel.moveCaretRelatively(0, 4, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
+    assertThat(surface.selectionModel.selection)
+      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
     editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
+    assertThat(surface.selectionModel.selection)
+      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
     editor.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertThat(surface.selectionModel.selection).isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
+    assertThat(surface.selectionModel.selection)
+      .isEqualTo(listOf(model.treeReader.find("donutEntryDialogFragment")))
   }
 }

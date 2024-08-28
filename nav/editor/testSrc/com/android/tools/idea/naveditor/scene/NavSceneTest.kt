@@ -53,44 +53,41 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
-import java.awt.geom.Point2D
-import java.awt.geom.Rectangle2D
 
-/**
- * Tests for the nav editor Scene.
- */
+/** Tests for the nav editor Scene. */
 @RunsInEdt
 class NavSceneTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val navEditorRule = NavEditorRule(projectRule)
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule)
 
   @Test
   fun testDisplayList() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          action("action1", destination = "nested")
-          action("action2", destination = "activity")
-        }
-        navigation("nested") {
-          fragment("fragment2", layout = "activity_main2") {
-            action("action3", destination = "activity")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            action("action1", destination = "nested")
+            action("action2", destination = "activity")
           }
+          navigation("nested") {
+            fragment("fragment2", layout = "activity_main2") {
+              action("action3", destination = "activity")
+            }
+          }
+          activity("activity")
         }
-        activity("activity")
       }
-    }
     val scene = model.surface.scene!!
 
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
@@ -105,30 +102,57 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+      )
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 76.5f, 128f),
+        0.5,
+        previewType = PreviewType.IMAGE,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(580f, 389f, 76.5f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(580f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(580f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "activity")
-      verifyDrawActivity(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-                         Rectangle2D.Float(404.0f, 404.0f, 68.5f, 111.0f),
-                         0.5, FRAME_COLOR, 1f, FRAME_COLOR)
+      verifyDrawActivity(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        Rectangle2D.Float(404.0f, 404.0f, 68.5f, 111.0f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        FRAME_COLOR,
+      )
     }
   }
 
   @Test
   fun testInclude() {
-    val model = navEditorRule.model("nav2.xml") {
-      navigation("root") {
-        fragment("fragment1") {
-          action("action1", destination = "nav")
+    val model =
+      navEditorRule.model("nav2.xml") {
+        navigation("root") {
+          fragment("fragment1") { action("action1", destination = "nav") }
+          include("navigation")
         }
-        include("navigation")
       }
-    }
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nav")!!, 320, 20)
@@ -143,20 +167,29 @@ class NavSceneTest {
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "navigation.xml", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "navigation.xml",
+        FRAME_COLOR,
+      )
     }
   }
 
   @Test
   fun testNegativePositions() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main")
-        fragment("fragment2", layout = "activity_main")
-        fragment("fragment3", layout = "activity_main")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main")
+          fragment("fragment2", layout = "activity_main")
+          fragment("fragment3", layout = "activity_main")
+        }
       }
-    }
 
     val scene = model.surface.scene!!
     val sceneManager = scene.sceneManager as NavSceneManager
@@ -179,13 +212,14 @@ class NavSceneTest {
 
   @Test
   fun testVeryPositivePositions() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main")
-        fragment("fragment2", layout = "activity_main")
-        fragment("fragment3", layout = "activity_main")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main")
+          fragment("fragment2", layout = "activity_main")
+          fragment("fragment3", layout = "activity_main")
+        }
       }
-    }
 
     val scene = model.surface.scene!!
     val sceneManager: NavSceneManager = scene.sceneManager as NavSceneManager
@@ -210,14 +244,16 @@ class NavSceneTest {
   fun testAddComponent() {
     lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
 
-    val modelBuilder = navEditorRule.modelBuilder("nav.xml") {
-      navigation("root", startDestination = "fragment2") {
-        fragment("fragment1", layout = "activity_main") {
-          action("action1", destination = "fragment2")
-        }
-        fragment("fragment2", layout = "activity_main2")
-      }.also { root = it }
-    }
+    val modelBuilder =
+      navEditorRule.modelBuilder("nav.xml") {
+        navigation("root", startDestination = "fragment2") {
+            fragment("fragment1", layout = "activity_main") {
+              action("action1", destination = "fragment2")
+            }
+            fragment("fragment2", layout = "activity_main2")
+          }
+          .also { root = it }
+      }
     val model = modelBuilder.build()
 
     val scene = model.surface.scene!!
@@ -244,14 +280,15 @@ class NavSceneTest {
 
   @Test
   fun testRemoveComponent() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment2") {
-        fragment("fragment1", layout = "activity_main") {
-          action("action1", destination = "fragment2")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment2") {
+          fragment("fragment1", layout = "activity_main") {
+            action("action1", destination = "fragment2")
+          }
+          fragment("fragment2", layout = "activity_main2")
         }
-        fragment("fragment2", layout = "activity_main2")
       }
-    }
     val editor = TestNavEditor(model.virtualFile, projectRule.project)
 
     val scene = model.surface.scene!!
@@ -283,24 +320,19 @@ class NavSceneTest {
 
   @Test
   fun testNestedGraph() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment2") {
-        fragment("fragment1") {
-          action("action1", destination = "fragment2")
-        }
-        fragment("fragment2", layout = "activity_main2") {
-          action("action2", destination = "fragment3")
-        }
-        navigation("nested") {
-          fragment("fragment3") {
-            action("action3", destination = "fragment4")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment2") {
+          fragment("fragment1") { action("action1", destination = "fragment2") }
+          fragment("fragment2", layout = "activity_main2") {
+            action("action2", destination = "fragment3")
           }
-          fragment("fragment4") {
-            action("action4", destination = "fragment1")
+          navigation("nested") {
+            fragment("fragment3") { action("action3", destination = "fragment4") }
+            fragment("fragment4") { action("action4", destination = "fragment1") }
           }
         }
       }
-    }
 
     val scene = model.surface.scene!!
     val component1 = scene.getSceneComponent("fragment1")!!
@@ -335,31 +367,37 @@ class NavSceneTest {
 
   @Test
   fun testNonexistentLayout() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1", layout = "activity_nonexistent")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") { fragment("fragment1", layout = "activity_nonexistent") }
       }
-    }
     val scene = model.surface.scene!!
 
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.UNAVAILABLE)
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        0.5,
+        previewType = PreviewType.UNAVAILABLE,
+      )
     }
   }
 
   @Test
   fun testSelectedNlComponentSelectedInScene() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          action("action1", destination = "nested")
-          action("action2", destination = "activity")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            action("action1", destination = "nested")
+            action("action2", destination = "activity")
+          }
         }
       }
-    }
     val surface = model.surface
     val rootComponent = model.treeReader.components[0]
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
@@ -377,16 +415,15 @@ class NavSceneTest {
 
   @Test
   fun testSelfAction() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          action("action1", destination = "fragment1")
-        }
-        navigation("nav1") {
-          action("action2", destination = "nav1")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            action("action1", destination = "fragment1")
+          }
+          navigation("nav1") { action("action2", destination = "nav1") }
         }
       }
-    }
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
     moveComponentTo(scene.getSceneComponent("nav1")!!, 320, 20)
@@ -398,43 +435,79 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+      )
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        0.5,
+        previewType = PreviewType.IMAGE,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav1")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
     }
   }
 
   @Test
   fun testDeepLinks() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1", layout = "activity_main") {
-          deeplink("deepLink", "https://www.android.com/")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1", layout = "activity_main") {
+            deeplink("deepLink", "https://www.android.com/")
+          }
         }
       }
-    }
     val scene = model.surface.scene!!
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5,
-                       "fragment1", isStart = true, hasDeepLink = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+        hasDeepLink = true,
+      )
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        0.5,
+        previewType = PreviewType.IMAGE,
+      )
     }
   }
 
   @Test
   fun testSelectedComponent() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        action("a1", destination = "fragment1")
-        fragment("fragment1")
-        navigation("nested")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          action("a1", destination = "fragment1")
+          fragment("fragment1")
+          navigation("nested")
+        }
       }
-    }
     val scene = model.surface.scene!!
 
     // Selecting global nav brings it to the front
@@ -448,12 +521,33 @@ class NavSceneTest {
 
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
 
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+      )
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, SELECTED_COLOR)
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        SELECTED_COLOR,
+      )
     }
 
     // now "nested" is in the front
@@ -462,43 +556,108 @@ class NavSceneTest {
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+      )
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        ACTION_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
-      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 0f, 0f, SELECTED_COLOR, HANDLE_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        SELECTED_COLOR,
+        2f,
+        "Nested Graph",
+        SELECTED_COLOR,
+      )
+      verifyDrawActionHandle(
+        inOrder,
+        g,
+        Point2D.Float(560f, 409.5f),
+        0f,
+        0f,
+        SELECTED_COLOR,
+        HANDLE_COLOR,
+      )
     }
 
     // test multi select
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!, nested))
+    model.surface.selectionModel.setSelection(
+      ImmutableList.of(model.treeReader.find("fragment1")!!, nested)
+    )
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "fragment1",
+        isStart = true,
+      )
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        0.5,
+        SELECTED_COLOR,
+      )
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        ACTION_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
-      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 3.5f, 2.5f, SELECTED_COLOR, HANDLE_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        SELECTED_COLOR,
+        2f,
+        "Nested Graph",
+        SELECTED_COLOR,
+      )
+      verifyDrawActionHandle(
+        inOrder,
+        g,
+        Point2D.Float(560f, 409.5f),
+        3.5f,
+        2.5f,
+        SELECTED_COLOR,
+        HANDLE_COLOR,
+      )
     }
   }
 
   @Test
   fun testHoveredComponent() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1") {
-          action("a1", destination = "nested")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1") { action("a1", destination = "nested") }
+          navigation("nested")
+          action("a2", destination = "fragment1")
         }
-        navigation("nested")
-        action("a2", destination = "fragment1")
       }
-    }
 
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
@@ -513,12 +672,34 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
-      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        ACTION_COLOR,
+      )
+      verifyDrawActionHandle(
+        inOrder,
+        g,
+        Point2D.Float(478.5f, 464f),
+        0f,
+        0f,
+        FRAME_COLOR,
+        HANDLE_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
     }
 
     scene.mouseHover(transform, 552, 440, 0)
@@ -527,12 +708,34 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
-      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 3.5f, 2.5f, FRAME_COLOR, HANDLE_COLOR)
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        ACTION_COLOR,
+      )
+      verifyDrawActionHandle(
+        inOrder,
+        g,
+        Point2D.Float(478.5f, 464f),
+        3.5f,
+        2.5f,
+        FRAME_COLOR,
+        HANDLE_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
     }
 
     scene.mouseHover(transform, 120, 148, 0)
@@ -541,21 +744,31 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, FRAME_COLOR)
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        FRAME_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
     }
   }
 
   @Test
   fun testHoveredHandle() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = navEditorRule.model("nav.xml") { navigation("root") { fragment("fragment1") } }
 
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 20, 20)
@@ -571,21 +784,28 @@ class NavSceneTest {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
-      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
+      verifyDrawActionHandle(
+        inOrder,
+        g,
+        Point2D.Float(478.5f, 464f),
+        0f,
+        0f,
+        FRAME_COLOR,
+        HANDLE_COLOR,
+      )
     }
   }
 
   @Test
   fun testHoverDuringDrag() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1") {
-          action("a1", destination = "nested")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1") { action("a1", destination = "nested") }
+          navigation("nested")
+          action("a2", destination = "fragment1")
         }
-        navigation("nested")
-        action("a2", destination = "fragment1")
       }
-    }
 
     val surface = model.surface
     val scene = surface.scene!!
@@ -610,23 +830,39 @@ class NavSceneTest {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
-                            SELECTED_COLOR, 2f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(490f, 400f, 70f, 19f),
+        0.5,
+        SELECTED_COLOR,
+        2f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
-      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
-      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawFragment(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+        0.5,
+        SELECTED_COLOR,
+      )
+      verifyDrawHorizontalAction(
+        inOrder,
+        g,
+        Rectangle2D.Float(384f, 461f, 12f, 6f),
+        0.5,
+        ACTION_COLOR,
+      )
       verifyDrawActionHandleDrag(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 2.5f, -1, -1)
     }
   }
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
   fun disabledTestDevices() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = navEditorRule.model("nav.xml") { navigation("root") { fragment("fragment1") } }
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
@@ -634,14 +870,20 @@ class NavSceneTest {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     list.clear()
-    model.configuration
-      .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
+    model.configuration.setDevice(
+      DeviceManagerConnection.getDefaultDeviceManagerConnection()
+        .getDevice("wear_square", "Google"),
+      false,
+    )
     surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     list.clear()
-    model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
+    model.configuration.setDevice(
+      DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"),
+      false,
+    )
     surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
@@ -649,23 +891,24 @@ class NavSceneTest {
 
   @Test
   fun testGlobalActions() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        action("action1", destination = "fragment1")
-        action("action2", destination = "fragment2")
-        action("action3", destination = "fragment2")
-        action("action4", destination = "fragment3")
-        action("action5", destination = "fragment3")
-        action("action6", destination = "fragment3")
-        action("action7", destination = "invalid")
-        fragment("fragment1")
-        fragment("fragment2") {
-          action("action8", destination = "fragment3")
-          action("action9", destination = "fragment2")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") {
+          action("action1", destination = "fragment1")
+          action("action2", destination = "fragment2")
+          action("action3", destination = "fragment2")
+          action("action4", destination = "fragment3")
+          action("action5", destination = "fragment3")
+          action("action6", destination = "fragment3")
+          action("action7", destination = "invalid")
+          fragment("fragment1")
+          fragment("fragment2") {
+            action("action8", destination = "fragment3")
+            action("action9", destination = "fragment2")
+          }
+          fragment("fragment3")
         }
-        fragment("fragment3")
       }
-    }
 
     val scene = model.surface.scene!!
 
@@ -688,14 +931,13 @@ class NavSceneTest {
 
   @Test
   fun testPopToDestination() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-        fragment("fragment2") {
-          action("a", popUpTo = "fragment1")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation {
+          fragment("fragment1")
+          fragment("fragment2") { action("a", popUpTo = "fragment1") }
         }
       }
-    }
     val surface = model.surface
     val scene = surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
@@ -717,33 +959,30 @@ class NavSceneTest {
 
   @Test
   fun testExitActions() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1")
-        navigation("nav1") {
-          fragment("fragment2") {
-            action("action1", destination = "fragment1")
-          }
-          fragment("fragment3") {
-            action("action2", destination = "fragment1")
-            action("action3", destination = "fragment1")
-          }
-          fragment("fragment4") {
-            action("action4", destination = "fragment1")
-            action("action5", destination = "fragment1")
-            action("action6", destination = "fragment1")
-            action("action7", destination = "fragment2")
-          }
-          fragment("fragment5") {
-            action("action8", destination = "fragment1")
-            action("action9", destination = "fragment5")
-          }
-          navigation("nav2") {
-            action("action9", destination = "root")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root", startDestination = "fragment1") {
+          fragment("fragment1")
+          navigation("nav1") {
+            fragment("fragment2") { action("action1", destination = "fragment1") }
+            fragment("fragment3") {
+              action("action2", destination = "fragment1")
+              action("action3", destination = "fragment1")
+            }
+            fragment("fragment4") {
+              action("action4", destination = "fragment1")
+              action("action5", destination = "fragment1")
+              action("action6", destination = "fragment1")
+              action("action7", destination = "fragment2")
+            }
+            fragment("fragment5") {
+              action("action8", destination = "fragment1")
+              action("action9", destination = "fragment5")
+            }
+            navigation("nav2") { action("action9", destination = "root") }
           }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     whenever<NlComponent>(surface.currentNavigation).then { model.treeReader.find("nav1")!! }
@@ -772,12 +1011,13 @@ class NavSceneTest {
 
   @Test
   fun testHoverMarksComponent() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          fragment("fragment2")
+        }
       }
-    }
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
@@ -815,12 +1055,13 @@ class NavSceneTest {
 
   @Test
   fun testHoverGlobalAction() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation("root") {
-        action("a1", destination = "fragment1")
-        fragment("fragment1")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation("root") {
+          action("a1", destination = "fragment1")
+          fragment("fragment1")
+        }
       }
-    }
 
     val scene = model.surface.scene!!
     val view = model.surface.focusedSceneView!!
@@ -841,20 +1082,21 @@ class NavSceneTest {
 
   @Test
   fun testRegularActions() {
-    val model = navEditorRule.model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-          action("a2", destination = "nav1")
+    val model =
+      navEditorRule.model("nav.xml") {
+        navigation {
+          fragment("fragment1") {
+            action("a1", destination = "fragment2")
+            action("a2", destination = "nav1")
+          }
+          fragment("fragment2")
+          navigation("nav1") {
+            action("a3", destination = "fragment1")
+            action("a4", destination = "nav2")
+          }
+          navigation("nav2")
         }
-        fragment("fragment2")
-        navigation("nav1") {
-          action("a3", destination = "fragment1")
-          action("a4", destination = "nav2")
-        }
-        navigation("nav2")
       }
-    }
 
     val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
@@ -878,12 +1120,28 @@ class NavSceneTest {
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(550f, 400f, 76.5f, 128f), 0.5)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 629f, 76.5f, 11f), 0.5, "nav1")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(400f, 640f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 640f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(550f, 629f, 76.5f, 11f), 0.5, "nav2")
-      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(550f, 640f, 70f, 19f), 0.5,
-                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+      verifyDrawNestedGraph(
+        inOrder,
+        g,
+        Rectangle2D.Float(550f, 640f, 70f, 19f),
+        0.5,
+        FRAME_COLOR,
+        1f,
+        "Nested Graph",
+        FRAME_COLOR,
+      )
     }
   }
 
@@ -891,11 +1149,10 @@ class NavSceneTest {
   fun testEmptyDesigner() {
     var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
 
-    val modelBuilder = navEditorRule.modelBuilder("nav.xml") {
-      navigation("root") {
-        action("action1", destination = "root")
-      }.also { root = it }
-    }
+    val modelBuilder =
+      navEditorRule.modelBuilder("nav.xml") {
+        navigation("root") { action("action1", destination = "root") }.also { root = it }
+      }
 
     val model = modelBuilder.build()
 
@@ -948,11 +1205,7 @@ class NavSceneTest {
   }
 
   private fun zoomTest(newScale: Double, x: Float, y: Float, width: Float, height: Float) {
-    val model = navEditorRule.model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = navEditorRule.model("nav.xml") { navigation { fragment("fragment1") } }
 
     val surface = model.surface
 
@@ -973,7 +1226,8 @@ class NavSceneTest {
   @Test
   fun testCustomDestination() {
     val relativePath = "src/mytest/navtest/MyTestNavigator.java"
-    val fileText = """
+    val fileText =
+      """
       package myTest.navtest;
       import androidx.navigation.NavDestination;
       import androidx.navigation.Navigator;
@@ -985,25 +1239,25 @@ class NavSceneTest {
 
     projectRule.fixture.addFileToProject(relativePath, fileText)
 
-    val model = navEditorRule.model("nav.xml") {
-      navigation {
-        custom("customComponent")
-      }
-    }
+    val model = navEditorRule.model("nav.xml") { navigation { custom("customComponent") } }
 
     val surface = model.surface
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "customComponent")
+      verifyDrawHeader(
+        inOrder,
+        g,
+        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
+        0.5,
+        "customComponent",
+      )
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
     }
   }
 
-  /**
-   * Reposition a component. If we just set the position directly children't aren't updated.
-   */
+  /** Reposition a component. If we just set the position directly children't aren't updated. */
   private fun moveComponentTo(component: SceneComponent, x: Int, y: Int) {
     val dragTarget = component.targets.filterIsInstance(ScreenDragTarget::class.java).first()
     dragTarget.mouseDown(component.drawX, component.drawY)
@@ -1012,7 +1266,14 @@ class NavSceneTest {
     dragTarget.mouseRelease(x, y, listOf())
   }
 
-  private fun assertDrawRectEquals(sceneView: SceneView, component: SceneComponent, x: Float, y: Float, width: Float, height: Float) {
+  private fun assertDrawRectEquals(
+    sceneView: SceneView,
+    component: SceneComponent,
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+  ) {
     val drawRect = getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     assertThat(drawRect).isEqualTo(Rectangle2D.Float(x, y, width, height))
   }

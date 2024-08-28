@@ -63,6 +63,8 @@ import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import java.awt.event.MouseEvent
+import java.io.File
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.assertNull
@@ -73,20 +75,16 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.awt.event.MouseEvent
-import java.io.File
 
 // TODO: testing with custom navigators
 @RunsInEdt
 class AddDestinationMenuTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val navRule = NavEditorRule(projectRule)
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(navRule).around(disposableRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(navRule).around(disposableRule)!!
 
   private var _modelBuilder: ModelBuilder? = null
   private val modelBuilder
@@ -110,26 +108,25 @@ class AddDestinationMenuTest {
 
   @Before
   fun setUp() {
-      val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectRule.fixture,
-                                                                                        projectRule.fixture.tempDirFixture)
-      addDynamicFeatureModule("dynamicfeaturemodule", projectRule.module, fixture)
-      _modelBuilder = navRule.modelBuilder("nav.xml") {
+    val fixture =
+      JavaTestFixtureFactory.getFixtureFactory()
+        .createCodeInsightFixture(projectRule.fixture, projectRule.fixture.tempDirFixture)
+    addDynamicFeatureModule("dynamicfeaturemodule", projectRule.module, fixture)
+    _modelBuilder =
+      navRule.modelBuilder("nav.xml") {
         navigation("navigation") {
-          fragment("fragment")
-          navigation("subnav") {
-            navigation("subnav2") {
-              fragment("fragment2")
-            }
+            fragment("fragment")
+            navigation("subnav") { navigation("subnav2") { fragment("fragment2") } }
           }
-        }.also { _root = it }
+          .also { _root = it }
       }
-      _model = modelBuilder.build()
+    _model = modelBuilder.build()
 
-      _surface = NavDesignSurface(projectRule.project, disposableRule.disposable)
-      surface.setSize(1000, 1000)
-      DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
-      _menu = AddDestinationMenu(surface)
-      setupMainMenuPanel()
+    _surface = NavDesignSurface(projectRule.project, disposableRule.disposable)
+    surface.setSize(1000, 1000)
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
+    _menu = AddDestinationMenu(surface)
+    setupMainMenuPanel()
   }
 
   @After
@@ -151,8 +148,10 @@ class AddDestinationMenuTest {
 
     addActivity("activity2")
     addActivityWithLayout("activity3")
-    val activity3VirtualFile = findVirtualProjectFile(projectRule.project, "res/layout/activity3.xml")
-    val activity3XmlFile = PsiManager.getInstance(projectRule.project).findFile(activity3VirtualFile!!) as XmlFile
+    val activity3VirtualFile =
+      findVirtualProjectFile(projectRule.project, "res/layout/activity3.xml")
+    val activity3XmlFile =
+      PsiManager.getInstance(projectRule.project).findFile(activity3VirtualFile!!) as XmlFile
 
     addActivityWithNavHost("activity1")
 
@@ -167,16 +166,41 @@ class AddDestinationMenuTest {
     val placeHolder = Destination.PlaceholderDestination(parent)
 
     val blankFragment =
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.BlankFragment"))
+      Destination.RegularDestination(
+        parent,
+        "fragment",
+        null,
+        findClass("mytest.navtest.BlankFragment"),
+      )
     val dynamicFragment =
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.DynamicFragment"),
-                                     dynamicModuleName = "dynamicfeaturemodule")
+      Destination.RegularDestination(
+        parent,
+        "fragment",
+        null,
+        findClass("mytest.navtest.DynamicFragment"),
+        dynamicModuleName = "dynamicfeaturemodule",
+      )
     val fragment1 =
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment1"))
+      Destination.RegularDestination(
+        parent,
+        "fragment",
+        null,
+        findClass("mytest.navtest.fragment1"),
+      )
     val fragment2 =
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment2"))
+      Destination.RegularDestination(
+        parent,
+        "fragment",
+        null,
+        findClass("mytest.navtest.fragment2"),
+      )
     val fragment3 =
-      Destination.RegularDestination(parent, "fragment", null, findClass("mytest.navtest.fragment3"))
+      Destination.RegularDestination(
+        parent,
+        "fragment",
+        null,
+        findClass("mytest.navtest.fragment3"),
+      )
 
     val include1 = Destination.IncludeDestination("include1.xml", parent)
     val include2 = Destination.IncludeDestination("include2.xml", parent)
@@ -184,15 +208,46 @@ class AddDestinationMenuTest {
     val includeNav = Destination.IncludeDestination("navigation.xml", parent)
 
     val activity2 =
-      Destination.RegularDestination(parent, "activity", null, findClass("mytest.navtest.activity2"))
-    val activity3 = Destination.RegularDestination(
-      parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile)
-    val mainActivity = Destination.RegularDestination(
-      parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile)
+      Destination.RegularDestination(
+        parent,
+        "activity",
+        null,
+        findClass("mytest.navtest.activity2"),
+      )
+    val activity3 =
+      Destination.RegularDestination(
+        parent,
+        "activity",
+        null,
+        findClass("mytest.navtest.activity3"),
+        layoutFile = activity3XmlFile,
+      )
+    val mainActivity =
+      Destination.RegularDestination(
+        parent,
+        "activity",
+        null,
+        findClass("mytest.navtest.MainActivity"),
+        layoutFile = xmlFile,
+      )
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
 
-    val expected = mutableListOf(placeHolder, blankFragment, dynamicFragment, fragment1, fragment2, fragment3, include1, include2, include3,
-                                 includeNav, activity2, activity3, mainActivity)
+    val expected =
+      mutableListOf(
+        placeHolder,
+        blankFragment,
+        dynamicFragment,
+        fragment1,
+        fragment2,
+        fragment3,
+        include1,
+        include2,
+        include3,
+        includeNav,
+        activity2,
+        activity3,
+        mainActivity,
+      )
 
     var destinations = AddDestinationMenu(surface).destinations
 
@@ -230,8 +285,10 @@ class AddDestinationMenuTest {
     destinations = AddDestinationMenu(surface).destinations
     Truth.assertThat(destinations).containsExactlyElementsIn(expected).inOrder()
 
-    (root.findById("@+id/subnav2") as NavModelBuilderUtil.NavigationComponentDescriptor)
-      .fragment("fragment2", name = "mytest.navtest.fragment2")
+    (root.findById("@+id/subnav2") as NavModelBuilderUtil.NavigationComponentDescriptor).fragment(
+      "fragment2",
+      name = "mytest.navtest.fragment2",
+    )
     modelBuilder.updateModel(model)
     model.notifyModified(ChangeType.EDIT)
 
@@ -241,7 +298,8 @@ class AddDestinationMenuTest {
   }
 
   private fun findClass(className: String) =
-    JavaPsiFacade.getInstance(projectRule.project).findClass(className, GlobalSearchScope.allScope(projectRule.project))!!
+    JavaPsiFacade.getInstance(projectRule.project)
+      .findClass(className, GlobalSearchScope.allScope(projectRule.project))!!
 
   @Test
   fun testNewComponentSelected() {
@@ -249,9 +307,18 @@ class AddDestinationMenuTest {
     val cell0Bounds = gallery.getCellBounds(0, 0)
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
-    gallery.dispatchEvent(MouseEvent(
-      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-      cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+    gallery.dispatchEvent(
+      MouseEvent(
+        gallery,
+        MouseEvent.MOUSE_CLICKED,
+        System.currentTimeMillis(),
+        0,
+        cell0Bounds.centerX.toInt(),
+        cell0Bounds.centerX.toInt(),
+        1,
+        false,
+      )
+    )
     assertNotNull(destination.component)
     assertEquals(listOf(destination.component!!), surface.selectionModel.selection)
   }
@@ -262,9 +329,18 @@ class AddDestinationMenuTest {
     val cell0Bounds = gallery.getCellBounds(0, 0)
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
-    gallery.dispatchEvent(MouseEvent(
-      gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-      cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+    gallery.dispatchEvent(
+      MouseEvent(
+        gallery,
+        MouseEvent.MOUSE_CLICKED,
+        System.currentTimeMillis(),
+        0,
+        cell0Bounds.centerX.toInt(),
+        cell0Bounds.centerX.toInt(),
+        1,
+        false,
+      )
+    )
 
     // ordinarily this would be done by the resource change listener
     model.notifyModified(ChangeType.EDIT)
@@ -272,7 +348,8 @@ class AddDestinationMenuTest {
     assertNotNull(destination.component)
     assertEquals(3, surface.currentNavigation.children.size)
 
-    UndoManager.getInstance(projectRule.project).undo(TestNavEditor(model.virtualFile, projectRule.project))
+    UndoManager.getInstance(projectRule.project)
+      .undo(TestNavEditor(model.virtualFile, projectRule.project))
 
     PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
     model.notifyModified(ChangeType.EDIT)
@@ -307,9 +384,10 @@ class AddDestinationMenuTest {
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
-      projectRule.fixture.addFileToProject("src/mytest/navtest/Frag.java",
-                                           "package mytest.navtest\n" +
-                                           "public class Frag extends android.support.v4.app.Fragment {}")
+      projectRule.fixture.addFileToProject(
+        "src/mytest/navtest/Frag.java",
+        "package mytest.navtest\n" + "public class Frag extends android.support.v4.app.Fragment {}",
+      )
       projectRule.fixture.addFileToProject("res/layout/frag_layout.xml", "")
       createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
       createdFiles.add(File(root, "res/layout/frag_layout.xml"))
@@ -324,12 +402,15 @@ class AddDestinationMenuTest {
       assertEquals("@layout/frag_layout", added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(ADD_DESTINATION)
-                                 .setDestinationInfo(NavDestinationInfo.newBuilder()
-                                                       .setHasClass(true)
-                                                       .setHasLayout(true)
-                                                       .setType(FRAGMENT)).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(ADD_DESTINATION)
+            .setDestinationInfo(
+              NavDestinationInfo.newBuilder().setHasClass(true).setHasLayout(true).setType(FRAGMENT)
+            )
+            .build()
+        )
     }
   }
 
@@ -339,9 +420,10 @@ class AddDestinationMenuTest {
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
-      projectRule.fixture.addFileToProject("src/mytest/navtest/Frag.java",
-                                 "package mytest.navtest\n" +
-                                 "public class Frag extends android.support.v4.app.Fragment {}")
+      projectRule.fixture.addFileToProject(
+        "src/mytest/navtest/Frag.java",
+        "package mytest.navtest\n" + "public class Frag extends android.support.v4.app.Fragment {}",
+      )
       createdFiles.add(File(root, "src/mytest/navtest/Frag.java"))
       menu.postNewDestinationFileCreated(model, createdFiles)
     }
@@ -354,11 +436,13 @@ class AddDestinationMenuTest {
       assertNull(added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(ADD_DESTINATION)
-                                 .setDestinationInfo(NavDestinationInfo.newBuilder()
-                                                       .setHasClass(true)
-                                                       .setType(FRAGMENT)).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(ADD_DESTINATION)
+            .setDestinationInfo(NavDestinationInfo.newBuilder().setHasClass(true).setType(FRAGMENT))
+            .build()
+        )
     }
   }
 
@@ -369,12 +453,15 @@ class AddDestinationMenuTest {
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
-      projectRule.fixture.addFileToProject("src/mytest/navtest/SettingsFragment.kt",
-                                 """
+      projectRule.fixture.addFileToProject(
+        "src/mytest/navtest/SettingsFragment.kt",
+        """
 package mytest.navtest
 import androidx.preference.PreferenceFragmentCompat
 class SettingsFragment : PreferenceFragmentCompat()
-                                 """.trimIndent())
+                                 """
+          .trimIndent(),
+      )
       createdFiles.add(File(root, "src/mytest/navtest/SettingsFragment.kt"))
       menu.postNewDestinationFileCreated(model, createdFiles)
     }
@@ -385,11 +472,13 @@ class SettingsFragment : PreferenceFragmentCompat()
       assertEquals("fragment", added.tagName)
       assertEquals("mytest.navtest.SettingsFragment", added.className)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(ADD_DESTINATION)
-                                 .setDestinationInfo(NavDestinationInfo.newBuilder()
-                                                       .setHasClass(true)
-                                                       .setType(FRAGMENT)).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(ADD_DESTINATION)
+            .setDestinationInfo(NavDestinationInfo.newBuilder().setHasClass(true).setType(FRAGMENT))
+            .build()
+        )
     }
   }
 
@@ -406,9 +495,18 @@ class SettingsFragment : PreferenceFragmentCompat()
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
     TestNavUsageTracker.create(model).use { tracker ->
-      gallery.dispatchEvent(MouseEvent(
-        gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-        cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+      gallery.dispatchEvent(
+        MouseEvent(
+          gallery,
+          MouseEvent.MOUSE_CLICKED,
+          System.currentTimeMillis(),
+          0,
+          cell0Bounds.centerX.toInt(),
+          cell0Bounds.centerX.toInt(),
+          1,
+          false,
+        )
+      )
       val component = destination.component
       assertNotNull(component)
       assertEquals(listOf(component!!), surface.selectionModel.selection)
@@ -416,29 +514,47 @@ class SettingsFragment : PreferenceFragmentCompat()
       assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
       assertNull(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
 
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(ADD_DESTINATION)
-                                 .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(ADD_DESTINATION)
+            .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT))
+            .build()
+        )
 
       setupMainMenuPanel()
       gallery = menu.destinationsList
       val destination2 = gallery.model.getElementAt(0) as Destination
       gallery.setSelectedValue(destination2, false)
-      gallery.dispatchEvent(MouseEvent(
-        gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-        cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+      gallery.dispatchEvent(
+        MouseEvent(
+          gallery,
+          MouseEvent.MOUSE_CLICKED,
+          System.currentTimeMillis(),
+          0,
+          cell0Bounds.centerX.toInt(),
+          cell0Bounds.centerX.toInt(),
+          1,
+          false,
+        )
+      )
       val component2 = destination2.component
       assertNotNull(component2)
       assertEquals(listOf(component2!!), surface.selectionModel.selection)
       assertEquals("placeholder2", component2.id)
-      assertContainsElements(surface.model?.treeReader?.components?.get(0)?.children?.map { it.id }!!, "placeholder", "placeholder2")
+      assertContainsElements(
+        surface.model?.treeReader?.components?.get(0)?.children?.map { it.id }!!,
+        "placeholder",
+        "placeholder2",
+      )
     }
   }
 
   private fun setupMainMenuPanel() {
     // Init the lateinit variable AddDestinationMenu.destinationsList
     menu.mainPanel
-    // We kick off a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
+    // We kick off a worker thread to load the destinations and then update the list in the ui
+    // thread, so we have to wait and dispatch
     // events until it's set.
     while (true) {
       if (!_menu!!.destinationsList.isEmpty) {
@@ -457,9 +573,13 @@ class SettingsFragment : PreferenceFragmentCompat()
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(ADD_DESTINATION)
-                                 .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(ADD_DESTINATION)
+            .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT))
+            .build()
+        )
     }
   }
 
@@ -480,12 +600,15 @@ class SettingsFragment : PreferenceFragmentCompat()
   fun testAddDynamicFragment() {
     addFragment("DynamicFragment", "dynamicfeaturemodule")
     val dynamicFragment =
-      Destination.RegularDestination(model.treeReader.components[0], "fragment", null,
-                                     findClass("mytest.navtest.DynamicFragment"), dynamicModuleName = "dynamicfeaturemodule")
+      Destination.RegularDestination(
+        model.treeReader.components[0],
+        "fragment",
+        null,
+        findClass("mytest.navtest.DynamicFragment"),
+        dynamicModuleName = "dynamicfeaturemodule",
+      )
 
-    WriteCommandAction.runWriteCommandAction(surface.project) {
-      dynamicFragment.addToGraph()
-    }
+    WriteCommandAction.runWriteCommandAction(surface.project) { dynamicFragment.addToGraph() }
 
     val fragment = model.treeReader.find("dynamicFragment")!!
     assertEquals("dynamicfeaturemodule", fragment.getAttribute(AUTO_URI, ATTR_MODULE_NAME))
@@ -512,7 +635,8 @@ class SettingsFragment : PreferenceFragmentCompat()
   private fun addActivityWithNavHost(name: String) {
     addActivity(name)
     val relativePath = "res/layout/$name.xml"
-    val fileText = """
+    val fileText =
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
                                                    xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -525,7 +649,8 @@ class SettingsFragment : PreferenceFragmentCompat()
             app:navGraph="@navigation/nav"/>
 
       </android.support.constraint.ConstraintLayout>
-    """.trimIndent()
+    """
+        .trimIndent()
 
     projectRule.fixture.addFileToProject(relativePath, fileText)
   }
@@ -533,11 +658,13 @@ class SettingsFragment : PreferenceFragmentCompat()
   private fun addActivityWithLayout(name: String) {
     addActivity(name)
     val relativePath = "res/layout/$name.xml"
-    val fileText = """
+    val fileText =
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <android.support.constraint.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
                                                    tools:context=".$name"/>
-    """.trimIndent()
+    """
+        .trimIndent()
 
     projectRule.fixture.addFileToProject(relativePath, fileText)
   }
@@ -546,36 +673,46 @@ class SettingsFragment : PreferenceFragmentCompat()
     addDestination(name, "android.app.Activity")
   }
 
-  private fun addDestination(name: String, parentClass: String, folder: String = "src/mytest/navtest") {
+  private fun addDestination(
+    name: String,
+    parentClass: String,
+    folder: String = "src/mytest/navtest",
+  ) {
     val relativePath = "$folder/$name.java"
-    val fileText = """
+    val fileText =
+      """
       .package mytest.navtest;
       .import $parentClass;
       .
       .public class $name extends ${parentClass.substringAfterLast('.')} {
       .}
-      """.trimMargin(".")
+      """
+        .trimMargin(".")
 
     projectRule.fixture.addFileToProject(relativePath, fileText)
   }
 
   private fun addIncludeFile(name: String) {
     val relativePath = "res/navigation/$name.xml"
-    val fileText = """
+    val fileText =
+      """
       .<?xml version="1.0" encoding="utf-8"?>
       .<navigation xmlns:android="http://schemas.android.com/apk/res/android"
           .xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/testnav">
 
       .</navigation>
-      """.trimMargin(".")
+      """
+        .trimMargin(".")
 
     projectRule.fixture.addFileToProject(relativePath, fileText)
   }
 }
 
 class AddDestinationMenuDependencyTest : NavTestCase() {
-  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-                                          modules: MutableList<MyAdditionalModuleData>) {
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: MutableList<MyAdditionalModuleData>,
+  ) {
     super.configureAdditionalModules(projectBuilder, modules)
     addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", PROJECT_TYPE_LIBRARY, true)
   }
@@ -583,31 +720,48 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
   fun testLayoutFileInDependency() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
-    val psiClass = (myFixture.addFileToProject("$modulePath/src/main/java/com/example/mylibrary/BlankFragment.java", """
+    val psiClass =
+      (myFixture.addFileToProject(
+          "$modulePath/src/main/java/com/example/mylibrary/BlankFragment.java",
+          """
                                                  package com.example.mylibrary;
                                                  import android.support.v4.app.Fragment;
                                                  public class BlankFragment extends Fragment {}
-                                                 """.trimIndent()) as PsiJavaFileImpl).classes[0]
+                                                 """
+            .trimIndent(),
+        ) as PsiJavaFileImpl)
+        .classes[0]
 
-    val xmlFile = myFixture.addFileToProject("$modulePath/res/layout/fragment_blank.xml", """
+    val xmlFile =
+      myFixture.addFileToProject(
+        "$modulePath/res/layout/fragment_blank.xml",
+        """
                                                <?xml version="1.0" encoding="utf-8"?>
                                                <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
                                                    xmlns:tools="http://schemas.android.com/tools"
                                                    tools:context="com.example.mylibrary.BlankFragment"
                                                </FrameLayout>"
-                                               """.trimIndent()) as XmlFile
+                                               """
+          .trimIndent(),
+      ) as XmlFile
 
-    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
+    val model =
+      NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project, testRootDisposable)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
-    val blankFragment = Destination.RegularDestination(
-      model.treeReader.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
+    val blankFragment =
+      Destination.RegularDestination(
+        model.treeReader.components[0],
+        "fragment",
+        null,
+        psiClass,
+        layoutFile = xmlFile,
+      )
     waitForResourceRepositoryUpdates()
 
     val menu = AddDestinationMenu(surface)
     assertEquals(blankFragment, menu.destinations[2])
   }
 }
-

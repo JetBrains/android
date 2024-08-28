@@ -27,44 +27,46 @@ import javax.swing.ListModel
 import javax.swing.ListSelectionModel
 
 /**
- * UI to display a list of NlComponents in the property inspector.
- * Parameters:
- * [model]: the list of NlComponents to display
- * [cellRenderer]: the renderer to apply to each list item
+ * UI to display a list of NlComponents in the property inspector. Parameters: [model]: the list of
+ * NlComponents to display [cellRenderer]: the renderer to apply to each list item
  */
-class ComponentList(model: ListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>)
-  : AdtSecondaryPanel(BorderLayout()) {
+class ComponentList(
+  model: ListModel<NlComponent>,
+  cellRenderer: ColoredListCellRenderer<NlComponent>,
+) : AdtSecondaryPanel(BorderLayout()) {
   val list = JBList(model)
 
   init {
     list.isOpaque = false
-    list.selectionModel = object: DefaultListSelectionModel() {
-      // By default selecting -1 does nothing, but we want it to clear the selection
-      // for the case when the cursor moves from an element in this list to one not in the list.
-      override fun setSelectionInterval(index0: Int, index1: Int) {
-        if (index0 == -1 && index1 == -1) {
-          clearSelection()
-        }
-        else {
-          super.setSelectionInterval(index0, index1)
+    list.selectionModel =
+      object : DefaultListSelectionModel() {
+        // By default selecting -1 does nothing, but we want it to clear the selection
+        // for the case when the cursor moves from an element in this list to one not in the list.
+        override fun setSelectionInterval(index0: Int, index1: Int) {
+          if (index0 == -1 && index1 == -1) {
+            clearSelection()
+          } else {
+            super.setSelectionInterval(index0, index1)
+          }
         }
       }
-    }
     list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
     list.fixedCellWidth = 1
     list.cellRenderer = cellRenderer
 
-    list.addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent?) {
-        if (list.model.size > 0 && list.selectedIndex < 0) {
-          list.selectedIndex = 0
+    list.addFocusListener(
+      object : FocusAdapter() {
+        override fun focusGained(event: FocusEvent?) {
+          if (list.model.size > 0 && list.selectedIndex < 0) {
+            list.selectedIndex = 0
+          }
+        }
+
+        override fun focusLost(event: FocusEvent?) {
+          list.clearSelection()
         }
       }
-
-      override fun focusLost(event: FocusEvent?) {
-        list.clearSelection()
-      }
-    })
+    )
 
     add(list, BorderLayout.CENTER)
   }

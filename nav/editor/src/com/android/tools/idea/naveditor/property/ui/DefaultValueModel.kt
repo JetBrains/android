@@ -41,30 +41,35 @@ class DefaultValueModel(argument: NlComponent, private val parent: NlComponent) 
         return
       }
 
-      WriteCommandAction.runWriteCommandAction(parent.model.project, ADD_ARGUMENT_COMMAND_NAME, ADD_ARGUMENT_GROUP_ID, Runnable {
-        if (component == null) {
-          parent.createChild(TAG_ARGUMENT)?.apply {
-            argumentName = name
-            defaultValue = newValue
+      WriteCommandAction.runWriteCommandAction(
+        parent.model.project,
+        ADD_ARGUMENT_COMMAND_NAME,
+        ADD_ARGUMENT_GROUP_ID,
+        Runnable {
+          if (component == null) {
+            parent.createChild(TAG_ARGUMENT)?.apply {
+              argumentName = name
+              defaultValue = newValue
+              if (newValue == "@null") {
+                typeAttr = type
+                nullable = true
+              } else {
+                nullable = nullableValue
+              }
+            }
+          } else {
+            component.defaultValue = newValue
             if (newValue == "@null") {
-              typeAttr = type
-              nullable = true
+              component.typeAttr = type
+              component.nullable = true
             } else {
-              nullable = nullableValue
+              component.nullable = nullableValue
             }
           }
-        }
-        else {
-          component.defaultValue = newValue
-          if (newValue == "@null") {
-            component.typeAttr = type
-            component.nullable = true
-          } else {
-            component.nullable = nullableValue
-          }
-        }
-      })
+        },
+      )
     }
 
-  private fun getComponent() = parent.children.firstOrNull { it.isArgument && it.argumentName == name }
+  private fun getComponent() =
+    parent.children.firstOrNull { it.isArgument && it.argumentName == name }
 }

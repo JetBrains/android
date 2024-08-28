@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
+import com.android.tools.idea.common.surface.DesignSurface
 import java.awt.Dimension
 import java.awt.Point
 
@@ -30,15 +30,16 @@ class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(
     content.singleOrNull()?.setLocation(0, 0)
   }
 
-  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
-    content
-      .singleOrNull()
-      ?.getScaledContentSize(null)
-    ?: availableSize
+  override fun preferredLayoutSize(
+    content: Collection<PositionableContent>,
+    availableSize: Dimension,
+  ): Dimension = content.singleOrNull()?.getScaledContentSize(null) ?: availableSize
 
-  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
-                                                      availableWidth: Int,
-                                                      availableHeight: Int): Map<PositionableContent, Point> {
+  override fun getMeasuredPositionableContentPosition(
+    content: Collection<PositionableContent>,
+    availableWidth: Int,
+    availableHeight: Int,
+  ): Map<PositionableContent, Point> {
     return content.singleOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
   }
 }

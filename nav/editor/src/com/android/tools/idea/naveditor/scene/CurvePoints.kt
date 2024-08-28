@@ -23,19 +23,18 @@ import com.android.tools.adtui.common.SwingY
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-
 /**
- * A representation of a curved action connecting two destinations
- * Consists of four control points for a cubic bezier and the direction
- * of the terminating arrow
+ * A representation of a curved action connecting two destinations Consists of four control points
+ * for a cubic bezier and the direction of the terminating arrow
  */
-data class CurvePoints(val p1: SwingPoint,
-                       val p2: SwingPoint,
-                       val p3: SwingPoint,
-                       val p4: SwingPoint,
-                       val dir: ConnectionDirection) {
-  fun curvePoint(t: Float) =
-    SwingPoint(curveX(t), curveY(t))
+data class CurvePoints(
+  val p1: SwingPoint,
+  val p2: SwingPoint,
+  val p3: SwingPoint,
+  val p4: SwingPoint,
+  val dir: ConnectionDirection,
+) {
+  fun curvePoint(t: Float) = SwingPoint(curveX(t), curveY(t))
 
   private fun curveX(t: Float) =
     SwingX(curveValue(p1.x.value, p2.x.value, p3.x.value, p4.x.value, t))
@@ -44,11 +43,12 @@ data class CurvePoints(val p1: SwingPoint,
     SwingY(curveValue(p1.y.value, p2.y.value, p3.y.value, p4.y.value, t))
 
   private fun curveValue(p1: Float, p2: Float, p3: Float, p4: Float, t: Float) =
-    (1 - t).pow(3f) * p1 + 3 * (1 - t).pow(2f) * t * p2 + 3 * (1 - t) * t.pow(2f) * p3 + t.pow(3f) * p4
+    (1 - t).pow(3f) * p1 +
+      3 * (1 - t).pow(2f) * t * p2 +
+      3 * (1 - t) * t.pow(2f) * p3 +
+      t.pow(3f) * p4
 
-  /**
-   * Returns a bounding rectangle for the cubic bezier
-   */
+  /** Returns a bounding rectangle for the cubic bezier */
   fun bounds(): SwingRectangle {
     val xRange = range({ p -> p.x.value }, { c, f -> c.curveX(f).value })
     val yRange = range({ p -> p.y.value }, { c, f -> c.curveY(f).value })
@@ -63,9 +63,7 @@ data class CurvePoints(val p1: SwingPoint,
 
   private data class Range(val min: Float, val max: Float)
 
-  /**
-   * Calculates the range that the bezier occupies in a given direction
-   */
+  /** Calculates the range that the bezier occupies in a given direction */
   private fun range(value: (SwingPoint) -> Float, curveAt: (CurvePoints, Float) -> Float): Range {
     val v1 = value(p1)
     val v2 = value(p2)

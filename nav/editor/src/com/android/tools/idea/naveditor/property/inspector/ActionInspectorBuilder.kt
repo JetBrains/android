@@ -26,8 +26,12 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
-class ActionInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+class ActionInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
     if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }
@@ -36,23 +40,38 @@ class ActionInspectorBuilder(private val editorProvider: EditorProvider<NlProper
     addLaunchOptionProperties(inspector, properties)
   }
 
-  private fun addPopBehaviorProperties(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
-    addActionProperties(inspector, properties, "Pop Behavior", ATTR_POP_UP_TO, ATTR_POP_UP_TO_INCLUSIVE)
+  private fun addPopBehaviorProperties(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
+    addActionProperties(
+      inspector,
+      properties,
+      "Pop Behavior",
+      ATTR_POP_UP_TO,
+      ATTR_POP_UP_TO_INCLUSIVE,
+    )
   }
 
-  private fun addLaunchOptionProperties(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  private fun addLaunchOptionProperties(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
     addActionProperties(inspector, properties, "Launch Options", ATTR_SINGLE_TOP)
   }
 
-  private fun addActionProperties(inspector: InspectorPanel,
-                                  properties: PropertiesTable<NlPropertyItem>,
-                                  title: String,
-                                  vararg propertyNames: String) {
+  private fun addActionProperties(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    title: String,
+    vararg propertyNames: String,
+  ) {
 
     val titleModel = inspector.addExpandableTitle(title)
 
     for (propertyName in propertyNames) {
-      val property = properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
+      val property =
+        properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
       inspector.addEditor(editorProvider.createEditor(property), titleModel)
     }
   }

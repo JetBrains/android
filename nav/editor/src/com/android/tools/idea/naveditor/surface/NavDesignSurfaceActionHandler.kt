@@ -29,7 +29,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import java.awt.datatransfer.DataFlavor
 import java.util.stream.Collectors
 
-class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfaceActionHandler(surface) {
+class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) :
+  DesignSurfaceActionHandler(surface) {
 
   override val flavor: DataFlavor = ItemTransferable.NAV_FLAVOR
 
@@ -39,33 +40,44 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
     val nextSelection = nextSelection()
     val selection = surface.selectionModel.selection
 
-    WriteCommandAction.runWriteCommandAction(surface.project, "Delete Component", null, {
-      val model = surface.model
-      if (model != null) {
-        for (component in selection) {
-          if (component.isDestination) {
-            surface.getSceneManager(model)?.performUndoablePositionAction(component)
-            val parent = component.parent ?: continue
-            model.treeWriter.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
-            if (component.isStartDestination) {
-              parent.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION)
+    WriteCommandAction.runWriteCommandAction(
+      surface.project,
+      "Delete Component",
+      null,
+      {
+        val model = surface.model
+        if (model != null) {
+          for (component in selection) {
+            if (component.isDestination) {
+              surface.getSceneManager(model)?.performUndoablePositionAction(component)
+              val parent = component.parent ?: continue
+              model.treeWriter.delete(
+                parent
+                  .flatten()
+                  .filter { it.isAction && it.actionDestination == component }
+                  .collect(Collectors.toList())
+              )
+              if (component.isStartDestination) {
+                parent.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION)
+              }
             }
           }
         }
-      }
-      superCall()
-    }, surface.model!!.file)
+        superCall()
+      },
+      surface.model!!.file,
+    )
     surface.selectionModel.setSelection(listOf(nextSelection))
   }
 
   override fun canDeleteElement(dataContext: DataContext): Boolean {
     return super.canDeleteElement(dataContext) &&
-           !mySurface.selectionModel.selection.contains(surface.currentNavigation)
+      !mySurface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
   override fun isCutEnabled(dataContext: DataContext): Boolean {
     return super.isCutEnabled(dataContext) &&
-           !mySurface.selectionModel.selection.contains(surface.currentNavigation)
+      !mySurface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
   override val pasteTarget: NlComponent
@@ -75,10 +87,11 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
     }
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean {
-    // Actions can be children of anything selectable. Destinations are children of navigations, but won't get pasted into a subnav
+    // Actions can be children of anything selectable. Destinations are children of navigations, but
+    // won't get pasted into a subnav
     // that's selected (unless it's also the current nav).
     return (pasted.all { it.isAction } && component.supportsActions) ||
-           component == surface.currentNavigation
+      component == surface.currentNavigation
   }
 
   // Determine the next component to be selected after the current selection is deleted

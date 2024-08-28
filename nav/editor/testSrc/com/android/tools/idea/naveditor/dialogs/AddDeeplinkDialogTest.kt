@@ -30,11 +30,7 @@ import org.mockito.Mockito
 class AddDeeplinkDialogTest : NavTestCase() {
 
   fun testUriValidation() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       dialog.myUriField.text = "http://example.com/foo"
       assertNull(dialog.doValidate())
@@ -51,11 +47,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testMimeTypeValidation() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       dialog.myMimeTypeField.text = "*/*"
       assertNull(dialog.doValidate())
@@ -81,24 +73,27 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testEmptyValidation() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertNotNull(dialog.doValidate())
     }
   }
 
   fun testInitWithExisting() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          deeplink("deepLink", "http://example.com", autoVerify = true, mimeType = "pdf", action = "send")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") {
+            deeplink(
+              "deepLink",
+              "http://example.com",
+              autoVerify = true,
+              mimeType = "pdf",
+              action = "send",
+            )
+          }
         }
       }
-    }
     val fragment1 = model.treeReader.find("fragment1")!!
     AddDeeplinkDialog(fragment1.getChild(0), fragment1).runAndClose { dialog ->
       assertEquals("http://example.com", dialog.uri)
@@ -109,11 +104,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testInitWithDefaults() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
     val fragment1 = model.treeReader.find("fragment1")!!
     AddDeeplinkDialog(null, fragment1).runAndClose { dialog ->
@@ -125,11 +116,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testPropertyChangeMetrics() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("f1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("f1") } }
 
     val f1 = model.treeReader.find("f1")!!
     AddDeeplinkDialog(null, f1).runAndClose { dialog ->
@@ -149,13 +136,19 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   private fun verifyLogEvent(tracker: NavUsageTracker, property: NavPropertyInfo.Property) {
-    Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                       .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
-                                       .setPropertyInfo(NavPropertyInfo.newBuilder()
-                                                          .setWasEmpty(true)
-                                                          .setProperty(property)
-                                                          .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
-                                       .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+    Mockito.verify(tracker)
+      .logEvent(
+        NavEditorEvent.newBuilder()
+          .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+          .setPropertyInfo(
+            NavPropertyInfo.newBuilder()
+              .setWasEmpty(true)
+              .setProperty(property)
+              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG)
+          )
+          .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+          .build()
+      )
   }
 
   fun testUriAutoComplete() {
@@ -169,7 +162,12 @@ class AddDeeplinkDialogTest : NavTestCase() {
     assertThat(ui.elements()).isEmpty()
     field.text = "www.android.com{"
     lookup.showLookup(field.text)
-    assertThat(ui.elements()).containsExactly(
-      "www.android.com{", "www.android.com{foo}", "www.android.com{bar}", "www.android.com{baz}")
+    assertThat(ui.elements())
+      .containsExactly(
+        "www.android.com{",
+        "www.android.com{foo}",
+        "www.android.com{bar}",
+        "www.android.com{baz}",
+      )
   }
 }

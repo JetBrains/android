@@ -22,10 +22,10 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.createDesignerAnalyticsManagerFake
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.naveditor.scene.NavSceneManager
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
+import org.mockito.Mockito
 
 fun createNavDesignSurfaceZoomController(
   navDesignSurface: NavDesignSurface,

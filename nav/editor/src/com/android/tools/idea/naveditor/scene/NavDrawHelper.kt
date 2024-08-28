@@ -35,8 +35,7 @@ import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
 import kotlin.math.min
 
-@VisibleForTesting
-const val DEFAULT_FONT_NAME = "Default"
+@VisibleForTesting const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = scaledAndroidLength(12f)
 
 val INNER_RADIUS_SMALL = scaledAndroidLength(5f)
@@ -64,15 +63,17 @@ fun regularFont(scale: Scale, style: Int): SwingFont {
 }
 
 fun scaledFont(scale: Scale, style: Int): SwingFont {
-  val newScale = scale.value.let { Scale(it * (2.0 - min(it, 1.0))) }  // keep font size slightly larger at smaller scales
+  val newScale =
+    scale.value.let {
+      Scale(it * (2.0 - min(it, 1.0)))
+    } // keep font size slightly larger at smaller scales
   return regularFont(newScale, style)
 }
 
 fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): DrawCommand {
   return if (image == null) {
     DrawPlaceholder(rectangle)
-  }
-  else {
+  } else {
     DrawNavScreen(rectangle, image)
   }
 }
@@ -83,7 +84,12 @@ fun makeCircle(center: SwingPoint, radius: SwingLength): SwingEllipse {
   return SwingEllipse(x, y, 2 * radius, 2 * radius)
 }
 
-fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
+fun makeCircleLerp(
+  center: SwingPoint,
+  initialRadius: SwingLength,
+  finalRadius: SwingLength,
+  duration: Int,
+): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
   return LerpEllipse(initialCircle, finalCircle, duration)
@@ -98,5 +104,5 @@ enum class ArrowDirection {
   LEFT,
   UP,
   RIGHT,
-  DOWN
+  DOWN,
 }

@@ -27,10 +27,12 @@ import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import java.awt.Color
 
-class DrawHorizontalAction(private val rectangle: SwingRectangle,
-                           scale: Scale,
-                           color: Color,
-                           isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction, COMPONENT_LEVEL) {
+class DrawHorizontalAction(
+  private val rectangle: SwingRectangle,
+  scale: Scale,
+  color: Color,
+  isPopAction: Boolean,
+) : DrawActionBase(scale, color, isPopAction, COMPONENT_LEVEL) {
   override fun buildAction(): Action {
     val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = max(SwingLength(0f), rectangle.width - arrowWidth)

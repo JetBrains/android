@@ -24,8 +24,12 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
-class DestinationInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+class DestinationInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
     if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }

@@ -32,19 +32,20 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
-import org.mockito.Mockito
 import java.awt.Point
+import org.mockito.Mockito
 
 class NavSceneManagerTest : NavTestCase() {
 
   fun testLayout() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          fragment("fragment2")
+          fragment("fragment3")
+        }
       }
-    }
     val scene = model.surface.scene!!
 
     val fragment2x = scene.getSceneComponent("fragment2")!!.drawX
@@ -71,11 +72,15 @@ class NavSceneManagerTest : NavTestCase() {
   }
 
   fun testLandscape() {
-    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, {
-      navigation {
-        fragment("fragment1")
-      }
-    }, "navigation-land").build()
+    val model =
+      NavModelBuilderUtil.model(
+          "nav.xml",
+          myFacet,
+          myFixture,
+          { navigation { fragment("fragment1") } },
+          "navigation-land",
+        )
+        .build()
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!
     assertEquals(256, component.drawWidth)
@@ -83,11 +88,15 @@ class NavSceneManagerTest : NavTestCase() {
   }
 
   fun testPortrait() {
-    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, {
-      navigation {
-        fragment("fragment1")
-      }
-    }, "navigation-port").build()
+    val model =
+      NavModelBuilderUtil.model(
+          "nav.xml",
+          myFacet,
+          myFixture,
+          { navigation { fragment("fragment1") } },
+          "navigation-port",
+        )
+        .build()
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
@@ -95,11 +104,7 @@ class NavSceneManagerTest : NavTestCase() {
   }
 
   fun testConfigurations() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
     val configuration = Mockito.mock(Configuration::class.java)
     model.setConfiguration(configuration)
@@ -148,12 +153,13 @@ class NavSceneManagerTest : NavTestCase() {
   }
 
   fun testNewDestination() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("f1")
-        fragment("f2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("f1")
+          fragment("f2")
+        }
       }
-    }
 
     val scale = 0.5
     val initialOffset = (40 / scale).toInt()
@@ -172,13 +178,23 @@ class NavSceneManagerTest : NavTestCase() {
 
     val currentNavigation = designSurface.currentNavigation
 
-    val p = Point((scrollPosition.x / scale).toInt() + initialOffset + scene.root!!.drawX,
-                  (scrollPosition.y / scale).toInt() + initialOffset + scene.root!!.drawY)
+    val p =
+      Point(
+        (scrollPosition.x / scale).toInt() + initialOffset + scene.root!!.drawX,
+        (scrollPosition.y / scale).toInt() + initialOffset + scene.root!!.drawY,
+      )
 
-    val fragmentClass = JavaPsiFacade.getInstance(project).findClass("android.support.v4.app.Fragment",
-                                                                     GlobalSearchScope.allScope(project))!!
+    val fragmentClass =
+      JavaPsiFacade.getInstance(project)
+        .findClass("android.support.v4.app.Fragment", GlobalSearchScope.allScope(project))!!
     listOf("first", "second", "third", "fourth", "fifth").forEach {
-      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it, destinationClass = fragmentClass)
+      val destination =
+        Destination.RegularDestination(
+          currentNavigation,
+          "fragment",
+          idBase = it,
+          destinationClass = fragmentClass,
+        )
       WriteCommandAction.runWriteCommandAction(project) { destination.addToGraph() }
       destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       sceneManager.update()
@@ -194,11 +210,8 @@ class NavSceneManagerTest : NavTestCase() {
   fun testActivateUpdates() {
     lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
 
-    val modelBuilder = modelBuilder("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }.also { root = it }
-    }
+    val modelBuilder =
+      modelBuilder("nav.xml") { navigation { fragment("fragment1") }.also { root = it } }
     val model = modelBuilder.build(false)
 
     val sceneManager = model.surface.getSceneManager(model) as NavSceneManager

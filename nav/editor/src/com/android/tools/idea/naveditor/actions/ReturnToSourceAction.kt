@@ -39,7 +39,8 @@ class ReturnToSourceAction(private val component: NlComponent) : AnAction("Retur
       val action = component.createReturnToSourceAction()
       surface.selectionModel.setSelection(listOfNotNull(action))
       if (action != null) {
-        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.getInstance(surface.model)
+          .createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.CONTEXT_MENU)
           .log()

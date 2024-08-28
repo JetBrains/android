@@ -18,8 +18,8 @@ package com.android.tools.idea.naveditor.dialogs
 import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
-import com.intellij.openapi.module.Module
 import com.android.tools.sdk.AndroidTargetData
+import com.intellij.openapi.module.Module
 import org.jetbrains.android.sdk.getInstance
 
 class ActionTextFieldModel : DefaultCommonTextFieldModel("", "e.g. ACTION_SEND") {
@@ -29,13 +29,15 @@ class ActionTextFieldModel : DefaultCommonTextFieldModel("", "e.g. ACTION_SEND")
     val platform = getInstance(module) ?: return
     val targetData = AndroidTargetData.get(platform.sdkData, platform.target)
     val activityActions = targetData.staticConstantsData.activityActions ?: return
-    actions = activityActions
-      .filter { it.startsWith("android.intent.action.") }
-      .map { "ACTION_${it.substringAfterLast('.')}" }
-      .sorted()
+    actions =
+      activityActions
+        .filter { it.startsWith("android.intent.action.") }
+        .map { "ACTION_${it.substringAfterLast('.')}" }
+        .sorted()
   }
 
-  override val editingSupport = object : EditingSupport {
-    override val completion: EditorCompletion = { actions }
-  }
+  override val editingSupport =
+    object : EditingSupport {
+      override val completion: EditorCompletion = { actions }
+    }
 }

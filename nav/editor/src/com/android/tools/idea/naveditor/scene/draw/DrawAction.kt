@@ -30,14 +30,14 @@ import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import java.awt.Color
 
-/**
- * [DrawCommand] that draw a nav editor action (an arrow between two screens).
- */
-class DrawAction(private val source: SwingRectangle,
-                 private val dest: SwingRectangle,
-                 scale: Scale,
-                 color: Color,
-                 isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction) {
+/** [DrawCommand] that draw a nav editor action (an arrow between two screens). */
+class DrawAction(
+  private val source: SwingRectangle,
+  private val dest: SwingRectangle,
+  scale: Scale,
+  color: Color,
+  isPopAction: Boolean,
+) : DrawActionBase(scale, color, isPopAction) {
   override fun buildAction(): Action {
     val (p1, p2, p3, p4, direction) = getCurvePoints(source, dest, scale)
     val path = SwingPath()
@@ -58,22 +58,30 @@ class DrawAction(private val source: SwingRectangle,
     val parallel = ACTION_ARROW_PARALLEL * scale
     val perpendicular = ACTION_ARROW_PERPENDICULAR * scale
 
-    val x = p.x + when (direction) {
-      ConnectionDirection.TOP, ConnectionDirection.BOTTOM -> -perpendicular / 2
-      ConnectionDirection.LEFT -> -parallel
-      else -> SwingLength(0f)
-    }
+    val x =
+      p.x +
+        when (direction) {
+          ConnectionDirection.TOP,
+          ConnectionDirection.BOTTOM -> -perpendicular / 2
+          ConnectionDirection.LEFT -> -parallel
+          else -> SwingLength(0f)
+        }
 
-    val y = p.y + when (direction) {
-      ConnectionDirection.LEFT, ConnectionDirection.RIGHT -> -perpendicular / 2
-      ConnectionDirection.TOP -> -parallel
-      else -> SwingLength(0f)
-    }
+    val y =
+      p.y +
+        when (direction) {
+          ConnectionDirection.LEFT,
+          ConnectionDirection.RIGHT -> -perpendicular / 2
+          ConnectionDirection.TOP -> -parallel
+          else -> SwingLength(0f)
+        }
 
-    val (width, height) = when (direction) {
-      ConnectionDirection.LEFT, ConnectionDirection.RIGHT -> Pair(parallel, perpendicular)
-      else -> Pair(perpendicular, parallel)
-    }
+    val (width, height) =
+      when (direction) {
+        ConnectionDirection.LEFT,
+        ConnectionDirection.RIGHT -> Pair(parallel, perpendicular)
+        else -> Pair(perpendicular, parallel)
+      }
 
     return SwingRectangle(x, y, width, height)
   }

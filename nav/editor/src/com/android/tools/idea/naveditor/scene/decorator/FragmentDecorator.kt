@@ -24,11 +24,16 @@ import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawFragment
 
 /**
- * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
+ * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation
+ * editor.
  */
-
 object FragmentDecorator : NavScreenDecorator() {
-  override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
+  override fun addContent(
+    list: DisplayList,
+    time: Long,
+    sceneContext: SceneContext,
+    component: SceneComponent,
+  ) {
     super.addContent(list, time, sceneContext, component)
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return

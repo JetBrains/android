@@ -31,22 +31,19 @@ import com.android.tools.idea.naveditor.surface.NavView
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent.BUTTON1
 
-/**
- * Test to verify that components are selected when
- * mousePress event is received.
- */
-
+/** Test to verify that components are selected when mousePress event is received. */
 private const val LASSO_PADDING = 10
 
 class SelectionTest : NavTestCase() {
 
   fun testSelection() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-        fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1")
+          fragment("fragment2")
+        }
       }
-    }
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
@@ -77,15 +74,17 @@ class SelectionTest : NavTestCase() {
     guiInputHandler.stopListening()
   }
 
-  private fun checkSelection(@NavCoordinate x1: Int,
-                             @NavCoordinate y1: Int,
-                             @NavCoordinate x2: Int,
-                             @NavCoordinate y2: Int,
-                             component1: SceneComponent,
-                             component2: SceneComponent,
-                             allowsMultiSelect: Boolean,
-                             guiInputHandler: GuiInputHandler,
-                             sceneView: SceneView) {
+  private fun checkSelection(
+    @NavCoordinate x1: Int,
+    @NavCoordinate y1: Int,
+    @NavCoordinate x2: Int,
+    @NavCoordinate y2: Int,
+    component1: SceneComponent,
+    component2: SceneComponent,
+    allowsMultiSelect: Boolean,
+    guiInputHandler: GuiInputHandler,
+    sceneView: SceneView,
+  ) {
     select(x1, y1, false, guiInputHandler, sceneView)
     assertTrue(component1.isSelected)
     assertFalse(component2.isSelected)
@@ -103,8 +102,13 @@ class SelectionTest : NavTestCase() {
     assertEquals(component2.isSelected, allowsMultiSelect)
   }
 
-  private fun select(@NavCoordinate x: Int, @NavCoordinate y: Int, shiftKey: Boolean, guiInputHandler: GuiInputHandler,
-                     sceneView: SceneView) {
+  private fun select(
+    @NavCoordinate x: Int,
+    @NavCoordinate y: Int,
+    shiftKey: Boolean,
+    guiInputHandler: GuiInputHandler,
+    sceneView: SceneView,
+  ) {
     val modifiers = if (shiftKey) InputEvent.SHIFT_DOWN_MASK else 0
 
     val swingX = Coordinates.getSwingX(sceneView, x)
@@ -116,18 +120,15 @@ class SelectionTest : NavTestCase() {
   }
 
   fun testLassoSelection() {
-    val model = model("nav.xml") {
-      navigation {
-        action("action1", destination = "fragment1")
-        fragment("fragment1")
-        fragment("fragment2") {
-          action("action2", destination = "fragment3")
-        }
-        fragment("fragment3") {
-          action("action3", destination = "fragment3")
+    val model =
+      model("nav.xml") {
+        navigation {
+          action("action1", destination = "fragment1")
+          fragment("fragment1")
+          fragment("fragment2") { action("action2", destination = "fragment3") }
+          fragment("fragment3") { action("action3", destination = "fragment3") }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.getSceneManager(model)!!)
@@ -147,24 +148,41 @@ class SelectionTest : NavTestCase() {
     val action2 = scene.getSceneComponent("action2")!!
     val action3 = scene.getSceneComponent("action3")!!
 
-    lassoSelect(sceneView, guiInputHandler, fragment1);
-    assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
+    lassoSelect(sceneView, guiInputHandler, fragment1)
+    assertContainsElements(
+      surface.selectionModel.selection,
+      fragment1.nlComponent,
+      action1.nlComponent,
+    )
 
-    lassoSelect(sceneView, guiInputHandler, fragment2);
-    assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
+    lassoSelect(sceneView, guiInputHandler, fragment2)
+    assertContainsElements(
+      surface.selectionModel.selection,
+      fragment2.nlComponent,
+      action2.nlComponent,
+    )
 
-    lassoSelect(sceneView, guiInputHandler, fragment3);
-    assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
+    lassoSelect(sceneView, guiInputHandler, fragment3)
+    assertContainsElements(
+      surface.selectionModel.selection,
+      fragment3.nlComponent,
+      action3.nlComponent,
+    )
 
     guiInputHandler.stopListening()
   }
 
-  private fun lassoSelect(sceneView: SceneView, guiInputHandler: GuiInputHandler, component: SceneComponent) {
+  private fun lassoSelect(
+    sceneView: SceneView,
+    guiInputHandler: GuiInputHandler,
+    component: SceneComponent,
+  ) {
     val rect = component.fillRect(null)
     @SwingCoordinate val x1s = Coordinates.getSwingX(sceneView, rect.x) - LASSO_PADDING
     @SwingCoordinate val y1s = Coordinates.getSwingY(sceneView, rect.y) - LASSO_PADDING
     @SwingCoordinate val x2s = Coordinates.getSwingX(sceneView, rect.x + rect.width) + LASSO_PADDING
-    @SwingCoordinate val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
+    @SwingCoordinate
+    val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
     LayoutTestUtilities.moveMouse(guiInputHandler, 0, 0, x1s, y1s)
     LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, x1s, y1s, InputEvent.SHIFT_DOWN_MASK)
     LayoutTestUtilities.dragMouse(guiInputHandler, x1s, y1s, x2s, y2s, 0)

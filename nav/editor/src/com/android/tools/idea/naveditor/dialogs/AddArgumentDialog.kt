@@ -32,7 +32,6 @@ import com.android.tools.idea.res.FloatResources
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -47,20 +46,22 @@ import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.ui.MutableCollectionComboBoxModel
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
-import org.jetbrains.kotlin.utils.doNothing
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.lang.IllegalStateException
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JList
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import org.jetbrains.kotlin.utils.doNothing
 
 // open for testing
 class AddArgumentDialog(
   private val existingComponent: NlComponent?,
   private val parent: NlComponent,
-  private val kotlinTreeClassChooserFactory: KotlinTreeClassChooserFactory = KotlinTreeClassChooserFactory.getInstance()) : DialogWrapper(false) {
+  private val kotlinTreeClassChooserFactory: KotlinTreeClassChooserFactory =
+    KotlinTreeClassChooserFactory.getInstance(),
+) : DialogWrapper(false) {
 
   private var selectedType: Type = Type.values().first()
   private val defaultValueComboModel = MutableCollectionComboBoxModel<String>()
@@ -69,28 +70,26 @@ class AddArgumentDialog(
   internal val parcelableClass = ClassUtil.findPsiClass(psiManager, CLASS_PARCELABLE)!!
   internal val serializableClass = ClassUtil.findPsiClass(psiManager, "java.io.Serializable")!!
 
-  @VisibleForTesting
-  val dialogUI = AddArgumentDialogUI()
+  @VisibleForTesting val dialogUI = AddArgumentDialogUI()
 
   // open for testing
-  @VisibleForTesting
-  open var type: String? = null
+  @VisibleForTesting open var type: String? = null
 
   // Open for testing
   @VisibleForTesting
   open var defaultValue: String?
-    get() = if (selectedType == Type.BOOLEAN || selectedType.isCustom || isArray) {
-      dialogUI.myDefaultValueComboBox.selectedItem as String?
-    }
-    else {
-      dialogUI.myDefaultValueTextField.text
-    }
-    set(defaultValue) = if (selectedType == Type.BOOLEAN || selectedType.isCustom || isArray) {
-      dialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue)
-    }
-    else {
-      dialogUI.myDefaultValueTextField.text = defaultValue
-    }
+    get() =
+      if (selectedType == Type.BOOLEAN || selectedType.isCustom || isArray) {
+        dialogUI.myDefaultValueComboBox.selectedItem as String?
+      } else {
+        dialogUI.myDefaultValueTextField.text
+      }
+    set(defaultValue) =
+      if (selectedType == Type.BOOLEAN || selectedType.isCustom || isArray) {
+        dialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue)
+      } else {
+        dialogUI.myDefaultValueTextField.text = defaultValue
+      }
 
   @VisibleForTesting
   var isArray: Boolean
@@ -115,11 +114,13 @@ class AddArgumentDialog(
     }
 
   @VisibleForTesting
-  enum class Type(val display: String,
-                  val attrValue: String?,
-                  val isCustom: Boolean = false,
-                  val supportsNullable: Boolean = false,
-                  val supportsArray: Boolean = true) {
+  enum class Type(
+    val display: String,
+    val attrValue: String?,
+    val isCustom: Boolean = false,
+    val supportsNullable: Boolean = false,
+    val supportsArray: Boolean = true,
+  ) {
     INFERRED("<inferred type>", null),
     INTEGER("Integer", "integer"),
     FLOAT("Float", "float"),
@@ -127,9 +128,19 @@ class AddArgumentDialog(
     BOOLEAN("Boolean", "boolean"),
     STRING("String", "string", supportsNullable = true),
     REFERENCE("Resource Reference", "reference", supportsArray = false),
-    CUSTOM_PARCELABLE("Custom Parcelable...", "custom_parcelable", isCustom = true, supportsNullable = true),
-    CUSTOM_SERIALIZABLE("Custom Serializable...", "custom_serializable", isCustom = true, supportsNullable = true),
-    CUSTOM_ENUM("Custom Enum...", "custom_enum", isCustom = true,  supportsArray = false);
+    CUSTOM_PARCELABLE(
+      "Custom Parcelable...",
+      "custom_parcelable",
+      isCustom = true,
+      supportsNullable = true,
+    ),
+    CUSTOM_SERIALIZABLE(
+      "Custom Serializable...",
+      "custom_serializable",
+      isCustom = true,
+      supportsNullable = true,
+    ),
+    CUSTOM_ENUM("Custom Enum...", "custom_enum", isCustom = true, supportsArray = false);
 
     override fun toString(): String {
       return display
@@ -140,18 +151,25 @@ class AddArgumentDialog(
     init()
     Type.values().forEach { dialogUI.myTypeComboBox.addItem(it) }
 
-    dialogUI.myTypeComboBox.setRenderer(object : ListCellRendererWrapper<Type>() {
-      override fun customize(list: JList<*>, value: Type, index: Int, isSelected: Boolean, hasFocus: Boolean) {
-        if (index == -1 && value.isCustom && selectedType == value) {
-          setText(type)
+    dialogUI.myTypeComboBox.setRenderer(
+      object : ListCellRendererWrapper<Type>() {
+        override fun customize(
+          list: JList<*>,
+          value: Type,
+          index: Int,
+          isSelected: Boolean,
+          hasFocus: Boolean,
+        ) {
+          if (index == -1 && value.isCustom && selectedType == value) {
+            setText(type)
+          } else {
+            setText(value.display)
+          }
+          setBackground(UIUtil.getListBackground(isSelected, true))
+          setForeground(UIUtil.getListForeground(isSelected, true))
         }
-        else {
-          setText(value.display)
-        }
-        setBackground(UIUtil.getListBackground(isSelected, true))
-        setForeground(UIUtil.getListForeground(isSelected, true))
       }
-    })
+    )
 
     dialogUI.myTypeComboBox.isEditable = false
 
@@ -165,8 +183,7 @@ class AddArgumentDialog(
       type = typeStr
       if (typeStr == null) {
         dialogUI.myTypeComboBox.setSelectedItem(Type.INFERRED)
-      }
-      else {
+      } else {
         var found = false
 
         if (typeStr.endsWith("[]")) isArray = true
@@ -181,14 +198,15 @@ class AddArgumentDialog(
           }
         }
         if (!found) {
-          selectedType = ClassUtil.findPsiClassByJVMName(psiManager, typeStrNoSuffix)?.let {
-            when {
-              it.isEnum -> Type.CUSTOM_ENUM
-              it.isInheritor(parcelableClass, true) -> Type.CUSTOM_PARCELABLE
-              it.isInheritor(serializableClass, true) -> Type.CUSTOM_SERIALIZABLE
-              else -> null
-            }
-          } ?: Type.CUSTOM_PARCELABLE
+          selectedType =
+            ClassUtil.findPsiClassByJVMName(psiManager, typeStrNoSuffix)?.let {
+              when {
+                it.isEnum -> Type.CUSTOM_ENUM
+                it.isInheritor(parcelableClass, true) -> Type.CUSTOM_PARCELABLE
+                it.isInheritor(serializableClass, true) -> Type.CUSTOM_SERIALIZABLE
+                else -> null
+              }
+            } ?: Type.CUSTOM_PARCELABLE
           dialogUI.myTypeComboBox.selectedItem = selectedType
         }
       }
@@ -197,9 +215,11 @@ class AddArgumentDialog(
       defaultValue = existingComponent.defaultValue
       myOKAction.putValue(Action.NAME, "Update")
       title = "Update Argument"
-    }
-    else {
-      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "textDefaultValue")
+    } else {
+      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
+        dialogUI.myDefaultValuePanel,
+        "textDefaultValue",
+      )
       myOKAction.putValue(Action.NAME, "Add")
       title = "Add Argument"
     }
@@ -210,52 +230,64 @@ class AddArgumentDialog(
       }
     }
 
-    dialogUI.myDefaultValueComboBox.renderer = object : ListCellRendererWrapper<String>() {
-      override fun customize(list: JList<*>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value ?: "No default value")
+    dialogUI.myDefaultValueComboBox.renderer =
+      object : ListCellRendererWrapper<String>() {
+        override fun customize(
+          list: JList<*>,
+          value: String?,
+          index: Int,
+          selected: Boolean,
+          hasFocus: Boolean,
+        ) {
+          setText(value ?: "No default value")
+        }
       }
-    }
 
     dialogUI.myArrayCheckBox.addActionListener { event ->
       type = updateArgType(type)
       updateUi()
     }
 
-    dialogUI.myNullableCheckBox.addActionListener { event ->
-      updateUi()
-    }
+    dialogUI.myNullableCheckBox.addActionListener { event -> updateUi() }
   }
 
-  private fun updateArgType(argType: String?) = argType?.let { it.removeSuffix("[]") + if (isArray) "[]" else "" }
+  private fun updateArgType(argType: String?) =
+    argType?.let { it.removeSuffix("[]") + if (isArray) "[]" else "" }
 
   private fun newTypeSelected() {
     val selectedItem = dialogUI.myTypeComboBox.selectedItem as? Type
     if (selectedItem != null) {
       if (selectedItem.isCustom) {
         val project = parent.model.project
-        val superType = when (dialogUI.myTypeComboBox.selectedItem) {
-          Type.CUSTOM_PARCELABLE -> parcelableClass
-          Type.CUSTOM_SERIALIZABLE -> serializableClass
-          // we're using a class filter in createInheritanceClassChooser below for the Enum case,
-          // as during manual tests the behavior was inconsistent when using Enum supertype
-          Type.CUSTOM_ENUM -> null
-          else -> throw IllegalStateException("Can never happen.")
-        }
+        val superType =
+          when (dialogUI.myTypeComboBox.selectedItem) {
+            Type.CUSTOM_PARCELABLE -> parcelableClass
+            Type.CUSTOM_SERIALIZABLE -> serializableClass
+            // we're using a class filter in createInheritanceClassChooser below for the Enum case,
+            // as during manual tests the behavior was inconsistent when using Enum supertype
+            Type.CUSTOM_ENUM -> null
+            else -> throw IllegalStateException("Can never happen.")
+          }
         val current = type?.removeSuffix("[]")?.let { ClassUtil.findPsiClass(psiManager, it) }
-        val chooser = kotlinTreeClassChooserFactory.createKotlinTreeClassChooser("Select Class", project, GlobalSearchScope.allScope(project), superType, current) {
-              aClass -> if (superType == null) aClass.isEnum else true
+        val chooser =
+          kotlinTreeClassChooserFactory.createKotlinTreeClassChooser(
+            "Select Class",
+            project,
+            GlobalSearchScope.allScope(project),
+            superType,
+            current,
+          ) { aClass ->
+            if (superType == null) aClass.isEnum else true
           }
         chooser.showDialog()
         val selection = chooser.selected
         if (selection != null) {
           type = updateArgType(ClassUtil.getJVMClassName(selection))
           selectedType = selectedItem
-        }
-        else {
+        } else {
           dialogUI.myTypeComboBox.setSelectedItem(selectedType)
         }
-      }
-      else {
+      } else {
         type = updateArgType(selectedItem.attrValue)
         selectedType = selectedItem
       }
@@ -279,36 +311,49 @@ class AddArgumentDialog(
 
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
+          dialogUI.myDefaultValuePanel,
+          "comboDefaultValue",
+        )
         defaultValueComboModel.update(listOf(null, "true", "false"))
       }
       selectedType == Type.CUSTOM_ENUM && !isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
-        val list = ClassUtil.findPsiClass(psiManager, type.orEmpty())
-                     ?.fields
-                     ?.filter { it is PsiEnumConstant }
-                     ?.map { it.name }?.toMutableList<String?>()
-                   ?: mutableListOf()
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
+          dialogUI.myDefaultValuePanel,
+          "comboDefaultValue",
+        )
+        val list =
+          ClassUtil.findPsiClass(psiManager, type.orEmpty())
+            ?.fields
+            ?.filter { it is PsiEnumConstant }
+            ?.map { it.name }
+            ?.toMutableList<String?>() ?: mutableListOf()
         list.add(null)
         if (isNullable) list.add("@null")
         defaultValueComboModel.update(list)
       }
       selectedType.isCustom || isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
+          dialogUI.myDefaultValuePanel,
+          "comboDefaultValue",
+        )
         val list = mutableListOf<String?>(null)
         if (isNullable) list.add("@null")
         defaultValueComboModel.update(list)
       }
       else -> {
         dialogUI.myDefaultValueTextField.text = ""
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "textDefaultValue")
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
+          dialogUI.myDefaultValuePanel,
+          "textDefaultValue",
+        )
       }
     }
     dialogUI.myDefaultValueComboBox.isEnabled = defaultValueComboModel.size != 1
   }
 
   override fun createCenterPanel(): JComponent {
-    dialogUI.myContentPanel.minimumSize = Dimension(320,200)
+    dialogUI.myContentPanel.minimumSize = Dimension(320, 200)
     return dialogUI.myContentPanel
   }
 
@@ -321,11 +366,9 @@ class AddArgumentDialog(
     if (name.isNullOrEmpty()) {
       return ValidationInfo("Name must be set", dialogUI.myNameTextField)
     }
-    if (parent.children.any { c ->
-        c !== existingComponent
-        && c.isArgument
-        && c.argumentName == name
-      }) {
+    if (
+      parent.children.any { c -> c !== existingComponent && c.isArgument && c.argumentName == name }
+    ) {
       return ValidationInfo("Name must be unique", dialogUI.myNameTextField)
     }
     var newDefaultValue = defaultValue
@@ -337,40 +380,47 @@ class AddArgumentDialog(
           }
           try {
             (newDefaultValue.substring(0, newDefaultValue.length - 1)).toLong()
-          }
-          catch (e: NumberFormatException) {
+          } catch (e: NumberFormatException) {
             return ValidationInfo("Long default values must be in the format '1234L'")
           }
         }
         Type.INTEGER -> {
           try {
             newDefaultValue.toInt()
-          }
-          catch (e: NumberFormatException) {
+          } catch (e: NumberFormatException) {
             return ValidationInfo("Default value must be an integer")
           }
         }
         Type.REFERENCE -> {
-          val url = ResourceUrl.parse(newDefaultValue) ?: return ValidationInfo("Reference not correctly formatted")
+          val url =
+            ResourceUrl.parse(newDefaultValue)
+              ?: return ValidationInfo("Reference not correctly formatted")
           val resourceResolver = parent.model.configuration.resourceResolver
           if (resourceResolver != null) {
-            ApplicationManager.getApplication().runReadAction(Computable<ResourceValue> {
-              resourceResolver.resolve(url, parent.tagDeprecated)
-            }) ?: return ValidationInfo("Resource does not exist")
+            ApplicationManager.getApplication()
+              .runReadAction(
+                Computable<ResourceValue> { resourceResolver.resolve(url, parent.tagDeprecated) }
+              ) ?: return ValidationInfo("Resource does not exist")
           }
         }
         Type.FLOAT -> {
-          if (!FloatResources.parseFloatAttribute(newDefaultValue, FloatResources.TypedValue(), false)) {
+          if (
+            !FloatResources.parseFloatAttribute(newDefaultValue, FloatResources.TypedValue(), false)
+          ) {
             try {
               newDefaultValue.toFloat()
               return null
-            }
-            catch (e: NumberFormatException) {
+            } catch (e: NumberFormatException) {
               return ValidationInfo("Default value must be an integer")
             }
           }
         }
-        Type.INFERRED, Type.BOOLEAN, Type.STRING, Type.CUSTOM_PARCELABLE, Type.CUSTOM_SERIALIZABLE, Type.CUSTOM_ENUM -> doNothing()
+        Type.INFERRED,
+        Type.BOOLEAN,
+        Type.STRING,
+        Type.CUSTOM_PARCELABLE,
+        Type.CUSTOM_SERIALIZABLE,
+        Type.CUSTOM_ENUM -> doNothing()
       }
     }
     return null
@@ -390,8 +440,12 @@ class AddArgumentDialog(
       realComponent.setTypeAndLog(type, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       var newDefaultValue = defaultValue
-      if (!isArray && !newDefaultValue.isNullOrEmpty()
-          && dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")) {
+      if (
+        !isArray &&
+          !newDefaultValue.isNullOrEmpty() &&
+          dialogUI.myTypeComboBox.selectedItem === Type.LONG &&
+          !newDefaultValue.endsWith("L")
+      ) {
         newDefaultValue += "L"
       }
       realComponent.setDefaultValueAndLog(newDefaultValue, NavEditorEvent.Source.PROPERTY_INSPECTOR)
