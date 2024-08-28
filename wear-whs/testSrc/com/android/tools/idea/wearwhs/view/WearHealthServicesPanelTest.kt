@@ -291,15 +291,12 @@ class WearHealthServicesPanelTest {
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
     val fakeUi = FakeUi(whsPanel.component)
 
-    // TODO: Remove this apply when ag/26161198 is merged
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
-
     val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     hrCheckBox.doClick()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
     applyButton.doClick()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
