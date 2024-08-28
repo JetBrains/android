@@ -26,17 +26,20 @@ import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
-import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.android.tools.sdk.DeviceManagers
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -45,6 +48,10 @@ import java.awt.Component
 import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -186,17 +193,37 @@ internal class LocalVirtualDeviceSource(
     return true
   }
 
-  override val profiles: List<VirtualDeviceProfile>
-    get() =
-      DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
-        val androidVersions =
-          systemImages
-            .filter { DeviceSystemImageMatcher.matches(device, it) }
-            .mapTo(TreeSet()) { it.androidVersion }
+  override val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
+    callbackFlow {
+        send(LoadingState.Loading)
 
-        // If there are no system images for a device, we can't create it.
-        if (androidVersions.isEmpty()) null else device.toVirtualDeviceProfile(androidVersions)
+        val deviceManager =
+          DeviceManagers.getDeviceManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
+        fun sendDevices() {
+          val profiles =
+            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNull { device ->
+              val androidVersions =
+                systemImages
+                  .filter { DeviceSystemImageMatcher.matches(device, it) }
+                  .mapTo(TreeSet()) { it.androidVersion }
+
+              // If there are no system images for a device, we can't create it.
+              if (androidVersions.isEmpty()) null
+              else device.toVirtualDeviceProfile(androidVersions)
+            }
+
+          // Cannot fail due to conflate() below
+          trySend(LoadingState.Ready(profiles))
+        }
+
+        val listener = DeviceManager.DevicesChangedListener { sendDevices() }
+        deviceManager.registerListener(listener)
+
+        sendDevices()
+
+        awaitClose { deviceManager.unregisterListener(listener) }
       }
+      .conflate()
 }
 
 internal fun Device.toVirtualDeviceProfile(
