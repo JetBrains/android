@@ -29,7 +29,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
   ): StateTransition<Action> {
-    val selectedIssueId = state.selectedIssue!!.id
+    val selectedIssueId = state.selectedIssue?.id ?: return StateTransition(state, Action.NONE)
     val selectedEventId = state.selectedEvent?.eventId ?: state.selectedIssue!!.sampleEvent.eventId
 
     return StateTransition(
