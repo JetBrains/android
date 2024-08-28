@@ -16,6 +16,7 @@
 package com.android.tools.profilers.leakcanary
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.leakcanarylib.LeakCanarySerializer
 import com.android.tools.leakcanarylib.data.Analysis
@@ -35,7 +36,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
 
-class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelStage(profilers) {
+class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelStage(profilers), Updatable {
+
   private lateinit var statusListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
   private val leakCanarySerializer = LeakCanarySerializer()
@@ -46,8 +48,11 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
   val selectedLeak = _selectedLeak.asStateFlow()
   private val _isRecording = MutableStateFlow(false)
   val isRecording = _isRecording.asStateFlow()
+  private val _elapsedNs = MutableStateFlow(0L)
+  val elapsedNs = _elapsedNs.asStateFlow()
 
   fun startListening() {
+    profilers.updater.register(this)
     setIsRecording(true)
     registerLeakCanaryListeners()
     toggleLeakCanaryLogcatTracking(profilers.session, enable = true, endSession = false)
@@ -57,6 +62,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
     setIsRecording(false)
     toggleLeakCanaryLogcatTracking(profilers.session, enable = false, endSession = true)
     deregisterLeakCanaryListeners()
+    profilers.updater.unregister(this)
   }
 
   fun setIsRecording(isRecording: Boolean) {
@@ -241,5 +247,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
           .build()).groupsList.flatMap { group -> group.eventsList.toList() }
         .filter { event -> event.isEnded }
     }
+  }
+
+  override fun update(elapsedNs: Long) {
+    _elapsedNs.value += elapsedNs
   }
 }
