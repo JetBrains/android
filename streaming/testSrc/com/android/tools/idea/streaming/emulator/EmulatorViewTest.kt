@@ -31,6 +31,7 @@ import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.mockStatic
@@ -975,8 +976,5 @@ private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent>
 
 private fun getKeyStroke(action: String) =
     KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
-
-private val IGNORE_SCREENSHOT_CALL_FILTER =
-    FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamScreenshot")
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorViewTest/golden"

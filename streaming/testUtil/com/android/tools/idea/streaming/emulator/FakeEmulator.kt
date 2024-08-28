@@ -323,7 +323,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = DEFAULT_CALL_FILTER): GrpcCallRecord =
       grpcCallLog.get(timeout, filter)
 
   /**
@@ -1910,9 +1910,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
-    val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
-                                       "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                       "android.emulation.control.EmulatorController/streamNotification")
+    val DEFAULT_CALL_FILTER = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                         "android.emulation.control.EmulatorController/getDisplayConfigurations",
+                                         "android.emulation.control.EmulatorController/streamNotification")
+    val IGNORE_SCREENSHOT_CALL_FILTER =
+        DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }
 }
 

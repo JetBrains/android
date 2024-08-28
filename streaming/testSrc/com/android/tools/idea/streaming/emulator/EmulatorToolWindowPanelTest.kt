@@ -37,6 +37,7 @@ import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
+import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
@@ -1040,8 +1041,8 @@ class EmulatorToolWindowPanelTest {
     // Check camera movement.
     val velocityExpectations =
         mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
-    val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
-                                                       "android.emulation.control.EmulatorController/streamScreenshot")
+    val callFilter = FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamClipboard",
+                                                         "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.code)
 
@@ -1189,8 +1190,5 @@ class EmulatorToolWindowPanelTest {
     return TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
-
-private val IGNORE_SCREENSHOT_CALL_FILTER =
-    FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamScreenshot")
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/EmulatorToolWindowPanelTest"

@@ -228,7 +228,7 @@ class StreamingToolWindowManagerTest {
     // Close the panel corresponding to emulator1.
     contentManager.removeContent(contentManager.contents[0], true)
     val call = emulator1.getNextGrpcCall(2.seconds,
-                                         FakeEmulator.defaultCallFilter.or("android.emulation.control.UiController/closeExtendedControls"))
+                                         FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
