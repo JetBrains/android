@@ -23,10 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.getFullApiName
+import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
+import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
@@ -49,6 +52,7 @@ import org.jetbrains.jewel.ui.icon.PathIconKey
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   devicePanelState: DevicePanelState,
+  androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
   images: ImmutableList<ISystemImage>,
   onDevicePanelStateChange: (DevicePanelState) -> Unit,
@@ -70,14 +74,22 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
-  ServicesDropdown(
-    devicePanelState.selectedServices,
-    servicesCollection,
-    onSelectedServicesChange = {
-      onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
-    },
-    Modifier.padding(bottom = Padding.MEDIUM_LARGE),
-  )
+  Row {
+    ApiFilter(
+      androidVersions,
+      selectedApiLevel = devicePanelState.selectedApiLevel,
+      onApiLevelChange = { onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it)) },
+    )
+
+    ServicesDropdown(
+      devicePanelState.selectedServices,
+      servicesCollection,
+      onSelectedServicesChange = {
+        onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
+      },
+      Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+    )
+  }
 
   SystemImageTable(
     images,
@@ -180,6 +192,7 @@ private fun SystemImageTable(
 
 internal data class DevicePanelState
 internal constructor(
+  internal val selectedApiLevel: AndroidVersionSelection,
   internal val selectedServices: Services?,
   internal val sdkExtensionSystemImagesVisible: Boolean = false,
   internal val onlyForHostCpuArchitectureVisible: Boolean = true,
@@ -188,7 +201,8 @@ internal constructor(
     val servicesMatch = selectedServices == null || image.getServices() == selectedServices
 
     val androidVersionMatches =
-      sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension
+      (sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension) &&
+        selectedApiLevel.matches(image.androidVersion)
 
     val abisMatch =
       !onlyForHostCpuArchitectureVisible ||

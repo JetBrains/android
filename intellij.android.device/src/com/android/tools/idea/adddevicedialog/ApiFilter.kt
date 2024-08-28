@@ -19,55 +19,47 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.NameDetails
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.getApiNameAndDetails
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.items
 
-/** A Composable that allows selection of API level (or latest) via a dropdown. */
+/** A Composable that allows selection of API level via a dropdown. */
 @Composable
-internal fun ApiFilter(apiFilterState: ApiLevelSelectionState) {
+fun ApiFilter(
+  apiLevels: List<AndroidVersion>,
+  selectedApiLevel: AndroidVersionSelection,
+  onApiLevelChange: (AndroidVersionSelection) -> Unit,
+) {
   Column(modifier = Modifier.padding(6.dp)) {
     Text("API")
 
     Dropdown(
       modifier = Modifier.padding(2.dp),
       menuContent = {
-        val apiLevels = buildList {
-          add(ApiLevelSelection.Latest)
-          add(ApiLevelSelection.LatestStable)
-          for (apiLevel in
-            SdkVersionInfo.HIGHEST_KNOWN_API downTo SdkVersionInfo.LOWEST_ACTIVE_API) {
-            add(ApiLevelSelection.ApiLevel(apiLevel))
-          }
-        }
+        val apiLevels = apiLevels.map { AndroidVersionSelection(it) }
         items(
           apiLevels.size,
-          isSelected = { index -> apiLevels[index] == apiFilterState.apiLevelSelection },
-          onItemClick = { index -> apiFilterState.apiLevelSelection = apiLevels[index] },
+          isSelected = { index -> apiLevels[index] == selectedApiLevel },
+          onItemClick = { index -> onApiLevelChange(apiLevels[index]) },
         ) { index ->
           ApiLevel(apiLevels[index])
         }
       },
     ) {
-      ApiLevel(apiFilterState.apiLevelSelection)
+      ApiLevel(selectedApiLevel)
     }
   }
 }
 
 @Composable
-internal fun ApiLevel(apiLevel: ApiLevelSelection) {
+fun ApiLevel(apiLevel: AndroidVersionSelection) {
   Row {
     Text(
       apiLevel.nameDetails.name,
@@ -81,42 +73,11 @@ internal fun ApiLevel(apiLevel: ApiLevelSelection) {
   }
 }
 
-@Stable
-internal class ApiLevelSelectionState : RowFilter<DeviceProfile> {
-  var apiLevelSelection: ApiLevelSelection by mutableStateOf(ApiLevelSelection.Latest)
+data class AndroidVersionSelection(private val androidVersion: AndroidVersion) {
+  val nameDetails: NameDetails
+    get() = androidVersion.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
 
-  override fun apply(device: DeviceProfile): Boolean = apiLevelSelection.apply(device) != null
-}
-
-/**
- * The API level is either a single specific level or "newest on device", which we represent as null
- * here.
- */
-sealed class ApiLevelSelection {
-  abstract val nameDetails: NameDetails
-
-  abstract fun apply(device: DeviceProfile): AndroidVersion?
-
-  data class ApiLevel(val apiLevel: Int) : ApiLevelSelection() {
-    override val nameDetails =
-      AndroidVersion(apiLevel)
-        .getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
-
-    override fun apply(device: DeviceProfile): AndroidVersion? =
-      // TODO: Allow preview versions?
-      AndroidVersion(apiLevel).takeIf { device.apiLevels.contains(it) }
-  }
-
-  data object Latest : ApiLevelSelection() {
-    override val nameDetails = NameDetails("Latest", "Show latest API available")
-
-    override fun apply(device: DeviceProfile): AndroidVersion? = device.apiLevels.last()
-  }
-
-  data object LatestStable : ApiLevelSelection() {
-    override val nameDetails = NameDetails("Latest stable", "Show latest stable API available")
-
-    override fun apply(device: DeviceProfile): AndroidVersion? =
-      device.apiLevels.descendingSet().firstOrNull { !it.isPreview }
-  }
+  /** Don't worry about extension levels. */
+  fun matches(version: AndroidVersion) =
+    androidVersion.apiLevel == version.apiLevel && androidVersion.codename == version.codename
 }

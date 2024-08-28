@@ -23,10 +23,8 @@ import androidx.compose.ui.test.assertIsToggleable
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.jewel.ui.component.Text
@@ -35,23 +33,6 @@ import org.junit.Test
 
 class AddDeviceWizardTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()
-
-  @Test
-  fun apiLevel() {
-    val source = TestDeviceSource()
-    TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { DeviceGridPage(source) }
-    composeTestRule.setContent { wizard.Content() }
-
-    composeTestRule.onNodeWithText("Latest").performClick()
-    composeTestRule
-      .onNode(hasText("API 28", substring = true) and hasAnyAncestor(isPopup()))
-      .performClick()
-    composeTestRule.onNodeWithText("Medium Phone").performClick()
-    composeTestRule.waitForIdle()
-
-    assertThat(source.selectedProfile.value?.apiLevels).containsExactly(AndroidVersion(28))
-  }
 
   @Test
   fun tableSelectionStateIsPreserved() {
