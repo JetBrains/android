@@ -161,27 +161,10 @@ private fun SystemImageTable(
       },
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
       TableTextColumn(
-        "Services",
-        TableColumnWidth.Fixed(132.dp),
-        attribute = { it.getServices().toString() },
-        Comparator.comparing(ISystemImage::getServices),
-      ),
-      TableTextColumn(
         "API",
-        attribute = {
-          it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true)
-        },
-        comparator = Comparator.comparing(ISystemImage::getAndroidVersion),
-      ),
-      TableTextColumn(
-        "ABIs",
-        TableColumnWidth.Fixed(77.dp),
-        attribute = { it.abiTypes.joinToString() },
-      ),
-      TableTextColumn(
-        "Translated ABIs",
-        TableColumnWidth.Fixed(77.dp),
-        attribute = { it.translatedAbiTypes.joinToString() },
+        TableColumnWidth.Fixed(250.dp),
+        { it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true) },
+        Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )
 
