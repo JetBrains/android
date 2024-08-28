@@ -28,28 +28,25 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
-/**
- * Tests for actions used by the nav editor
- */
+/** Tests for actions used by the nav editor */
 class NavSelectActionsTest : NavTestCase() {
   fun testSelectNextAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        action("action1", destination = "fragment1")
-        fragment("fragment1") {
-          action("action2", destination = "fragment2")
-        }
-        fragment("fragment2")
-        fragment("fragment3")
-        navigation("nested") {
-          action("action3", destination = "fragment2")
-          fragment("fragment4") {
-            action("action4", destination = "fragment1")
-            action("action5", destination = "fragment4")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          action("action1", destination = "fragment1")
+          fragment("fragment1") { action("action2", destination = "fragment2") }
+          fragment("fragment2")
+          fragment("fragment3")
+          navigation("nested") {
+            action("action3", destination = "fragment2")
+            fragment("fragment4") {
+              action("action4", destination = "fragment1")
+              action("action5", destination = "fragment4")
+            }
           }
         }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
@@ -69,23 +66,22 @@ class NavSelectActionsTest : NavTestCase() {
   }
 
   fun testSelectPreviousAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        action("action1", destination = "fragment1")
-        fragment("fragment1") {
-          action("action2", destination = "fragment2")
-        }
-        fragment("fragment2")
-        fragment("fragment3")
-        navigation("nested") {
-          action("action3", destination = "fragment2")
-          fragment("fragment4") {
-            action("action4", destination = "fragment1")
-            action("action5", destination = "fragment4")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          action("action1", destination = "fragment1")
+          fragment("fragment1") { action("action2", destination = "fragment2") }
+          fragment("fragment2")
+          fragment("fragment3")
+          navigation("nested") {
+            action("action3", destination = "fragment2")
+            fragment("fragment4") {
+              action("action4", destination = "fragment1")
+              action("action5", destination = "fragment4")
+            }
           }
         }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
@@ -105,14 +101,15 @@ class NavSelectActionsTest : NavTestCase() {
   }
 
   fun testSelectAllAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        action("action1")
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          action("action1")
+          fragment("fragment1")
+          fragment("fragment2")
+          fragment("fragment3")
+        }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
@@ -126,12 +123,19 @@ class NavSelectActionsTest : NavTestCase() {
 
     val action = SelectAllAction()
 
-    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
-    assertEquals(listOf(root, action1, fragment1, fragment2, fragment3), surface.selectionModel.selection)
+    action.actionPerformed(
+      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    )
+    assertEquals(
+      listOf(root, action1, fragment1, fragment2, fragment3),
+      surface.selectionModel.selection,
+    )
   }
 
   private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
-    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
+    action.actionPerformed(
+      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    )
     val component = surface.model?.treeReader?.find(id)!!
     AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
   }

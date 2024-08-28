@@ -32,10 +32,12 @@ import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_FRAME_STROKE
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_STROKE
 import java.awt.Color
 
-class DrawFragment(private val rectangle: SwingRectangle,
-                   private val scale: Scale,
-                   private val highlightColor: Color?,
-                   private val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawFragment(
+  private val rectangle: SwingRectangle,
+  private val scale: Scale,
+  private val highlightColor: Color?,
+  private val image: RefinableImage? = null,
+) : CompositeDrawCommand(COMPONENT_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
     list.add(DrawShape(rectangle, NavColors.FRAME, REGULAR_FRAME_STROKE))
@@ -45,7 +47,8 @@ class DrawFragment(private val rectangle: SwingRectangle,
 
     if (highlightColor != null) {
       val spacing = 2 * FRAGMENT_BORDER_SPACING * scale
-      val roundRectangle = SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
+      val roundRectangle =
+        SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
       list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }
 

@@ -40,13 +40,15 @@ private val ACTIVITY_ARC_SIZE = scaledAndroidLength(12f)
 private val ACTIVITY_BORDER_WIDTH = scaledSwingLength(1f)
 private val ACTIVITY_BORDER_STROKE = SwingStroke(ACTIVITY_BORDER_WIDTH)
 
-class DrawActivity(private val rectangle: SwingRectangle,
-                   private val imageRectangle: SwingRectangle,
-                   private val scale: Scale,
-                   private val frameColor: Color,
-                   private val frameThickness: SwingLength,
-                   private val textColor: Color,
-                   private val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawActivity(
+  private val rectangle: SwingRectangle,
+  private val imageRectangle: SwingRectangle,
+  private val scale: Scale,
+  private val frameColor: Color,
+  private val frameThickness: SwingLength,
+  private val textColor: Color,
+  private val image: RefinableImage? = null,
+) : CompositeDrawCommand(COMPONENT_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 
@@ -60,10 +62,16 @@ class DrawActivity(private val rectangle: SwingRectangle,
     list.add(DrawShape(imageRectangle, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
 
     val textHeight = rectangle.height - imageRectangle.height - (imageRectangle.x - rectangle.x)
-    val textRectangle = SwingRectangle(rectangle.x, imageRectangle.y + imageRectangle.height,
-                                       rectangle.width, textHeight)
-    list.add(DrawTruncatedText("Activity", textRectangle, textColor,
-                               scaledFont(scale, Font.BOLD), true))
+    val textRectangle =
+      SwingRectangle(
+        rectangle.x,
+        imageRectangle.y + imageRectangle.height,
+        rectangle.width,
+        textHeight,
+      )
+    list.add(
+      DrawTruncatedText("Activity", textRectangle, textColor, scaledFont(scale, Font.BOLD), true)
+    )
 
     return list
   }

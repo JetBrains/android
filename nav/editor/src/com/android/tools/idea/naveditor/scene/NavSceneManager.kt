@@ -45,10 +45,10 @@ import com.android.tools.idea.naveditor.model.isSelfAction
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
-import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavActionSourceHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavDestinationHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavHorizontalActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
 import com.android.tools.idea.naveditor.scene.hitproviders.NavSelfActionHitProvider
 import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
@@ -61,33 +61,25 @@ import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.BasicUndoableAction
-import com.intellij.openapi.command.undo.DocumentReference
-import com.intellij.openapi.command.undo.DocumentReferenceManager
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import kotlin.math.max
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
-@NavCoordinate
-private val SCREEN_LONG = JBUIScale.scale(256f)
+@NavCoordinate private val SCREEN_LONG = JBUIScale.scale(256f)
 
-@NavCoordinate
-val SUBNAV_WIDTH = JBUIScale.scale(140)
-@NavCoordinate
-val SUBNAV_HEIGHT = JBUIScale.scale(38)
+@NavCoordinate val SUBNAV_WIDTH = JBUIScale.scale(140)
+@NavCoordinate val SUBNAV_HEIGHT = JBUIScale.scale(38)
 
-@SwingCoordinate
-private val PAN_LIMIT = JBUIScale.scale(150)
-@NavCoordinate
-private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)
+@SwingCoordinate private val PAN_LIMIT = JBUIScale.scale(150)
+@NavCoordinate private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)
 
 private val ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR
 private val ACTION_VERTICAL_PADDING = scaledAndroidLength(6f)
@@ -97,18 +89,16 @@ private val ACTION_LINE_LENGTH = scaledAndroidLength(14f)
 private val ACTION_WIDTH = ACTION_ARROW_PARALLEL + ACTION_LINE_LENGTH
 private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 
-/**
- * [SceneManager] for the navigation editor.
- */
-open class NavSceneManager(
-  model: NlModel,
-  surface: NavDesignSurface
-) : SceneManager(model, surface, NavSceneComponentHierarchyProvider()) {
+/** [SceneManager] for the navigation editor. */
+open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
+  SceneManager(model, surface, NavSceneComponentHierarchyProvider()) {
 
-  private val layoutAlgorithms = listOf(
-    NewDestinationLayoutAlgorithm(),
-    ManualLayoutAlgorithm(model.module),
-    ElkLayeredLayoutAlgorithm())
+  private val layoutAlgorithms =
+    listOf(
+      NewDestinationLayoutAlgorithm(),
+      ManualLayoutAlgorithm(model.module),
+      ElkLayeredLayoutAlgorithm(),
+    )
 
   private val savingLayoutAlgorithm = layoutAlgorithms.find { algorithm -> algorithm.canSave() }
 
@@ -120,11 +110,13 @@ open class NavSceneManager(
     updateHierarchy(getModel(), null)
     getModel().addListener(ModelChangeListener())
     designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
-    designSurface.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(event: ComponentEvent?) {
-        update()
+    designSurface.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(event: ComponentEvent?) {
+          update()
+        }
       }
-    })
+    )
   }
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface
@@ -148,15 +140,16 @@ open class NavSceneManager(
     val root = scene.root ?: return
 
     @SwingCoordinate val extentSize = designSurface.extentSize
-    @NavCoordinate val extentWidth = Coordinates.getAndroidDimension(designSurface, extentSize.width)
-    @NavCoordinate val extentHeight = Coordinates.getAndroidDimension(designSurface, extentSize.height)
+    @NavCoordinate
+    val extentWidth = Coordinates.getAndroidDimension(designSurface, extentSize.width)
+    @NavCoordinate
+    val extentHeight = Coordinates.getAndroidDimension(designSurface, extentSize.height)
 
     @NavCoordinate val rootBounds: Rectangle
 
     if (isEmpty) {
       rootBounds = Rectangle(0, 0, extentWidth, extentHeight)
-    }
-    else {
+    } else {
       @NavCoordinate val panLimit = Coordinates.getAndroidDimension(designSurface, PAN_LIMIT)
       rootBounds = getBoundingBox(root)
       rootBounds.grow(max(0, extentWidth - panLimit), max(0, extentHeight - panLimit))
@@ -167,8 +160,10 @@ open class NavSceneManager(
     scene.needsRebuildList()
 
     designSurface.focusedSceneView?.let {
-      @SwingCoordinate val deltaX = Coordinates.getSwingDimension(it, root.drawX - (prevRootBounds?.x ?: 0))
-      @SwingCoordinate val deltaY = Coordinates.getSwingDimension(it, root.drawY - (prevRootBounds?.y ?: 0))
+      @SwingCoordinate
+      val deltaX = Coordinates.getSwingDimension(it, root.drawX - (prevRootBounds?.x ?: 0))
+      @SwingCoordinate
+      val deltaY = Coordinates.getSwingDimension(it, root.drawY - (prevRootBounds?.y ?: 0))
 
       @SwingCoordinate val point = designSurface.pannable.scrollPosition
       designSurface.setScrollPosition(point.x - deltaX, point.y - deltaY)
@@ -180,41 +175,41 @@ open class NavSceneManager(
   override fun getSceneScalingFactor() = 1f
 
   private fun findAndCreateExitActionComponents(component: NlComponent): List<SceneComponent> {
-    return component.flatten()
+    return component
+      .flatten()
       .filter { it.isAction && it.actionDestination?.parent == root }
-      .map { c ->
-        scene.getSceneComponent(c) ?: SceneComponent(scene, c, getHitProvider(c))
-      }
+      .map { c -> scene.getSceneComponent(c) ?: SceneComponent(scene, c, getHitProvider(c)) }
       .toList()
   }
 
-  private fun shouldCreateHierarchy(component: NlComponent) = when {
-    component.isAction -> true
-    component.isDestination -> (component == root || component.parent == root)
-    else -> false
-  }
+  private fun shouldCreateHierarchy(component: NlComponent) =
+    when {
+      component.isAction -> true
+      component.isDestination -> (component == root || component.parent == root)
+      else -> false
+    }
 
   /**
-   * Global actions are children of the root navigation in the NlComponent tree, but we want their scene components to be children of
-   * the scene component of their destination. This method re-parents the scene components of the global actions.
+   * Global actions are children of the root navigation in the NlComponent tree, but we want their
+   * scene components to be children of the scene component of their destination. This method
+   * re-parents the scene components of the global actions.
    *
-   *
-   * TODO: in SceneManager.createHierarchy we try to reuse SceneComponents if possible. Moving SceneComponents in this way prevents that
-   * from working.
+   * TODO: in SceneManager.createHierarchy we try to reuse SceneComponents if possible. Moving
+   *   SceneComponents in this way prevents that from working.
    */
   private fun moveGlobalActions(root: SceneComponent) {
     val destinationMap = root.children.filter { it.nlComponent.isDestination }.associateBy { it.id }
 
     val rootNlComponent = root.nlComponent
-    val globalActions = root.children.filter { it.nlComponent.isAction && it.nlComponent.parent == rootNlComponent }
+    val globalActions =
+      root.children.filter { it.nlComponent.isAction && it.nlComponent.parent == rootNlComponent }
 
     for (globalAction in globalActions) {
       val destination = globalAction.nlComponent.actionDestinationId
       val parent = destinationMap[destination]
       if (parent == null) {
         scene.removeComponent(globalAction)
-      }
-      else {
+      } else {
         parent.addChild(globalAction)
       }
     }
@@ -224,9 +219,7 @@ open class NavSceneManager(
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
-      ApplicationManager.getApplication().invokeLater {
-        designSurface.zoomController.zoomToFit()
-      }
+      ApplicationManager.getApplication().invokeLater { designSurface.zoomController.zoomToFit() }
     }
 
     return CompletableFuture.completedFuture(null)
@@ -238,7 +231,8 @@ open class NavSceneManager(
     for (algorithm in layoutAlgorithms) {
       val remaining = algorithm.layout(destinations)
       destinations.removeAll(remaining)
-      // If the algorithm that laid out the component can't persist the position, assume the position hasn't been persisted and
+      // If the algorithm that laid out the component can't persist the position, assume the
+      // position hasn't been persisted and
       // needs to be
       if (!algorithm.canSave()) {
         save(destinations)
@@ -262,8 +256,7 @@ open class NavSceneManager(
         when (child.nlComponent.getActionType(getRoot())) {
           ActionType.GLOBAL -> globalActions.add(child)
           ActionType.EXIT -> exitActions.add(child)
-          else -> {
-          }
+          else -> {}
         }
       }
 
@@ -280,7 +273,8 @@ open class NavSceneManager(
     }
   }
 
-  fun getPositionData(component: SceneComponent): Any? = savingLayoutAlgorithm?.getPositionData(component)
+  fun getPositionData(component: SceneComponent): Any? =
+    savingLayoutAlgorithm?.getPositionData(component)
 
   private fun isHorizontalAction(component: NlComponent): Boolean {
     val actionType = component.getActionType(root)
@@ -298,8 +292,7 @@ open class NavSceneManager(
   override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
 
   private inner class ModelChangeListener : ModelListener {
-    override fun modelDerivedDataChanged(model: NlModel) {
-    }
+    override fun modelDerivedDataChanged(model: NlModel) {}
 
     override fun modelChanged(model: NlModel) {
       updateHierarchy(model, model)
@@ -328,21 +321,23 @@ open class NavSceneManager(
 
   private fun getActionHitProvider(component: NlComponent): HitProvider {
     return when (component.getActionType(root)) {
-      ActionType.GLOBAL, ActionType.EXIT -> NavHorizontalActionHitProvider
+      ActionType.GLOBAL,
+      ActionType.EXIT -> NavHorizontalActionHitProvider
       ActionType.SELF -> NavSelfActionHitProvider
       else -> NavRegularActionHitProvider
     }
   }
 
   /**
-   * [BasicUndoableAction] to undo a position action. This class does not keep any references to the NavSceneManager or any major
-   * data structures since the [UndoManager] might retain it for longer than the surface.
+   * [BasicUndoableAction] to undo a position action. This class does not keep any references to the
+   * NavSceneManager or any major data structures since the [UndoManager] might retain it for longer
+   * than the surface.
    */
   private class UndoPositionAction(
     private val savingLayoutAlgorithm: NavSceneLayoutAlgorithm,
     private val positionData: Any,
-    private val path: List<String>
-  ): BasicUndoableAction() {
+    private val path: List<String>,
+  ) : BasicUndoableAction() {
     override fun undo() {
       savingLayoutAlgorithm.restorePositionData(path, positionData)
     }
@@ -355,20 +350,24 @@ open class NavSceneManager(
     val sceneComponent = scene.getSceneComponent(component) ?: return
     val positionData = getPositionData(sceneComponent) ?: return
     val path = component.idPath.mapNotNull { it }
-    UndoManager.getInstance(designSurface.project).undoableActionPerformed(UndoPositionAction(savingLayoutAlgorithm, positionData, path))
+    UndoManager.getInstance(designSurface.project)
+      .undoableActionPerformed(UndoPositionAction(savingLayoutAlgorithm, positionData, path))
   }
 
   /**
-   * Regular actions are children of a destination in the NlComponent tree, but we want their scene components to be children of
-   * the root. This method re-parents the scene components of the regular actions.
+   * Regular actions are children of a destination in the NlComponent tree, but we want their scene
+   * components to be children of the root. This method re-parents the scene components of the
+   * regular actions.
    *
-   *
-   * TODO: decide if this is also what we should do for other action types, and if so restore clips for components (remove custom
-   * NavScreenDecorator#buildListChildren).
+   * TODO: decide if this is also what we should do for other action types, and if so restore clips
+   *   for components (remove custom NavScreenDecorator#buildListChildren).
    */
   private fun moveRegularActions(root: SceneComponent) {
     for (destination in root.children.filter { it.nlComponent.isDestination }) {
-      for (action in destination.children.filter { it.nlComponent.getActionType(root.nlComponent) == ActionType.REGULAR }) {
+      for (action in
+        destination.children.filter {
+          it.nlComponent.getActionType(root.nlComponent) == ActionType.REGULAR
+        }) {
         action.removeFromParent()
         root.addChild(action)
       }
@@ -376,13 +375,14 @@ open class NavSceneManager(
   }
 
   /**
-   * Builds up a list of ids of sources and destinations for all actions
-   * whose source and destination are currently visible
-   * These are used to layout the global and exit actions properly
+   * Builds up a list of ids of sources and destinations for all actions whose source and
+   * destination are currently visible These are used to layout the global and exit actions properly
    */
-  private fun getConnectedActions(root: NlComponent,
-                                  connectedActionSources: MutableSet<String>,
-                                  connectedActionDestinations: MutableSet<String>) {
+  private fun getConnectedActions(
+    root: NlComponent,
+    connectedActionSources: MutableSet<String>,
+    connectedActionDestinations: MutableSet<String>,
+  ) {
     val children = root.children.mapNotNull { it.id }
 
     for (component in root.children.filter { it.isDestination }) {
@@ -399,18 +399,39 @@ open class NavSceneManager(
     }
   }
 
-  private fun layoutGlobalActions(destination: SceneComponent,
-                                  globalActions: MutableList<SceneComponent?>,
-                                  skip: Boolean) {
-    layoutActions(destination, globalActions, skip,
-                  (AndroidLength(destination.drawX.toFloat()) - ACTION_WIDTH - ACTION_HORIZONTAL_PADDING).toInt())
+  private fun layoutGlobalActions(
+    destination: SceneComponent,
+    globalActions: MutableList<SceneComponent?>,
+    skip: Boolean,
+  ) {
+    layoutActions(
+      destination,
+      globalActions,
+      skip,
+      (AndroidLength(destination.drawX.toFloat()) - ACTION_WIDTH - ACTION_HORIZONTAL_PADDING)
+        .toInt(),
+    )
   }
 
-  private fun layoutExitActions(source: SceneComponent, exitActions: MutableList<SceneComponent?>, skip: Boolean) {
-    layoutActions(source, exitActions, skip, source.drawX + source.drawWidth + ACTION_HORIZONTAL_PADDING.toInt())
+  private fun layoutExitActions(
+    source: SceneComponent,
+    exitActions: MutableList<SceneComponent?>,
+    skip: Boolean,
+  ) {
+    layoutActions(
+      source,
+      exitActions,
+      skip,
+      source.drawX + source.drawWidth + ACTION_HORIZONTAL_PADDING.toInt(),
+    )
   }
 
-  private fun layoutActions(component: SceneComponent, actions: MutableList<SceneComponent?>, skip: Boolean, @NavCoordinate x: Int) {
+  private fun layoutActions(
+    component: SceneComponent,
+    actions: MutableList<SceneComponent?>,
+    skip: Boolean,
+    @NavCoordinate x: Int,
+  ) {
     var count = actions.size
 
     if (count == 0) {
@@ -431,9 +452,12 @@ open class NavSceneManager(
       count++
     }
 
-    @NavCoordinate var y = (component.drawY + component.drawHeight / 2
-                            - ACTION_HEIGHT.toInt() / 2 - count / 2 * (ACTION_HEIGHT + ACTION_VERTICAL_PADDING).toInt()
-                            - popIconCount * POP_ICON_VERTICAL_PADDING.toInt())
+    @NavCoordinate
+    var y =
+      (component.drawY + component.drawHeight / 2 -
+        ACTION_HEIGHT.toInt() / 2 -
+        count / 2 * (ACTION_HEIGHT + ACTION_VERTICAL_PADDING).toInt() -
+        popIconCount * POP_ICON_VERTICAL_PADDING.toInt())
 
     for (action in actions) {
       if (action != null) {
@@ -447,8 +471,11 @@ open class NavSceneManager(
     }
   }
 
-  private class NavSceneComponentHierarchyProvider: DefaultSceneManagerHierarchyProvider() {
-    override fun createHierarchy(manager: SceneManager, component: NlComponent): List<SceneComponent> {
+  private class NavSceneComponentHierarchyProvider : DefaultSceneManagerHierarchyProvider() {
+    override fun createHierarchy(
+      manager: SceneManager,
+      component: NlComponent,
+    ): List<SceneComponent> {
       val navSceneManager = manager as NavSceneManager
 
       if (!navSceneManager.shouldCreateHierarchy(component)) {
@@ -462,8 +489,7 @@ open class NavSceneManager(
           navSceneManager.moveGlobalActions(child)
           navSceneManager.moveRegularActions(child)
         }
-      }
-      else if (component.isNavigation) {
+      } else if (component.isNavigation) {
         return hierarchy.plus(navSceneManager.findAndCreateExitActionComponents(component))
       }
 
@@ -483,22 +509,21 @@ open class NavSceneManager(
       val designSurface = sceneComponent.scene.designSurface as NavDesignSurface
       val type = nlComponent.destinationType
       if (type != null) {
-        sceneComponent.setTargetProvider(if (sceneComponent.nlComponent == designSurface.currentNavigation)
-                                           NavigationTargetProvider
-                                         else
-                                           NavScreenTargetProvider)
+        sceneComponent.setTargetProvider(
+          if (sceneComponent.nlComponent == designSurface.currentNavigation)
+            NavigationTargetProvider
+          else NavScreenTargetProvider
+        )
         sceneComponent.updateTargets()
 
         if (type == NavigationSchema.DestinationType.NAVIGATION) {
           if (sceneComponent.nlComponent == designSurface.currentNavigation) {
             // done in post
             sceneComponent.setSize(-1, -1)
-          }
-          else {
+          } else {
             sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT)
           }
-        }
-        else {
+        } else {
           val state = nlComponent.model.configuration.deviceState!!
           val screen = state.hardware.screen
           @NavCoordinate var x = SCREEN_LONG
@@ -506,8 +531,7 @@ open class NavSceneManager(
           val ratio = screen.xDimension / screen.yDimension.toFloat()
           if (ratio > 1) {
             y /= ratio
-          }
-          else {
+          } else {
             x *= ratio
           }
           if (ratio < 1.1 && ratio > 0.9) {
@@ -527,12 +551,13 @@ open class NavSceneManager(
     }
   }
 
-  override fun activate(source: Any): Boolean = super.activate(source).also {
-    if (it) {
-      updateHierarchy(model, model)
-      requestRenderAsync()
+  override fun activate(source: Any): Boolean =
+    super.activate(source).also {
+      if (it) {
+        updateHierarchy(model, model)
+        requestRenderAsync()
+      }
     }
-  }
 }
 
 // TODO: this should be moved somewhere model-specific, since it is relevant even absent a Scene
@@ -577,8 +602,7 @@ fun getBoundingBox(components: List<SceneComponent>): Rectangle {
     child.fillDrawRect(0, childRect)
     if (boundingBox.width < 0) {
       boundingBox.bounds = childRect
-    }
-    else {
+    } else {
       boundingBox.add(childRect)
     }
   }
@@ -587,4 +611,3 @@ fun getBoundingBox(components: List<SceneComponent>): Rectangle {
 
   return boundingBox
 }
-

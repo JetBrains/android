@@ -26,16 +26,14 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import java.util.Collections
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.Collections
 
 class EmptyDesignerTargetTest : NavTestCase() {
   fun testEmptyDesignerTarget() {
-    val model = model("nav.xml") {
-      navigation("root")
-    }
+    val model = model("nav.xml") { navigation("root") }
 
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.getSceneManager(model)!!)
@@ -52,7 +50,8 @@ class EmptyDesignerTargetTest : NavTestCase() {
     whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList()))
+      .thenReturn(DefaultActionGroup())
 
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!

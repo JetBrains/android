@@ -17,7 +17,8 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.idea.common.scene.SceneComponent
 
-fun SceneComponent.getPositionData(): Any? = (scene.sceneManager as NavSceneManager).getPositionData(this)
+fun SceneComponent.getPositionData(): Any? =
+  (scene.sceneManager as NavSceneManager).getPositionData(this)
 
-fun SceneComponent.flatten(): List<SceneComponent> = listOf(this).plus(children.flatMap { it.flatten() })
-
+fun SceneComponent.flatten(): List<SceneComponent> =
+  listOf(this).plus(children.flatMap { it.flatten() })

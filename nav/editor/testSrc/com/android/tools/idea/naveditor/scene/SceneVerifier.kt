@@ -21,11 +21,11 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.scene.draw.makeGraphicsMock
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import org.mockito.InOrder
-import org.mockito.Mockito
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
+import org.mockito.InOrder
+import org.mockito.Mockito
 
 val ACTION_COLOR = Color(0xdfe1e5)
 val SELECTED_COLOR = Color(0x1886f7)

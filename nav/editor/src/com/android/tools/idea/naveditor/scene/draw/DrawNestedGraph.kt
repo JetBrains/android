@@ -33,15 +33,18 @@ import com.android.tools.idea.naveditor.scene.regularFont
 import java.awt.Color
 import java.awt.Font
 
-// Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
+// Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use
+// 2x the desired radius value
 private val NAVIGATION_ARC_SIZE = scaledAndroidLength(12f)
 
-class DrawNestedGraph(private val rectangle: SwingRectangle,
-                      private val scale: Scale,
-                      private val frameColor: Color,
-                      private val frameThickness: SwingLength,
-                      private val text: String,
-                      private val textColor: Color) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawNestedGraph(
+  private val rectangle: SwingRectangle,
+  private val scale: Scale,
+  private val frameColor: Color,
+  private val frameThickness: SwingLength,
+  private val text: String,
+  private val textColor: Color,
+) : CompositeDrawCommand(COMPONENT_LEVEL) {
   override fun buildCommands(): List<DrawCommand> {
     val arcSize = NAVIGATION_ARC_SIZE * scale
     val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)

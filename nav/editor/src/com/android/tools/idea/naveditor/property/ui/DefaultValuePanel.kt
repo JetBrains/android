@@ -30,8 +30,7 @@ class DefaultValuePanel(model: DefaultValueTableModel) : AdtSecondaryPanel(Borde
     if (model.rowCount == 0) {
       // For the empty status text
       add(JBList<DefaultValueModel>(listOf()))
-    }
-    else {
+    } else {
       table.isOpaque = false
 
       addCellRenderer(false, "name", 0)

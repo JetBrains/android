@@ -21,36 +21,29 @@ import com.android.tools.idea.naveditor.NavTestCase
 
 class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
   fun testLayout() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "title") {
-        fragment("title") {
-          action("a1", destination = "register")
-          action("a2", destination = "match")
-          action("a3", destination = "leaderboard")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "title") {
+          fragment("title") {
+            action("a1", destination = "register")
+            action("a2", destination = "match")
+            action("a3", destination = "leaderboard")
+          }
+          fragment("game") {
+            action("a4", destination = "game_over")
+            action("a5", destination = "winner")
+          }
+          fragment("register") { action("a6", destination = "match") }
+          fragment("game_over") { action("a7", destination = "match") }
+          fragment("winner") {
+            action("a8", popUpTo = "match")
+            action("a9", destination = "leaderboard")
+          }
+          fragment("match") { action("a10", destination = "game") }
+          fragment("leaderboard") { action("a11", destination = "profile") }
+          fragment("profile")
         }
-        fragment("game") {
-          action("a4", destination = "game_over")
-          action("a5", destination = "winner")
-        }
-        fragment("register") {
-          action("a6", destination = "match")
-        }
-        fragment("game_over") {
-          action("a7", destination = "match")
-        }
-        fragment("winner") {
-          action("a8", popUpTo = "match")
-          action("a9", destination = "leaderboard")
-        }
-        fragment("match") {
-          action("a10", destination = "game")
-        }
-        fragment("leaderboard") {
-          action("a11", destination = "profile")
-        }
-        fragment("profile")
       }
-    }
     val sceneManager = model.surface.getSceneManager(model)!!
     sceneManager.update()
     val scene = sceneManager.scene
@@ -70,19 +63,20 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
   }
 
   fun testLayoutStartHasIncoming() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "f1") {
-        fragment("f1") {
-          action("a1", destination = "f2")
-          action("a2", destination = "f3")
-        }
-        fragment("f2")
-        fragment("f3") {
-          action("a3", destination = "f1")
-          action("a4", destination = "f2")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "f1") {
+          fragment("f1") {
+            action("a1", destination = "f2")
+            action("a2", destination = "f3")
+          }
+          fragment("f2")
+          fragment("f3") {
+            action("a3", destination = "f1")
+            action("a4", destination = "f2")
+          }
         }
       }
-    }
     val sceneManager = model.surface.getSceneManager(model)!!
     sceneManager.update()
     val scene = sceneManager.scene
@@ -97,17 +91,18 @@ class ElkLayeredLayoutAlgorithmTest : NavTestCase() {
   }
 
   fun testDisconnectedDestinations() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "f1") {
-        fragment("f1") {
-          action("a1", destination = "f2")
-          action("a2", destination = "f3")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "f1") {
+          fragment("f1") {
+            action("a1", destination = "f2")
+            action("a2", destination = "f3")
+          }
+          fragment("f2")
+          fragment("f3")
+          fragment("f4")
         }
-        fragment("f2")
-        fragment("f3")
-        fragment("f4")
       }
-    }
     val sceneManager = model.surface.getSceneManager(model)!!
     sceneManager.update()
     val scene = sceneManager.scene

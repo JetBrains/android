@@ -28,8 +28,12 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA_PATTERN
 
 private val propertyNames = arrayOf(ATTR_ACTION, ATTR_DATA, ATTR_DATA_PATTERN)
 
-class ActivityInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+class ActivityInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
     if (properties.first?.components?.singleOrNull()?.isActivity != true) {
       return
     }
@@ -37,7 +41,8 @@ class ActivityInspectorBuilder(private val editorProvider: EditorProvider<NlProp
     val titleModel = inspector.addExpandableTitle("Activity")
 
     for (propertyName in propertyNames) {
-      val property = properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
+      val property =
+        properties.getOrNull(ResourceNamespace.TODO().xmlNamespaceUri, propertyName) ?: continue
       inspector.addEditor(editorProvider.createEditor(property), titleModel)
     }
   }

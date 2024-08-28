@@ -33,29 +33,23 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 
 class AddToExistingGraphActionTest : NavTestCase() {
   /**
-   *  Reparent fragments 2 and 3 into an existing navigation
-   *  After the reparent:
-   *  The action from fragment1 to fragment2 should point to the existing navigation
-   *  The exit action from fragment4 to fragment2 should remain unchanged
-   *  The action from fragment2 to fragment3 should remain unchanged
+   * Reparent fragments 2 and 3 into an existing navigation After the reparent: The action from
+   * fragment1 to fragment2 should point to the existing navigation The exit action from fragment4
+   * to fragment2 should remain unchanged The action from fragment2 to fragment3 should remain
+   * unchanged
    */
   fun testAddToExistingGraphAction() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("action1", "fragment2")
-        }
-        fragment("fragment2") {
-          action("action2", "fragment3")
-        }
-        fragment("fragment3")
-        navigation("navigation1", startDestination = "fragment4") {
-          fragment("fragment4") {
-            action("action3", "fragment2")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") { action("action1", "fragment2") }
+          fragment("fragment2") { action("action2", "fragment3") }
+          fragment("fragment3")
+          navigation("navigation1", startDestination = "fragment4") {
+            fragment("fragment4") { action("action3", "fragment2") }
           }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
@@ -68,7 +62,13 @@ class AddToExistingGraphActionTest : NavTestCase() {
 
       verifyNoMoreInteractions(tracker)
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
-      assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
+      assertSameElements(
+        root.children.map { it.id },
+        "fragment1",
+        "fragment2",
+        "fragment3",
+        "navigation1",
+      )
 
       val fragment2 = model.treeReader.find("fragment2")!!
       val fragment3 = model.treeReader.find("fragment3")!!
@@ -93,33 +93,43 @@ class AddToExistingGraphActionTest : NavTestCase() {
       assertEquals(action3.parent?.id, "fragment4")
       assertEquals(action3.actionDestinationId, "fragment2")
 
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.MOVE_TO_GRAPH)
-                                 .setSource(NavEditorEvent.Source.CONTEXT_MENU)
-                                 .build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.MOVE_TO_GRAPH)
+            .setSource(NavEditorEvent.Source.CONTEXT_MENU)
+            .build()
+        )
     }
   }
 
   fun testUndo() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("f1")
-        fragment("f2")
-        fragment("f3")
-        navigation("subnav") {
-          fragment("f4")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("f1")
+          fragment("f2")
+          fragment("f3")
+          navigation("subnav") { fragment("f4") }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     surface.scene?.getSceneComponent("f1")?.setPosition(100, 200)
     surface.scene?.getSceneComponent("f2")?.setPosition(400, 500)
-    surface.selectionModel.setSelection(listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!))
-    surface.getSceneManager(model)?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
+    surface.selectionModel.setSelection(
+      listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!)
+    )
+    surface
+      .getSceneManager(model)
+      ?.save(
+        listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!)
+      )
 
     val action = AddToExistingGraphAction("existing", model.treeReader.find("subnav")!!)
-    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
+    action.actionPerformed(
+      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    )
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(ChangeType.EDIT)

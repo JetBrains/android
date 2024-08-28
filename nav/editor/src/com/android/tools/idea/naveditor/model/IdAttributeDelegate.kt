@@ -21,7 +21,8 @@ import com.android.tools.idea.common.model.NlComponent
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class IdAttributeDelegate(private val namespace: String?, private val propertyName: String) : ReadWriteProperty<NlComponent, String?> {
+open class IdAttributeDelegate(private val namespace: String?, private val propertyName: String) :
+  ReadWriteProperty<NlComponent, String?> {
   override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
     return thisRef.resolveAttribute(namespace, propertyName)?.let(::stripPrefixFromId)
   }
@@ -31,4 +32,5 @@ open class IdAttributeDelegate(private val namespace: String?, private val prope
   }
 }
 
-class IdAutoAttributeDelegate(propertyName: String) : IdAttributeDelegate(SdkConstants.AUTO_URI, propertyName)
+class IdAutoAttributeDelegate(propertyName: String) :
+  IdAttributeDelegate(SdkConstants.AUTO_URI, propertyName)

@@ -32,7 +32,10 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 
 class DefaultValueInspectorBuilder : InspectorBuilder<NlPropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+  ) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!component.isAction && !component.isNavigation || component.isInclude) {
       return
@@ -52,8 +55,7 @@ class DefaultValueInspectorBuilder : InspectorBuilder<NlPropertyItem> {
   private fun getArguments(component: NlComponent): List<NlComponent> {
     val destination = getDestination(component) ?: return listOf()
 
-    return destination.children
-      .filter { it.isArgument }
+    return destination.children.filter { it.isArgument }
   }
 
   private fun getDestination(component: NlComponent): NlComponent? {

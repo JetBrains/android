@@ -30,29 +30,21 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 class NestedGraphToolbarActionTest : NavTestCase() {
 
   /**
-   *  Reparent fragments 2 and 3 into a new nested navigation
-   *  After the reparent:
-   *  The action from fragment1 to fragment2 should point to the new navigation
-   *  The exit action from fragment4 to fragment2 should also point to the new navigation
-   *  The action from fragment2 to fragment3 should remain unchanged
+   * Reparent fragments 2 and 3 into a new nested navigation After the reparent: The action from
+   * fragment1 to fragment2 should point to the new navigation The exit action from fragment4 to
+   * fragment2 should also point to the new navigation The action from fragment2 to fragment3 should
+   * remain unchanged
    */
   fun testNestedGraphToolbarAction() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("fragment1") {
-          action("action1", "fragment2")
-        }
-        fragment("fragment2") {
-          action("action2", "fragment3")
-        }
-        fragment("fragment3")
-        navigation("navigation1") {
-          fragment("fragment4") {
-            action("action3", "fragment2")
-          }
+    val model =
+      model("nav.xml") {
+        NavModelBuilderUtil.navigation {
+          fragment("fragment1") { action("action1", "fragment2") }
+          fragment("fragment2") { action("action2", "fragment3") }
+          fragment("fragment3")
+          navigation("navigation1") { fragment("fragment4") { action("action3", "fragment2") } }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
@@ -66,7 +58,13 @@ class NestedGraphToolbarActionTest : NavTestCase() {
       val root = model.treeReader.components[0]
 
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
-      assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
+      assertSameElements(
+        root.children.map { it.id },
+        "fragment1",
+        "fragment2",
+        "fragment3",
+        "navigation1",
+      )
 
       verifyNoMoreInteractions(tracker)
 
@@ -97,10 +95,13 @@ class NestedGraphToolbarActionTest : NavTestCase() {
       assertEquals(action3.parent, fragment4)
       assertEquals(action3.actionDestinationId, "navigation")
 
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
-                                 .setSource(NavEditorEvent.Source.TOOLBAR)
-                                 .build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+            .setSource(NavEditorEvent.Source.TOOLBAR)
+            .build()
+        )
     }
   }
 }

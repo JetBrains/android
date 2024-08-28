@@ -23,7 +23,8 @@ import com.intellij.xml.util.documentation.MimeTypeDictionary
 private val MIME_TYPES = MimeTypeDictionary.HTML_CONTENT_TYPES.toList()
 
 class MimeTypeTextFieldModel : DefaultCommonTextFieldModel("", "e.g. text/html") {
-  override val editingSupport = object : EditingSupport {
-    override val completion: EditorCompletion = { MIME_TYPES }
-  }
+  override val editingSupport =
+    object : EditingSupport {
+      override val completion: EditorCompletion = { MIME_TYPES }
+    }
 }

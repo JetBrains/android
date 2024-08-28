@@ -29,30 +29,30 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
-class StartDestinationToolbarAction private constructor(): AnAction() {
+class StartDestinationToolbarAction private constructor() : AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = false
-    executeCallbackIfValidDestination(e) {
-      e.presentation.isEnabled = true
-    }
+    executeCallbackIfValidDestination(e) { e.presentation.isEnabled = true }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     executeCallbackIfValidDestination(e) {
-      WriteCommandAction.runWriteCommandAction(it.model.project) {
-        it.setAsStartDestination()
-      }
+      WriteCommandAction.runWriteCommandAction(it.model.project) { it.setAsStartDestination() }
     }
   }
 
   private fun executeCallbackIfValidDestination(e: AnActionEvent, callback: (NlComponent) -> Unit) {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     val component = surface.selectionModel.selection.singleOrNull() ?: return
-    if (!component.id.isNullOrEmpty() &&
-        component.isDestination && component != surface.currentNavigation &&
-        !component.isActivity && !component.isStartDestination) {
+    if (
+      !component.id.isNullOrEmpty() &&
+        component.isDestination &&
+        component != surface.currentNavigation &&
+        !component.isActivity &&
+        !component.isStartDestination
+    ) {
       callback(component)
     }
   }
@@ -60,6 +60,8 @@ class StartDestinationToolbarAction private constructor(): AnAction() {
   companion object {
     @JvmStatic
     val instance: StartDestinationToolbarAction
-      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ASSIGN_START_DESTINATION) as StartDestinationToolbarAction
+      get() =
+        ActionManager.getInstance().getAction(DesignerActions.ACTION_ASSIGN_START_DESTINATION)
+          as StartDestinationToolbarAction
   }
 }

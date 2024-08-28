@@ -20,14 +20,15 @@ import com.android.tools.idea.naveditor.NavTestCase
 
 class NewDestinationLayoutAlgorithmTest : NavTestCase() {
   fun testLayout() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
-        fragment("fragment4")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1")
+          fragment("fragment2")
+          fragment("fragment3")
+          fragment("fragment4")
+        }
       }
-    }
 
     model.treeReader.find("fragment1")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
     model.treeReader.find("fragment2")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)

@@ -23,7 +23,8 @@ import com.intellij.openapi.command.undo.DocumentReferenceProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-class TestNavEditor(private val vFile: VirtualFile, project: Project) : NavEditor(vFile, project), DocumentReferenceProvider {
+class TestNavEditor(private val vFile: VirtualFile, project: Project) :
+  NavEditor(vFile, project), DocumentReferenceProvider {
 
   override fun getDocumentReferences(): Collection<DocumentReference> {
     return ImmutableList.of(DocumentReferenceManager.getInstance().create(vFile))

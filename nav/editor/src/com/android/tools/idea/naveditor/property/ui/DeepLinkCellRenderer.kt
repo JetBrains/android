@@ -24,11 +24,19 @@ import icons.StudioIcons.NavEditor.Properties.DEEPLINK
 import javax.swing.JList
 
 class DeepLinkCellRenderer : NavListCellRenderer(DEEPLINK) {
-  override fun customizeCellRenderer(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    list: JList<out NlComponent>,
+    value: NlComponent?,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean,
+  ) {
     super.customizeCellRenderer(list, value, index, selected, hasFocus)
 
     val deepLink = value ?: return
-    append(listOfNotNull(deepLink.uri, deepLink.deepLinkMimeType, deepLink.deepLinkAction).joinToString())
+    append(
+      listOfNotNull(deepLink.uri, deepLink.deepLinkMimeType, deepLink.deepLinkAction).joinToString()
+    )
 
     val id = deepLink.id?.let { " (${it})" } ?: ""
     append(id, SimpleTextAttributes.GRAYED_ATTRIBUTES)

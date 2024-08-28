@@ -64,6 +64,9 @@ import icons.StudioIcons.NavEditor.Tree.FRAGMENT
 import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
 import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
 import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
+import java.io.File
+import java.util.function.Consumer
+import javax.swing.Icon
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
@@ -82,9 +85,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.get
-import java.io.File
-import java.util.function.Consumer
-import javax.swing.Icon
 
 private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
 private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"
@@ -94,15 +94,13 @@ private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"
  */
 
 /**
- * This is an enumeration indicating the type of action represented by the specified NlComponent when viewed from a given context.
- * In order of decreasing precedence:
- * NONE: This tag is either not an action or is invalid.
- * SELF: The destination attribute refers to the action's parent.
- * GLOBAL: The action's parent is the current view context.
- * REGULAR: The destination attribute refers to a sibling of the action's parent.
- * EXIT: The destination attribute refers to an element that is not under the current view context.
- * EXIT_DESTINATION: The destination attribute refers to a child of the current view context, but the source is a (great-)grandchild.
- *
+ * This is an enumeration indicating the type of action represented by the specified NlComponent
+ * when viewed from a given context. In order of decreasing precedence: NONE: This tag is either not
+ * an action or is invalid. SELF: The destination attribute refers to the action's parent. GLOBAL:
+ * The action's parent is the current view context. REGULAR: The destination attribute refers to a
+ * sibling of the action's parent. EXIT: The destination attribute refers to an element that is not
+ * under the current view context. EXIT_DESTINATION: The destination attribute refers to a child of
+ * the current view context, but the source is a (great-)grandchild.
  */
 enum class ActionType {
   NONE,
@@ -110,25 +108,20 @@ enum class ActionType {
   GLOBAL,
   REGULAR,
   EXIT,
-  EXIT_DESTINATION
+  EXIT_DESTINATION,
 }
 
 val NlComponent.uiName: String
-  get() =  id
-           ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".")
-           ?: tagName
+  get() =
+    id
+      ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".")
+      ?: tagName
 
 /**
- * Creates a map of the visible destinations
- * The keys make up the parent chain to the root.
- * Each value is a list of visible destinations under the key sorted by UiName
- * If a destination appears as a key, it will not appear in
- * the values list under its parent
- * i.e. if B and C are children of A, then the visible destination map
- * of B will be:
- *     B -> { }
- *     A -> { C } (no B)
- *
+ * Creates a map of the visible destinations The keys make up the parent chain to the root. Each
+ * value is a list of visible destinations under the key sorted by UiName If a destination appears
+ * as a key, it will not appear in the values list under its parent i.e. if B and C are children of
+ * A, then the visible destination map of B will be: B -> { } A -> { C } (no B)
  */
 val NlComponent.visibleDestinations: Map<NlComponent, List<NlComponent>>
   get() {
@@ -136,8 +129,8 @@ val NlComponent.visibleDestinations: Map<NlComponent, List<NlComponent>>
     val current: NlComponent? = if (isDestination) this else parent
 
     current?.parentSequence()?.forEach {
-      map[it] = it.children.filter { it.isDestination && !map.containsKey(it) }
-        .sortedBy { it.uiName }
+      map[it] =
+        it.children.filter { it.isDestination && !map.containsKey(it) }.sortedBy { it.uiName }
     }
 
     return map
@@ -147,16 +140,18 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
   val schema = get(model.module)
   var p = parent
   while (p != null) {
-    p.children.firstOrNull { c -> !schema.getDestinationTypesForTag(c.tagName).isEmpty() && c.id == id }?.let { return it }
+    p.children
+      .firstOrNull { c -> !schema.getDestinationTypesForTag(c.tagName).isEmpty() && c.id == id }
+      ?.let {
+        return it
+      }
     p = p.parent
   }
   // The above won't pick up the root
   return model.treeReader.components.firstOrNull { c -> c.id == id }
 }
 
-/**
- * Attempts to find the best []DestinationType] for this component
- */
+/** Attempts to find the best []DestinationType] for this component */
 val NlComponent.destinationType: NavigationSchema.DestinationType?
   get() {
     val schema = model.schema
@@ -245,7 +240,7 @@ fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
   return ActionType.EXIT
 }
 
-fun NlComponent.getArgumentNames() : List<String> {
+fun NlComponent.getArgumentNames(): List<String> {
   return children.filter { it.tagName == TAG_ARGUMENT }.mapNotNull { it.argumentName }
 }
 
@@ -253,115 +248,206 @@ private fun NlComponent.containsDestination(destinationId: String): Boolean {
   return children.map { it.id }.contains(destinationId)
 }
 
-
 private val actionDestinationIdDelegate =
-  MetricsLoggingAttributeDelegate(::IdAutoAttributeDelegate, ATTR_DESTINATION,
-                                  NlComponent::actionDestinationId)
+  MetricsLoggingAttributeDelegate(
+    ::IdAutoAttributeDelegate,
+    ATTR_DESTINATION,
+    NlComponent::actionDestinationId,
+  )
 var NlComponent.actionDestinationId: String? by actionDestinationIdDelegate
+
 fun NlComponent.setActionDestinationIdAndLog(value: String?, site: NavEditorEvent.Source) =
   actionDestinationIdDelegate.set(this, value, site)
 
-private val nameDelegate = MetricsLoggingAttributeDelegate(::StringAttributeDelegate,
-                                                           ANDROID_URI, ATTR_NAME,
-                                                           NlComponent::className)
+private val nameDelegate =
+  MetricsLoggingAttributeDelegate(
+    ::StringAttributeDelegate,
+    ANDROID_URI,
+    ATTR_NAME,
+    NlComponent::className,
+  )
 var NlComponent.className: String? by nameDelegate
-fun NlComponent.setClassNameAndLog(value: String?, site: NavEditorEvent.Source) = nameDelegate.set(this, value, site)
+
+fun NlComponent.setClassNameAndLog(value: String?, site: NavEditorEvent.Source) =
+  nameDelegate.set(this, value, site)
 
 var NlComponent.argumentName: String? by nameDelegate
-fun NlComponent.setArgumentNameAndLog(value: String?, site: NavEditorEvent.Source) = nameDelegate.set(this, value, site)
 
-private val layoutDelegate = MetricsLoggingAttributeDelegate(::StringAttributeDelegate,
-                                                             TOOLS_URI, ATTR_LAYOUT,
-                                                             NlComponent::layout)
+fun NlComponent.setArgumentNameAndLog(value: String?, site: NavEditorEvent.Source) =
+  nameDelegate.set(this, value, site)
+
+private val layoutDelegate =
+  MetricsLoggingAttributeDelegate(
+    ::StringAttributeDelegate,
+    TOOLS_URI,
+    ATTR_LAYOUT,
+    NlComponent::layout,
+  )
 var NlComponent.layout: String? by layoutDelegate
-fun NlComponent.setLayoutAndLog(value: String?, site: NavEditorEvent.Source) = layoutDelegate.set(this, value, site)
+
+fun NlComponent.setLayoutAndLog(value: String?, site: NavEditorEvent.Source) =
+  layoutDelegate.set(this, value, site)
 
 private val enterAnimationDelegate =
-  MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_ENTER_ANIM,
-                                  NlComponent::enterAnimation)
+  MetricsLoggingAttributeDelegate(
+    ::StringAutoAttributeDelegate,
+    ATTR_ENTER_ANIM,
+    NlComponent::enterAnimation,
+  )
 var NlComponent.enterAnimation: String? by enterAnimationDelegate
-fun NlComponent.setEnterAnimationAndLog(value: String?, site: NavEditorEvent.Source) = enterAnimationDelegate.set(this, value, site)
+
+fun NlComponent.setEnterAnimationAndLog(value: String?, site: NavEditorEvent.Source) =
+  enterAnimationDelegate.set(this, value, site)
 
 private val exitAnimationDelegate =
-  MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_EXIT_ANIM,
-                                  NlComponent::exitAnimation)
+  MetricsLoggingAttributeDelegate(
+    ::StringAutoAttributeDelegate,
+    ATTR_EXIT_ANIM,
+    NlComponent::exitAnimation,
+  )
 var NlComponent.exitAnimation: String? by exitAnimationDelegate
-fun NlComponent.setExitAnimationAndLog(value: String?, site: NavEditorEvent.Source) = exitAnimationDelegate.set(this, value, site)
 
-private val popUpToDelegate = MetricsLoggingAttributeDelegate(::IdAutoAttributeDelegate,
-                                                              ATTR_POP_UP_TO,
-                                                              NlComponent::popUpTo)
+fun NlComponent.setExitAnimationAndLog(value: String?, site: NavEditorEvent.Source) =
+  exitAnimationDelegate.set(this, value, site)
+
+private val popUpToDelegate =
+  MetricsLoggingAttributeDelegate(::IdAutoAttributeDelegate, ATTR_POP_UP_TO, NlComponent::popUpTo)
 var NlComponent.popUpTo: String? by popUpToDelegate
-fun NlComponent.setPopUpToAndLog(value: String?, site: NavEditorEvent.Source) = popUpToDelegate.set(this, value, site)
+
+fun NlComponent.setPopUpToAndLog(value: String?, site: NavEditorEvent.Source) =
+  popUpToDelegate.set(this, value, site)
 
 private val inclusiveDelegate =
-  MetricsLoggingAttributeDelegate(::BooleanAutoAttributeDelegate, ATTR_POP_UP_TO_INCLUSIVE,
-                                  NlComponent::inclusive)
+  MetricsLoggingAttributeDelegate(
+    ::BooleanAutoAttributeDelegate,
+    ATTR_POP_UP_TO_INCLUSIVE,
+    NlComponent::inclusive,
+  )
 var NlComponent.inclusive: Boolean? by inclusiveDelegate
-fun NlComponent.setInclusiveAndLog(value: Boolean?, site: NavEditorEvent.Source) = inclusiveDelegate.set(this, value, site)
+
+fun NlComponent.setInclusiveAndLog(value: Boolean?, site: NavEditorEvent.Source) =
+  inclusiveDelegate.set(this, value, site)
 
 private val popEnterAnimationDelegate =
-  MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_POP_ENTER_ANIM,
-                                  NlComponent::popEnterAnimation)
+  MetricsLoggingAttributeDelegate(
+    ::StringAutoAttributeDelegate,
+    ATTR_POP_ENTER_ANIM,
+    NlComponent::popEnterAnimation,
+  )
 var NlComponent.popEnterAnimation: String? by popEnterAnimationDelegate
-fun NlComponent.setPopEnterAnimationAndLog(value: String?, site: NavEditorEvent.Source) = popEnterAnimationDelegate.set(this, value, site)
+
+fun NlComponent.setPopEnterAnimationAndLog(value: String?, site: NavEditorEvent.Source) =
+  popEnterAnimationDelegate.set(this, value, site)
 
 private val popExitAnimationDelegate =
-  MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_POP_EXIT_ANIM,
-                                  NlComponent::popExitAnimation)
+  MetricsLoggingAttributeDelegate(
+    ::StringAutoAttributeDelegate,
+    ATTR_POP_EXIT_ANIM,
+    NlComponent::popExitAnimation,
+  )
 var NlComponent.popExitAnimation: String? by popExitAnimationDelegate
-fun NlComponent.setPopExitAnimationAndLog(value: String?, site: NavEditorEvent.Source) = popExitAnimationDelegate.set(this, value, site)
 
-private val singleTopDelegate = MetricsLoggingAttributeDelegate(::BooleanAutoAttributeDelegate,
-                                                                ATTR_SINGLE_TOP,
-                                                                NlComponent::singleTop)
+fun NlComponent.setPopExitAnimationAndLog(value: String?, site: NavEditorEvent.Source) =
+  popExitAnimationDelegate.set(this, value, site)
+
+private val singleTopDelegate =
+  MetricsLoggingAttributeDelegate(
+    ::BooleanAutoAttributeDelegate,
+    ATTR_SINGLE_TOP,
+    NlComponent::singleTop,
+  )
 var NlComponent.singleTop: Boolean? by singleTopDelegate
-fun NlComponent.setSingleTopAndLog(value: Boolean?, site: NavEditorEvent.Source) = singleTopDelegate.set(this, value, site)
 
-private val typeDelegate = MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate,
-                                                           ATTR_ARG_TYPE, NlComponent::typeAttr)
+fun NlComponent.setSingleTopAndLog(value: Boolean?, site: NavEditorEvent.Source) =
+  singleTopDelegate.set(this, value, site)
+
+private val typeDelegate =
+  MetricsLoggingAttributeDelegate(
+    ::StringAutoAttributeDelegate,
+    ATTR_ARG_TYPE,
+    NlComponent::typeAttr,
+  )
 var NlComponent.typeAttr: String? by typeDelegate
-fun NlComponent.setTypeAndLog(value: String?, site: NavEditorEvent.Source) = typeDelegate.set(this, value, site)
+
+fun NlComponent.setTypeAndLog(value: String?, site: NavEditorEvent.Source) =
+  typeDelegate.set(this, value, site)
 
 private val defaultValueDelegate =
-  MetricsLoggingAttributeDelegate(::StringAttributeDelegate, ANDROID_URI, ATTR_DEFAULT_VALUE,
-                                  NlComponent::defaultValue)
+  MetricsLoggingAttributeDelegate(
+    ::StringAttributeDelegate,
+    ANDROID_URI,
+    ATTR_DEFAULT_VALUE,
+    NlComponent::defaultValue,
+  )
 var NlComponent.defaultValue: String? by defaultValueDelegate
-fun NlComponent.setDefaultValueAndLog(value: String?, site: NavEditorEvent.Source) = defaultValueDelegate.set(this, value, site)
 
-private val nullableDelegate = MetricsLoggingAttributeDelegate(::BooleanAutoAttributeDelegate,
-                                                               ATTR_NULLABLE,
-                                                               NlComponent::nullable)
+fun NlComponent.setDefaultValueAndLog(value: String?, site: NavEditorEvent.Source) =
+  defaultValueDelegate.set(this, value, site)
+
+private val nullableDelegate =
+  MetricsLoggingAttributeDelegate(
+    ::BooleanAutoAttributeDelegate,
+    ATTR_NULLABLE,
+    NlComponent::nullable,
+  )
 var NlComponent.nullable: Boolean? by nullableDelegate
-fun NlComponent.setNullableAndLog(value: Boolean?, site: NavEditorEvent.Source) = nullableDelegate.set(this, value, site)
+
+fun NlComponent.setNullableAndLog(value: Boolean?, site: NavEditorEvent.Source) =
+  nullableDelegate.set(this, value, site)
 
 private val startDestinationIdDelegate =
-  MetricsLoggingAttributeDelegate(::IdAutoAttributeDelegate, ATTR_START_DESTINATION,
-                                  NlComponent::startDestinationId)
+  MetricsLoggingAttributeDelegate(
+    ::IdAutoAttributeDelegate,
+    ATTR_START_DESTINATION,
+    NlComponent::startDestinationId,
+  )
 var NlComponent.startDestinationId: String? by startDestinationIdDelegate
+
 fun NlComponent.setStartDestinationIdAndLog(value: String?, site: NavEditorEvent.Source) =
   startDestinationIdDelegate.set(this, value, site)
 
 private val autoVerifyDelegate =
-  MetricsLoggingAttributeDelegate(::BooleanAttributeDelegate, ANDROID_URI, ATTR_AUTO_VERIFY, NlComponent::autoVerify)
+  MetricsLoggingAttributeDelegate(
+    ::BooleanAttributeDelegate,
+    ANDROID_URI,
+    ATTR_AUTO_VERIFY,
+    NlComponent::autoVerify,
+  )
 var NlComponent.autoVerify: Boolean? by autoVerifyDelegate
-fun NlComponent.setAutoVerifyAndLog(value: Boolean?, site: NavEditorEvent.Source) = autoVerifyDelegate.set(this, value, site)
 
-private val uriDelegate = MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_URI, NlComponent::uri)
+fun NlComponent.setAutoVerifyAndLog(value: Boolean?, site: NavEditorEvent.Source) =
+  autoVerifyDelegate.set(this, value, site)
+
+private val uriDelegate =
+  MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_URI, NlComponent::uri)
 var NlComponent.uri: String? by uriDelegate
-fun NlComponent.setUriAndLog(value: String?, site: NavEditorEvent.Source) = uriDelegate.set(this, value, site)
+
+fun NlComponent.setUriAndLog(value: String?, site: NavEditorEvent.Source) =
+  uriDelegate.set(this, value, site)
 
 private val deepLinkMimeTypeDelegate =
-  MetricsLoggingAttributeDelegate(::StringAttributeDelegate, AUTO_URI, ATTR_DEEPLINK_MIMETYPE, NlComponent::deepLinkMimeType)
+  MetricsLoggingAttributeDelegate(
+    ::StringAttributeDelegate,
+    AUTO_URI,
+    ATTR_DEEPLINK_MIMETYPE,
+    NlComponent::deepLinkMimeType,
+  )
 var NlComponent.deepLinkMimeType: String? by deepLinkMimeTypeDelegate
-fun NlComponent.setDeeplinkMimeTypeAndLog(value: String?, site: NavEditorEvent.Source)
-  = deepLinkMimeTypeDelegate.set(this, value, site)
+
+fun NlComponent.setDeeplinkMimeTypeAndLog(value: String?, site: NavEditorEvent.Source) =
+  deepLinkMimeTypeDelegate.set(this, value, site)
 
 private val deepLinkActionDelegate =
-  MetricsLoggingAttributeDelegate(::StringAttributeDelegate, AUTO_URI, ATTR_DEEPLINK_ACTION, NlComponent::deepLinkAction)
+  MetricsLoggingAttributeDelegate(
+    ::StringAttributeDelegate,
+    AUTO_URI,
+    ATTR_DEEPLINK_ACTION,
+    NlComponent::deepLinkAction,
+  )
 var NlComponent.deepLinkAction: String? by deepLinkActionDelegate
-fun NlComponent.setDeeplinkActionAndLog(value: String?, site: NavEditorEvent.Source)
-  = deepLinkActionDelegate.set(this, value, site)
+
+fun NlComponent.setDeeplinkActionAndLog(value: String?, site: NavEditorEvent.Source) =
+  deepLinkActionDelegate.set(this, value, site)
 
 val NlComponent.actionDestination: NlComponent?
   get() {
@@ -386,10 +472,15 @@ val NlComponent.startDestination: NlComponent?
   get() = startDestinationId?.let { start -> children.find { it.id == start } }
 
 /**
- * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
+ * [actionSetup] should include everything needed to set the default id (destination, popTo, and
+ * popToInclusive).
  */
 @JvmOverloads
-fun NlComponent.createAction(destinationId: String? = null, id: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent? {
+fun NlComponent.createAction(
+  destinationId: String? = null,
+  id: String? = null,
+  actionSetup: NlComponent.() -> Unit = {},
+): NlComponent? {
   val newAction = createChild(TAG_ACTION)
   newAction?.ensureId()
   if (newAction == null) {
@@ -400,13 +491,27 @@ fun NlComponent.createAction(destinationId: String? = null, id: String? = null, 
   }
   newAction.actionDestinationId = destinationId
   newAction.actionSetup()
-  // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
+  // TODO: it would be nice if, when we changed something affecting the below logic and the id
+  // hasn't been changed,
   // we could update the id as a refactoring so references are also updated.
-  newAction.assignId(id ?: generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive ?: false))
+  newAction.assignId(
+    id
+      ?: generateActionId(
+        this,
+        newAction.actionDestinationId,
+        newAction.popUpTo,
+        newAction.inclusive ?: false,
+      )
+  )
   return newAction
 }
 
-fun generateActionId(source: NlComponent, destinationId: String?, popTo: String?, inclusive: Boolean): String {
+fun generateActionId(
+  source: NlComponent,
+  destinationId: String?,
+  popTo: String?,
+  inclusive: Boolean,
+): String {
   val displaySourceId = source.id ?: source.model.virtualFile.nameWithoutExtension
   if (destinationId == null) {
     if (popTo == null) {
@@ -468,77 +573,97 @@ private fun NlComponent.supportsElement(element: Class<out AndroidDomElement>) =
   model.schema.getDestinationSubtags(tagName).containsKey(element)
 
 /**
- * If the action has a destination attribute set, return it.
- * Otherwise, return the popupto attribute if the pop is non-inclusive
+ * If the action has a destination attribute set, return it. Otherwise, return the popupto attribute
+ * if the pop is non-inclusive
  */
 val NlComponent.effectiveDestinationId: String?
   get() {
-    actionDestinationId?.let { return it }
+    actionDestinationId?.let {
+      return it
+    }
     return if (inclusive == true) null else popUpTo
   }
 
-/**
- * Sequence of NlComponents starting with this and going down the parent tree to the root.
- */
+/** Sequence of NlComponents starting with this and going down the parent tree to the root. */
 fun NlComponent.parentSequence(): Sequence<NlComponent> = generateSequence(this) { it.parent }
 
 /**
- * The "path" to this. The first element is the filename, and the following elements are the ids of the elements containing this.
+ * The "path" to this. The first element is the filename, and the following elements are the ids of
+ * the elements containing this.
  */
 val NlComponent.idPath: List<String?>
-  get() = parentSequence().asIterable().reversed().map {
-    when {
-      it.isRoot -> model.virtualFile.name
-      it.isInclude -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
-      else -> it.id
+  get() =
+    parentSequence().asIterable().reversed().map {
+      when {
+        it.isRoot -> model.virtualFile.name
+        it.isInclude -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
+        else -> it.id
+      }
     }
-  }
 
 /**
- * Moves the currently selected destinations into the nested graph returned from newParent
- * Since newParent may create a new NlComponent it is evaluated inside the run command
+ * Moves the currently selected destinations into the nested graph returned from newParent Since
+ * newParent may create a new NlComponent it is evaluated inside the run command
  */
 fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?): Boolean {
   val currentNavigation = surface.currentNavigation
-  val components = surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
+  val components =
+    surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
 
   if (components.isEmpty()) {
     return false
   }
 
-  WriteCommandAction.runWriteCommandAction(surface.project, ADD_NESTED_COMMAND_NAME, ADD_NESTED_GROUP_ID, Runnable {
-    val graph = newParent() ?: return@Runnable
-    val ids = components.map { it.id }
-    components.forEach { surface.model?.let { model -> surface.getSceneManager(model) }?.performUndoablePositionAction(it) }
-
-    // Pick an arbitrary destination to be the start destination,
-    // but give preference to destinations with incoming actions
-    // TODO: invoke dialog to have user select the best start destination?
-    var candidate = components[0].id
-
-    // All actions that point to any component in this set should now point to the
-    // new parent graph, unless they are children of an element in the set
-    currentNavigation.children.filter { !ids.contains(it.id) && it != graph }
-      .flatMap { it.flatten().toList() }
-      .filter { it.isAction && ids.contains(it.actionDestinationId) }
-      .forEach {
-        candidate = it.actionDestinationId
-        it.actionDestinationId = graph.id
+  WriteCommandAction.runWriteCommandAction(
+    surface.project,
+    ADD_NESTED_COMMAND_NAME,
+    ADD_NESTED_GROUP_ID,
+    Runnable {
+      val graph = newParent() ?: return@Runnable
+      val ids = components.map { it.id }
+      components.forEach {
+        surface.model
+          ?.let { model -> surface.getSceneManager(model) }
+          ?.performUndoablePositionAction(it)
       }
 
-    graph.model.treeWriter.addComponents(components, graph, null, InsertType.MOVE, null, null, ADD_NESTED_GROUP_ID)
-    if (graph.startDestinationId == null) {
-      graph.startDestinationId = candidate
-    }
-    surface.selectionModel.setSelection(listOf(graph))
+      // Pick an arbitrary destination to be the start destination,
+      // but give preference to destinations with incoming actions
+      // TODO: invoke dialog to have user select the best start destination?
+      var candidate = components[0].id
 
-  }, surface.model!!.file)
+      // All actions that point to any component in this set should now point to the
+      // new parent graph, unless they are children of an element in the set
+      currentNavigation.children
+        .filter { !ids.contains(it.id) && it != graph }
+        .flatMap { it.flatten().toList() }
+        .filter { it.isAction && ids.contains(it.actionDestinationId) }
+        .forEach {
+          candidate = it.actionDestinationId
+          it.actionDestinationId = graph.id
+        }
+
+      graph.model.treeWriter.addComponents(
+        components,
+        graph,
+        null,
+        InsertType.MOVE,
+        null,
+        null,
+        ADD_NESTED_GROUP_ID,
+      )
+      if (graph.startDestinationId == null) {
+        graph.startDestinationId = candidate
+      }
+      surface.selectionModel.setSelection(listOf(graph))
+    },
+    surface.model!!.file,
+  )
   return true
 }
 
 @VisibleForTesting
-class NavComponentMixin(component: NlComponent)
-  : NlComponent.XmlModelComponentMixin(component) {
+class NavComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMixin(component) {
 
   override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean {
     children.forEach {
@@ -556,12 +681,17 @@ class NavComponentMixin(component: NlComponent)
     return false
   }
 
-  private val includeAttrs: Table<String, String, String>? by lazy(fun(): Table<String, String, String>? {
-    val xmlFile = component.includeFile ?: return null
-    val result: Table<String, String, String> = HashBasedTable.create()
-    xmlFile.rootTag?.attributes?.forEach { it.value?.let { value -> result.put(it.namespace, it.localName, value) } }
-    return result
-  })
+  private val includeAttrs: Table<String, String, String>? by
+    lazy(
+      fun(): Table<String, String, String>? {
+        val xmlFile = component.includeFile ?: return null
+        val result: Table<String, String, String> = HashBasedTable.create()
+        xmlFile.rootTag?.attributes?.forEach {
+          it.value?.let { value -> result.put(it.namespace, it.localName, value) }
+        }
+        return result
+      }
+    )
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
     if (component.isInclude) {

@@ -66,9 +66,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
-/**
- * Tests for [NavActionManager]
- */
+/** Tests for [NavActionManager] */
 class NavActionManagerTest : NavTestCase() {
 
   private lateinit var model: SyncNlModel
@@ -76,14 +74,13 @@ class NavActionManagerTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    model = model("nav.xml") {
-      navigation("navigation") {
-        fragment("fragment1")
-        navigation("subnav") {
-          fragment("fragment2")
+    model =
+      model("nav.xml") {
+        navigation("navigation") {
+          fragment("fragment1")
+          navigation("subnav") { fragment("fragment2") }
         }
       }
-    }
     surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
@@ -91,60 +88,86 @@ class NavActionManagerTest : NavTestCase() {
 
   fun testAddElement() {
     val resourceFiles =
-        LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-    val layout = resourceFiles.stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
+      LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
+        ResourceNamespace.TODO(),
+        ResourceFolderType.LAYOUT,
+      )
+    val layout =
+      resourceFiles.stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get()
+        as XmlFile
     WriteCommandAction.runWriteCommandAction(project) {
-      val destinationClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity",
-                                                                          GlobalSearchScope.allScope(project))!!
-      Destination.RegularDestination(surface.currentNavigation, "activity", null, destinationClass, "myId", layout)
+      val destinationClass =
+        JavaPsiFacade.getInstance(project)
+          .findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))!!
+      Destination.RegularDestination(
+          surface.currentNavigation,
+          "activity",
+          null,
+          destinationClass,
+          "myId",
+          layout,
+        )
         .addToGraph()
     }
-    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
-                 "    NlComponent{tag=<fragment>, instance=1}\n" +
-                 "    NlComponent{tag=<navigation>, instance=2}\n" +
-                 "        NlComponent{tag=<fragment>, instance=3}\n" +
-                 "    NlComponent{tag=<activity>, instance=4}",
-                 NlTreeDumper().toTree(model.treeReader.components))
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
+        "    NlComponent{tag=<fragment>, instance=1}\n" +
+        "    NlComponent{tag=<navigation>, instance=2}\n" +
+        "        NlComponent{tag=<fragment>, instance=3}\n" +
+        "    NlComponent{tag=<activity>, instance=4}",
+      NlTreeDumper().toTree(model.treeReader.components),
+    )
     val newChild = model.treeReader.find("myId")!!
-    assertEquals(SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
-                 newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
-    assertEquals("mytest.navtest.MainActivity", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
+    assertEquals(
+      SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
+      newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT),
+    )
+    assertEquals(
+      "mytest.navtest.MainActivity",
+      newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME),
+    )
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
 
   fun testAddElementInSubflow() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        navigation("subflow") {
-          fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          navigation("subflow") { fragment("fragment2") }
+          fragment("fragment1")
         }
-        fragment("fragment1")
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     whenever(surface.currentNavigation).thenReturn(model.treeReader.find("subflow"))
 
-    val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
+    val psiClass =
+      JavaPsiFacade.getInstance(project)
+        .findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
     WriteCommandAction.runWriteCommandAction(project) {
-      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!).addToGraph()
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!)
+        .addToGraph()
     }
-    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
-                 "    NlComponent{tag=<navigation>, instance=1}\n" +
-                 "        NlComponent{tag=<fragment>, instance=2}\n" +
-                 "        NlComponent{tag=<activity>, instance=3}\n" +
-                 "    NlComponent{tag=<fragment>, instance=4}", NlTreeDumper().toTree(model.treeReader.components))
+    assertEquals(
+      "NlComponent{tag=<navigation>, instance=0}\n" +
+        "    NlComponent{tag=<navigation>, instance=1}\n" +
+        "        NlComponent{tag=<fragment>, instance=2}\n" +
+        "        NlComponent{tag=<activity>, instance=3}\n" +
+        "    NlComponent{tag=<fragment>, instance=4}",
+      NlTreeDumper().toTree(model.treeReader.components),
+    )
   }
 
   fun testFragmentContextMenu() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "fragment2") {
-        fragment("fragment1")
-        fragment("fragment2", layout = "@layout/layout")
-        fragment("fragment3", name = "foo.bar.Baz")
-        navigation("subflow")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "fragment2") {
+          fragment("fragment1")
+          fragment("fragment2", layout = "@layout/layout")
+          fragment("fragment3", name = "foo.bar.Baz")
+          navigation("subflow")
+        }
       }
-    }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -201,11 +224,8 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testActivityContextMenu() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "action") {
-        activity("activity")
-      }
-    }
+    val model =
+      model("nav.xml") { navigation(startDestination = "action") { activity("activity") } }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val activity = model.treeReader.find("activity")!!
@@ -240,11 +260,8 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testSubnavContextMenu() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "subflow") {
-        navigation("subflow")
-      }
-    }
+    val model =
+      model("nav.xml") { navigation(startDestination = "subflow") { navigation("subflow") } }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val subflow = model.treeReader.find("subflow")!!
@@ -285,11 +302,7 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testIncludeContextMenu() {
-    val model = model("nav.xml") {
-      navigation {
-        include("navigation")
-      }
-    }
+    val model = model("nav.xml") { navigation { include("navigation") } }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val nav = model.treeReader.find("nav")!!
@@ -323,13 +336,7 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testRootContextMenu() {
-    val model = model("nav.xml") {
-      navigation {
-        navigation("subnav") {
-          fragment("fragment")
-        }
-      }
-    }
+    val model = model("nav.xml") { navigation { navigation("subnav") { fragment("fragment") } } }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val subnav = model.treeReader.find("subnav")!!
     surface.currentNavigation = subnav
@@ -353,12 +360,13 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testMultiSelectContextMenu() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "fragment2") {
-        fragment("fragment1")
-        fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "fragment2") {
+          fragment("fragment1")
+          fragment("fragment2")
+        }
       }
-    }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val actionManager = NavActionManager(surface)
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -377,18 +385,16 @@ class NavActionManagerTest : NavTestCase() {
     val nestedGraphItems = (items[0] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
     validateItem(nestedGraphItems[0], AddToNewGraphAction::class.java, "New Graph", true)
-
   }
 
   fun testActionContextMenu() {
-    val model = model("nav.xml") {
-      navigation(startDestination = "fragment2") {
-        fragment("fragment1") {
-          action("action1", "fragment2")
+    val model =
+      model("nav.xml") {
+        navigation(startDestination = "fragment2") {
+          fragment("fragment1") { action("action1", "fragment2") }
+          fragment("fragment2")
         }
-        fragment("fragment2")
       }
-    }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val actionManager = NavActionManager(surface)
     val action1 = model.treeReader.find("action1")!!
@@ -410,23 +416,23 @@ class NavActionManagerTest : NavTestCase() {
 
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
     val surfaceActionProvider = surface.actionHandlerProvider(surface)
-    val dataContext = SimpleDataContext.builder()
-      .add(CommonDataKeys.PROJECT, project)
-      .add(DESIGN_SURFACE, surface)
-      .add(ZOOMABLE_KEY, surface.zoomController)
-      .add(COPY_PROVIDER, surfaceActionProvider)
-      .add(CUT_PROVIDER, surfaceActionProvider)
-      .add(PASTE_PROVIDER, surfaceActionProvider)
-      .add(DELETE_ELEMENT_PROVIDER, surfaceActionProvider)
-      .build()
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, project)
+        .add(DESIGN_SURFACE, surface)
+        .add(ZOOMABLE_KEY, surface.zoomController)
+        .add(COPY_PROVIDER, surfaceActionProvider)
+        .add(CUT_PROVIDER, surfaceActionProvider)
+        .add(PASTE_PROVIDER, surfaceActionProvider)
+        .add(DELETE_ELEMENT_PROVIDER, surfaceActionProvider)
+        .build()
     val event = AnActionEvent.createFromAnAction(item, null, ActionPlaces.UNKNOWN, dataContext)
     item.update(event)
     assertInstanceOf(item, c)
     assertEquals(name, event.presentation.text)
     if (item is ActionGroup) {
       assertEquals(!enabled, item.getChildren(null).none { event.presentation.isVisible })
-    }
-    else {
+    } else {
       assertEquals(enabled, event.presentation.isEnabled)
     }
   }

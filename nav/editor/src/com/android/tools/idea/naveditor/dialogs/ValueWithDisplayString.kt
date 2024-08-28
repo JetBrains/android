@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.naveditor.dialogs
 
-/**
- * An enum value with a separate display value.
- */
+/** An enum value with a separate display value. */
 data class ValueWithDisplayString(val display: String, val value: String?) {
   override fun toString() = display
 }

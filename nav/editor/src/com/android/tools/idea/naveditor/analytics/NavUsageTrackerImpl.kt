@@ -27,25 +27,24 @@ import java.util.function.Consumer
 class NavUsageTrackerImpl(
   private val executor: Executor,
   override val model: NlModel?,
-  private val eventLogger: Consumer<AndroidStudioEvent.Builder>
+  private val eventLogger: Consumer<AndroidStudioEvent.Builder>,
 ) : NavUsageTracker {
 
   override fun logEvent(event: NavEditorEvent) {
     try {
       executor.execute {
-        val studioEvent = AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT)
-          .setNavEditorEvent(event)
+        val studioEvent =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT)
+            .setNavEditorEvent(event)
 
         model?.let { studioEvent.setApplicationId(model.facet) }
 
         eventLogger.accept(studioEvent)
       }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
-    }
-    catch (e: ApkProvisionException) {
+    } catch (e: ApkProvisionException) {
       // ApplicationId is unavailable.
     }
   }

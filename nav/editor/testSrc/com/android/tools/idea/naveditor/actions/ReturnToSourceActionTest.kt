@@ -29,28 +29,37 @@ import org.mockito.Mockito
 
 class ReturnToSourceActionTest : NavTestCase() {
   fun testRun() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("f1")
-        fragment("f2")
+    val model =
+      model("nav.xml") {
+        NavModelBuilderUtil.navigation {
+          fragment("f1")
+          fragment("f2")
+        }
       }
-    }
     TestNavUsageTracker.create(model).use { tracker ->
       val f2 = model.treeReader.find("f2")!!
-      ReturnToSourceAction(f2).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
+      ReturnToSourceAction(f2)
+        .actionPerformed(
+          TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null }
+        )
       val action = f2.children.first { it.isAction }
       assertEquals("f2", action.popUpTo)
       assertEquals(true, action.inclusive)
       assertSameElements(model.surface.selectionModel.selection, action)
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(1)
-                                                          .setHasPop(true)
-                                                          .setInclusive(true)
-                                                          .setType(NavActionInfo.ActionType.EXIT))
-                                         .setSource(NavEditorEvent.Source.CONTEXT_MENU).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setHasPop(true)
+                .setInclusive(true)
+                .setType(NavActionInfo.ActionType.EXIT)
+            )
+            .setSource(NavEditorEvent.Source.CONTEXT_MENU)
+            .build()
+        )
     }
   }
-
 }
