@@ -21,11 +21,14 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.findParentOfType
 import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.toml.lang.psi.TomlFile
+import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
 
@@ -63,6 +66,52 @@ class VersionsTomlAnnotator : Annotator {
         && grandParent is TomlTable
         && greatGrandParent is TomlFile) {
       checkTableAliases(element, grandParent, holder)
+    }
+
+    // alias with literal
+    if(element is TomlLiteral
+       && element.parent is TomlKeyValue
+       && grandParent is TomlTable
+       && greatGrandParent is TomlFile) {
+
+      // exit if corner case syntax
+      // plugin_alias.id = ""
+      // plugin_alias.version = ""
+      if ((element.parent as TomlKeyValue).key.segments.size > 1) return
+
+      checkDependencyLiteral(element, holder)
+    }
+
+    // lib dependency with module attribute
+    if(element is TomlLiteral
+       && element.parent is TomlKeyValue
+       && (element.parent as TomlKeyValue).key.text == "module"
+       && grandParent is TomlInlineTable) {
+      checkModuleLiteral(element, holder)
+    }
+  }
+
+  private fun checkModuleLiteral(element: TomlLiteral, holder: AnnotationHolder) {
+    val table = element.findParentOfType<TomlTable>() ?: return
+    val name = table.header.key?.segments?.firstOrNull()?.name ?: return
+    if (name == "libraries" && element.text.split(":").size != 2)
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Make sure that the module coordinates consist of 2 parts separated by colons, eg: my.group:artifact").create()
+  }
+
+  private fun checkDependencyLiteral(element: TomlLiteral, holder: AnnotationHolder) {
+    val table = element.findParentOfType<TomlTable>() ?: return
+    val name = table.header.key?.segments?.firstOrNull()?.name ?: return
+    when (name) {
+      "plugins" -> if (element.text.split(":").size != 2)
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Make sure that the coordinates consist of 2 parts separated by colons, eg: my_plugin:1.2").create()
+
+      "libraries" -> if (element.text.split(":").size < 2)
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Make sure that the coordinates consist of 2 parts with BOM and 3 without BOM that are separated by colons.").create()
+
+      else -> return
     }
   }
 
