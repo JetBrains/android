@@ -20,7 +20,6 @@ import com.android.adblib.tools.AdbLibToolsProperties
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 import com.intellij.application.subscribe
-import com.intellij.concurrency.resetThreadContext
 import com.intellij.openapi.application.ApplicationActivationListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
@@ -50,12 +49,8 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   override val usageTracker = AndroidAdbUsageTracker()
 
   override val asynchronousChannelGroup: AsynchronousChannelGroup? =
-    // Using resetThreadContext() to prevent b/361845969: project-level coroutine context leaks into app-level thread pool.
-    @Suppress("UnstableApiUsage")
-    resetThreadContext().use {
-      AsynchronousChannelGroup.withCachedThreadPool(
-        AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4), 1)
-    }
+    AsynchronousChannelGroup.withCachedThreadPool(
+      AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4), 1)
 
   override val parentContext = androidCoroutineExceptionHandler
 
