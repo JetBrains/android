@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -52,7 +53,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
@@ -82,7 +83,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     var nlComponent = model.treeReader.find("fragment")!!
@@ -240,7 +241,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment2 = model.treeReader.find("fragment2")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
@@ -275,7 +276,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val action2 = model.treeReader.find("a2")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(action1))
@@ -300,7 +301,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment1 = model.treeReader.find("fragment1")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
