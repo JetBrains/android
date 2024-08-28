@@ -39,12 +39,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-internal class LocalVirtualDeviceSource(
-  systemImages: ImmutableCollection<ISystemImage>,
-  private val skins: ImmutableCollection<Skin>,
-) : DeviceSource {
+internal class LocalVirtualDeviceSource(private val skins: ImmutableCollection<Skin>) :
+  DeviceSource {
 
   companion object {
     internal fun create(): LocalVirtualDeviceSource {
@@ -52,7 +51,7 @@ internal class LocalVirtualDeviceSource(
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(ISystemImages.get(), skins)
+      return LocalVirtualDeviceSource(skins)
     }
   }
 
@@ -74,13 +73,17 @@ internal class LocalVirtualDeviceSource(
     callbackFlow {
         send(LoadingState.Loading)
 
+        // Note that we don't care about systemImages being updated; the only way it changes is if
+        // we download an image, thus converting an image from remote to local, and we only care
+        // about API levels here.
+        val systemImages =
+          ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler()).first()
+
         val deviceManager =
           DeviceManagers.getDeviceManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
         fun sendDevices() {
           val profiles =
             deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNull { device ->
-              // Note that we don't care about systemImages being updated after downloading an
-              // image; we don't care if an image is local or remote here.
               val androidVersions =
                 systemImages
                   .filter { DeviceSystemImageMatcher.matches(device, it) }
