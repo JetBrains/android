@@ -112,10 +112,6 @@ class AndroidRunConfigurationExecutor(
       if (configuration.CLEAR_APP_STORAGE) {
         clearAppStorage(project, it, applicationId, RunStats.from(env))
       }
-      if (configuration.isRestoreEnabled()) {
-        indicator.text = "Restoring app data"
-        restoreAppFromFile(project, it, configuration.RESTORE_FILE, RunStats.from(env))
-      }
       LaunchUtils.initiateDismissKeyguard(it)
     }
 
@@ -137,6 +133,12 @@ class AndroidRunConfigurationExecutor(
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+
+            if (configuration.isRestoreEnabled()) {
+              indicator.text = "Restoring app data"
+              restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+            }
+
             if (launch(mainApp.app, device, console, isDebug = false)) {
               notifyLiveEditService(device, apks, applicationId)
             }
@@ -219,10 +221,6 @@ class AndroidRunConfigurationExecutor(
     if (configuration.CLEAR_APP_STORAGE) {
       clearAppStorage(project, device, applicationId, RunStats.from(env))
     }
-    if (configuration.isRestoreEnabled()) {
-      indicator.text = "Restoring app data"
-      restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
-    }
     LaunchUtils.initiateDismissKeyguard(device)
 
     console.printLaunchTaskStartedMessage("Launching")
@@ -249,6 +247,12 @@ class AndroidRunConfigurationExecutor(
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+
+        if (configuration.isRestoreEnabled()) {
+          indicator.text = "Restoring app data"
+          restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+        }
+
         launch(mainApp.app, device, console, isDebug = true)
       }
     }

@@ -32,4 +32,13 @@ interface RunConfigSection {
 
   /** Validate a [RunConfiguration]. */
   fun validate(runConfiguration: RunConfiguration): List<ValidationError>
+
+  /**
+   * Update section based on whether we are deploying an instant app
+   *
+   * Instant apps may not support all options.
+   *
+   * For example, Restore App feature is not supported for Instant Apps
+   */
+  fun updateBasedOnInstantState(instantAppDeploy: Boolean)
 }
