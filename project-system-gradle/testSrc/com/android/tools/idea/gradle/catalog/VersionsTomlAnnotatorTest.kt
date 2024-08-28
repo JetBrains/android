@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
-import com.intellij.codeInsight.daemon.impl.analysis.AnnotationSessionImpl.computeWithSession
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
 import org.junit.Rule
@@ -91,15 +91,13 @@ class VersionsTomlAnnotatorTest {
     val psiFile = file.originalFile
     val annotator = VersionsTomlAnnotator()
     runReadAction {
-      computeWithSession(psiFile, false) { holder ->
-        val visitor = object : TomlRecursiveVisitor() {
-          override fun visitElement(element: TomlElement) {
-            holder.runAnnotatorWithContext(element, annotator)
-            super.visitElement(element as PsiElement)
-          }
+      val visitor = object : TomlRecursiveVisitor() {
+        override fun visitElement(element: TomlElement) {
+          CodeInsightTestUtil.testAnnotator(annotator, element)
+          super.visitElement(element as PsiElement)
         }
-        visitor.visitElement(psiFile)
       }
+      visitor.visitElement(psiFile)
     }
   }
 
@@ -118,10 +116,7 @@ class VersionsTomlAnnotatorTest {
     WriteCommandAction.runWriteCommandAction(fixture.project) { psiFile.add(libs) }
 
     runReadAction {
-      computeWithSession(psiFile, false) { holder ->
-        holder.runAnnotatorWithContext(libs, annotator)
-        holder.runAnnotatorWithContext(libs.header.key?.segments?.get(0)?.firstChild!!, annotator) // check leaf
-      }
+      CodeInsightTestUtil.testAnnotator(annotator, libs.header.key?.segments?.get(0)?.firstChild!!) // check leaf
     }
   }
 
