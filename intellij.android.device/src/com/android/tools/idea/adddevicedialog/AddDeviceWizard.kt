@@ -17,12 +17,11 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.remember
 import com.intellij.openapi.project.Project
 
-class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
+class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") { DeviceGridPage(sources) }
+    return ComposeWizard(project, "Add Device") { DeviceGridPage(source) }
   }
 }
 
@@ -33,8 +32,8 @@ internal class DeviceGridState(profiles: List<DeviceProfile>) {
 }
 
 @Composable
-internal fun WizardPageScope.DeviceGridPage(sources: List<DeviceSource>) {
-  val profiles = remember(sources) { sources.flatMap { it.profiles } }
+internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
+  val profiles = source.profiles
   nextActionName = "Configure"
   finishActionName = "Add"
 
@@ -44,9 +43,7 @@ internal fun WizardPageScope.DeviceGridPage(sources: List<DeviceSource>) {
   DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
 
   val selection = selectionState.selection
-  val source = sources.find { it.javaClass == selection?.source }
-
-  if (selection == null || source == null || !filterState.apply(selection)) {
+  if (selection == null || !filterState.apply(selection)) {
     nextAction = WizardAction.Disabled
     finishAction = WizardAction.Disabled
   } else {

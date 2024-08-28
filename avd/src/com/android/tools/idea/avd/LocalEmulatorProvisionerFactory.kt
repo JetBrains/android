@@ -85,9 +85,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   override suspend fun createAvd(): Boolean {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
       val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
-      return withContext(uiThread) {
-        AddDeviceWizard(listOf(source), project).createDialog().showAndGet()
-      }
+      return withContext(uiThread) { AddDeviceWizard(source, project).createDialog().showAndGet() }
     } else {
       val avdOptionsModel = AvdOptionsModel(null)
       withContext(uiThread) {
