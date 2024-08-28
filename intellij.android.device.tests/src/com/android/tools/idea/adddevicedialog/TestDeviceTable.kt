@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
+import kotlinx.collections.immutable.persistentListOf
 
 class TestDeviceFilterState : DeviceFilterState() {
   val oemFilter = SetFilterState(Manufacturer)
@@ -34,7 +35,11 @@ fun TestDeviceTable(profiles: List<DeviceProfile>) {
   val filterState = TestDeviceFilterState()
   DeviceTable(
     profiles,
+    columns = testDeviceTableColumns,
     filterContent = { TestDeviceFilters(profiles, filterState) },
     filterState = filterState,
   )
 }
+
+val testDeviceTableColumns =
+  with(DeviceTableColumns) { persistentListOf(icon, oem, name, width, height, density) }
