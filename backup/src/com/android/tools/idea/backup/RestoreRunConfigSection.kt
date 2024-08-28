@@ -47,22 +47,26 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   private val propertyGraph = PropertyGraph()
   private val restoreApp = propertyGraph.property(false)
   private var backupFile = propertyGraph.property("")
+  private var restoreSupported = propertyGraph.property(true)
 
   override fun getComponent(parentDisposable: Disposable): Component {
     return panel {
       group(message("restore.run.config.group")) {
-        row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
-        indent {
-          row { backupFileChooser(PATH_FIELD_WIDTH).enabledIf(restoreApp).bindText(backupFile) }
+          row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
+          indent {
+            row { backupFileChooser(PATH_FIELD_WIDTH).enabledIf(restoreApp).bindText(backupFile) }
+          }
         }
-      }
+        .enabledIf(restoreSupported)
     }
   }
 
   override fun resetFrom(runConfiguration: RunConfiguration) {
     val config = runConfiguration as? AndroidRunConfiguration ?: return
+    restoreSupported.set(config.DEPLOY_AS_INSTANT)
     restoreApp.set(config.RESTORE_ENABLED)
     backupFile.set(config.RESTORE_FILE)
+    restoreSupported.set(!config.DEPLOY_AS_INSTANT)
   }
 
   override fun applyTo(runConfiguration: RunConfiguration) {
@@ -73,7 +77,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
 
   override fun validate(runConfiguration: RunConfiguration): List<ValidationError> {
     val config = runConfiguration as? AndroidRunConfiguration ?: return emptyList()
-    if (!config.RESTORE_ENABLED) {
+    if (!config.RESTORE_ENABLED || config.DEPLOY_AS_INSTANT) {
       return emptyList()
     }
     val file = config.RESTORE_FILE
@@ -101,6 +105,10 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     }
 
     return emptyList()
+  }
+
+  override fun updateBasedOnInstantState(instantAppDeploy: Boolean) {
+    restoreSupported.set(!instantAppDeploy)
   }
 
   private fun Row.backupFileChooser(width: Int): Cell<TextFieldWithBrowseButton> {

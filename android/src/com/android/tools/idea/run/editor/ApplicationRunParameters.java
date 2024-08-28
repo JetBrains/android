@@ -175,7 +175,11 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
     else if (source == myInstantAppDeployCheckBox) {
       if (myModuleSelector.getModule() != null) {
-        myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), myInstantAppDeployCheckBox.isSelected());
+        boolean instantAppDeploy = myInstantAppDeployCheckBox.isSelected();
+        myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), instantAppDeploy);
+        if (myRestoreRunConfigSection != null) {
+          myRestoreRunConfigSection.updateBasedOnInstantState(instantAppDeploy);
+        }
       }
     }
   }
