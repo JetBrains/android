@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions.ml
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.isValidPreviewLocation
+import com.android.tools.idea.compose.preview.isMultiPreviewAnnotation
+import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -25,6 +30,8 @@ import com.intellij.psi.util.parentOfType
 import icons.AipluginIcons
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.toUElement
 
 /** Action to generate a Compose Preview for a target Composable function. */
 class GenerateComposePreviewAction :
@@ -40,6 +47,10 @@ class GenerateComposePreviewAction :
     else emptyList()
   }
 
+  override fun actionPerformed(e: AnActionEvent) {
+    generateComposePreviews(e)
+  }
+
   private fun getContainingFunctionAtCaret(e: AnActionEvent): KtNamedFunction? {
     val caret = e.getData(CommonDataKeys.CARET) ?: return null
     val psiFile = e.getData(CommonDataKeys.PSI_FILE) as? KtFile ?: return null
@@ -52,5 +63,23 @@ class GenerateComposePreviewAction :
     if (e.place != ActionPlaces.EDITOR_POPUP) {
       e.presentation.icon = AipluginIcons.Logo
     }
+  }
+
+  /**
+   * Whether this [KtNamedFunction] is a valid Composable function, i.e. a function annotated
+   * with @Composable that's not yet annotated with a @Preview or a MultiPreview annotation. It also
+   * must be in a valid preview location (see [isValidPreviewLocation]).
+   */
+  private fun KtNamedFunction.isValidComposableFunction(): Boolean {
+    if (annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }) return false
+    if (!isValidPreviewLocation()) return false
+    if (
+      annotationEntries.any {
+        val uAnnotation = (it.toUElement() as? UAnnotation) ?: return@any false
+        return@any uAnnotation.isPreviewAnnotation() || uAnnotation.isMultiPreviewAnnotation()
+      }
+    )
+      return false
+    return true
   }
 }
