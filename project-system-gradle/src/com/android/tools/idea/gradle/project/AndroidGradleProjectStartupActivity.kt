@@ -20,6 +20,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity.StartupService
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
@@ -104,29 +105,33 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
   class StartupService : AndroidGradleProjectStartupService<Unit>()
 
   override suspend fun execute(project: Project) {
-    if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
-
-    project.service<StartupService>().runInitialization {
-      // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
-      // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
-      // programming I'd probably use an atomic integer and wait for the count to reach 3.
-      val myJob = currentCoroutineContext().job
-      val externalProjectsJob = CompletableDeferred<Unit>(parent = myJob)
-      val jpsProjectJob = CompletableDeferred<Unit>(parent = myJob)
-      val newProjectStartupJob = project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().deferred
-
-      ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
-      whenAllModulesLoaded(project) { jpsProjectJob.complete(Unit) }
-      awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
-
-      performActivity(project)
-    }
+    performAndroidGradleProjectStartupActivity(project)
   }
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
 
-suspend fun performActivity(project: Project) {
+suspend fun performAndroidGradleProjectStartupActivity(project: Project, isJpsProjectLoaded: Boolean = false) {
+  if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
+  project.service<StartupService>().runInitialization {
+    // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
+    // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
+    // programming I'd probably use an atomic integer and wait for the count to reach 3.
+    val myJob = currentCoroutineContext().job
+    val externalProjectsJob = CompletableDeferred<Unit>(parent = myJob)
+    val jpsProjectJob = CompletableDeferred<Unit>(parent = myJob)
+    val newProjectStartupJob = project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().deferred
+
+    ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
+    whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
+    awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
+
+    performActivity(project)
+  }
+}
+
+private suspend fun performActivity(project: Project) {
   val gradleProjectInfo = GradleProjectInfo.getInstance(project)
   val info = Info.getInstance(project)
 
@@ -170,8 +175,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
   })
 }
 
-private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
-  if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
+private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, callback: () -> Unit) {
+  if (isJpsProjectLoaded || project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
   } else {
