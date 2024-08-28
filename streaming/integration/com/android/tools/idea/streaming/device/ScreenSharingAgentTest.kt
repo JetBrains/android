@@ -27,7 +27,7 @@ import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
@@ -399,7 +399,7 @@ class ScreenSharingAgentTest {
     @BeforeClass
     fun setUpClass() {
       val disposable = Disposer.newDisposable("ScreenSharingAgentTest").also { classDisposable = it }
-      StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.override("debug", disposable)
+      StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.overrideForTest("debug", disposable)
 
       val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
       check(Files.exists(adbBinary))
