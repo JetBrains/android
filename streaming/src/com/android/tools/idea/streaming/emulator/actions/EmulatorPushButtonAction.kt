@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.tools.idea.streaming.core.PushButtonAction
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
+import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.sendKeyEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,11 +31,13 @@ import java.util.function.Predicate
  * @param modifierKeyName if not null, the name of the second button that is pressed before
  *     the first and released after it
  * @param configFilter determines the types of devices the action is applicable to
+ * @param skinOverridesConfigFilter presence of a skin button with the same key name overrides hiding by [configFilter]
  */
 open class EmulatorPushButtonAction(
   private val keyName: String,
   private val modifierKeyName: String? = null,
   configFilter: Predicate<EmulatorConfiguration>? = null,
+  private val skinOverridesConfigFilter: Boolean = false,
 ) : AbstractEmulatorAction(configFilter = configFilter), PushButtonAction {
 
   final override fun buttonPressed(event: AnActionEvent) {
@@ -68,7 +71,24 @@ open class EmulatorPushButtonAction(
     actionPerformedImpl(event)
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    if (skinOverridesConfigFilter) {
+      // Make the action visible if it is hidden due to configuration filter but has a key matching
+      // one of the skin buttons.
+      val presentation = event.presentation
+      if (!presentation.isVisible) {
+        val emulatorView = getEmulatorView(event) ?: return
+        val emulatorController = emulatorView.emulator
+        if (emulatorController.connectionState == ConnectionState.CONNECTED) {
+          val skin = emulatorController.getSkin(emulatorView.currentPosture?.posture) ?: return
+          if (skin.layout.buttons.find { it.keyName == keyName } != null) {
+            presentation.isEnabledAndVisible = true
+          }
+        }
+      }
+    }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
