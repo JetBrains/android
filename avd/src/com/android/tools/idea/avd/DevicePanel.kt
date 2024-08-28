@@ -53,6 +53,7 @@ internal fun DevicePanel(
   images: ImmutableList<ISystemImage>,
   onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -83,6 +84,7 @@ internal fun DevicePanel(
     devicePanelState,
     configureDevicePanelState.systemImageTableSelectionState,
     onDownloadButtonClick,
+    onSystemImageTableRowClick,
     Modifier.height(150.dp).padding(bottom = Padding.SMALL),
   )
 
@@ -144,6 +146,7 @@ private fun SystemImageTable(
   devicePanelState: DevicePanelState,
   selectionState: TableSelectionState<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val columns =
@@ -182,7 +185,14 @@ private fun SystemImageTable(
       ),
     )
 
-  Table(columns, images.filter(devicePanelState::test), { it }, modifier, selectionState)
+  Table(
+    columns,
+    images.filter(devicePanelState::test),
+    { it },
+    modifier,
+    tableSelectionState = selectionState,
+    onRowClick = onRowClick,
+  )
 }
 
 internal data class DevicePanelState

@@ -40,12 +40,20 @@ internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   Column {
     Text("Configure device")
     Text("Add a device to device manager")
-    Tabs(configureDevicePanelState, images, onDownloadButtonClick, onImportButtonClick)
+
+    Tabs(
+      configureDevicePanelState,
+      images,
+      onDownloadButtonClick,
+      onSystemImageTableRowClick,
+      onImportButtonClick,
+    )
   }
 }
 
@@ -54,6 +62,7 @@ private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
@@ -83,6 +92,7 @@ private fun Tabs(
         images,
         onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
+        onSystemImageTableRowClick,
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
@@ -94,7 +104,11 @@ private fun Tabs(
 }
 
 internal class ConfigureDevicePanelState
-internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, image: ISystemImage) {
+internal constructor(
+  device: VirtualDevice,
+  skins: ImmutableCollection<Skin>,
+  image: ISystemImage?,
+) {
   internal var device by mutableStateOf(device)
 
   internal var skins by mutableStateOf(skins)
@@ -106,15 +120,19 @@ internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, im
     device = device.copy(name = deviceName)
   }
 
-  internal fun importSkin(path: Path) {
-    var skin = skins.find { it.path() == path }
+  internal fun setSkin(path: Path) {
+    device = device.copy(skin = getSkin(path))
+  }
+
+  private fun getSkin(path: Path): Skin {
+    var skin = skins.firstOrNull { it.path() == path }
 
     if (skin == null) {
       skin = DefaultSkin(path)
       skins = (skins + skin).sorted().toImmutableList()
     }
 
-    device = device.copy(skin = skin)
+    return skin
   }
 }
 
