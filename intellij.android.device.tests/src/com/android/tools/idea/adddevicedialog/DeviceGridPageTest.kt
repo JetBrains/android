@@ -114,6 +114,7 @@ private fun WizardPageScope.TestDeviceGridPage(source: TestDeviceSource) {
   val filterState = TestDeviceFilterState()
   DeviceGridPage(
     source,
+    testDeviceTableColumns,
     filterContent = { profiles -> TestDeviceFilters(profiles, filterState) },
     filterState = filterState,
   )

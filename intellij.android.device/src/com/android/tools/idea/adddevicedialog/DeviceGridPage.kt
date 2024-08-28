@@ -28,6 +28,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 fun WizardPageScope.DeviceGridPage(
   source: DeviceSource,
+  columns: List<TableColumn<DeviceProfile>>,
   filterContent: @Composable (List<DeviceProfile>) -> Unit,
   filterState: DeviceFilterState,
 ) {
@@ -45,6 +46,7 @@ fun WizardPageScope.DeviceGridPage(
     is LoadingState.Ready -> {
       DeviceGridPage(
         profiles.value,
+        columns,
         { filterContent(profiles.value) },
         filterState,
         onSelectionUpdated = { with(source) { selectionUpdated(it) } },
@@ -56,6 +58,7 @@ fun WizardPageScope.DeviceGridPage(
 @Composable
 private fun WizardPageScope.DeviceGridPage(
   profiles: List<DeviceProfile>,
+  columns: List<TableColumn<DeviceProfile>>,
   filterContent: @Composable () -> Unit,
   filterState: DeviceFilterState,
   onSelectionUpdated: (DeviceProfile) -> Unit,
@@ -63,6 +66,7 @@ private fun WizardPageScope.DeviceGridPage(
   val selectionState = getOrCreateState { TableSelectionState<DeviceProfile>() }
   DeviceTable(
     profiles,
+    columns,
     filterContent = filterContent,
     tableSelectionState = selectionState,
     filterState = filterState,

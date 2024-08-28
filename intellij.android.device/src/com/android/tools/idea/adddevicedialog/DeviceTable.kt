@@ -43,6 +43,7 @@ import org.jetbrains.jewel.ui.component.TextField
 @Composable
 internal fun DeviceTable(
   devices: List<DeviceProfile>,
+  columns: List<TableColumn<DeviceProfile>>,
   filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
@@ -50,19 +51,6 @@ internal fun DeviceTable(
 ) {
   var showDetails by remember { mutableStateOf(false) }
 
-  val columns: List<TableColumn<DeviceProfile>> = remember {
-    listOf(
-      TableColumn("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) },
-      TableTextColumn("OEM", attribute = { it.manufacturer }),
-      TableTextColumn("Name", TableColumnWidth.Weighted(2f), attribute = { it.name }, maxLines = 2),
-      TableTextColumn("API", attribute = { it.apiLevels.last().apiStringWithExtension }),
-      TableTextColumn("Width", attribute = { it.resolution.width.toString() }),
-      TableTextColumn("Height", attribute = { it.resolution.height.toString() }),
-      TableTextColumn("Density", attribute = { "${it.displayDensity} dpi" }),
-      TableTextColumn("Type", attribute = { if (it.isVirtual) "Virtual" else "Physical" }),
-      TableTextColumn("Source", attribute = { if (it.isRemote) "Remote" else "Local" }),
-    )
-  }
   Column(modifier) {
     Row {
       TextField(
@@ -125,6 +113,35 @@ internal fun DeviceTable(
       )
     }
   }
+}
+
+object DeviceTableColumns {
+  val icon =
+    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) }
+  val oem = TableTextColumn<DeviceProfile>("OEM", attribute = { it.manufacturer })
+  val name =
+    TableTextColumn<DeviceProfile>(
+      "Name",
+      TableColumnWidth.Weighted(2f),
+      attribute = { it.name },
+      maxLines = 2,
+    )
+  val api =
+    TableTextColumn<DeviceProfile>(
+      "API",
+      attribute = { it.apiLevels.last().apiStringWithExtension },
+    )
+  val width =
+    TableTextColumn<DeviceProfile>("Width", attribute = { it.resolution.width.toString() })
+  val height =
+    TableTextColumn<DeviceProfile>("Height", attribute = { it.resolution.height.toString() })
+  val density =
+    TableTextColumn<DeviceProfile>("Density", attribute = { "${it.displayDensity} dpi" })
+  val type =
+    TableTextColumn<DeviceProfile>(
+      "Type",
+      attribute = { if (it.isVirtual) "Virtual" else "Physical" },
+    )
 }
 
 @Composable
