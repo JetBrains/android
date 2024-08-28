@@ -175,7 +175,10 @@ plugins {
 }
 
         kotlin {
-      androidLibrary {
+      // Target declarations - add or remove as needed below. These define
+// which platforms this KMP module supports.
+// See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
+androidLibrary {
   namespace = "com.kmplib.packagename"
   compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
   minSdk = 34
@@ -191,22 +194,33 @@ plugins {
       sourceSetTreeName = "test"
   }
 }
-      sourceSets {
-  getByName("androidMain") {
-    dependencies {
-      // put your android target dependencies here
-    }
-  }
-  getByName("androidInstrumentedTest") {
-    dependencies {
-    }   
-  }
+      // Source set declarations.
+// Declaring a target automatically creates a source set with the same name. By default, the
+// Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
+// common to share sources between related targets.
+// See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
+sourceSets {
   commonMain {
     dependencies {
-      // put your common multiplatform dependencies here
+      // Add common multiplatform dependencies here
     }
   }
+
   commonTest {
+    dependencies {
+      // Add common multiplatform test dependencies here
+    }
+  }
+
+  androidMain {
+    dependencies {
+      // Add Android-specific dependencies here. Note that this source set depends on
+      // commonMain by default and will correctly pull the Android artifacts of any KMP
+      // dependencies declared in commonMain.
+    }
+  }
+
+  getByName("androidInstrumentedTest") {
     dependencies {
     }
   }
@@ -237,21 +251,20 @@ package com.kmplib.packagename
     val EXPECTED_ANDROID_UNIT_TEST_CONTENT = """
 package com.kmplib.packagename
 
-  import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
-  import org.junit.Assert.*
-
-  /**
-   * Example local unit test, which will execute on the development machine (host).
-   *
-   * See [testing documentation](http://d.android.com/tools/testing).
-   */
-  class ExampleUnitTest {
-      @Test
-      fun addition_isCorrect() {
-          assertEquals(4, 2 + 2)
-      }
-  }
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}
     """.trimIndent()
 
     val EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT = """

@@ -34,22 +34,33 @@ fun buildKmpGradle(
   )
 
   val sourceSetConfigurationsBlock = """
+    // Source set declarations.
+    // Declaring a target automatically creates a source set with the same name. By default, the
+    // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
+    // common to share sources between related targets.
+    // See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
     sourceSets {
-      getByName("androidMain") {
-        dependencies {
-          // put your android target dependencies here
-        }
-      }
-      getByName("androidInstrumentedTest") {
-        dependencies {
-        }   
-      }
       commonMain {
         dependencies {
-          // put your common multiplatform dependencies here
+          // Add common multiplatform dependencies here
         }
       }
+
       commonTest {
+        dependencies {
+          // Add common multiplatform test dependencies here
+        }
+      }
+
+      androidMain {
+        dependencies {
+          // Add Android-specific dependencies here. Note that this source set depends on
+          // commonMain by default and will correctly pull the Android artifacts of any KMP
+          // dependencies declared in commonMain.
+        }
+      }
+
+      getByName("androidInstrumentedTest") {
         dependencies {
         }
       }
@@ -79,16 +90,19 @@ private fun androidTargetConfig(
   minApi: String,
 ): String {
   return """
+    // Target declarations - add or remove as needed below. These define
+    // which platforms this KMP module supports.
+    // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     androidLibrary {
       namespace '$packageName'
       ${toAndroidFieldVersion("compileSdk", compileApiString, agpVersion)}
       ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
-      
+
       withAndroidTestOnJvmBuilder {
           compilationName = "unitTest"
           defaultSourceSetName = "androidUnitTest"
       }
-      
+
       withAndroidTestOnDeviceBuilder {
           compilationName = "instrumentedTest"
           defaultSourceSetName = "androidInstrumentedTest"
