@@ -70,6 +70,9 @@ class DefaultDeviceProvisionerFactory : DeviceProvisionerFactory {
     get() = true
 
   override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
+    create(coroutineScope)
+
+  fun create(coroutineScope: CoroutineScope): DeviceProvisionerPlugin =
     DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)
 }
 
