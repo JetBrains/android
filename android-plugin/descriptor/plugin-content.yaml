@@ -1,11 +1,6 @@
 - name: lib/adt-ui.jar
   modules:
   - name: intellij.android.adt.ui.compose
-    libraries:
-      jetbrains-jewel-markdown-laf-bridge-styling:
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0/jewel-markdown-ide-laf-bridge-styling-241-0.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-241/0/jewel-markdown-core-241-0.jar
-      - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
   - name: intellij.android.adt.ui.model
   - name: intellij.android.adt.ui
 - name: lib/android-common.jar
@@ -203,6 +198,9 @@
   - name: intellij.android.native-symbolizer.gradle
   - name: intellij.android.app-inspection.inspectors.network.ide
   - name: intellij.android.app-inspection.inspectors.network.model
+    libraries:
+      brotli-dec:
+      - name: $MAVEN_REPOSITORY$/org/brotli/dec/0/dec-0.jar
   - name: intellij.android.app-inspection.inspectors.network.view
   - name: intellij.android.server-flags
   - name: intellij.android.codenavigation
@@ -237,8 +235,7 @@
 - name: lib/javacpp-macos-x64-1.5.9.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
 - name: lib/jb-r8.jar
-- name: lib/jewel-ide-laf-bridge.jar
-- name: lib/jewel-int-ui-standalone.jar
+- name: lib/jewel-markdown-ide-laf-bridge-styling-242.jar
 - name: lib/layoutlib-loader.jar
   modules:
   - name: intellij.android.layoutlib-loader
