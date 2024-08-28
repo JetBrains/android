@@ -18,29 +18,19 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.intellij.openapi.project.Project
 import org.jetbrains.jewel.ui.component.Text
 
-class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
-  fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") { DeviceGridPage(source) }
-  }
-}
-
-@Stable
-internal class DeviceGridState {
-  val selectionState = TableSelectionState<DeviceProfile>()
-  val filterState = DeviceFilterState()
-}
-
 @Composable
-internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
+fun WizardPageScope.DeviceGridPage(
+  source: DeviceSource,
+  filterContent: @Composable (List<DeviceProfile>) -> Unit,
+  filterState: DeviceFilterState,
+) {
   val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
 
   nextActionName = "Configure"
@@ -53,18 +43,36 @@ internal fun WizardPageScope.DeviceGridPage(source: DeviceSource) {
       Box(Modifier.fillMaxSize()) { Text("Loading devices...", Modifier.align(Alignment.Center)) }
     }
     is LoadingState.Ready -> {
-      val pageState = getOrCreateState { DeviceGridState() }
-      val selectionState = pageState.selectionState
-      val filterState = pageState.filterState
-      DeviceTable(profiles.value, tableSelectionState = selectionState, filterState = filterState)
-
-      val selection = selectionState.selection
-      if (selection == null || !filterState.apply(selection)) {
-        nextAction = WizardAction.Disabled
-        finishAction = WizardAction.Disabled
-      } else {
-        source.apply { selectionUpdated(selection) }
-      }
+      DeviceGridPage(
+        profiles.value,
+        { filterContent(profiles.value) },
+        filterState,
+        onSelectionUpdated = { with(source) { selectionUpdated(it) } },
+      )
     }
+  }
+}
+
+@Composable
+private fun WizardPageScope.DeviceGridPage(
+  profiles: List<DeviceProfile>,
+  filterContent: @Composable () -> Unit,
+  filterState: DeviceFilterState,
+  onSelectionUpdated: (DeviceProfile) -> Unit,
+) {
+  val selectionState = getOrCreateState { TableSelectionState<DeviceProfile>() }
+  DeviceTable(
+    profiles,
+    filterContent = filterContent,
+    tableSelectionState = selectionState,
+    filterState = filterState,
+  )
+
+  val selection = selectionState.selection
+  if (selection == null || !filterState.apply(selection)) {
+    nextAction = WizardAction.Disabled
+    finishAction = WizardAction.Disabled
+  } else {
+    onSelectionUpdated(selection)
   }
 }

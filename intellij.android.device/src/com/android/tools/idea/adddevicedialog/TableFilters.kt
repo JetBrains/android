@@ -36,20 +36,16 @@ import org.jetbrains.jewel.ui.component.items
  * An attribute of a table row that can be extracted and used for filtering; it may or may not be
  * represented in a column. [V] must have a toString() method that is suitable for display.
  */
-internal class RowAttribute<T, V>(
-  val name: String,
-  val comparator: Comparator<V>,
-  val value: (T) -> V,
-)
+class RowAttribute<T, V>(val name: String, val comparator: Comparator<V>, val value: (T) -> V)
 
-internal fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> =
+fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> =
   ts.mapTo(TreeSet(comparator)) { value(it) }.toList()
 
 /**
  * A Composable that puts a list of checkboxes in a HideablePanel and tracks their selection state.
  */
 @Composable
-internal fun <V> SetFilter(
+fun <V> SetFilter(
   header: String,
   values: List<V>,
   selection: MutableMap<V, Boolean>,
@@ -67,11 +63,7 @@ internal fun <V> SetFilter(
 }
 
 @Composable
-internal fun <V> SetFilter(
-  values: List<V>,
-  state: SetFilterState<*, V>,
-  modifier: Modifier = Modifier,
-) {
+fun <V> SetFilter(values: List<V>, state: SetFilterState<*, V>, modifier: Modifier = Modifier) {
   SetFilter(state.attribute.name, values, state.selection, modifier)
 }
 
@@ -80,10 +72,8 @@ interface RowFilter<T> {
 }
 
 /** The UI state for a single set-based attribute filter. */
-internal class SetFilterState<T, V>(
-  val attribute: RowAttribute<T, V>,
-  val defaultValue: Boolean = true,
-) : RowFilter<T> {
+class SetFilterState<T, V>(val attribute: RowAttribute<T, V>, val defaultValue: Boolean = true) :
+  RowFilter<T> {
   val selection = SnapshotStateMap<V, Boolean>()
 
   override fun apply(row: T) = selection[attribute.value(row)] ?: defaultValue
@@ -91,10 +81,7 @@ internal class SetFilterState<T, V>(
 
 /** A Dropdown that acts as a view to a SingleSelectionFilterState. */
 @Composable
-internal fun <T, V> SingleSelectionDropdown(
-  values: List<V>,
-  state: SingleSelectionFilterState<T, V>,
-) {
+fun <T, V> SingleSelectionDropdown(values: List<V>, state: SingleSelectionFilterState<T, V>) {
   Column(modifier = Modifier.padding(6.dp)) {
     Text(state.attribute.name)
 
@@ -118,7 +105,7 @@ internal fun <T, V> SingleSelectionDropdown(
 /**
  * The UI state for an attribute filter that selects one value from the values present on the rows.
  */
-internal class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V>, selection: V) :
+class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V>, selection: V) :
   RowFilter<T> {
   var selection by mutableStateOf(selection)
 
@@ -126,5 +113,5 @@ internal class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V
 }
 
 /** Produces a SingleSelectionFilterState with the given initial selection. */
-internal fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(initialSelection: V) =
+fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(initialSelection: V) =
   SingleSelectionFilterState(this, initialSelection)
