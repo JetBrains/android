@@ -7,7 +7,7 @@ X server so they can run in parallel:
 
     bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest
 
-On Mac, extra options are requried to ensure the tests have access to the main window
+On Mac, extra options are required to ensure the tests have access to the main window
 server, and run serially so they don't interfere with each other:
 
     bazel test \
