@@ -53,6 +53,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,6 +97,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
   private void doAnalyze(@NotNull List<Tools> globalTools,
                          @NotNull List<Tools> localTools,
                          @NotNull final GlobalInspectionContext context) {
+    ThreadingAssertions.assertBackgroundThread();
     final Project project = context.getProject();
     LintIdeSupport ideSupport = LintIdeSupport.get();
     if (!ideSupport.canAnalyze(project)) {
