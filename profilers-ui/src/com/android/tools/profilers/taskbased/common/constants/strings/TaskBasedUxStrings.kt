@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.common.constants.strings
 
+import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
@@ -92,12 +93,27 @@ object TaskBasedUxStrings {
   const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
 
   // For LeakCanary task
+  // LeakList Strings
   const val LEAKCANARY_LEAK_HEADER_TEXT = "Leak"
   const val LEAKCANARY_OCCURRENCES_HEADER_TEXT = "Occurrences"
   const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
   // TODO(b/361643517): This message will be updated after confirmation
-  const val LEAKCANARY_EMPTY_LEAK_MESSAGE = "Try to reproduce leaks by triggering potentially leaking actions within your app while the " +
-                                            "recording is ongoing"
+  const val LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE = "Try to reproduce leaks by triggering potentially leaking actions within your app " +
+                                                      "while the recording is ongoing"
+
+  // LeakDetails Strings
+  const val LEAKCANARY_BULLET_UNICODE = "\u2022"
+  const val LEAKCANARY_LEAKING = "Leaking"
+  const val LEAKCANARY_WHY = "Why"
+  const val LEAKCANARY_NOT_LEAKING = "Not Leaking"
+  const val LEAKCANARY_REFERENCING_FIELD = "Referencing Field: "
+  const val LEAKCANARY_RETAINED_BYTES = "Retained Bytes: "
+  const val LEAKCANARY_REFERENCING_OBJECTS = "Referencing Objects: "
+  const val LEAKCANARY_MORE_INFO = "More info"
+  // TODO(b/361643517): This message will be updated after confirmation
+  const val LEAKCANARY_LEAK_DETAIL_EMPTY_LEAK_MESSAGE = "Once the current ongoing recording has captured memory leaks, their details" +
+                                                        " will appear here"
+  const val LEAKCANARY_GO_TO_DECLARATION = "Go to declaration"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
@@ -163,4 +179,12 @@ object TaskBasedUxStrings {
       StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS -> "Task is not supported by the selected device or process"
       StartTaskSelectionError.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
+
+  fun getLeakStatusText(leakingStatus: LeakingStatus): String {
+    return when (leakingStatus) {
+      LeakingStatus.YES -> "Yes"
+      LeakingStatus.NO -> "No"
+      LeakingStatus.UNKNOWN -> "Unknown"
+    }
+  }
 }
