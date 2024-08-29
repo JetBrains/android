@@ -40,7 +40,7 @@ class VersionsTomlAnnotator : Annotator {
   }
 
   private val dependencyTables = listOf("plugins", "libraries", "bundles")
-  private val tables = dependencyTables + "versions"
+  private val tables = dependencyTables + "versions" + "metadata"
   private val reservedNames = listOf("extensions", "convention")
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
