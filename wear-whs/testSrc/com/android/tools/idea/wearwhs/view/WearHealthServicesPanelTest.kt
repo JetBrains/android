@@ -176,8 +176,7 @@ class WearHealthServicesPanelTest {
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     delay(2 * TEST_POLLING_INTERVAL_MILLISECONDS)
 
@@ -296,8 +295,7 @@ class WearHealthServicesPanelTest {
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
@@ -308,7 +306,7 @@ class WearHealthServicesPanelTest {
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
   }
@@ -370,10 +368,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
-
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+      fakeUi.clickOnApplyButton()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
     }
@@ -385,10 +380,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
-
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+      fakeUi.clickOnApplyButton()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
     }
@@ -398,10 +390,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
-
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+      fakeUi.clickOnApplyButton()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -418,10 +407,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
-
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+      fakeUi.clickOnApplyButton()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -655,7 +641,14 @@ class WearHealthServicesPanelTest {
     }
 
   private fun JCheckBox.hasLabel(text: String) =
-    parent.findDescendant<JLabel> { it.text.contains(text) } != null
+    parent.findDescendant<JLabel> { it.text == text } != null
+
+  private suspend fun FakeUi.clickOnApplyButton() {
+    val applyButton = waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+    // we need to consume this flow to allow calling StateManager.applyChanges
+    whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+  }
 
   // The UI loads on asynchronous coroutine, we need to wait
   private inline fun <reified T> FakeUi.waitForDescendant(
