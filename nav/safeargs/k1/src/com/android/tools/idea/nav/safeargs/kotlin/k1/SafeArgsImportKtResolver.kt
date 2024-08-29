@@ -111,10 +111,11 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       return
     }
 
-    // Follow approach from KotlinAddImportAction and use JBPopupFactory tp create popup
+    // Follow approach from KotlinAddImportAction and use JBPopupFactory to create popup
     JBPopupFactory.getInstance()
       .createListPopup(project, getVariantSelectionPopup(project, file, suggestions)) producer@{
-        val baseRenderer = it as? GroupedItemsListRenderer<Any> ?: return@producer it
+        renderer ->
+        val baseRenderer = renderer as? GroupedItemsListRenderer<Any> ?: return@producer renderer
         val psiRenderer = SafeArgsPsiElementCellRenderer()
         ListCellRenderer<AutoImportVariant> { list, value, index, isSelected, cellHasFocus ->
           JPanel(BorderLayout()).apply {
