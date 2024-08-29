@@ -54,7 +54,7 @@ import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -107,8 +107,8 @@ class AndroidRunConfigurationExecutorTest {
   val closeables = CloseablesRule()
 
   val fakeAdb = FakeAdbTestRule().apply {
-      withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
-    }
+    withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
+  }
 
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
@@ -208,7 +208,7 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun debugSucceeded() { //TODO: write handler in fakeAdb for "am capabilities --protobuf"
-    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
 
     val deviceState = fakeAdb.connectAndWaitForDevice()
     var startInvocation = 0
@@ -347,7 +347,8 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val runContentDescriptor =
-      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) },
+                                               EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
     assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
@@ -391,7 +392,7 @@ class AndroidRunConfigurationExecutorTest {
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") },
       liveEditService
-      )
+    )
 
     val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
@@ -410,7 +411,7 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      applicationIdProvider = object : ApplicationIdProvider{
+      applicationIdProvider = object : ApplicationIdProvider {
         override fun getPackageName(): String {
           throw ApkProvisionException("AndroidExecutionException packageName")
         }
@@ -419,7 +420,7 @@ class AndroidRunConfigurationExecutorTest {
           throw ApkProvisionException("AndroidExecutionException testPackageName")
         }
       },
-      applicationContext = object: ApplicationProjectContext {
+      applicationContext = object : ApplicationProjectContext {
         override val applicationId: String
           get() = error("Not supposed to be invoked")
       },
@@ -635,7 +636,8 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val newProcessHandler = ProgressManager.getInstance()
-      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
+      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) },
+                  EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")
@@ -650,7 +652,7 @@ class AndroidRunConfigurationExecutorTest {
   fun applyCodeChangesNeedsRestartForDebug() {
 
     //TODO: write handler in fakeAdb for "am capabilities --protobuf"
-    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
 
     val deviceState = fakeAdb.connectAndWaitForDevice()
     val restartHappened = CountDownLatch(1)
@@ -687,7 +689,8 @@ class AndroidRunConfigurationExecutorTest {
 
     val newProcessHandler =
       ProgressManager.getInstance()
-        .runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
+        .runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) },
+                    EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")
