@@ -670,7 +670,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.scripting-compile
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
-Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/compose-compiler.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.so.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
