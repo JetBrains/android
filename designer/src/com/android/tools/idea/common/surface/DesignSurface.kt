@@ -55,6 +55,7 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.base.Predicate
@@ -111,6 +112,9 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -1074,21 +1078,20 @@ abstract class DesignSurface<T : SceneManager>(
       return
     }
 
-    CompletableFuture.runAsync({ addModel(newModel) }, AppExecutorUtil.getAppExecutorService())
-      .thenCompose { requestRender() }
-      .whenCompleteAsync(
-        { _, _ ->
-          // Mark the scene view panel as invalid to force the scene views to be updated
-          sceneViewPanel.invalidate()
+    scope.launch {
+      addModel(newModel)
+      sceneManagers.forEach { it.requestRenderAsync().await() }
+      // Mark the scene view panel as invalid to force the scene views to be updated
+      sceneViewPanel.invalidate()
 
-          reactivateGuiInputHandler()
-          restoreZoomOrZoomToFit()
-          revalidateScrollArea()
+      reactivateGuiInputHandler()
+      withContext(uiThread) {
+        restoreZoomOrZoomToFit()
+        revalidateScrollArea()
+      }
 
-          notifyModelChanged(newModel)
-        },
-        EdtExecutorService.getInstance(),
-      )
+      notifyModelChanged(newModel)
+    }
   }
 
   /**
@@ -1152,38 +1155,6 @@ abstract class DesignSurface<T : SceneManager>(
         },
         EdtExecutorService.getInstance(),
       )
-  }
-
-  /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the [NlModel]s
-   * and render them sequentially. The result [CompletableFuture] will notify when all the
-   * renderings have completed.
-   */
-  // TODO(b/361786751): make this method suspendable or remove it
-  open fun requestRender(): CompletableFuture<out Void?> {
-    if (sceneManagers.isEmpty()) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return requestSequentialRender { it.requestRenderAsync() }
-  }
-
-  /**
-   * Schedule the render requests sequentially for all [SceneManager]s in this [DesignSurface].
-   *
-   * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to
-   *   choose the preferred rendering request.
-   * @return A callback which is triggered when the scheduled rendering are completed.
-   */
-  // TODO(b/361786751): make this method suspendable or remove it
-  protected fun requestSequentialRender(
-    renderRequest: (T) -> CompletableFuture<Void>
-  ): CompletableFuture<Void> {
-    // Cascading the CompletableFuture to make them executing sequentially.
-    var renderFuture = CompletableFuture.completedFuture<Void?>(null)
-    for (manager in sceneManagers) {
-      renderFuture = renderFuture.thenCompose { renderRequest(manager) }
-    }
-    return renderFuture
   }
 
   private var lintIssueProvider: LintIssueProvider? = null

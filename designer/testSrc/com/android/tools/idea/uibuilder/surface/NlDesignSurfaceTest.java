@@ -28,6 +28,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
@@ -102,7 +103,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
 
-    mySurface.requestRender().join();
+    refreshSurface();
     assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().getIssues()
                   .stream()
@@ -131,7 +132,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
 
-    mySurface.requestRender();
+    refreshSurface();
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
 //    BuildSettings.getInstance(getProject()).setBuildMode(null);
@@ -139,7 +140,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
 
-    mySurface.requestRender();
+    refreshSurface();
     // Because there is a missing view, some other extra errors will be generated about missing styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
@@ -169,13 +170,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertNull(mySurface.getSceneManager(model).getRenderResult());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER, false);
-    mySurface.requestRender();
+    refreshSurface();
     assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager(model).getSecondarySceneView());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false);
-    mySurface.requestRender();
+    refreshSurface();
     assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
 
     SceneView screenView = mySurface.getFocusedSceneView();
@@ -616,6 +617,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // All NlSupportedActions are supported by default in the NlDesignSurface
     for (NlSupportedActions value : NlSupportedActions.values()) {
       assertTrue(NlSupportedActionsKt.isActionSupported(surface, value));
+    }
+  }
+
+  private void refreshSurface() {
+    for (SceneManager manager : mySurface.getSceneManagers()) {
+      manager.requestRenderAsync().join();
     }
   }
 }
