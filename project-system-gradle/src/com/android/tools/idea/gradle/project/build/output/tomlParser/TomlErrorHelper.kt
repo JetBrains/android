@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -36,3 +40,27 @@ internal fun TomlInlineTable.findKeyValue(key: String, value: String):Boolean =
   entries.any { it.key.text == key && it.value?.text == "\"$value\"" }
 
 internal enum class ReferenceSource { LIBRARY, PLUGIN }
+
+internal fun readUntilLine(reader: BuildOutputInstantReader, stopLine: String, lineCallback: (String) -> Unit = {}): String {
+  val result = StringBuffer()
+  while (true) {
+    val descriptionLine = reader.readLine()
+    if (descriptionLine == null || descriptionLine.startsWith(stopLine)) break
+    lineCallback(descriptionLine)
+    result.appendLine(descriptionLine)
+  }
+  return result.toString()
+}
+
+abstract class TomlErrorMessageAwareIssue(_description: String) : ErrorMessageAwareBuildIssue {
+  override val description: String = _description.trimEnd()
+  override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+  override val title: String = TomlErrorParser.BUILD_ISSUE_TITLE
+  override val buildErrorMessage: BuildErrorMessage
+    get() = BuildErrorMessage.newBuilder().apply {
+      errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+      fileLocationIncluded = true
+      fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+      lineLocationIncluded = true
+    }.build()
+}
