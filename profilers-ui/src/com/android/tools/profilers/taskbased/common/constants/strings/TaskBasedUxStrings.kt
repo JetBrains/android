@@ -91,6 +91,14 @@ object TaskBasedUxStrings {
   // Do not show again option text
   const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
 
+  // For LeakCanary task
+  const val LEAKCANARY_LEAK_HEADER_TEXT = "Leak"
+  const val LEAKCANARY_OCCURRENCES_HEADER_TEXT = "Occurrences"
+  const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
+  // TODO(b/361643517): This message will be updated after confirmation
+  const val LEAKCANARY_EMPTY_LEAK_MESSAGE = "Try to reproduce leaks by triggering potentially leaking actions within your app while the " +
+                                            "recording is ongoing"
+
   fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
     ProfilerTaskType.HEAP_DUMP -> "Dumps the heap showing which objects in your app are using memory at the time of capture"

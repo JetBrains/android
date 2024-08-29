@@ -66,5 +66,6 @@
     </orderEntry>
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
+    <orderEntry type="module" module-name="android.sdktools.leakcanarylib" />
   </component>
 </module>

@@ -75,4 +75,8 @@ object TaskBasedUxDimensions {
   // Task notification dimensions
   val TASK_NOTIFICATION_CONTAINER_PADDING_DP = 5.dp
   val TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP = 5.dp
+
+  // LeakCanary LeakList dimensions
+  val LEAKCANARY_OCCURRENCE_WIDTH_DP = 100.dp
+  val LEAKCANARY_TOTAL_LEAKED_WIDTH_DP = 100.dp
 }
