@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
 import com.android.tools.idea.adddevicedialog.DeviceGridPage
@@ -26,28 +36,78 @@ import com.android.tools.idea.adddevicedialog.FormFactor
 import com.android.tools.idea.adddevicedialog.SingleSelectionDropdown
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
+import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
+import com.android.tools.idea.avdmanager.ui.DeviceUiAction
+import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
 import com.intellij.openapi.project.Project
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.Text
 
 class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
     return ComposeWizard(project, "Add Device") {
       val filterState = getOrCreateState { DeviceFilterState() }
       val selectionState = getOrCreateState { TableSelectionState<DeviceProfile>() }
+
       DeviceLoadingPage(source) { profiles ->
-        DeviceGridPage(
-          profiles,
-          avdColumns,
-          filterContent = {
-            SingleSelectionDropdown(
-              FormFactor.uniqueValuesOf(profiles),
-              filterState.formFactorFilter,
-            )
-          },
-          filterState = filterState,
-          selectionState = selectionState,
-          onSelectionUpdated = { with(source) { selectionUpdated(it) } },
-        )
+        // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
+        // Device is created, we select it automatically.
+        var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
+        val deviceProvider =
+          object : DeviceUiAction.DeviceProvider {
+            override fun getDevice(): Device? =
+              (selectionState.selection as? VirtualDeviceProfile)?.device
+
+            override fun refreshDevices() {}
+
+            override fun setDevice(device: Device?) {
+              dialogSelectedDevice = device
+            }
+
+            override fun selectDefaultDevice() {
+              selectionState.selection = null
+            }
+
+            override fun getProject(): Project? = this@AddDeviceWizard.project
+          }
+        if (dialogSelectedDevice != null) {
+          profiles
+            .find { (it as VirtualDeviceProfile).device == dialogSelectedDevice }
+            ?.let {
+              dialogSelectedDevice = null
+              selectionState.selection = it
+            }
+        }
+
+        Column {
+          DeviceGridPage(
+            profiles,
+            avdColumns,
+            filterContent = {
+              SingleSelectionDropdown(
+                FormFactor.uniqueValuesOf(profiles),
+                filterState.formFactorFilter,
+              )
+            },
+            filterState = filterState,
+            selectionState = selectionState,
+            onSelectionUpdated = { with(source) { selectionUpdated(it) } },
+            modifier = Modifier.weight(1f),
+          )
+
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
+              Text("New hardware profile...")
+            }
+
+            OutlinedButton(
+              onClick = { ImportDevicesAction(deviceProvider).actionPerformed(null) }
+            ) {
+              Text("Import hardware profile...")
+            }
+          }
+        }
       }
     }
   }
