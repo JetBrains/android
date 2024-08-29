@@ -19,10 +19,12 @@ import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
 import com.android.tools.idea.adddevicedialog.DeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.FormFactor
 import com.android.tools.idea.adddevicedialog.SingleSelectionDropdown
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.intellij.openapi.project.Project
+import kotlinx.collections.immutable.persistentListOf
 
 class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
@@ -30,6 +32,7 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
       val filterState = getOrCreateState { DeviceFilterState() }
       DeviceGridPage(
         source,
+        avdColumns,
         filterContent = { profiles ->
           SingleSelectionDropdown(FormFactor.uniqueValuesOf(profiles), filterState.formFactorFilter)
         },
@@ -38,3 +41,6 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
     }
   }
 }
+
+private val avdColumns =
+  with(DeviceTableColumns) { persistentListOf(icon, name, width, height, density) }
