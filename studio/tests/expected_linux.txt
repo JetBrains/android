@@ -412,7 +412,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-242.20224.300.2421.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-242.21829.142.2421.__BUILD_NUMBER__
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
@@ -502,6 +502,7 @@ android-studio/license/third-party-libraries.html
 android-studio/license/third-party-libraries.json
 android-studio/license/uiautomatorviewer.jar-NOTICE
 android-studio/license/yourkit-license-redist.txt
+android-studio/modules/module-descriptors.jar
 android-studio/plugins/Groovy/lib/Groovy.jar
 android-studio/plugins/Groovy/lib/agent/gragent.jar
 android-studio/plugins/Groovy/lib/console.groovy
@@ -645,6 +646,7 @@ android-studio/plugins/Kotlin/lib/kotlin-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar
+android-studio/plugins/Kotlin/lib/kotlinc.compose-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar
 android-studio/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar
