@@ -29,6 +29,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.fileTypes.impl.FileTypeManagerImpl
 import com.intellij.util.application
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -110,6 +111,7 @@ class EditorStatsUtilTest {
     assertThat(getEditorFileTypeForAnalytics(fakeKotlinFile, projectRule.project)).isEqualTo(EditorFileType.KOTLIN_COMPOSE)
   }
 
+  @Ignore("IDEA-358493")
   @Test
   fun protoFileWithPlugin() = runBlocking {
     val fileTypeManager = FileTypeManager.getInstance() as FileTypeManagerImpl
@@ -127,6 +129,7 @@ class EditorStatsUtilTest {
     assertThat(getEditorFileTypeForAnalytics(protoFile, null)).isEqualTo(EditorFileType.PROTO)
   }
 
+  @Ignore("IDEA-358493")
   @Test
   fun protoFileWithoutPlugin() = runBlocking {
     val protoFile = projectRule.fixture.addFileToProject("hello.proto", "").virtualFile
