@@ -70,7 +70,25 @@ class CatalogUnusedHighlightingTest {
   fun testLibsUsage() {
     runTest("libs.ui", """
         [libraries]
-        ui = "shortNotation"
+        ui = "group:name:version"
+    """.trimIndent())
+  }
+
+  @Test
+  fun testLibsUsageInBundle() {
+    runTest("libs.bundles.bb", """
+        [libraries]
+        ui = "group:name:version"
+        [bundles]
+        bb = ["ui"]
+    """.trimIndent())
+  }
+
+  @Test
+  fun testLibsNoUsage() {
+    runTest("", """
+        [libraries]
+        <warning>ui</warning> = "group:name:version"
     """.trimIndent())
   }
 
