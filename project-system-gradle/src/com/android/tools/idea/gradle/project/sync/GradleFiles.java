@@ -126,6 +126,15 @@ public class GradleFiles implements Disposable.Default {
     GradleFileChangeListener fileChangeListener = new GradleFileChangeListener(this);
     myFileEditorListener = new FileEditorManagerListener() {
       @Override
+      public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if (hasHashForFile(file)) {
+          if (!areHashesEqual(file)) {
+            addChangedFile(file, isExternalBuildFile(file));
+          }
+        }
+      }
+
+      @Override
       public void selectionChanged(@NotNull FileEditorManagerEvent event) {
         maybeAddOrRemovePsiTreeListener(event.getNewFile(), fileChangeListener);
       }
@@ -501,6 +510,12 @@ public class GradleFiles implements Disposable.Default {
   public boolean isExternalBuildFile(@NotNull PsiFile psiFile) {
     synchronized (myLock) {
       return myExternalBuildFiles.contains(psiFile.getVirtualFile());
+    }
+  }
+
+  public boolean isExternalBuildFile(@NotNull VirtualFile virtualFile) {
+    synchronized (myLock) {
+      return myExternalBuildFiles.contains(virtualFile);
     }
   }
 
