@@ -93,7 +93,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -257,6 +256,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected File loadSimpleApplication() throws Exception {
     return loadProject(SIMPLE_APPLICATION);
+  }
+
+  protected File loadSimpleApplicationWithNoSync() throws Exception {
+    return loadProjectNoSync(SIMPLE_APPLICATION);
+  }
+
+  protected File loadProjectNoSync(@NotNull String relativePath) throws Exception {
+    File projectRoot = prepareProjectForImport(relativePath);
+
+    importProjectNoSync();
+
+    return projectRoot;
   }
 
   protected final File loadProject(@NotNull String relativePath) throws Exception {
@@ -437,6 +448,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {
     Project project = getProject();
     AgpIntegrationTestUtil.importProject(project, jdkVersion);
+  }
+
+  private void importProjectNoSync() {
+    importProjectNoSync(resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT).getJdkVersion());
+  }
+
+  private void importProjectNoSync(@NotNull JavaSdkVersion version) {
+    Project project = getProject();
+    AgpIntegrationTestUtil.importProjectNoSync(project, version);
   }
 
   @NotNull

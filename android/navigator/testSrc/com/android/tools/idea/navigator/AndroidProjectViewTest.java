@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
@@ -80,10 +81,11 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testGeneratedResources() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
+    File projectRoot = loadSimpleApplicationWithNoSync();
+
     Files.append(
       """
-
+        
         android {
           String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
             def generateResTask = tasks.create(name: 'generateMyResources').doLast {
@@ -91,9 +93,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                 mkdir(rawDir)
                 file("${rawDir}/sample_raw_resource").write("sample text")
             }
-
+        
             def resDir = files(resGeneratePath).builtBy(generateResTask)
-
+        
             applicationVariants.all { variant ->
                 variant.registerGeneratedResFolders(resDir)
             }
@@ -125,29 +127,29 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testGeneratedAssets() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
+    File projectRoot = loadSimpleApplicationWithNoSync();
     Files.append(
       """
-       
-       abstract class AssetGenerator extends DefaultTask {
-           @OutputDirectory
-           abstract DirectoryProperty getOutputDirectory();
-           @TaskAction
-           void run() {
-               def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
-               new FileWriter(outputFile).with {
-                   write("some text")
-                   flush()
-               }
-           }
-       }
-
-       def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
-       androidComponents {
-           onVariants(selector().all(),  { variant ->
-               variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
-           })
-       }""",
+        
+        abstract class AssetGenerator extends DefaultTask {
+            @OutputDirectory
+            abstract DirectoryProperty getOutputDirectory();
+            @TaskAction
+            void run() {
+                def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
+                new FileWriter(outputFile).with {
+                    write("some text")
+                    flush()
+                }
+            }
+        }
+        
+        def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
+        androidComponents {
+            onVariants(selector().all(),  { variant ->
+                variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
+            })
+        }""",
       new File(projectRoot, "app/build.gradle"),
       StandardCharsets.UTF_8);
     requestSyncAndWait();
@@ -224,7 +226,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);
         result.add(newPath);
-      } else {
+      }
+      else {
         path.push(nodeName);
         getAllNodes(structure, child, path, result);
         path.pop();
