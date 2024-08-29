@@ -36,8 +36,8 @@ import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_OCCURRENCE_WIDTH_DP
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_TOTAL_LEAKED_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_OCCURRENCE_COL_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
@@ -69,8 +69,8 @@ private fun LeakListRow(leak: Leak, isSelected: Boolean) {
       .testTag("leakListRow")
   ) {
     LeftAlignedColumnText(name, rowScope = this)
-    RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_WIDTH_DP)
-    RightAlignedColumnText(text = totalLeakedKb, colWidth = LEAKCANARY_TOTAL_LEAKED_WIDTH_DP)
+    RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
+    RightAlignedColumnText(text = totalLeakedKb, colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
   }
 }
 
@@ -86,10 +86,10 @@ private fun LeakListHeader() {
     LeftAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT, rowScope = this)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
     RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT,
-                           colWidth = LEAKCANARY_OCCURRENCE_WIDTH_DP)
+                           colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
     RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT,
-                           colWidth = LEAKCANARY_TOTAL_LEAKED_WIDTH_DP)
+                           colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
   }
 }
 
@@ -137,7 +137,7 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
 fun NoLeaksMessageText() {
   Box(modifier = Modifier.fillMaxSize()) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_EMPTY_LEAK_MESSAGE, maxLines = 100)
+      EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE, maxLines = 3)
     }
   }
 }
