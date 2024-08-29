@@ -41,7 +41,7 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
-internal fun DeviceTable(
+fun DeviceTable(
   devices: List<DeviceProfile>,
   columns: List<TableColumn<DeviceProfile>>,
   filterContent: @Composable () -> Unit,

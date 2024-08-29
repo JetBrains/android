@@ -48,7 +48,7 @@ fun WizardPageScope.DeviceLoadingPage(
 }
 
 @Composable
-fun WizardPageScope.DeviceGridPage(
+fun WizardPageScope.DefaultDeviceGridPage(
   profiles: List<DeviceProfile>,
   columns: List<TableColumn<DeviceProfile>>,
   filterContent: @Composable () -> Unit,
@@ -57,14 +57,26 @@ fun WizardPageScope.DeviceGridPage(
   onSelectionUpdated: (DeviceProfile) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  DeviceTable(
-    profiles,
-    columns,
-    filterContent = filterContent,
-    tableSelectionState = selectionState,
-    filterState = filterState,
-    modifier = modifier,
-  )
+  DeviceGridPage(filterState, selectionState, onSelectionUpdated) {
+    DeviceTable(
+      profiles,
+      columns,
+      filterContent = filterContent,
+      tableSelectionState = selectionState,
+      filterState = filterState,
+      modifier = modifier,
+    )
+  }
+}
+
+@Composable
+fun WizardPageScope.DeviceGridPage(
+  filterState: DeviceFilterState,
+  selectionState: TableSelectionState<DeviceProfile> = getOrCreateState { TableSelectionState() },
+  onSelectionUpdated: (DeviceProfile) -> Unit,
+  content: @Composable () -> Unit,
+) {
+  content()
 
   val selection = selectionState.selection
   if (selection == null || !filterState.apply(selection)) {
