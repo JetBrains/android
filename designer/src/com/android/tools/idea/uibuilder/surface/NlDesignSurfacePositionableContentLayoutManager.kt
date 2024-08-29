@@ -21,29 +21,21 @@ import com.android.tools.idea.common.layout.manager.PositionableContentLayoutMan
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 /**
  * [PositionableContentLayoutManager] for the [NlDesignSurface]. It uses a delegated
  * [SurfaceLayoutManager] to layout the different [PositionableContent]s. The [SurfaceLayoutManager]
  * can be switched at runtime.
  */
-class NlDesignSurfacePositionableContentLayoutManager(
-  private val surface: NlDesignSurface,
-  parentDisposable: Disposable,
-  layoutOption: SurfaceLayoutOption,
-) : PositionableContentLayoutManager(), LayoutManagerSwitcher {
+class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayoutOption) :
+  PositionableContentLayoutManager(), LayoutManagerSwitcher {
 
-  @VisibleForTesting val scope = AndroidCoroutineScope(parentDisposable)
+  lateinit var surface: NlDesignSurface
 
   override val currentLayout = MutableStateFlow(layoutOption)
 
@@ -52,10 +44,6 @@ class NlDesignSurfacePositionableContentLayoutManager(
    * group layouts, and it doesn't apply on list layout.
    */
   private val cachedLayoutGroups = MutableStateFlow(listOf<GridLayoutGroup>())
-
-  init {
-    scope.launch(uiThread) { currentLayout.collect { surface.onLayoutUpdated(it) } }
-  }
 
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize

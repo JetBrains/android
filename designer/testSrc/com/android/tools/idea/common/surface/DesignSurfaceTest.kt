@@ -291,17 +291,20 @@ class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase
     null
 }
 
-class TestLayoutManager(private val surface: DesignSurface<*>) :
-  PositionableContentLayoutManager() {
+class TestLayoutManager : PositionableContentLayoutManager() {
   override fun layoutContainer(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
   ) {}
 
+  lateinit var surface: DesignSurface<*>
+
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
-  ): Dimension = surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+  ): Dimension {
+    return surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+  }
 
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
@@ -339,17 +342,19 @@ class TestDesignSurface(
     { model, surface ->
       TestSceneManager(model, surface)
     },
+  testLayoutManager: TestLayoutManager = TestLayoutManager(),
 ) :
   DesignSurface<SceneManager>(
     project = project,
     actionManagerProvider = { ModelBuilder.TestActionManager(it) },
     interactionProviderCreator = { TestInteractionHandler(it) },
-    positionableLayoutManagerProvider = { TestLayoutManager(it) },
+    positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
   ) {
 
   init {
+    testLayoutManager.surface = this
     Disposer.register(disposable, this)
   }
 

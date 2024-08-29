@@ -36,7 +36,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
-import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
@@ -91,7 +90,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -163,7 +161,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     super(project, surface -> new NavActionManager((NavDesignSurface)surface),
           SurfaceInteractable::new,
           (NavInteractionHandler::new),
-          (surface) -> (PositionableContentLayoutManager)(new SinglePositionableContentLayoutManager()),
+          new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           new DefaultSelectionModel(),
           ZoomControlsPolicy.VISIBLE);
