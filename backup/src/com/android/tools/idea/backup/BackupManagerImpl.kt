@@ -31,17 +31,18 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
+import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
-import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.DumbAwareAction
@@ -54,17 +55,14 @@ import com.intellij.platform.ide.progress.TaskCancellation.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
-import java.nio.file.Path
-import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
-import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.pathString
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
-private const val NOTIFICATION_GROUP = "Backup"
-
 private val logger: Logger = Logger.getInstance(BackupManager::class.java)
 
 /** Implementation of [BackupManager] */
@@ -207,7 +205,7 @@ internal constructor(private val project: Project, private val backupService: Ba
   private fun notifySuccess(message: String, backupFile: Path?) {
     val notification = Notification(NOTIFICATION_GROUP, message, INFORMATION)
     if (backupFile != null) {
-      notification.addAction(RevealBackupFileAction(backupFile))
+      notification.addAction(ShowPostBackupDialogAction(project, backupFile))
     }
     Notifications.Bus.notify(notification, project)
   }
@@ -240,9 +238,12 @@ internal constructor(private val project: Project, private val backupService: Ba
     PropertiesComponent.getInstance(project).setValue(BACKUP_PATH_KEY, path.pathString)
   }
 
-  private class RevealBackupFileAction(private val backupPath: Path) : RevealFileAction() {
+  private class ShowPostBackupDialogAction(
+    val project: Project,
+    private val backupPath: Path,
+  ) : AnAction("Add to Run Configuration") {
     override fun actionPerformed(e: AnActionEvent) {
-      openFile(backupPath)
+      PostBackupDialog(project, backupPath).show()
     }
   }
 
