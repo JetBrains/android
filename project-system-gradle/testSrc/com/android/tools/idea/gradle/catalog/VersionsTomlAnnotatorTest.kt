@@ -148,7 +148,7 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
-  fun checkNormalAliasQuted() {
+  fun checkNormalAliasQuoted() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
       "some_Normal-PluginAlias" = "some:plugin"
@@ -220,6 +220,19 @@ class VersionsTomlAnnotatorTest {
       [plugins]
       ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
       ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkKeyWordsInAlias() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"class_name" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"extensions" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"convention" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
