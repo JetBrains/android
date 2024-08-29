@@ -21,11 +21,13 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuCaptureStageView
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.AllocationStageView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureStage
 import com.android.tools.profilers.memory.MemoryCaptureStageView
+import com.android.tools.profilers.taskbased.tabs.task.leakcanary.LeakCanaryTaskView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -59,6 +61,7 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
     binder.bind(MemoryCaptureStage::class.java, ::MemoryCaptureStageView)
     binder.bind(AllocationStage::class.java, ::AllocationStageView)
     binder.bind(LiveStage::class.java, ::LiveStageView)
+    binder.bind(LeakCanaryModel::class.java, ::LeakCanaryTaskView)
 
     stageWithToolbarView = StageWithToolbarView(studioProfilers,
                                                 stageComponent,
