@@ -26,8 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.adddevicedialog.ComposeWizard
+import com.android.tools.idea.adddevicedialog.DefaultDeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
-import com.android.tools.idea.adddevicedialog.DeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceLoadingPage
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
@@ -81,7 +81,7 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
         }
 
         Column {
-          DeviceGridPage(
+          DefaultDeviceGridPage(
             profiles,
             avdColumns,
             filterContent = {
