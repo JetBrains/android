@@ -541,6 +541,8 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/ow2/asm/asm-commons/9.6/asm-commons-9.6.jar
+                            - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/ow2/asm/asm/9.6/asm-9.6.jar
@@ -680,6 +682,7 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                                 - files                       : <ROOT>/lintpublish/build/resources/main [-]
@@ -760,6 +763,7 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
