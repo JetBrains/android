@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.catalog
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -632,6 +635,30 @@ class VersionsTomlAnnotatorTest {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkBundleRefDuplication() {
+    // for some reason checkHighlighting interpret warning as error so need to use another verification approach
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [bundles]
+      bundle = [
+       "alias_one",
+       "alias-one"
+      ]
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.WARNING)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { highlightInfo ->
+          ReadAction.compute<String, Throwable> {
+          "${StringUtil.offsetToLineNumber(highlightInfo.highlighter!!.document.text, highlightInfo.startOffset)}: ${highlightInfo.description}"
+        } }
+
+    assertEquals("3: Duplicate reference to dependency", inspections)
   }
 
 }
