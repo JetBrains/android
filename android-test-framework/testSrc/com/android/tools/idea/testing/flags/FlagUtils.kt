@@ -30,6 +30,5 @@ fun <T: Any> Flag<T>.overrideForTest(overrideValue: T, disposable: Disposable) {
 
 @Deprecated("Use overrideForTest", replaceWith = ReplaceWith("overrideForTest(overrideValue, disposable)"))
 fun <T: Any> Flag<T>.override(overrideValue: T, disposable: Disposable) {
-  override(overrideValue)
-  Disposer.register(disposable) { clearOverride() }
+  overrideForTest(overrideValue, disposable)
 }
