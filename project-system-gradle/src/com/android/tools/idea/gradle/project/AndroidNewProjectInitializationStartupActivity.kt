@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity.StartupService
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -37,33 +36,36 @@ import org.jetbrains.android.util.AndroidBundle.message
 class AndroidNewProjectInitializationStartupActivity : ProjectActivity {
 
   @Service(Service.Level.PROJECT)
-  class StartupService : AndroidGradleProjectStartupService<Unit>()
+  class StartupService(private val project: Project) : AndroidGradleProjectStartupService<Unit>() {
 
-  override suspend fun execute(project: Project) {
-    performAndroidNewProjectInitializationStartupActivity(project)
-  }
-}
+    suspend fun performStartupActivity() {
+      runInitialization {
+        val initializationRunnable = project.getUserData(INITIALIZER_KEY)
+        if (initializationRunnable != null) {
+          log.info("Scheduling new project initialization.")
 
-private val log = logger<AndroidNewProjectInitializationStartupActivity>()
-private val INITIALIZER_KEY = Key.create<() -> Unit>("ANDROID_INIT")
+          // This runs on EDT and it needs to be blocking, but our new project generation requires background thread.
+          // We should try to migrate this not to be an activity; tracked in http://b/287942576.
+          runModalTask(
+            title = message("android.compile.messages.generating.r.java.content.name"), project = project, cancellable = false
+          ) { initializationRunnable() }
+          project.removeUserData(INITIALIZER_KEY)
+        }
+      }
+    }
 
-suspend fun performAndroidNewProjectInitializationStartupActivity(project: Project) {
-  project.service<StartupService>().runInitialization {
-    val initializationRunnable = project.getUserData(INITIALIZER_KEY)
-    if (initializationRunnable != null) {
-      log.info("Scheduling new project initialization.")
+    fun setProjectInitializer(initializer: () -> Unit) {
+      assert(project.getUserData(INITIALIZER_KEY) == null)
+      project.putUserData(INITIALIZER_KEY, initializer)
+    }
 
-      // This runs on EDT and it needs to be blocking, but our new project generation requires background thread.
-      // We should try to migrate this not to be an activity; tracked in http://b/287942576.
-      runModalTask(
-        title = message("android.compile.messages.generating.r.java.content.name"), project = project, cancellable = false
-      ) { initializationRunnable() }
-      project.removeUserData(INITIALIZER_KEY)
+    companion object {
+      private val log = logger<AndroidNewProjectInitializationStartupActivity>()
+      private val INITIALIZER_KEY = Key.create<() -> Unit>("ANDROID_INIT")
     }
   }
-}
 
-fun setAndroidNewProjectInitializationStartupActivityProjectInitializer(project: Project, initializer: () -> Unit) {
-  assert(project.getUserData(INITIALIZER_KEY) == null)
-  project.putUserData(INITIALIZER_KEY, initializer)
+  override suspend fun execute(project: Project) {
+    project.service<StartupService>().performStartupActivity()
+  }
 }

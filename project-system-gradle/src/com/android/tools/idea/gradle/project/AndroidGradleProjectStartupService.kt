@@ -25,9 +25,9 @@ import kotlinx.coroutines.completeWith
  * [AndroidGradleProjectStartupActivity] and some after.
  */
 abstract class AndroidGradleProjectStartupService<T> {
-  val deferred = CompletableDeferred<T>()
+  private val deferred = CompletableDeferred<T>()
 
-  suspend fun runInitialization(action : suspend () -> T): T {
+  protected suspend fun runInitialization(action : suspend () -> T): T {
     deferred.completeWith(runCatching { action() })
     return deferred.await()
   }
