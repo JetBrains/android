@@ -56,8 +56,8 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
       }
       """.trimIndent())
 
-    requestSyncAndWait()
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    importProject()
+    IndexingTestUtil.waitUntilIndexesAreReady(project) // maybe not needed any more
 
     AndroidProjectRootListener.ensureSubscribed(project)
     Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!

@@ -35,7 +35,7 @@ class AdditionalArtifactsTest : AndroidGradleTestCase() {
         }
       """.trimIndent()
     )
-    requestSyncAndWait()
+    importProject()
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
     val artifactPaths = libraryFilePaths.getCachedPathsForArtifact("org.robolectric:robolectric:4.8.2")
