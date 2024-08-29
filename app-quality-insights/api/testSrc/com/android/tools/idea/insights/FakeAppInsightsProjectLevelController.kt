@@ -71,4 +71,6 @@ class FakeAppInsightsProjectLevelController(
   override fun selectVisibilityType(value: VisibilityType) {}
 
   override fun selectIssueVariant(variant: IssueVariant?) {}
+
+  override fun refreshInsight() {}
 }

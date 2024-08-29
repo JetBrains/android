@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
@@ -363,15 +364,17 @@ class ActionDispatcher(
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
+              val codeContextData =
+                state.selectedEvent?.let {
+                  geminiToolkit.getSource(it.stacktraceGroup, action.contextSharingOverride)
+                } ?: CodeContextData.EMPTY
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
                 action.event,
                 action.variantId,
                 timeFilter,
-                state.selectedEvent?.let {
-                  geminiToolkit.codeContextResolver.getSource(it.stacktraceGroup)
-                } ?: emptyList(),
+                codeContextData,
               )
             }
           }

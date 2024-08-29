@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
+import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
+import com.android.tools.idea.insights.ui.INSIGHT_KEY
+import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
+import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.CardLayout
@@ -51,15 +58,23 @@ class InsightMainPanel(
 
   private val mainContentPanel =
     InsightContentPanel(
+      controller.project,
       scope,
       controller.state.map { it.currentInsight },
       parentDisposable,
       permissionDeniedHandler,
-    )
+    ) {
+      controller.refreshInsight()
+    }
 
   private val issueFlow =
     controller.state
       .map { it.selectedIssue }
+      .stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
+
+  private val insightFlow =
+    controller.state
+      .map { (it.currentInsight as? LoadingState.Ready)?.value }
       .stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
 
   private val emptyStateText =
@@ -75,7 +90,6 @@ class InsightMainPanel(
 
     add(mainContentPanel, MAIN_CARD)
     add(transparentPanel(), EMPTY_CARD)
-
     scope.launch {
       controller.state
         .map { it.issues.map { timed -> timed.value.selected } }
@@ -96,6 +110,7 @@ class InsightMainPanel(
   override fun getData(dataId: String): Any? =
     when {
       FAILURE_TYPE_KEY.`is`(dataId) -> issueFlow.value?.issueDetails?.fatality
+      INSIGHT_KEY.`is`(dataId) -> insightFlow.value
       else -> null
     }
 }

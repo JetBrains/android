@@ -521,6 +521,7 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:firebase_java_proto",
+        "//tools/vendor/google/firebase:libandroid-core-proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [

@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
+import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
+import com.android.tools.idea.insights.ui.INSIGHT_KEY
+import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
@@ -26,7 +29,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
@@ -98,7 +100,8 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
   private fun logFeedback(sentiment: Sentiment, e: AnActionEvent) {
     val tracker = e.getData(APP_INSIGHTS_TRACKER_KEY) ?: return
     val crashType = e.getData(FAILURE_TYPE_KEY)?.toCrashType() ?: return
-    val experiment = service<AppInsightsExperimentFetcher>().getCurrentExperiment()
+    val experiment =
+      e.getData(INSIGHT_KEY)?.experimentType ?: ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED
 
     tracker.logInsightSentiment(sentiment, experiment.toExperiment(), crashType)
   }

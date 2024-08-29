@@ -1529,6 +1529,34 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
     assertThat(state.selectedEvent).isEqualTo(ISSUE1.sampleEvent)
   }
+
+  @Test
+  fun `refresh insight event updates the state correctly`() = runBlocking {
+    var state =
+      controllerRule.consumeInitialState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(
+              listOf(ISSUE1, ISSUE2),
+              emptyList(),
+              emptyList(),
+              emptyList(),
+              DEFAULT_FETCHED_PERMISSIONS,
+            )
+          ),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+      )
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+
+    controllerRule.controller.refreshInsight()
+    state = controllerRule.consumeNext()
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+    val newInsight = AiInsight("Insight")
+    client.completeFetchInsightCallWith(LoadingState.Ready(newInsight))
+    state = controllerRule.consumeNext()
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(newInsight))
+  }
 }
 
 private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() =
