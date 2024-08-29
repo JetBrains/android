@@ -91,7 +91,7 @@ internal class BackupManagerImplTest {
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
-      .assert(title = "", "Backup completed successfully", INFORMATION, "RevealBackupFileAction")
+      .assert(title = "", "Backup completed successfully", INFORMATION, "ShowPostBackupDialogAction")
   }
 
   @Test
