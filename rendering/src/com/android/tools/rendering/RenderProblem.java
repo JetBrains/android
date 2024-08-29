@@ -17,7 +17,6 @@ package com.android.tools.rendering;
 
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +54,6 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   @NotNull
   public static RenderProblem createHtml(@NotNull ProblemSeverity severity,
                                          @NotNull String message,
-                                         @Nullable Project project,
                                          @NotNull HtmlLinkManager linkManager,
                                          @Nullable Throwable throwable,
                                          @NotNull RenderProblem.ActionFixFactory fixFactory) {

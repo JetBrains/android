@@ -465,7 +465,6 @@ class LayoutlibSceneRenderer(
           RenderProblem.createHtml(
             ProblemSeverity.ERROR,
             "Error inflating the preview",
-            model.project,
             logger.linkManager,
             throwable,
             ShowFixFactory,

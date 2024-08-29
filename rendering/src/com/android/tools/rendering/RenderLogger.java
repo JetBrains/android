@@ -174,14 +174,9 @@ public class RenderLogger implements IRenderLogger {
     myCredential = credential;
     myLogFramework = logFramework;
     myHtmlLinkManagerFactory = linkManagerFactory;
-    myRenderProblemBuilder = (throwable, tag, description) -> {
-      if (project == null) {
-        return RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable);
-      }
-      else {
-        return RenderProblem.createHtml(ERROR, description, project, getLinkManager(), throwable, fixFactory).tag(tag);
-      }
-    };
+    myRenderProblemBuilder =
+      (throwable, tag, description) -> RenderProblem.createHtml(ERROR, description, getLinkManager(), throwable, fixFactory)
+        .tag(tag);
   }
 
   /**
