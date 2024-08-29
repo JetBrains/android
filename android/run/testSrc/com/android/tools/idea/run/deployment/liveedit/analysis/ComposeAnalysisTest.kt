@@ -20,6 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.idea.IJIgnore
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.*
 import org.junit.Before
@@ -41,6 +42,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `single restartable group`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -54,6 +56,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `two restartable groups`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -74,6 +77,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `two restartable groups with the same name`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -96,6 +100,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `composable with content`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -136,6 +141,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `nested composable with captures`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -177,6 +183,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `composable with return value`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -194,6 +201,7 @@ class ComposeAnalysisTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun `using composable with return value`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable

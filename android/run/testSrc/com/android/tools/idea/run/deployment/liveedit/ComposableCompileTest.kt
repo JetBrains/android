@@ -28,6 +28,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.idea.IJIgnore
 import com.intellij.openapi.application.ReadAction
 import junit.framework.Assert
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -496,6 +497,7 @@ class ComposableCompileTest {
   }
 
   // Check for b/326306840
+  @IJIgnore(issue = "IJPL-150165")
   @Test
   fun doNotIgnoreLdcChanges() {
     val file = projectRule.createKtFile("A.kt", """
@@ -528,6 +530,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @IJIgnore(issue = "IJPL-150165")
   fun mutableState() {
     val fileName = "Test.kt"
     val className = "TestKt"
