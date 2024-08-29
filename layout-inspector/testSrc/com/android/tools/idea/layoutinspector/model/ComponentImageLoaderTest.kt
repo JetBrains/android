@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
@@ -23,6 +22,7 @@ import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import java.awt.image.BufferedImage
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ComponentImageLoaderTest {
 
@@ -31,9 +31,9 @@ class ComponentImageLoaderTest {
   // are not present in the skia tree.
   @Test
   fun testTreeWithExtraViewNodes() {
-    val image1: BufferedImage = MockitoKt.mock()
-    val image2: BufferedImage = MockitoKt.mock()
-    val image4: BufferedImage = MockitoKt.mock()
+    val image1: BufferedImage = mock()
+    val image2: BufferedImage = mock()
+    val image4: BufferedImage = mock()
 
     val skiaRoot =
       SkiaViewNode(
@@ -75,12 +75,12 @@ class ComponentImageLoaderTest {
   // expected order.
   @Test
   fun testViewSkpMismatch() {
-    val image1: BufferedImage = MockitoKt.mock()
-    val image2: BufferedImage = MockitoKt.mock()
-    val image3: BufferedImage = MockitoKt.mock()
-    val image4: BufferedImage = MockitoKt.mock()
-    val image5: BufferedImage = MockitoKt.mock()
-    val image6: BufferedImage = MockitoKt.mock()
+    val image1: BufferedImage = mock()
+    val image2: BufferedImage = mock()
+    val image3: BufferedImage = mock()
+    val image4: BufferedImage = mock()
+    val image5: BufferedImage = mock()
+    val image6: BufferedImage = mock()
 
     val skiaRoot =
       SkiaViewNode(

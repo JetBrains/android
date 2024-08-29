@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -38,6 +36,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class InspectorTreeSettingsTest {
 
