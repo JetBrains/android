@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionPropertiesProvider
@@ -25,6 +24,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.LiveVi
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
+import org.mockito.kotlin.mock
 
 /** Create a property, and use [AppInspectionPropertiesProvider] to add resource information. */
 suspend fun createTestProperty(
@@ -48,7 +48,7 @@ suspend fun createTestProperty(
       node.drawId,
       model,
     )
-  val cache = LiveViewPropertiesCache(MockitoKt.mock(), model)
+  val cache = LiveViewPropertiesCache(mock(), model)
   val provider = AppInspectionPropertiesProvider(cache, null, model)
   val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>(3, 10)
   propertyTable.put(item.namespace, item.name, item)

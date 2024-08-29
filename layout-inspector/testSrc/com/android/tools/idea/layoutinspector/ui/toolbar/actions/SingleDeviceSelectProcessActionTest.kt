@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -38,6 +37,7 @@ import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class SingleDeviceSelectProcessActionTest {
 

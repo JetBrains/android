@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.truth.Truth.assertThat
@@ -42,6 +38,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ShowLayoutInspectorActionTest {
 
@@ -148,13 +147,7 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
   val mockNotificationGroup = mock<NotificationGroup>()
 
   init {
-    whenever(
-        mockNotificationGroup.createNotification(
-          MockitoKt.any<String>(),
-          MockitoKt.any<String>(),
-          MockitoKt.any<NotificationType>(),
-        )
-      )
+    whenever(mockNotificationGroup.createNotification(any(), any(), any<NotificationType>()))
       .thenAnswer { mockNotification }
   }
 

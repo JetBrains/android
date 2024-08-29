@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -24,6 +23,7 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ComposeStatisticsTest {
   @Test

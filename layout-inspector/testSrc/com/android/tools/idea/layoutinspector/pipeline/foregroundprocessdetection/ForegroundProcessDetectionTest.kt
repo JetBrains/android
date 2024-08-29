@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -58,6 +57,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
 
 class ForegroundProcessDetectionTest {
   private val projectRule = ProjectRule()
