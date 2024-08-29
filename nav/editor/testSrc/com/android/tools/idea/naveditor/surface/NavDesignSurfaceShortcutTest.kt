@@ -20,12 +20,14 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.util.Disposer
 
 class NavDesignSurfaceShortcutTest : NavTestCase() {
 
   fun testNavDesignSurfaceProvideTheZoomableContext() {
     // Simply test NavDesignSurface provide data for ZOOMABLE_KEY
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface =
+      NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
     val dataContext =
       DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
     val event = AnActionEvent.createFromDataContext("", null, dataContext)

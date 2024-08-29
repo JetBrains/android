@@ -34,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Dimension
 import java.awt.Point
@@ -341,13 +342,16 @@ class TestDesignSurface(
 ) :
   DesignSurface<SceneManager>(
     project = project,
-    parentDisposable = disposable,
     actionManagerProvider = { ModelBuilder.TestActionManager(it) },
     interactionProviderCreator = { TestInteractionHandler(it) },
     positionableLayoutManagerProvider = { TestLayoutManager(it) },
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
   ) {
+
+  init {
+    Disposer.register(disposable, this)
+  }
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = null

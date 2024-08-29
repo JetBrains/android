@@ -99,7 +99,6 @@ import kotlinx.coroutines.launch
 class NlDesignSurface
 internal constructor(
   project: Project,
-  parentDisposable: Disposable,
   private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
   defaultLayoutOption: SurfaceLayoutOption,
   actionManagerProvider:
@@ -121,14 +120,13 @@ internal constructor(
 ) :
   DesignSurface<LayoutlibSceneManager>(
     project,
-    parentDisposable,
     actionManagerProvider,
     interactableProvider,
     interactionHandlerProvider,
     { surface ->
       NlDesignSurfacePositionableContentLayoutManager(
         surface as NlDesignSurface,
-        parentDisposable,
+        surface as Disposable,
         defaultLayoutOption,
       )
     },
@@ -202,7 +200,7 @@ internal constructor(
         maxZoomToFitLevel,
       )
       .apply {
-        zoomControllerScope.launch {
+        scope.launch {
           beforeZoomChange.collect { zoomType ->
             if (zoomType == ZoomType.FIT) {
               sceneViewLayoutManager.clearCachedGroups()

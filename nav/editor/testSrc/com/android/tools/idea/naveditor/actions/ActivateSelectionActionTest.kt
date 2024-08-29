@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.never
@@ -36,7 +37,8 @@ class ActivateSelectionActionTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface =
+      NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val spy = spy(surface)

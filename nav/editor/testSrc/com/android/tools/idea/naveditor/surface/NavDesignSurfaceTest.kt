@@ -50,6 +50,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.IndexingTestUtil
@@ -82,7 +83,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   lateinit var testProjectSystem: TestProjectSystem
 
   fun testOpenFileMetrics() {
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
 
     val model =
       model("nav2.xml") {
@@ -106,7 +107,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   private fun <T> any(): T = ArgumentMatchers.any() as T
 
   fun testComponentActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     val model =
       model("nav.xml") {
         navigation("root") {
@@ -133,7 +135,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testNoLayoutComponentActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     val model =
       model("nav.xml") {
         navigation("root") {
@@ -159,7 +162,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testSubflowActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     val model =
       model("nav.xml") {
         navigation("root") {
@@ -183,7 +187,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testIncludeActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     val model = model("nav.xml") { navigation("root") { include("navigation") } }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
@@ -200,7 +205,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testRootActivated() {
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     val model =
       model("nav.xml") {
         navigation("root") {
@@ -390,7 +396,8 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.components[0]
@@ -427,7 +434,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     val model =
       model("nav.xml") { navigation { navigation("navigation1") { fragment("fragment1") } } }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     var root = model.treeReader.components[0]
@@ -483,7 +491,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
-    val surface = NavDesignSurface(project, editor, project)
+    val surface =
+      NavDesignSurface(project, editor).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
     @Suppress("UNCHECKED_CAST")
     val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
@@ -604,7 +613,10 @@ class NavDesignSurfaceTest : NavTestCase() {
     // Wait for dependencies to be ready
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
-    val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
+    val surface =
+      NavDesignSurface(project, mock(DesignerEditorPanel::class.java)).also {
+        Disposer.register(testRootDisposable, it)
+      }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
 
     addClass(
@@ -655,7 +667,8 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
 
-    val surface = NavDesignSurface(project, project)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.find("root")!!
