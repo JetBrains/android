@@ -172,17 +172,18 @@ internal fun <T> TableRow(
 ) {
   var isFocused by remember { mutableStateOf(false) }
   Row(
-    Modifier.thenIf(selected) {
+    Modifier
+      // Divide the padding before and after the border
+      .padding(ROW_PADDING / 2)
+      .thenIf(selected) {
         background(
           retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
         )
       }
-      // Divide the padding before and after the border
-      .padding(ROW_PADDING / 2)
       .thenIf(isFocused) { focusBorder() }
-      .padding(ROW_PADDING / 2)
       .onFocusChanged { isFocused = it.isFocused }
       .selectable(selected, onClick = { onClick(value) })
+      .padding(ROW_PADDING / 2)
       .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
