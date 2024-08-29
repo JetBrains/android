@@ -84,7 +84,8 @@ class GenerateComposePreviewsForFileAction :
      * Maps function name to its corresponding [JBCheckBox]. It's used to determine which
      * Composables will have previews generated for.
      */
-    private val checkBoxes = mutableMapOf<String?, JBCheckBox>()
+    private val checkBoxes =
+      composablesInFile.associateBy({ it.name }, { JBCheckBox(it.name, true) })
 
     init {
       title = message("action.generate.previews.for.file.dialog.title")
@@ -112,7 +113,12 @@ class GenerateComposePreviewsForFileAction :
     }
 
     override fun doOKAction() {
-      generatePreviewForCheckedFunctions()
+      // Invokes the dialog callback, passing the composable functions whose corresponding
+      // checkboxes  are checked. The callback will generate a Compose Preview per checked
+      // function.
+      composablesInFile
+        .filter { checkBoxes[it.name]?.isSelected ?: false }
+        .let { generatePreviewsForComposableFunctions(it) }
       super.doOKAction()
     }
 
@@ -125,28 +131,12 @@ class GenerateComposePreviewsForFileAction :
       // Vertical alignment is Glue, checkboxes (n * Fit), Glue.
       val checkBoxesPanel =
         JPanel(TabularLayout("Fit,*", "*,${"Fit,".repeat(composableCandidates.size)}*"))
-      for ((index, composable) in composableCandidates.withIndex()) {
-        // Skip the first row, as it will be a vertical glue
-        val row = index + 1
-        val checkbox = JBCheckBox(composable.name, true)
-        checkBoxesPanel.add(checkbox, TabularLayout.Constraint(row, 0))
-        checkBoxes[composable.name] = (checkbox)
+      // Skip the first row, as it will be a vertical glue
+      var row = 1
+      for (checkBox in checkBoxes) {
+        checkBoxesPanel.add(checkBox.value, TabularLayout.Constraint(row++, 0))
       }
       return checkBoxesPanel
-    }
-
-    /**
-     * Invokes the dialog callback, passing the composable functions whose corresponding checkboxes
-     * are checked. The callback will generate a Compose Preview per checked function.
-     */
-    private fun generatePreviewForCheckedFunctions() {
-      val targetComposableFunctions = mutableListOf<KtNamedFunction>()
-      for (candidate in composablesInFile) {
-        if (checkBoxes[candidate.name]?.isSelected == true) {
-          targetComposableFunctions.add(candidate)
-        }
-      }
-      generatePreviewsForComposableFunctions(targetComposableFunctions)
     }
   }
 }
