@@ -24,6 +24,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.findParentOfType
 import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
@@ -88,6 +90,25 @@ class VersionsTomlAnnotator : Annotator {
        && (element.parent as TomlKeyValue).key.text == "module"
        && grandParent is TomlInlineTable) {
       checkModuleLiteral(element, holder)
+    }
+
+    // library reference in bundle
+    if(element is TomlLiteral
+      && element.parent is TomlArray
+      && grandParent is TomlKeyValue
+      && greatGrandParent is TomlTable
+      && greatGrandParent.header.key?.text == "bundles") {
+      checkBundleDuplications(element, element.parent as TomlArray, holder)
+    }
+  }
+
+  private fun checkBundleDuplications(element: TomlLiteral, array: TomlArray,  holder: AnnotationHolder){
+    array.elements.forEach { ref ->
+      if(ref == element) return
+      if(sameAliases(ref.text, element.text)){
+        holder.newAnnotation(HighlightSeverity.WARNING,
+                             "Duplicate reference to dependency").create()
+      }
     }
   }
 
