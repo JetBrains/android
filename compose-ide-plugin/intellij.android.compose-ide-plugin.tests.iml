@@ -26,17 +26,6 @@
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler-src.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />

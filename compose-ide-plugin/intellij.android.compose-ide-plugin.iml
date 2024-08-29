@@ -18,17 +18,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/compose-ide-plugin/compose-compiler/compose-compiler-src.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.android-material" />
