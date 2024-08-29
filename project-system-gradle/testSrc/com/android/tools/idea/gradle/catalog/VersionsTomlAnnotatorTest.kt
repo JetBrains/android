@@ -242,6 +242,11 @@ class VersionsTomlAnnotatorTest {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
       alias = "some:plugin"
+      [metadata]
+      version = "1.0"
+      [versions]
+      [bundles]
+      [libraries]
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
