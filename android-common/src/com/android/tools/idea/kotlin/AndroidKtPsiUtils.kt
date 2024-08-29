@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
-import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.symbols.psiSafe
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
@@ -366,8 +365,8 @@ fun KtClassOrObject.toPsiType() =
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
-    mapOnDeclarationSymbol { classId in it.annotations }
-      ?: (findAnnotationEntryByClassId(classId) != null)
+    mapOnDeclarationSymbol { classId in it.annotations } == true ||
+      (findAnnotationEntryByClassId(classId) != null)
   } else {
     findAnnotationK1(classId.asSingleFqName()) != null
   }
