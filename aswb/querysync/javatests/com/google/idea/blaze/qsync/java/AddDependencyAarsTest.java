@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteSource;
 import com.google.common.util.concurrent.Futures;
@@ -27,6 +28,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.MockArtifact;
+import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
@@ -34,6 +36,7 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
+import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ExternalAndroidLibrary;
@@ -42,6 +45,7 @@ import com.google.protobuf.TextFormat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -81,7 +85,11 @@ public class AddDependencyAarsTest {
 
     AddDependencyAars addAars =
         new AddDependencyAars(
-            () -> State.EMPTY, cache, original.queryData().projectDefinition(), manifestParser);
+          () -> State.EMPTY,
+          getCachedArtifactProvider(cache,
+                                    ImmutableMap.of(com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT, ImmutableMap.of())),
+          original.queryData().projectDefinition(),
+          manifestParser);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
@@ -111,7 +119,8 @@ public class AddDependencyAarsTest {
                                         Path.of("path/to/dep.aar"),
                                         Label.of("//path/to:dep"))))
                             .build())),
-            cache,
+            getCachedArtifactProvider(cache, ImmutableMap.of(com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT,
+                                                             ImmutableMap.of())),
             original.queryData().projectDefinition(),
             in -> "com.google.idea.blaze.qsync.testdata.android");
 
@@ -177,6 +186,88 @@ public class AddDependencyAarsTest {
   }
 
   @Test
+  public void dep_aar_buildcache_artifact_missing_added() throws Exception {
+    QuerySyncProjectSnapshot original = syncer.sync(TestData.ANDROID_LIB_QUERY);
+
+    AddDependencyAars addAars =
+      new AddDependencyAars(
+        () ->
+          State.forJavaArtifacts(
+            ImmutableList.of(
+              JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                .setIdeAars(
+                  ImmutableList.of(
+                    BuildArtifact.create(
+                      "aardigest",
+                      Path.of("path/to/dep.aar"),
+                      Label.of("//path/to:dep"))))
+                .build())),
+        getCachedArtifactProvider(cache, ImmutableMap.of(com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT,
+                                                         ImmutableMap.of("aardigest", new MockArtifact(emptyAarFile())))),
+        original.queryData().projectDefinition(),
+        in -> "com.google.idea.blaze.qsync.testdata.android");
+
+    when(cache.get("aardigest")).thenReturn(Optional.empty());
+
+    ProjectProtoUpdate update =
+      new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+
+    addAars.update(update);
+    ProjectProto.Project newProject = update.build();
+
+    assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
+    assertThat(
+      Iterables.getOnlyElement(
+        Iterables.getOnlyElement(newProject.getModulesList())
+          .getAndroidExternalLibrariesList()))
+      .isEqualTo(
+        TextFormat.parse(
+          Joiner.on("\n")
+            .join(
+              "name: \"path_to_dep.aar\"",
+              "  location {",
+              "    path: \".bazel/buildout/path/to/dep.aar\"",
+              "    base: PROJECT",
+              "  }",
+              "  manifest_file {",
+              "    path: \".bazel/buildout/path/to/dep.aar/AndroidManifest.xml\"",
+              "    base: PROJECT",
+              "  }",
+              "  res_folder {",
+              "    path: \".bazel/buildout/path/to/dep.aar/res\"",
+              "    base: PROJECT",
+              "  }",
+              "  symbol_file {",
+              "    path: \".bazel/buildout/path/to/dep.aar/R.txt\"",
+              "    base: PROJECT",
+              "  }",
+              "  package_name: \"com.google.idea.blaze.qsync.testdata.android\""),
+          ExternalAndroidLibrary.class));
+
+    assertThat(newProject.getArtifactDirectories())
+      .isEqualTo(
+        TextFormat.parse(
+          Joiner.on("\n")
+            .join(
+              "directories {",
+              "  key: \".bazel/buildout\"",
+              "  value {",
+              "    contents {",
+              "      key: \"path/to/dep.aar\"",
+              "      value {",
+              "        transform: UNZIP",
+              "        build_artifact {",
+              "          digest: \"aardigest\"",
+              "        }",
+              "        target: \"//path/to:dep\"",
+              "      }",
+              "    }",
+              "  }",
+              "}"),
+          ArtifactDirectories.class));
+  }
+
+  @Test
   public void dep_aar_no_package_name_added() throws Exception {
     QuerySyncProjectSnapshot original = syncer.sync(TestData.ANDROID_LIB_QUERY);
 
@@ -195,7 +286,8 @@ public class AddDependencyAarsTest {
                                         Path.of("path/to/dep.aar"),
                                         Label.of("//path/to:dep"))))
                             .build())),
-            cache,
+            getCachedArtifactProvider(cache, ImmutableMap.of(com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT,
+                                                             ImmutableMap.of())),
             original.queryData().projectDefinition(),
             noPackageNameParser);
 
@@ -237,5 +329,22 @@ public class AddDependencyAarsTest {
                         "  }",
                         "}"),
                 ArtifactDirectories.class));
+  }
+
+  private ProjectProtoUpdateOperation.CachedArtifactProvider getCachedArtifactProvider(BuildArtifactCache artifactCache,
+                                                                                       Map<com.google.idea.blaze.qsync.project.ProjectPath, Map<String, MockArtifact>> existingArtifactDirectoriesContents) {
+    return (buildArtifact, artifactDirectory) -> {
+      if (artifactCache.get(buildArtifact.digest()).isPresent()) {
+        return buildArtifact.blockingGetFrom(artifactCache);
+      }
+      if (existingArtifactDirectoriesContents.containsKey(artifactDirectory)) {
+        MockArtifact mockArtifact = existingArtifactDirectoriesContents.get(artifactDirectory).get(buildArtifact.digest());
+        if (mockArtifact != null) {
+          return mockArtifact;
+        }
+      }
+      throw new BuildException(
+        "Artifact" + buildArtifact.path() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
+    };
   }
 }
