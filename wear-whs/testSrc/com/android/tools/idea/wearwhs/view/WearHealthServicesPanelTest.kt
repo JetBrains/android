@@ -31,11 +31,13 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.collaboration.async.mapState
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -43,6 +45,7 @@ import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -665,6 +668,7 @@ class WearHealthServicesPanelTest {
 
     textField.text = "50"
     fakeUi.clickOnApplyButton()
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
     run {
       textField.text = "60"
@@ -675,6 +679,51 @@ class WearHealthServicesPanelTest {
       fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     }
   }
+
+  @Test
+  @Suppress("UnstableApiUsage")
+  fun `override text fields handle backspaces and clears overrides when empty`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component)
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
+      val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+      runInEdt {
+        fakeUi.keyboard.setFocus(textField)
+        fakeUi.keyboard.type(KeyEvent.VK_5)
+      }
+
+      assertThat(textField.text).isEqualTo("5")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(5))
+
+      runInEdt { fakeUi.keyboard.type(KeyEvent.VK_0) }
+
+      assertThat(textField.text).isEqualTo("50")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(50))
+
+      runInEdt { fakeUi.keyboard.pressAndRelease(KeyEvent.VK_BACK_SPACE) }
+
+      assertThat(textField.text).isEqualTo("5")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(5))
+
+      runInEdt { fakeUi.keyboard.pressAndRelease(KeyEvent.VK_BACK_SPACE) }
+
+      assertThat(textField.text).isEmpty()
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
+    }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
