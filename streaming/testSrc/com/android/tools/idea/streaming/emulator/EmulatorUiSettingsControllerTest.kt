@@ -23,7 +23,7 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType.LOCAL_EMULATOR
@@ -94,8 +94,8 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
@@ -104,8 +104,8 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
@@ -164,7 +164,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOn() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     uiRule.configureUiSettings(gestureNavigation = false)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isTrue()
@@ -178,7 +178,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOff() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
@@ -335,8 +335,8 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testSetDebugLayout() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.debugLayout.setFromUi(true)
