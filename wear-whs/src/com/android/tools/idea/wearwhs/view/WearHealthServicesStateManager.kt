@@ -124,5 +124,25 @@ internal sealed class WhsStateManagerStatus(val idle: Boolean) {
   object Idle : WhsStateManagerStatus(idle = true)
 }
 
-/** Data class representing current state of a WHS capability. */
-internal data class CapabilityUIState(val synced: Boolean, val capabilityState: CapabilityState)
+/**
+ * Class representing the current state of a WHS capability for the UI and to track user changes.
+ */
+internal sealed class CapabilityUIState {
+  abstract val upToDateState: CapabilityState
+}
+
+/**
+ * Class representing a [CapabilityUIState] with the latest known [CapabilityState] without any user
+ * change.
+ */
+internal data class UpToDateCapabilityUIState(override val upToDateState: CapabilityState) :
+  CapabilityUIState()
+
+/** Class representing a [CapabilityUIState] containing pending user changes within [userState]. */
+internal data class PendingUserChangesCapabilityUIState(
+  val userState: CapabilityState,
+  override val upToDateState: CapabilityState,
+) : CapabilityUIState()
+
+internal val CapabilityUIState.currentState
+  get() = (this as? PendingUserChangesCapabilityUIState)?.userState ?: upToDateState

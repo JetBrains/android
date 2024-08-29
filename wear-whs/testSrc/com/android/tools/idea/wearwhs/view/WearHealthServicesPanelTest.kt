@@ -635,6 +635,47 @@ class WearHealthServicesPanelTest {
     }
   }
 
+  @Test
+  fun `an asterisk only shows if a capability has a different value than what is on the device`():
+    Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    run {
+      hrCheckBox.doClick()
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      hrCheckBox.doClick()
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    run {
+      textField.text = "50"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      textField.text = ""
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
+    textField.text = "50"
+    fakeUi.clickOnApplyButton()
+
+    run {
+      textField.text = "60"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      textField.text = "50"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+  }
+
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
       checkbox.hasLabel(text) && checkbox.isSelected == selected
