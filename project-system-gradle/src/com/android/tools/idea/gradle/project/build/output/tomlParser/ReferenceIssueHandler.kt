@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -38,9 +35,7 @@ class ReferenceIssueHandler: TomlErrorHandler {
   private val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   private val REASON_PLUGIN_REFERENCE_PATTERN: Regex = "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    val firstDescriptionLine = reader.readLine() ?: return listOf()
-
-    if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
+    if (reader.readLine()?.endsWith("Invalid catalog definition:") == true) {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return listOf()
       description.appendLine(problemLine)
@@ -62,9 +57,8 @@ class ReferenceIssueHandler: TomlErrorHandler {
   ): BuildIssueEvent? {
 
     var dependency: Pair<String, ReferenceSource>? = null
-    while (true) {
-      val descriptionLine = reader.readLine() ?: return null
-      if (descriptionLine.startsWith("> Invalid catalog definition")) break
+
+    description.append(readUntilLine(reader, "> Invalid catalog definition") { descriptionLine ->
       if (dependency == null) {
         REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
           val (dep, _) = destructured
@@ -75,22 +69,11 @@ class ReferenceIssueHandler: TomlErrorHandler {
           dependency = dep to ReferenceSource.PLUGIN
         }
       }
-      description.appendLine(descriptionLine)
-    }
+    })
+
     if (dependency == null) return null
     val dependencyName = dependency!!.first
-    val buildIssue = object : ErrorMessageAwareBuildIssue {
-      override val description: String = description.toString().trimEnd()
-      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = TomlErrorParser.BUILD_ISSUE_TITLE
-      override val buildErrorMessage: BuildErrorMessage
-        get() = BuildErrorMessage.newBuilder().apply {
-          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
-          fileLocationIncluded = true
-          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-          lineLocationIncluded = true
-        }.build()
-
+    val buildIssue =object : TomlErrorMessageAwareIssue(description.toString()) {
       private fun computeNavigable(project: Project,
                                    virtualFile: VirtualFile,
                                    tableHeader: String,
