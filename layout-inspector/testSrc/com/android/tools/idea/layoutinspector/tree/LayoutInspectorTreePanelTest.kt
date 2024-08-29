@@ -75,7 +75,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
@@ -934,7 +934,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
       false,
       projectRule.testRootDisposable,
     )
@@ -974,7 +974,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibilityWithChildCounts() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
       true,
       projectRule.testRootDisposable,
     )
