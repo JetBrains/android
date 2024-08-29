@@ -73,13 +73,14 @@ fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit) {
     val scrollState = rememberScrollState()
     Box(modifier = Modifier.fillMaxSize()) {
       Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
-        val trace = selectedLeak.displayedLeakTrace[0]
-        trace.nodes.forEachIndexed { index, currNode ->
+        // If displayedLeakTrace is empty, use empty list for the leak nodes.
+        val traceNodes = if (selectedLeak.displayedLeakTrace.isNotEmpty()) selectedLeak.displayedLeakTrace[0].nodes else listOf()
+        traceNodes.forEachIndexed { index, currNode ->
           LeakTraceNodeView(
             node = currNode,
-            previousNode = if (index > 0) trace.nodes[index - 1] else null,
+            previousNode = if (index > 0) traceNodes[index - 1] else null,
             gotoDeclaration = gotoDeclaration,
-            nextNode = if (index + 1 < trace.nodes.size) trace.nodes[index + 1] else null
+            nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null
           )
         }
       }
