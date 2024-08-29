@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.analytics.supportsContextSharing
+import com.android.tools.idea.insights.ui.INSIGHT_KEY
+import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
 import com.intellij.openapi.actionSystem.ActionManager
@@ -27,40 +31,31 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.CardLayout
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JProgressBar
+import org.jetbrains.annotations.VisibleForTesting
 
-private const val LOADING_CARD = "loading"
-private const val CONTENT_CARD = "content"
 private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
 private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
 
-class InsightBottomPanel : JPanel() {
-
-  private val cardLayout = CardLayout()
+class InsightBottomPanel(private val project: Project, private val onEnhanceInsight: () -> Unit) :
+  JPanel(BorderLayout()) {
 
   private val actionManager: ActionManager
     get() = ActionManager.getInstance()
 
-  private val loadingPanel =
-    JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.empty(8)
-      add(JBLabel("Enhancing insight..."), BorderLayout.WEST)
-      add(JProgressBar().apply { isIndeterminate = true }, BorderLayout.EAST)
-    }
-
-  private val enableCodeContextAction =
+  // TODO(b/365994514): button lingers on screen after loading of insight.
+  @VisibleForTesting
+  val enableCodeContextAction =
     object :
       JButtonAction(
         "Enable Code Context",
@@ -70,12 +65,23 @@ class InsightBottomPanel : JPanel() {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
       override fun update(e: AnActionEvent) {
-        val project = e.project ?: return
-        e.presentation.isEnabledAndVisible = !isCodeContextAllowed(project)
+        e.presentation.isEnabledAndVisible =
+          e.getData(INSIGHT_KEY)?.isEnhancedWithCodeContext() == false &&
+            canShowEnableContextButton()
       }
 
       override fun actionPerformed(e: AnActionEvent) {
-        // TODO: Ask for code context. If provided, show loading panel and fetch insight.
+        val dialogBuilder =
+          MessageDialogBuilder.okCancel(
+            "Confirm Context Sharing",
+            "<html>Android Studio needs to send code and context from " +
+              "your project to enhance the insight for this issue.<br>" +
+              "Would you like to continue?</html>",
+          )
+        if (dialogBuilder.ask(e.project)) {
+          onEnhanceInsight()
+          e.presentation.isEnabledAndVisible = false
+        }
       }
 
       override fun createButton() =
@@ -114,29 +120,22 @@ class InsightBottomPanel : JPanel() {
         }
     }
 
-  private val contentPanel =
-    JPanel(BorderLayout()).apply {
-      val leftGroup = DefaultActionGroup(enableCodeContextAction, askGeminiAction)
-      val leftToolbar = actionManager.createActionToolbar(LEFT_TOOL_BAR, leftGroup, true)
-      leftToolbar.targetComponent = this
-
-      val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
-      val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
-      rightToolbar.targetComponent = this
-
-      add(leftToolbar.component, BorderLayout.WEST)
-      add(rightToolbar.component, BorderLayout.EAST)
-    }
-
   init {
-    layout = cardLayout
+    val leftGroup = DefaultActionGroup(enableCodeContextAction)
+    val leftToolbar = actionManager.createActionToolbar(LEFT_TOOL_BAR, leftGroup, true)
+    leftToolbar.targetComponent = this
 
-    add(loadingPanel, LOADING_CARD)
-    add(contentPanel, CONTENT_CARD)
-    cardLayout.show(this, CONTENT_CARD)
+    val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
+    val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
+    rightToolbar.targetComponent = this
+
+    add(leftToolbar.component, BorderLayout.WEST)
+    add(rightToolbar.component, BorderLayout.EAST)
+
     border = JBUI.Borders.customLineTop(JBColor.border())
   }
 
-  private fun isCodeContextAllowed(project: Project) =
-    StudioBot.getInstance().isContextAllowed(project)
+  private fun canShowEnableContextButton() =
+    !StudioBot.getInstance().isContextAllowed(project) &&
+      AppInsightsExperimentFetcher.instance.getCurrentExperiment().supportsContextSharing()
 }

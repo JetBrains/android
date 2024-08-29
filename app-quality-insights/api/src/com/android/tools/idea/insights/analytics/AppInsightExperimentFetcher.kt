@@ -56,3 +56,8 @@ class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
       .getProto(flag, AqiExperimentsConfig.getDefaultInstance())
       .experimentType == expected
 }
+
+private val CONTEXT_SHARING_EXPERIMENTS =
+  setOf(ExperimentType.TOP_SOURCE, ExperimentType.TOP_THREE_SOURCES, ExperimentType.ALL_SOURCES)
+
+fun ExperimentType.supportsContextSharing() = this in CONTEXT_SHARING_EXPERIMENTS

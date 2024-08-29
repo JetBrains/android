@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.FailureType
-import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
+import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
+import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
 import com.android.tools.idea.serverflags.protos.ExperimentType
-import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
@@ -31,19 +33,13 @@ import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.replaceService
-import com.intellij.util.application
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
 
 class InsightFeedbackPanelTest {
 
@@ -53,16 +49,10 @@ class InsightFeedbackPanelTest {
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
   private lateinit var fakeUi: FakeUi
-  private val mockServerFlagService = mock<ServerFlagService>()
 
   @Before
   fun setup() = runBlocking {
     withContext(AndroidDispatchers.uiThread) { fakeUi = FakeUi(InsightFeedbackPanel()) }
-    application.replaceService(
-      ServerFlagService::class.java,
-      mockServerFlagService,
-      projectRule.disposable,
-    )
   }
 
   @Test
@@ -99,14 +89,12 @@ class InsightFeedbackPanelTest {
   fun `test sentiment tracked when feedback clicked`() = runBlocking {
     val (upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
 
-    whenever(mockServerFlagService.getProto(anyString(), any()))
-      .thenReturn(createProtoResponse(ExperimentType.CONTROL))
-
     val upvoteEvent =
       TestActionEvent.createTestEvent { key ->
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.ANR
+          INSIGHT_KEY.name -> AiInsight("", ExperimentType.CONTROL)
           else -> null
         }
       }
@@ -118,13 +106,12 @@ class InsightFeedbackPanelTest {
         AppQualityInsightsUsageEvent.CrashType.ANR,
       )
 
-    whenever(mockServerFlagService.getProto(anyString(), any()))
-      .thenReturn(createProtoResponse(ExperimentType.TOP_SOURCE))
     val downvoteEvent =
       TestActionEvent.createTestEvent { key ->
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.FATAL
+          INSIGHT_KEY.name -> AiInsight("", ExperimentType.TOP_SOURCE)
           else -> null
         }
       }

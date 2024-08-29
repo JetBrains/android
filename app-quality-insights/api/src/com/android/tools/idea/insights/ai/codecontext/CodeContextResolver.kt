@@ -28,6 +28,12 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.ProjectScope
 
+data class CodeContextData(val codeContext: List<CodeContext>, val experimentType: ExperimentType) {
+  companion object {
+    val EMPTY = CodeContextData(emptyList(), ExperimentType.CONTROL)
+  }
+}
+
 /** A simple value class for containing info related to a piece of code context. */
 data class CodeContext(
   val className: String,
@@ -39,7 +45,7 @@ data class CodeContext(
 
 /** Pulls source code from the editor based on the provided stack trace. */
 interface CodeContextResolver {
-  suspend fun getSource(stack: StacktraceGroup): List<CodeContext>
+  suspend fun getSource(stack: StacktraceGroup): CodeContextData
 
   companion object {
     fun getInstance(project: Project) = project.service<CodeContextResolver>()
@@ -51,8 +57,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
   private val experimentFetcher: AppInsightsExperimentFetcher
     get() = AppInsightsExperimentFetcher.instance
 
-  override suspend fun getSource(stack: StacktraceGroup): List<CodeContext> {
-    if (!StudioBot.getInstance().isContextAllowed(project)) return emptyList()
+  override suspend fun getSource(stack: StacktraceGroup): CodeContextData {
     val experiment = experimentFetcher.getCurrentExperiment()
     val limit =
       when (experiment) {
@@ -60,9 +65,9 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
         ExperimentType.TOP_THREE_SOURCES -> 3
         ExperimentType.ALL_SOURCES -> Integer.MAX_VALUE
         ExperimentType.CONTROL,
-        ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> return emptyList()
+        ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> return CodeContextData.EMPTY
       }
-    return getSource(stack, limit)
+    return CodeContextData(getSource(stack, limit), experiment)
   }
 
   private suspend fun getSource(stack: StacktraceGroup, limit: Int): List<CodeContext> {

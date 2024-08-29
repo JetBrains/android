@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
@@ -21,6 +21,8 @@ import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
+import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
 import icons.StudioIcons
 import java.awt.BorderLayout

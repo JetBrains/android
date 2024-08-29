@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.ConnectionsChanged
 import com.android.tools.idea.insights.events.DeleteNoteRequested
 import com.android.tools.idea.insights.events.DevicesChanged
+import com.android.tools.idea.insights.events.EnhanceInsight
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.FatalityToggleChanged
@@ -237,6 +238,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun selectIssueVariant(variant: IssueVariant?) {
     emit(SelectedIssueVariantChanged(variant))
+  }
+
+  override fun refreshInsight() {
+    emit(EnhanceInsight())
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {

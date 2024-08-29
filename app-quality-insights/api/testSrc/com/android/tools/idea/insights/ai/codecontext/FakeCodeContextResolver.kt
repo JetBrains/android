@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.ai.codecontext
 
-import com.android.tools.idea.insights.analytics.supportsContextSharing
+import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.serverflags.protos.ExperimentType
 
-data class AiInsight(
-  val rawInsight: String,
-  /** The experiment that was conducted to generate this insight. */
-  val experimentType: ExperimentType = ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED,
-) {
-  fun isEnhancedWithCodeContext() = experimentType.supportsContextSharing()
+open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeContextResolver {
+  override suspend fun getSource(stack: StacktraceGroup) =
+    CodeContextData(codeContext, ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
 }

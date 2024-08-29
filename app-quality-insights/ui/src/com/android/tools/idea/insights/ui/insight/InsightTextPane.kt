@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.insights.ui.AqiHtmlRenderer
+import com.android.tools.idea.insights.ui.MarkDownConverter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext

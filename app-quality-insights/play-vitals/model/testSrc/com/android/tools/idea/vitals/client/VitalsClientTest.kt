@@ -37,6 +37,7 @@ import com.android.tools.idea.insights.StatsGroup
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.FakeAiInsightClient
@@ -471,7 +472,7 @@ class VitalsClientTest {
         ISSUE1.sampleEvent,
         null,
         TimeIntervalFilter.ONE_DAY,
-        emptyList(),
+        CodeContextData.EMPTY,
       )
 
     val value = (insight as LoadingState.Ready).value

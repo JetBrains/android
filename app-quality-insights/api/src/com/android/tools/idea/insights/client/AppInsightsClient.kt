@@ -35,7 +35,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 data class IssueRequest(val connection: Connection, val filters: QueryFilters)
@@ -103,6 +103,6 @@ interface AppInsightsClient {
     event: Event,
     variantId: String?,
     timeInterval: TimeIntervalFilter,
-    codeContext: List<CodeContext>,
+    codeContextData: CodeContextData,
   ): LoadingState.Done<AiInsight>
 }

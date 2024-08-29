@@ -141,6 +141,7 @@ sealed class Action {
     val issueFatality: FailureType,
     val event: Event,
     val variantId: String?,
+    val contextSharingOverride: Boolean = false,
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }

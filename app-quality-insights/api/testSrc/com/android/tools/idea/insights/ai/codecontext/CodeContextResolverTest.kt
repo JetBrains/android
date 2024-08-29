@@ -355,42 +355,34 @@ class CodeContextResolverTest(private val experimentType: ExperimentType) {
     val resolver = CodeContextResolverImpl(projectRule.project)
     val contexts = resolver.getSource(STACKTRACE)
 
-    val expected: List<CodeContext> =
+    val expected =
       when (experimentType) {
         ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED,
-        ExperimentType.CONTROL -> emptyList()
-        ExperimentType.TOP_SOURCE -> listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT)
+        ExperimentType.CONTROL -> CodeContextData.EMPTY
+        ExperimentType.TOP_SOURCE ->
+          CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experimentType)
         ExperimentType.TOP_THREE_SOURCES ->
-          listOf(
-            EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
-            EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
-            EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
+          CodeContextData(
+            listOf(
+              EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
+              EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
+              EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
+            ),
+            experimentType,
           )
         ExperimentType.ALL_SOURCES ->
-          listOf(
-            EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
-            EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
-            EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
-            EXPECTED_MAIN_ACTIVITY_CONTEXT,
+          CodeContextData(
+            listOf(
+              EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
+              EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
+              EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
+              EXPECTED_MAIN_ACTIVITY_CONTEXT,
+            ),
+            experimentType,
           )
       }
 
     assertThat(contexts).isEqualTo(expected)
-  }
-
-  @Test
-  fun `resolve code context when project does not allow context`() = runBlocking {
-    projectRule.replaceService(
-      StudioBot::class.java,
-      object : StudioBot.StubStudioBot() {
-        override fun isContextAllowed(project: Project) = false
-      },
-    )
-
-    val resolver = CodeContextResolverImpl(projectRule.project)
-    val contexts = resolver.getSource(STACKTRACE)
-
-    assertThat(contexts).isEmpty()
   }
 
   private fun createTestExperimentFetcher(experimentType: ExperimentType) =
