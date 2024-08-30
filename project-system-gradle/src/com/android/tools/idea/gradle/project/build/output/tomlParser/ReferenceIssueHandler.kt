@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_START
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_STOP_LINE
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -30,13 +33,13 @@ import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 
-class ReferenceIssueHandler: TomlErrorHandler {
+class ReferenceIssueHandler : TomlErrorHandler {
   private val PROBLEM_REFERENCE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
   private val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   private val REASON_PLUGIN_REFERENCE_PATTERN: Regex = "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    if (reader.readLine()?.endsWith("Invalid catalog definition:") == true) {
-      val description = StringBuilder().appendLine("Invalid catalog definition.")
+    if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
+      val description = StringBuilder().appendLine(BUILD_ISSUE_TITLE)
       val problemLine = reader.readLine() ?: return listOf()
       description.appendLine(problemLine)
       PROBLEM_REFERENCE_PATTERN.matchEntire(problemLine)?.let {
@@ -58,7 +61,7 @@ class ReferenceIssueHandler: TomlErrorHandler {
 
     var dependency: Pair<String, ReferenceSource>? = null
 
-    description.append(readUntilLine(reader, "> Invalid catalog definition") { descriptionLine ->
+    description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE) { descriptionLine ->
       if (dependency == null) {
         REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
           val (dep, _) = destructured
@@ -73,7 +76,7 @@ class ReferenceIssueHandler: TomlErrorHandler {
 
     if (dependency == null) return null
     val dependencyName = dependency!!.first
-    val buildIssue =object : TomlErrorMessageAwareIssue(description.toString()) {
+    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
       private fun computeNavigable(project: Project,
                                    virtualFile: VirtualFile,
                                    tableHeader: String,
@@ -84,8 +87,7 @@ class ReferenceIssueHandler: TomlErrorHandler {
                         .filter { it.header.key?.text == tableHeader }
                         .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
                         .find(predicate) ?: return fileDescriptor
-        val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
-        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+        return getDescriptor(element, project, virtualFile) ?: fileDescriptor
       }
 
       fun isLibraryAliasDeclaration(element: TomlKeyValue): Boolean {
@@ -96,7 +98,8 @@ class ReferenceIssueHandler: TomlErrorHandler {
             content.findKeyValue("module", dependencyName) ||
             (content.findKeyValue("group", group) && content.findKeyValue("name", name))
           ) && content.findKeyValue("version.ref", reference)
-        } else
+        }
+        else
           false
       }
 

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_START
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_STOP_LINE
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TITLE
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -35,14 +39,14 @@ class WrongBundleReferenceHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\.".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    if (reader.readLine()?.endsWith("Invalid catalog definition:") == true) {
+    if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->
-        val description = StringBuilder().appendLine("Invalid catalog definition.")
+        val description = StringBuilder().appendLine(BUILD_ISSUE_TITLE)
         description.appendLine(problemLine)
 
         val (catalog, bundle, reference) = match.destructured
-        return extractAliasInformation(
+        return extractBundleReference(
           catalog, bundle, reference, description, reader
         )?.let { listOf(it) } ?: listOf()
       }
@@ -50,7 +54,7 @@ class WrongBundleReferenceHandler : TomlErrorHandler {
     return listOf()
   }
 
-  private fun extractAliasInformation(
+  private fun extractBundleReference(
     catalog: String,
     bundle: String,
     reference: String,
@@ -58,7 +62,7 @@ class WrongBundleReferenceHandler : TomlErrorHandler {
     reader: BuildOutputInstantReader
   ): BuildIssueEvent? {
 
-    description.append(readUntilLine(reader, "> Invalid catalog definition:"))
+    description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE))
 
     val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
       private fun computeNavigable(project: Project,
