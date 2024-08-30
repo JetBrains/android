@@ -45,7 +45,8 @@ class TomlErrorParser : BuildOutputParser {
       ReferenceIssueHandler(),
       IssueAtPositionHandler(),
       AliasInvalidHandler(),
-      UnexpectedElementHandler()
+      UnexpectedElementHandler(),
+      WrongBundleReferenceHandler()
     )
 
     handlers.forEach { handler ->
