@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.panel.impl.model.util
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -26,6 +25,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.Icon
 import javax.swing.JComponent
+import org.mockito.kotlin.mock
 
 class FakeInspectorPanel : InspectorPanel {
   val lines = mutableListOf<FakeInspectorLineModel>()
