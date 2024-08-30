@@ -17,7 +17,6 @@ package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,62 +58,66 @@ internal fun DevicePanel(
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
-  Text("Name", Modifier.padding(bottom = Padding.SMALL))
+  Column {
+    Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
-  TextField(
-    configureDevicePanelState.device.name,
-    onValueChange = configureDevicePanelState::setDeviceName,
-    Modifier.padding(bottom = Padding.MEDIUM_LARGE),
-  )
-
-  Text("Select System Image", Modifier.padding(bottom = Padding.SMALL_MEDIUM))
-
-  Text(
-    "Available system images are displayed based on the service and ABI configuration",
-    Modifier.padding(bottom = Padding.SMALL_MEDIUM),
-  )
-
-  Row {
-    ApiFilter(
-      androidVersions,
-      selectedApiLevel = devicePanelState.selectedApiLevel,
-      onApiLevelChange = { onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it)) },
-    )
-
-    ServicesDropdown(
-      devicePanelState.selectedServices,
-      servicesCollection,
-      onSelectedServicesChange = {
-        onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
-      },
+    TextField(
+      configureDevicePanelState.device.name,
+      onValueChange = configureDevicePanelState::setDeviceName,
       Modifier.padding(bottom = Padding.MEDIUM_LARGE),
     )
+
+    Text("Select System Image", Modifier.padding(bottom = Padding.SMALL_MEDIUM))
+
+    Text(
+      "Available system images are displayed based on the service and ABI configuration",
+      Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+    )
+
+    Row {
+      ApiFilter(
+        androidVersions,
+        selectedApiLevel = devicePanelState.selectedApiLevel,
+        onApiLevelChange = {
+          onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it))
+        },
+      )
+
+      ServicesDropdown(
+        devicePanelState.selectedServices,
+        servicesCollection,
+        onSelectedServicesChange = {
+          onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
+        },
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+      )
+    }
+
+    SystemImageTable(
+      images,
+      devicePanelState,
+      configureDevicePanelState.systemImageTableSelectionState,
+      onDownloadButtonClick,
+      onSystemImageTableRowClick,
+      Modifier.weight(1f).padding(bottom = Padding.SMALL),
+    )
+
+    ShowSdkExtensionSystemImagesCheckbox(
+      devicePanelState.sdkExtensionSystemImagesVisible,
+      onSdkExtensionSystemImagesVisibleChange = {
+        onDevicePanelStateChange(devicePanelState.copy(sdkExtensionSystemImagesVisible = it))
+      },
+      Modifier.padding(bottom = Padding.SMALL),
+    )
+
+    CheckboxRow(
+      "Only show system images recommended for my host CPU architecture",
+      devicePanelState.onlyForHostCpuArchitectureVisible,
+      onCheckedChange = {
+        onDevicePanelStateChange(devicePanelState.copy(onlyForHostCpuArchitectureVisible = it))
+      },
+    )
   }
-
-  SystemImageTable(
-    images,
-    devicePanelState,
-    configureDevicePanelState.systemImageTableSelectionState,
-    onDownloadButtonClick,
-    onSystemImageTableRowClick,
-    Modifier.height(150.dp).padding(bottom = Padding.SMALL),
-  )
-
-  ShowSdkExtensionSystemImagesCheckbox(
-    devicePanelState.sdkExtensionSystemImagesVisible,
-    onSdkExtensionSystemImagesVisibleChange = {
-      onDevicePanelStateChange(devicePanelState.copy(sdkExtensionSystemImagesVisible = it))
-    },
-    Modifier.padding(bottom = Padding.SMALL),
-  )
-
-  CheckboxRow(
-    "Only show system images recommended for my host CPU architecture",
-    devicePanelState.onlyForHostCpuArchitectureVisible,
-    onCheckedChange = {
-      onDevicePanelStateChange(devicePanelState.copy(onlyForHostCpuArchitectureVisible = it))
-    },
-  )
 }
 
 @Composable
