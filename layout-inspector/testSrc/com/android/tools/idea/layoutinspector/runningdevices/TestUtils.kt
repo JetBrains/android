@@ -276,6 +276,9 @@ private fun verifyToolbar(container: Container, shouldContainProcessPicker: Bool
   assertThat(toolbars).hasSize(1)
   val toolbar = toolbars.first()
 
+  // Force actions to update.
+  toolbar.updateActionsAsync().get()
+
   if (shouldContainProcessPicker) {
     assertThat(toolbar.actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
   }
