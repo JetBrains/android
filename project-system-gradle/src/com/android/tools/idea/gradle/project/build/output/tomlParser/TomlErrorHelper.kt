@@ -20,11 +20,16 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareB
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.util.childrenOfType
 import org.toml.lang.psi.TomlInlineTable
+import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlTable
 
 internal fun getElementLineAndColumn(element: PsiElement): Pair<Int, Int>? {
   val document = element.containingFile.viewProvider.document ?: return null
@@ -63,4 +68,38 @@ abstract class TomlErrorMessageAwareIssue(_description: String) : ErrorMessageAw
       fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
       lineLocationIncluded = true
     }.build()
+}
+
+/**
+ * Path contains at most three elements tableName/aliasName
+ * Any elements can be represented as * - means all
+ */
+internal fun findFirstElement(project: Project, virtualFile: VirtualFile, path:String): OpenFileDescriptor {
+  val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+  val paths = path.split("/")
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+  if(paths.isEmpty()) return fileDescriptor
+
+  val tablePredicate = { table:TomlTable -> if (paths[0] != "*") table.header.key?.text == paths[0] else true }
+
+  if(paths.size == 1){
+    val result = psiFile.childrenOfType<TomlTable>().find (tablePredicate)?.let {
+      getDescriptor(it, project, virtualFile)
+    }
+    return result ?: fileDescriptor
+  }
+
+  val aliasName = paths[1]
+
+  val tables = psiFile.childrenOfType<TomlTable>()
+    .filter (tablePredicate)
+  val alias = tables.flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+    .find { if (aliasName != "*") it.key.text == aliasName else true }?.let { getDescriptor(it, project, virtualFile) }
+
+  return alias ?: fileDescriptor
+}
+
+private fun getDescriptor(psiElement: PsiElement, project: Project, virtualFile: VirtualFile):OpenFileDescriptor?{
+  val (lineNumber, columnNumber) = getElementLineAndColumn(psiElement) ?: return null
+  return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
 }
