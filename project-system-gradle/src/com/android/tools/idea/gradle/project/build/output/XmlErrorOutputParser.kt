@@ -33,6 +33,10 @@ class XmlErrorOutputParser : BuildOutputParser {
     if (line == null || reader == null || messageConsumer == null) {
       return false
     }
+    return parseLine(MessageEvent.Kind.WARNING, line, reader.parentEventId, messageConsumer)
+  }
+
+  fun parseLine(messageKind: MessageEvent.Kind, line: String, parentEventId: Any, messageConsumer: Consumer<in BuildEvent>): Boolean {
     val matchIndex = line.indexOf(SAXParseException::class.java.name)
     if (matchIndex == -1) {
       return false
@@ -54,8 +58,8 @@ class XmlErrorOutputParser : BuildOutputParser {
       if (file != null && file.isFile) {
         messageConsumer.accept(
           FileMessageEventImpl(
-            reader.parentEventId,
-            MessageEvent.Kind.ERROR,
+            parentEventId,
+            messageKind,
             XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
             message,
@@ -66,8 +70,8 @@ class XmlErrorOutputParser : BuildOutputParser {
       else {
         messageConsumer.accept(
           MessageEventImpl(
-            reader.parentEventId,
-            MessageEvent.Kind.ERROR,
+            parentEventId,
+            messageKind,
             XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
             message
