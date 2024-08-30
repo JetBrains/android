@@ -32,8 +32,8 @@ import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
-import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
@@ -43,6 +43,7 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICA
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
@@ -105,6 +106,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPaneUtil
@@ -193,10 +195,11 @@ private const val MOUSE_WHEEL_FACTOR = 120
 class EmulatorView(
   disposableParent: Disposable,
   val emulator: EmulatorController,
+  project: Project,
   displayId: Int,
   private val displaySize: Dimension?,
-  deviceFrameVisible: Boolean
-) : AbstractDisplayView(displayId), ConnectionStateListener {
+  deviceFrameVisible: Boolean,
+) : AbstractDisplayView(project, displayId), ConnectionStateListener, EmulatorSettingsListener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
@@ -352,6 +355,8 @@ class EmulatorView(
       }
     }
 
+  private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
+
   private fun updateCameraPromptAndMultiTouchFeedback(event: InputEvent) = updateCameraPromptAndMultiTouchFeedback(event.modifiersEx)
 
   private fun updateCameraPromptAndMultiTouchFeedback(modifiers: Int = lastModifiers) {
@@ -398,7 +403,7 @@ class EmulatorView(
     get() {
       if (field == null) {
         if (emulator.connectionState == ConnectionState.CONNECTED && emulatorConfig.deviceType == DeviceType.XR) {
-          getProject()?.let { project ->
+          project?.let { project ->
             field = EmulatorXrInputController.getInstance(project, emulator)
           }
         }
@@ -450,6 +455,7 @@ class EmulatorView(
     })
 
     updateConnectionState(emulator.connectionState)
+    project.messageBus.connect(this).subscribe(EmulatorSettingsListener.TOPIC, this)
   }
 
   override fun dispose() {
@@ -518,6 +524,9 @@ class EmulatorView(
           if (notificationFeed == null) {
             requestNotificationFeed()
           }
+          if (EmulatorSettings.getInstance().synchronizeClipboard) {
+            startClipboardSynchronization()
+          }
         }
       }
     }
@@ -525,6 +534,7 @@ class EmulatorView(
       lastScreenshot = null
       xrInputController = null
       hideLongRunningOperationIndicatorInstantly()
+      stopClipboardSynchronization()
       showDisconnectedStateMessage("Disconnected from the Emulator")
     }
 
@@ -535,7 +545,6 @@ class EmulatorView(
     if (emulatorOutOfDateNotificationShown) {
       return
     }
-    val project = getProject() ?: return
     val title = "Emulator is out of date"
     val message = XmlStringUtil.wrapInHtml("Please update the Android Emulator")
     val notification = RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(title, message, NotificationType.WARNING)
@@ -770,6 +779,33 @@ class EmulatorView(
     updateCameraPromptAndMultiTouchFeedback(event.inputEvent!!)
   }
 
+  @UiThread
+  override fun settingsChanged(settings: EmulatorSettings) {
+    if (!isConnected) {
+      return
+    }
+    if (settings.synchronizeClipboard) {
+      startClipboardSynchronization()
+    }
+    else {
+      stopClipboardSynchronization()
+    }
+  }
+
+  private fun startClipboardSynchronization() {
+    if (clipboardSynchronizer == null) {
+      clipboardSynchronizer = EmulatorClipboardSynchronizer(this, emulator)
+    }
+  }
+
+  private fun stopClipboardSynchronization() {
+    clipboardSynchronizer?.let {
+      // Stop clipboard synchronization.
+      Disposer.dispose(it)
+      clipboardSynchronizer = null
+    }
+  }
+
   /** Returns the key name of the skin button containing [point], or null if not found.  */
   private fun findSkinButtonContaining(point: Point): String? {
     if (!deviceFrameVisible) {
@@ -797,6 +833,9 @@ class EmulatorView(
       }
 
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        if (notificationReceiver != this) {
+          return@invokeLater // This notification feed has already been cancelled.
+        }
         when {
           message.hasCameraNotification() -> virtualSceneCameraActive = message.cameraNotification.active
           message.hasDisplayConfigurationsChangedNotification() ->

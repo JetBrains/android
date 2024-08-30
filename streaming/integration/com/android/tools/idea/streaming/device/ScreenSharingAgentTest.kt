@@ -427,7 +427,7 @@ class ScreenSharingAgentTest {
 
       val deviceClient = DeviceClient(emulator.serialNumber, emptyDeviceConfiguration, "x86_64")
       Disposer.register(testRootDisposable, deviceClient)
-      deviceView = DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, 0, project)
+      deviceView = DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, 0)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()

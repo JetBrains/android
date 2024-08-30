@@ -81,7 +81,10 @@ import kotlin.math.roundToInt
  * [com.android.tools.idea.streaming.device.DeviceView].
  */
 @Suppress("UseJBColor")
-abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
+abstract class AbstractDisplayView(
+  project: Project,
+  val displayId: Int,
+) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
 
   /** Serial number of the device shown in the view. */
   val deviceSerialNumber: String
@@ -108,6 +111,10 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
   protected open val hardwareInput: HardwareInput = HardwareInput()
+  private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+
+  protected open val project: Project?
+    get() = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
   init {
     background = primaryPanelBackground
@@ -288,11 +295,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return normalized.scaledUnbiased(imageSize, deviceDisplaySize)
   }
 
-  protected fun getProject(): Project? =
-      CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
-
   protected fun isHardwareInputEnabled(): Boolean =
-      getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
+      hardwareInputStateStorage.isHardwareInputEnabled(deviceId)
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
     if (!isHardwareInputEnabled()) {

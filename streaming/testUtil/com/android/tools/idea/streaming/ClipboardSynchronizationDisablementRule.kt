@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device
+package com.android.tools.idea.streaming
 
 import com.android.testutils.PropertySetterRule
-import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.intellij.testFramework.RuleChain
 
 /**
- * Sets DeviceMirroringSettings.synchronizeClipboard to false and restores it after the test.
+ * Sets EmulatorSettings.synchronizeClipboard and DeviceMirroringSettings.synchronizeClipboard
+ * to false and restores them after the test.
  */
-class ClipboardSynchronizationDisablementRule :
-    PropertySetterRule<Boolean>(false, { DeviceMirroringSettings.getInstance()::synchronizeClipboard })
+fun ClipboardSynchronizationDisablementRule() =
+  RuleChain(
+    PropertySetterRule(false) { EmulatorSettings.getInstance()::synchronizeClipboard },
+    PropertySetterRule(false) { DeviceMirroringSettings.getInstance()::synchronizeClipboard },
+  )

@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
@@ -54,7 +55,6 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
-import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.ui.LafManager
@@ -91,8 +91,6 @@ import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
@@ -140,7 +138,8 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, PortableUiFontRule(), EdtRule())
+  val ruleChain: RuleChain =
+      RuleChain(ClipboardSynchronizationDisablementRule(), projectRule, emulatorRule, PortableUiFontRule(), EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
@@ -165,8 +164,6 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
-
     val panel = createWindowPanelForPhone()
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -230,23 +227,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<LiveEditNotificationGroup>()).isNull()
 
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
-
-    // Check clipboard synchronization.
-    val content = StringSelection("host clipboard")
-    ClipboardSynchronizer.getInstance().setContent(content, content)
-    focusManager.focusOwner = emulatorView
-    var call = emulator.getNextGrpcCall(3.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
-    assertThat(shortDebugString(call.request)).isEqualTo("text: \"host clipboard\"")
-    call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
-    call.waitForResponse(2.seconds)
-    emulator.clipboard = "device clipboard"
-    call.waitForResponse(2.seconds)
-    waitForCondition(2.seconds) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
-    assertThat(call.completion.isCancelled).isFalse()
-    focusManager.focusOwner = null
-    call.waitForCancellation(2.seconds)
 
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()

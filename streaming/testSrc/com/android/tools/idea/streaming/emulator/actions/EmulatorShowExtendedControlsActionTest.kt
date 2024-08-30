@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.adtui.swing.HeadlessDialogRule
+import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.LafManager
@@ -39,7 +40,7 @@ import kotlin.time.Duration.Companion.seconds
 class EmulatorShowExtendedControlsActionTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule(), HeadlessDialogRule())
+  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), EdtRule (), HeadlessDialogRule())
 
   @Test
   fun testShowExtendedControls() {
