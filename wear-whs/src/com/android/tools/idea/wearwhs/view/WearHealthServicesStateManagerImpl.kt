@@ -268,12 +268,13 @@ internal class WearHealthServicesStateManagerImpl(
       }
 
       // Return early if any of the updates fail
-      deviceManager.setCapabilities(capabilityUpdates).onFailure {
-        eventLogger.logApplyChangesFailure()
-        return@runWithStatus Result.failure(it)
-      }
       if (ongoingExercise.value) {
         deviceManager.overrideValues(overrideUpdates).onFailure {
+          eventLogger.logApplyChangesFailure()
+          return@runWithStatus Result.failure(it)
+        }
+      } else {
+        deviceManager.setCapabilities(capabilityUpdates).onFailure {
           eventLogger.logApplyChangesFailure()
           return@runWithStatus Result.failure(it)
         }
@@ -282,7 +283,12 @@ internal class WearHealthServicesStateManagerImpl(
         capabilityToState.entries.forEach {
           val stateFlow = it.value
           val uiState = stateFlow.value
-          stateFlow.value = UpToDateCapabilityUIState(uiState.currentState)
+          stateFlow.value =
+            UpToDateCapabilityUIState(
+              if (ongoingExercise.value)
+                uiState.upToDateState.copy(overrideValue = uiState.currentState.overrideValue)
+              else uiState.upToDateState.copy(enabled = uiState.currentState.enabled)
+            )
         }
       }
       eventLogger.logApplyChangesSuccess()

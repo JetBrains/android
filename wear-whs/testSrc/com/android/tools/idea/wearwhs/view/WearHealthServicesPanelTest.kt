@@ -142,13 +142,15 @@ class WearHealthServicesPanelTest {
   @Test
   fun `test panel screenshot matches expectation with modified state manager values`() =
     runBlocking {
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
+      stateManager.applyChanges()
+
       deviceManager.activeExercise = true
 
       stateManager.forceUpdateState()
 
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
       stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
       stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
       stateManager.applyChanges()
@@ -337,12 +339,14 @@ class WearHealthServicesPanelTest {
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
 
+      val heartRateCapability = WHS_CAPABILITIES[0]
+      stateManager.setCapabilityEnabled(heartRateCapability, false)
+      stateManager.applyChanges()
+
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
 
-      // Heart Rate
-      stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+      stateManager.setOverrideValue(heartRateCapability, 50f)
       stateManager.applyChanges()
 
       fakeUi.waitForCheckbox("Heart rate", false)
