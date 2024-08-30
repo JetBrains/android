@@ -54,7 +54,7 @@ class VisualizationTestToolWindowManager(
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
     val toolWindow = VisualizationTestToolWindow(project)
     idToToolWindow[task.id] = toolWindow
-    task.contentFactory?.createToolWindowContent(project, toolWindow)
+    task.data.contentFactory?.createToolWindowContent(project, toolWindow)
     fireStateChange()
     Disposer.register(disposableParent, toolWindow.disposable)
     return toolWindow
