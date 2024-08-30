@@ -266,7 +266,7 @@ class EmulatorUiSettingsActionTest {
   ).apply { size = Dimension(16, 16) }
 
   private fun createEmulatorView(controller: EmulatorController, parentDisposable: Disposable = testRootDisposable): EmulatorView =
-    EmulatorView(parentDisposable, controller, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
+    EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
 
   private fun createTestDataContext(controller: EmulatorController, view: EmulatorView): DataContext {
     return DataContext { dataId ->

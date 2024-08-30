@@ -30,6 +30,8 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
@@ -61,6 +63,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
@@ -88,6 +91,8 @@ import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
@@ -133,7 +138,7 @@ class EmulatorViewTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), emulatorViewRule, EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
@@ -893,6 +898,34 @@ class EmulatorViewTest {
     focusManager.focusOwner = null
 
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
+  }
+
+  @Test
+  fun testClipboardSynchronization() {
+    view = emulatorViewRule.newEmulatorView()
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    focusManager.focusOwner = view
+
+    val settings = EmulatorSettings.getInstance()
+    settings.synchronizeClipboard = true
+    var call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
+    val copyPasteManager = CopyPasteManager.getInstance()
+    copyPasteManager.setContents(StringSelection("host clipboard"))
+    call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
+    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("text: \"host clipboard\"")
+    call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
+    fakeEmulator.clipboard = "device clipboard"
+    waitForCondition(2.seconds) { copyPasteManager.getContents<String>(DataFlavor.stringFlavor) != "host clipboard" }
+    assertThat(copyPasteManager.getContents<String>(DataFlavor.stringFlavor)).isEqualTo("device clipboard")
+    settings.synchronizeClipboard = false
+    call.waitForCancellation(2.seconds)
   }
 
   @Test
