@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -35,18 +32,16 @@ class UnknownTopLevelElementHandler: TomlErrorHandler {
   private val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    val firstDescriptionLine = reader.readLine() ?: return listOf()
-    val description = StringBuilder().appendLine(TomlErrorParser.BUILD_ISSUE_TITLE)
-    val problemLine = reader.readLine() ?: return listOf()
-    if (firstDescriptionLine.endsWith("Invalid TOML catalog definition:")) {
+    if (reader.readLine()?.endsWith("Invalid TOML catalog definition:") == true) {
+      val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_TOP_LEVEL_PATTERN.matchEntire(problemLine)?.let {
+        val description = StringBuilder().appendLine(TomlErrorParser.BUILD_ISSUE_TITLE)
+
         val (catalog, tableName) = it.destructured
         description.appendLine(problemLine)
-        while (true) {
-          val descriptionLine = reader.readLine()
-          if (descriptionLine == null || descriptionLine.startsWith("> Invalid TOML catalog definition")) break
-          description.appendLine(descriptionLine)
-        }
+        description.append(
+          readUntilLine(reader, "> Invalid TOML catalog definition")
+        )
         return listOf(extractTopLevelAlias(catalog, tableName, description, reader))
       }
     }
@@ -58,23 +53,12 @@ class UnknownTopLevelElementHandler: TomlErrorHandler {
                                    description: StringBuilder,
                                    reader: BuildOutputInstantReader
   ): BuildIssueEvent {
-    val buildIssue = object : ErrorMessageAwareBuildIssue {
-      override val description: String = description.toString().trimEnd()
-      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = TomlErrorParser.BUILD_ISSUE_TITLE
-      override val buildErrorMessage: BuildErrorMessage
-        get() = BuildErrorMessage.newBuilder().apply {
-          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
-          fileLocationIncluded = true
-          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-          lineLocationIncluded = true
-        }.build()
+    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
 
-      private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+      private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
         val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
-        val element = psiFile.childrenOfType<TomlTable>()
-                        .filter { it.header.key?.text == alias }.firstOrNull() ?: return fileDescriptor
+        val element = psiFile.childrenOfType<TomlTable>().firstOrNull { it.header.key?.text == alias } ?: return fileDescriptor
         val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
         return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
       }
@@ -82,7 +66,7 @@ class UnknownTopLevelElementHandler: TomlErrorHandler {
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
         return runReadAction {
-          computeNavigatable(project, file)
+          computeNavigable(project, file)
         }
       }
     }

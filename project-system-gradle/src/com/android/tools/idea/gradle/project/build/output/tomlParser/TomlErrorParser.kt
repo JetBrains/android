@@ -48,11 +48,12 @@ class TomlErrorParser : BuildOutputParser {
 
     handlers.forEach { handler ->
       val result = handler.tryExtractMessage(newReader)
-      if(result.isNotEmpty()){
-        result.forEach{ messageConsumer.accept(it) }
+      if (result.isNotEmpty()) {
+        result.forEach { messageConsumer.accept(it) }
         BuildOutputParserUtils.consumeRestOfOutput(reader)
         return true
-      } else {
+      }
+      else {
         newReader.resetPosition()
       }
     }

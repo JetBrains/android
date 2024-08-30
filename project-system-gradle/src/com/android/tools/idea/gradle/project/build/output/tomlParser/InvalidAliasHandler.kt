@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -40,18 +37,17 @@ class InvalidAliasHandler: TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    val firstDescriptionLine = reader.readLine() ?: return listOf()
-    if (firstDescriptionLine.endsWith("Invalid catalog definition:")) {
-      val description = StringBuilder().appendLine("Invalid catalog definition.")
+    if (reader.readLine()?.endsWith("Invalid catalog definition:") == true) {
       val problemLine = reader.readLine() ?: return listOf()
-      description.appendLine(problemLine)
-      PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let {
-        val (catalog, type, alias) = it.destructured
+      PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->
+        val description = StringBuilder().appendLine("Invalid catalog definition.")
+        description.appendLine(problemLine)
+
+        val (catalog, type, alias) = match.destructured
         val tomlTableName = TYPE_NAMING_PARSING[type] ?: return listOf()
-        val event = extractAliasInformation(
+        return extractAliasInformation(
           catalog, tomlTableName, alias, description, reader
-        ) ?: return listOf()
-        return listOf(event)
+        )?.let { listOf(it) } ?: listOf()
       }
     }
     return listOf()
@@ -64,25 +60,10 @@ class InvalidAliasHandler: TomlErrorHandler {
                                       reader: BuildOutputInstantReader
   ): BuildIssueEvent? {
 
-    while (true) {
-      val descriptionLine = reader.readLine() ?: return null
-      if (descriptionLine.startsWith("> Invalid catalog definition")) break
-      description.appendLine(descriptionLine)
-    }
+    description.append(readUntilLine(reader, "> Invalid catalog definition"))
 
-    val buildIssue = object : ErrorMessageAwareBuildIssue {
-      override val description: String = description.toString().trimEnd()
-      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = TomlErrorParser.BUILD_ISSUE_TITLE
-      override val buildErrorMessage: BuildErrorMessage
-        get() = BuildErrorMessage.newBuilder().apply {
-          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
-          fileLocationIncluded = true
-          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-          lineLocationIncluded = true
-        }.build()
-
-      private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
+      private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
         val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
         val element = psiFile.childrenOfType<TomlTable>()
@@ -95,7 +76,7 @@ class InvalidAliasHandler: TomlErrorHandler {
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
         return runReadAction {
-          computeNavigatable(project, file)
+          computeNavigable(project, file)
         }
       }
     }
