@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_START
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_STOP_LINE
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -23,24 +26,24 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
-class UnknownTopLevelElementHandler: TomlErrorHandler {
+class UnknownTopLevelElementHandler : TomlErrorHandler {
   private val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    if (reader.readLine()?.endsWith("Invalid TOML catalog definition:") == true) {
+    if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_TOP_LEVEL_PATTERN.matchEntire(problemLine)?.let {
-        val description = StringBuilder().appendLine(TomlErrorParser.BUILD_ISSUE_TITLE)
+        val description = StringBuilder().appendLine(BUILD_ISSUE_TOML_TITLE)
 
         val (catalog, tableName) = it.destructured
         description.appendLine(problemLine)
         description.append(
-          readUntilLine(reader, "> Invalid TOML catalog definition")
+          readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE)
         )
         return listOf(extractTopLevelAlias(catalog, tableName, description, reader))
       }
     }
-  return listOf()
+    return listOf()
   }
 
   private fun extractTopLevelAlias(catalog: String,

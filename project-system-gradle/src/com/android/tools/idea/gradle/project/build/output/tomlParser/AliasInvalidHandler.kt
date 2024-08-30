@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_START
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_STOP_LINE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -23,11 +25,11 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
-class AliasInvalidHandler: TomlErrorHandler {
+class AliasInvalidHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "  - Alias definition '([^ ]+)' is invalid".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    if (reader.readLine()?.endsWith("Invalid TOML catalog definition:") == true) {
+    if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->
         val description = StringBuilder().appendLine("Invalid alias catalog definition.")
@@ -47,7 +49,7 @@ class AliasInvalidHandler: TomlErrorHandler {
                                       reader: BuildOutputInstantReader
   ): BuildIssueEvent? {
 
-    description.append(readUntilLine(reader, "> Invalid TOML catalog definition"))
+    description.append(readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE))
 
     val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
       override fun getNavigatable(project: Project): Navigatable? {

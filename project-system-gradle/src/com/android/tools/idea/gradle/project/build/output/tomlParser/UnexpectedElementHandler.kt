@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -36,7 +37,7 @@ class UnexpectedElementHandler : TomlErrorHandler {
     val problemLine = reader.readLine() ?: return listOf()
     PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->
       val stopString = problemLine.substringAfter(": ")
-      val description = StringBuilder().appendLine("Invalid catalog definition.")
+      val description = StringBuilder().appendLine(BUILD_ISSUE_TITLE)
       description.appendLine(stopString)
 
       val (type, alias, property) = match.destructured

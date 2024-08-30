@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_START
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_STOP_LINE
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.BUILD_ISSUE_TOML_TITLE
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -32,8 +35,8 @@ class IssueAtPositionHandler : TomlErrorHandler {
   val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
-    if (reader.readLine()?.endsWith("Invalid TOML catalog definition:") == true) {
-      val description = StringBuilder().appendLine(TomlErrorParser.BUILD_ISSUE_TITLE)
+    if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
+      val description = StringBuilder().appendLine(BUILD_ISSUE_TOML_TITLE)
       val problemLine = reader.readLine() ?: return listOf()
 
       PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.let {
@@ -58,7 +61,7 @@ class IssueAtPositionHandler : TomlErrorHandler {
     val errorDescriptions = mutableListOf<ErrorDescription>()
 
     description.append(
-      readUntilLine(reader, "> Invalid TOML catalog definition") { descriptionLine ->
+      readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE) { descriptionLine ->
         if (errorDescriptions.isEmpty()) {
           REASON_POSITION_PATTERN.matchEntire(descriptionLine)?.run {
             val (line, column) = destructured
