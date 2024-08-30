@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,8 +45,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.input.pointer.PointerButton
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -163,14 +171,17 @@ internal fun <T> TableHeader(
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun <T> TableRow(
   value: T,
   selected: Boolean,
   onClick: (T) -> Unit = {},
+  onSecondaryClick: (T, Offset) -> Unit = { _, _ -> },
   columns: List<TableColumn<T>>,
 ) {
   var isFocused by remember { mutableStateOf(false) }
+  var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
   Row(
     Modifier
       // Divide the padding before and after the border
@@ -181,6 +192,16 @@ internal fun <T> TableRow(
         )
       }
       .thenIf(isFocused) { focusBorder() }
+      .pointerInput(value) {
+        detectTapGestures(
+          PointerMatcher.mouse(PointerButton.Secondary),
+          onPress = { offset ->
+            val layoutCoordinates = layoutCoordinates ?: return@detectTapGestures
+            onSecondaryClick(value, layoutCoordinates.localToRoot(offset))
+          },
+        )
+      }
+      .onGloballyPositioned { layoutCoordinates = it }
       .onFocusChanged { isFocused = it.isFocused }
       .selectable(selected, onClick = { onClick(value) })
       .padding(ROW_PADDING / 2)
@@ -205,6 +226,7 @@ fun <T> Table(
   tableSortState: TableSortState<T> = remember { TableSortState() },
   tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
   onRowClick: (T) -> Unit = { tableSelectionState.selection = it },
+  onRowSecondaryClick: (T, Offset) -> Unit = { _, _ -> },
 ) {
   Column(modifier.padding(ROW_PADDING)) {
     TableHeader(
@@ -231,6 +253,7 @@ fun <T> Table(
             sortedRows[index],
             selected = sortedRows[index] == tableSelectionState.selection,
             onRowClick,
+            onRowSecondaryClick,
             columns,
           )
         }

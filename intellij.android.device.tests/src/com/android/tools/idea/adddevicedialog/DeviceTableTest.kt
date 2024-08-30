@@ -17,7 +17,10 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.MouseButton
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasSetTextAction
@@ -25,8 +28,10 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
@@ -105,5 +110,31 @@ class DeviceTableTest {
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertDoesNotExist()
     composeTestRule.onNodeWithText(TestDevices.automotive.name).assertIsDisplayed()
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun rightClick() {
+    val clicks = mutableListOf<DeviceProfile>()
+
+    composeTestRule.setContent {
+      val source = TestDeviceSource()
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+      val filterState = TestDeviceFilterState()
+      DeviceTable(
+        source.profiles.value.value,
+        columns = testDeviceTableColumns,
+        filterContent = { TestDeviceFilters(source.profiles.value.value, filterState) },
+        filterState = filterState,
+        onRowSecondaryClick = { device, offset -> clicks.add(device) },
+      )
+    }
+
+    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).performMouseInput {
+      click(button = MouseButton.Secondary)
+    }
+
+    assertThat(clicks).containsExactly(TestDevices.pixelFold)
   }
 }
