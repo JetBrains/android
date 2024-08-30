@@ -37,6 +37,7 @@ import com.intellij.execution.PsiLocation;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.idea.IgnoreJUnit3;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
@@ -368,6 +369,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(androidRunConfig.METHOD_NAME).isEqualTo("testActivityThatPasses");
   }
 
+  @IgnoreJUnit3(reason = "IDEA-358553")
   public void testCreateAndroidAndGradleConfigurationsFromSrcDirectory() throws Exception {
     loadSimpleApplication();
     PsiElement element = TestConfigurationTesting.getPsiElement(getProject(), "app/src", true);
