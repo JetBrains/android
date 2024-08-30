@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
 import com.intellij.build.BuildViewManager
