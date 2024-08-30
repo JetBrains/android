@@ -51,7 +51,6 @@ import javax.swing.JPanel
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -175,7 +174,6 @@ class SelectedTabStateTest {
 
   @Test
   @RunsInEdt
-  @Ignore("b/355500448")
   fun testRightVerticalSwapConfiguration() {
     testConfiguration(UiConfig.RIGHT_VERTICAL_SWAP)
   }
