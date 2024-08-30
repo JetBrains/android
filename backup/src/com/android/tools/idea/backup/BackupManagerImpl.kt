@@ -191,6 +191,10 @@ internal constructor(private val project: Project, private val backupService: Ba
 
   override fun getRestoreRunConfigSection(project: Project) = RestoreRunConfigSection(project)
 
+  override suspend fun getForegroundApplicationId(serialNumber: String): String {
+    return backupService.getForegroundApplicationId(serialNumber)
+  }
+
   private fun BackupResult.notify(
     operation: String,
     backupFile: Path? = null,

@@ -77,6 +77,10 @@ internal class FakeBackupManager : BackupManager {
     TODO("Not yet implemented")
   }
 
+  override suspend fun getForegroundApplicationId(serialNumber: String): String {
+    TODO("Not yet implemented")
+  }
+
   sealed class Action {
     data class BackupModal(
       val serialNumber: String,
