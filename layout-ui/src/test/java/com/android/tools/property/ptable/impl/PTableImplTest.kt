@@ -15,8 +15,6 @@
  */
 package com.android.tools.property.ptable.impl
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -94,6 +92,8 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 private const val TEXT_CELL_EDITOR = "TextCellEditor"
 private const val ICON_CELL_EDITOR = "IconCellEditor"
