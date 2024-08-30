@@ -31,10 +31,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -63,7 +65,8 @@ class LeakListTest : WithFakeTimer {
   }
 
   @Test
-  fun `test leak list view when no leak is available`() {
+  fun `test leak list view when recoding and no leak is available`() {
+    leakCanaryModel.setIsRecording(true)
     composeTestRule.setContent {
       LeakListView(leakCanaryModel = leakCanaryModel)
     }
@@ -72,7 +75,25 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText(LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_NO_LEAK_FOUND_MESSAGE).assertDoesNotExist()
+  }
+
+  @Test
+  fun `test leak list view when not recoding and no leak is available`() {
+    leakCanaryModel.setIsRecording(false)
+    composeTestRule.setContent {
+      LeakListView(leakCanaryModel = leakCanaryModel)
+    }
+
+    // Headers are always displayed
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(LEAKCANARY_NO_LEAK_FOUND_MESSAGE).isDisplayed()
   }
 
   @Test
@@ -87,7 +108,7 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText(LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
   }
 
   @Test
