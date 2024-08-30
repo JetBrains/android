@@ -175,6 +175,9 @@
       <add-to-group group-id="Internal.Android"/>
     </action>
 
+    <!-- Placeholder group for placing the Backup App button registered in a separate module. -->
+    <group id="android.streaming.backup" class="com.android.tools.idea.streaming.actions.BackupActionGroup"/>
+
     <group id="StreamingToolbarVirtualDevice">
       <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
              text="Display Mode" description="Select display mode" popup="true">
@@ -205,6 +208,7 @@
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.streaming.hardware.input"/>
@@ -231,6 +235,7 @@
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
