@@ -158,6 +158,22 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "EditorPerformanceWithK2Test",
+    timeout = "long",
+    data = editor_performance_test_data,
+    module = ":intellij.android.core.integration",
+    tags = [
+        "ci:perfgate-linux",
+        "ci:perfgate-win",
+        "noci:studio-linux",
+        "noci:studio-win",
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.EditorPerformanceWithK2Test",
+)
+
+iml_studio_test(
     name = "LanguageHighlightingTest",
     timeout = "long",
     data = [
