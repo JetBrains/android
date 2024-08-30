@@ -464,6 +464,7 @@ Android Studio Preview.app/Contents/lib/opentelemetry.jar
 Android Studio Preview.app/Contents/lib/platform-loader.jar
 Android Studio Preview.app/Contents/lib/protobuf.jar
 Android Studio Preview.app/Contents/lib/pty4j/darwin/libpty.dylib
+Android Studio Preview.app/Contents/lib/pty4j/darwin/pty4j-unix-spawn-helper
 Android Studio Preview.app/Contents/lib/rd.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
@@ -511,6 +512,7 @@ Android Studio Preview.app/Contents/license/third-party-libraries.html
 Android Studio Preview.app/Contents/license/third-party-libraries.json
 Android Studio Preview.app/Contents/license/uiautomatorviewer.jar-NOTICE
 Android Studio Preview.app/Contents/license/yourkit-license-redist.txt
+Android Studio Preview.app/Contents/modules/module-descriptors.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/Groovy.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/agent/gragent.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/console.groovy
@@ -654,6 +656,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.compose-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar
