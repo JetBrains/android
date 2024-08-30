@@ -14,6 +14,7 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="android.sdktools.backup" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.environment-services" />
@@ -24,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.streaming" />
   </component>
 </module>
