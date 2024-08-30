@@ -33,7 +33,7 @@ COMMON_DATA = [
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/vendor/google/testing/display:xvfb",
 ] + select({
-    "@platforms//os:macos": ["//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper"],
+    "@platforms//os:windows": [],
     "//conditions:default": ["//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper"],
 })
 
