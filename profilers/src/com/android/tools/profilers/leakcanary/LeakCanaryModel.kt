@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
-import com.android.tools.leakcanarylib.LeakCanarySerializer
+import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
@@ -47,7 +47,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
 
   private lateinit var statusListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
-  private val leakCanarySerializer = LeakCanarySerializer()
+  private val myLeakCanaryParser = LeakCanaryParser()
 
   private val _leaks = MutableStateFlow(listOf<Leak>())
   val leaks = _leaks.asStateFlow()
@@ -144,7 +144,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
    */
   private fun getEventFromLogcatMessage(logcatMessage: String): Analysis? {
     try {
-      return leakCanarySerializer.parseLogcatMessage(logcatMessage)
+      return myLeakCanaryParser.parseLogcatMessage(logcatMessage)
     }
     catch (e: Exception) {
       logger.warn("Leak canary serializer detected issue while parsing .. skipping leak event ")
