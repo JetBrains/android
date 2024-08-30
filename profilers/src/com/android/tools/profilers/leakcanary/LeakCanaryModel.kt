@@ -23,6 +23,7 @@ import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
@@ -101,7 +102,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
     profilers.transportPoller.unregisterListener(statusListener)
   }
 
-  private fun addLeaks(newLeaks: List<Leak>) {
+  @VisibleForTesting
+  fun addLeaks(newLeaks: List<Leak>) {
     val newLeakList = _leaks.value + newLeaks
     _leaks.value = newLeakList
   }
@@ -127,20 +129,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
         onLeakSelection(_leaks.value.first())
       }
     }
-  }
-
-
-  private fun registerListener(startTime: Long): TransportEventListener {
-    return TransportEventListener(eventKind = Common.Event.Kind.LEAKCANARY_LOGCAT,
-                                  executor = profilers.ideServices.mainExecutor,
-                                  streamId = { profilers.session.streamId },
-                                  processId = { profilers.session.pid },
-                                  startTime = { startTime },
-                                  callback = { event ->
-                                    false.also {
-                                      leakDetected(event)
-                                    }
-                                  })
   }
 
   /**
@@ -246,6 +234,25 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
           .setToTimestamp(range.max.toLong())
           .build()).groupsList.flatMap { group -> group.eventsList.toList() }
         .filter { event -> event.isEnded }
+    }
+
+    /**
+     * Extracts the class name from a Leak object, prioritizing the leaking class if available.
+     * If the full class path is long, it shortens it to the last two segments.
+     *
+     * @param leak The Leak object to extract the class name from.
+     * @return The extracted class name or an empty string if no leak or class name is found.
+     */
+    fun getLeakClassName(leak: Leak?): String {
+      val className = leak?.displayedLeakTrace?.firstNotNullOfOrNull { leakTrace ->
+        leakTrace.nodes.firstOrNull { node -> node.leakingStatus == LeakingStatus.YES }?.className
+      } ?: return ""
+      val classPathSplit = className.split(".")
+      return if (classPathSplit.size >= 2) {
+        "${classPathSplit[classPathSplit.size - 2]}.${classPathSplit.last()}"
+      } else {
+        className
+      }
     }
   }
 
