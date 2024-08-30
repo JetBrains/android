@@ -353,19 +353,23 @@ class ActionDispatcher(
   ): CancellationToken {
     return scope
       .launch {
-        val timeFilter =
-          state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
-        val fetchedInsight =
-          appInsightsClient.fetchInsight(
-            connection,
-            action.id,
-            action.event,
-            action.variantId,
-            timeFilter,
-            state.selectedEvent?.let { codeContextResolver.getSource(it.stacktraceGroup) }
-              ?: emptyList(),
-          )
-        eventEmitter(AiInsightFetched(fetchedInsight))
+        val insight =
+          if (state.mode == ConnectionMode.OFFLINE) {
+            LoadingState.NetworkFailure(null)
+          } else {
+            val timeFilter =
+              state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
+            appInsightsClient.fetchInsight(
+              connection,
+              action.id,
+              action.event,
+              action.variantId,
+              timeFilter,
+              state.selectedEvent?.let { codeContextResolver.getSource(it.stacktraceGroup) }
+                ?: emptyList(),
+            )
+          }
+        eventEmitter(AiInsightFetched(insight))
       }
       .toToken(action)
   }
