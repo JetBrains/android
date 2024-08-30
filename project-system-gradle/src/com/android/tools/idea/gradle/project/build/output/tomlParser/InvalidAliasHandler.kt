@@ -24,10 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
 class InvalidAliasHandler: TomlErrorHandler {
-  private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
-                                          "version" to "versions",
-                                          "library" to "libraries",
-                                          "plugin" to "plugins")
   private val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
