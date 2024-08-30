@@ -43,7 +43,8 @@ class TomlErrorParser : BuildOutputParser {
       UnknownTopLevelElementHandler(),
       InvalidAliasHandler(),
       ReferenceIssueHandler(),
-      IssueAtPositionHandler()
+      IssueAtPositionHandler(),
+      AliasInvalidHandler()
     )
 
     handlers.forEach { handler ->
