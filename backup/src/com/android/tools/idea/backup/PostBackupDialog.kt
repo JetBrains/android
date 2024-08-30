@@ -132,9 +132,9 @@ internal class PostBackupDialog(private val project: Project, private val backup
     val module = findModule(applicationId)
     if (module != null) {
       val config = settings.configuration as AndroidRunConfiguration
-      // TODO(aalbert): Investigate why this doesn't work
       config.setModule(module)
     }
+    settings.storeInDotIdeaFolder()
     runManager.addConfiguration(settings)
     return settings
   }
