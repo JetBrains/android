@@ -299,16 +299,16 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       return JLabel().apply {
         if (extensionAction != null) {
           isFocusable = ScreenReader.isActive()
-          icon = StudioIcons.Common.PROPERTY_UNBOUND_LARGE
+          icon = StudioIcons.Common.OVERFLOW
           toolTipText = extensionAction.tooltip + " (Shift+Enter)"
           addFocusListener(object : FocusListener {
             override fun focusLost(e: FocusEvent) {
-              icon = StudioIcons.Common.PROPERTY_UNBOUND_LARGE
+              icon = StudioIcons.Common.OVERFLOW
 
             }
 
             override fun focusGained(e: FocusEvent) {
-              icon = StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE
+              icon = StudioIcons.Common.OVERFLOW
             }
           })
           addMouseListener(object : MouseAdapter() {
