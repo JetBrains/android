@@ -143,6 +143,19 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlAliasIssue() {
+    doTest("libs", 1, 0,
+           """
+        [plugins]
+        plugin = { version = "4.0" }
+      """.trimIndent(),
+           { getVersionCatalogAliasProblem() },
+           { getVersionCatalogAliasDescription() }
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlAliasDuplication() {
     val (gradleDir, file) = createCatalog("libs",
                              """
@@ -566,3 +579,41 @@ Invalid catalog definition.
       """.trimIndent()
 
 }
+
+fun getVersionCatalogAliasProblem(): String = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
+  - Alias definition 'plugin' is invalid
+
+    Reason: Id for plugin alias 'plugin' wasn't set.
+
+    Possible solution: Add the 'id' element on alias 'plugin'.
+
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+> Invalid TOML catalog definition:
+    - Alias definition 'plugin' is invalid
+
+      Reason: Id for plugin alias 'plugin' wasn't set.
+
+      Possible solution: Add the 'id' element on alias 'plugin'.
+
+      For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+""".trimIndent()
+
+fun getVersionCatalogAliasDescription(): String = """
+Invalid alias catalog definition.
+  - Alias definition 'plugin' is invalid
+
+    Reason: Id for plugin alias 'plugin' wasn't set.
+
+    Possible solution: Add the 'id' element on alias 'plugin'.
+
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+""".trimIndent()
