@@ -108,7 +108,7 @@ class InsightContentPanelTest {
   @Test
   fun `test failure shows failure message if available`() = runBlocking {
     currentInsightFlow.update {
-      LoadingState.NetworkFailure("Some failure", SocketTimeoutException())
+      LoadingState.ServerFailure("Some failure", SocketTimeoutException())
     }
 
     FakeUi(insightContentPanel)
@@ -120,7 +120,7 @@ class InsightContentPanelTest {
 
   @Test
   fun `test failure shows generic failure message when message unavailable`() = runBlocking {
-    currentInsightFlow.update { LoadingState.NetworkFailure(null) }
+    currentInsightFlow.update { LoadingState.ServerFailure(null) }
 
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
@@ -147,6 +147,17 @@ class InsightContentPanelTest {
     val button = fakeUi.findComponent<JButton>() ?: fail("Button not found")
     assertThat(button.text).isEqualTo("Enable Insights")
     assertThat(button.isVisible).isTrue()
+  }
+
+  @Test
+  fun `test offline mode`() = runBlocking {
+    currentInsightFlow.update { LoadingState.NetworkFailure(null) }
+
+    FakeUi(insightContentPanel)
+    delayUntilStatusTextVisible()
+
+    assertThat(errorText).isEqualTo("Insights data is not available.")
+    assertThat(secondaryText).isEmpty()
   }
 
   private suspend fun delayUntilStatusTextVisible() =

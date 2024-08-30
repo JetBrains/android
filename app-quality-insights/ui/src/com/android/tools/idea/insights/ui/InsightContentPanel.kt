@@ -199,6 +199,13 @@ class InsightContentPanel(
             is LoadingState.ToSNotAccepted -> {
               showToSCard()
             }
+            is LoadingState.NetworkFailure -> {
+              emptyStateText.apply {
+                clear()
+                appendText("Insights data is not available.")
+              }
+              showEmptyCard()
+            }
             is LoadingState.Failure -> {
               val cause =
                 aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"

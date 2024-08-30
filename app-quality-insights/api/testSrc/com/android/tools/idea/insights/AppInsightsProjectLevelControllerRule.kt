@@ -104,7 +104,7 @@ class AppInsightsProjectLevelControllerRule(
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
       )
-    internalState = Channel(capacity = 3)
+    internalState = Channel(capacity = 5)
     scope.launch { controller.state.collect { internalState.send(it) } }
   }
 
@@ -142,15 +142,15 @@ class AppInsightsProjectLevelControllerRule(
         if (key != VITALS_KEY) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
+          client.completeFetchInsightCallWith(insightState)
         }
       }
       if (key != VITALS_KEY) {
         consumeNext()
         consumeNext()
         consumeNext()
-        client.completeListNotesCallWith(notesState)
         consumeNext()
-        client.completeFetchInsightCallWith(insightState)
+        client.completeListNotesCallWith(notesState)
       }
       resultState = consumeNext()
     }
