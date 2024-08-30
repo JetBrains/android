@@ -26,7 +26,6 @@ import androidx.compose.ui.test.performClick
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.codenavigation.CodeNavigator.Listener
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -38,6 +37,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
@@ -61,7 +61,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
   private lateinit var leakCanaryModel: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var mockActionManager: ActionManager
-  private lateinit var mockCodeNavigator: CodeNavigator
 
   @get:Rule
   val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
@@ -74,7 +73,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     leakCanaryModel = LeakCanaryModel(profilers)
     mockActionManager = mock(ActionManager::class.java)
-    mockCodeNavigator = mock(CodeNavigator::class.java)
   }
 
   /***
@@ -94,7 +92,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     val selectedLeak = leaks[0]
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration)
+      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
     }
     composeTestRule.onAllNodesWithContentDescription(LeakingStatus.YES.name).assertCountEquals(1) // 1 - yes leak icon
     composeTestRule.onAllNodesWithContentDescription(LeakingStatus.NO.name).assertCountEquals(2) // 2 - no leak icon
@@ -118,7 +116,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     val selectedLeak = leaks[0]
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration)
+      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
     }
 
     // Before expanding the rows, check if leak nodes are displayed
@@ -152,7 +150,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     val selectedLeak = leaks[0]
 
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration)
+      LeakDetailsPanel(selectedLeak = selectedLeak, leakCanaryModel::goToDeclaration, true)
     }
 
     var goToDeclarationLocation: String? = null
@@ -188,13 +186,21 @@ class LeakDetailsPanelTest : WithFakeTimer {
   }
 
   @Test
-  fun `test leak details shows place holder when no leak selected`() {
+  fun `test leak details shows place holder when recording and no leak detected`() {
     composeTestRule.setContent {
-      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration)
+      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, true)
     }
-    composeTestRule
-      .onNodeWithText("Once the current ongoing recording has captured memory leaks, their details will appear here")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NOT_LEAKING).assertDoesNotExist()
+  }
+
+  @Test
+  fun `test leak details shows place holder when not recording and no leak detected`() {
+    composeTestRule.setContent {
+      LeakDetailsPanel(selectedLeak = null, leakCanaryModel::goToDeclaration, false)
+    }
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE).assertIsDisplayed()
   }
 
   private fun getSampleLeak(): List<Leak> {

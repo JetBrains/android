@@ -70,7 +70,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
 
     // 2 leaks total in the Analysis
     composeTestRule.onAllNodesWithTag("leakListRow").assertCountEquals(2)

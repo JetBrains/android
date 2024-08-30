@@ -47,7 +47,8 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_LEAK_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.ui.component.Icon
@@ -62,11 +63,11 @@ import org.jetbrains.jewel.ui.component.Text
  * @param gotoDeclaration GotoDeclaration action for the given node.
  */
 @Composable
-fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit) {
-
+fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRecording: Boolean) {
+  val emptyLeakMessage = if(isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      EllipsisText(text = LEAKCANARY_LEAK_DETAIL_EMPTY_LEAK_MESSAGE, maxLines = 3)
+      EllipsisText(text = emptyLeakMessage, maxLines = 3)
     }
   }
   else {
