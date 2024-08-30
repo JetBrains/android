@@ -156,6 +156,19 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlLibraryWrongProperty() {
+    doTest("libs", 1, 22,
+           """
+        [libraries]
+        androidx-core-ktx = { group1 = "androidx.core", name = "core-ktx", version = "1.0" }
+      """.trimIndent(),
+           { getVersionCatalogWrongElementProblem() },
+           { getVersionCatalogWrongElementDescription() }
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlAliasDuplication() {
     val (gradleDir, file) = createCatalog("libs",
                              """
@@ -616,4 +629,22 @@ Invalid alias catalog definition.
     Possible solution: Add the 'id' element on alias 'plugin'.
 
     For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+""".trimIndent()
+
+fun getVersionCatalogWrongElementProblem() = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+org.gradle.api.InvalidUserDataException: On library declaration 'androidx-core-ktx' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected key 'group1'.
+> On library declaration 'androidx-core-ktx' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected key 'group1'.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+""".trimIndent()
+
+fun getVersionCatalogWrongElementDescription() = """
+Invalid catalog definition.
+On library declaration 'androidx-core-ktx' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected key 'group1'.
 """.trimIndent()
