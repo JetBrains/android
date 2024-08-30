@@ -1851,6 +1851,10 @@ public final class StudioFlags {
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.json.generation", "App Links Assistant JSON generation",
                     "JSON generation (i.e. automated assistance with fixing web issues) in the App Links Assistant",
                     ChannelDefault.enabledUpTo(CANARY));
+  public static final Flag<Boolean> PLAY_DYNAMIC_FILTERS =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.play.dynamic.filters", "App Links Assistant Play Dynamic Filters support",
+                    "Support for apps that opted in to using Play Dynamic Filters to manage their app links",
+                    ChannelDefault.enabledUpTo(CANARY));
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
