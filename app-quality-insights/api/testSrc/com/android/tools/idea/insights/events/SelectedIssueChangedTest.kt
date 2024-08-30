@@ -104,7 +104,11 @@ class SelectedIssueChangedTest {
       assertThat(transition.newState.currentEvents)
         .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")))
 
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE2.id))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchDetails(ISSUE2.id) and
+            Action.FetchInsight(ISSUE2.id, ISSUE2.sampleEvent, null)
+        )
     }
   }
 }

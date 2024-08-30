@@ -32,10 +32,10 @@ fun transitionEventForKey(key: InsightsProviderKey, event: Event) =
     LoadingState.Loading
   }
 
-fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
+fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId, event: Event) =
   Action.FetchDetails(id) and
     if (key == VITALS_KEY) {
-      Action.NONE
+      Action.FetchInsight(id, event, null)
     } else {
       Action.FetchIssueVariants(id) and Action.FetchNotes(id) and Action.ListEvents(id, null, null)
     }

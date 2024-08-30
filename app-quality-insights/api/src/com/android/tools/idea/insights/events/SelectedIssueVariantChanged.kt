@@ -47,7 +47,7 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
           Action.ListEvents(selectedIssueId, variant?.id, null) and
           Action.FetchInsight(
             selectedIssueId,
-            state.selectedEvent?.eventId ?: state.selectedIssue!!.sampleEvent.eventId,
+            state.selectedEvent ?: state.selectedIssue!!.sampleEvent,
             variant?.id,
           ))
       else Action.NONE,

@@ -30,7 +30,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
     key: InsightsProviderKey,
   ): StateTransition<Action> {
     val selectedIssueId = state.selectedIssue?.id ?: return StateTransition(state, Action.NONE)
-    val selectedEventId = state.selectedEvent?.eventId ?: state.selectedIssue!!.sampleEvent.eventId
+    val selectedEvent = state.selectedEvent ?: state.selectedIssue!!.sampleEvent
 
     return StateTransition(
       state.copy(
@@ -40,7 +40,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
             variants.map { Selection(null, it) }
           }
       ),
-      if (state.selectedIssue != null) Action.FetchInsight(selectedIssueId, selectedEventId, null)
+      if (state.selectedIssue != null) Action.FetchInsight(selectedIssueId, selectedEvent, null)
       else Action.NONE,
     )
   }

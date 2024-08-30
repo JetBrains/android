@@ -1855,13 +1855,13 @@ public final class StudioFlags {
       "Enhance code navigation in the Play Vitals tab to aid crash investigation with the recorded VCS info",
       true);
 
-  public static final Flag<Boolean> PLAY_VITALS_SHOW_INSIGHT =
+  public static final Flag<Boolean> PLAY_VITALS_INSIGHT_IN_TOOLWINDOW =
     new BooleanFlag(
       APP_INSIGHTS,
-      "play.vitals.show.insight",
-      "Show insight for Play Vitals",
-      "Show AI generated insights for Play Vitals issue",
-      true
+      "play.vitals.show.insight.tool.window",
+      "Show insight toolwindow in Play Vitals",
+      "Show AI generated insights for Play Vitals issue in insight toolwindow",
+      false
     );
   // endregion App Insights
 

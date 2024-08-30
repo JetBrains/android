@@ -326,7 +326,7 @@ class VitalsIssueDetailsPanel(
           layout = BoxLayout(this, BoxLayout.X_AXIS)
           add(affectedVersionsLabel)
           add(Box.createHorizontalGlue())
-          if (StudioFlags.PLAY_VITALS_SHOW_INSIGHT.get()) {
+          if (!StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
             // Work around for Gemini's onboarding flow not exposed.
             // Action system will take care of calling update on InsightAction.
             // InsightAction (added when creating toolbar) updates the text depending on Gemini's

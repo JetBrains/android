@@ -199,6 +199,7 @@ class VitalsConfigurationManager(
         if (testClient == null) {
           clientDeferred.complete(
             VitalsClient(
+              project,
               this@VitalsConfigurationManager,
               cache,
               GoogleLoginService.instance.getActiveUserAuthInterceptor(
