@@ -255,7 +255,7 @@ class DeviceUiSettingsActionTest {
   private fun createDeviceView(device: FakeDevice, parentDisposable: Disposable): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(parentDisposable, deviceClient)
-    return DeviceView(parentDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
+    return DeviceView(parentDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
   }
 
   private fun waitForFrame(view: DeviceView) {

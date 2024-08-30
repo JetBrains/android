@@ -76,7 +76,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
@@ -134,10 +133,10 @@ import kotlin.math.min
 internal class DeviceView(
   disposableParent: Disposable,
   val deviceClient: DeviceClient,
+  override val project: Project,
   displayId: Int,
   private val initialDisplayOrientation: Int,
-  private val project: Project,
-) : AbstractDisplayView(displayId), DeviceMirroringSettingsListener {
+) : AbstractDisplayView(project, displayId), DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
@@ -462,14 +461,8 @@ internal class DeviceView(
   }
 
   private fun startClipboardSynchronization() {
-    val synchronizer = clipboardSynchronizer
-    if (synchronizer == null) {
-      // Start clipboard synchronization.
+    if (clipboardSynchronizer == null) {
       clipboardSynchronizer = DeviceClipboardSynchronizer(this, deviceClient)
-    }
-    else {
-      // Pass the new value of maxSyncedClipboardLength to the device.
-      synchronizer.setDeviceClipboard(forceSend = true)
     }
   }
 
