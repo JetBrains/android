@@ -95,6 +95,11 @@ interface BackupManager {
    */
   suspend fun getApplicationId(backupFile: Path): String?
 
+  /**
+   * Gets the application id of the foreground on the device with the serial number provided.
+   */
+  suspend fun getForegroundApplicationId(serialNumber: String) : String
+
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 
