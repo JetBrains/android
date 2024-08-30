@@ -610,11 +610,6 @@ internal class AndroidProjectRuleTempDirectoryFixture(name: String) : AndroidTem
   override fun getRootTempDirectory(): String = tempRoot
   override fun tearDown() {
     super.tearDown()  // Deletes the project directory.
-
-    // Cleanup FileBasedIndex references to indexable files pointing to the temp directory.
-    // TODO(b/353167525): remove this after https://youtrack.jetbrains.com/issue/KT-69891 is fixed.
-    (FileBasedIndex.getInstance() as FileBasedIndexImpl).filesToUpdateCollector.clear()
-    (FileBasedIndex.getInstance() as FileBasedIndexImpl).changedFilesCollector.clear()
     try {
       // Delete the temp directory where the project directory was created.
       runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
