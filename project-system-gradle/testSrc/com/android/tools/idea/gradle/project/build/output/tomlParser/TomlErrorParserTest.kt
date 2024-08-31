@@ -169,6 +169,19 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlBundleWrongReference() {
+    doTest("libs", 1, 10,
+           """
+        [bundles]
+        bundle = ["aaa"]
+      """.trimIndent(),
+           { getVersionCatalogWrongBundleElementProblem() },
+           { getVersionCatalogWrongBundleElementDescription() }
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlAliasDuplication() {
     val (gradleDir, file) = createCatalog("libs",
                              """
@@ -647,4 +660,48 @@ org.gradle.api.InvalidUserDataException: On library declaration 'androidx-core-k
 fun getVersionCatalogWrongElementDescription() = """
 Invalid catalog definition.
 On library declaration 'androidx-core-ktx' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected key 'group1'.
+""".trimIndent()
+
+fun getVersionCatalogWrongBundleElementProblem() = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+org.gradle.api.InvalidUserDataException: Invalid catalog definition:
+  - Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
+
+    Reason: Bundles can only contain references to existing library aliases.
+
+    Possible solutions:
+      1. Make sure that the library alias 'aaa' is declared.
+      2. Remove 'aaa' from bundle 'bundle'.
+
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_alias_reference in the Gradle documentation.
+> Invalid catalog definition:
+    - Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
+
+      Reason: Bundles can only contain references to existing library aliases.
+
+      Possible solutions:
+        1. Make sure that the library alias 'aaa' is declared.
+        2. Remove 'aaa' from bundle 'bundle'.
+
+      For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_alias_reference in the Gradle documentation.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+""".trimIndent()
+
+fun getVersionCatalogWrongBundleElementDescription() = """
+Invalid catalog definition.
+  - Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
+
+    Reason: Bundles can only contain references to existing library aliases.
+
+    Possible solutions:
+      1. Make sure that the library alias 'aaa' is declared.
+      2. Remove 'aaa' from bundle 'bundle'.
+
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_alias_reference in the Gradle documentation.
 """.trimIndent()
