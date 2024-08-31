@@ -99,7 +99,12 @@ internal fun findFirstElement(project: Project, virtualFile: VirtualFile, path:S
   return alias ?: fileDescriptor
 }
 
-private fun getDescriptor(psiElement: PsiElement, project: Project, virtualFile: VirtualFile):OpenFileDescriptor?{
+fun getDescriptor(psiElement: PsiElement, project: Project, virtualFile: VirtualFile): OpenFileDescriptor? {
   val (lineNumber, columnNumber) = getElementLineAndColumn(psiElement) ?: return null
   return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
 }
+
+internal val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
+                                        "version" to "versions",
+                                        "library" to "libraries",
+                                        "plugin" to "plugins")
