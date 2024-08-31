@@ -26,7 +26,8 @@ import com.android.tools.profilers.leakcanary.LeakCanaryModel
 fun LeakListView(leakCanaryModel: LeakCanaryModel, modifier: Modifier = Modifier) {
   Column(modifier = modifier) {
     val leaks by leakCanaryModel.leaks.collectAsState()
+    val isRecording by leakCanaryModel.isRecording.collectAsState()
     val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
-    LeakListContent(leaks, selectedLeak, leakCanaryModel::onLeakSelection)
+    LeakListContent(leaks, selectedLeak, isRecording, leakCanaryModel::onLeakSelection)
   }
 }

@@ -56,7 +56,8 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
 @Composable
 private fun LeakDetailsColumn(modifier: Modifier, leakCanaryModel: LeakCanaryModel) {
   val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
+  val isRecording by leakCanaryModel.isRecording.collectAsState()
   Column(modifier = modifier) {
-    LeakDetailsPanel(selectedLeak = selectedLeak, gotoDeclaration = leakCanaryModel::goToDeclaration)
+    LeakDetailsPanel(selectedLeak = selectedLeak, gotoDeclaration = leakCanaryModel::goToDeclaration, isRecording = isRecording)
   }
 }
