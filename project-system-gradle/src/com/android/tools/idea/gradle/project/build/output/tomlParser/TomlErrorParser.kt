@@ -65,7 +65,18 @@ class TomlErrorParser : BuildOutputParser {
 
 
   companion object {
-    const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
+    private const val tomlDefinition = "Invalid TOML catalog definition"
+    private const val definition = "Invalid catalog definition"
+
+    const val BUILD_ISSUE_TOML_START: String = "${tomlDefinition}:"
+    const val BUILD_ISSUE_START: String = "${definition}:"
+
+    const val BUILD_ISSUE_TITLE: String = "${definition}."
+    const val BUILD_ISSUE_TOML_TITLE: String = "${tomlDefinition}."
+
+
+    const val BUILD_ISSUE_TOML_STOP_LINE: String = "> $tomlDefinition"
+    const val BUILD_ISSUE_STOP_LINE: String = "> $definition"
   }
 
 }

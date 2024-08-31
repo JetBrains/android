@@ -60,7 +60,7 @@ internal fun readUntilLine(reader: BuildOutputInstantReader, stopLine: String, l
 abstract class TomlErrorMessageAwareIssue(_description: String) : ErrorMessageAwareBuildIssue {
   override val description: String = _description.trimEnd()
   override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-  override val title: String = TomlErrorParser.BUILD_ISSUE_TITLE
+  override val title: String = TomlErrorParser.BUILD_ISSUE_TOML_TITLE
   override val buildErrorMessage: BuildErrorMessage
     get() = BuildErrorMessage.newBuilder().apply {
       errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
