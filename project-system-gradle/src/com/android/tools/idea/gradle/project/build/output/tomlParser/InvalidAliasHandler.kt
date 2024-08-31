@@ -20,14 +20,8 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.childrenOfType
-import org.toml.lang.psi.TomlKeyValue
-import org.toml.lang.psi.TomlTable
 
 class InvalidAliasHandler: TomlErrorHandler {
   private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
@@ -63,20 +57,10 @@ class InvalidAliasHandler: TomlErrorHandler {
     description.append(readUntilLine(reader, "> Invalid catalog definition"))
 
     val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-      private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
-        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
-        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
-        val element = psiFile.childrenOfType<TomlTable>()
-                        .filter { it.header.key?.text == type }
-                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-                        .find { it.key.text == alias } ?: return fileDescriptor
-        val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
-        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
-      }
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
         return runReadAction {
-          computeNavigable(project, file)
+          findFirstElement(project,file,"$type/$alias")
         }
       }
     }
