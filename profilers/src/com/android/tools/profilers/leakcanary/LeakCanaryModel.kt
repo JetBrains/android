@@ -17,13 +17,16 @@ package com.android.tools.profilers.leakcanary
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.updater.Updatable
+import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
 import com.android.tools.leakcanarylib.LeakCanarySerializer
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.LeakingStatus
+import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
@@ -32,6 +35,9 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -196,6 +202,17 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
                                      endTimeStamp: Long): List<Analysis> {
     val eventList = getLeaksFromRange(profilers.client, session, Range(startTimestamp.toDouble(), endTimeStamp.toDouble()))
     return eventList.mapNotNull { event -> getEventFromLogcatMessage(event.leakcanaryLogcat.logcatMessage) }
+  }
+
+  fun goToDeclaration(node: Node) {
+    val codeLocationSupplier: () -> CodeLocation = {
+      CodeLocation.Builder(node.className.removeSuffix("[]"))
+        .build()
+    }
+    val navigator = this.studioProfilers.ideServices.codeNavigator
+    val action = NavigateToCodeAction(codeLocationSupplier, navigator)
+    val event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.CODE_INSPECTION, DataContext.EMPTY_CONTEXT)
+    action.actionPerformed(event)
   }
 
   companion object {

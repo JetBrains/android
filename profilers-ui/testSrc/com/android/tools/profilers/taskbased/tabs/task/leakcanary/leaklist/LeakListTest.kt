@@ -31,8 +31,8 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_EMPTY_LEAK_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT
 import org.junit.Assert.assertEquals
@@ -72,7 +72,7 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText(LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(LEAKCANARY_EMPTY_LEAK_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE).assertIsDisplayed()
   }
 
   @Test
@@ -87,7 +87,7 @@ class LeakListTest : WithFakeTimer {
     composeTestRule.onNodeWithText(LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
-    composeTestRule.onNodeWithText(LEAKCANARY_EMPTY_LEAK_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithText(LEAKCANARY_LEAK_LIST_EMPTY_LEAK_MESSAGE).assertDoesNotExist()
   }
 
   @Test
