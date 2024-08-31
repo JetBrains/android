@@ -138,7 +138,7 @@ class EmulatorViewTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(ClipboardSynchronizationDisablementRule(), emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
