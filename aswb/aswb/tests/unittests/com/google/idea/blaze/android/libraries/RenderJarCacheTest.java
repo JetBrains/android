@@ -190,7 +190,7 @@ public class RenderJarCacheTest {
         .putAll(artifactsCaptor.capture(), contextCaptor.capture(), removeCaptor.capture());
 
     Collection<OutputArtifactWithoutDigest> passedArtifact = artifactsCaptor.getValue();
-    assertThat(passedArtifact.stream().map(OutputArtifactWithoutDigest::getRelativePath))
+    assertThat(passedArtifact.stream().map(OutputArtifactWithoutDigest::getBazelOutRelativePath))
         .containsExactly(
             "com/foo/bar/baz/baz_render_jar.jar", "com/foo/bar/qux/qux_render_jar.jar");
   }

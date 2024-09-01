@@ -46,7 +46,7 @@ public class BepArtifactData {
 
   @Override
   public int hashCode() {
-    return artifact.getRelativePath().hashCode();
+    return artifact.getBazelOutRelativePath().hashCode();
   }
 
   @Override
@@ -64,7 +64,7 @@ public class BepArtifactData {
 
   /** Combines this data with a newer version. */
   public BepArtifactData update(BepArtifactData newer) {
-    Preconditions.checkState(artifact.getRelativePath().equals(newer.artifact.getRelativePath()));
+    Preconditions.checkState(artifact.getBazelOutRelativePath().equals(newer.artifact.getBazelOutRelativePath()));
     return new BepArtifactData(
         newer.artifact,
         Sets.union(outputGroups, newer.outputGroups).immutableCopy(),
