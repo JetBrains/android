@@ -175,7 +175,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       BlazeBuildOutputs buildOutput, Predicate<String> outputGroupFilter) {
     Predicate<String> pathFilter = AspectStrategy.ASPECT_OUTPUT_FILE_PREDICATE.negate();
     return buildOutput.getOutputGroupArtifacts(outputGroupFilter).stream()
-        .filter(a -> pathFilter.test(a.getRelativePath()))
+        .filter(a -> pathFilter.test(a.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
 
@@ -205,7 +205,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
             .getBuildResult()
             .getOutputGroupArtifacts(group -> group.startsWith(OutputGroup.INFO.prefix))
             .stream()
-            .filter(f -> ideInfoPredicate.test(f.getRelativePath()))
+            .filter(f -> ideInfoPredicate.test(f.getBazelOutRelativePath()))
             .distinct()
             .collect(toImmutableList());
 
@@ -390,7 +390,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                     configurations.add(config);
                     TargetKey key = targetFilePair.target.getKey();
                     if (targetMap.putIfAbsent(key, targetFilePair.target) == null) {
-                      state.ideInfoToTargetKey.forcePut(file.getRelativePath(), key);
+                      state.ideInfoToTargetKey.forcePut(file.getBazelOutRelativePath(), key);
                     } else {
                       if (!newTargets.add(key)) {
                         duplicateTargetLabels++;
@@ -398,7 +398,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                       // prioritize the default configuration over build order
                       if (Objects.equals(config, configHandler.defaultConfigurationPathComponent)) {
                         targetMap.put(key, targetFilePair.target);
-                        state.ideInfoToTargetKey.forcePut(file.getRelativePath(), key);
+                        state.ideInfoToTargetKey.forcePut(file.getBazelOutRelativePath(), key);
                       }
                     }
                   }
@@ -535,7 +535,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     // TODO: handle prefetching for arbitrary OutputArtifacts
     ImmutableList<File> files =
         artifacts.stream()
-            .filter(a -> filter.test(a.getRelativePath()))
+            .filter(a -> filter.test(a.getBazelOutRelativePath()))
             .filter(o -> o instanceof LocalFileArtifact)
             .map(o -> ((LocalFileArtifact) o).getFile())
             .collect(toImmutableList());

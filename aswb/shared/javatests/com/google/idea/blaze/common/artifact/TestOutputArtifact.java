@@ -27,7 +27,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
       new AutoValue_TestOutputArtifact.Builder()
           .setLength(0)
           .setDigest("digest")
-          .setRelativePath("path/file")
+          .setBazelOutRelativePath("path/file")
           .setConfigurationMnemonic("mnemonic")
           .build();
 
@@ -51,7 +51,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
   public abstract String getDigest();
 
   @Override
-  public abstract String getRelativePath();
+  public abstract String getBazelOutRelativePath();
 
   @Override
   public abstract String getConfigurationMnemonic();
@@ -71,7 +71,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
 
     public abstract Builder setDigest(String value);
 
-    public abstract Builder setRelativePath(String value);
+    public abstract Builder setBazelOutRelativePath(String value);
 
     public abstract Builder setConfigurationMnemonic(String value);
 

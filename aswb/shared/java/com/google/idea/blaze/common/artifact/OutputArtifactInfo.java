@@ -18,5 +18,5 @@ package com.google.idea.blaze.common.artifact;
 /** A descriptor of an output artifact that contains data needed to identify the artifact. */
 public interface OutputArtifactInfo {
   /** The blaze-out-relative path. */
-  String getRelativePath();
+  String getBazelOutRelativePath();
 }

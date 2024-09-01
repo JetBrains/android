@@ -51,7 +51,7 @@ public class LocalFileOutputArtifactWithoutDigest
   @Nullable
   public ArtifactState toArtifactState() {
     long lastModifiedTime = getLastModifiedTime();
-    return lastModifiedTime == 0 ? null : new LocalFileState(getRelativePath(), lastModifiedTime);
+    return lastModifiedTime == 0 ? null : new LocalFileState(getBazelOutRelativePath(), lastModifiedTime);
   }
 
   @Override
@@ -60,7 +60,7 @@ public class LocalFileOutputArtifactWithoutDigest
   }
 
   @Override
-  public String getRelativePath() {
+  public String getBazelOutRelativePath() {
     return blazeOutRelativePath;
   }
 

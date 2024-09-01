@@ -48,7 +48,7 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   }
 
   @Override
-  public String getRelativePath() {
+  public String getBazelOutRelativePath() {
     return file.getPath();
   }
 
@@ -87,6 +87,6 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
       return true;
     }
     return obj instanceof FakeRemoteOutputArtifact
-        && getRelativePath().equals(((FakeRemoteOutputArtifact) obj).getRelativePath());
+           && getBazelOutRelativePath().equals(((FakeRemoteOutputArtifact) obj).getBazelOutRelativePath());
   }
 }

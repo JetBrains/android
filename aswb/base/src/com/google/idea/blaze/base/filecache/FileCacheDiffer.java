@@ -92,7 +92,7 @@ public final class FileCacheDiffer {
 
   private static boolean shouldUpdateRemote(
       RemoteOutputArtifact newOutput, RemoteOutputArtifacts previousOutputs) {
-    RemoteOutputArtifact previous = previousOutputs.findRemoteOutput(newOutput.getRelativePath());
+    RemoteOutputArtifact previous = previousOutputs.findRemoteOutput(newOutput.getBazelOutRelativePath());
     if (previous == null) {
       return true;
     }

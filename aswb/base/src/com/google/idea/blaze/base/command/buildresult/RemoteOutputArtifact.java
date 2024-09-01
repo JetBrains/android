@@ -52,7 +52,7 @@ public interface RemoteOutputArtifact
   @Override
   default ProjectData.OutputArtifact toProto() {
     return ProjectData.OutputArtifact.newBuilder()
-        .setRelativePath(getRelativePath())
+        .setRelativePath(getBazelOutRelativePath())
         .setId(getHashId())
         .setSyncStartTimeMillis(getSyncTimeMillis())
         .setFileLength(getLength())

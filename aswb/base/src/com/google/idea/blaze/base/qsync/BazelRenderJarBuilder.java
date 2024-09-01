@@ -209,7 +209,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
     }
     File srcfsArtifact = new File(hashId.replaceFirst("/google_src", "/google/src"));
     return new LocalFileOutputArtifact(
-        srcfsArtifact, it.getRelativePath(), it.getConfigurationMnemonic(), it.getDigest());
+      srcfsArtifact, it.getBazelOutRelativePath(), it.getConfigurationMnemonic(), it.getDigest());
   }
 }
 

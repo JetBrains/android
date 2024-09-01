@@ -37,7 +37,7 @@ public final class UnpackedAarUtils {
   /* Converts {@link BlazeArtifact} to the key which is used to create aar directory name */
   public static String getArtifactKey(BlazeArtifact artifact) {
     if (artifact instanceof OutputArtifactWithoutDigest) {
-      return ((OutputArtifactWithoutDigest) artifact).getRelativePath();
+      return ((OutputArtifactWithoutDigest) artifact).getBazelOutRelativePath();
     }
     if (artifact instanceof SourceArtifact) {
       return ((SourceArtifact) artifact).getFile().getPath();

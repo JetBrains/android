@@ -28,7 +28,7 @@ public abstract class TestOutputArtifactInfo implements OutputArtifactInfo {
   }
 
   @Override
-  public String getRelativePath() {
+  public String getBazelOutRelativePath() {
     return "somewhere/" + fileName();
   }
 }
