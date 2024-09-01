@@ -18,12 +18,9 @@ package com.google.idea.blaze.base.qsync;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.idea.blaze.base.command.buildresult.LocalFileOutputArtifact;
-import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
-import java.io.File;
 import java.util.Set;
 
 /** Helper class for managing output artifacts grouped by {@link OutputGroup}. */
@@ -44,31 +41,9 @@ public class GroupedOutputArtifacts {
     ImmutableListMultimap.Builder<OutputGroup, OutputArtifact> builder = builder();
     for (OutputGroup group : outputGroups) {
       ImmutableList<OutputArtifact> artifacts =
-          translateOutputArtifacts(
-              buildOutputs.getOutputGroupArtifacts(group.outputGroupName()::equals));
+        buildOutputs.getOutputGroupArtifacts(group.outputGroupName()::equals);
       builder.putAll(group, artifacts);
     }
     return builder.build();
-  }
-
-  private static ImmutableList<OutputArtifact> translateOutputArtifacts(
-      ImmutableList<OutputArtifact> artifacts) {
-    return artifacts.stream()
-        .map(GroupedOutputArtifacts::translateOutputArtifact)
-        .collect(ImmutableList.toImmutableList());
-  }
-
-  private static OutputArtifact translateOutputArtifact(OutputArtifact it) {
-    if (!(it instanceof RemoteOutputArtifact)) {
-      return it;
-    }
-    RemoteOutputArtifact remoteOutputArtifact = (RemoteOutputArtifact) it;
-    String hashId = remoteOutputArtifact.getHashId();
-    if (!(hashId.startsWith("/google_src") || hashId.startsWith("/google/src"))) {
-      return it;
-    }
-    File srcfsArtifact = new File(hashId.replaceFirst("/google_src", "/google/src"));
-    return new LocalFileOutputArtifact(
-      srcfsArtifact, it.getBazelOutRelativePath(), it.getConfigurationMnemonic(), it.getDigest());
   }
 }
