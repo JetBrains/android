@@ -22,6 +22,7 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.model.NlModel
@@ -41,6 +42,7 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.gallery.GalleryModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
@@ -67,6 +69,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -84,6 +87,8 @@ import javax.swing.LayoutFocusTraversalPolicy
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
@@ -471,6 +476,21 @@ internal class ComposePreviewViewImpl(
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
               StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
                 if (!StudioBot.getInstance().isContextAllowed(project)) {
+                  return@ifEnabled null
+                }
+                try {
+                  ProgressManager.checkCanceled()
+                  if (
+                    psiFilePointer.element
+                      ?.collectDescendantsOfType<KtNamedFunction>()
+                      ?.flatMap { it.annotationEntries }
+                      ?.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
+                  ) {
+                    // Don't show the action if there are no Composables in the file
+                    return@ifEnabled null
+                  }
+                } catch (e: Exception) {
+                  log.debug("Failed to check if there are Composables in the file", e)
                   return@ifEnabled null
                 }
 
