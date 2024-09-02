@@ -729,6 +729,38 @@ class WearHealthServicesPanelTest {
         .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
     }
 
+  @Test
+  fun `when an exercise is started pending capability changes are hidden`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val heartRateCapability = WHS_CAPABILITIES[0]
+    stateManager.setCapabilityEnabled(heartRateCapability, false)
+    fakeUi.waitForCheckbox("Heart rate*", selected = false)
+    fakeUi.waitForDescendant<JLabel> { it.text == "Heart rate*" && it.isEnabled }
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    fakeUi.waitForCheckbox("Heart rate", selected = true)
+    fakeUi.waitForDescendant<JLabel> { it.text == "Heart rate" && it.isEnabled }
+  }
+
+  @Test
+  fun `when an exercise is stopped pending user override changes are not shown`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component)
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
+      val heartRateCapability = WHS_CAPABILITIES[0]
+      stateManager.setOverrideValue(heartRateCapability, 50)
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      deviceManager.activeExercise = false
+      stateManager.ongoingExercise.waitForValue(false)
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
       checkbox.hasLabel(text) && checkbox.isSelected == selected
