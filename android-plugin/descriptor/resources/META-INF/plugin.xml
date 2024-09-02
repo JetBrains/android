@@ -12,6 +12,13 @@
   <depends>com.intellij.modules.java</depends>
   <depends>com.intellij.java</depends>
 
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Ladybug Canary 7.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2024/08/android-studio-ladybug-202421-canary-7.html">Android Studio Ladybug Canary 7</a>.]]>
+  </change-notes>
+
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>

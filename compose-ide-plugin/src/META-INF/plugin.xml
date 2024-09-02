@@ -25,6 +25,13 @@
   <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
 
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Ladybug Canary 7.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2024/08/android-studio-ladybug-202421-canary-7.html">Android Studio Ladybug Canary 7</a>.]]>
+  </change-notes>
+
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
