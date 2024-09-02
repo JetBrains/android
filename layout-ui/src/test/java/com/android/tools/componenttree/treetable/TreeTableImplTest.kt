@@ -17,7 +17,6 @@ package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -77,6 +76,7 @@ import org.junit.runners.model.Statement
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class TreeTableImplTest {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -37,6 +36,7 @@ import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.mock
 
 class CollapsibleLabelPanelTest {
   private val disposableRule = DisposableRule()
