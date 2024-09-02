@@ -14,6 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="android-adb-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService"/>
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService"/>
@@ -26,7 +28,6 @@
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceCableMonitor"/>
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.AdbServerStatusReporter"/>
     <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
