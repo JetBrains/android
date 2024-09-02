@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
@@ -49,7 +50,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(
   override fun setState(state: FileEditorState) {
     if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
       super.setState(state.parentState)
-      myEditor.setState(state.editorState)
+      runWriteAction { myEditor.setState(state.editorState) }
       preview.setState(state.previewState)
 
       setLayoutExplicitly(state.selectedLayout)
