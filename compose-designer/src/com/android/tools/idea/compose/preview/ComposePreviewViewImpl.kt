@@ -475,44 +475,7 @@ internal class ComposePreviewViewImpl(
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
               StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
-                if (!StudioBot.getInstance().isContextAllowed(project)) {
-                  return@ifEnabled null
-                }
-                try {
-                  ProgressManager.checkCanceled()
-                  if (
-                    psiFilePointer.element
-                      ?.collectDescendantsOfType<KtNamedFunction>()
-                      ?.flatMap { it.annotationEntries }
-                      ?.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
-                  ) {
-                    // Don't show the action if there are no Composables in the file
-                    return@ifEnabled null
-                  }
-                } catch (e: Exception) {
-                  log.debug("Failed to check if there are Composables in the file", e)
-                  return@ifEnabled null
-                }
-
-                ActionData(message("action.generate.previews.for.file.empty.panel")) {
-                  val psiFile = psiFilePointer.element ?: return@ActionData
-                  val selectedEditor =
-                    (FileEditorManager.getInstance(psiFile.project).selectedEditor
-                        as? TextEditorWithPreview)
-                      ?.editor ?: return@ActionData
-                  val simpleContext =
-                    SimpleDataContext.builder()
-                      .add(CommonDataKeys.PSI_FILE, psiFile)
-                      .add(CommonDataKeys.EDITOR, selectedEditor)
-                      .build()
-                  ActionUtil.invokeAction(
-                    GenerateComposePreviewsForFileAction(),
-                    simpleContext,
-                    ActionPlaces.UNKNOWN,
-                    null,
-                    null,
-                  )
-                }
+                createGeneratePreviewsActionData()
               },
             )
           }
@@ -521,6 +484,50 @@ internal class ComposePreviewViewImpl(
 
       updateNotifications()
     }
+
+  /**
+   * Creates an [ActionData] to invoke [GenerateComposePreviewsForFileAction]. The action should
+   * only be visible if the containing file has Composables.
+   */
+  private fun createGeneratePreviewsActionData(): ActionData? {
+    if (!StudioBot.getInstance().isContextAllowed(project)) {
+      return null
+    }
+    try {
+      ProgressManager.checkCanceled()
+      if (
+        psiFilePointer.element
+          ?.collectDescendantsOfType<KtNamedFunction>()
+          ?.flatMap { it.annotationEntries }
+          ?.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
+      ) {
+        // Don't show the action if there are no Composables in the file
+        return null
+      }
+    } catch (e: Exception) {
+      log.debug("Failed to check if there are Composables in the file", e)
+      return null
+    }
+
+    return ActionData(message("action.generate.previews.for.file.empty.panel")) {
+      val psiFile = psiFilePointer.element ?: return@ActionData
+      val selectedEditor =
+        (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
+          ?.editor ?: return@ActionData
+      val simpleContext =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PSI_FILE, psiFile)
+          .add(CommonDataKeys.EDITOR, selectedEditor)
+          .build()
+      ActionUtil.invokeAction(
+        GenerateComposePreviewsForFileAction(),
+        simpleContext,
+        ActionPlaces.UNKNOWN,
+        null,
+        null,
+      )
+    }
+  }
 
   override var hasContent: Boolean = false
 
