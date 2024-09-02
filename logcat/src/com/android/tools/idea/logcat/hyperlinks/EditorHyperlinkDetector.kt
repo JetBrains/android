@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -41,7 +40,6 @@ internal class EditorHyperlinkDetector(
   executor: ExecutorService = AppExecutorUtil.getAppExecutorService(),
 ) : HyperlinkDetector, Disposable {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
-  private val studioBot = StudioBot.getInstance()
   private var isDisposed = false
 
   private val expirableToken = Expirable { isDisposed }
@@ -51,9 +49,9 @@ internal class EditorHyperlinkDetector(
   init {
     Disposer.register(parentDisposable, this)
 
-    if (studioBot.isAvailable()) {
-      filter.addFilter(StudioBotFilter(editor))
-    }
+    // Always add StudioBotFilter to the hyperlink detector.
+    // However, the StudioBotFilter only adds links when StudioBot instance is available.
+    filter.addFilter(StudioBotFilter(editor))
 
     // Add all standard filters
     // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
