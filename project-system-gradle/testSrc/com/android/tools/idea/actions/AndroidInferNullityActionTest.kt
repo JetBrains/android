@@ -18,7 +18,9 @@ package com.android.tools.idea.actions
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth
 import com.intellij.analysis.AnalysisScope
@@ -88,6 +90,7 @@ public class TestNullity {
       [libraries]
       support = "com.android.support:support-annotations:+"
     """.trimIndent())
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     executeWithoutApplyRunnable {
       try {
@@ -118,6 +121,7 @@ public class TestNullity {
     myFixture.addFileToProject("gradle/libs.versions.toml", """
       [libraries]
     """.trimIndent())
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     try {
       val action = AndroidInferNullityAnnotationAction()
@@ -151,6 +155,7 @@ public class TestNullity {
       [libraries]
       support-annotation = "com.android.support:support-annotations:+"
     """.trimIndent())
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
@@ -169,6 +174,7 @@ public class TestNullity {
          implementation "com.android.support:support-annotations:+"
       }
     """.trimIndent())
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
     try {
