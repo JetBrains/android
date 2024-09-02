@@ -41,6 +41,7 @@ import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
@@ -63,6 +64,7 @@ class SceneViewPeerPanel(
   sceneViewLeftBar: JComponent?,
   sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
+  private val isOrganizationEnabled: StateFlow<Boolean>,
 ) : JPanel(), PositionablePanel, DataProvider {
 
   init {
@@ -285,9 +287,12 @@ class SceneViewPeerPanel(
   }
 
   override fun isVisible(): Boolean {
-    return sceneView.isVisible &&
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.value ?: true
+    return sceneView.isVisible && !isHiddenInOrganizationGroup()
   }
+
+  private fun isHiddenInOrganizationGroup() =
+    isOrganizationEnabled.value &&
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
 
   override fun getData(dataId: String): Any? {
     return if (SCENE_VIEW.`is`(dataId)) {

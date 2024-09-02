@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import javax.swing.JPanel
@@ -34,26 +34,26 @@ class OrganizationTest {
   @get:Rule val projectRule = ApplicationRule()
 
   @Test
-  fun createHeaders() {
-    invokeAndWaitIfNeeded {
-      val parent = JPanel()
-      val group1 = OrganizationGroup("method1", "1")
-      val group2 = OrganizationGroup("method2", "2")
-      val sceneViews =
-        listOf(
-          createSceneView(group1, "name1"),
-          createSceneView(group1, "name2"),
-          createSceneView(group2, "name3"),
-          createSceneView(group2, "name4"),
-        )
-      val headers = sceneViews.createOrganizationHeaders(parent)
-      assertThat(headers).hasSize(2)
-      assertThat(headers[group1]).isNotNull()
-      assertThat(headers[group2]).isNotNull()
-      sceneViews.forEach {
-        Disposer.dispose(it.sceneManager)
-        Disposer.dispose(it)
-      }
+  fun createHeaders() = runInEdt {
+    val parent = JPanel()
+    val group1 = OrganizationGroup("method1", "1")
+    val group2 = OrganizationGroup("method2", "2")
+    val sceneViews =
+      listOf(
+        createSceneView(group1, "name1"),
+        createSceneView(group1, "name2"),
+        createSceneView(group2, "name3"),
+        createSceneView(group2, "name4"),
+      )
+    val groups = sceneViews.findGroups()
+    assertThat(groups).hasSize(2)
+    val headers = groups.createOrganizationHeaders(parent)
+    assertThat(headers).hasSize(2)
+    assertThat(headers[group1]).isNotNull()
+    assertThat(headers[group2]).isNotNull()
+    sceneViews.forEach {
+      Disposer.dispose(it.sceneManager)
+      Disposer.dispose(it)
     }
   }
 
@@ -67,7 +67,9 @@ class OrganizationTest {
         createSceneView(OrganizationGroup("method3", "3"), "name3"),
         createSceneView(OrganizationGroup("method4", "4"), "name4"),
       )
-    val headers = sceneViews.createOrganizationHeaders(parent)
+    val groups = sceneViews.findGroups()
+    assertThat(groups).isEmpty()
+    val headers = groups.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)
@@ -85,7 +87,9 @@ class OrganizationTest {
         createSceneView(OrganizationGroup("method1", "1"), "name3"),
         createSceneView(OrganizationGroup("method2", "2"), "name4"),
       )
-    val headers = sceneViews.createOrganizationHeaders(parent)
+    val groups = sceneViews.findGroups()
+    assertThat(groups).isEmpty()
+    val headers = groups.createOrganizationHeaders(parent)
     assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)

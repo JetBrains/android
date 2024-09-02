@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.common.surface.sceneview
 
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.model.DisplaySettings
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runInEdt
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -47,49 +47,59 @@ class LabelPanelTest {
   }
 
   @Test
-  fun `change name`() {
+  fun `change name`() = runInEdt {
     val settings =
       DisplaySettings().apply {
-        setDisplayName("Name")
+        setDisplayName("displayName")
+        setParameterName("parameterName")
         setTooltip("Tooltip")
       }
-    val label = LabelPanel(settings, scope).apply { size = Dimension(250, 50) }
-    val ui = FakeUi(label)
-    invokeAndWaitIfNeeded { ui.layout() }
+    val organizationEnabled = MutableStateFlow(false)
+    val label = LabelPanel(settings, scope, organizationEnabled).apply { size = Dimension(250, 50) }
     assertTrue(label.isVisible)
-    assertEquals("Name", label.text)
-    settings.setDisplayName("New Name")
-    invokeAndWaitIfNeeded { ui.layout() }
-    assertEquals("New Name", label.text)
+    assertEquals("displayName", label.text)
+    assertEquals("Tooltip", label.text)
+
+    settings.setDisplayName("New displayName")
+    assertEquals("New displayName", label.text)
+
+    settings.setTooltip(null)
+    assertEquals("New displayName", label.toolTipText)
+
+    organizationEnabled.value = true
+    assertEquals("parameterName", label.text)
+    assertEquals("parameterName", label.toolTipText)
+
+    settings.setParameterName(null)
+    assertEquals("New displayName", label.text)
+    assertEquals("New displayName", label.toolTipText)
   }
 
   @Test
-  fun `change visibility`() {
+  fun `change visibility`() = runInEdt {
     val settings = DisplaySettings().apply { setTooltip("Tooltip") }
-    val label = LabelPanel(settings, scope).apply { size = Dimension(250, 50) }
-    val ui = FakeUi(label)
-    invokeAndWaitIfNeeded { ui.layout() }
+    val label =
+      LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
     assertFalse(label.isVisible)
+
     settings.setDisplayName("Name")
-    invokeAndWaitIfNeeded { ui.layout() }
     assertTrue(label.isVisible)
   }
 
   @Test
-  fun `not updated when disposed`() {
+  fun `not updated when disposed`() = runInEdt {
     val scope = CoroutineScope(CoroutineName(javaClass.simpleName))
     val settings =
       DisplaySettings().apply {
-        setDisplayName("Name")
+        setDisplayName("displayName")
+        setParameterName("parameterName")
         setTooltip("Tooltip")
       }
-    val label = LabelPanel(settings, scope).apply { size = Dimension(250, 50) }
-    val ui = FakeUi(label)
-    invokeAndWaitIfNeeded { ui.layout() }
+    val label =
+      LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
     scope.cancel()
     settings.setDisplayName("New Name")
-    invokeAndWaitIfNeeded { ui.layout() }
     // Still old name
-    assertEquals("Name", label.text)
+    assertEquals("displayName", label.text)
   }
 }

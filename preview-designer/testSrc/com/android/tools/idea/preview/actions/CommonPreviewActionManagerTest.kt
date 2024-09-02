@@ -41,6 +41,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -193,7 +194,7 @@ class CommonPreviewActionManagerTest {
       invoked.complete(true)
     }
 
-    val label = actionManager.createSceneViewLabel(sceneView, scope)
+    val label = actionManager.createSceneViewLabel(sceneView, scope, MutableStateFlow(false))
     assertTrue(label is InteractiveLabelPanel)
     assertEquals("some name", label.text)
     assertEquals("some tooltip", label.toolTipText)
@@ -201,6 +202,30 @@ class CommonPreviewActionManagerTest {
     runInEdt { label.mouseListeners.forEach { it.mouseClicked(mock()) } }
 
     assertTrue(invoked.await())
+  }
+
+  @Test
+  fun testClickingOnLabelInAGroup(): Unit = runBlocking {
+    val sceneManager = mock<SceneManager>()
+    val sceneView = mock<SceneView>()
+    val model = mock<NlModel>()
+    whenever(sceneView.sceneManager).thenReturn(sceneManager)
+    whenever(sceneManager.model).thenReturn(model)
+    val displaySettings =
+      DisplaySettings().apply {
+        setDisplayName("Name : Parameter")
+        setBaseName("Only name")
+        setParameterName("Only Parameter")
+        setTooltip("Tooltip")
+      }
+    whenever(model.displaySettings).thenReturn(displaySettings)
+
+    val scope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
+
+    val label = actionManager.createSceneViewLabel(sceneView, scope, MutableStateFlow(true))
+    assertTrue(label is InteractiveLabelPanel)
+    assertEquals("Only Parameter", label.text)
+    assertEquals("Tooltip", label.toolTipText)
   }
 }
 

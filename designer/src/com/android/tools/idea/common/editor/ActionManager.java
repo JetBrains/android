@@ -33,6 +33,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.flow.StateFlow;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,11 +136,14 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
 
   /**
    * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
+   * @param isPartOfOrganizationGroup defines whenever created {@link LabelPanel} belongs to Organization Group.
    */
   @NotNull
-  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView, CoroutineScope scope) {
+  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView,
+                                         CoroutineScope scope,
+                                         StateFlow<Boolean> isPartOfOrganizationGroup) {
     DisplaySettings displaySettings = sceneView.getSceneManager().getModel().getDisplaySettings();
-    return new LabelPanel(displaySettings, scope);
+    return new LabelPanel(displaySettings, scope, isPartOfOrganizationGroup);
   }
 
   /**
