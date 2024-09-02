@@ -281,7 +281,7 @@ class WearHealthServicesStateManagerTest {
   @Test
   fun `when an exercise is ongoing reset only clears the overridden values`(): Unit = runBlocking {
     stateManager.loadPreset(Preset.STANDARD).join()
-    stateManager.setOverrideValue(locationCapability, 3f)
+    stateManager.setOverrideValue(heartRateBpmCapability, 3f)
     stateManager.applyChanges()
 
     deviceManager.activeExercise = true
@@ -296,9 +296,9 @@ class WearHealthServicesStateManagerTest {
       .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
       .waitForValue(true)
     stateManager
-      .getState(locationCapability)
+      .getState(heartRateBpmCapability)
       .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.overrideValue }
-      .waitForValue(WhsDataType.LOCATION.noValue())
+      .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
     stateManager
       .getState(stepsCapability)
       .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
@@ -341,7 +341,7 @@ class WearHealthServicesStateManagerTest {
     stateManager.setOverrideValue(locationCapability, 3f)
     stateManager.setOverrideValue(stepsCapability, 30)
 
-    // Location capability can not be overridden (has no value) so it will remain synced
+    // Location capability can not be overridden (has no value) so it will remain up-to-date
     stateManager
       .getState(locationCapability)
       .mapState { it is UpToDateCapabilityUIState }
@@ -376,7 +376,7 @@ class WearHealthServicesStateManagerTest {
     assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
       .containsEntry(
         locationCapability.dataType,
-        CapabilityState(true, WhsDataType.LOCATION.value(3f)),
+        CapabilityState(true, WhsDataType.LOCATION.noValue()),
       )
 
     assertThat(loggedEvents).hasSize(3)
