@@ -31,6 +31,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
 internal class StudioBotFilter(private val editor: EditorEx) : Filter {
   override fun applyFilter(line: String, entireLength: Int): Result? {
+    if (!StudioBot.getInstance().isAvailable()) {
+      return null
+    }
     val offset = entireLength - line.length
     val start = line.indexOf(linkText)
     if (start < 0) {
