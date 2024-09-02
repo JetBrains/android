@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.gradle.tooling.BuildException
@@ -33,9 +34,9 @@ import java.util.regex.Pattern
  */
 class DuplicateClassIssueChecker: GradleIssueChecker {
   private val HREF = "d.android.com/r/tools/classpath-sync-errors"
-  private val SUFFIX = "Go to the documentation to learn how to <a href=\"$HREF\">Fix dependency resolution errors</a>."
+  private val SUFFIX_8_7 = "Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors"
+  private val SUFFIX_OLD = "Go to the documentation to learn how to <a href=\"$HREF\">Fix dependency resolution errors</a>."
   private val DUPLICATE_CLASS = "Duplicate class "
-  private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     if (issueData.error !is BuildException) {
@@ -46,18 +47,28 @@ class DuplicateClassIssueChecker: GradleIssueChecker {
       return null
     }
     var message = rootCause.message ?: return null
-    if (!message.startsWith(DUPLICATE_CLASS) || !message.endsWith(SUFFIX)) {
-      return null
+    if (message.startsWith(DUPLICATE_CLASS)) {
+      if (message.endsWith(SUFFIX_OLD)) {
+        val urlLink = OpenLinkQuickFix("http://$HREF")
+        message = message.replace(HREF, urlLink.id)
+        return object : BuildIssue {
+          override val title = "Duplicate class found"
+          override val description = message
+          override val quickFixes = listOf(urlLink)
+          override fun getNavigatable(project: Project): Navigatable? = null
+        }
+      }
+      if (message.endsWith(SUFFIX_8_7)) {
+        // Link is processed by standart filters and needs no replacement
+        return object : BuildIssue {
+          override val title = "Duplicate class found"
+          override val description = message
+          override val quickFixes = emptyList <BuildIssueQuickFix>()
+          override fun getNavigatable(project: Project): Navigatable? = null
+        }
+      }
     }
-    val urlLink = OpenLinkQuickFix("http://$HREF")
-    message = message.replace(HREF, urlLink.id)
-
-    return object : BuildIssue {
-      override val title = "Duplicate class found"
-      override val description = message
-      override val quickFixes = listOf(urlLink)
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    return null
   }
 
   override fun consumeBuildOutputFailureMessage(message: String,
@@ -66,7 +77,7 @@ class DuplicateClassIssueChecker: GradleIssueChecker {
                                                 location: FilePosition?,
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() &&
-           (failureCause.startsWith(DUPLICATE_CLASS) && failureCause.endsWith(SUFFIX))
+    return failureCause.startsWith(DUPLICATE_CLASS) &&
+           (parentEventId as? String)?.endsWith(":checkDebugDuplicateClasses") == true
   }
 }
