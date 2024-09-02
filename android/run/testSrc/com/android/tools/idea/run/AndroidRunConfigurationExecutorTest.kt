@@ -167,7 +167,6 @@ class AndroidRunConfigurationExecutorTest {
       .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -233,7 +232,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.RESTORE_FILE = "foo.backup"
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -286,7 +284,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -337,7 +334,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -386,7 +382,6 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -400,39 +395,6 @@ class AndroidRunConfigurationExecutorTest {
     }
     assertThat(thrown).hasMessageThat().contains("ApkProvisionException")
     assertThat(liveEditServiceNotified).isEqualTo(false)
-  }
-
-  @Test
-  fun runGetApplicationIdException() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val env = getExecutionEnvironment(listOf(device))
-    val configuration = env.runProfile as AndroidRunConfiguration
-    configuration.executeMakeBeforeRunStepInTest(device)
-
-    val runner = AndroidRunConfigurationExecutor(
-      applicationIdProvider = object : ApplicationIdProvider {
-        override fun getPackageName(): String {
-          throw ApkProvisionException("AndroidExecutionException packageName")
-        }
-
-        override fun getTestPackageName(): String? {
-          throw ApkProvisionException("AndroidExecutionException testPackageName")
-        }
-      },
-      applicationContext = object : ApplicationProjectContext {
-        override val applicationId: String
-          get() = error("Not supposed to be invoked")
-      },
-      env,
-      deviceFutures,
-      apkProvider = { throw ApkProvisionException("ApkProvisionException") })
-
-    val thrown = assertThrows(AndroidExecutionException::class.java) {
-      ProgressManager.getInstance()
-        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
-    }
-    assertThat(thrown).hasMessageThat().contains("AndroidExecutionException packageName")
   }
 
   @Test
@@ -476,7 +438,6 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -532,7 +493,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -586,7 +546,6 @@ class AndroidRunConfigurationExecutorTest {
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env, deviceFutures, { throw ApkProvisionException("Exception") })
 
@@ -627,7 +586,6 @@ class AndroidRunConfigurationExecutorTest {
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name, result)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -679,7 +637,6 @@ class AndroidRunConfigurationExecutorTest {
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyCodeChangesDeploy.name, result)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -828,7 +785,6 @@ class AndroidRunConfigurationExecutorTest {
       .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,

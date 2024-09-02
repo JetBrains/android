@@ -48,7 +48,7 @@ import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLink
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
-import com.android.tools.idea.run.configuration.execution.getApplicationIdAndDevices
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.tasks.RunInstantApp
@@ -77,7 +77,6 @@ import java.util.Locale
 
 
 class AndroidRunConfigurationExecutor(
-  private val applicationIdProvider: ApplicationIdProvider,
   private val applicationContext: ApplicationProjectContext,
   private val env: ExecutionEnvironment,
   val deviceFutures: DeviceFutures,
@@ -94,7 +93,8 @@ class AndroidRunConfigurationExecutor(
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
@@ -199,7 +199,8 @@ class AndroidRunConfigurationExecutor(
     }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
@@ -288,7 +289,8 @@ class AndroidRunConfigurationExecutor(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
@@ -356,7 +358,8 @@ class AndroidRunConfigurationExecutor(
   }
 
   override fun applyCodeChanges(indicator: ProgressIndicator) = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
