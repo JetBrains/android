@@ -1695,27 +1695,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> VIRTUAL_DEVICE_WATCHER_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "virtual.device.watcher.enabled",
-    "Enable VirtualDeviceWatcher",
-    "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
-    true);
-
-  public static final Flag<Boolean> UNIFIED_DEVICE_MANAGER_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "unified.device.manager.enabled",
-    "Enable unified device manager",
-    "Enable new Device Manager UI with unified device list",
-    true);
-
-  public static final Flag<Boolean> DUAL_DEVICE_MANAGER_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "dual.device.manager.enabled",
-    "Enable unified device manager alongside existing device manager",
-    "Continue showing original Device Manager even with unified device manager enabled",
-    false);
-
   public static final Flag<Boolean> RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "resizable.experimental.tweaks.enabled",
