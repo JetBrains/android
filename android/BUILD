@@ -239,7 +239,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
         "//tools/adt/idea/android/lib:instantapps-api",
-        "//tools/adt/idea/android:compose-compiler",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
@@ -399,8 +398,6 @@ filegroup(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
-        "//tools/adt/idea/compose-ide-plugin/compose-compiler",
-        "//tools/adt/idea/compose-ide-plugin/compose-compiler:compose-compiler-src.jar",
         "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
@@ -690,11 +687,4 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k1[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k2[module, test]",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "compose-compiler",
-    jars = ["//tools/adt/idea/compose-ide-plugin/compose-compiler:compose-compiler.jar"],
-    visibility = ["//visibility:public"],
 )
