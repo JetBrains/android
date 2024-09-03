@@ -273,7 +273,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -323,7 +323,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -374,7 +374,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -430,7 +430,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -482,7 +482,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true

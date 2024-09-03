@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
@@ -56,7 +57,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x = 999
       val y = 100
@@ -83,7 +84,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x: Int by lazy {
         999
@@ -112,7 +113,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {}
@@ -145,7 +146,7 @@ class PsiValidatorTest {
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {

@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -99,7 +100,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24), emptyList()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext(appId), device, LiveEditApp(emptySet(), 24), emptyList()) { true }
   }
 
   @Test
