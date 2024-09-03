@@ -46,6 +46,7 @@ import com.intellij.build.BuildViewManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
@@ -162,18 +163,20 @@ class BuildAttributionManagerImpl(
   }
 
   private fun BuildAnalysisContext.cleanup(attributionFileDir: File) {
-    try {
-      // There is a valid codepath that would result in this being already disposed and set tu null.
-      // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
-      // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
-      currentBuildDisposable.let { Disposer.dispose(it) }
-    } catch (t: Throwable) {
-      log.error("Error disposing build disposable", t)
-    }
-    try {
-      FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
-    } catch (t: Throwable) {
-      log.error("Error during build attribution files cleanup", t)
+    ProgressManager.getInstance().executeNonCancelableSection {
+      try {
+        // There is a valid codepath that would result in this being already disposed and set to null.
+        // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
+        // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
+        currentBuildDisposable.let { Disposer.dispose(it) }
+      } catch (t: Throwable) {
+        log.error("Error disposing build disposable", t)
+      }
+      try {
+        FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+      } catch (t: Throwable) {
+        log.error("Error during build attribution files cleanup", t)
+      }
     }
   }
 
