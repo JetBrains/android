@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
@@ -48,6 +49,7 @@ fun DeviceTable(
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
   filterState: DeviceFilterState = remember { DeviceFilterState() },
+  onRowSecondaryClick: (DeviceProfile, Offset) -> Unit = { _, _ -> },
 ) {
   var showDetails by remember { mutableStateOf(false) }
 
@@ -96,6 +98,7 @@ fun DeviceTable(
                 { it },
                 modifier = Modifier.weight(1f),
                 tableSelectionState = tableSelectionState,
+                onRowSecondaryClick = onRowSecondaryClick,
               )
               if (showDetails) {
                 when (val selection = tableSelectionState.selection) {
