@@ -81,7 +81,7 @@ class XmlErrorOutputParserTest {
 
     verify(messageConsumer).accept(captor.capture())
     assertThat(captor.allValues).hasSize(1)
-    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.ERROR, 4, 5,
+    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.WARNING, 4, 5,
                            "Element type \"ASd\" must be followed by either attribute specifications, \">\" or \"/>\".")
   }
 
@@ -94,7 +94,7 @@ class XmlErrorOutputParserTest {
 
     verify(messageConsumer).accept(captor.capture())
     assertThat(captor.allValues).hasSize(1)
-    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.ERROR, 20, 1,
+    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.WARNING, 20, 1,
                            "XML document structures must start and end within the same entity.")
 
   }
@@ -109,7 +109,7 @@ class XmlErrorOutputParserTest {
 
     verify(messageConsumer).accept(captor.capture())
     assertThat(captor.allValues).hasSize(1)
-    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.ERROR, 3, 0,
+    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.WARNING, 3, 0,
                            "The content of elements must consist of well-formed character data or markup.")
   }
 
@@ -122,7 +122,7 @@ class XmlErrorOutputParserTest {
 
     verify(messageConsumer).accept(captor.capture())
     assertThat(captor.allValues).hasSize(1)
-    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.ERROR, 0, 0,
+    verifyFileMessageEvent(captor.value, sourceFile.absolutePath, "Xml parsing errors", MessageEvent.Kind.WARNING, 0, 0,
                            "Premature end of file.")
   }
 
@@ -140,7 +140,7 @@ class XmlErrorOutputParserTest {
 
     val messageEvent = captor.value as MessageEvent
 
-    assertThat(messageEvent.kind).isEqualTo(MessageEvent.Kind.ERROR)
+    assertThat(messageEvent.kind).isEqualTo(MessageEvent.Kind.WARNING)
     assertThat(messageEvent.group).isEqualTo("Xml parsing errors")
     assertThat(messageEvent.description).isEqualTo("Some error message.")
   }
