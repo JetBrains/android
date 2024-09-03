@@ -139,7 +139,7 @@ class EmulatorToolWindowPanelTest {
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
   val ruleChain: RuleChain =
-      RuleChain(ClipboardSynchronizationDisablementRule(), projectRule, emulatorRule, PortableUiFontRule(), EdtRule())
+      RuleChain(projectRule, emulatorRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
