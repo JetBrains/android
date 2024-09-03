@@ -30,8 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.DeviceScreenDiagram
 import java.text.DecimalFormat
+import java.util.NavigableSet
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 
@@ -58,21 +60,12 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
 
     Header("Device")
     LabeledValue("OEM", device.manufacturer)
-    LabeledValue("Density", "${device.displayDensity} dpi")
 
     Header("System Image")
     if (device.apiLevels.size > 1) {
-      LabeledValue(
-        "Supported APIs",
-        // TODO: Join to a range?
-        device.apiLevels.map { it.apiStringWithoutExtension }.joinToString(", "),
-      )
+      LabeledValue("Supported APIs", device.apiLevels.firstAndLastApiLevel())
     } else {
-      LabeledValue("API", device.apiLevels.last().toString())
-    }
-    LabeledValue("Primary ABI", device.abis.firstOrNull()?.toString() ?: "Unknown")
-    if (device.abis.size > 1) {
-      LabeledValue("Additional ABIs", device.abis.drop(1).joinToString(","))
+      LabeledValue("API", device.apiLevels.last().apiLevel.toString())
     }
 
     Header("Screen")
@@ -80,6 +73,9 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
     LabeledValue("Density", "${device.displayDensity} dpi")
   }
 }
+
+private fun NavigableSet<AndroidVersion>.firstAndLastApiLevel(): String =
+  "${first().apiLevel}\u2013${last().apiLevel}"
 
 @Composable
 private fun Header(text: String) {
