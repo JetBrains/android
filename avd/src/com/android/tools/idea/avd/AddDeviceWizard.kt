@@ -34,7 +34,9 @@ import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.FormFactor
 import com.android.tools.idea.adddevicedialog.SingleSelectionDropdown
+import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
+import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
 import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
@@ -48,6 +50,7 @@ import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
@@ -103,6 +106,11 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
                   FormFactor.uniqueValuesOf(profiles),
                   filterState.formFactorFilter,
                 )
+                CheckboxRow(
+                  "Show obsolete device profiles",
+                  checked = filterState.showDeprecated,
+                  onCheckedChange = { filterState.showDeprecated = it },
+                )
               },
               tableSelectionState = selectionState,
               filterState = filterState,
@@ -146,7 +154,20 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
   }
 }
 
-private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>()
+private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>() {
+  var showDeprecated: Boolean by mutableStateOf(false)
+
+  override fun apply(row: VirtualDeviceProfile): Boolean =
+    super.apply(row) && (showDeprecated || !row.isDeprecated)
+}
+
+private val virtualDeviceName =
+  TableTextColumn<VirtualDeviceProfile>(
+    "Name",
+    TableColumnWidth.Weighted(2f),
+    attribute = { if (it.isDeprecated) it.name + " (Obsolete)" else it.name },
+    maxLines = 2,
+  )
 
 private val avdColumns =
-  with(DeviceTableColumns) { persistentListOf(icon, name, width, height, density) }
+  with(DeviceTableColumns) { persistentListOf(icon, virtualDeviceName, width, height, density) }
