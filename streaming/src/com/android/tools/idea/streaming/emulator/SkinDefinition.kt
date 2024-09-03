@@ -21,13 +21,13 @@ import com.android.io.writeImage
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
 import com.android.tools.adtui.ImageUtils.isTransparentPixel
+import com.android.tools.adtui.ImageUtils.normalizeImage
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.util.ui.ImageUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.awt.Dimension
@@ -178,17 +178,6 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         logger<SkinDefinition>().warn("Failed to read Emulator skin image $file$separator$detail")
         null
       }
-    }
-
-    private fun normalizeImage(image: BufferedImage): BufferedImage {
-      if (image.type == BufferedImage.TYPE_INT_ARGB) {
-        return image
-      }
-      val result = ImageUtil.createImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-      val g = result.createGraphics()
-      g.drawImage(image, 0, 0, null)
-      g.dispose()
-      return result
     }
   }
 
