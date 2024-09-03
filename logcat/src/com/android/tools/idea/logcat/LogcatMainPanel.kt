@@ -930,7 +930,8 @@ constructor(
       clearDocument()
       messageBacklog.get().clear()
       if (loadFilter) {
-        val filter = data.safeGetFilter()
+        val projectApplicationIdsProvider = ProjectApplicationIdsProvider.getInstance(project)
+        val filter = data.safeGetFilter(projectApplicationIdsProvider.getPackageNames())
         if (filter != null) {
           setFilter(filter)
           applyFilter(logcatFilterParser.parse(filter, headerPanel.filterMatchCase))
