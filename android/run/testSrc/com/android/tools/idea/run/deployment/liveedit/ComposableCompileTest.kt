@@ -497,7 +497,6 @@ class ComposableCompileTest {
   }
 
   // Check for b/326306840
-  @IJIgnore(issue = "IJPL-150165")
   @Test
   fun doNotIgnoreLdcChanges() {
     val file = projectRule.createKtFile("A.kt", """
@@ -530,7 +529,6 @@ class ComposableCompileTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun mutableState() {
     val fileName = "Test.kt"
     val className = "TestKt"

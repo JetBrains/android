@@ -42,7 +42,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `single restartable group`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -56,7 +55,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `two restartable groups`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -77,7 +75,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `two restartable groups with the same name`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -100,7 +97,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `composable with content`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -141,7 +137,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `nested composable with captures`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -183,7 +178,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `composable with return value`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
@@ -201,7 +195,6 @@ class ComposeAnalysisTest {
   }
 
   @Test
-  @IJIgnore(issue = "IJPL-150165")
   fun `using composable with return value`() {
     val groupTable = computeGroupTableForTest("""
       import androidx.compose.runtime.Composable
