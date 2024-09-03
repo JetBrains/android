@@ -464,7 +464,7 @@ class GradleModuleSystem(
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
     val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule() ||
-      androidFacet.module.isScreenshotTestModule()
+      androidFacet.module.isScreenshotTestModule() || type == AndroidModuleSystem.Type.TYPE_TEST
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
