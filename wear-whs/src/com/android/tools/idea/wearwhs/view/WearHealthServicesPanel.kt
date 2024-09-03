@@ -137,9 +137,9 @@ private fun createCenterPanel(
               val italicFont = label.font.deriveFont(Font.ITALIC)
               stateManager
                 .getState(capability)
-                .map { it.synced }
-                .onEach { synced ->
-                  if (!synced) {
+                .map { it is PendingUserChangesCapabilityUIState }
+                .onEach { hasUserChanges ->
+                  if (hasUserChanges) {
                     label.font = italicFont
                     label.text = "${message(capability.label)}*"
                   } else {
@@ -154,7 +154,7 @@ private fun createCenterPanel(
               elementsToDisableDuringExercise.add(checkBox)
               stateManager
                 .getState(capability)
-                .map { it.capabilityState.enabled }
+                .map { it.currentState.enabled }
                 .onEach { enabled -> checkBox.isSelected = enabled }
                 .launchIn(uiScope)
               checkBox.addActionListener {
@@ -241,7 +241,7 @@ private fun createCenterPanel(
                     }
                   stateManager
                     .getState(capability)
-                    .map { it.capabilityState.overrideValue }
+                    .map { it.currentState.overrideValue }
                     .onEach { overrideValue ->
                       val overrideValueAsText = overrideValue.asText().trim()
                       if (!textField.isFocusOwner && textField.text.trim() != overrideValueAsText) {
