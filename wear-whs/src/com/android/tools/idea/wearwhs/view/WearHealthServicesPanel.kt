@@ -138,19 +138,7 @@ private fun createCenterPanel(
               combine(stateManager.getState(capability), stateManager.ongoingExercise) {
                   uiState,
                   ongoingExercise ->
-                  val pendingUserChanges =
-                    (uiState as? PendingUserChangesCapabilityUIState)?.userState
-                  // When an exercise is ongoing only the override value can be changed by the user
-                  val hasUserChanges =
-                    if (ongoingExercise)
-                      pendingUserChanges != null &&
-                        pendingUserChanges.overrideValue != uiState.upToDateState.overrideValue
-                    // When outside an exercise, only the capability availability can be changed by
-                    // the user
-                    else
-                      pendingUserChanges != null &&
-                        pendingUserChanges.enabled != uiState.upToDateState.enabled
-                  if (hasUserChanges) {
+                  if (uiState.hasUserChanges(ongoingExercise)) {
                     label.font = italicFont
                     label.text = "${message(capability.label)}*"
                   } else {
