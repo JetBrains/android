@@ -884,7 +884,7 @@ class AppInspectionInspectorClientTest {
     val notification = inspectorRule.notificationModel.notifications.single()
     assertThat(notification.message)
       .isEqualTo(
-        "No compose source information found. For full inspector functionality: make sure that sourceInformation is turned on for the kotlin compiler plugin."
+        "No compose source information found. For full inspector functionality: Make sure that sourceInformation is turned on for the Kotlin compiler plugin and the app code is not obfuscated."
       )
     inspectorRule.notificationModel.clear()
 
