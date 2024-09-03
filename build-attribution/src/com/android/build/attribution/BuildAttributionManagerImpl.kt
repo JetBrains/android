@@ -53,6 +53,7 @@ import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 
 class BuildAttributionManagerImpl(
   val project: Project
@@ -86,22 +87,20 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  private lateinit var currentBuildAnalysisContext: BuildAnalysisContext
-  // Leave these fields temporarily to not break tests
+  private val currentBuildAnalysisContext = AtomicReference<BuildAnalysisContext>()
   @get:VisibleForTesting
-  val analyzersProxy: BuildEventsAnalyzersProxy get() = currentBuildAnalysisContext.analyzersProxy
-  @get:VisibleForTesting
-  val currentBuildRequest: GradleBuildInvoker.Request get() = currentBuildAnalysisContext.currentBuildRequest
+  val currentBuildRequest: GradleBuildInvoker.Request get() = currentBuildAnalysisContext.get().currentBuildRequest
 
   override fun onBuildStart(request: GradleBuildInvoker.Request) {
-    currentBuildAnalysisContext = BuildAnalysisContext(request)
-
-    ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
-    if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
-    currentBuildAnalysisContext.analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
-      val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildAnalysisContext.currentBuildDisposable)
-      it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
-      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildAnalysisContext.currentBuildDisposable, downloadsInfoDataModel)
+    BuildAnalysisContext(request).run {
+      currentBuildAnalysisContext.set(this)
+      ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
+      if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+      analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
+        val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable)
+        it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
+        project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable, downloadsInfoDataModel)
+      }
     }
   }
 
@@ -109,7 +108,7 @@ class BuildAttributionManagerImpl(
     val buildFinishedProcessedTimestamp = System.currentTimeMillis()
     var agpVersion: AgpVersion? = null
 
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       analyticsManager.use { analyticsManager ->
         analyticsManager.runLoggingPerformanceStats(
           toolingApiLatencyMs = buildFinishedProcessedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp,
@@ -149,7 +148,7 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       cleanup(getAgpAttributionFileDir(request.data))
       project.invokeLaterIfNotDisposed {
         val buildSessionId = UUID.randomUUID().toString()
@@ -181,7 +180,7 @@ class BuildAttributionManagerImpl(
   }
 
   override fun statusChanged(event: ProgressEvent?) {
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       if (eventsProcessingFailedFlag) return
       try {
         if (event == null) return
@@ -200,7 +199,7 @@ class BuildAttributionManagerImpl(
 
   override fun shouldShowBuildOutputLink(): Boolean = !(
     ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningFirstConfigurationCacheBuild
-    || currentBuildAnalysisContext.eventsProcessingFailedFlag
+    || currentBuildAnalysisContext.get()?.eventsProcessingFailedFlag == true
                                                        )
 
   private fun getNumberOfPartialResultsGenerated(attributionFileDir: File): Int? {
