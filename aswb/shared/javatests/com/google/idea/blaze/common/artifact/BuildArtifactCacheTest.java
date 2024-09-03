@@ -326,12 +326,12 @@ public class BuildArtifactCacheTest {
     OutputArtifact artifact1 =
         TestOutputArtifact.EMPTY.toBuilder()
             .setDigest("abc")
-            .setRelativePath("path/to/first")
+            .setBazelOutRelativePath("path/to/first")
             .build();
     OutputArtifact artifact2 =
         TestOutputArtifact.EMPTY.toBuilder()
             .setDigest("abc")
-            .setRelativePath("path/to/second")
+            .setBazelOutRelativePath("path/to/second")
             .build();
 
     ListenableFuture<?> fetch =

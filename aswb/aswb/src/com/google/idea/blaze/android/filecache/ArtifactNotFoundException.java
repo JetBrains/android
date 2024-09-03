@@ -21,6 +21,6 @@ import java.io.IOException;
 /** Signals that a particular artifact cannot be located. */
 public class ArtifactNotFoundException extends IOException {
   public ArtifactNotFoundException(OutputArtifactWithoutDigest artifact) {
-    super(artifact.getRelativePath() + " not found.");
+    super(artifact.getBazelOutRelativePath() + " not found.");
   }
 }

@@ -185,7 +185,7 @@ public class UnpackedAarsTest extends BlazeTestCase {
     }
 
     @Override
-    public String getRelativePath() {
+    public String getBazelOutRelativePath() {
       return file.getPath();
     }
 
