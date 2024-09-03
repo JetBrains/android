@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.EventPage
+import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.events.ChangeEvent
-import com.android.tools.idea.insights.events.StateTransition
 import com.android.tools.idea.insights.events.actions.Action
-import com.android.tools.idea.insights.events.trackEventView
 import com.intellij.openapi.diagnostic.Logger
 
 class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : ChangeEvent {

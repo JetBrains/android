@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
