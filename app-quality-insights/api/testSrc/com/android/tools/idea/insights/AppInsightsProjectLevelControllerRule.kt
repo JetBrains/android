@@ -142,11 +142,13 @@ class AppInsightsProjectLevelControllerRule(
         if (key != VITALS_KEY) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
-          client.completeFetchInsightCallWith(insightState)
+          if ((eventsState as? LoadingState.Ready)?.value?.events?.isNotEmpty() == true) {
+            client.completeFetchInsightCallWith(insightState)
+            consumeNext()
+          }
         }
       }
       if (key != VITALS_KEY) {
-        consumeNext()
         consumeNext()
         consumeNext()
         consumeNext()
