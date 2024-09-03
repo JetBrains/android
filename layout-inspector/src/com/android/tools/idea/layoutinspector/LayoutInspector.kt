@@ -52,7 +52,7 @@ import kotlinx.coroutines.launch
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
-val NO_COMPOSE_SOURTCE_INFO_KEY = "no.compose.source.info"
+val NO_COMPOSE_SOURCE_INFO_APP_KEY = "no.compose.source.info.app"
 
 /** Create a [DataProvider] for the specified [layoutInspector]. */
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider {
@@ -273,8 +273,8 @@ private constructor(
             ) {
               composeSourceInfoMissingWarningGiven = true
               notificationModel.addNotification(
-                NO_COMPOSE_SOURTCE_INFO_KEY,
-                LayoutInspectorBundle.message(NO_COMPOSE_SOURTCE_INFO_KEY),
+                NO_COMPOSE_SOURCE_INFO_APP_KEY,
+                LayoutInspectorBundle.message(NO_COMPOSE_SOURCE_INFO_APP_KEY),
                 Status.Warning,
               )
             }
