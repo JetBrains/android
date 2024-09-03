@@ -81,6 +81,10 @@ internal class FakeBackupManager : BackupManager {
     TODO("Not yet implemented")
   }
 
+  override suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean {
+    TODO("Not yet implemented")
+  }
+
   sealed class Action {
     data class BackupModal(
       val serialNumber: String,

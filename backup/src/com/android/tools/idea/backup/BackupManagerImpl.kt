@@ -55,12 +55,12 @@ import com.intellij.platform.ide.progress.TaskCancellation.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
+import java.nio.file.Path
+import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
-import java.nio.file.Path
-import kotlin.io.path.pathString
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
 private val logger: Logger = Logger.getInstance(BackupManager::class.java)
@@ -195,6 +195,10 @@ internal constructor(private val project: Project, private val backupService: Ba
     return backupService.getForegroundApplicationId(serialNumber)
   }
 
+  override suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean {
+    return backupService.isInstalled(serialNumber, applicationId)
+  }
+
   private fun BackupResult.notify(
     operation: String,
     backupFile: Path? = null,
@@ -242,10 +246,8 @@ internal constructor(private val project: Project, private val backupService: Ba
     PropertiesComponent.getInstance(project).setValue(BACKUP_PATH_KEY, path.pathString)
   }
 
-  private class ShowPostBackupDialogAction(
-    val project: Project,
-    private val backupPath: Path,
-  ) : AnAction("Add to Run Configuration") {
+  private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
+    AnAction("Add to Run Configuration") {
     override fun actionPerformed(e: AnActionEvent) {
       PostBackupDialog(project, backupPath).show()
     }
