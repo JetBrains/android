@@ -34,11 +34,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -72,7 +70,7 @@ class EditorHyperlinkDetectorTest {
    * provided by the IDEA.
    */
   @Test
-  fun usesCorrectFilters_withoutStudioBot() {
+  fun usesCorrectFilters_containsAllConsoleFilters() {
     TestStudioBot.available = false
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(
@@ -83,33 +81,46 @@ class EditorHyperlinkDetectorTest {
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val expected = expectedFilters.map { it::class } + SimpleFileLinkFilter::class
+    val expected = expectedFilters.map { it::class }
     waitForCondition {
       hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
     }
   }
 
-  /**
-   * Tests that we are using the correct filter as provided by
-   * ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that wraps a set of filters
-   * provided by the IDEA.
-   */
+  /** Tests that we are using the StudioBot filter when StudioBot instance is not available. */
   @Test
-  fun usesCorrectFilters_withStudioBot() {
-    TestStudioBot.available = true
-    val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(
-        project,
-        /* consoleView= */ null,
-        GlobalSearchScope.allScope(project),
-      )
+  fun usesCorrectFilters_containsStudioBotFilter_whenStudioBotIsUnavailable() {
+    TestStudioBot.available = false
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val expected =
-      expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class
+    val expected = StudioBotFilter::class
     waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
+    }
+  }
+
+  /** Tests that we are using the StudioBot filter when StudioBot instance is available. */
+  @Test
+  fun usesCorrectFilters_containsStudioBotFilter_whenStudioBotIsAvailable() {
+    TestStudioBot.available = true
+
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
+
+    val expected = StudioBotFilter::class
+    waitForCondition {
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
+    }
+  }
+
+  /** Tests that we are always using the SimpleFileLink filter. */
+  @Test
+  fun usesCorrectFilters_containsSimpleFileLinkFilter() {
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
+
+    val expected = SimpleFileLinkFilter::class
+    waitForCondition {
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
     }
   }
 

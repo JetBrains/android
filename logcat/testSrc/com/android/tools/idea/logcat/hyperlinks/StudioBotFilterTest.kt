@@ -32,8 +32,9 @@ class StudioBotFilterTest {
   private val mockStudioBot =
     object : StudioBot.StubStudioBot() {
       var contextAllowed = true
+      var available = true
 
-      override fun isAvailable() = true
+      override fun isAvailable() = available
 
       override fun isContextAllowed(project: Project) = contextAllowed
 
@@ -55,6 +56,17 @@ class StudioBotFilterTest {
 
   private val editor
     get() = logcatEditorRule.editor
+
+  @Test
+  fun applyFilter_whenStudioBotIsUnavailable_isANoOp() {
+    mockStudioBot.available = false
+    val filter = StudioBotFilter(editor)
+    val line = "before (Ask Gemini) after"
+
+    val result = filter.applyFilter(line, line.length)
+
+    assertThat(result).isNull()
+  }
 
   @Test
   fun applyFilter_detectsLink() {
