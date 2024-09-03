@@ -74,11 +74,11 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
+import java.util.EnumSet
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
-import java.util.EnumSet
-import javax.swing.Icon
 
 class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResult>() {
 
@@ -310,7 +310,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val descriptionRef =
         "<a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}${issue.id}\"></a>"
 
-      // We add a "More... (Ctrl+F1)" link to the end of the error message so that users can expand
+      // We add a "Toggle info (Ctrl+F1)" link to the end of the error message so that users can
+      // expand
       // the tooltip to see the issue description, which typically includes useful context and links
       // to documentation. Any "unhandled" link click that is not just an HTTP link will toggle
       // expansion of the inspection description. See
@@ -318,7 +319,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       // com.intellij.codeInsight.hint.LineTooltipRenderer.createHint. We could just use href="",
       // but using LINK_PREFIX seems more future-proof.
       val moreLink =
-        " <a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}\">More...</a> ${DaemonTooltipsUtil.getShortcutText()}"
+        " <a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}\">Toggle info ${DaemonTooltipsUtil.getShortcutText()}</a>"
 
       var messageHtml = RAW.convertTo(message, HTML)
 
