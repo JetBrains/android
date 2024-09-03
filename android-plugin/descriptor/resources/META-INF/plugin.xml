@@ -73,7 +73,6 @@
   <xi:include href="/META-INF/wizard-template-impl.xml"/>
   <xi:include href="/META-INF/android-templates.xml"/>
   <xi:include href="/META-INF/android-lint-plugin.xml"/>
-  <xi:include href="/META-INF/device-manager.xml"/>
   <xi:include href="/META-INF/threading-checker.xml"/>
   <xi:include href="/META-INF/device-manager-v2.xml"/>
   <xi:include href="/META-INF/wear-pairing.xml"/>
