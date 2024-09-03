@@ -20,7 +20,6 @@ import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.EventPage
-import com.android.tools.idea.insights.EventsChanged
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
@@ -33,6 +32,7 @@ import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.EnterOnlineMode
 import com.android.tools.idea.insights.events.ErrorThrown
+import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.IssueDetailsChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.IssueVariantsChanged
