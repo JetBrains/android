@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.PSDEvent
@@ -130,7 +129,7 @@ class PsContextImpl constructor(
     analyzerDaemon.recreateIssues()
   }
 
-  private var future: ListenableFuture<List<PsResolvedModuleModel>>? = null
+  private var future: ListenableFuture<*>? = null
 
   @UiThread
   private fun requestGradleModels() {
@@ -138,6 +137,7 @@ class PsContextImpl constructor(
     val project = this.project.ideProject
     future?.cancel(true)
     gradleSyncEventDispatcher.multicaster.started()
+
     gradleSync
       .requestProjectResolved(project, this)
       .also { future = it }
@@ -145,13 +145,23 @@ class PsContextImpl constructor(
         LOG.warn("PSD failed to fetch Gradle models.", ex)
         gradleSyncEventDispatcher.multicaster.ended()
       }
-      .continueOnEdt {
-        future = null
-        if (it == null || disposed) return@continueOnEdt
-        LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
-        this.project.refreshFrom(it)
-        gradleSyncEventDispatcher.multicaster.ended()
-        this.project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
+      .continueOnEdt moduleList@{ moduleList ->
+        if (moduleList == null || disposed) { // future cancelled or otherwise failed, or everything disposed.
+          future = null
+          return@moduleList
+        }
+        LOG.info("PSD fetched (${moduleList.size} Gradle model(s). Refreshing the UI model.")
+        future = this.project.refreshFrom(moduleList) // partially executes on a background thread, could in principle be interrupted.
+          .handleFailureOnEdt { ex ->
+            LOG.warn("PSD interrupted while refreshing UI model.", ex)
+            gradleSyncEventDispatcher.multicaster.ended()
+          }
+          .continueOnEdt refresh@{
+            future = null
+            if (it == null || disposed) return@refresh
+            gradleSyncEventDispatcher.multicaster.ended()
+            this.project.forEachModule { m -> analyzerDaemon.queueCheck(m) }
+          }
       }
   }
 
