@@ -42,14 +42,14 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
-fun DeviceTable(
-  devices: List<DeviceProfile>,
-  columns: List<TableColumn<DeviceProfile>>,
+fun <DeviceT : DeviceProfile> DeviceTable(
+  devices: List<DeviceT>,
+  columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
-  tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
-  filterState: DeviceFilterState = remember { DeviceFilterState() },
-  onRowSecondaryClick: (DeviceProfile, Offset) -> Unit = { _, _ -> },
+  tableSelectionState: TableSelectionState<DeviceT> = remember { TableSelectionState() },
+  filterState: DeviceFilterState<DeviceT> = remember { DeviceFilterState() },
+  onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
   var showDetails by remember { mutableStateOf(false) }
 
