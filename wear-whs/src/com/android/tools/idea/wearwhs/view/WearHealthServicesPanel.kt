@@ -238,6 +238,21 @@ private fun createCenterPanel(
                           Toolkit.getDefaultToolkit().beep()
                         }
                       }
+
+                      override fun remove(fb: FilterBypass, offset: Int, length: Int) {
+                        val newValue =
+                          fb.document.getText(0, offset) +
+                            fb.document.getText(
+                              offset + length,
+                              fb.document.length - offset - length,
+                            )
+
+                        if (validate(newValue)) {
+                          super.remove(fb, offset, length)
+                        } else {
+                          Toolkit.getDefaultToolkit().beep()
+                        }
+                      }
                     }
                   stateManager
                     .getState(capability)
