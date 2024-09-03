@@ -2177,6 +2177,14 @@ public final class StudioFlags {
       "Minimum version of the GmsCore Backup module that is supported",
       "Minimum version of the GmsCore Backup module that is supported",
       Integer.MAX_VALUE); // TODO(b/356613310) Replace with actual version when available
+
+  public static final Flag<Boolean> BACKUP_ACTION_IN_RUNNING_DEVICES =
+    new BooleanFlag(
+      BACKUP,
+      "enable.running.devices",
+      "Display Backup action in Running Devices",
+      "Display Backup action in Running Devices",
+      true);
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX
