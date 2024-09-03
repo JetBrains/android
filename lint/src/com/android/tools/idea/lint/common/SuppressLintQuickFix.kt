@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_SUPPRESS_LINT
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeLanguage
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.lint.detector.api.ClassContext
 import com.google.common.base.Joiner

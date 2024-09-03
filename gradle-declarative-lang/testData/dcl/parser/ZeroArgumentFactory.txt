@@ -1,0 +1,8 @@
+FILE
+  PsiElement(FACTORY)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('foo')
+    PsiElement(DeclarativeTokenType.()('(')
+    PsiElement(ARGUMENTS_LIST)
+      <empty list>
+    PsiElement(DeclarativeTokenType.))(')')

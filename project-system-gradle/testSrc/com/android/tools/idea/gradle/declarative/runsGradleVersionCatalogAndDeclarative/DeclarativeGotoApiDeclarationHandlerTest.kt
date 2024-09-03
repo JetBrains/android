@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeGoToApiDeclarationHandler
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeGoToApiDeclarationHandler
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt

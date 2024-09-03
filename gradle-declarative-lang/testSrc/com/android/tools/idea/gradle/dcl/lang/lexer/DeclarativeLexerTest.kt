@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.lexer
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.intellij.testFramework.LexerTestCase
 
 class DeclarativeLexerTest : LexerTestCase() {
