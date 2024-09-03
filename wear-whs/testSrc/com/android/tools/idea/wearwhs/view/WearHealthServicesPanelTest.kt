@@ -19,12 +19,13 @@ import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
@@ -37,14 +38,18 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
-import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -61,11 +66,15 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mockStatic
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class WearHealthServicesPanelTest {
@@ -91,6 +100,7 @@ class WearHealthServicesPanelTest {
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
   private lateinit var whsPanel: WearHealthServicesPanel
+  private lateinit var fakePopup: FakeActionPopupMenu
 
   @Before
   fun setUp() {
@@ -110,6 +120,19 @@ class WearHealthServicesPanelTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
     whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
+
+    ApplicationManager.getApplication()
+      .replaceService(
+        ActionManager::class.java,
+        org.mockito.kotlin.mock(),
+        projectRule.testRootDisposable,
+      )
+    doAnswer { invocation ->
+        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+        fakePopup
+      }
+      .whenever(ActionManager.getInstance())
+      .createActionPopupMenu(anyString(), any<ActionGroup>())
   }
 
   @Test
@@ -250,17 +273,24 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `test panel displays the dropdown for event triggers`() = runBlocking {
+  fun `test panel displays a popup for event triggers`(): Unit = runBlocking {
     val fakeUi = FakeUi(whsPanel.component)
-    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-    assertThat(dropDownButton).isNotNull()
-    assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
-    assertThat(dropDownButton.action.childrenActions[0].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[1].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[2].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[2].eventTriggers.size)
+    val eventsButton = fakeUi.triggerEventsButton()
+    assertThat(eventsButton).isNotNull()
+
+    eventsButton.doClick()
+
+    val eventTriggerGroups = fakePopup.getActions().mapNotNull { it as? DropDownAction }
+    assertThat(eventTriggerGroups).hasSize(EVENT_TRIGGER_GROUPS.size)
+
+    for (i in EVENT_TRIGGER_GROUPS.indices) {
+      assertThat(eventTriggerGroups[i].templatePresentation.text)
+        .isEqualTo(EVENT_TRIGGER_GROUPS[i].eventGroupLabel)
+      val eventTriggerActions = eventTriggerGroups[i].childActionsOrStubs
+
+      assertThat(eventTriggerActions.map { it.templatePresentation.text })
+        .isEqualTo(EVENT_TRIGGER_GROUPS[i].eventTriggers.map { it.eventLabel })
+    }
   }
 
   @Test
@@ -542,10 +572,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
     }
@@ -557,10 +584,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
     }
@@ -570,10 +594,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -590,10 +611,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -692,9 +710,7 @@ class WearHealthServicesPanelTest {
     val fakeUi = FakeUi(whsPanel.component)
     val triggerEventFlow = whsPanel.onUserTriggerEventFlow
 
-    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-    val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-    triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+    fakeUi.clickOnTriggerEvent(consumeTriggerEventFlow = false)
 
     withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
   }
@@ -865,5 +881,24 @@ class WearHealthServicesPanelTest {
       root.findDescendant(predicate) != null
     }
     return root.findDescendant(predicate)!!
+  }
+
+  private fun FakeUi.triggerEventsButton() =
+    waitForDescendant<JButton> { it.text == message("wear.whs.panel.trigger.events") }
+
+  private suspend fun FakeUi.clickOnTriggerEvent(consumeTriggerEventFlow: Boolean = true) {
+    val triggerEventsButton = triggerEventsButton()
+    triggerEventsButton.doClick()
+
+    val triggerEventGroupAction = fakePopup.getActions().firstOrNull() as? DropDownAction
+    assertNotNull("An event trigger group action was expected", triggerEventGroupAction)
+
+    val triggerEventAction = triggerEventGroupAction!!.childActionsOrStubs.firstOrNull()
+    assertNotNull("An event trigger action was expected", triggerEventAction)
+
+    triggerEventAction!!.actionPerformed(createTestEvent())
+    if (consumeTriggerEventFlow) {
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+    }
   }
 }
