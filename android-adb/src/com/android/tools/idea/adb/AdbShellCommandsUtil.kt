@@ -37,13 +37,6 @@ import java.time.Duration
 abstract class AdbShellCommandsUtil {
   private val logger = thisLogger()
 
-  @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
-  fun executeCommandBlocking(command: String): AdbShellCommandResult {
-    return runBlocking {
-      executeCommandImpl(command, true)
-    }
-  }
-
   suspend fun executeCommand(command: String): AdbShellCommandResult {
     return executeCommandImpl(command, true)
   }
