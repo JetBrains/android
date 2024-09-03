@@ -685,7 +685,6 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
           permission = Permission.FULL,
         )
       )
@@ -1017,7 +1016,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentInsight = LoadingState.Ready(AiInsight("")),
+          currentInsight = LoadingState.Loading,
         )
       )
 
