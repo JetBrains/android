@@ -20,7 +20,6 @@ import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
@@ -43,7 +42,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(private val skins: ImmutableCollection<Skin>) :
-  DeviceSource {
+  DeviceSource<VirtualDeviceProfile> {
 
   companion object {
     internal fun create(): LocalVirtualDeviceSource {
@@ -55,11 +54,9 @@ internal class LocalVirtualDeviceSource(private val skins: ImmutableCollection<S
     }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+  override fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
     nextAction = WizardAction {
-      pushPage {
-        ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice(), null, skins, ::add)
-      }
+      pushPage { ConfigurationPage(profile.toVirtualDevice(), null, skins, ::add) }
     }
     finishAction = WizardAction.Disabled
   }

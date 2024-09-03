@@ -51,12 +51,11 @@ fun DeviceFiltersPanel(modifier: Modifier = Modifier, content: @Composable () ->
 }
 
 @Stable
-open class DeviceFilterState : RowFilter<DeviceProfile> {
+open class DeviceFilterState<in DeviceT : DeviceProfile> : RowFilter<DeviceT> {
   val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
   val textFilter = TextFilterState()
 
-  override fun apply(row: DeviceProfile): Boolean =
-    formFactorFilter.apply(row) && textFilter.apply(row)
+  override fun apply(row: DeviceT): Boolean = formFactorFilter.apply(row) && textFilter.apply(row)
 }
 
 @Stable

@@ -30,8 +30,6 @@ import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
 import com.android.tools.idea.adddevicedialog.DeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceLoadingPage
-import com.android.tools.idea.adddevicedialog.DeviceProfile
-import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.FormFactor
@@ -53,14 +51,14 @@ import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
-class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
+internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
     return ComposeWizard(project, "Add Device") {
       val component = LocalComponent.current
       val density = LocalDensity.current
 
-      val filterState = getOrCreateState { DeviceFilterState() }
-      val selectionState = getOrCreateState { TableSelectionState<DeviceProfile>() }
+      val filterState = getOrCreateState { VirtualDeviceFilterState() }
+      val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
       DeviceLoadingPage(source) { profiles ->
         // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
@@ -68,8 +66,7 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
         var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
         val deviceProvider =
           object : DeviceUiAction.DeviceProvider {
-            override fun getDevice(): Device? =
-              (selectionState.selection as? VirtualDeviceProfile)?.device
+            override fun getDevice(): Device? = selectionState.selection?.device
 
             override fun refreshDevices() {}
 
@@ -85,7 +82,7 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
           }
         if (dialogSelectedDevice != null) {
           profiles
-            .find { (it as VirtualDeviceProfile).device == dialogSelectedDevice }
+            .find { it.device == dialogSelectedDevice }
             ?.let {
               dialogSelectedDevice = null
               selectionState.selection = it
@@ -148,6 +145,8 @@ class AddDeviceWizard(val source: DeviceSource, val project: Project?) {
     }
   }
 }
+
+private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>()
 
 private val avdColumns =
   with(DeviceTableColumns) { persistentListOf(icon, name, width, height, density) }

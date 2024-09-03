@@ -24,7 +24,6 @@ import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.adddevicedialog.DeviceProfile
-import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
@@ -45,9 +44,6 @@ internal data class VirtualDeviceProfile(
   override val abis: List<Abi>,
   override val formFactor: String,
 ) : DeviceProfile {
-
-  override val source: Class<out DeviceSource>
-    get() = LocalVirtualDeviceSource::class.java
 
   override val isVirtual
     get() = true

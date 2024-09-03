@@ -26,9 +26,9 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun WizardPageScope.DeviceLoadingPage(
-  source: DeviceSource,
-  content: @Composable (List<DeviceProfile>) -> Unit,
+fun <DeviceT : DeviceProfile> WizardPageScope.DeviceLoadingPage(
+  source: DeviceSource<DeviceT>,
+  content: @Composable (List<DeviceT>) -> Unit,
 ) {
   val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
 
@@ -48,13 +48,13 @@ fun WizardPageScope.DeviceLoadingPage(
 }
 
 @Composable
-fun WizardPageScope.DefaultDeviceGridPage(
-  profiles: List<DeviceProfile>,
-  columns: List<TableColumn<DeviceProfile>>,
+fun <DeviceT : DeviceProfile> WizardPageScope.DefaultDeviceGridPage(
+  profiles: List<DeviceT>,
+  columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
-  filterState: DeviceFilterState,
-  selectionState: TableSelectionState<DeviceProfile> = getOrCreateState { TableSelectionState() },
-  onSelectionUpdated: (DeviceProfile) -> Unit,
+  filterState: DeviceFilterState<DeviceT>,
+  selectionState: TableSelectionState<DeviceT> = getOrCreateState { TableSelectionState() },
+  onSelectionUpdated: (DeviceT) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   DeviceGridPage(filterState, selectionState, onSelectionUpdated) {
@@ -70,10 +70,10 @@ fun WizardPageScope.DefaultDeviceGridPage(
 }
 
 @Composable
-fun WizardPageScope.DeviceGridPage(
-  filterState: DeviceFilterState,
-  selectionState: TableSelectionState<DeviceProfile> = getOrCreateState { TableSelectionState() },
-  onSelectionUpdated: (DeviceProfile) -> Unit,
+fun <DeviceT : DeviceProfile> WizardPageScope.DeviceGridPage(
+  filterState: DeviceFilterState<DeviceT>,
+  selectionState: TableSelectionState<DeviceT> = getOrCreateState { TableSelectionState() },
+  onSelectionUpdated: (DeviceT) -> Unit,
   content: @Composable () -> Unit,
 ) {
   content()

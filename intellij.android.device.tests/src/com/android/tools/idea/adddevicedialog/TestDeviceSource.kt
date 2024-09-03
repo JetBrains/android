@@ -28,20 +28,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.component.Icon
 
-open class TestDeviceSource : DeviceSource {
+open class TestDeviceSource : DeviceSource<TestDevice> {
   override val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
 
-  val selectedProfile = MutableStateFlow<DeviceProfile?>(null)
+  val selectedProfile = MutableStateFlow<TestDevice?>(null)
 
   fun add(device: TestDevice) {
-    profiles.update {
-      LoadingState.Ready(
-        it.value + device.toBuilder().apply { source = this@TestDeviceSource.javaClass }.build()
-      )
-    }
+    profiles.update { LoadingState.Ready(it.value + device) }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+  override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
     selectedProfile.value = profile
   }
 }
@@ -63,7 +59,6 @@ data class TestDevice(
   override val formFactor: String = FormFactors.PHONE,
   override val isAlreadyPresent: Boolean = false,
   override val availabilityEstimate: Duration = Duration.ZERO,
-  override val source: Class<out DeviceSource> = TestDeviceSource::class.java,
 ) : DeviceProfile {
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
@@ -82,11 +77,8 @@ data class TestDevice(
   }
 
   class Builder : DeviceProfile.Builder() {
-    lateinit var source: Class<out DeviceSource>
-
     fun copyFrom(profile: TestDevice) {
       super.copyFrom(profile)
-      source = profile.source
     }
 
     override fun build(): TestDevice =
@@ -104,7 +96,6 @@ data class TestDevice(
         formFactor = formFactor,
         isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
-        source = source,
       )
   }
 }

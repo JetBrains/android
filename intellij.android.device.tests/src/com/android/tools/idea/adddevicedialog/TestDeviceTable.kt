@@ -18,10 +18,10 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.runtime.Composable
 import kotlinx.collections.immutable.persistentListOf
 
-class TestDeviceFilterState : DeviceFilterState() {
+class TestDeviceFilterState : DeviceFilterState<TestDevice>() {
   val oemFilter = SetFilterState(Manufacturer)
 
-  override fun apply(row: DeviceProfile): Boolean = oemFilter.apply(row) && super.apply(row)
+  override fun apply(row: TestDevice): Boolean = oemFilter.apply(row) && super.apply(row)
 }
 
 @Composable
@@ -31,7 +31,7 @@ fun TestDeviceFilters(profiles: List<DeviceProfile>, filterState: TestDeviceFilt
 }
 
 @Composable
-fun TestDeviceTable(profiles: List<DeviceProfile>) {
+fun TestDeviceTable(profiles: List<TestDevice>) {
   val filterState = TestDeviceFilterState()
   DeviceTable(
     profiles,

@@ -67,7 +67,7 @@ fun <V> SetFilter(values: List<V>, state: SetFilterState<*, V>, modifier: Modifi
   SetFilter(state.attribute.name, values, state.selection, modifier)
 }
 
-interface RowFilter<T> {
+interface RowFilter<in T> {
   fun apply(row: T): Boolean
 }
 
