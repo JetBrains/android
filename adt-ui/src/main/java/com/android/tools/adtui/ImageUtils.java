@@ -62,6 +62,18 @@ public class ImageUtils {
   /** Mask of the alpha channel in the ARGB color representation. */
   public static final int ALPHA_MASK = 0xFF000000;
 
+  /** Transforms the source image to TYPE_INT_ARGB if it has TYPE_CUSTOM. */
+  public static @NotNull BufferedImage normalizeImage(@NotNull BufferedImage source) {
+    if (source.getType() != BufferedImage.TYPE_CUSTOM) {
+      return source;
+    }
+    BufferedImage result =  new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = result.createGraphics();
+    g.drawImage(source, 0, 0, null);
+    g.dispose();
+    return result;
+  }
+
   /**
    * Rotates the given image by the given number of quadrants.
    *
@@ -208,6 +220,7 @@ public class ImageUtils {
     return transformOp.filter(source, result);
   }
 
+  /** Creates a HiDPI aware image. */
   public static BufferedImage createDipImage(int width, int height, int type) {
     return ImageUtil.createImage(width, height, type);
   }
