@@ -35,13 +35,14 @@ internal class LogcatFileData(val metadata: Metadata?, val logcatMessages: List<
  * If the saved filter contains `package:mine`, it will be replaced with a `package` clause that
  * will contain the explicit package(s) from the project where the Logcat was exported from.
  */
-internal fun LogcatFileData?.safeGetFilter(): String? {
+internal fun LogcatFileData?.safeGetFilter(applicationIds: Set<String>): String? {
   val filter = this?.metadata?.filter ?: return null
   if (!filter.contains(MY_PACKAGE)) {
     return filter
   }
   return when {
     metadata.projectApplicationIds.isEmpty() -> filter.replace(MY_PACKAGE, "")
+    metadata.projectApplicationIds == applicationIds -> filter
     metadata.projectApplicationIds.size == 1 ->
       filter.replace(MY_PACKAGE, "package:${metadata.projectApplicationIds.first()}")
     filter == MY_PACKAGE -> metadata.projectApplicationIds.joinToString(" ") { "package:$it" }
