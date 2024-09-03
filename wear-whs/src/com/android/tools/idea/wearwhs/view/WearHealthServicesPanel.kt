@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.wearwhs.view
 
-import com.android.tools.adtui.model.stdui.CommonAction
-import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
@@ -349,44 +349,6 @@ private fun createWearHealthServicesPanelHeader(
         else message("wear.whs.panel.load.preset.tooltip")
     }
     .launchIn(uiScope)
-  val eventTriggersDropDownButton =
-    object :
-        CommonDropDownButton(
-          CommonAction("", AllIcons.Actions.More).apply {
-            addChildrenActions(
-              EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
-                CommonAction(eventTriggerGroup.eventGroupLabel, null).apply {
-                  addChildrenActions(
-                    eventTriggerGroup.eventTriggers.map { eventTrigger ->
-                      CommonAction(eventTrigger.eventLabel, null) {
-                        workerScope.launch {
-                          onTriggerEventChannel.send(Unit)
-                          stateManager
-                            .triggerEvent(eventTrigger)
-                            .onSuccess {
-                              notifyUser(
-                                message("wear.whs.event.trigger.success"),
-                                MessageType.INFO,
-                              )
-                            }
-                            .onFailure {
-                              notifyUser(
-                                message("wear.whs.event.trigger.failure"),
-                                MessageType.ERROR,
-                              )
-                            }
-                        }
-                      }
-                    }
-                  )
-                }
-              }
-            )
-          }
-        ) {
-        override fun isFocusable(): Boolean = true
-      }
-      .apply { toolTipText = message("wear.whs.panel.trigger.events") }
 
   val statusLabel =
     JLabel(message("wear.whs.panel.exercise.inactive")).apply {
@@ -416,7 +378,12 @@ private fun createWearHealthServicesPanelHeader(
   twoColumnsRow(
     {
       cell(loadCapabilityPresetButton)
-      cell(eventTriggersDropDownButton)
+      cell(createTriggerEventGroupsButton(
+        workerScope = workerScope,
+        onTriggerEventChannel = onTriggerEventChannel,
+        stateManager = stateManager,
+        notifyUser = notifyUser,
+      ))
     },
     { cell(statusLabel) },
   )
@@ -593,3 +560,62 @@ internal fun createWearHealthServicesPanel(
     onUserTriggerEventFlow = onTriggerEventChannel.receiveAsFlow(),
   )
 }
+
+private fun createTriggerEventGroupsButton(
+  workerScope: CoroutineScope,
+  onTriggerEventChannel: Channel<Unit>,
+  stateManager: WearHealthServicesStateManager,
+  notifyUser: (String, MessageType) -> Unit,
+): JButton {
+  val eventTriggerGroupActions =
+    EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
+      val eventTriggerActions =
+        eventTriggerGroup.eventTriggers.map { eventTrigger ->
+          createEventTriggerAction(
+            eventTrigger = eventTrigger,
+            workerScope = workerScope,
+            onTriggerEventChannel = onTriggerEventChannel,
+            stateManager = stateManager,
+            notifyUser = notifyUser,
+          )
+        }
+      DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply {
+          addAll(eventTriggerActions)
+      }
+    }
+  val eventTriggerGroups =
+    DropDownAction(null, null, null).apply {
+        addAll(eventTriggerGroupActions)
+    }
+
+  return JButton(message("wear.whs.panel.trigger.events")).apply {
+    toolTipText = message("wear.whs.panel.trigger.events.tooltip")
+    isFocusable = true
+    addActionListener {
+      val popup =
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, eventTriggerGroups)
+      JBPopupMenu.showBelow(this, popup.component)
+    }
+  }
+}
+
+private fun createEventTriggerAction(
+  eventTrigger: EventTrigger,
+  workerScope: CoroutineScope,
+  onTriggerEventChannel: Channel<Unit>,
+  stateManager: WearHealthServicesStateManager,
+  notifyUser: (String, MessageType) -> Unit,
+) =
+  object : AnAction(eventTrigger.eventLabel, null, null) {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      workerScope.launch {
+        onTriggerEventChannel.send(Unit)
+        stateManager
+          .triggerEvent(eventTrigger)
+          .onSuccess { notifyUser(message("wear.whs.event.trigger.success"), MessageType.INFO) }
+          .onFailure { notifyUser(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
+      }
+    }
+  }
