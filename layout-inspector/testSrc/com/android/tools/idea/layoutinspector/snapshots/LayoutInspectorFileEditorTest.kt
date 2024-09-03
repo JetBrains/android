@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -43,6 +41,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 

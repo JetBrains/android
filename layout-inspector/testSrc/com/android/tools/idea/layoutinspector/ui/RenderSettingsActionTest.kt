@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -39,6 +37,8 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class RenderSettingsActionTest {
   private lateinit var event: AnActionEvent

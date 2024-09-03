@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -53,6 +50,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class SnapshotActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
@@ -129,7 +129,7 @@ class SnapshotActionTest {
         path.write(byteArrayOf(1, 2, 3))
       }
       .whenever(client)
-      .saveSnapshot(any(Path::class.java))
+      .saveSnapshot(any())
     doAnswer { isConnected }.whenever(client).isConnected
     val dataContext = DataContext { dataId ->
       if (dataId == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null

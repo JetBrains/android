@@ -60,5 +60,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
+    <orderEntry type="library" name="mockito-kotlin" level="project" />
   </component>
 </module>
