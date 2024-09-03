@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.liveedit
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -112,7 +113,14 @@ interface LiveEditService : Disposable {
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  fun notifyAppDeploy(runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp): Boolean
+  fun notifyAppDeploy(
+    runProfile: RunProfile,
+    executor: Executor,
+    applicationProjectContext: ApplicationProjectContext,
+    device: IDevice,
+    app: LiveEditApp
+  ): Boolean
+
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode)
   fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode)
   fun triggerLiveEdit()

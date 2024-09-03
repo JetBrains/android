@@ -140,7 +140,7 @@ class AndroidRunConfigurationExecutor(
             }
 
             if (launch(mainApp.app, device, console, isDebug = false)) {
-              notifyLiveEditService(device, apks, applicationId)
+              notifyLiveEditService(device, apks, applicationContext)
             }
           }
         }
@@ -175,9 +175,13 @@ class AndroidRunConfigurationExecutor(
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
 
-  private fun notifyLiveEditService(device: IDevice, apkInfos: MutableCollection<ApkInfo>, applicationId: String) {
+  private fun notifyLiveEditService(
+    device: IDevice,
+    apkInfos: MutableCollection<ApkInfo>,
+    applicationProjectContext: ApplicationProjectContext
+  ) {
     try {
-      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkInfos, device)
+      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationProjectContext, apkInfos, device)
     } catch (e: Exception) {
 
       // Monitoring should always start successfully.
@@ -244,7 +248,7 @@ class AndroidRunConfigurationExecutor(
         val deployResults =
           deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
 
-        notifyLiveEditService(device, apks, applicationId)
+        notifyLiveEditService(device, apks, applicationContext)
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")

@@ -26,6 +26,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
@@ -169,7 +170,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final @NotNull Project project;
 
-  private @Nullable String applicationId;
+  private @Nullable ApplicationProjectContext applicationProjectContext;
 
   // TODO: This is the Thread where we process keystroke but also where we receive appDeploy.
   //       1. A better name would be "mainThreadExecutor".
@@ -178,7 +179,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private final ScheduledExecutorService mainThreadExecutor = Executors.newSingleThreadScheduledExecutor();
 
   /**
-   * Track the state of the project {@link #project} on devices it has been deployed on as {@link #applicationId}
+   * Track the state of the project {@link #project} on devices it has been deployed on as {@link #applicationProjectContext}.
    */
   private final LiveEditDevices liveEditDevices = new LiveEditDevices();
 
@@ -335,7 +336,7 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-  public boolean notifyAppDeploy(String applicationId,
+  public boolean notifyAppDeploy(ApplicationProjectContext applicationProjectContext,
                                  IDevice device,
                                  @NotNull LiveEditApp app,
                                  List<VirtualFile> openFiles,
@@ -356,12 +357,13 @@ public class LiveEditProjectMonitor implements Disposable {
     }
 
     if (!supportLiveEdits(device)) {
-      LOGGER.info("Live edit not support for device API %d targeting app %s", device.getVersion().getApiLevel(), applicationId);
+      LOGGER.info("Live edit not support for device API %d targeting app %s", device.getVersion().getApiLevel(),
+                  applicationId());
       liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE, app);
       return false;
     }
 
-    LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
+    LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId());
 
     // Initialize EditStatus for current device.
     liveEditDevices.addDevice(device, LiveEditStatus.Loading.INSTANCE, app);
@@ -369,15 +371,15 @@ public class LiveEditProjectMonitor implements Disposable {
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
     mainThreadExecutor.submit(() -> {
-      this.applicationId = applicationId;
+      this.applicationProjectContext = applicationProjectContext;
       intermediateSyncs.set(Boolean.FALSE);
       resetState();
 
       // The app may have connected to ADB before we set up our ADB listeners.
-      if (device.getClient(applicationId) != null) {
+      if (device.getClient(applicationId()) != null) {
         updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
       }
-      deviceWatcher.setApplicationId(applicationId);
+      deviceWatcher.setApplicationId(applicationId());
 
       psiSnapshots.clear();
       updatePsiSnapshots(openFiles);
@@ -463,9 +465,14 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private boolean shouldLiveEdit() {
     return LiveEditApplicationConfiguration.getInstance().isLiveEdit() &&
-           StringUtil.isNotEmpty(applicationId) &&
+           StringUtil.isNotEmpty(applicationId()) &&
            !liveEditDevices.isUnrecoverable() &&
            !liveEditDevices.isDisabled();
+  }
+
+  private @Nullable String applicationId() {
+    if (applicationProjectContext == null) return null;
+    return applicationProjectContext.getApplicationId();
   }
 
   @VisibleForTesting
@@ -500,7 +507,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
   @Trace
   boolean handleChangedMethods(Project project, List<PsiFile> changedFiles) {
-    LOGGER.info("Change detected for project %s targeting app %s", project.getName(), applicationId);
+    LOGGER.info("Change detected for project %s targeting app %s", project.getName(), applicationId());
 
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
@@ -617,7 +624,7 @@ public class LiveEditProjectMonitor implements Disposable {
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
     List<LiveUpdateDeployer.UpdateLiveEditError> errors = editableDeviceIterator()
-      .map(device -> pushUpdatesToDevice(applicationId, device, desugaredResponse).errors)
+      .map(device -> pushUpdatesToDevice(applicationId(), device, desugaredResponse).errors)
       .flatMap(List::stream)
       .toList();
 
