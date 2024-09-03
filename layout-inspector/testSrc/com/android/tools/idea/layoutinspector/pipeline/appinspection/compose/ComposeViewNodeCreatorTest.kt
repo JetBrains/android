@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Composa
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
 import com.google.common.truth.Truth.assertThat
+import java.awt.Point
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode.Flags
 import org.junit.Test
@@ -187,8 +188,8 @@ class ComposeViewNodeCreatorTest {
 
   @Test
   fun testRecompositionCounts() {
-    val creator = ComposeViewNodeCreator(GetComposablesResult(response.build(), false))
-    val result = creator.createForViewId(VIEW1) { false }!!
+    val creator = ComposeViewNodeCreator(GetComposablesResult(response.build(), false), Point())
+    val result = creator.createForViewId(VIEW1, Point()) { false }!!
     assertThat(result.size).isEqualTo(1)
     val nodes = ViewNode.readAccess { result[0].preOrderFlatten().toList() }
     nodes[0].assertNode("MyTheme", RecompositionData(0, 0, 9), listOf(-3))

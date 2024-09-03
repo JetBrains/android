@@ -115,6 +115,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           metadata.dpi,
           metadata.fontScale,
           metadata.screenDimension,
+          metadata.windowBounds,
         )
       }
       snapshot.foldInfo?.let { model.foldInfo = it.convert() }
