@@ -1,0 +1,8 @@
+FILE
+  PsiElement(BLOCK)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('dependencies')
+    PsiElement(BLOCK_GROUP)
+      PsiElement(DeclarativeTokenType.{)('{')
+      PsiWhiteSpace('\n')
+      PsiElement(DeclarativeTokenType.})('}')
