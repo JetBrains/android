@@ -135,10 +135,21 @@ private fun createCenterPanel(
             JLabel(message(capability.label)).also { label ->
               val plainFont = label.font.deriveFont(Font.PLAIN)
               val italicFont = label.font.deriveFont(Font.ITALIC)
-              stateManager
-                .getState(capability)
-                .map { it is PendingUserChangesCapabilityUIState }
-                .onEach { hasUserChanges ->
+              combine(stateManager.getState(capability), stateManager.ongoingExercise) {
+                  uiState,
+                  ongoingExercise ->
+                  val pendingUserChanges =
+                    (uiState as? PendingUserChangesCapabilityUIState)?.userState
+                  // When an exercise is ongoing only the override value can be changed by the user
+                  val hasUserChanges =
+                    if (ongoingExercise)
+                      pendingUserChanges != null &&
+                        pendingUserChanges.overrideValue != uiState.upToDateState.overrideValue
+                    // When outside an exercise, only the capability availability can be changed by
+                    // the user
+                    else
+                      pendingUserChanges != null &&
+                        pendingUserChanges.enabled != uiState.upToDateState.enabled
                   if (hasUserChanges) {
                     label.font = italicFont
                     label.text = "${message(capability.label)}*"
@@ -152,19 +163,26 @@ private fun createCenterPanel(
           val checkBox =
             JCheckBox().also { checkBox ->
               elementsToDisableDuringExercise.add(checkBox)
-              stateManager
-                .getState(capability)
-                .map { it.currentState.enabled }
-                .onEach { enabled -> checkBox.isSelected = enabled }
-                .launchIn(uiScope)
               checkBox.addActionListener {
                 workerScope.launch {
                   stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
                 }
               }
             }
-          stateManager.ongoingExercise
-            .onEach { label.isEnabled = !it || checkBox.isSelected }
+
+          combine(stateManager.getState(capability), stateManager.ongoingExercise) {
+              uiState,
+              ongoingExercise ->
+              // When an exercise is ongoing, we want to reflect the capability state of the device,
+              // not any pending user changes
+              val isCapabilityEnabled =
+                if (ongoingExercise) uiState.upToDateState.enabled
+                else
+                  (uiState as? PendingUserChangesCapabilityUIState)?.userState?.enabled
+                    ?: uiState.upToDateState.enabled
+              checkBox.isSelected = isCapabilityEnabled
+              label.isEnabled = !ongoingExercise || isCapabilityEnabled
+            }
             .launchIn(uiScope)
 
           add(checkBox, BorderLayout.LINE_START)
