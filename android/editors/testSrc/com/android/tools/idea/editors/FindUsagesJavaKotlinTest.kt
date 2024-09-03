@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
@@ -49,6 +50,7 @@ class FindUsagesJavaKotlinTest {
   @Before
   fun setUp() {
     myFixture.copyDirectoryToProject("findUsagesJavaKotlin", "src/com/codegeneration")
+    IndexingTestUtil.waitUntilIndexesAreReady(myFixture.project)
   }
 
   @Test
