@@ -370,6 +370,16 @@
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.completion.AndroidNonTransitiveRClassJavaCompletionContributor"
                             order="last, before javaLegacy"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="org.jetbrains.android.completion.AndroidJavaRequiresPermissionCompletionContributor"
+                            order="first" />
+    <completion.contributor language="kotlin"
+                            implementationClass="org.jetbrains.android.completion.AndroidKotlinRequiresPermissionCompletionContributor"
+                            order="first" />
+    <weigher key="completion"
+             implementationClass="org.jetbrains.android.completion.AndroidRequiresPermissionCompletionWeigher"
+             id="AndroidRequiresPermissionCompletionWeigher"
+             order="first"/>
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
