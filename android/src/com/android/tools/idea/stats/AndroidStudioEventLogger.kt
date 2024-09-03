@@ -33,6 +33,11 @@ import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
 import com.google.wireless.android.sdk.stats.StartupEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceCodeLoadedAndVisibleInEditor
+import com.google.wireless.android.sdk.stats.StartupPerformanceFirstUiShownEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameInteractiveEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameVisibleEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameVisibleEvent.ProjectType
 import com.google.wireless.android.sdk.stats.VfsRefresh
 import com.intellij.ide.ui.experimental.ExperimentalUiCollector
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
@@ -70,6 +75,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                           "file.types.usage" to ::logFileTypeUsage,
                           "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
                           "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
+                          "reopen.project.startup.performance" to ::logReopenProjectStartupPerformance,
                           "run.configuration.exec" to ::logRunConfigurationExec,
                           "startup" to ::logStartupEvent,
                           "vfs" to ::logVfsEvent,
@@ -294,6 +300,65 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }
     return AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.STARTUP_EVENT).setStartupEvent(
       StartupEvent.newBuilder().setType(type).setDurationMs(data["duration"] as Int))
+  }
+
+  private fun logReopenProjectStartupPerformance(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
+    return when (eventId) {
+      "first.ui.shown" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FIRST_UI_SHOWN
+        startupPerformanceFirstUiShownEvent = StartupPerformanceFirstUiShownEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["type"] as? String?)?.let {
+            type = when (it) {
+              "Splash" -> StartupPerformanceFirstUiShownEvent.UiResponseType.SPLASH
+              "Frame" -> StartupPerformanceFirstUiShownEvent.UiResponseType.FRAME
+              else -> StartupPerformanceFirstUiShownEvent.UiResponseType.UNKNOWN_UI_RESPONSE_TYPE
+            }
+          }
+        }.build()
+      }
+
+      "frame.became.visible" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE
+        startupPerformanceFrameBecameVisibleEvent = StartupPerformanceFrameBecameVisibleEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+          (data["projects_type"] as? String?)?.let {
+            projectType = when (it) {
+              "Reopened" -> ProjectType.REOPENED
+              "FromFilesToLoad" -> ProjectType.FROM_FILES_TO_LOAD
+              "FromArgs" -> ProjectType.FROM_ARGS
+              else -> ProjectType.UNKNOWN_PROJECT_TYPE
+            }
+          }
+        }.build()
+      }
+
+      "frame.became.interactive" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE
+        startupPerformanceFrameBecameInteractiveEvent = StartupPerformanceFrameBecameInteractiveEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+        }.build()
+      }
+
+      "code.loaded.and.visible.in.editor" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR
+        startupPerformanceCodeLoadedAndVisibleInEditor = StartupPerformanceCodeLoadedAndVisibleInEditor.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["file_type"] as? String?)?.let { fileType = it }
+          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+          (data["loaded_cached_markup"] as? Boolean?)?.let { loadedCachedMarkup = it }
+          (data["no_editors_to_open"] as? Boolean?)?.let { noEditorsToOpen = it }
+          (data["source_of_selected_editor"] as? String?)?.let { sourceOfSelectedEditor = when(it) {
+            "TextEditor" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.TEXT_EDITOR
+            "FoundReadmeFile" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.FOUND_README_FILE
+            else -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.UNKNOWN_SOURCE_OF_SELECTED_EDITOR
+          } }
+        }.build()
+      }
+
+      else -> null
+    }
   }
 
   @Suppress("SpellCheckingInspection")
