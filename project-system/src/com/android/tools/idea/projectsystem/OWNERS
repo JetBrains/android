@@ -6,6 +6,8 @@
 # prefer implementing a com.android.tools.idea.projectsystem.Token
 # in a feature-specific intellij module (go/studio-tokens)
 #
+set noparent
+
 cmw@google.com
 solodkyy@google.com
 xof@google.com
