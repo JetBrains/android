@@ -73,11 +73,13 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.SlowOperations
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
@@ -475,7 +477,9 @@ internal class ComposePreviewViewImpl(
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
               StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
-                createGeneratePreviewsActionData()
+                SlowOperations.allowSlowOperations(
+                  ThrowableComputable { createGeneratePreviewsActionData() }
+                )
               },
             )
           }
