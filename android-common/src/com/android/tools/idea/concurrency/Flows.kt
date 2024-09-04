@@ -16,7 +16,6 @@
 package com.android.tools.idea.concurrency
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.FlowableCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -45,7 +44,7 @@ fun syntaxErrorFlow(
   logger: Logger? = null,
   onConnected: (() -> Unit)? = null
 ) =
-  disposableCallbackFlow<SyntaxErrorUpdate>("SyntaxErrorFlow", logger, parentDisposable) {
+  disposableCallbackFlow("SyntaxErrorFlow", logger, parentDisposable) {
     project.messageBus
       .connect(disposable)
       .subscribe(
