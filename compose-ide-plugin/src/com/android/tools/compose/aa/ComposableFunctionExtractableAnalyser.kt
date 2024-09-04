@@ -64,7 +64,6 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
     if (sourceFunction is KtAnnotated) {
       sourceFunction.findAnnotation(ComposeClassIds.Composable)?.let {
         return descriptor.copy(
-          // TODO Android Studio (Ladybug Canary 7) Merge - check if expression is correct
           renderedAnnotations = descriptor.renderedAnnotations + ComposeClassIds.Composable.asFqNameString()
         )
       }
@@ -74,7 +73,6 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
         ?: return descriptor
     return if (outsideLambda.isComposable()) {
       descriptor.copy(
-        // TODO Android Studio (Ladybug Canary 7) Merge - check if expression is correct
         renderedAnnotations = descriptor.renderedAnnotations + ComposeClassIds.Composable.asFqNameString()
       )
     } else {
