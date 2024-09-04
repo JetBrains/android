@@ -1996,6 +1996,12 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate transform history in the diff view.",
                     ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_SHOW_TRANSFORM_HISTORY_FORWARD_BACK =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.show.history.forward.back",
+                    "Enable the transform history forward/back buttons in the transform diff.",
+                    "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_EXPERIMENTAL_SLASH_COMMANDS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.experimental.slash.commands.enabled",
                     "Enable experimental slash comments.",
