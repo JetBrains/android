@@ -110,8 +110,7 @@ private class CodeOutOfDateTrackerImpl(
 
   init {
     // TODO: Remove this code. This is a workaround for setupBuildListener not supporting multiple
-    // listeners for the
-    //       same parentDisposable
+    // listeners for the same parentDisposable
     val buildDisposable = Disposer.newDisposable()
     Disposer.register(parentDisposable, buildDisposable)
     setupBuildListener(
