@@ -15,48 +15,14 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.project.Info
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
-import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
-import com.intellij.util.messages.MessageBusConnection
-import org.mockito.Mockito.mock
-
 
 class GradleProjectSystemSyncManagerTest : HeavyPlatformTestCase() {
-  private lateinit var ideComponents: IdeComponents
-  private lateinit var gradleProjectInfo: Info
-  private lateinit var syncManager: ProjectSystemSyncManager
-  private lateinit var gradleBuildState: GradleBuildState
-  private lateinit var syncTopicConnection: MessageBusConnection
-  private lateinit var syncTopicListener: SyncResultListener
-
-  override fun setUp() {
-    super.setUp()
-    ideComponents = IdeComponents(myProject)
-
-    ideComponents.mockProjectService(GradleDependencyManager::class.java)
-    gradleProjectInfo = ideComponents.mockProjectService(Info::class.java)
-    whenever<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
-
-    syncManager = GradleProjectSystemSyncManager(myProject)
-    gradleBuildState = GradleBuildState.getInstance(myProject)
-
-    syncTopicConnection = project.messageBus.connect(project)
-    syncTopicListener = mock(SyncResultListener::class.java)
-    syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
-  }
 
   fun testGetLastSyncResult_unknownIfNeverSynced() {
-    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
-
-    assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.UNKNOWN)
+    assertThat(GradleProjectSystemSyncManager(myProject).getLastSyncResult()).isSameAs(SyncResult.UNKNOWN)
   }
 }
