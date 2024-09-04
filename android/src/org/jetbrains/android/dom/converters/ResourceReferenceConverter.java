@@ -180,7 +180,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   @NotNull
-  public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
+  public Collection<? extends ResourceValue> getVariants(@NotNull ConvertContext context) {
     Module module = context.getModule();
     if (module == null || module.isDisposed()) return Collections.emptySet();
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -334,7 +334,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   public boolean isReferenceTo(@NotNull PsiElement element,
                                String stringValue,
                                @Nullable ResourceValue resolveResult,
-                               ConvertContext context) {
+                               @NotNull ConvertContext context) {
     if (element instanceof ResourceReferencePsiElement) {
       ResourceReference reference = ((ResourceReferencePsiElement)element).getResourceReference();
       XmlElement xmlElement = context.getXmlElement();
@@ -511,7 +511,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
     if (s == null || s.isEmpty()) {
       return "Missing value";
     }
@@ -586,7 +586,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public ResourceValue fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (s == null) return null;
     if (DataBindingUtils.isBindingExpression(s)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
@@ -666,7 +666,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public final String toString(@Nullable ResourceValue element, ConvertContext context) {
+  public final String toString(@Nullable ResourceValue element, @NotNull ConvertContext context) {
     return convertToString(element);
   }
 
@@ -682,7 +682,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @Override
-  public LocalQuickFix[] getQuickFixes(ConvertContext context) {
+  public LocalQuickFix[] getQuickFixes(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
     if (facet != null) {
       DomElement domElement = context.getInvocationElement();

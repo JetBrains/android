@@ -52,7 +52,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
     context: ConvertContext,
     genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?,
   ): Array<Any> {
-    val file = context?.file ?: return EMPTY_ARRAY
+    val file = context.file
     return findIdUrlsInFile(file)
       .stream()
       .map { url ->

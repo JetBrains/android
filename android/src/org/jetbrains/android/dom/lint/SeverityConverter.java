@@ -32,13 +32,13 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
 
   @NotNull
   @Override
-  public Collection<Severity> getVariants(ConvertContext context) {
+  public Collection<Severity> getVariants(@NotNull ConvertContext context) {
     return ALL_VALUES;
   }
 
   @Nullable
   @Override
-  public Severity fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public Severity fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (s == null) {
       return null;
     }
@@ -53,7 +53,7 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
 
   @Nullable
   @Override
-  public String toString(@Nullable Severity severity, ConvertContext context) {
+  public String toString(@Nullable Severity severity, @NotNull ConvertContext context) {
     if (severity == null) {
       return null;
     }

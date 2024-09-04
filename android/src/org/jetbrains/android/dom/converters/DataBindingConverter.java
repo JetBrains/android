@@ -80,13 +80,13 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
    */
   @Override
   @NotNull
-  public Collection<? extends PsiClass> getVariants(ConvertContext context) {
+  public Collection<? extends PsiClass> getVariants(@NotNull ConvertContext context) {
     return Collections.emptyList();
   }
 
   @Override
   @Nullable
-  public PsiElement fromString(@Nullable @NonNls String type, ConvertContext context) {
+  public PsiElement fromString(@Nullable @NonNls String type, @NotNull ConvertContext context) {
     if (type == null) {
       return null;
     }

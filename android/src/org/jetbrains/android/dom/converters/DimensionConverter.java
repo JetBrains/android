@@ -30,7 +30,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @NotNull
   @Override
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     final XmlElement element = context.getXmlElement();
 
     if (element == null) {
@@ -56,7 +56,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     return doFromString(s);
   }
 
@@ -74,12 +74,12 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
     final String unit = getUnitFromValue(s);
     if (unit != null && !unit.isEmpty()) {
       if (unit.startsWith(",")) {

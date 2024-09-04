@@ -41,7 +41,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
 
   @Override
   @NotNull
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     List<String> variants = new ArrayList<>();
     for (ResolvingConverter<String> converter : myConverters) {
       variants.addAll(converter.getVariants(context));
@@ -50,7 +50,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String fromString(@Nullable String s, ConvertContext context) {
+  public String fromString(@Nullable String s, @NotNull ConvertContext context) {
     // Returning non-null value from this method means that the value is valid.
     // To ensure that, we check all the containing converters to make sure at least
     // one of those recognized passed value.
@@ -65,7 +65,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 
