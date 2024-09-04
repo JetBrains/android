@@ -103,7 +103,7 @@ class VitalsContentContainerPanel(
         DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state)
       )
 
-    if (StudioFlags.CRASHLYTICS_INSIGHT_IN_TOOLWINDOW.get()) {
+    if (StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
       toolWindowList.add(InsightToolWindow.create(projectController, this))
     }
 
