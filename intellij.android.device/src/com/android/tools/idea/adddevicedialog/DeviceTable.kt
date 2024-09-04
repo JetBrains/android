@@ -113,6 +113,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         modifier = Modifier.fillMaxSize(),
         minRatio = 0.1f,
         maxRatio = 0.5f,
+        initialDividerPosition = 200.dp,
       )
     }
   }
