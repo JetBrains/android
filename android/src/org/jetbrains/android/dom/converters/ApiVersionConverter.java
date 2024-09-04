@@ -18,7 +18,7 @@ import java.util.List;
 public class ApiVersionConverter extends ResolvingConverter<String> {
   @NotNull
   @Override
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     final List<String> result = new ArrayList<>(SdkVersionInfo.HIGHEST_KNOWN_API);
 
     for (int i = 1; i <= SdkVersionInfo.HIGHEST_KNOWN_API; i++) {
@@ -44,13 +44,13 @@ public class ApiVersionConverter extends ResolvingConverter<String> {
 
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     return s;
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 }

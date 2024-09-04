@@ -44,12 +44,12 @@ import java.util.Set;
 
 public class ConstantFieldConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     return s;
   }
 
   @Override
-  public String toString(@Nullable String value, ConvertContext context) {
+  public String toString(@Nullable String value, @NotNull ConvertContext context) {
     return value;
   }
 

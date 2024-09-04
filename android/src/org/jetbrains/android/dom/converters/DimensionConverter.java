@@ -30,7 +30,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @NotNull
   @Override
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     final XmlElement element = context.getXmlElement();
 
     if (element == null) {

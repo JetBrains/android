@@ -368,7 +368,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
   @Override
   @Nullable
-  public String toString(@Nullable PsiClass psiClass, ConvertContext context) {
+  public String toString(@Nullable PsiClass psiClass, @NotNull ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
     Manifest manifest = domElement.getParentOfType(Manifest.class, false);
     final String packageName = manifest == null ? null : manifest.getPackage().getValue();

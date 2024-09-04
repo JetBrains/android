@@ -47,19 +47,19 @@ public class IssueIdConverter extends ResolvingConverter<Issue> {
 
   @NotNull
   @Override
-  public Collection<Issue> getVariants(ConvertContext context) {
+  public Collection<Issue> getVariants(@NotNull ConvertContext context) {
     return getIdSet().values();
   }
 
   @Nullable
   @Override
-  public Issue fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public Issue fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     return getIdSet().get(s);
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable Issue issue, ConvertContext context) {
+  public String toString(@Nullable Issue issue, @NotNull ConvertContext context) {
     return issue == null ? null : issue.getId();
   }
 
