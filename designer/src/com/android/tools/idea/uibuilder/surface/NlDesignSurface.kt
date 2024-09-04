@@ -85,6 +85,7 @@ import java.util.function.Supplier
 import java.util.stream.Collectors
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
 /**
@@ -223,10 +224,13 @@ internal constructor(
     revalidateScrollArea()
   }
 
+  /** Triggers a re-inflation and re-render, but it doesn't wait for it to finish. */
   override fun forceRefresh() {
-    requestSequentialRender {
-      it.sceneRenderConfiguration.needsInflation.set(true)
-      it.requestRenderAsync()
+    scope.launch {
+      sceneManagers.forEach {
+        it.sceneRenderConfiguration.needsInflation.set(true)
+        it.requestRenderAsync()
+      }
     }
   }
 
@@ -368,15 +372,22 @@ internal constructor(
     return sceneManagers.any { it.renderResult != null }
   }
 
+  /**
+   * Triggers a re-inflation and re-render. This method doesn't wait for the refresh to finish, but
+   * it sets up a progress indicator to inform the user about the refresh progress.
+   */
   override fun forceUserRequestedRefresh() {
     // When the user initiates the refresh, give some feedback via progress indicator.
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
-    requestSequentialRender {
-        it.sceneRenderConfiguration.needsInflation.set(true)
-        it.requestUserInitiatedRenderAsync()
+    scope
+      .launch {
+        sceneManagers.forEach {
+          it.sceneRenderConfiguration.needsInflation.set(true)
+          it.requestRenderAsync().await()
+        }
       }
-      .whenComplete { _, _ -> refreshProgressIndicator.processFinish() }
+      .invokeOnCompletion { refreshProgressIndicator.processFinish() }
   }
 
   fun findSceneViewRectangles(): Map<SceneView, Rectangle?> {

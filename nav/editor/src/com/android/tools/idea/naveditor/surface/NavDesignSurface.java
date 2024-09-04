@@ -174,7 +174,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       @Override
       public void componentResized(ComponentEvent e) {
         removeComponentListener(this);
-        requestRender();
+        SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
+        if (manager != null) manager.requestRenderAsync();
       }
     });
 
@@ -193,16 +194,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     );
     myZoomController.setZoomListener(this);
     myZoomController.setOnScaleListener(this);
-  }
-
-  @NotNull
-  @Override
-  public CompletableFuture<Void> requestRender() {
-    // TODO: According to the documentation of this function -- "Invalidates all models and request a render of the layout. This will
-    //  re-inflate the NlModel ...", we should implement NavSceneManager#requestLayoutAndRender() and call it because
-    //  SceneManager#requestRender() doesn't re-inflate the NlModel.
-    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
   }
 
   @Override
