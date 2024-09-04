@@ -140,7 +140,7 @@ public class BlazeQueryParser {
 
       graphBuilder.targetMapBuilder().put(ruleEntry.getKey(), target);
     }
-    int nTargets = query.proto().getRulesCount();
+    int nTargets = query.getRulesCount();
 
     // Calculate all the dependencies outside the project.
     for (Label dep : javaDeps) {
