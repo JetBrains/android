@@ -27,9 +27,9 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.ui.UIUtil
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.concurrent.TimeUnit
 
 private const val LIB_MODULE1_WITH_DEPENDENCY = "withDependency1"
 private const val LIB_MODULE2_WITH_DEPENDENCY = "withDependency2"
@@ -44,12 +44,25 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     modificationListener = MergedManifestModificationListener(project)
   }
 
-
-  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-                                          modules: MutableList<MyAdditionalModuleData>) {
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: MutableList<MyAdditionalModuleData>,
+  ) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE1_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
-    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE2_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+    addModuleWithAndroidFacet(
+      projectBuilder,
+      modules,
+      LIB_MODULE1_WITH_DEPENDENCY,
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
+      true,
+    )
+    addModuleWithAndroidFacet(
+      projectBuilder,
+      modules,
+      LIB_MODULE2_WITH_DEPENDENCY,
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
+      true,
+    )
   }
 
   fun testIsMainManifestReady() {
@@ -65,7 +78,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         package='com.example' android:debuggable="false" android:enabled='true'>
         <uses-sdk android:minSdkVersion='Lollipop' android:targetSdkVersion='28'/>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
     // not sure why it's 21 -1
@@ -95,60 +109,60 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           </activity-alias>
         </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
     val activities = myFacet.queryActivitiesFromManifestIndex().getJoined()
 
-    val mainIntentFilter = IntentFilterRawText(
-      actionNames = setOf("android.intent.action.MAIN"),
-      categoryNames = setOf("android.intent.category.DEFAULT")
-    )
-
-    val overrides = ManifestOverrides(
-      directOverrides = emptyMap(),
-      placeholders = emptyMap()
-    )
-
-    assertThat(activities).containsExactly(
-      IndexedActivityWrapper(
-        name = ".EnabledActivity",
-        enabled = "true",
-        exported = "true",
-        theme = null,
-        intentFilters = setOf(mainIntentFilter),
-        overrides = overrides,
-        resolvedPackage = "com.example"
-      ),
-      IndexedActivityWrapper(
-        name = ".DisabledActivity",
-        enabled = "false",
-        exported = null,
-        theme = null,
-        intentFilters = emptySet(),
-        overrides = overrides,
-        resolvedPackage = "com.example"
-      ),
-      IndexedActivityWrapper(
-        name = ".EnabledAlias",
-        enabled = "true",
-        exported = "true",
-        theme = null,
-        intentFilters = emptySet(),
-        overrides = overrides,
-        resolvedPackage = "com.example"
-      ),
-      IndexedActivityWrapper(
-        name = ".DisabledAlias",
-        enabled = "false",
-        exported = null,
-        theme = null,
-        intentFilters = emptySet(),
-        overrides = overrides,
-        resolvedPackage = "com.example"
+    val mainIntentFilter =
+      IntentFilterRawText(
+        actionNames = setOf("android.intent.action.MAIN"),
+        categoryNames = setOf("android.intent.category.DEFAULT"),
       )
-    )
+
+    val overrides = ManifestOverrides(directOverrides = emptyMap(), placeholders = emptyMap())
+
+    assertThat(activities)
+      .containsExactly(
+        IndexedActivityWrapper(
+          name = ".EnabledActivity",
+          enabled = "true",
+          exported = "true",
+          theme = null,
+          intentFilters = setOf(mainIntentFilter),
+          overrides = overrides,
+          resolvedPackage = "com.example",
+        ),
+        IndexedActivityWrapper(
+          name = ".DisabledActivity",
+          enabled = "false",
+          exported = null,
+          theme = null,
+          intentFilters = emptySet(),
+          overrides = overrides,
+          resolvedPackage = "com.example",
+        ),
+        IndexedActivityWrapper(
+          name = ".EnabledAlias",
+          enabled = "true",
+          exported = "true",
+          theme = null,
+          intentFilters = emptySet(),
+          overrides = overrides,
+          resolvedPackage = "com.example",
+        ),
+        IndexedActivityWrapper(
+          name = ".DisabledAlias",
+          enabled = "false",
+          exported = null,
+          theme = null,
+          intentFilters = emptySet(),
+          overrides = overrides,
+          resolvedPackage = "com.example",
+        ),
+      )
   }
 
   fun testQueryCustomPermissionsAndGroups() {
@@ -162,16 +176,18 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         <permission android:name='custom.permissions.IN_CUSTOM_GROUP' android:permissionGroup='custom.permissions.CUSTOM_GROUP'/>
         <permission android:name='custom.permissions.NO_GROUP'/>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
-    assertThat(myFacet.queryCustomPermissionsFromManifestIndex()).isEqualTo(
-      setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"))
-    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
-      setOf("custom.permissions.CUSTOM_GROUP"))
+    assertThat(myFacet.queryCustomPermissionsFromManifestIndex())
+      .isEqualTo(setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"))
+    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex())
+      .isEqualTo(setOf("custom.permissions.CUSTOM_GROUP"))
 
     // Update the primary manifest file of additional module with dependency.
-    // Query results should be the union set of custom permissions and groups declared in primary manifest files of main
+    // Query results should be the union set of custom permissions and groups declared in primary
+    // manifest files of main
     // module and additional module
     val anotherManifestContent =
       // language=XML
@@ -183,20 +199,29 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
         <permission android:name='custom.permissions.NO_GROUP1'/>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     assertThat(myAdditionalModules.size).isEqualTo(2)
     val libModule = myAdditionalModules[0]
-    updateManifest(libModule, "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", anotherManifestContent)
+    updateManifest(
+      libModule,
+      "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML",
+      anotherManifestContent,
+    )
 
-    assertThat(myFacet.queryCustomPermissionsFromManifestIndex()).isEqualTo(
-      setOf("custom.permissions.IN_CUSTOM_GROUP",
-            "custom.permissions.NO_GROUP",
-            "custom.permissions.IN_CUSTOM_GROUP1",
-            "custom.permissions.NO_GROUP1"))
+    assertThat(myFacet.queryCustomPermissionsFromManifestIndex())
+      .isEqualTo(
+        setOf(
+          "custom.permissions.IN_CUSTOM_GROUP",
+          "custom.permissions.NO_GROUP",
+          "custom.permissions.IN_CUSTOM_GROUP1",
+          "custom.permissions.NO_GROUP1",
+        )
+      )
 
-    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
-      setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
+    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex())
+      .isEqualTo(setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
   }
 
   fun testQueryApplicationDebuggable() {
@@ -209,7 +234,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           <application android:theme='@style/Theme.AppCompat' android:debuggable="true">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentDebuggable)
 
     assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isTrue()
@@ -223,7 +249,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           <application android:theme='@style/Theme.AppCompat' android:debuggable="false">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentNotDebuggable)
 
     assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isFalse()
@@ -237,7 +264,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           <application android:theme='@style/Theme.AppCompat'>
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentDebuggableIsNull)
 
     assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isNull()
@@ -253,7 +281,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           <application android:theme='@style/Theme.AppCompat' android:debuggable="true">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentAppTheme)
 
     assertThat(myFacet.queryApplicationThemeFromManifestIndex()).isEqualTo("@style/Theme.AppCompat")
@@ -267,7 +296,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
           <application android:debuggable="false">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentNoAppTheme)
 
     assertThat(myFacet.queryApplicationThemeFromManifestIndex()).isNull()
@@ -281,7 +311,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
         package='com.example' android:enabled='true'>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
     assertThat(myFacet.queryPackageNameFromManifestIndex()).isEqualTo("com.example")
 
@@ -305,15 +336,18 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
         package='com.example' android:enabled='true'>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
-    var facets = queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
+    var facets =
+      queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
     assertThat(facets.size).isEqualTo(1)
     assertThat(facets[0]).isEqualTo(myFacet)
 
     // change package name and see if corresponding modules are found or not
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("example", "changed"))
-    facets = queryByPackageName(project, "com.changed", GlobalSearchScope.projectScope(project)).toList()
+    facets =
+      queryByPackageName(project, "com.changed", GlobalSearchScope.projectScope(project)).toList()
     assertThat(facets.size).isEqualTo(1)
     assertThat(facets[0]).isEqualTo(myFacet)
   }
@@ -326,7 +360,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
         package='com.example' android:enabled='true'>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
     // update the manifest file of 'additional module1' with dependency
@@ -340,7 +375,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
         <permission android:name='custom.permissions.NO_GROUP1'/>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     // update the manifest file of 'additional module2' with dependency
     val manifestContentForLib2 =
@@ -353,24 +389,35 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
         <permission android:name='custom.permissions.NO_GROUP1'/>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     assertThat(myAdditionalModules.size).isEqualTo(2)
     val libModule1 = myAdditionalModules[0]
     val libFacet1 = AndroidFacet.getInstance(libModule1)
-    updateManifest(libModule1, "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", manifestContentForLib1)
+    updateManifest(
+      libModule1,
+      "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML",
+      manifestContentForLib1,
+    )
 
     val libModule2 = myAdditionalModules[1]
     val libFacet2 = AndroidFacet.getInstance(libModule2)
-    updateManifest(libModule2, "additionalModules/$LIB_MODULE2_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", manifestContentForLib2)
+    updateManifest(
+      libModule2,
+      "additionalModules/$LIB_MODULE2_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML",
+      manifestContentForLib2,
+    )
 
-
-    var facets = queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project)).toList()
+    var facets =
+      queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project))
+        .toList()
     // manifest files in additional 2 modules are with the same package name
     assertThat(facets.size).isEqualTo(2)
     assertThat(facets).containsExactly(libFacet1, libFacet2)
 
-    facets = queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
+    facets =
+      queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
     assertThat(facets.size).isEqualTo(1)
     assertThat(facets[0]).isEqualTo(myFacet)
   }
@@ -384,16 +431,17 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         package='com.example' android:enabled='true'>
         <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent()
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
-    assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
-      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true"))
-    )
+    assertThat(myFacet.queryUsedFeaturesFromManifestIndex())
+      .isEqualTo(setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")))
 
     // change required value
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("true", "false"))
-    assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
-      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "false"))
-    )
+    assertThat(myFacet.queryUsedFeaturesFromManifestIndex())
+      .isEqualTo(
+        setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "false"))
+      )
   }
 }
