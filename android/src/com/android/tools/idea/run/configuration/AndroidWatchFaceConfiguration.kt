@@ -19,7 +19,6 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.AndroidWatchFaceConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.WatchFaceLaunchOptions
@@ -57,12 +56,11 @@ class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFact
     environment: ExecutionEnvironment,
     deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
-    applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider,
     applicationContext: ApplicationProjectContext,
     deployer: ApplicationDeployer
   ) = AndroidWatchFaceConfigurationExecutor(
-    environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, applicationContext,
+    environment, deviceFutures, appRunSettings, apkProvider, applicationContext,
     deployer
   )
 }

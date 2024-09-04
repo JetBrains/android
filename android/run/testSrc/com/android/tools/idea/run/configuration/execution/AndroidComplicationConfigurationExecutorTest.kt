@@ -134,7 +134,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     )
     val executor = Mockito.spy(
       AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
         TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
       )
     )
@@ -234,7 +234,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     )
     val executor = Mockito.spy(
       AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
         TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
       )
     )
@@ -322,7 +322,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     )
     val executor = Mockito.spy(
       AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
         TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
       )
     )
@@ -394,7 +394,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val executor = Mockito.spy(
       AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
         TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
       )
     )

@@ -27,8 +27,8 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.FakeAndroidDevice
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -106,7 +106,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       env,
       deviceFutures,
       settings,
-      TestApplicationIdProvider(appId),
       TestApksProvider(appId),
       TestApplicationProjectContext(appId),
       appInstaller
@@ -179,7 +178,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       env,
       FakeAndroidDevice.forDevices(listOf(device)),
       settings,
-      TestApplicationIdProvider(appId),
       TestApksProvider(appId),
       TestApplicationProjectContext(appId),
       appInstaller
@@ -247,7 +245,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       env,
       FakeAndroidDevice.forDevices(listOf(device)),
       settings,
-      TestApplicationIdProvider(appId),
       TestApksProvider(appId),
       TestApplicationProjectContext(appId),
       appInstaller
@@ -324,7 +321,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       env,
       FakeAndroidDevice.forDevices(listOf(device)),
       settings,
-      TestApplicationIdProvider(appId),
       TestApksProvider(appId),
       TestApplicationProjectContext(appId),
       appInstaller

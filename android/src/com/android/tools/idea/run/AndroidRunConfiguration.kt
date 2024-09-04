@@ -151,7 +151,6 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
     return AndroidRunConfigurationExecutor(
-      applicationIdProvider,
       FacetBasedApplicationProjectContext(applicationIdProvider.packageName, facet),
       env,
       deployFutures,

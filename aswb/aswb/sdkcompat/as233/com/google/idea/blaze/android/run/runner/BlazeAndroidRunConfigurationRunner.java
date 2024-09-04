@@ -27,7 +27,6 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.stats.RunStats;
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeAndroidConfigurationExecutor;
@@ -174,14 +173,14 @@ public final class BlazeAndroidRunConfigurationRunner
     final LaunchOptions launchOptions = launchOptionsBuilder.build();
     BlazeAndroidConfigurationExecutor runner =
         new BlazeAndroidConfigurationExecutor(
-            runContext.getConsoleProvider(),
-            runContext.getApplicationIdProvider(),
-            env,
-            deviceFutures,
-            runContext.getLaunchTasksProvider(launchOptions),
-            launchOptions,
-            apkProvider,
-            LiveEditService.getInstance(env.getProject()));
+          runContext.getConsoleProvider(),
+          runContext.getApplicationProjectContext(),
+          env,
+          deviceFutures,
+          runContext.getLaunchTasksProvider(launchOptions),
+          launchOptions,
+          apkProvider,
+          LiveEditService.getInstance(env.getProject()));
     return new AndroidConfigurationExecutorRunProfileState(runner);
   }
 
@@ -210,7 +209,6 @@ public final class BlazeAndroidRunConfigurationRunner
         };
 
     AndroidConfigurationExecutor configurationExecutor;
-    ApplicationIdProvider appIdProvider = runContext.getApplicationIdProvider();
     ApplicationProjectContext applicationProjectContext = runContext.getApplicationProjectContext();
     ApkProvider apkProvider =
         BlazeApkProviderService.getInstance()
@@ -228,7 +226,6 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              appIdProvider,
               apkProvider,
               applicationProjectContext,
               deployer);
@@ -238,7 +235,6 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              appIdProvider,
               apkProvider,
               applicationProjectContext,
               deployer);
@@ -248,7 +244,6 @@ public final class BlazeAndroidRunConfigurationRunner
               env,
               deviceFutures,
               settings,
-              appIdProvider,
               apkProvider,
               applicationProjectContext,
               deployer);

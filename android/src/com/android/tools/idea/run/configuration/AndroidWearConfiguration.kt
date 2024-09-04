@@ -34,7 +34,6 @@ import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
@@ -129,7 +128,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
       }
       val deployer = ApplicationDeployerImpl(project, stats)
       val state = getExecutor(
-        environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider,
+        environment, deviceFutures, appRunSettings, apkProvider,
         applicationContext,
         deployer
       )
@@ -146,7 +145,6 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     environment: ExecutionEnvironment,
     deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
-    applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider,
     applicationContext: ApplicationProjectContext,
     deployer: ApplicationDeployer
