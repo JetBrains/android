@@ -147,7 +147,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_LISTITEM, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LAYOUT, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
-    .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
+    .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "mergeOnlyAttributes", "remove", "removeAll"))
     .put(ATTR_TARGET_API, new TargetApiConverter())
     .put(ATTR_SHRINK_MODE, new StaticEnumConverter(VALUE_STRICT, VALUE_SAFE))
     .put(ATTR_USE_HANDLER, VIEW_CONVERTER)
