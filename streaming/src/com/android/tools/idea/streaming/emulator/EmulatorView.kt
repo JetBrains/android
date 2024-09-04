@@ -118,7 +118,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
@@ -554,9 +553,7 @@ class EmulatorView(
     val displayRect = computeDisplayRectangle(skin)
     displayRectangle = displayRect
 
-    val g = graphics.create() as Graphics2D
-    val physicalToVirtualScale = 1.0 / screenScale
-    g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
+    val g = createAdjustedGraphicsContext(graphics)
 
     var savedClip: Shape? = null
     if (skin?.isDisplayRounded == true) {

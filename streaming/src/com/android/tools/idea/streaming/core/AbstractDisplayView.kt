@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.containers.ContainerUtil
@@ -315,6 +316,18 @@ abstract class AbstractDisplayView(
     if (!enabled) {
       hardwareInput.resetMetaKeys()
     }
+  }
+
+  /** Given a graphics context for drawing in logical pixels returns a context for drawing in physical pixels. */
+  protected fun createAdjustedGraphicsContext(graphics: Graphics): Graphics2D {
+    val g = graphics.create() as Graphics2D
+    val physicalToVirtualScale = 1.0 / screenScale
+    g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
+    if (SystemInfo.isMac) {
+      // Disable dithering that is for some bizarre reason is used by default on Mac.
+      g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE)
+    }
+    return g
   }
 
   protected open class HardwareInput {
