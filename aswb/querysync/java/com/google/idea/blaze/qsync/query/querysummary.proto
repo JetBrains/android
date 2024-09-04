@@ -11,9 +11,19 @@ option java_package = "com.google.idea.blaze.qsync.query";
  */
 message Summary {
   map<string, SourceFile> source_files = 1;
-  map<string, Rule> rules = 2;
+  reserved 2; // rules
   int32 version = 3;
   repeated string packages_with_errors = 4;
+  StringStorage string_storage = 5;
+  map<int32, StoredRule> stored_rules = 6;
+}
+
+/**
+ * Stores strings that are used in other messages by indexing into indexed_strings field of this message.
+ */
+message StringStorage {
+  // Ordered list of unique strings used in other messages as indexes into this list.
+  repeated string indexed_strings = 1;
 }
 
 message SourceFile {
@@ -38,4 +48,22 @@ message Rule {
   repeated string copts = 13;
   repeated string tags = 14;
   string main_class = 15;
+}
+
+message StoredRule {
+  int32 rule_class = 1;
+  repeated int32 sources = 2;
+  repeated int32 deps = 3;
+  repeated int32 idl_sources = 4;
+  reserved 5;
+  repeated int32 runtime_deps = 6;
+  repeated int32 resource_files = 7;
+  int32 manifest = 8;
+  int32 test_app = 9;
+  int32 instruments = 10;
+  int32 custom_package = 11;
+  repeated int32 hdrs = 12;
+  repeated int32 copts = 13;
+  repeated int32 tags = 14;
+  int32 main_class = 15;
 }
