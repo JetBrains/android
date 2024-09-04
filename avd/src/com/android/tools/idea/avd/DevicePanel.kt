@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
@@ -38,6 +40,7 @@ import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
@@ -57,8 +60,9 @@ internal fun DevicePanel(
   onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  Column {
+  Column(modifier) {
     Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
     TextField(
@@ -67,20 +71,21 @@ internal fun DevicePanel(
       Modifier.padding(bottom = Padding.MEDIUM_LARGE),
     )
 
-    Text("Select System Image", Modifier.padding(bottom = Padding.SMALL_MEDIUM))
-
     Text(
-      "Available system images are displayed based on the service and ABI configuration",
-      Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+      "Select system image",
+      fontWeight = FontWeight.SemiBold,
+      fontSize = LocalTextStyle.current.fontSize * 1.1,
+      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
     )
 
-    Row {
+    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
       ApiFilter(
         androidVersions,
         selectedApiLevel = devicePanelState.selectedApiLevel,
         onApiLevelChange = {
           onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it))
         },
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
