@@ -37,12 +37,10 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.icons.AllIcons
@@ -102,7 +100,6 @@ internal fun AdditionalSettingsPanel(
 
       EmulatedPerformanceGroup(
         configureDevicePanelState.device,
-        requireNotNull(configureDevicePanelState.systemImageTableSelectionState.selection),
         configureDevicePanelState::device::set,
       )
     }
@@ -383,7 +380,6 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 @Composable
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
-  image: ISystemImage,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -429,9 +425,9 @@ private fun EmulatedPerformanceGroup(
       Text("Graphic acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       Dropdown(
-        device.graphicAcceleration,
-        listOf(GpuMode.AUTO, GpuMode.HOST, GpuMode.getSoftwareGpuMode(image)).toImmutableList(),
-        onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
+        device.graphicsMode,
+        listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
+        onSelectedItemChange = { onDeviceChange(device.copy(graphicsMode = it)) },
         Modifier.alignByBaseline(),
       )
     }
