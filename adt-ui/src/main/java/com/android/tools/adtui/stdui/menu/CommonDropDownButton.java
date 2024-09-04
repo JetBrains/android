@@ -35,7 +35,10 @@ import java.util.List;
 /**
  * This control takes a {@link CommonAction} as the model and when clicked, populates and shows a dropdown menu that mirrors the
  * descendant hierarchy of the {@link CommonAction} model.
+ *
+ * @deprecated Prefer the use of {@link com.android.tools.adtui.actions.DropDownAction} instead.
  */
+@Deprecated
 public class CommonDropDownButton extends CommonToggleButton implements PropertyChangeListener {
   @NotNull private final CommonPopupMenu myPopup;
   @NotNull private final CommonAction myAction;
