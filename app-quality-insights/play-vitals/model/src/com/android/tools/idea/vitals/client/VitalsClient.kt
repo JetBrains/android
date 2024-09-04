@@ -37,6 +37,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -46,7 +47,6 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.runGrpcCatching
-import com.android.tools.idea.insights.codecontext.CodeContext
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.io.grpc.ClientInterceptor

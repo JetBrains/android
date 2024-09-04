@@ -20,5 +20,6 @@
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher" serviceImplementation="com.android.tools.idea.insights.analytics.AppInsightExperimentFetcherImpl" />
+    <projectService serviceInterface="com.android.tools.idea.insights.ai.codecontext.CodeContextResolver" serviceImplementation="com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl" />
   </extensions>
 </idea-plugin>
