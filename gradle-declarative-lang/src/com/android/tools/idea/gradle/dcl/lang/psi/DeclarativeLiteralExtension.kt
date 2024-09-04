@@ -41,6 +41,10 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
         .unescapeMultiline() ?: ""
   }
 
+  class Double(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Double = node.text.toDouble()
+  }
+
   class Long(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.Long? = node.text.toLongOrNull()
   }
@@ -63,6 +67,7 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
         DeclarativeElementTypeHolder.BOOLEAN -> Boolean(node)
         DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL -> String(node)
         DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL -> MultilineString(node)
+        DeclarativeElementTypeHolder.DOUBLE_LITERAL -> Double(node)
         DeclarativeElementTypeHolder.LONG_LITERAL -> Long(node)
         DeclarativeElementTypeHolder.INTEGER_LITERAL -> Int(node)
         DeclarativeElementTypeHolder.UNSIGNED_LONG -> ULong(node)
