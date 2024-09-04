@@ -16,6 +16,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
+        "noci:studio-win",  # b/362677439
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
