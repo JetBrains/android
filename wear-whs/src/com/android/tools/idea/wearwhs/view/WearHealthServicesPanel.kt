@@ -316,40 +316,6 @@ private fun createWearHealthServicesPanelHeader(
   }
   separator()
 
-  val presetActionGroup =
-    object : ActionGroup(null, true) {
-      override fun getChildren(e: AnActionEvent?) =
-        Preset.entries
-          .map {
-            object : AnAction(message(it.labelKey)) {
-              override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-              override fun actionPerformed(e: AnActionEvent) {
-                stateManager.loadPreset(it)
-              }
-            }
-          }
-          .toTypedArray()
-    }
-
-  val loadCapabilityPresetButton =
-    JButton(message("wear.whs.panel.load.preset")).apply {
-      addActionListener {
-        val popup =
-          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, presetActionGroup)
-        JBPopupMenu.showBelow(this, popup.component)
-      }
-    }
-
-  stateManager.ongoingExercise
-    .onEach {
-      loadCapabilityPresetButton.isEnabled = !it
-      loadCapabilityPresetButton.toolTipText =
-        if (it) message("wear.whs.panel.disabled.during.exercise")
-        else message("wear.whs.panel.load.preset.tooltip")
-    }
-    .launchIn(uiScope)
-
   val statusLabel =
     JLabel(message("wear.whs.panel.exercise.inactive")).apply {
       // setting a minimum width to prevent the label from being cropped when the text
@@ -377,13 +343,15 @@ private fun createWearHealthServicesPanelHeader(
 
   twoColumnsRow(
     {
-      cell(loadCapabilityPresetButton)
-      cell(createTriggerEventGroupsButton(
-        workerScope = workerScope,
-        onTriggerEventChannel = onTriggerEventChannel,
-        stateManager = stateManager,
-        notifyUser = notifyUser,
-      ))
+      cell(createLoadCapabilityPresetButton(stateManager = stateManager, uiScope = uiScope))
+      cell(
+        createTriggerEventGroupsButton(
+          workerScope = workerScope,
+          onTriggerEventChannel = onTriggerEventChannel,
+          stateManager = stateManager,
+          notifyUser = notifyUser,
+        )
+      )
     },
     { cell(statusLabel) },
   )
@@ -580,13 +548,11 @@ private fun createTriggerEventGroupsButton(
           )
         }
       DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply {
-          addAll(eventTriggerActions)
+        addAll(eventTriggerActions)
       }
     }
   val eventTriggerGroups =
-    DropDownAction(null, null, null).apply {
-        addAll(eventTriggerGroupActions)
-    }
+    DropDownAction(null, null, null).apply { addAll(eventTriggerGroupActions) }
 
   return JButton(message("wear.whs.panel.trigger.events")).apply {
     toolTipText = message("wear.whs.panel.trigger.events.tooltip")
@@ -619,3 +585,43 @@ private fun createEventTriggerAction(
       }
     }
   }
+
+private fun createLoadCapabilityPresetButton(
+  stateManager: WearHealthServicesStateManager,
+  uiScope: CoroutineScope,
+): JButton {
+  val presetActionGroup =
+    object : ActionGroup(null, true) {
+      override fun getChildren(e: AnActionEvent?) =
+        Preset.entries
+          .map {
+            object : AnAction(message(it.labelKey)) {
+              override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+              override fun actionPerformed(e: AnActionEvent) {
+                stateManager.loadPreset(it)
+              }
+            }
+          }
+          .toTypedArray()
+    }
+
+  val loadCapabilityPresetButton =
+    JButton(message("wear.whs.panel.load.preset")).apply {
+      addActionListener {
+        val popup =
+          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, presetActionGroup)
+        JBPopupMenu.showBelow(this, popup.component)
+      }
+    }
+
+  stateManager.ongoingExercise
+    .onEach {
+      loadCapabilityPresetButton.isEnabled = !it
+      loadCapabilityPresetButton.toolTipText =
+        if (it) message("wear.whs.panel.disabled.during.exercise")
+        else message("wear.whs.panel.load.preset.tooltip")
+    }
+    .launchIn(uiScope)
+  return loadCapabilityPresetButton
+}
