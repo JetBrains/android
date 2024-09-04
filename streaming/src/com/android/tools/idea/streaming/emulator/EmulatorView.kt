@@ -585,14 +585,9 @@ class EmulatorView(
                                           skin.displayCornerSize.width.toDouble(), skin.displayCornerSize.height.toDouble())))
     }
     // Draw display.
-    if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
-      g.drawImage(screenshot.image, null, displayRect.x, displayRect.y)
-    }
-    else {
-      displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-      displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
-      g.drawImage(screenshot.image, displayTransform, null)
-    }
+    displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
+    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+    g.drawImage(screenshot.image, displayTransform, null)
 
     frameNumber = screenshotShape.frameNumber
     xrInputController?.mouseScaleFactor =
