@@ -1,7 +1,7 @@
 // "Add Android View constructors using '@JvmOverloads'" "true"
 // K1-ERROR: This type has a constructor, and thus must be initialized here
 // K2-ERROR: This type has a constructor, so it must be initialized here.
-// K2-ERROR: None of the following functions is applicable: [constructor(context: Context): TextView, constructor(context: Context, attrs: AttributeSet?): TextView, constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): TextView]
+// K2-ERROR: None of the following candidates is applicable:<br>constructor(context: Context): TextView<br>constructor(context: Context, attrs: AttributeSet?): TextView<br>constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int): TextView
 // WITH_STDLIB
 
 package com.myapp.activity

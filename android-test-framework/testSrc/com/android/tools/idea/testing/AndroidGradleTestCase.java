@@ -61,7 +61,6 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -70,7 +69,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
-import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -152,11 +150,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     super.setUp();
 
     TestApplicationManager.getInstance();
-
-    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
-    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
-      Registry.get(K2_KTS_KEY).setValue(true);
-    }
 
     ensureSdkManagerAvailable();
     AndroidTestCase.registerLongRunningThreads();
@@ -497,6 +490,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
     AndroidGradleTests.syncProject(getProject(), request, it -> AndroidGradleTests.checkSyncStatus(getProject(), it));
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
   }
 
   @Override

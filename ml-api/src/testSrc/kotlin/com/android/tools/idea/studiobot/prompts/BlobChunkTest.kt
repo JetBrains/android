@@ -27,16 +27,16 @@ class BlobChunkTest {
 
   @Test
   fun `should mark two structurally identical instances as equals`() {
-    val first = Prompt.Message.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
-    val second = Prompt.Message.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
+    val first = Prompt.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
+    val second = Prompt.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
 
     assertEquals(second, first)
   }
 
   @Test
   fun `should mark two not structurally identical instances as not equals`() {
-    val first = Prompt.Message.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray2".toByteArray())
-    val second = Prompt.Message.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
+    val first = Prompt.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray2".toByteArray())
+    val second = Prompt.BlobChunk(MimeType.JPEG, emptyList(), "MyByteArray".toByteArray())
 
     assertNotEquals(second, first)
   }

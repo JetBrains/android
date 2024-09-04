@@ -693,7 +693,8 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
         }
       }
       is KtFunctionLiteral -> {
-        if ((psiElement.bodyExpression == null || psiElement.bodyExpression.isNullExpressionOrEmptyBlock())) {
+        val bodyExpression = psiElement.bodyExpression
+        if (bodyExpression == null || bodyExpression.isNullExpressionOrEmptyBlock()) {
           psiElement.delete()
           // If the parent is a KtLambdaExpression, delete it because KtLambdaExpression.getFunctionLiteral() cannot be null.
           if (psiParent is KtLambdaExpression) {

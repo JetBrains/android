@@ -35,14 +35,16 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
         ?: return StateTransition(state, Action.NONE)
     return if (movement == EventMovement.NEXT && selection.hasNext()) {
       StateTransition(
-        newState = state.copy(currentEvents = LoadingState.Ready(selection.next())),
-        action = Action.NONE,
-      )
+          newState = state.copy(currentEvents = LoadingState.Ready(selection.next())),
+          action = Action.NONE,
+        )
+        .also { trackEventView(tracker, it) }
     } else if (movement == EventMovement.PREVIOUS && selection.hasPrevious()) {
       StateTransition(
-        newState = state.copy(currentEvents = LoadingState.Ready(selection.previous())),
-        action = Action.NONE,
-      )
+          newState = state.copy(currentEvents = LoadingState.Ready(selection.previous())),
+          action = Action.NONE,
+        )
+        .also { trackEventView(tracker, it) }
     } else if (movement == EventMovement.NEXT && selection.canRequestMoreEvents()) {
       StateTransition(
         newState = state,
@@ -54,7 +56,10 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
         .warn(
           "Invalid state: attempting to select ${movement.name} item when there is none available."
         )
-      return StateTransition(state, Action.NONE)
+      StateTransition(state, Action.NONE)
     }
   }
+
+  private fun trackEventView(tracker: AppInsightsTracker, transition: StateTransition<Action>) =
+    tracker.trackEventView(transition.newState, false)
 }

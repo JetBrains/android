@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Companion.FOLLOWE
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.ide.OccurenceNavigator
@@ -28,6 +29,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -47,7 +49,11 @@ class LogcatOccurrenceNavigatorTest {
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule
+  val rule = RuleChain(
+    projectRule,
+    WaitForIndexRule(projectRule),
+    logcatEditorRule, EdtRule(), disposableRule)
 
   private val editor
     get() = logcatEditorRule.editor

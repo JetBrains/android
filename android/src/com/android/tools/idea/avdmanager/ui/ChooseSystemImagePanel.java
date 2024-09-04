@@ -26,6 +26,7 @@ import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
+import static com.android.sdklib.AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE;
 
 import com.android.repository.Revision;
 import com.android.resources.ScreenOrientation;
@@ -188,14 +189,14 @@ public class ChooseSystemImagePanel extends JPanel
       return SystemImageClassification.OTHER;
     }
 
-    if (!androidVersion.isBaseExtension() && androidVersion.getExtensionLevel() != null) {
-      // System images that contain extension levels but are not the base SDK should not be placed in RECOMMENDED tab, it should be either
-      // PERFORMANT or OTHER.
-      return isArm64HostOs == isAvdIntel ? SystemImageClassification.OTHER : SystemImageClassification.PERFORMANT;
-    }
-
     if (isAvdIntel == isArm64HostOs) {
       return SystemImageClassification.OTHER;
+    }
+
+    if (!isBaseExtensionLevelForDeviceType(androidVersion, tags)) {
+      // System images that contain extension levels but are not the base SDK should not be placed in RECOMMENDED tab, it should be either
+      // PERFORMANT or OTHER.
+      return SystemImageClassification.PERFORMANT;
     }
 
     if (SystemImageTags.isWearImage(tags)) {
@@ -433,6 +434,15 @@ public class ChooseSystemImagePanel extends JPanel
   public void addSystemImageListener(@NotNull Consumer<SystemImageDescription> onSystemImageSelected) {
     mySystemImageListeners.add(onSystemImageSelected);
     onSystemImageSelected.consume(mySystemImage);
+  }
+
+  private static boolean isBaseExtensionLevelForDeviceType(@NotNull AndroidVersion androidVersion,
+                                                           @NotNull List<IdDisplay> tags) {
+    if (SystemImageTags.isAutomotiveImage(tags) && androidVersion.getApiLevel() == UPSIDE_DOWN_CAKE) {
+      // Automotive udc devices should be placed in RECOMMENDED tab when the extension level is 9
+      return androidVersion.getExtensionLevel() == 9;
+    }
+    return androidVersion.isBaseExtension() || androidVersion.getExtensionLevel() == null;
   }
 
   @Override

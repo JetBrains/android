@@ -58,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
  * <a href="https://youtrack.jetbrains.com/issue/IDEA-303699">IDEA-303699</a>
  */
 // not final for android
+@SuppressWarnings("UnstableApiUsage")
 public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
   private final Map<String, ToolWindow> myToolWindows = new HashMap<>();
   private final Project myProject;

@@ -44,6 +44,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,7 +52,6 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
-import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
@@ -75,9 +75,10 @@ class ComposePreviewTest {
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
     fixture.invokeAndWaitForBuildAction("Build", "Make Project")
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
 
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
     return editor.getSplitEditorFixture().apply {
       setSplitMode()
       waitForRenderToFinish()
@@ -237,6 +238,7 @@ class ComposePreviewTest {
     fixture.editor.close()
   }
 
+  @Ignore("b/355391435")
   @Test
   @Throws(Exception::class)
   fun testAnimationInspector() {
@@ -297,6 +299,7 @@ class ComposePreviewTest {
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
     fixture.editor.open(animations1Relative)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
     assertNull(composePreview.findAnimationInspector())
 

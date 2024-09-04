@@ -65,6 +65,10 @@ MODULE                        : withGradleMetadata
         name                          : withGradleMetadata
         qName                         : withGradleMetadata
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -76,11 +80,6 @@ MODULE                        : withGradleMetadata
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -188,11 +187,14 @@ MODULE                        : withGradleMetadata
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : withGradleMetadata.app
     GradleModuleModel
         agpVersion                    : 7.3.0

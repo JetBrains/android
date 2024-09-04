@@ -39,14 +39,10 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.UnsupportedMethodException
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
@@ -54,21 +50,14 @@ import java.util.regex.Pattern
 import java.util.regex.Pattern.DOTALL
 
 class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
-  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_1 = Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
-  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_2 = Pattern.compile("Gradle version (.*) is required.*", DOTALL)
+  /** This message is generated in AGP by VersionCheckPlugin */
+  private val UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val error = getRootCauseAndLocation(issueData.error).first
 
-    val isOldGradleError = when (error) {
-      is UnsupportedVersionException -> true
-      is UnsupportedMethodException -> error.message?.contains("GradleProject.getBuildScript") ?: false
-      is ClassNotFoundException -> error.message?.contains(ToolingModelBuilderRegistry::class.java.name) ?: false
-      else -> false
-    }
     // If formatMessage returns null then we can't handle this error
-    val message = formatMessage(error.message) ?:
-                  if (isOldGradleError) "The project is using an unsupported version of Gradle.\n$FIX_GRADLE_VERSION" else return null
+    val message = formatMessage(error.message) ?: return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
@@ -105,8 +94,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
   private fun formatMessage(message: String?) : String? {
     if (message == null) return null
     val formattedMsg = StringBuilder()
-    if (UNSUPPORTED_GRADLE_VERSION_PATTERN_1.matcher(message).matches() ||
-        UNSUPPORTED_GRADLE_VERSION_PATTERN_2.matcher(message).matches()) {
+    if (UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message).matches()) {
       val index = message.indexOf("If using the gradle wrapper")
       if (index != -1) {
         formattedMsg.append(message.substring(0, index).trim())
@@ -120,25 +108,23 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
   }
 
   private fun getSupportedGradleVersion(message: String): String? {
-    for (pattern in listOf(UNSUPPORTED_GRADLE_VERSION_PATTERN_1, UNSUPPORTED_GRADLE_VERSION_PATTERN_2)) {
-      val matcher = pattern.matcher(message)
-      if (matcher.matches()) {
-        val version = matcher.group(1)
-        if (StringUtil.isNotEmpty(version)) {
-          return version
-        }
+    val matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message)
+    if (matcher.matches()) {
+      val version = matcher.group(1)
+      if (StringUtil.isNotEmpty(version)) {
+        return version
       }
     }
     return null
   }
+
   override fun consumeBuildOutputFailureMessage(message: String,
                                                 failureCause: String,
                                                 stacktrace: String?,
                                                 location: FilePosition?,
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return UNSUPPORTED_GRADLE_VERSION_PATTERN_1.matcher(failureCause).matches() ||
-           UNSUPPORTED_GRADLE_VERSION_PATTERN_2.matcher(failureCause).matches()
+    return UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(failureCause).matches()
   }
 
   class OpenGradleSettingsQuickFix: BuildIssueQuickFix {

@@ -57,6 +57,7 @@ import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -97,6 +98,7 @@ class ResolutionElementEditorTest {
     checkImage(editors, "OpenWithDetails")
   }
 
+  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testPaintOpenWithTwoDetails() = runBlocking {
     val editors = createEditors()

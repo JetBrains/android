@@ -332,6 +332,8 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"
                               order="first"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"
+                              />
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
@@ -489,6 +491,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingAnnotationsService" />
     <moduleService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderOverlays" />
     <moduleService serviceImplementation="com.android.tools.idea.res.AndroidDependenciesCache" />
+    <moduleService serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryBackgroundActions" />
 
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
     <spellchecker.dictionary.runtimeDictionaryProvider implementation="com.android.tools.idea.AndroidDictionaryProvider"/>
@@ -513,6 +516,7 @@
                         serviceInterface="com.android.tools.idea.adb.AdbFileProvider" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ProjectAdbFileProvider"
                         serviceInterface="com.android.tools.idea.adb.AdbFileProvider" />
+    <projectService serviceImplementation="com.android.tools.idea.stats.ReportProjectSizeTask"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/LiveLiteralsColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
@@ -624,6 +628,7 @@
     <notificationGroup id="Feature Survey" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Essentials Mode" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Import Android Test Results" displayType="BALLOON" />
+    <notificationGroup id="Google Play SDK Index Notifications" displayType="STICKY_BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
@@ -641,8 +646,6 @@
         implementation="com.android.tools.idea.editors.AndroidCodeVisionSettingsDefaults"
         order="first" />
 
-    <iconMapper mappingFile="StudioIntUiIconMappings.json"/>
-
     <projectService
         serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
         serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
@@ -657,6 +660,10 @@
     <classImportFilter implementation="com.android.tools.idea.res.NestedResourceClassImportFilter"/>
     <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
+    <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
   </extensions>
 
   <extensionPoints>
@@ -714,6 +721,8 @@
                     dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.flags.experimentalSettingsContributor"
                     interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.rendering.tokens.buildSystemFilePreviewServices"
+                    interface="com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.testRunParametersToken"
                     interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
@@ -738,6 +747,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea">
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.project.DefaultApplicationProjectContextProvider"/>
+    <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.DefaultBuildSystemFilePreviewServices"/>
   </extensions>
 
   <applicationListeners>

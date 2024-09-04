@@ -260,13 +260,17 @@ class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
 
     invokeLater {
       if (project.isInitialized) {
-        val pluginInfo = AndroidPluginInfo.findFromBuildFiles(project) ?: return@invokeLater
-        if (pluginInfo.pluginBuildFile != null) {
-          val openFile = OpenFileDescriptor(project, pluginInfo.pluginBuildFile!!, -1, -1, false)
-          if (openFile.canNavigate()) openFile.navigate(true)
+        val pluginBuildFile = AndroidPluginInfo.findPluginBuildFile(project)
+        if (pluginBuildFile != null) {
+          val openFile = OpenFileDescriptor(project, pluginBuildFile, -1, -1, false)
+          if (openFile.canNavigate()) {
+            openFile.navigate(true)
+            future.complete(null)
+            return@invokeLater
+          }
         }
       }
-      else Messages.showErrorDialog(project, "Failed to find plugin version on Gradle files.", "Quick Fix")
+      Messages.showErrorDialog(project, "Failed to find plugin version on Gradle files.", "Quick Fix")
       future.complete(null)
     }
     return future

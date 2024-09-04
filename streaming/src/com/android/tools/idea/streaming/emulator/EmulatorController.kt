@@ -73,10 +73,12 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
+import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.Reference
@@ -87,11 +89,13 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 /**
  * Controls a running Emulator.
  */
-class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
+class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
       EmulatorControllerGrpc.getStreamScreenshotMethod().requestMarshaller, imageResponseMarshaller).build()
@@ -299,6 +303,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
     }
+  }
+
+  /**
+   * Waits for the termination of the gRPC channel. Shutdown should have been requested before calling this method.
+   */
+  @TestOnly
+  internal fun awaitTermination(timeout: Duration) {
+    channel?.awaitTermination(timeout.toLong(DurationUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
   }
 
   /**

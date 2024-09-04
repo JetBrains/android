@@ -31,6 +31,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Document
 import java.io.File
@@ -188,6 +189,7 @@ private class PreparedTemplateBasedTestProject(
       name = "$name${templateBasedTestProject.pathToOpen}",
       options = options
     ) { project ->
+      IndexingTestUtil.waitUntilIndexesAreReady(project)
       invokeAndWaitIfNeeded {
         AndroidGradleTests.waitForCreateRunConfigurations(project)
       }

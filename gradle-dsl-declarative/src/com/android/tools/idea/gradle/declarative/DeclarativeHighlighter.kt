@@ -18,17 +18,21 @@ package com.android.tools.idea.gradle.declarative
 import com.android.tools.idea.gradle.declarative.color.DeclarativeColor
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BOOLEAN
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.INTEGER_LITERAL
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LONG_LITERAL
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.NULL
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.NUMBER
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeHighlightingLexer
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 
-class DeclarativeHighlighter: SyntaxHighlighterBase() {
+class DeclarativeHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = DeclarativeHighlightingLexer()
 
 
@@ -40,10 +44,15 @@ class DeclarativeHighlighter: SyntaxHighlighterBase() {
     put(LINE_COMMENT, DeclarativeColor.COMMENT)
     put(BLOCK_COMMENT, DeclarativeColor.BLOCK_COMMENT)
 
-    put(STRING, DeclarativeColor.STRING)
-    put(NUMBER, DeclarativeColor.NUMBER)
+    put(ONE_LINE_STRING_LITERAL, DeclarativeColor.STRING)
+    put(MULTILINE_STRING_LITERAL, DeclarativeColor.STRING)
     put(BOOLEAN, DeclarativeColor.BOOLEAN)
     put(NULL, DeclarativeColor.NULL)
+
+    put(INTEGER_LITERAL, DeclarativeColor.NUMBER)
+    put(LONG_LITERAL, DeclarativeColor.NUMBER)
+    put(UNSIGNED_LONG, DeclarativeColor.NUMBER)
+    put(UNSIGNED_INTEGER, DeclarativeColor.NUMBER)
   }
 }
 

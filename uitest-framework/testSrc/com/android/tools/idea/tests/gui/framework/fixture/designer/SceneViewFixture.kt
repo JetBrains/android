@@ -224,9 +224,9 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
   }
 
   fun clickActionByIcon(label: String, actionIcon: Icon) {
-    // Click on the label first to make sure the toolbar actions show up.
+    // Move mouse on top of the toolbar to ensure that is displayed.
     val toolbarLabel = GuiTests.waitUntilShowing(robot, Matchers.byText(JLabel::class.java, label))
-    robot.click(toolbarLabel)
+    robot.moveMouse(toolbarLabel)
     ActionButtonFixture.findByIcon(actionIcon, robot, toolbar).click()
   }
 }

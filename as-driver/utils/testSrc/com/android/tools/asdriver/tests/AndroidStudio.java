@@ -327,7 +327,7 @@ public class AndroidStudio implements AutoCloseable {
     System.out.println("Waiting for a breakpoint to be hit by the debugger");
 
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addSwingClassRegexMatch(".*JBRunnerTabs")
+    builder.addSwingClassRegexMatch(".*InternalDecoratorImpl")
       .addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
     waitForComponent(builder, true);
   }
@@ -397,7 +397,28 @@ public class AndroidStudio implements AutoCloseable {
    * @see com.intellij.openapi.editor.LogicalPosition
    */
   public void openFile(@Nullable String project, @NotNull String file, Integer line, Integer column, boolean isWarmup) {
-    openFile(project, file, isWarmup);
+    openFile(project, file, line, column, true, isWarmup);
+  }
+
+  /**
+   * Opens a file and then goes to a specific line and column in the first open project's selected
+   * text editor.
+   *
+   * @param file     the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
+   *                 if no file is initially found.
+   * @param line     0-indexed line number.
+   * @param column   0-indexed column number.
+   * @param disableCodeAnalysis should the method wait for the code analysis following the file opening to finish
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   * @see com.intellij.openapi.editor.LogicalPosition
+   */
+  public void openFile(@Nullable String project,
+                       @NotNull String file,
+                       Integer line,
+                       Integer column,
+                       boolean disableCodeAnalysis,
+                       boolean isWarmup) {
+    openFile(project, file, disableCodeAnalysis, isWarmup);
     goTo(line, column);
   }
 
@@ -417,7 +438,26 @@ public class AndroidStudio implements AutoCloseable {
    * @param isWarmup should the metric entries describing this call be marked as warmup
    */
   public void openFile(@Nullable String project, @NotNull final String filePath, boolean isWarmup) {
-    executeCommand("%openFile " + filePath + (isWarmup ? " WARMUP" : ""), project);
+    openFile(project, filePath, true, isWarmup);
+  }
+  /**
+   * Opens file in the editor.
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenFileCommand
+   * @param filePath path to the file to be opened
+   * @param disableCodeAnalysis should the method wait for the code analysis following the file opening to finish
+   * @param isWarmup should the metric entries describing this call be marked as warmup
+   */
+  public void openFile(@Nullable String project, @NotNull final String filePath, boolean disableCodeAnalysis, boolean isWarmup) {
+    executeCommand("%openFile " + filePath + (disableCodeAnalysis ? " -disableCodeAnalysis" : "") + (isWarmup ? " WARMUP" : ""), project);
+  }
+
+  /**
+   * Opens a project in a new window
+   * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenProjectCommand
+   * @param projectPath path to the project to be opened
+   */
+  public void openProject(@NotNull final String projectPath) {
+    executeCommand("%openProject " + projectPath + " false", null);
   }
 
   /**
@@ -430,10 +470,17 @@ public class AndroidStudio implements AutoCloseable {
     executeCommand(String.format("%%goto %d %d", line + 1, column + 1), null);
   }
 
-  public void editFile(String file, String searchRegex, String replacement) {
-    ASDriver.EditFileRequest rq =
-      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement).build();
-    ASDriver.EditFileResponse response = androidStudio.editFile(rq);
+  public void editFile(String file, String searchRegex, String replacement){
+    editFile(null, file, searchRegex, replacement);
+  }
+
+  public void editFile(@Nullable String projectName, String file, String searchRegex, String replacement) {
+    ASDriver.EditFileRequest.Builder rqBuilder =
+      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement);
+    if (projectName != null){
+      rqBuilder.setProjectName(projectName);
+    }
+    ASDriver.EditFileResponse response = androidStudio.editFile(rqBuilder.build());
     switch (response.getResult()) {
       case OK:
         return;
@@ -552,6 +599,9 @@ public class AndroidStudio implements AutoCloseable {
     }
     executeCommand(builder.toString(), null);
 
+    if (variants.length == 0) {
+      return;
+    }
     builder = new StringBuilder().append("%assertCompletionCommand CONTAINS");
     for (String variant : variants) {
       builder.append(" ").append(variant);
@@ -568,15 +618,17 @@ public class AndroidStudio implements AutoCloseable {
    * @param line of the symbol in the file (0-indexed)
    */
   public void findUsages(boolean isWarmup, @NotNull final String path, int line) {
+    findUsages(isWarmup);
+
+    executeCommand(String.format("%%assertFindUsagesEntryCommand -filePath %s|-line %d", path, line + 1), null);
+  }
+  public void findUsages(boolean isWarmup) {
     StringBuilder builder = new StringBuilder().append("%findUsages");
     if (isWarmup) {
       builder.append(" WARMUP");
     }
     executeCommand(builder.toString(), null);
-
-    executeCommand(String.format("%%assertFindUsagesEntryCommand -filePath %s|-line %d", path, line + 1), null);
   }
-
 
   /**
    * Closes all editor tabs.

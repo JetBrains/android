@@ -116,7 +116,7 @@ class AddToExistingGraphActionTest : NavTestCase() {
     surface.scene?.getSceneComponent("f1")?.setPosition(100, 200)
     surface.scene?.getSceneComponent("f2")?.setPosition(400, 500)
     surface.selectionModel.setSelection(listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!))
-    surface.sceneManager?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
+    surface.getSceneManager(model)?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
 
     val action = AddToExistingGraphAction("existing", model.treeReader.find("subnav")!!)
     action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })

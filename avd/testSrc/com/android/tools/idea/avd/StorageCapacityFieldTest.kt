@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
 import com.android.testutils.MockitoKt
-import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -47,7 +46,7 @@ class StorageCapacityFieldTest {
     }
   }
 
-  @get:Rule val rule = createComposeRule()
+  @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
   fun replaceValueWithMaxValuePlus1() {
@@ -55,9 +54,7 @@ class StorageCapacityFieldTest {
     val onValueChange = MockitoKt.mock<(StorageCapacity) -> Unit>()
 
     rule.setContent {
-      IntUiTheme {
-        StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), onValueChange)
-      }
+      StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), onValueChange)
     }
 
     // Act

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
 import com.intellij.testFramework.EdtRule
@@ -32,7 +33,8 @@ class LogcatFoldLinesLikeThisActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor

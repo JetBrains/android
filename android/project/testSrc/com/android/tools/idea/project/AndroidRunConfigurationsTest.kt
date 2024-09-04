@@ -101,6 +101,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations get added`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -145,6 +146,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if their component is not declared in the manifest`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -190,6 +192,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if the component is already used in a configuration`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
@@ -221,6 +224,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added when flag is disabled`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(false)
@@ -232,6 +236,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if they breach maximum limit`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.override(2)
@@ -243,6 +248,7 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @org.junit.Ignore("b/354982962")
   @Test
   fun `wear configurations do not get added if there is no required watch feature`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)

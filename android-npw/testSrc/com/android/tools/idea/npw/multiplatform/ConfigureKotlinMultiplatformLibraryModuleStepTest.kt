@@ -41,28 +41,31 @@ class ConfigureKotlinMultiplatformLibraryModuleStepTest {
 
   @Before
   fun setup() {
-    disposable = Disposer.newDisposable()
+    disposable = projectRule.fixture.projectDisposable
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY)
   }
 
   @After
   fun tearDown() {
     BatchInvoker.clearOverrideStrategy()
-    Disposer.dispose(disposable)
   }
 
   private suspend fun buildStepWithProject(targetProjectPath: String): Pair<ConfigureKotlinMultiplatformLibraryModuleStep, NewKotlinMultiplatformLibraryModuleModel> {
     return withContext(Dispatchers.EDT) {
+      projectRule.loadProject(targetProjectPath)
       val model = NewKotlinMultiplatformLibraryModuleModel(
         project = projectRule.project,
         moduleParent = ":",
         projectSyncInvoker = emptyProjectSyncInvoker
       )
-      projectRule.loadProject(targetProjectPath)
-      ConfigureKotlinMultiplatformLibraryModuleStep(
+      val moduleStep = ConfigureKotlinMultiplatformLibraryModuleStep(
         title = "Kotlin Multiplatform Library",
         model = model
-      ) to model
+      )
+      Disposer.register(disposable, model)
+      Disposer.register(disposable, moduleStep)
+
+      moduleStep to model
     }
   }
 

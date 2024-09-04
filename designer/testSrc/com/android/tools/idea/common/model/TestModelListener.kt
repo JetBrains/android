@@ -32,10 +32,8 @@ class TestModelListener : ModelListener {
     callLog.appendLine("modelChanged (${model.displaySettings.modelDisplayName.value})")
   }
 
-  override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
-    callLog.appendLine(
-      "modelLiveUpdate (${model.displaySettings.modelDisplayName.value}, animate=$animate)"
-    )
+  override fun modelLiveUpdate(model: NlModel) {
+    callLog.appendLine("modelLiveUpdate (${model.displaySettings.modelDisplayName.value})")
   }
 
   override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {

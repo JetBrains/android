@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -70,8 +69,6 @@ class InsightsAttachInlayDiffLinkFilter(
   private val project = containingConsole.project
 
   private fun fetchVcsInfo(): AppVcsInfo.ValidInfo? {
-    if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return null
-
     return containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo.ValidInfo
   }
 
@@ -258,7 +255,7 @@ class InsightsTextInlayPresentation(
     // We assume this will be a better approximation to a real line height for a given font
     val fontHeight = ceil(font.createGlyphVector(context, "H").visualBounds.height).toInt()
 
-    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType)
+    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType, UISettings.getInstance().ideScale)
   }
 
   private fun getCurrentContext(editorComponent: JComponent): FontRenderContext {

@@ -28,7 +28,7 @@ import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
-import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StubModel
@@ -95,8 +95,7 @@ class InsightActionTest {
 
       override fun isAvailable() = isOnboardingComplete
 
-      override fun aiExcludeService(project: Project) =
-        AiExcludeService.FakeAiExcludeService(project)
+      override fun aiExcludeService(project: Project) = FakeAiExcludeService()
 
       override fun chat(project: Project) = fakeChatService
 

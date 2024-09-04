@@ -289,7 +289,7 @@ public class WidgetConstraintModel implements SelectionListener {
     }
 
     @Override
-    public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
+    public void modelLiveUpdate(@NotNull NlModel model) {
       fireUIUpdate();
     }
   };
@@ -755,7 +755,7 @@ public class WidgetConstraintModel implements SelectionListener {
     }
     myModification.setAttribute(nameSpace, attribute, value);
     myModification.apply();
-    model.notifyLiveUpdate(false);
+    model.notifyLiveUpdate();
     myTimer.setRepeats(false);
     myTimer.restart();
   }

@@ -53,7 +53,7 @@ class ActionHitProviderTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    val view = NavView(surface, surface.sceneManager!!)
+    val view = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(view)
 
     val scene = model.surface.scene!!

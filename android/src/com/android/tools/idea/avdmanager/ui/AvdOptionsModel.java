@@ -362,7 +362,7 @@ public final class AvdOptionsModel extends WizardModel {
       String manufacturer = device.getManufacturer().replace(' ', '_');
       candidateBase = String.format("AVD_for_%1$s_by_%2$s", deviceName, manufacturer);
     }
-    return AvdWizardUtils.cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), candidateBase, true);
+    return AvdManagerConnection.getDefaultAvdManagerConnection().cleanAvdName(candidateBase, true);
   }
 
   @NotNull

@@ -101,7 +101,11 @@ class AndroidRunConfigurations {
     if (!StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.get()) {
       return
     }
-    val runManager = RunManager.getInstance(project)
+    val runManager = runReadAction {
+      if (project.isDisposed) return@runReadAction null
+      RunManager.getInstance(project)
+    } ?: return
+
     val maxAllowedRunConfigurations = StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.get()
     val existingRunConfigurationCount = runManager.allConfigurationsList.size
     if (existingRunConfigurationCount >= maxAllowedRunConfigurations) {
@@ -111,29 +115,41 @@ class AndroidRunConfigurations {
 
     val wearRunConfigurationsToAdd = mutableListOf<RunnerAndConfigurationSettings>()
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-      wearRunConfigurationsToAdd += createWearConfigurations(it.module)
+      DumbService.getInstance(project).runReadActionInSmartMode {
+        if (!project.isDisposed) {
+          wearRunConfigurationsToAdd += createWearConfigurations(it.module)
+        }
+      }
       if (existingRunConfigurationCount + wearRunConfigurationsToAdd.size > maxAllowedRunConfigurations) {
         // We don't want to breach the maximum number of allowed run configurations
         return
       }
     }
 
-    wearRunConfigurationsToAdd.forEach {
-      runManager.addConfiguration(it)
+    runReadAction {
+      if (!project.isDisposed) {
+        wearRunConfigurationsToAdd.forEach {
+          runManager.addConfiguration(it)
+        }
+      }
     }
   }
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
     val module = facet.module.getMainModule()
-    if (module.project.isDisposed) {
-      return
-    }
+    val project = module.project
+    val runManager = runReadAction {
+      if (project.isDisposed) return@runReadAction null
+      RunManager.getInstance(project)
+    } ?: return
 
-    val runManager = RunManager.getInstance(module.project)
-    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
+    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
     val moduleName = module.getHolderModule().name
     val configurationName = moduleName.removePrefix("$projectNameInExternalSystemStyle.")
-    val settings = runManager.createConfiguration(configurationName, AndroidRunConfigurationType::class.java)
+    val settings = runReadAction {
+      if (project.isDisposed) return@runReadAction null
+      runManager.createConfiguration(configurationName, AndroidRunConfigurationType::class.java)
+    } ?: return
     val configuration = settings.configuration as AndroidRunConfiguration
     configuration.setModule(module)
     if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
@@ -145,8 +161,12 @@ class AndroidRunConfigurations {
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
 
-    runManager.addConfiguration(settings)
-    runManager.selectedConfiguration = settings
+    runReadAction {
+      if (!project.isDisposed) {
+        runManager.addConfiguration(settings)
+        runManager.selectedConfiguration = settings
+      }
+    }
   }
 
   private fun hasDefaultLauncherActivity(facet: AndroidFacet): Boolean {

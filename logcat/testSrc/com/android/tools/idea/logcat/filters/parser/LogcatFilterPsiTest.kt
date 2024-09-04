@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
@@ -50,6 +51,7 @@ class LogcatFilterPsiTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       EdtRule(),
       LogcatFilterLanguageRule(),
       FlagRule(StudioFlags.LOGCAT_IS_FILTER),

@@ -45,6 +45,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -52,9 +53,9 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
@@ -333,7 +334,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void layout() {
-      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      NlDesignSurface surface = myScreenView.getSurface();
+      LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
       assert manager != null;
       try {
         manager.requestLayoutAsync(false).get(2, TimeUnit.SECONDS);
@@ -344,7 +346,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void postLayoutRun() {
-      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      LayoutlibSceneManager manager = myScreenView.getSceneManager();
       if (manager == null) {
         Logger.getInstance(ConvertToConstraintLayoutAction.class).warn("null SceneManager");
         return;
@@ -366,14 +368,14 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       if (DIRECT_INFERENCE) { // Let's run Scout after the flattening. Ideally we should run this after the model got a chance to update.
         final String id = myLayout.getId();
-        manager.addRenderListener(new RenderListener() {
+        model.addListener(new ModelListener() {
           @Override
-          public void onRenderCompleted() {
+          public void modelDerivedDataChanged(@NotNull NlModel model) {
             assert id != null;
-            NlComponent layout = myScreenView.getSceneManager().getModel().getTreeReader().find(id);
+            NlComponent layout = model.getTreeReader().find(id);
 
             if (layout != null) {
-              manager.removeRenderListener(this);
+              model.removeListener(this);
 
               myEditor.measureChildren(layout, null)
                 .whenCompleteAsync(

@@ -11,8 +11,6 @@ import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
-import com.android.fakeadbserver.services.Service
-import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
@@ -25,6 +23,7 @@ import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -35,12 +34,11 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,6 +53,7 @@ class TerminateAppActionsTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       editorRule,
       fakeAdbRule,
       ProjectServiceRule(projectRule, AdbLibService::class.java) {
@@ -78,8 +77,6 @@ class TerminateAppActionsTest {
   private val device30 = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
 
   private val device25 = Device.createPhysical("device", true, "10", 25, "Google", "Pixel")
-
-  private val activityManagerService = ActivityManagerService()
 
   @Test
   fun forceStopAppAction_processExists_isEnabled(): Unit =
@@ -254,13 +251,13 @@ class TerminateAppActionsTest {
     runBlockingWithTimeout(timeout = Duration.ofSeconds(5)) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
-      device.startClient(101)
-      device.serviceManager.setActivityManager(activityManagerService)
+      device.startClient(pid = 101, processName = "com.app.process", packageName = "com.app")
       editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
       ForceStopAppAction().actionPerformed(event)
 
-      assertThat(activityManagerService.commands.receive()).isEqualTo("force-stop com.app")
+      waitForCondition { device.getClient(101) == null }
+      assertTrue(device.amLogs.contains("force-stop com.app"))
     }
 
   @Test
@@ -269,7 +266,6 @@ class TerminateAppActionsTest {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
       device.startClient(101)
-      device.serviceManager.setActivityManager(activityManagerService)
       editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
       KillAppAction().actionPerformed(event)
@@ -286,13 +282,13 @@ class TerminateAppActionsTest {
     runBlockingWithTimeout(timeout = Duration.ofSeconds(5)) {
       val device = fakeAdb.connectDevice(device30)
       val event = createEvent(device30)
-      device.startClient(101)
-      device.serviceManager.setActivityManager(activityManagerService)
+      device.startClient(pid = 101, processName = "com.app.process", packageName = "com.app")
       editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
       CrashAppAction().actionPerformed(event)
 
-      assertThat(activityManagerService.commands.receive()).isEqualTo("crash com.app")
+      waitForCondition { device.getClient(101) == null }
+      assertTrue(device.amLogs.contains("crash com.app"))
     }
 
   private fun createEvent(device: Device) =
@@ -322,8 +318,12 @@ class TerminateAppActionsTest {
   }
 
   /** Start a client and wait for AdbSession to see it */
-  private suspend fun DeviceState.startClient(pid: Int) {
-    startClient(pid, 0, "packageName", "processName", false)
+  private suspend fun DeviceState.startClient(
+    pid: Int,
+    processName: String = "processName",
+    packageName: String = "packageName",
+  ) {
+    startClient(pid, 0, processName, packageName, false)
     val device =
       adbSession.connectedDevicesTracker.connectedDevices.value.find { it.serialNumber == deviceId }
         ?: throw IllegalStateException("Device $deviceId not found")
@@ -333,15 +333,6 @@ class TerminateAppActionsTest {
         false -> device.jdwpProcessTracker.processesFlow
       }
     flow.waitFor { it.pid == pid }
-  }
-
-  private class ActivityManagerService : Service {
-    val commands = Channel<String?>()
-
-    override fun process(args: List<String>, shellCommandOutput: ShellCommandOutput) {
-      runBlocking { commands.send(args.joinToString(" ") { it }) }
-      shellCommandOutput.writeExitCode(0)
-    }
   }
 }
 

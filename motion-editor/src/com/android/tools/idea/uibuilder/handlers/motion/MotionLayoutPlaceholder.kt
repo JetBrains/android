@@ -97,5 +97,5 @@ class MotionLayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
     }
   }
 
-  override fun isLiveUpdatableForComponent(draggedComponent: SceneComponent): Boolean = true
+  override fun isLiveUpdatableForComponent(draggedComponent: SceneComponent): Boolean = false
 }

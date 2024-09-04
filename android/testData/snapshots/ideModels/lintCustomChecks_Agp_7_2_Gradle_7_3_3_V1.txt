@@ -43,6 +43,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -54,11 +58,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -166,6 +165,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             library                       : :library (DefaultExternalProject)
                 path                          : :library [-]
                 identityPath                  : :library [-]
@@ -176,11 +181,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/library
                 buildDir                      : <ROOT>/library/build [-]
                 buildFile                     : <ROOT>/library/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :library:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :library:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -288,6 +288,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :library:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :library:testReleaseUnitTest
             library-remote                : :library-remote (DefaultExternalProject)
                 path                          : :library-remote [-]
                 identityPath                  : :library-remote [-]
@@ -298,11 +304,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/library-remote
                 buildDir                      : <ROOT>/library-remote/build [-]
                 buildFile                     : <ROOT>/library-remote/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :library-remote:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :library-remote:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -404,6 +405,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :library-remote:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :library-remote:testReleaseUnitTest
             lint                          : :lint (DefaultExternalProject)
                 path                          : :lint [-]
                 identityPath                  : :lint [-]
@@ -414,9 +421,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/lint
                 buildDir                      : <ROOT>/lint/build [-]
                 buildFile                     : <ROOT>/lint/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :lint:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -543,6 +547,10 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lint/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lint/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :lint:test
             lintpublish                   : :lintpublish (DefaultExternalProject)
                 path                          : :lintpublish [-]
                 identityPath                  : :lintpublish [-]
@@ -553,9 +561,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/lintpublish
                 buildDir                      : <ROOT>/lintpublish/build [-]
                 buildFile                     : <ROOT>/lintpublish/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :lintpublish:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -649,6 +654,10 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lintpublish/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :lintpublish:test
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
                 path                          : :lintpublish-remote [-]
                 identityPath                  : :lintpublish-remote [-]
@@ -659,9 +668,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/lintpublish-remote
                 buildDir                      : <ROOT>/lintpublish-remote/build [-]
                 buildFile                     : <ROOT>/lintpublish-remote/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :lintpublish-remote:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -755,11 +761,12 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/lintpublish-remote/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :lintpublish-remote:test
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0

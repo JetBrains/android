@@ -55,6 +55,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Set;
+import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
@@ -429,6 +430,11 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
         @Override
         public String getAccessibleDescription() {
           return myTableModel.getComponentDescription(myCheckBox.getRow());
+        }
+
+        @Override
+        public Accessible getAccessibleParent() {
+          return (Accessible)RendererPanel.this.getParent();
         }
       }
     }

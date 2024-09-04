@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.cons
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.StudioBotBundle
+import com.android.tools.idea.studiobot.StudioBotExternalFlags
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
@@ -90,52 +91,46 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
     handleExecutionNode(selectedNodes[0], project)
   }
 
-  @VisibleForTesting
-  fun handleExecutionNode(node: ExecutionNode, project: Project) {
+  private fun handleExecutionNode(node: ExecutionNode, project: Project) {
     val errorName = node.name
 
     val studioBot = StudioBot.getInstance()
     if (!studioBot.isContextAllowed(project)) {
       // If context isn't enabled, all we do is paste a simple query into the query bar
-      // using the error description.
-      val shortDescription = getErrorShortDescription(node.result) ?: errorName
-      val query = "Explain build error: $shortDescription"
+      // using the error message/details. We trim the length so that the chat bar
+      // isn't filled up by an excessively long trace.
+      val truncatedDetails = getErrorDetails(node.result)?.trimMessagesWithLongStacktrace() ?: errorName
+      val query = "Explain build error: ${truncatedDetails.trim()}"
       studioBot.chat(project).stageChatQuery(query, StudioBot.RequestSource.BUILD)
     } else {
       val result = node.result
       val isSyncIssue = (result is AndroidSyncIssueEventResult)
 
-      val contextEnabled = StudioFlags.STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED.get()
-      val compilerErrorContextEnabled = StudioFlags.STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED.get()
+      val fileLocation = node.navigatables.filterIsInstance<FileNavigatable>().firstOrNull()
+      val file = fileLocation?.fileDescriptor?.file
+      val fileType = file?.fileType
+      val isCompilerIssue = fileType is JavaFileType || fileType is KotlinFileType
+
+      val compilerErrorContextEnabled = StudioBotExternalFlags.isCompilerErrorContextEnabled()
       val gradleErrorContextEnabled = StudioFlags.STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED.get()
 
-      // With context enabled, we can build a richer query by looking at the error details and location
+      // If context is enabled, we can build a richer query by looking at the error details and location
       val aiExcludeService = studioBot.aiExcludeService(project)
       val filesUsedAsContext = mutableListOf<VirtualFile>()
-      val context = if (!contextEnabled) null else buildString {
-        val projectInfo =
-          """
-        Project name: ${project.name}
-        Project path: ${project.basePath}
-      """.trimIndent()
-
-        append(projectInfo)
-
+      val context = buildString {
         // Get the full details of the error from the log and add it to the query.
-        val details = getErrorDetailsContext(node)
+        val details = getErrorDetails(result)
+
         // Cut the details off at 500 characters e.g. to avoid extremely long traces
         if (details != null) {
-          append("\n${details.take(500)}\n")
+          append("\n\nFull error details/trace:\n${details.take(500)}\n")
         }
 
+        // Check if the flags allow adding more context for this error
+        val isContextEnabled = (isCompilerIssue && compilerErrorContextEnabled || !isCompilerIssue && gradleErrorContextEnabled)
+
         // Look at the error location and add context from that file, if applicable.
-        val fileLocation = node.navigatables.filterIsInstance<FileNavigatable>().firstOrNull()
-        val file = fileLocation?.fileDescriptor?.file
-        val fileType = file?.fileType
-        val isCompilerIssue = fileType is JavaFileType || fileType is KotlinFileType
-        if (file != null &&
-            (isCompilerIssue && compilerErrorContextEnabled || !isCompilerIssue && gradleErrorContextEnabled)
-          ) {
+        if (file != null && isContextEnabled) {
           getErrorFileLocationContext(fileLocation, aiExcludeService)?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.add(it.second)
@@ -152,26 +147,19 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         }
       }
 
-      val shortDescription = getErrorShortDescription(result)
-      val issueType = if (isSyncIssue) "sync" else "build"
+      val verb = if (isSyncIssue) "sync" else "build"
 
-      val queryScaffold =
-        """
-I'm getting an error trying to $issueType my project. The error is "$errorName".
-${if (shortDescription == null) "" else "The description is \"$shortDescription\".\n"}
-___CONTEXT_GOES_HERE___
-Explain this error and how to fix it.
-        """.trim()
-
-      // Trim down the context so that the entire query is below the maximum length
-      val trimmedContext = context?.take(studioBot.MAX_QUERY_CHARS - queryScaffold.length)
-
-      val contextWithIntroAndBorders =
-        if (trimmedContext == null) "" else
-          "\nHere are more details about the error and my project:\nSTART CONTEXT\n$trimmedContext\nEND CONTEXT\n\n"
-
-      // Construct the final query
-      val query = queryScaffold.replace("\n___CONTEXT_GOES_HERE___\n", contextWithIntroAndBorders)
+      val query = buildString {
+        val firstPart = "I'm getting an error trying to $verb my project. The error is \"$errorName\"."
+        val lastPart = "Explain this error and how to fix it."
+        append(firstPart)
+        append("\n\n")
+        // Trim down the context so that the entire query is below the maximum length
+        val trimmedContext = context.take(studioBot.MAX_QUERY_CHARS - firstPart.length - lastPart.length).trim()
+        append(trimmedContext)
+        append("\n\n")
+        append(lastPart)
+      }
 
       val source = if (isSyncIssue) StudioBot.RequestSource.SYNC else StudioBot.RequestSource.BUILD
 
@@ -258,27 +246,10 @@ $fileTextWithErrorArrow
     }
 
     @VisibleForTesting
-    fun getErrorDetailsContext(node: ExecutionNode): String? {
-      return when (val result = node.result) {
-        is FailureResult -> {
-          val failures = (result as? FailureResult)?.failures
-          val description = failures?.mapNotNull { it.description }?.joinToString("\n")
-          description
-        }
-        is MessageEventResult -> {
-          result.details
-        }
-        else -> null
-      }?.ifEmpty { null }?.let {
-        "Error details:\n$it"
-      }
-    }
-
-    @VisibleForTesting
-    fun getErrorShortDescription(result: EventResult?): String? {
+    fun getErrorDetails(result: EventResult?): String? {
       return when (result) {
         is FailureResult -> {
-          result.failures?.mapNotNull { it.error }?.joinToString("\n")
+          result.failures?.mapNotNull { it.message + "\n" + it.description }?.joinToString("\n")
         }
 
         is MessageEventResult -> {
@@ -287,7 +258,6 @@ $fileTextWithErrorArrow
 
         else -> null
       }
-        ?.trimMessagesWithLongStacktrace()
         ?.replace(ASK_STUDIO_BOT_LINK_TEXT, "")
         ?.replace(ASK_STUDIO_BOT_UNTIL_EOL, "")
     }

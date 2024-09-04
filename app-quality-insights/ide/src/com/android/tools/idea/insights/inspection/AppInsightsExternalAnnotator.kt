@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppVcsInfo
@@ -77,13 +76,6 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
 
     val project = collectedInfo.project
     val insights = collectedInfo.insights
-
-    if (
-      !StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get() ||
-        !StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT.get()
-    ) {
-      return AnnotationResult(insights)
-    }
 
     val resolved =
       insights.mapNotNull { insight ->
@@ -170,10 +162,11 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
             )
             emptyList()
           }
-          AppInsightsModel.InitialSyncFailed -> {
-            // This only happens at project startup and sync failure.
+          AppInsightsModel.InitializationFailed -> {
+            // This indicates some failure happened at startup and AQI has no useful information to
+            // show.
             logger.debug(
-              "Skip annotation collection for ${tabProvider.displayName} because it initial sync failed."
+              "Skip annotation collection for ${tabProvider.displayName} because its initialization failed."
             )
             emptyList()
           }

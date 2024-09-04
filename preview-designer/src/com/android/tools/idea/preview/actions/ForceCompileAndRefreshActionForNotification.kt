@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
-import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -78,7 +78,9 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.
-      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuild(it) }
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
+        surface.project.requestBuildArtifactsForRendering(it)
+      }
     }
   }
 
@@ -117,6 +119,6 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
     surface.models
       .map { it.virtualFile }
       .distinct()
-      .also { surface.project.requestBuild(it) }
+      .also { surface.project.requestBuildArtifactsForRendering(it) }
       .isNotEmpty()
 }

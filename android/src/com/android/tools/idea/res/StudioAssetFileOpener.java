@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
 import com.android.tools.res.AssetFileOpener;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -168,7 +169,14 @@ public class StudioAssetFileOpener implements AssetFileOpener {
                                                     @NotNull Function<ExternalAndroidLibrary, PathString> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), true).stream())
-        .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())
+        .flatMap(f -> {
+                   SourceProviders sourceProviders = SourceProviderManager.getInstance(f);
+                   List<IdeaSourceProvider> providers = new ArrayList<>();
+                   providers.addAll(sourceProviders.getCurrentAndSomeFrequentlyUsedInactiveSourceProviders());
+                   providers.add(sourceProviders.getGeneratedSources());
+                   return providers.stream();
+                 }
+        )
         .distinct()
         .map(sourceMapper)
         .flatMap(Streams::stream);

@@ -218,7 +218,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         // tell motion layout to display additional path info
         // TODO: move instead to studio-driven drawing
         helper.setKeyframe(myKeyframeCandidate.keyframe, "drawPath", 4);
-        mySelectedComponent.getModel().notifyLiveUpdate(false);
+        mySelectedComponent.getModel().notifyLiveUpdate();
       }
     }
     try {
@@ -330,7 +330,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
           }
         }
 
-        mySelectedComponent.getModel().notifyLiveUpdate(false);
+        mySelectedComponent.getModel().notifyLiveUpdate();
       }
     }
     myKeyframeCandidate.clear();

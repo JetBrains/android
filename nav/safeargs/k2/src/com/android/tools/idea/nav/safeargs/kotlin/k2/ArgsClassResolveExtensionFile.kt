@@ -68,11 +68,11 @@ internal class ArgsClassResolveExtensionFile(
     symbol: KaDeclarationSymbol
   ): PsiElement? =
     when (symbol) {
-      is KaVariableSymbol -> getNavigationElementForVariableLikeSymbol(symbol)
+      is KaVariableSymbol -> getNavigationElementForVariableSymbol(symbol)
       else -> destinationXmlTag
     }
 
-  private fun KaSession.getNavigationElementForVariableLikeSymbol(
+  private fun KaSession.getNavigationElementForVariableSymbol(
     symbol: KaVariableSymbol
   ): PsiElement? {
     val matchingArgument =

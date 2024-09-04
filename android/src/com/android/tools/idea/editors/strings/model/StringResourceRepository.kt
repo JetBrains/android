@@ -21,12 +21,15 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.Configurable
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.tools.res.LocalResourceRepository
-import com.android.tools.res.LocalResourceRepository.EmptyRepository
-import com.android.tools.res.MultiResourceRepository
 import com.android.tools.idea.res.PsiResourceItem
 import com.android.tools.idea.res.ResourceFolderRepository
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository.EmptyRepository
+import com.android.tools.res.MultiResourceRepository
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlin.coroutines.resume
@@ -73,8 +76,17 @@ interface StringResourceRepository {
   companion object {
     /** Returns a new instance of an empty [StringResourceRepository]. */
     @JvmStatic
-    fun empty(): StringResourceRepository =
-        StringResourceRepositoryImpl(EmptyRepository(ResourceNamespace.RES_AUTO))
+    fun empty(): StringResourceRepository = empty
+
+    private val empty = object : StringResourceRepository {
+      override fun getKeys(): List<StringResourceKey> = emptyList()
+      override fun getItems(key: StringResourceKey): List<ResourceItem> = emptyList()
+      override fun getDefaultValue(key: StringResourceKey): ResourceItem? = null
+      override fun getTranslation(key: StringResourceKey, locale: Locale): ResourceItem? = null
+      override fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable) { callback.run()}
+      override fun getTranslatedLocales(): Set<Locale> = emptySet()
+      override suspend fun waitForUpdates(key: StringResourceKey) {}
+    }
 
     /**
      * Creates a new [StringResourceRepository] from the given [repository]. Note that the
@@ -85,8 +97,8 @@ interface StringResourceRepository {
      * finish.
      */
     @JvmStatic
-    fun create(repository: LocalResourceRepository<VirtualFile>): StringResourceRepository =
-        StringResourceRepositoryImpl(repository)
+    fun create(repository: LocalResourceRepository<VirtualFile>, project: Project): StringResourceRepository =
+        StringResourceRepositoryImpl(repository, project)
   }
 }
 
@@ -94,7 +106,7 @@ interface StringResourceRepository {
  * Implementation class of [StringResourceRepository] interface based on [VirtualFile],
  * [ResourceFolderRepository], and [LocalResourceRepository].
  */
-private class StringResourceRepositoryImpl(repository: LocalResourceRepository<VirtualFile>) :
+private class StringResourceRepositoryImpl(repository: LocalResourceRepository<VirtualFile>, private val project: Project) :
     StringResourceRepository {
   private val resourceDirectoryRepositoryMap: Map<VirtualFile, ResourceFolderRepository>
   private val dynamicResourceRepository: LocalResourceRepository<VirtualFile>
@@ -137,12 +149,13 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository<V
   }
 
   override fun getKeys(): List<StringResourceKey> {
-    val resourceDirectoryKeys =
-        resourceDirectoryRepositoryMap.flatMap { (dir, repo) ->
-          repo.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING).map { name ->
-            StringResourceKey(name, dir)
-          }
+    val resourceDirectoryKeys = runReadAction {
+      resourceDirectoryRepositoryMap.filter { !it.key.isGenerated }.flatMap { (dir, repo) ->
+        repo.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING).map { name ->
+          StringResourceKey(name, dir)
         }
+      }
+    }
     val dynamicResourceKeys =
         dynamicResourceRepository
             .getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING)
@@ -189,6 +202,9 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository<V
    */
   private fun Configurable.hasLocale(locale: Locale): Boolean =
       configuration.localeQualifier?.let { Locale.create(it) == locale } ?: false
+
+  private val VirtualFile.isGenerated: Boolean
+    get() = GeneratedSourcesFilter.EP_NAME.extensions.any { it.isGeneratedSource(this, project) }
 
   companion object {
     /**

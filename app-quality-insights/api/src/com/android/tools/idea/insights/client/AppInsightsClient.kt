@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
@@ -30,6 +31,7 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
@@ -92,4 +94,12 @@ interface AppInsightsClient {
   ): LoadingState.Done<Note>
 
   suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit>
+
+  suspend fun fetchInsight(
+    connection: Connection,
+    issueId: IssueId,
+    eventId: String,
+    variantId: String?,
+    timeInterval: TimeIntervalFilter,
+  ): LoadingState.Done<AiInsight>
 }

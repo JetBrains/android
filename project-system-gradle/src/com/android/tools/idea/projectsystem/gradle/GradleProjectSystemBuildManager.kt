@@ -18,13 +18,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.util.concurrent.atomic.AtomicInteger
 import com.intellij.util.concurrency.ThreadingAssertions
 
-private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
+internal fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
   BuildStatus.SUCCESS -> ProjectSystemBuildManager.BuildStatus.SUCCESS
   BuildStatus.FAILED -> ProjectSystemBuildManager.BuildStatus.FAILED
   BuildStatus.CANCELED -> ProjectSystemBuildManager.BuildStatus.CANCELLED
 }
 
-private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
+internal fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.BuildMode = when(this) {
   BuildMode.CLEAN -> ProjectSystemBuildManager.BuildMode.CLEAN
   BuildMode.COMPILE_JAVA -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
   BuildMode.ASSEMBLE -> ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
@@ -86,11 +86,6 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   override fun compileProject() {
     val modules = ModuleManager.getInstance(project).modules
     GradleBuildInvoker.getInstance(project).compileJava(modules)
-  }
-
-  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.toSet()
-    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
   }
 
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =

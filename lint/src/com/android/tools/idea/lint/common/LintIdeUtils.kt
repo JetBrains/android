@@ -28,12 +28,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -57,15 +57,9 @@ fun Context.getPsiFile(): PsiFile? {
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 @OptIn(KaAllowAnalysisOnEdt::class)
 internal fun KtProperty.hasBackingField(): Boolean {
-  allowAnalysisOnEdt {
-    @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-    allowAnalysisFromWriteAction {
-      analyze(this) {
-        val propertySymbol =
-          this@hasBackingField.symbol as? KaPropertySymbol ?: return false
-        return propertySymbol.hasBackingField
-      }
-    }
+  analyze(this) {
+    val propertySymbol = this@hasBackingField.symbol as? KaPropertySymbol ?: return false
+    return propertySymbol.hasBackingField
   }
 }
 

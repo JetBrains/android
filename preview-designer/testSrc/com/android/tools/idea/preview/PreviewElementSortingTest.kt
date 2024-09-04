@@ -33,21 +33,7 @@ class PreviewElementSortingTest {
 
   @Test
   fun testPreviewSortingOneSingleInstance() {
-    val singlePreviewElementInstance =
-      SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-        methodFqn = "ComposableName",
-        displaySettings =
-          PreviewDisplaySettings(
-            name = "PreviewComposableName",
-            group = null,
-            showDecoration = false,
-            showBackground = false,
-            backgroundColor = null,
-          ),
-        previewElementDefinition = null,
-        previewBody = null,
-        configuration = PreviewConfiguration.cleanAndGet(),
-      )
+    val singlePreviewElementInstance = previewInstance(name = "PreviewComposableName")
 
     runBlocking {
       val actual = listOf(singlePreviewElementInstance).sortByDisplayAndSourcePosition()
@@ -57,24 +43,11 @@ class PreviewElementSortingTest {
   }
 
   @Test
-  fun testPreviewSortingMultipleInstance() {
+  fun testPreviewSortingMultipleInstances() {
     val expectedPreviews =
       (0..3).map {
         ParametrizedComposePreviewElementInstance(
-          SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-            methodFqn = "ComposableName",
-            displaySettings =
-              PreviewDisplaySettings(
-                name = "PreviewComposableName",
-                group = null,
-                showDecoration = false,
-                showBackground = false,
-                backgroundColor = null,
-              ),
-            previewElementDefinition = null,
-            previewBody = null,
-            configuration = PreviewConfiguration.cleanAndGet(),
-          ),
+          previewInstance(name = "PreviewComposableName"),
           "param-$it",
           "ProviderClass",
           it,
@@ -92,60 +65,15 @@ class PreviewElementSortingTest {
   }
 
   @Test
-  fun testPreviewSortingGroupedPreviews() {
-    val group1Previews =
-      (0..3)
-        .map {
-          ParametrizedComposePreviewElementInstance(
-            SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-              methodFqn = "ComposableName",
-              displaySettings =
-                PreviewDisplaySettings(
-                  name = "PreviewComposableName",
-                  group = "Sizes",
-                  showDecoration = false,
-                  showBackground = false,
-                  backgroundColor = null,
-                ),
-              previewElementDefinition = null,
-              previewBody = null,
-              configuration = PreviewConfiguration.cleanAndGet(),
-            ),
-            "param-$it",
-            "ProviderClass",
-            it,
-            3,
-          )
-        }
-        .toTypedArray()
+  fun testPreviewSortingGroupedPreviewsAreOrderedLexicographicallyByName() {
+    val preview1 = previewInstance(name = "Preview1", group = "2")
+    val preview2 = previewInstance(name = "Preview2", group = null)
+    val preview3 = previewInstance(name = "Preview3", group = "2")
+    val preview4 = previewInstance(name = "Preview4", group = "1")
+    val preview5 = previewInstance(name = "Preview5", group = null)
+    val preview6 = previewInstance(name = "Preview6", group = "3")
 
-    val group2Previews =
-      (0..6)
-        .map {
-          ParametrizedComposePreviewElementInstance(
-            SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-              methodFqn = "ComposableName",
-              displaySettings =
-                PreviewDisplaySettings(
-                  name = "PreviewComposableName",
-                  group = "Colorblind filters",
-                  showDecoration = false,
-                  showBackground = false,
-                  backgroundColor = null,
-                ),
-              previewElementDefinition = null,
-              previewBody = null,
-              configuration = PreviewConfiguration.cleanAndGet(),
-            ),
-            "colorblind-$it",
-            "ProviderClass",
-            it,
-            3,
-          )
-        }
-        .toTypedArray()
-
-    val expectedPreviews = listOf(*group1Previews, *group2Previews)
+    val expectedPreviews = listOf(preview1, preview2, preview3, preview4, preview5, preview6)
     val shuffledPreviews = expectedPreviews.shuffled()
 
     runBlocking {
@@ -153,65 +81,19 @@ class PreviewElementSortingTest {
     }
   }
 
-  @Test
-  fun testPreviewSortingGroupedAndUngroupedPreviews() {
-    val noGroupPreviews =
-      (0..3)
-        .map {
-          ParametrizedComposePreviewElementInstance(
-            SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-              methodFqn = "ComposableName",
-              displaySettings =
-                PreviewDisplaySettings(
-                  name = "PreviewComposableName",
-                  group = null,
-                  showDecoration = false,
-                  showBackground = false,
-                  backgroundColor = null,
-                ),
-              previewElementDefinition = null,
-              previewBody = null,
-              configuration = PreviewConfiguration.cleanAndGet(),
-            ),
-            "param-$it",
-            "ProviderClass",
-            it,
-            3,
-          )
-        }
-        .toTypedArray()
-
-    val group2Previews =
-      (0..6)
-        .map {
-          ParametrizedComposePreviewElementInstance(
-            SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
-              methodFqn = "ComposableName",
-              displaySettings =
-                PreviewDisplaySettings(
-                  name = "PreviewComposableName",
-                  group = "Colorblind filters",
-                  showDecoration = false,
-                  showBackground = false,
-                  backgroundColor = null,
-                ),
-              previewElementDefinition = null,
-              previewBody = null,
-              configuration = PreviewConfiguration.cleanAndGet(),
-            ),
-            "colorblind-$it",
-            "ProviderClass",
-            it,
-            3,
-          )
-        }
-        .toTypedArray()
-
-    val expectedPreviews = listOf(*group2Previews, *noGroupPreviews)
-    val shuffledPreviews = expectedPreviews.shuffled()
-
-    runBlocking {
-      assertEquals(shuffledPreviews.sortByDisplayAndSourcePosition(), expectedPreviews)
-    }
-  }
+  private fun previewInstance(name: String, group: String? = null) =
+    SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>(
+      methodFqn = "ComposableName",
+      displaySettings =
+        PreviewDisplaySettings(
+          name = name,
+          group = group,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
+      previewElementDefinition = null,
+      previewBody = null,
+      configuration = PreviewConfiguration.cleanAndGet(),
+    )
 }

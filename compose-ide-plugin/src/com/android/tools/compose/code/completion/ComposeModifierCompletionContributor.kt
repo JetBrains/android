@@ -397,7 +397,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       as KtSimpleNameExpression
   }
 
-  @OptIn(KaExperimentalApi::class)
   private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
@@ -418,6 +417,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         listOf(receiverType),
       )
       .filter {
+        @OptIn(KaExperimentalApi::class)
         isVisible(it, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
@@ -558,7 +558,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       super.handleInsert(context)
     }
 
-    @OptIn(KaIdeApi::class)
     private fun handleInsertK2(context: InsertionContext) {
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       val ktFile = context.file as KtFile
@@ -570,6 +569,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, endOffset)
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        @OptIn(KaIdeApi::class)
         shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
       }
       if (ktFile.importDirectives.all { it.importedFqName != FqName(COMPOSE_MODIFIER_FQN) }) {

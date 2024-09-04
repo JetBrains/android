@@ -18,23 +18,28 @@ package com.android.tools.property.panel.impl.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_COLOR
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ExperimentalUI
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.JBColor
+import com.intellij.ui.NewUI
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.Color
+import org.junit.Rule
 import org.junit.Ignore
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.awt.Color
 
 class BasePropertyEditorModelTest {
+  @get:Rule val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule())
 
   private fun createModel(): BasePropertyEditorModel {
     val property = FakePropertyItem(ANDROID_URI, ATTR_COLOR, "#00FF00")
@@ -115,7 +120,7 @@ class BasePropertyEditorModelTest {
 
     model.isUsedInRendererWithSelection = true
     assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!))
-      .isEqualTo(ExperimentalUI.isNewUI())
+      .isEqualTo(!NewUI.isEnabled())
   }
 
   @Test

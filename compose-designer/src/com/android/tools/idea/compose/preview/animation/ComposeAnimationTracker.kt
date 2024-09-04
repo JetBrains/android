@@ -58,9 +58,9 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
   override fun triggerJumpToEndAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
 
-  fun changeStartState() = logEvent(ComposeAnimationToolingEventType.CHANGE_START_STATE)
+  override fun changeStartState() = logEvent(ComposeAnimationToolingEventType.CHANGE_START_STATE)
 
-  fun changeEndState() = logEvent(ComposeAnimationToolingEventType.CHANGE_END_STATE)
+  override fun changeEndState() = logEvent(ComposeAnimationToolingEventType.CHANGE_END_STATE)
 
   override fun triggerSwapStatesAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)

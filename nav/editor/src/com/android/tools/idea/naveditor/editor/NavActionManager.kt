@@ -19,10 +19,10 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
@@ -53,7 +53,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.client.ClientSystemInfo
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -92,7 +92,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
-    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    val keyEvent = if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
     addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
   }

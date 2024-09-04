@@ -39,9 +39,12 @@ public interface DeclarativeElementTypeHolder {
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
+  IElementType INTEGER_LITERAL = new DeclarativeTokenType("integer_literal");
   IElementType LINE_COMMENT = new DeclarativeTokenType("line_comment");
+  IElementType LONG_LITERAL = new DeclarativeTokenType("long_literal");
+  IElementType MULTILINE_STRING_LITERAL = new DeclarativeTokenType("multiline_string_literal");
   IElementType NULL = new DeclarativeTokenType("null");
-  IElementType NUMBER = new DeclarativeTokenType("number");
+  IElementType ONE_LINE_STRING_LITERAL = new DeclarativeTokenType("one_line_string_literal");
   IElementType OP_COMMA = new DeclarativeTokenType(",");
   IElementType OP_DOT = new DeclarativeTokenType(".");
   IElementType OP_EQ = new DeclarativeTokenType("=");
@@ -49,8 +52,10 @@ public interface DeclarativeElementTypeHolder {
   IElementType OP_LPAREN = new DeclarativeTokenType("(");
   IElementType OP_RBRACE = new DeclarativeTokenType("}");
   IElementType OP_RPAREN = new DeclarativeTokenType(")");
-  IElementType STRING = new DeclarativeTokenType("string");
+  IElementType SEMI = new DeclarativeTokenType(";");
   IElementType TOKEN = new DeclarativeTokenType("token");
+  IElementType UNSIGNED_INTEGER = new DeclarativeTokenType("unsigned_integer");
+  IElementType UNSIGNED_LONG = new DeclarativeTokenType("unsigned_long");
 
   class Factory {
     public static CompositePsiElement createElement(IElementType type) {

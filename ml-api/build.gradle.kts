@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (C) 2024 The Android Open Source Project
  *
@@ -17,21 +19,24 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   kotlin("jvm")
-  id("org.jetbrains.intellij")
+  id("org.jetbrains.intellij.platform.module")
 }
 
-version = properties("pluginVersion")
-
-repositories { mavenCentral() }
+repositories {
+  mavenCentral()
+  intellijPlatform {
+    defaultRepositories()
+  }
+}
 
 kotlin { jvmToolchain(17) }
 
-intellij {
-  version.set(properties("platformVersion"))
-  type.set(properties("platformType"))
-
-  // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-  plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
+dependencies {
+  intellijPlatform {
+    intellijIdeaCommunity(libs.versions.idea)
+    instrumentationTools()
+    bundledPlugin("org.jetbrains.kotlin")
+  }
 }
 
 sourceSets {
@@ -40,4 +45,26 @@ sourceSets {
       srcDirs("src/resources")
     }
   }
+  test {
+    resources {
+      srcDirs("src/testSrc/resources")
+    }
+  }
+}
+
+// This is needed so that other tests can depend on ml-api-tests
+// i.e. testImplementation(project(":ml-api", configuration="test")) in ij-platform
+configurations {
+  val test by creating {
+    extendsFrom(configurations.testImplementation.get())
+  }
+}
+
+tasks.register<Jar>("testJar") {
+  archiveClassifier.set("tests")
+  from(sourceSets.test.get().output)
+}
+
+artifacts {
+  add("test", tasks.named<Jar>("testJar"))
 }

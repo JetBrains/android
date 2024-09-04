@@ -15,26 +15,10 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
-
-fun Project.requestBuild(file: VirtualFile) {
-  requestBuild(listOf(file))
-}
-
-fun Project.requestBuild(files: Collection<VirtualFile>) {
-  // TODO(b/231401347): Move this to the client side
-  if (this.isDisposed) {
-    return
-  }
-
-  ProjectSystemService.getInstance(this).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
-}
 
 fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
   val androidModuleSystem by lazy {
@@ -43,13 +27,8 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     }
   }
   runReadAction { psiFile.classes.mapNotNull { it.qualifiedName } }
+    // TODO: solodkyy - this needs to be included in the build services for rendering.
     .mapNotNull { androidModuleSystem?.getClassFileFinderForSourceFile(runReadAction { psiFile.virtualFile })?.findClassFile(it) }
     .firstOrNull() != null
 }
 else false
-
-@Suppress("UnstableApiUsage")
-private fun VirtualFile.getSourceFile(): VirtualFile = if (!this.isInLocalFileSystem && this is BackedVirtualFile) {
-  this.originFile
-}
-else this

@@ -79,7 +79,7 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
         }
         sourceType == AndroidSourceType.SHADERS && androidModel == null -> {
         }
-        sourceType == AndroidSourceType.ASSETS -> {
+        sourceType == AndroidSourceType.ASSETS || sourceType == AndroidSourceType.GENERATED_ASSETS -> {
           result.add(
             AndroidSourceTypeNode(
               project,
@@ -128,7 +128,9 @@ private fun getSourcesBySourceType(
     }
 
     val sources = when (sourceType) {
-      AndroidSourceType.GENERATED_JAVA, AndroidSourceType.GENERATED_RES -> getGeneratedSources(sourceType, providers)
+      AndroidSourceType.GENERATED_JAVA,
+      AndroidSourceType.GENERATED_RES,
+      AndroidSourceType.GENERATED_ASSETS -> getGeneratedSources(sourceType, providers)
       else -> getSources(sourceType, providers)
     }
 

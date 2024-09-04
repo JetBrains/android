@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
-import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
@@ -39,6 +38,7 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -132,7 +132,7 @@ class ComposePreviewFakeUiGradleRule(
       fakeUi.root.validate()
     }
 
-    waitForSmartMode(project)
+    IndexingTestUtil.suspendUntilIndexesAreReady(project)
 
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()
@@ -204,27 +204,42 @@ class ComposePreviewFakeUiGradleRule(
    * Runs the [runnable]. The [runnable] is expected to trigger a refresh and this method will
    * return once the refresh has happened. Throws an exception if the timeout is exceeded while
    * waiting.
+   *
+   * Some checks in this method are done over transient states, and they are susceptible of race
+   * conditions. It's recommended to use a false [failOnTimeout] whenever it's possible to verify a
+   * side effect of the refresh that could indicate whether it resulted as expected or not.
    */
   suspend fun runAndWaitForRefresh(
     anyRefreshStartTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     allRefreshesFinishTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     expectedRefreshType: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
-    aRefreshMustStart: Boolean = true,
+    failOnTimeout: Boolean = true,
     runnable: suspend () -> Unit,
   ) {
-    waitForAllRefreshesToFinish(timeout = 5.seconds)
+    try {
+      waitForAllRefreshesToFinish(timeout = 5.seconds)
+    } catch (t: Throwable) {
+      if (failOnTimeout) throw t
+    }
     try {
       waitForAnyRefreshToStart(anyRefreshStartTimeout, expectedRefreshType, runnable)
     } catch (t: Throwable) {
-      if (aRefreshMustStart) throw t
+      if (failOnTimeout) throw t
     }
-    waitForAllRefreshesToFinish(allRefreshesFinishTimeout)
+    try {
+      waitForAllRefreshesToFinish(allRefreshesFinishTimeout)
+    } catch (t: Throwable) {
+      if (failOnTimeout) throw t
+    }
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
-  suspend fun buildAndRefresh(timeout: Duration = DEFAULT_BUILD_AND_REFRESH_TIMEOUT) {
+  suspend fun buildAndRefresh(
+    timeout: Duration = DEFAULT_BUILD_AND_REFRESH_TIMEOUT,
+    failOnTimeout: Boolean = true,
+  ) {
     logger.info("buildAndRefresh")
-    runAndWaitForRefresh(timeout) { buildAndAssertIsSuccessful() }
+    runAndWaitForRefresh(timeout, failOnTimeout = failOnTimeout) { buildAndAssertIsSuccessful() }
     validate()
   }
 
@@ -232,7 +247,7 @@ class ComposePreviewFakeUiGradleRule(
   suspend fun validate(zoomToFit: Boolean = true) {
     runAndWaitForRefresh(
       expectedRefreshType = ComposePreviewRefreshType.QUALITY,
-      aRefreshMustStart = false,
+      failOnTimeout = false,
     ) {
       withContext(AndroidDispatchers.uiThread) {
         fakeUi.root.validate()

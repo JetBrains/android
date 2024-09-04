@@ -142,7 +142,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       for (ApiConstraint constraint : constraints) {
         int version = constraint.min();
         int sdk = constraint.getSdk();
-        list.add(new AddTargetVersionCheckQuickFix(project, version, sdk, minSdk));
+        list.add(new ModCommandLintQuickFix(new AddTargetVersionCheckQuickFix(project, startElement, version, sdk, minSdk)));
       }
     }
 

@@ -30,6 +30,6 @@ internal enum class AndroidKeyEventActionType(val value: Int) {
 
   companion object {
     @JvmStatic
-    fun fromValue(value: Int): AndroidKeyEventActionType? = values().find { it.value == value }
+    fun fromValue(value: Int): AndroidKeyEventActionType? = entries.find { it.value == value }
   }
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiParameter
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -405,6 +406,8 @@ class ProviderDaggerElementTest {
         )
         .virtualFile
     )
+
+    IndexingTestUtil.waitUntilIndexesAreReady(myFixture.project)
 
     val bindOptionalFooDaggerElement =
       BindsOptionalOfProviderDaggerElement(

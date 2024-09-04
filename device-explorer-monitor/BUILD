@@ -51,6 +51,7 @@ iml_module(
         "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor[module, test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common.tests[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

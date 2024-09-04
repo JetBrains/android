@@ -30,10 +30,10 @@ import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
@@ -48,6 +48,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
@@ -103,7 +104,6 @@ class WearTilePreviewRepresentationTest {
   fun testPreviewInitialization() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-
       preview.previewView.mainSurface.models.forEach {
         assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
       }
@@ -178,6 +178,28 @@ class WearTilePreviewRepresentationTest {
         preview.previewModeManager.setMode(PreviewMode.Gallery(previewElement))
 
         expectGalleryModeIsSet(preview, previewElement)
+      }
+
+      preview.onDeactivate()
+    }
+
+  @Test
+  fun testAnimationInspectorMode() =
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation()
+
+      assertThat(preview.previewView.mainSurface.models).hasSize(4)
+      assertThat(preview.previewView.galleryMode).isNull()
+
+      // go into gallery mode
+      run {
+        val previewElement =
+          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+        preview.previewModeManager.setMode(PreviewMode.AnimationInspection(previewElement))
+
+        delayUntilCondition(250) { preview.previewView.bottomPanel != null }
+        assertThat(preview.previewView.bottomPanel?.components?.get(0)?.name)
+          .isEqualTo("Animation Preview")
       }
 
       preview.onDeactivate()
@@ -308,6 +330,71 @@ class WearTilePreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/353458840
+  @Test
+  fun multiPreviewsAreOrderedByNameWhenNotInUICheckMode() {
+    val testPsiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+        import android.content.Context
+        import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @Preview(name = "1", group = "2")
+        @Preview(name = "2", group = "2")
+        @Preview(name = "3", group = "3")
+        @Preview(name = "4", group = "3")
+        @Preview(name = "5", group = "1")
+        @Preview(name = "6", group = "1")
+        annotation class MyMultiPreview
+
+        @Preview
+        fun preview() = TilePreviewData()
+
+        @MyMultiPreview
+        fun multiPreview() = TilePreviewData()
+          """
+          .trimIndent(),
+      )
+
+    runBlocking(workerThread) {
+      val preview = createWearTilePreviewRepresentation(testPsiFile)
+
+      assertEquals(
+        """
+          TestKt.preview
+          PreviewDisplaySettings(name=preview, group=null, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 1, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 2, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 3, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 4, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 5, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+          TestKt.multiPreview
+          PreviewDisplaySettings(name=multiPreview - 6, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+
+        """
+          .trimIndent(),
+        preview.renderedPreviewElementsFlowForTest().value.asCollection().joinToString("\n") {
+          "${it.methodFqn}\n${it.displaySettings}\n"
+        },
+      )
+    }
+  }
+
   private suspend fun expectGalleryModeIsSet(
     preview: WearTilePreviewRepresentation,
     previewElement: PreviewElement<*>,
@@ -347,12 +434,12 @@ class WearTilePreviewRepresentationTest {
     }
 
   private suspend fun createWearTilePreviewRepresentation(
-    expectedModelCount: Int = 2
+    testFile: PsiFile = createWearTilePreviewTestFile(),
+    expectedModelCount: Int = 2,
   ): WearTilePreviewRepresentation {
-    val wearTileTestFile = createWearTilePreviewTestFile()
-    val modelRenderedLatch = CountDownLatch(expectedModelCount)
+    val newModelAddedLatch = CountDownLatch(expectedModelCount)
     val previewRepresentation =
-      WearTilePreviewRepresentationProvider().createRepresentation(wearTileTestFile)
+      WearTilePreviewRepresentationProvider().createRepresentation(testFile)
         as WearTilePreviewRepresentation
 
     previewRepresentation.previewView.mainSurface.addListener(
@@ -360,10 +447,7 @@ class WearTilePreviewRepresentationTest {
         override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
           val id = UUID.randomUUID().toString().substring(0, 5)
           logger.info("modelChanged ($id)")
-          (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-            logger.info("renderListener ($id)")
-            modelRenderedLatch.countDown()
-          }
+          newModelAddedLatch.countDown()
         }
       }
     )
@@ -373,7 +457,9 @@ class WearTilePreviewRepresentationTest {
       callback = {
         runBlocking(Dispatchers.IO) {
           logger.info("compile")
-          ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+          projectRule.buildSystemServices.simulateArtifactBuild(
+            ProjectSystemBuildManager.BuildStatus.SUCCESS
+          )
           logger.info("activate")
           previewRepresentation.onActivate()
         }
@@ -381,7 +467,7 @@ class WearTilePreviewRepresentationTest {
     )
 
     withContext(Dispatchers.IO) {
-      modelRenderedLatch.await()
+      newModelAddedLatch.await()
       delayWhileRefreshingOrDumb(previewRepresentation)
     }
 
@@ -392,7 +478,7 @@ class WearTilePreviewRepresentationTest {
     fixture.configureByText(
       "Test.kt", // language=kotlin
       """
-          package com.android.test
+        package com.android.test
 
         import android.content.Context
         import androidx.wear.tiles.TileService

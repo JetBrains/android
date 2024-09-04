@@ -36,6 +36,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
 import java.util.function.Predicate
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Tests for [SkinDefinition] and related classes.
@@ -228,23 +232,24 @@ class SkinDefinitionTest {
       stream.forEach { skinFolder ->
         if (Files.isDirectory(skinFolder) && !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
             Files.exists(skinFolder.resolve("layout"))) {
+          val skinName = skinFolder.subpath(dir.nameCount, skinFolder.nameCount)
           try {
             val skin = SkinDefinition.create(skinFolder)
             val layout = skin.layout
             val problems = validateLayout(layout, skinFolder)
             if (problems.isNotEmpty()) {
-              skinProblems.add("Skin \"${skinFolder.fileName}\" is inconsistent:\n${problems.joinToString("\n")}")
+              skinProblems.add("Skin \"$skinName\" is inconsistent:\n${problems.joinToString("\n")}")
             }
           }
           catch (e: NoSuchFileException) {
-            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". File not found: ${e.file}")
+            skinProblems.add("Unable to create skin \"$skinName\". File not found: ${e.file}")
           }
           catch (e: IOException) {
             val message = e.message?.let { "I/O error $it" } ?: "I/O error"
-            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". $message")
+            skinProblems.add("Unable to create skin \"$skinName\". $message")
           }
           catch (e: InvalidSkinException) {
-            skinProblems.add("Unable to create skin \"${skinFolder.fileName}\". ${e.message}")
+            skinProblems.add("Unable to create skin \"$skinName\". ${e.message}")
           }
         }
       }
@@ -262,8 +267,9 @@ class SkinDefinitionTest {
     catch (e: NoSuchFileException) {
       return listOf("The background image \"${e.file}\" does not exist")
     }
-    val center = Point(skinLayout.displaySize.width / 2 - skinLayout.frameRectangle.x,
-                       skinLayout.displaySize.height / 2 - skinLayout.frameRectangle.y)
+    val displaySize = skinLayout.displaySize
+    val center = Point(displaySize.width / 2 - skinLayout.frameRectangle.x,
+                       displaySize.height / 2 - skinLayout.frameRectangle.y)
     if (!backgroundImage.isTransparent(center)) {
       return listOf("The background image is not transparent near the center of the display")
     }
@@ -275,13 +281,13 @@ class SkinDefinitionTest {
     }
 
     val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparent)
-    if (transparentAreaBounds.width != skinLayout.displaySize.width) {
+    if (transparentAreaBounds.width != displaySize.width) {
       problems.add("The width of the display area in the skin image (${transparentAreaBounds.width})" +
-                     " doesn't match the layout file (${skinLayout.displaySize.width})")
+                     " doesn't match the layout file (${displaySize.width})")
     }
-    if (transparentAreaBounds.height != skinLayout.displaySize.height) {
+    if (transparentAreaBounds.height != displaySize.height) {
       problems.add("The height of the display area in the skin image (${transparentAreaBounds.height})" +
-                     " doesn't match the layout file (${skinLayout.displaySize.height})")
+                     " doesn't match the layout file (${displaySize.height})")
     }
     val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNotOpaque)
     if (nonOpaqueAreaBounds.x != transparentAreaBounds.x) {
@@ -299,6 +305,54 @@ class SkinDefinitionTest {
     if (transparentAreaBounds.x != -skinLayout.frameRectangle.x || transparentAreaBounds.y != -skinLayout.frameRectangle.y) {
       problems.add("Display offset in the layout file (${-skinLayout.frameRectangle.x}, ${-skinLayout.frameRectangle.y})" +
                    " doesn't match the skin image (${transparentAreaBounds.x}, ${transparentAreaBounds.y})")
+    }
+
+    // Check consistency between corners of the display and round corners of the frame.
+    var maxExterior = -1
+    val halfSize = min(displaySize.width, displaySize.height) / 2
+    var minInterior = halfSize + 1
+    for (iy in 0..1) {
+      val yOffset = iy * (displaySize.height - 1) - skinLayout.frameRectangle.y // Y coordinate of a display corner.
+      val yStep = 1 - 2 * iy // Direction of Y iteration.
+      for (ix in 0..1) {
+        val xOffset = ix * (displaySize.width - 1) - skinLayout.frameRectangle.x // X coordinate of a display corner.
+        val xStep = 1 - 2 * ix // Direction of X iteration.
+        var exterior = -1 // Distance between the display corner and outer boundary of the frame near the corner.
+        var interior = halfSize + 1 // Distance between the display corner and inner boundary of the frame near the corner.
+        for (d in 0..halfSize) {
+          if (exterior < 0) {
+            if (image.isOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+              exterior = d
+            }
+          }
+          else {
+            if (image.isNotOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+              interior = d
+              break
+            }
+          }
+        }
+        maxExterior = max(maxExterior, exterior)
+        minInterior = min(minInterior, interior)
+      }
+    }
+    val f = 1 - 1 / sqrt(2.0)
+    val maxR = minInterior / f
+    val minR = maxExterior / f
+    if (maxR > minR) {
+      val r = skinLayout.displayCornerSize.width
+      val recommendedR = ((minR + maxR) / 2).roundToInt()
+      if (r < minR) {
+        problems.add("Corners of the display are protruding beyond the frame. Can be fixed by setting corner_radius $recommendedR")
+      }
+      else if (r > maxR) {
+        problems.add("There are gaps between the rounded corners of the display and the frame." +
+                     " Can be fixed by setting corner_radius $recommendedR")
+      }
+    }
+    else {
+      problems.add("The skin inevitably leads to corners of the display protruding beyond the frame" +
+                   " or to gaps between the rounded corners of the display and the frame.")
     }
     return problems
   }
@@ -387,7 +441,7 @@ private fun BufferedImage.isNotOpaque(point: Point): Boolean {
   return !isOpaque(point)
 }
 
-data class Point(val x: Int, val y: Int) // Unlike java.awt.Point this class has an efficient hashCode method.
+private data class Point(val x: Int, val y: Int) // Unlike java.awt.Point this class has an efficient hashCode method.
 
 private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
                                Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))

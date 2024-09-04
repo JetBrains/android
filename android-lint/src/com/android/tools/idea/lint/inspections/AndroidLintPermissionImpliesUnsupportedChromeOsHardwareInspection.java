@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection extends AndroidLintInspectionBase {
   public AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.permission.implies.unsupported.hardware"),
+    super(AndroidLintBundle.message("android.lint.inspections.permission.implies.unsupported.chrome.os.hardware"),
           ChromeOsDetector.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE);
   }
 

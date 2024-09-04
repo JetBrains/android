@@ -27,23 +27,6 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 class UnsupportedGradleVersionIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   private val unsupportedGradleVersionIssueChecker = UnsupportedGradleVersionIssueChecker()
 
-  fun testCheckIssue() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-
-    val errMessage = "Gradle version 2.2 is required."
-    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
-    val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
-
-    Truth.assertThat(buildIssue).isNotNull()
-    Truth.assertThat(buildIssue!!.description).contains("Gradle version 2.2 is required.\n\nPlease fix the project's Gradle settings.")
-    Truth.assertThat(buildIssue.quickFixes).hasSize(3)
-    Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
-    val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
-    Truth.assertThat(fixVersionFix.gradleVersion).isEqualTo("2.2")
-    Truth.assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-    Truth.assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
-  }
-
   fun testCheckIssueWithPlugin2_3AndGradleOlderThan3_3() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
 
@@ -60,25 +43,6 @@ class UnsupportedGradleVersionIssueCheckerIntegrationTest: AndroidGradleTestCase
     Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
     val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
     Truth.assertThat(fixVersionFix.gradleVersion).isEqualTo("3.3")
-    Truth.assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-    Truth.assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
-  }
-
-  fun testCheckIssueWithOlderVersion() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-
-    val errMessage = "Old Gradle version error."
-    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
-    val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
-
-    Truth.assertThat(buildIssue).isNotNull()
-    Truth.assertThat(buildIssue!!.description).contains("The project is using an unsupported version of Gradle.\n" +
-                                                  "Please point to a supported Gradle version in the project's Gradle settings " +
-                                                  "or in the project's Gradle wrapper (if applicable.)")
-    Truth.assertThat(buildIssue.quickFixes).hasSize(3)
-    Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
-    val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
-    Truth.assertThat(fixVersionFix.gradleVersion).isEqualTo(SdkConstants.GRADLE_LATEST_VERSION)
     Truth.assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
     Truth.assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
   }

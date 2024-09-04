@@ -54,6 +54,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -65,11 +69,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -172,6 +171,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             library                       : :library (DefaultExternalProject)
                 path                          : :library [-]
                 identityPath                  : :library [-]
@@ -182,11 +187,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/library
                 buildDir                      : <ROOT>/library/build [-]
                 buildFile                     : <ROOT>/library/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :library:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :library:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -285,6 +285,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :library:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :library:testReleaseUnitTest
             library-debug                 : :library-debug (DefaultExternalProject)
                 path                          : :library-debug [-]
                 identityPath                  : :library-debug [-]
@@ -299,11 +305,9 @@ MODULE                        : project
                 sourceSetModel                : DefaultGradleSourceSetModel
                     configurationArtifacts
                         - default                     : <ROOT>/library-debug/library-debug.aar
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.2.0

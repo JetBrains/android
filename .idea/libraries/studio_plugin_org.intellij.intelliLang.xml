@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.intellij.intelliLang">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/platform-langInjection/lib/IntelliLang.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/platform-langInjection/lib/java-langInjection-jps.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/platform-langInjection/lib/platform-langInjection.jar!/" />
     </CLASSES>

@@ -85,7 +85,6 @@ public class NewModuleTest {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
-      .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("somelibrary")
       .wizard()
       .clickFinishAndWaitForSyncToFinish();

@@ -181,7 +181,6 @@
         <reference ref="android.emulator.display.mode.phone"/>
         <reference ref="android.emulator.display.mode.foldable"/>
         <reference ref="android.emulator.display.mode.tablet"/>
-        <separator/>
       </group>
       <separator/>
       <reference ref="android.device.power.button"/>

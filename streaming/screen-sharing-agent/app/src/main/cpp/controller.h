@@ -49,6 +49,10 @@ public:
   // Stops the controller asynchronously. The controller can't be restarted one stopped.
   // May be called on any thread.
   void Stop();
+  // Requests to power the display OFF or reset it to a power state it supposed to have. Requires API 35+.
+  // The state parameter is one of DisplayInfo::STATE_OFF (to turn display off), DisplayInfo::STATE_UNKNOWN
+  // (to reset the display to its default state). Returns true if successful, false otherwise.
+  static bool ControlDisplayPower(Jni jni, int state);
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {
@@ -74,7 +78,7 @@ private:
   };
 
   struct DisplayEvent {
-    enum Type { ADDED, REMOVED };
+    enum Type { ADDED, CHANGED, REMOVED };
 
     DisplayEvent(int32_t displayId, Type type)
         : display_id(displayId),
@@ -161,10 +165,10 @@ private:
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
+  std::map<int32_t, DisplayInfo> current_displays_;
 
   UiSettings ui_settings_;
 
-  std::map<int32_t, DisplayInfo> current_displays_;
   std::chrono::steady_clock::time_point poll_displays_until_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);

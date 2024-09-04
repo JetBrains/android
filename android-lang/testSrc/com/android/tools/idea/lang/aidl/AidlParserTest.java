@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lang.aidl;
 
-import static com.android.SdkConstants.DOT_TXT;
-
 import com.android.tools.idea.lang.LangTestDataKt;
 import com.intellij.testFramework.ParsingTestCase;
 

@@ -5,6 +5,10 @@ MODULE                        : gradle_project_1
         name                          : gradle_project_1
         qName                         : gradle_project_1
         version                       : unspecified
+        projectDir                    : <ROOT>/gradle_project_1
+        buildDir                      : <ROOT>/gradle_project_1/build [-]
+        buildFile                     : <ROOT>/gradle_project_1/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -16,11 +20,6 @@ MODULE                        : gradle_project_1
                 projectDir                    : <ROOT>/gradle_project_1/app
                 buildDir                      : <ROOT>/gradle_project_1/app/build [-]
                 buildFile                     : <ROOT>/gradle_project_1/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -143,11 +142,14 @@ MODULE                        : gradle_project_1
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>/gradle_project_1
-        buildDir                      : <ROOT>/gradle_project_1/build [-]
-        buildFile                     : <ROOT>/gradle_project_1/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : gradle_project_1.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1188,6 +1190,10 @@ MODULE                        : gradle_project_name
         name                          : gradle_project_name
         qName                         : gradle_project_name
         version                       : unspecified
+        projectDir                    : <ROOT>/gradle_project_2
+        buildDir                      : <ROOT>/gradle_project_2/build [-]
+        buildFile                     : <ROOT>/gradle_project_2/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -1199,11 +1205,6 @@ MODULE                        : gradle_project_name
                 projectDir                    : <ROOT>/gradle_project_2/app
                 buildDir                      : <ROOT>/gradle_project_2/app/build [-]
                 buildFile                     : <ROOT>/gradle_project_2/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1326,11 +1327,14 @@ MODULE                        : gradle_project_name
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>/gradle_project_2
-        buildDir                      : <ROOT>/gradle_project_2/build [-]
-        buildFile                     : <ROOT>/gradle_project_2/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : gradle_project_name.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

@@ -238,6 +238,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture recordEspressoTest() {
+    new DeviceSelectorFixture(robot(), this).recordEspressoTest();
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
     new DeviceSelectorFixture(robot(), this).recordEspressoTest(device);
     return this;
@@ -701,16 +707,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public DeviceManagerToolWindowFixture invokeDeviceManager() {
-    // The action button is prone to move during rendering so that robot.click()
-    // could miss.
-    // So, we use component's click here directly.
-    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager2", 30);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() {
-        actionButtonFixture.target().click();
-      }
-    });
+    ToolWindowFixture deviceManager =  new ToolWindowFixture("Device Manager 2", this.getProject(), robot() ){} ;
+    deviceManager.activate();
     return new DeviceManagerToolWindowFixture(getProject(), robot());
   }
   @NotNull
@@ -842,8 +840,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
-    new JToggleButtonFixture(robot(),
-                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Project"))).deselect();
+    ToolWindowFixture projectPanel =  new ToolWindowFixture("Project", this.getProject(), robot() ){} ;
+    projectPanel.hide();
     return this;
   }
 
@@ -855,17 +853,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture openResourceManager() {
-    new JToggleButtonFixture(robot(),
-                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
+  public IdeFrameFixture closeResourceManager() {
+    ToolWindowFixture projectPanel =  new ToolWindowFixture("Resources Explorer", this.getProject(), robot() ){} ;
+    projectPanel.hide();
     return this;
   }
 
   @NotNull
-  public IdeFrameFixture closeResourceManager() {
-    new JToggleButtonFixture(robot(),
-                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager")))
-      .deselect();
+  public IdeFrameFixture openResourceManager() {
+    ToolWindowFixture projectPanel =  new ToolWindowFixture("Resources Explorer", this.getProject(), robot() ){} ;
+    projectPanel.activate();
     return this;
   }
 

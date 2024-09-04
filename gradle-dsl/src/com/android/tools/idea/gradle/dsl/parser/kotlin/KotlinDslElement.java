@@ -23,7 +23,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -38,7 +37,8 @@ import org.jetbrains.annotations.Nullable;
 public class KotlinDslElement extends GradleDslBlockElement {
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
-    {"sourceSets", KotlinSourceSetsDslElement.KOTLIN_SOURCE_SETS}
+    {"sourceSets", KotlinSourceSetsDslElement.KOTLIN_SOURCE_SETS},
+    {"compilerOptions", CompilerOptionsDslElement.COMPILER_OPTIONS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{

@@ -62,7 +62,6 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
@@ -372,11 +371,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
     }
 
-    UiNotifyConnector.Once.installOn(dialog.contentPane, object : Activatable {
-      override fun showNotify() {
-        advanceInit.run()
-      }
-    })
+    UiNotifyConnector.doWhenFirstShown(dialog.contentPane) {
+      advanceInit.run()
+    }
     invokeLater(ModalityState.stateForComponent(myDetails)) {
       myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
     }
@@ -479,6 +476,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     finally {
       myConfigurables.clear()
+      mySelectedConfigurable = null
       mySidePanel?.clear()
       myUiInitialized = false
       mySplitter = null

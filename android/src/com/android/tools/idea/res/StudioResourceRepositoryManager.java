@@ -102,7 +102,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   private AppResourceRepository myAppResources;
 
   @GuardedBy("PROJECT_RESOURCES_LOCK")
-  private ProjectResourceRepository myProjectResources;
+  private LocalResourceRepository<VirtualFile> myProjectResources;
 
   @GuardedBy("MODULE_RESOURCES_LOCK")
   private LocalResourceRepository<VirtualFile> myModuleResources;
@@ -276,6 +276,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     Disposer.register(parentDisposable, this);
     myFacet = facet;
     myNamespacing = namespacing;
+    myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(this::newLocalesAndLanguagesCachedValue);
   }
 
   /**
@@ -366,17 +367,31 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       return projectResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (PROJECT_RESOURCES_LOCK) {
-        if (myProjectResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<>(getNamespace());
-          }
-          myProjectResources = ProjectResourceRepository.create(myFacet, this);
-        }
-        return myProjectResources;
+    ProjectResourceRepository projectResourceRepository = ApplicationManager.getApplication().runReadAction((Computable<@Nullable ProjectResourceRepository>)() -> {
+      if (myFacet.isDisposed()) {
+        return null;
       }
+      return ProjectResourceRepository.create(myFacet, this);
     });
+
+    if (projectResourceRepository == null) {
+      return new EmptyRepository<>(getNamespace());
+    }
+    LocalResourceRepository<VirtualFile> projectResourceRepositoryToReturn;
+    synchronized (PROJECT_RESOURCES_LOCK) {
+      if (myProjectResources == null) {
+        myProjectResources = projectResourceRepository;
+      }
+      projectResourceRepositoryToReturn = myProjectResources;
+    }
+
+    if (projectResourceRepositoryToReturn != projectResourceRepository) {
+      // If we ended up not using the new one we have allocated, dispose it.
+      // This could happen if there was another call that allocated myProjectResources before we could have the result.
+      Disposer.dispose(projectResourceRepository);
+    }
+
+    return projectResourceRepositoryToReturn;
   }
 
   /**
@@ -568,7 +583,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       if (myProjectResources != null) {
         removedRepositories.add(myProjectResources);
         myProjectResources = null;
-        myLocalesAndLanguages = null;
+        myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(this::newLocalesAndLanguagesCachedValue);
       }
     }
 
@@ -825,30 +840,36 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     return getLocalesAndLanguages().languages;
   }
 
+  /**
+   * Returns a new {@link com.intellij.psi.util.CachedValueProvider.Result} for obtaining {@link LocalesAndLanguages}.
+   * Calling this method does not retrieve the actual value. It will not block and should be fairly quick.
+   */
+  @NotNull
+  private CachedValueProvider.Result<LocalesAndLanguages> newLocalesAndLanguagesCachedValue() {
+    // Get locales from modules, but not libraries.
+    CacheableResourceRepository projectResources = getProjectResources(myFacet);
+    ModificationTracker tracker = projectResources::getModificationCount;
+    SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
+    ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
+    ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
+    for (LocaleQualifier localeQualifier : localeQualifiers) {
+      localesBuilder.add(Locale.create(localeQualifier));
+      String language = localeQualifier.getLanguage();
+      if (language != null) {
+        languagesBuilder.add(language);
+      }
+    }
+    return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()), tracker);
+  }
+
   @NotNull
   private LocalesAndLanguages getLocalesAndLanguages() {
+    CachedValue<LocalesAndLanguages> localesAndLanguages;
     synchronized (PROJECT_RESOURCES_LOCK) {
-      if (myLocalesAndLanguages == null) {
-        myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(
-          () -> {
-            // Get locales from modules, but not libraries.
-            CacheableResourceRepository projectResources = getProjectResources(myFacet);
-            ModificationTracker tracker = projectResources::getModificationCount;
-            SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
-            ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
-            ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
-            for (LocaleQualifier localeQualifier : localeQualifiers) {
-              localesBuilder.add(Locale.create(localeQualifier));
-              String language = localeQualifier.getLanguage();
-              if (language != null) {
-                languagesBuilder.add(language);
-              }
-            }
-            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()), tracker);
-          });
-      }
-      return myLocalesAndLanguages.getValue();
+      localesAndLanguages = myLocalesAndLanguages;
     }
+
+    return localesAndLanguages.getValue();
   }
 
   private record LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {

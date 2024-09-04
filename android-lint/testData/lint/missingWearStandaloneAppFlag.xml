@@ -4,7 +4,7 @@
   <uses-sdk android:targetSdkVersion="23" />
   <uses-feature android:name="android.hardware.type.watch"/>
 
-  <<warning>appli<caret>cation</warning> android:allowBackup="false">
+  <<error>appli<caret>cation</error> android:allowBackup="false">
       <meta-data android:name="foo" android:value="true" />
   </application>
 

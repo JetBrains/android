@@ -16,20 +16,26 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
-import com.android.backup.BackupHandler
+import com.android.backup.BackupException
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupProgressListener.Step
 import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
-import com.android.backup.RestoreHandler
+import com.android.backup.BackupService
+import com.android.backup.ErrorCode
+import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
+import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.flags.StudioFlags
+import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -41,6 +47,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.ui.messages.MessagesService
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
@@ -50,21 +57,38 @@ import com.intellij.platform.util.progress.reportSequentialProgress
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
 private const val NOTIFICATION_GROUP = "Backup"
 
+private val logger: Logger = Logger.getInstance(BackupManager::class.java)
+
 /** Implementation of [BackupManager] */
-internal class BackupManagerImpl(private val project: Project) : BackupManager {
-  private val adbSession = AdbLibService.getSession(project)
-  private val logger: Logger = Logger.getInstance(BackupManager::class.java)
+internal class BackupManagerImpl
+@VisibleForTesting
+internal constructor(private val project: Project, private val backupService: BackupService) :
+  BackupManager {
+  @Suppress("unused") // Used by the plugin XML
+  constructor(
+    project: Project
+  ) : this(
+    project,
+    BackupService.getInstance(
+      AdbLibService.getSession(project),
+      logger,
+      StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get(),
+    ),
+  )
 
   @UiThread
   override fun backupModal(
     serialNumber: String,
     applicationId: String,
     backupFile: Path,
+    source: Source,
     notify: Boolean,
   ): BackupResult {
     logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
@@ -76,23 +100,27 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        val handler =
-          BackupHandler(adbSession, serialNumber, logger, listener, backupFile, applicationId)
-        val result = handler.backup()
+        val result = backupService.backup(serialNumber, applicationId, backupFile, listener)
         val operation = message("backup")
         if (notify) {
-          result.notify(operation, backupFile)
+          result.notify(operation, backupFile, serialNumber)
         }
         if (result is Error) {
           logger.warn(message("notification.error", operation), result.throwable)
         }
+        BackupUsageTracker.logBackup(D2D, source, result)
         result
       }
     }
   }
 
   @UiThread
-  override fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean): BackupResult {
+  override fun restoreModal(
+    serialNumber: String,
+    backupFile: Path,
+    source: Source,
+    notify: Boolean,
+  ): BackupResult {
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
     return runWithModalProgressBlocking(
       ModalTaskOwner.project(project),
@@ -101,7 +129,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        restore(serialNumber, backupFile, listener, notify)
+        restore(serialNumber, backupFile, source, listener, notify)
       }
     }
   }
@@ -109,6 +137,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   override suspend fun restore(
     serialNumber: String,
     backupFile: Path,
+    source: Source,
     listener: BackupProgressListener?,
     notify: Boolean,
   ): BackupResult {
@@ -118,15 +147,15 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
         else -> Path.of(project.basePath ?: "", backupFile.pathString)
       }
     logger.debug("Restoring from $path on '${serialNumber}'")
-    val handler = RestoreHandler(adbSession, logger, serialNumber, listener, path)
-    val result = handler.restore()
+    val result = backupService.restore(serialNumber, backupFile, listener)
     val operation = message("restore")
     if (notify) {
-      result.notify(operation)
+      result.notify(operation, serialNumber = serialNumber)
     }
     if (result is Error) {
       logger.warn(message("notification.error", operation), result.throwable)
     }
+    BackupUsageTracker.logRestore(source, result)
     return result
   }
 
@@ -154,7 +183,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
 
   override suspend fun getApplicationId(backupFile: Path): String? {
     try {
-      return RestoreHandler.validateBackupFile(backupFile)
+      return BackupService.validateBackupFile(backupFile)
     } catch (e: Exception) {
       logger.warn("File ${backupFile.pathString} is not a valid backup file")
       return null
@@ -163,10 +192,14 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
 
   override fun getRestoreRunConfigSection(project: Project) = RestoreRunConfigSection(project)
 
-  private fun BackupResult.notify(operation: String, backupFile: Path? = null) {
+  private fun BackupResult.notify(
+    operation: String,
+    backupFile: Path? = null,
+    serialNumber: String,
+  ) {
     when (this) {
       is Success -> notifySuccess(message("notification.success", operation), backupFile)
-      is Error -> notifyError(message("notification.error", operation), throwable)
+      is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
     }
   }
 
@@ -178,7 +211,7 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     Notifications.Bus.notify(notification, project)
   }
 
-  private fun notifyError(title: String, throwable: Throwable) {
+  private fun notifyError(title: String, throwable: Throwable, serialNumber: String) {
     if (throwable is CancellationException) {
       return
     }
@@ -186,6 +219,9 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
     val notification =
       Notification(NOTIFICATION_GROUP, title, content, WARNING)
         .addAction(ShowExceptionAction(title, content, throwable))
+    if ((throwable as? BackupException)?.errorCode == ErrorCode.GMSCORE_IS_TOO_OLD) {
+      notification.addAction(UpdateGmsAction(serialNumber))
+    }
     Notifications.Bus.notify(notification, project)
   }
 
@@ -216,6 +252,28 @@ internal class BackupManagerImpl(private val project: Project) : BackupManager {
   ) : DumbAwareAction(message("notification.error.button")) {
     override fun actionPerformed(e: AnActionEvent) {
       ErrorDetailDialog(title, message, throwable.stackTraceToString()).show()
+    }
+  }
+
+  private inner class UpdateGmsAction(private val serialNumber: String) :
+    DumbAwareAction(message("notification.update.gms")) {
+    override fun actionPerformed(e: AnActionEvent) {
+      AdbLibService.getSession(project).scope.launch {
+        val result = backupService.sendUpdateGmsIntent(serialNumber)
+        if (result is Error) {
+          logger.warn("Error Updating Google Services", result.throwable)
+          val message =
+            when (result.errorCode) {
+              PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
+              else -> message("open.play.store.error.unexpected")
+            }
+          withContext(uiThread) {
+            @Suppress("UnstableApiUsage")
+            MessagesService.getInstance()
+              .showErrorDialog(project, message, message("open.play.store.error.title"))
+          }
+        }
+      }
     }
   }
 }

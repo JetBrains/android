@@ -51,6 +51,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
@@ -58,7 +59,6 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
 import org.mockito.Mockito.mock
@@ -73,7 +73,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertNotEquals
 
@@ -215,11 +214,10 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     val surface = model.surface as NavDesignSurface
-    whenever(surface.layeredPane).thenReturn(mock(JComponent::class.java))
     val guiInputHandler = surface.guiInputHandler
     guiInputHandler.startListening()
 
-    val view = NavView(surface, surface.sceneManager!!)
+    val view = NavView(surface, surface.getSceneManager(model)!!)
 
     surface.scene!!.layout(0, view.context)
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
@@ -241,7 +239,7 @@ class NavDesignSurfaceTest : NavTestCase() {
                                             }
                                           }).build()
     val surface = model.surface as NavDesignSurface
-    val view = NavView(surface, surface.sceneManager!!)
+    val view = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(view)
     whenever(surface.scrollDurationMs).thenReturn(1)
     val scheduleRef = AtomicReference<Future<*>>()
@@ -260,7 +258,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f1)!!.setPosition(0, 0)
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
-    (surface.sceneManager as NavSceneManager).requestLayoutAsync(false)
+    (surface.getSceneManager(model) as NavSceneManager).requestLayoutAsync(false)
     surface.zoomController.zoomToFit()
 
     // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
@@ -297,7 +295,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
-    val sceneView = NavView(surface, surface.sceneManager!!)
+    val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
@@ -455,6 +453,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testActivateWithSchemaChange() {
+    // Wait for dependencies to be ready
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
@@ -503,7 +503,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
-    val sceneView = NavView(surface, surface.sceneManager!!)
+    val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
@@ -565,6 +565,8 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testActivateAddNavigator() {
+    // Wait for dependencies to be ready
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
     PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))

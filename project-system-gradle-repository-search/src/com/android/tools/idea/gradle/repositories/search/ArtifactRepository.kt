@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.repositories.search
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.PSDEvent
-import org.jetbrains.ide.PooledThreadExecutor
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.time.Duration
 import java.util.concurrent.Callable
 
-abstract class ArtifactRepository(val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
-  private val executor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
+abstract class ArtifactRepository(private val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
+  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ArtifactRepository search", 1)
+    .let { MoreExecutors.listeningDecorator(it) }
 
   abstract val name: String
   abstract val isRemote: Boolean

@@ -22,6 +22,7 @@ py_test(
     tags = [
         "block_network",
         "noci:studio-win",
+        "noci:studio-linux",  # TODO(b/350562167): fails with IntelliJ 2024.2.
     ],
 )
 

@@ -83,11 +83,11 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -106,6 +106,7 @@ import javax.swing.JTable
 import kotlin.collections.set
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.Before
@@ -1214,8 +1215,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       object :
         AvdManagerConnection(
           sdkHandler,
-          sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
-          MoreExecutors.newDirectExecutorService(),
+          IdeAvdManagers.getAvdManager(
+            sdkHandler,
+            sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
+          ),
+          Dispatchers.Unconfined,
         ) {
         fun setFactory() {
           setConnectionFactory { _, _ -> this }

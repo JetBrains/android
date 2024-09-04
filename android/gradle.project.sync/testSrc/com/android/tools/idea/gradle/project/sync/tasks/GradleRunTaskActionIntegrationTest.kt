@@ -90,6 +90,9 @@ class GradleRunTaskActionIntegrationTest {
       taskName: String,
       linkedExternalProjectPath: @SystemIndependent String
     ) {
+      val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
+      fixture.openFileInEditor(buildGradleFile!!)
+
       val gradleTaskActionEvent = mock<AnActionEvent>().apply {
         whenever(dataContext).thenReturn(IdeUiService.getInstance().createUiDataContext(createContextComponent(project, fixture)))
         whenever(place).thenReturn(TOOLWINDOW_GRADLE)

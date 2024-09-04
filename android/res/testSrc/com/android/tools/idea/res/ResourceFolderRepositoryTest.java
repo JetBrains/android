@@ -4387,7 +4387,7 @@ public class ResourceFolderRepositoryTest {
       }
     );
     waitForUpdates(repository);
-    assertThat(repository.getResources(RES_AUTO, ResourceType.DRAWABLE).size()).isEqualTo(2);
+    assertThat(repository.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet()).containsExactly("image", "image0");
   }
 
   /**

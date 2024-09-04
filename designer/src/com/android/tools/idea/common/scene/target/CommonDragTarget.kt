@@ -347,10 +347,6 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         ph!!.updateLiveAttribute(it, modification, expectedX, expectedY)
         modification.apply()
       }
-
-      if (myComponent.scene.isLiveRenderingEnabled) {
-        myComponent.authoritativeNlComponent.fireLiveChangeEvent()
-      }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     } else {
       if (currentSnappedPlaceholder?.dominate == true) {
@@ -394,13 +390,6 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
             firstMouse.x - offsets[index].x,
             firstMouse.y - offsets[index].y,
           )
-        }
-        if (myComponent.scene.isLiveRenderingEnabled) {
-          draggedComponents.forEach {
-            if (it.authoritativeNlComponent.startAttributeTransaction().rollback()) {
-              it.authoritativeNlComponent.fireLiveChangeEvent()
-            }
-          }
         }
       }
       newSelectedComponents = draggedComponents
@@ -472,7 +461,6 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     draggedComponents.forEach { it.isDragging = false }
     placeholderHosts = emptySet()
     currentSnappedPlaceholder = null
-    val liveRendered = myComponent.scene.isLiveRenderingEnabled
     draggedComponents.forEachIndexed { index, component ->
       component.isDragging = false
       // Rollback the transaction. Some attributes may be changed due to live rendering.

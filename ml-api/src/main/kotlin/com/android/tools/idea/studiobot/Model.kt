@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.studiobot.prompts.FileWithSelection
 import com.android.tools.idea.studiobot.prompts.Prompt
-import java.io.IOException
-import kotlinx.coroutines.CopyableThrowable
+import com.intellij.openapi.util.TextRange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -27,39 +27,36 @@ interface Model {
   fun config(): ModelConfig
 
   /**
-   * Sends a query to the model and returns the raw response.
-   *
-   * @param prompt The prompt to generate code for.
-   * @param config Configuration options for the backend.
-   * @throws IOException if the model endpoint throws an exception. To identify the cause of the
-   *   error, use [ExceptionUtil.getRootCause]. The result should be an
-   *   [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see
-   *   [CopyableThrowable]), the cause exception can end up nested a layer deeper than expected, but
-   *   using getRootCause avoids this problem.
-   */
-  fun generateContent(prompt: Prompt, config: GenerationConfig = GenerationConfig()): Flow<Content>
-
-  /**
    * This is an experimental API that attempts to generate code for a given prompt. It uses AIDA's
    * generateCode endpoint.
    *
    * Use the samples parameter of [GenerationConfig] to request a certain number of generations.
    *
-   * @param prompt The prompt to generate code for.
+   * @param userQuery An optional explicit query from the user to guide the generation process.
+   * @param fileContext The file containing selected code; also specifies generation language.
    * @param language The language to generate code in.
    * @param config Configuration options for the backend.
+   * @param history Previous prompts and generated code.
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
-   * @throws IOException if the model endpoint throws an exception. To identify the cause of the
-   *   error, use [ExceptionUtil.getRootCause]. The result should be an
-   *   [io.grpc.StatusRuntimeException]. Because of issues with coroutines debugging (see
-   *   [CopyableThrowable]), the cause exception can end up nested a layer deeper than expected, but
-   *   using getRootCause avoids this problem.
+   * @throws [StatusRuntimeException] if the model endpoint throws an exception.
    */
   suspend fun generateCode(
-    prompt: Prompt,
+    userQuery: String,
+    fileContext: FileWithSelection?,
     language: MimeType,
-    config: GenerationConfig = GenerationConfig(candidateCount = 4),
+    config: GenerationConfig,
+    history: Prompt? = null,
+    legacyClientSidePrompt: Prompt? = null,
   ): List<Content>
+
+  /**
+   * Sends a query to the model and returns the raw response.
+   *
+   * @param prompt The prompt to generate code for.
+   * @param config Configuration options for the backend.
+   * @throws StatusRuntimeException if the model endpoint throws an exception.
+   */
+  fun generateContent(prompt: Prompt, config: GenerationConfig = GenerationConfig()): Flow<Content>
 }
 
 /**
@@ -131,20 +128,35 @@ sealed interface Content {
 /**
  * A citation identified for a particular response.
  *
- * @param action The necessary action that must be taken in response to this citation:
- *     * If it is [CitationAction.BLOCK] the content and url should be blank, and so you can either
- *       choose to do nothing with it, or indicate to the user that a response was received but was
- *       blocked.
- *     * If it is [CitationAction.CITE], the content will still be present, but the citation url
- *       should be shown alongside it when presented to the user.
- *
- * @param url The url source that should be cited if the action is [CitationAction.CITE]
+ * @param action The necessary action that must be taken in response to this citation.
+ * @param url The url source that should be cited if the action is [CitationAction.CITE_INDIRECT] or
+ *   [CitationAction.CITE_DIRECT]
+ * @param range The range in [Content.TextContent] that is influenced by this citation
  */
-data class Citation(val action: CitationAction, val url: String? = null)
+data class Citation(
+  val action: CitationAction,
+  val url: String? = null,
+  val range: TextRange = TextRange.EMPTY_RANGE,
+)
 
-/** See [Citation] */
 enum class CitationAction {
-  CITE,
+  /**
+   * A reference that had an indirect (or "minor") influence on the generation. These references
+   * must be shown to the user, but the UI can decide where to place them.
+   */
+  CITE_INDIRECT,
+
+  /**
+   * A reference that had a direct (or "heavy") influence on the generation. The UI must take an
+   * effort to display them as close the part of the generation that was influenced by this
+   * reference.
+   */
+  CITE_DIRECT,
+
+  /**
+   * The content should be blocked. The UI can choose to do nothing with it, or indicate that the
+   * response was blocked.
+   */
   BLOCK,
 }
 
@@ -153,6 +165,12 @@ open class StubModel : Model {
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
 
-  override suspend fun generateCode(prompt: Prompt, language: MimeType, config: GenerationConfig) =
-    emptyList<Content>()
+  override suspend fun generateCode(
+    userQuery: String,
+    fileContext: FileWithSelection?,
+    language: MimeType,
+    config: GenerationConfig,
+    history: Prompt?,
+    legacyClientSidePrompt: Prompt?,
+  ): List<Content> = emptyList()
 }

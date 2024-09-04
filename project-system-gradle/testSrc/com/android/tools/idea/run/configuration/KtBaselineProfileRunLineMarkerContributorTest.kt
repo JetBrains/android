@@ -68,6 +68,7 @@ class KtBaselineProfileRunLineMarkerContributorTest {
 
     // BaselineProfileRunLineMarkerContributor utilizes `KaSession` that is not allowed to run on edt.
     // Since this is a test, we can enable this here.
+    @OptIn(KaImplementationDetail::class)
     KaAnalysisPermissionRegistry.getInstance().isAnalysisAllowedOnEdt = true
 
     data class FileAndContent(val projectFilePath: String, val content: String)

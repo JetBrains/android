@@ -20,20 +20,87 @@ import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.tools.idea.ui.GuiTestingService
+import com.google.common.collect.Maps
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
+import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.CompletableFuture
+
+object IdeGoogleMavenRepository : IdeGoogleMavenRepositoryBase(getCacheDir())
 
 /** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
-object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
+open abstract class IdeGoogleMavenRepositoryBase(cacheDir: Path?) : GoogleMavenRepository(cacheDir) {
   @Slow
   override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
     IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 
   override fun error(throwable: Throwable, message: String?) {
-    Logger.getInstance(IdeGoogleMavenRepository::class.java).warn(message, throwable)
+    Logger.getInstance(IdeGoogleMavenRepositoryBase::class.java).warn(message, throwable)
+  }
+
+  fun getArtifactsForAll(groupIds: List<String>): Map<String, CompletableFuture<Set<String>>> =
+    groupIds.associateWith { groupId ->
+      getPackageMap()[groupId]?.artifacts?.thenApply { it.values.map { it.id }.toSet() }
+      ?: CompletableFuture.completedFuture(
+        emptySet()
+      )
+    }
+
+  private var packageMap: MutableMap<String, PackageInfoAsync>? = null
+
+  override fun getPackageMap(): Map<String, PackageInfoAsync> {
+    if (packageMap == null) {
+      val map = Maps.newHashMapWithExpectedSize<String, PackageInfoAsync>(28)
+      findData("master-index.xml")?.use { readMasterIndex(it, map){ tag -> PackageInfoAsync(tag) } }
+      packageMap = map
+    }
+
+    return packageMap!!
+  }
+
+  protected inner class PackageInfoAsync(val pkg: String) : GoogleMavenRepository.PackageInfo(pkg) {
+    val artifacts: CompletableFuture<Map<String, ArtifactInfo>> by lazy {
+      initializeIndex()
+    }
+
+    private fun initializeIndex(): CompletableFuture<Map<String, ArtifactInfo>> {
+      val futureStream =
+        findDataInParallel("${pkg.replace('.', '/')}/group-index.xml")
+      return futureStream.thenApply { stream ->
+        val map = mutableMapOf<String, ArtifactInfo>()
+        stream ?: return@thenApply map
+        stream.use {
+          readGroupData(stream, map)
+          return@thenApply map
+        }
+      }
+    }
+
+    // blocking API
+    override fun artifacts(): Set<String> = artifacts.get().values.map { it.id }.toSet()
+
+    // blocking API
+    override fun findArtifact(id: String): ArtifactInfo? = artifacts.get()[id]
+  }
+
+  /**
+   * Execute findData in IO thread.
+   * IO thread pool usage is limited to 50 threads. IO has minimum size of 64
+   */
+  open fun findDataInParallel(
+    relative: String,
+    treatAsDirectory: Boolean = false
+  ): CompletableFuture<InputStream?> {
+    return CoroutineScope(Dispatchers.IO.limitedParallelism(50)).async {
+      findData(relative, treatAsDirectory)
+    }.asCompletableFuture()
   }
 }
 

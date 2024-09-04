@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
@@ -48,7 +46,6 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.selectionOf
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
 import org.junit.Test
 
 private val fetchedVersion =
@@ -71,9 +68,6 @@ private val fetchedOs =
   )
 
 class IssuesChangedTest {
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
-
   @Test
   fun `empty issues result in no action`() {
     val currentState =

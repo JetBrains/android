@@ -54,12 +54,12 @@ internal fun KaSession.getComposableFunctionRenderParts(
   return ComposableFunctionRenderParts(allParameters.size, parameters, tail)
 }
 
-@OptIn(KaExperimentalApi::class)
 private fun KaSession.renderValueParameters(
   valueParamsInParen: List<KaValueParameterSymbol>,
   closingString: String
 ) = buildString {
   append("(")
+  @OptIn(KaExperimentalApi::class)
   valueParamsInParen.joinTo(buffer = this) {
     it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES)
   }

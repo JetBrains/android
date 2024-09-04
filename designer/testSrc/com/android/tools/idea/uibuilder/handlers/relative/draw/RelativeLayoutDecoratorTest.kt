@@ -373,7 +373,7 @@ UNClip
   }
 
   private fun checkModelDrawCommand(model: SyncNlModel, expectedSerializedCommand: String) {
-    val sceneManager = model.surface.sceneManager!!
+    val sceneManager = model.surface.getSceneManager(model)!!
     val scene = model.surface.scene!!
     scene.isAnimated = false
     sceneManager.update()

@@ -17,8 +17,12 @@ package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
+import org.jetbrains.jewel.bridge.theme.retrieveDefaultTextStyle
+import org.jetbrains.jewel.bridge.theme.retrieveEditorTextStyle
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.markdown.bridge.create
@@ -33,7 +37,10 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 fun StudioTheme(content: @Composable () -> Unit) {
   SwingBridgeTheme {
     val provider = StudioMarkdownStylingProvider
-    val markdownStyling = remember(JewelTheme.name, provider) { provider.createDefault() }
+    val markdownStyling =
+      remember(JewelTheme.name, provider) {
+        provider.createDefault(retrieveDefaultTextStyle(), retrieveEditorTextStyle())
+      }
     val markdownProcessor = remember { MarkdownProcessor() }
     val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
 
@@ -42,8 +49,13 @@ fun StudioTheme(content: @Composable () -> Unit) {
       LocalMarkdownStyling provides markdownStyling,
       LocalMarkdownProcessor provides markdownProcessor,
       LocalMarkdownBlockRenderer provides blockRenderer,
+      LocalIsInUiTest provides false,
     ) {
       content()
     }
   }
+}
+
+val LocalIsInUiTest: ProvidableCompositionLocal<Boolean> = staticCompositionLocalOf {
+  error("No isInUiTest provided. Have you forgotten the theme?")
 }

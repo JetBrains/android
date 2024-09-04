@@ -585,6 +585,10 @@ MODULE                        : kotlinMultiPlatform
         name                          : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -596,11 +600,6 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -817,6 +816,12 @@ MODULE                        : kotlinMultiPlatform
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             module2                       : :module2 (DefaultExternalProject)
                 path                          : :module2 [-]
                 identityPath                  : :module2 [-]
@@ -827,11 +832,6 @@ MODULE                        : kotlinMultiPlatform
                 projectDir                    : <ROOT>/module2
                 buildDir                      : <ROOT>/module2/build [-]
                 buildFile                     : <ROOT>/module2/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :module2:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :module2:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -966,9 +966,9 @@ MODULE                        : kotlinMultiPlatform
                         androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
-                        - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         - archives                    : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
+                        - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -1089,11 +1089,14 @@ MODULE                        : kotlinMultiPlatform
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :module2:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :module2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -2140,8 +2143,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2158,8 +2161,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2176,8 +2179,8 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2707,8 +2710,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidDebug:commonMain
                     - fragments                   : androidDebug
                     - fragments                   : commonMain
@@ -2781,8 +2784,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragments                   : androidInstrumentedTestDebug
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2854,8 +2857,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidUnitTestDebug:commonTest
                     - fragments                   : androidUnitTestDebug
                     - fragments                   : commonTest

@@ -724,6 +724,10 @@ MODULE                        : NonStandardSourceSetDependencies
         name                          : NonStandardSourceSetDependencies
         qName                         : NonStandardSourceSetDependencies
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             aarWrapperLib                 : :aarWrapperLib (DefaultExternalProject)
                 path                          : :aarWrapperLib [-]
@@ -739,6 +743,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 sourceSetModel                : DefaultGradleSourceSetModel
                     configurationArtifacts
                         - default                     : <ROOT>/aarWrapperLib/aarWrapperedLib.aar
+                taskModel                     : DefaultGradleTaskModel
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
                 identityPath                  : :app [-]
@@ -749,11 +754,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -965,6 +965,12 @@ MODULE                        : NonStandardSourceSetDependencies
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             common                        : :common (DefaultExternalProject)
                 path                          : :common [-]
                 identityPath                  : :common [-]
@@ -975,9 +981,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/common
                 buildDir                      : <ROOT>/common/build [-]
                 buildFile                     : <ROOT>/common/build.gradle
-                tasks
-                    jvmTest                       : jvmTest (DefaultExternalTask)
-                        qName                         : :common:jvmTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1063,6 +1066,10 @@ MODULE                        : NonStandardSourceSetDependencies
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/common/build/libs/common-metadata.jar [-]
                     - additionalArtifacts         : <ROOT>/common/build/libs/common-jvm.jar [-]
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :common:jvmTest
             desktop                       : :desktop (DefaultExternalProject)
                 path                          : :desktop [-]
                 identityPath                  : :desktop [-]
@@ -1073,9 +1080,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/desktop
                 buildDir                      : <ROOT>/desktop/build [-]
                 buildFile                     : <ROOT>/desktop/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :desktop:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : 1.7
@@ -1106,9 +1110,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
+                        - mainSourceElements          : <ROOT>/desktop/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/desktop/src/main/java
                         - mainSourceElements          : <ROOT>/desktop/src/main/kotlin [-]
-                        - mainSourceElements          : <ROOT>/desktop/src/main/resources [-]
                         runtimeClasspath              : <empty>
                         - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
@@ -1183,6 +1187,10 @@ MODULE                        : NonStandardSourceSetDependencies
                                     outputDir                     : <ROOT>/desktop/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/desktop/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :desktop:test
             feature-a                     : :feature-a (DefaultExternalProject)
                 path                          : :feature-a [-]
                 identityPath                  : :feature-a [-]
@@ -1193,11 +1201,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/feature-a
                 buildDir                      : <ROOT>/feature-a/build [-]
                 buildFile                     : <ROOT>/feature-a/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :feature-a:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :feature-a:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1416,6 +1419,12 @@ MODULE                        : NonStandardSourceSetDependencies
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :feature-a:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :feature-a:testReleaseUnitTest
             feature-b                     : :feature-b (DefaultExternalProject)
                 path                          : :feature-b [-]
                 identityPath                  : :feature-b [-]
@@ -1426,11 +1435,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/feature-b
                 buildDir                      : <ROOT>/feature-b/build [-]
                 buildFile                     : <ROOT>/feature-b/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :feature-b:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :feature-b:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1564,9 +1568,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
-                        - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
+                        - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -1679,6 +1683,12 @@ MODULE                        : NonStandardSourceSetDependencies
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :feature-b:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :feature-b:testReleaseUnitTest
             jarWrapperLib                 : :jarWrapperLib (DefaultExternalProject)
                 path                          : :jarWrapperLib [-]
                 identityPath                  : :jarWrapperLib [-]
@@ -1693,6 +1703,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 sourceSetModel                : DefaultGradleSourceSetModel
                     configurationArtifacts
                         - default                     : <ROOT>/jarWrapperLib/JarWrappedLib.jar
+                taskModel                     : DefaultGradleTaskModel
             javaLibrary                   : :javaLibrary (DefaultExternalProject)
                 path                          : :javaLibrary [-]
                 identityPath                  : :javaLibrary [-]
@@ -1703,9 +1714,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/javaLibrary
                 buildDir                      : <ROOT>/javaLibrary/build [-]
                 buildFile                     : <ROOT>/javaLibrary/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :javaLibrary:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : 1.7
@@ -1736,9 +1744,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
+                        - mainSourceElements          : <ROOT>/javaLibrary/src/main/resources [-]
                         - mainSourceElements          : <ROOT>/javaLibrary/src/main/java
                         - mainSourceElements          : <ROOT>/javaLibrary/src/main/kotlin [-]
-                        - mainSourceElements          : <ROOT>/javaLibrary/src/main/resources [-]
                         runtimeClasspath              : <empty>
                         - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
@@ -1861,6 +1869,10 @@ MODULE                        : NonStandardSourceSetDependencies
                                     outputDir                     : <ROOT>/javaLibrary/out/testEnv/resources [-]
                                     - gradleOutputDirs            : <ROOT>/javaLibrary/build/resources/testEnv [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :javaLibrary:test
             kmp-java                      : :kmp-java (DefaultExternalProject)
                 path                          : :kmp-java [-]
                 identityPath                  : :kmp-java [-]
@@ -1868,6 +1880,10 @@ MODULE                        : NonStandardSourceSetDependencies
                 qName                         : :kmp-java
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
+                projectDir                    : <ROOT>/kmp-java
+                buildDir                      : <ROOT>/kmp-java/build [-]
+                buildFile                     : <ROOT>/kmp-java/build.gradle [-]
+                externalSystemId              : GRADLE
                 childProjects
                     sample                        : :kmp-java:sample (DefaultExternalProject)
                         path                          : :kmp-java:sample [-]
@@ -1879,9 +1895,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         projectDir                    : <ROOT>/kmp-java/sample
                         buildDir                      : <ROOT>/kmp-java/sample/build [-]
                         buildFile                     : <ROOT>/kmp-java/sample/build.gradle
-                        tasks
-                            jvmTest                       : jvmTest (DefaultExternalTask)
-                                qName                         : :kmp-java:sample:jvmTest
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2027,6 +2040,10 @@ MODULE                        : NonStandardSourceSetDependencies
                                             outputDir                     : <ROOT>/kmp-java/sample/out/test/resources [-]
                                             - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                                             patterns                      : FilePatternSetImpl
+                        taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                jvmTest                       : jvmTest (DefaultExternalTask)
+                                    qName                         : :kmp-java:sample:jvmTest
                     sample-test                   : :kmp-java:sample-test (DefaultExternalProject)
                         path                          : :kmp-java:sample-test [-]
                         identityPath                  : :kmp-java:sample-test [-]
@@ -2037,11 +2054,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         projectDir                    : <ROOT>/kmp-java/sample-test
                         buildDir                      : <ROOT>/kmp-java/sample-test/build [-]
                         buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
-                        tasks
-                            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                                qName                         : :kmp-java:sample-test:testDebugUnitTest
-                            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                qName                         : :kmp-java:sample-test:testReleaseUnitTest
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2140,11 +2152,14 @@ MODULE                        : NonStandardSourceSetDependencies
                                 testRuntimeOnly               : <empty>
                                 testWearApp                   : <empty>
                                 wearApp                       : <empty>
-                projectDir                    : <ROOT>/kmp-java
-                buildDir                      : <ROOT>/kmp-java/build [-]
-                buildFile                     : <ROOT>/kmp-java/build.gradle [-]
-                externalSystemId              : GRADLE
+                        taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :kmp-java:sample-test:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :kmp-java:sample-test:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
+                taskModel                     : DefaultGradleTaskModel
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -2155,11 +2170,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2382,11 +2392,14 @@ MODULE                        : NonStandardSourceSetDependencies
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
                     - additionalArtifacts         : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
@@ -3164,8 +3177,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3182,8 +3195,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3200,8 +3213,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3300,8 +3313,8 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmMain:commonMain
                     - fragments                   : jvmMain
                     - fragments                   : commonMain
@@ -3379,8 +3392,8 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmTest:commonTest
                     - fragments                   : jvmTest
                     - fragments                   : commonTest
@@ -3451,8 +3464,8 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -3475,8 +3488,8 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -4510,8 +4523,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -4528,8 +4541,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -4546,8 +4559,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -5034,8 +5047,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidDebug:commonMain
                     - fragments                   : androidDebug
                     - fragments                   : commonMain
@@ -5105,8 +5118,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragments                   : androidInstrumentedTestDebug
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5178,8 +5191,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : androidUnitTestDebug:commonTest
                     - fragments                   : androidUnitTestDebug
                     - fragments                   : commonTest
@@ -5260,8 +5273,8 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -5284,8 +5297,8 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -5308,8 +5321,8 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -5428,8 +5441,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmMain:commonMain
                     - fragments                   : jvmMain
                     - fragments                   : commonMain
@@ -5510,8 +5523,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     - fragmentRefines             : jvmTest:commonTest
                     - fragments                   : jvmTest
                     - fragments                   : commonTest
@@ -6321,8 +6334,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -6339,8 +6352,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -6357,8 +6370,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

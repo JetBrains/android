@@ -21,7 +21,7 @@ import com.android.tools.lint.checks.ChromeOsSourceDetector;
 
 public class AndroidLintChromeOsOnConfigurationChangedInspection extends AndroidLintInspectionBase {
   public AndroidLintChromeOsOnConfigurationChangedInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.chromeos.on.configuration.changed"),
+    super(AndroidLintBundle.message("android.lint.inspections.chrome.os.on.configuration.changed"),
           ChromeOsSourceDetector.CHROMEOS_ON_CONFIGURATION_CHANGED);
   }
 }

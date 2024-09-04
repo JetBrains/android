@@ -28,18 +28,19 @@ import static com.intellij.testFramework.UsefulTestCase.assertSize;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertNotNull;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -54,17 +55,16 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -165,6 +165,57 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
     });
   }
+
+  @Test
+  public void testReportWithDependencyError() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION_DEPENDENCY_ERROR);
+    openPreparedTestProject(
+      preparedProject,
+      project -> {
+        Module appModule = gradleModule(project, ":app");
+        List<IdeSyncIssue> errors = Arrays.stream(ModuleManager.getInstance(project)
+          .getModules())
+          .flatMap(it -> SyncIssues.forModule(it).stream())
+          .toList();
+        assertNotEmpty(errors);
+
+        IdeSyncIssue error = errors.get(0);
+        assertNotNull(error);
+        final var messages = myReporter.report(error, appModule, getGradleBuildFile(appModule));
+
+        assertSize(1, messages);
+
+        final var message = messages.get(0);
+        assertEquals("Unresolved dependencies", message.getGroup());
+        assertThat(message.getMessage())
+          .containsMatch(Pattern.compile("""
+                                           Failed to resolve: com.google.guava:guava:99999.9999
+                                           <a href="open.dependency.in.project.structure">Show in Project Structure dialog</a>
+                                           Affected Modules:""", Pattern.DOTALL));
+
+        final var quickFixes = message.getQuickFixes();
+        int expectedSize = (IdeInfo.getInstance().isAndroidStudio() ? 1 : 0) + 1 /* affected modules */;
+        assertThat(quickFixes).hasSize(expectedSize);
+
+
+
+        if (IdeInfo.getInstance().isAndroidStudio()) {
+          var quickFix = quickFixes.get(0);
+          assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+        }
+
+        assertEquals(
+          ImmutableList.of(
+            GradleSyncIssue
+              .newBuilder()
+              .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+              .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+              .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+              .build()),
+          SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+      });
+  }
+
 
   @Test
   public void testReportWithAppCompat() {

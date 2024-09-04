@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -27,6 +26,7 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import java.io.File
@@ -52,8 +52,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
-    consumer: GradleModelConsumer
-  ) = impl.populateBuildModels(controller, buildModel, consumer)
+    modelConsumer: GradleModelConsumer
+  ) = impl.populateBuildModels(controller, buildModel, modelConsumer)
 
   override fun populateProjectModels(
     controller: BuildController,
@@ -144,18 +144,16 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     projectModel: BasicGradleProject,
     modelConsumer: GradleModelConsumer
   ) {
-    controller.findModel(projectModel, GradlePluginModel::class.java)
-      ?.also { pluginModel -> modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java) }
+    val pluginModel = controller.findModel(projectModel, GradlePluginModel::class.java) ?: return
+    modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java)
   }
 
-  private fun populateDebugInfo(buildModel: GradleBuild,
-                                consumer: GradleModelConsumer) {
+  private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
     if(classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
-      consumer.consumeBuildModel(buildModel,
-                       IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath)),
-                       IdeDebugInfo::class.java)
+      val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
+      consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)
     }
   }
 }
@@ -164,7 +162,7 @@ private fun buildModelsAndMap(
   buildModel: GradleBuild,
   controller: BuildController
 ): BuildModelsAndMap {
-  val gradleSupportsBuildSrcAsCompositeMember = checkGradleVersionIsAtLeast(controller, buildModel, "8.0")
+  val gradleSupportsBuildSrcAsCompositeMember = checkGradleVersionIsAtLeast(controller, buildModel, GradleVersion.version("8.0"))
   val buildModels =
     flattenDag(
       root = buildModel,
@@ -195,7 +193,7 @@ private fun buildCompositeBuildMap(
   buildModel: GradleBuild,
   buildModels: Set<GradleBuild>
 ): IdeCompositeBuildMapImpl {
-  val gradleSupportsDirectTaskInvocationInComposites = checkGradleVersionIsAtLeast(controller, buildModel, "6.8")
+  val gradleSupportsDirectTaskInvocationInComposites = checkGradleVersionIsAtLeast(controller, buildModel, GradleVersion.version("6.8"))
   return IdeCompositeBuildMapImpl(
     builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
       buildModels
@@ -208,11 +206,11 @@ private fun buildCompositeBuildMap(
 
 private fun checkGradleVersionIsAtLeast(controller: BuildController,
                                         buildModel: GradleBuild,
-                                        version: String): Boolean {
+                                        version: GradleVersion): Boolean {
   val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
                          ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
-  return parsedGradleVersion.compareIgnoringQualifiers(version) >= 0
+  val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
+  return parsedGradleVersion >= version
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {

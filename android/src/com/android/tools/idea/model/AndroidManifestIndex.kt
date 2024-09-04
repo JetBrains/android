@@ -53,6 +53,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.readSeq
@@ -144,12 +145,16 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
      */
     @JvmStatic
     fun getDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
-      return if (checkIndexAccessibleFor(project)) {
-        doGetDataForManifestFile(project, manifestFile)
+      if (checkIndexAccessibleFor(project)) {
+        try {
+          return doGetDataForManifestFile(project, manifestFile)
+        }
+        catch (e: IndexNotReadyException) {
+          LOG.debug(e)
+        }
       }
-      else {
-        null
-      }
+
+      return null
     }
 
     /**
@@ -167,7 +172,14 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
           .getMergedManifestContributors()
           .allFiles
           .stream()
-          .map { doGetDataForManifestFile(project, it) }
+          .map {
+            try {
+              doGetDataForManifestFile(project, it)
+            } catch (e: IndexNotReadyException) {
+              LOG.debug(e)
+              null
+            }
+          }
           .filter(Objects::nonNull)
           .map { it as AndroidManifestRawText }
       }

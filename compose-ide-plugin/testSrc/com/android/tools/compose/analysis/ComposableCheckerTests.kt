@@ -288,7 +288,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
         // We should infer `T` as `Function0<Unit>` from the context and
         // reject the lambda which is explicitly typed as `ComposableFunction...`.
-        val cl: () -> Unit = identity(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
+        val cl: () -> Unit = identity(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<ERROR CLASS: Unknown return lambda parameter type>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
         """
     )
   }
@@ -303,7 +303,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
         fun <T> identity(value: T): T = value
 
         // We should infer `Function0<Unit>` for `T`
-        val lambda = identity<() -> Unit>(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<kotlin.Unit>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
+        val lambda = identity<() -> Unit>(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is 'kotlin.Function0<ERROR CLASS: Unknown return lambda parameter type>', but 'androidx.compose.runtime.internal.ComposableFunction0<ERROR CLASS: Unknown return lambda parameter type>' was expected." textAttributesKey="ERRORS_ATTRIBUTES">{}</error>)
         """
     )
   }

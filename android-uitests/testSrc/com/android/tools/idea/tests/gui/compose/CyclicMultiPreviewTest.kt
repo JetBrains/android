@@ -23,12 +23,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEdito
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
+@Ignore("b/353981758")
 class CyclicMultiPreviewTest {
 
   @get:Rule

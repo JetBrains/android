@@ -30,6 +30,10 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
@@ -432,9 +436,10 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
    * Builds the given file using javac.
    */
   private static void buildFile(@NotNull Project project, @NotNull String javaFilePath) {
+    final var completer = GradleBuildState.getInstance(project).buildStarted(
+      new BuildContext(GradleBuildInvoker.Request.builder(project, new File(project.getBasePath()), "some:gradle:task").build()));
     JavaCompiler javac = getJavac();
     javac.run(null, System.out, System.err, javaFilePath);
-    project.getMessageBus().syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(new ProjectSystemBuildManager.BuildResult(
-      ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE, ProjectSystemBuildManager.BuildStatus.SUCCESS));
+    completer.buildFinished(BuildStatus.SUCCESS);
   }
 }

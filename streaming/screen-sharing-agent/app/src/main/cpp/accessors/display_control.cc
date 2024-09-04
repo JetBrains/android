@@ -33,8 +33,11 @@ void DisplayControl::InitializeStatics(Jni jni) {
   if (class_.IsNull()) {
     // Before API 34 QPR1 getPhysicalDisplayIds and getPhysicalDisplayToken used to be part of SurfaceControl.
     class_ = jni.GetClass("android/view/SurfaceControl");
+    get_physical_display_token_method_ = class_.FindStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
     get_physical_display_ids_method_ = class_.FindStaticMethod("getPhysicalDisplayIds", "()[J");
-    if (get_physical_display_ids_method_ == nullptr) {
+    if (get_physical_display_token_method_ == nullptr && get_physical_display_ids_method_ == nullptr) {
+      Log::I("The SurfaceControl.getPhysicalDisplayIds and SurfaceControl.getPhysicalDisplayToken methods don't exist."
+             " Attempting to use DisplayControl");
       // SurfaceControl doesn't have the necessary method. Load libandroid_servers.so and use DisplayControl instead.
       class_.Release();
       JClass class_loader_class = jni.GetClass("java/lang/ClassLoader");
@@ -62,18 +65,18 @@ void DisplayControl::InitializeStatics(Jni jni) {
         return;
       }
       class_ = std::move(display_control_class);
-    }
-    if (get_physical_display_ids_method_ == nullptr) {
+      get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
       get_physical_display_ids_method_ = class_.GetStaticMethod("getPhysicalDisplayIds", "()[J");
     }
-    get_physical_display_token_method_ = class_.GetStaticMethod("getPhysicalDisplayToken", "(J)Landroid/os/IBinder;");
     class_.MakeGlobal();
+    Log::D("DisplayControl::InitializeStatics: get_physical_display_token_method_=%p, get_physical_display_ids_method_=%p",
+           get_physical_display_token_method_, get_physical_display_ids_method_);
   }
 }
 
 vector<int64_t> DisplayControl::GetPhysicalDisplayIds(Jni jni) {
   InitializeStatics(jni);
-  if (class_.IsNull()) {
+  if (class_.IsNull() || get_physical_display_ids_method_ == nullptr) {
     return vector<int64_t>();
   }
   JObject obj = class_.CallStaticObjectMethod(jni, get_physical_display_ids_method_);
@@ -82,7 +85,7 @@ vector<int64_t> DisplayControl::GetPhysicalDisplayIds(Jni jni) {
 
 JObject DisplayControl::GetPhysicalDisplayToken(Jni jni, int64_t physical_display_id) {
   InitializeStatics(jni);
-  if (class_.IsNull()) {
+  if (class_.IsNull() || get_physical_display_token_method_ == nullptr) {
     return JObject();
   }
   return class_.CallStaticObjectMethod(jni, get_physical_display_token_method_, physical_display_id);

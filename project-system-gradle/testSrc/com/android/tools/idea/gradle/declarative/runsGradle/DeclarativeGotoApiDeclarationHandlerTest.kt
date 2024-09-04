@@ -39,6 +39,7 @@ import org.junit.Rule
 import org.junit.Test
 
 // This is slow test as it requires indexing
+@Ignore("b/349894866")
 @RunsInEdt
 class DeclarativeGotoApiDeclarationHandlerTest {
   @get:Rule

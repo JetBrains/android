@@ -32,8 +32,8 @@ class SafeArgsResolveExtensionProvider : KaResolveExtensionProvider() {
         val ideaModule = module.ideaModule
         ChangeListenerProjectService.ensureListening(ideaModule.project)
 
-        if (NavInfoFetcher.isSafeArgsModule(module.ideaModule, SafeArgsMode.KOTLIN)) {
-          listOf(SafeArgsResolveExtensionModuleService.getInstance(module.ideaModule))
+        if (NavInfoFetcher.isSafeArgsModule(ideaModule, SafeArgsMode.KOTLIN)) {
+          listOf(SafeArgsResolveExtension(ideaModule))
         } else {
           emptyList()
         }

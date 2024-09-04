@@ -47,9 +47,9 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -79,10 +79,8 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     private val executorActions: List<AnAction> = ExecutorAction.getActionList()
       .mapNotNull { it as? ExecutorAction }
-      .filter {
-        it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
-        it.executor == DefaultDebugExecutor.getDebugExecutorInstance()
-      }
+      .filter { it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
+                it.executor == DefaultDebugExecutor.getDebugExecutorInstance() }
 
     private val createRunConfigAction = ExecutorAction.getActionList()
       .mapNotNull { it as? ActionGroupWrapper }
@@ -283,8 +281,7 @@ class BaselineProfileAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val sourceModule = e.getData(PlatformCoreDataKeys.MODULE) ?: return
-    val targetModulePath = GradleAndroidModel.get(
-      sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
+    val targetModulePath = GradleAndroidModel.get(sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
     val targetModuleGradlePath = sourceModule.getGradleProjectPath()?.resolve(targetModulePath)
     val runManager = RunManagerEx.getInstanceEx(project)
     val runConfiguration = runManager.allSettings

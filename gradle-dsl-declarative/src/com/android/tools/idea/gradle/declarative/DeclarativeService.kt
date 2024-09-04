@@ -19,15 +19,16 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessModuleDir
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataMemberFunction
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
@@ -36,22 +37,22 @@ import java.io.File
  * Gets and caches declarative schema.
  */
 @Service(Service.Level.PROJECT)
-class DeclarativeService {
-  val map = HashMap<Module, DeclarativeSchema>()
+class DeclarativeService(val project: Project) {
+  private val schema: DeclarativeSchema? = null
 
   companion object {
     fun getInstance(project: Project) = project.service<DeclarativeService>()
     val log = Logger.getInstance(DeclarativeService::class.java)
   }
 
-  fun getSchema(module: Module): DeclarativeSchema? {
+  fun getSchema(): DeclarativeSchema? {
+    return null /* TODO(b/349894866): this code fails to compile against IntelliJ 2024.2 due to Gradle library version conflicts.
     if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
-    return map.getOrPut(module) {
-      val parentPath = module.guessModuleDir()?.path
+    if (schema == null) {
+      val parentPath = project.basePath
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
-      schemaFolder.lastModified()
       val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
-      val schemas = mutableListOf<DefaultAnalysisSchema>()
+      val schemas = mutableListOf<AnalysisSchema>()
       var failure = false
       for (path in paths) {
         try {
@@ -68,10 +69,12 @@ class DeclarativeService {
         DeclarativeSchema(schemas, failure)
       else null
     }
+    return schema
+    */
   }
 }
 
-class DeclarativeSchema(private val schemas: List<DefaultAnalysisSchema>, val failureHappened: Boolean) {
+class DeclarativeSchema(private val schemas: List<AnalysisSchema>, val failureHappened: Boolean) {
   private val _dataClassesByFqName: Map<FqName, DataClass> by lazy {
     schemas.fold(mapOf()) { acc, e -> acc + e.dataClassesByFqName }
   }
@@ -90,20 +93,79 @@ fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? 
   }
   // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
   // to have all settingsInternal attributes in rootMembers
-  schema.getDataClassesByFqName()[DefaultFqName("org.gradle.api.internal", "SettingsInternal")]?.let {
-    return (it.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
+  schema.getDataClassesByFqName()[getSettingsWrapper()]?.let { settings ->
+    return (settings.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
   }
   return null
-
 }
 
-private fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
+abstract sealed class Receiver
+data class Function(val type: DataMemberFunction) : Receiver()
+data class ObjectRef(val fqName: FqName) : Receiver()
+data class SimpleType(val type: DataType) : Receiver()
 
-fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
-  val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
+fun getTopLevelReceiversByName(name: String, schema: DeclarativeSchema, fileName: String): List<Receiver> {
+  getReceiverByName(name, schema.getRootMemberFunctions())?.let {
+    // TODO need to consume property and functions here as well
+    return listOf(ObjectRef(it))
+  }
+  return if (fileName.lowercase().startsWith("settings"))
+    getSettingsReceivers(schema, name)
+  else emptyList()
+}
+
+private fun getSettingsWrapper(): FqName =
+  DefaultFqName("org.gradle.api.internal", "SettingsInternal")
+
+private fun getSettingsReceivers(schema: DeclarativeSchema, name: String): List<Receiver> {
+  // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
+  // to have all settingsInternal attributes in rootMembers
+  schema.getDataClassesByFqName()[getSettingsWrapper()]?.let {
+    return getAllMembersByName(it, name)
+  }
+  return listOf()
+}
+
+fun getAllMembersByName(dataClass: DataClass, memberName: String): List<Receiver> {
+  val result = mutableListOf<Receiver>()
+
+  // object/simple types
+  result.addAll(
+    dataClass.properties.filter { it.name == memberName }.map { it.valueType }.map {
+      when (it) {
+        is DataTypeRef.Type -> SimpleType(it.dataType)
+        is DataTypeRef.Name -> ObjectRef(it.fqName)
+      }
+    }
+  )
+  // functions/objects
+  result.addAll(
+    dataClass.memberFunctions.filter { it.simpleName == memberName }.mapNotNull {
+      when {
+        it.isFunction() && it is DataMemberFunction -> Function(it)
+        it.semantics is FunctionSemantics.AccessAndConfigure -> {
+          (it.semantics as FunctionSemantics.AccessAndConfigure).accessor.objectType.fqName()?.let { ObjectRef(it) }
+        }
+
+        else -> null
+      }
+    })
+
+  return result
+}
+
+fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
+
+fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>?): FqName? {
+  val dataMemberFunction = memberFunctions?.find { it.simpleName == name } ?: return null
   (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor?.let {
     return it.objectType.fqName()
   }
-  dataMemberFunction.receiver.fqName()?.let { return it }
+  if (!dataMemberFunction.isFunction()) dataMemberFunction.receiver.fqName()?.let { return it }
   return null
 }
+
+// get those types empirically
+fun SchemaFunction.isFunction() =
+  this.semantics is FunctionSemantics.Pure ||
+  this.semantics is FunctionSemantics.AddAndConfigure

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "RequestContextsProto";
+
+// The specific Duet product and flow a request belongs to.
+// E.g. Appsheet code generation (“/appsheet/generate”).
+// (-- Used by the platform for routing and accounting.
+// Consider using ClientContext if you need to extend this.
+// All experiences are defined in config files under
+// google3/googledata/cloud/atlas/titan/configs/<env>/
+// --)
+message ExperienceContext {
+  // The Duet experience that this request belongs to.
+  optional string experience = 1;
+}
+
+// Intended to hold customer content over and above what is present in
+// the `input` field.
+// (-- This is the ONLY context that can contain customer generated content --)
+message InputDataContext {
+  // Represents GCP product-specific source code context.
+  // (-- Extensibility point; GCP team can wrap any proto inside this --)
+  // (-- api-linter: core::0146::any=disabled
+  //     aip.dev/not-precedent: We need to do this because this provides the
+  //     extensibility that Duet platform needs to support multiple GCP
+  //     products. See go/duet-dataplane-apis for design. --)
+  google.protobuf.Any additional_context = 1;
+}
+
+// Represents context about the UI client.
+// Must NOT contain customer content.
+// (-- api-linter: core::0123::resource-annotation=disabled
+//     aip.dev/not-precedent: This message is not a resource. --)
+message ClientContext {
+  // Name of the Duet plugin/UI running in the client space
+  optional string name = 1;
+  // Duet plugin/UI version
+  optional string version = 2;
+
+  // Represents GCP product-specific UI/client context.
+  // (-- Extensibility point; GCP team can wrap any proto inside this --)
+  // (-- api-linter: core::0146::any=disabled
+  //     aip.dev/not-precedent: We need to do this because this provides the
+  //     extensibility that Duet platform needs to support multiple GCP
+  //     products. See go/duet-dataplane-apis for design. --)
+  google.protobuf.Any additional_context = 3;
+}
+
+// Represents ids of resources that the operation needs to reference or
+// target.
+// E.g. for BigQuery SQL generation, this could reference the Dataset
+// or Table names (go/backend-resources-context-eg).
+message BackendResourcesContext {
+  // Represents GCP product-specific backend resources context.
+  // (-- Extensibility point; GCP team can wrap any proto inside this --)
+  // (-- api-linter: core::0146::any=disabled
+  //     aip.dev/not-precedent: We need to do this because this provides the
+  //     extensibility that Duet platform needs to support multiple GCP
+  //     products. See go/duet-dataplane-apis for design. --)
+  google.protobuf.Any additional_context = 1;
+}

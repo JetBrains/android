@@ -19,13 +19,14 @@ import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Processor to add the Compose Compiler Gradle plugin dependency to the [project] and apply the
@@ -58,6 +59,13 @@ class AddComposeCompilerGradlePluginProcessor(
   }
 
   public override fun performRefactoring(usages: Array<out UsageInfo>) {
+    updateProjectBuildModel()
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel() {
     val projectBuildModel = ProjectBuildModel.get(myProject)
     val moduleBuildModels = affectedModules.mapNotNull { projectBuildModel.getModuleBuildModel(it) }
     DependenciesHelper.withModel(projectBuildModel)
@@ -68,9 +76,6 @@ class AddComposeCompilerGradlePluginProcessor(
       )
 
     projectBuildModel.applyChanges()
-
-    val trigger = GradleSyncStats.Trigger.TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, trigger)
   }
 
   public override fun getCommandName() = "Add Compose Compiler Gradle plugin"

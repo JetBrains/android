@@ -18,9 +18,9 @@ package com.android.tools.adtui.common
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_END
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.keymap.MacKeymapUtil
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
@@ -61,7 +61,7 @@ object AdtUiUtils {
    * eg Device File Explorer when no device is connected and Sqlite Explorer when no database has been opened.
    */
   @JvmField
-  val EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(16f)
+  val EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(13f)
 
   /**
    * Default font color of charts, and component labels.
@@ -215,7 +215,7 @@ object AdtUiUtils {
    */
   @JvmStatic
   fun isActionKeyDown(event: InputEvent): Boolean {
-    return if (SystemInfo.isMac) event.isMetaDown else event.isControlDown
+    return if (ClientSystemInfo.isMac()) event.isMetaDown else event.isControlDown
   }
 
   /**
@@ -226,7 +226,7 @@ object AdtUiUtils {
   @JdkConstants.InputEventMask
   @MagicConstant(valuesFromClass = InputEvent::class)
   fun getActionMask(): Int {
-    return if (SystemInfo.isMac) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
+    return if (ClientSystemInfo.isMac()) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
   }
 
   /**
@@ -234,7 +234,7 @@ object AdtUiUtils {
    */
   @JvmStatic
   fun getActionKeyText(): String {
-    if (SystemInfo.isMac) {
+    if (ClientSystemInfo.isMac()) {
       val labelFont = StartupUiUtil.labelFont
       return if (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) MacKeymapUtil.COMMAND else "Cmd"
     }

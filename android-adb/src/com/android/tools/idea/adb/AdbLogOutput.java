@@ -91,14 +91,17 @@ public class AdbLogOutput {
 
     private void append(String message) {
       if (!StringUtil.isEmpty(message)) {
-        sb.append(message);
-        sb.append('\n');
+        synchronized (sb) {
+          sb.append(message).append('\n');
+        }
       }
     }
 
     @NotNull
     public String getOutput() {
-      return sb.toString();
+      synchronized (sb) {
+        return sb.toString();
+      }
     }
   }
 }

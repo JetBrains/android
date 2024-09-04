@@ -1,0 +1,94 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+1 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+44730 bytes retained by leaking objects
+Displaying only 1 leak trace out of 2 with the same signature
+Signature: 442f3a7295abb8db4c32672ff17a43941effe5d0
+┬───
+│ GC Root: Input or output parameters in native code
+│
+├─ android.os.MessageQueue instance
+│    Leaking: NO (FragmentHostActivity↓ is not leaking and MessageQueue#mQuitting is false)
+│    HandlerThread: "main"
+│    ↓ MessageQueue[0]
+├─ android.os.Message instance
+│    Leaking: NO (FragmentHostActivity↓ is not leaking)
+│    Message.what = 0
+│    Message.when = 45288763 (72 ms after heap dump)
+│    Message.obj = null
+│    Message.callback = instance @318533976 of android.com.java.profilertester.fragment.FragmentHostActivity$1
+│    Message.target = instance @318534064 of android.os.Handler
+│    ↓ Message.callback
+├─ android.com.java.profilertester.fragment.FragmentHostActivity$1 instance
+│    Leaking: NO (FragmentHostActivity↓ is not leaking)
+│    this$0 instance of android.com.java.profilertester.fragment.FragmentHostActivity with mDestroyed = false
+│    ↓ FragmentHostActivity$1.this$0
+├─ android.com.java.profilertester.fragment.FragmentHostActivity instance
+│    Leaking: NO (Activity#mDestroyed is false)
+│    mApplication instance of android.app.Application
+│    mBase instance of androidx.appcompat.view.ContextThemeWrapper
+│    ↓ FragmentHostActivity.fragments
+│                           ~~~~~~~~~
+├─ androidx.fragment.app.Fragment[] array
+│    Leaking: UNKNOWN
+│    Retaining 2.1 kB in 69 objects
+│    ↓ Fragment[0]
+│              ~~~
+╰→ android.com.java.profilertester.fragment.FragmentA instance
+​     Leaking: YES (ObjectWatcher was watching this because android.com.java.profilertester.fragment.FragmentA received Fragment#onDestroy() callback. Conflicts with Fragment.mLifecycleRegistry.state is RESUMED)
+​     Retaining 42.7 kB in 756 objects
+​     key = f349accc-be6b-4f1d-b560-f2e0942a468f
+​     watchDurationMillis = 3692
+​     retainedDurationMillis = -1
+​     key = 68029044-2974-4b30-ad56-840388723a09
+​     watchDurationMillis = 4588
+​     key = 9bc6c569-2edc-4f82-bf6b-b0d349e6ab40
+​     watchDurationMillis = 5728
+​     retainedDurationMillis = 722
+​     key = 5296c9c7-b2f8-4c6f-8e2c-362f3b3120de
+​     watchDurationMillis = 14010
+​     retainedDurationMillis = 9009
+​     key = 01c3419d-570a-4ad5-8ea7-09a4414b1172
+​     watchDurationMillis = 26705
+​     retainedDurationMillis = 21702
+​     navigateListener instance of android.com.java.profilertester.fragment.FragmentHostActivity with mDestroyed = false
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 28
+Build.MANUFACTURER: unknown
+LeakCanary version: 2.11
+App process name: android.com.java.profilertester
+Class count: 13123
+Instance count: 148156
+Primitive array count: 115247
+Object array count: 15790
+Thread count: 22
+Heap total bytes: 32877790
+Bitmap count: 8
+Bitmap total bytes: 152684
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Stats: LruCache[maxSize=3000,hits=31820,misses=77480,hitRate=29%] RandomAccess[bytes=3731843,reads=77480,travel=21852531104,range=20670752,size=42085870]
+Analysis duration: 1342 ms
+Heap dump file path: /Users/addivya/bin/leakcanary/shark/shark-cli/src/main/java/shark/data/lc_may19.hprof
+Heap dump timestamp: 1716181171176
+Heap dump duration: Unknown
+====================================

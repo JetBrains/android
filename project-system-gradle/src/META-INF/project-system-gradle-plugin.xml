@@ -246,6 +246,8 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.InitializeGradleLocalJavaHomeListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.SdkIndexIssuesSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <externallyHandledExtensions implementation="com.android.tools.idea.gradle.catalog.GradleDslVersionCatalogHandler"/>
@@ -273,7 +275,6 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkIssueChecker"/>
-    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.NoMatchingConfigurationSelectionIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueChecker"/>
@@ -321,6 +322,7 @@
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea">
     <versionCatalogFilesGradleModel implementation="com.android.tools.idea.gradle.catalog.VersionCatalogFilesGradleModel"/>
+    <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.GradleBuildSystemFilePreviewServices"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.memorysettings">

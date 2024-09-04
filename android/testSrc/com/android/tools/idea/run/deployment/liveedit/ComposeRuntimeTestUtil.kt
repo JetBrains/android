@@ -69,13 +69,18 @@ fun registerComposeCompilerPlugin(project: Project) {
 /**
  * Loads the Compose runtime into the project class path. This allows for tests using the compiler (Live Edit/FastPreview)
  * to correctly invoke the compiler as they would do in prod.
+ *
+ * @param exceptModuleNames For a given set of module, don't include compose runtime in their dependencies.
  */
-fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(projectRule: AndroidProjectRule.Typed<T, Nothing>) {
+fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(
+  projectRule: AndroidProjectRule.Typed<T, Nothing>, exceptModuleNames: Set<String> = emptySet()) {
   // Load the compose runtime into the main module's library dependency.
   VfsRootAccess.allowRootAccess(projectRule.testRootDisposable, composeRuntimePath)
   LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
   projectRule.project.modules.forEach {
-    PsiTestUtil.addLibrary(it, composeRuntimePath)
+    if (!exceptModuleNames.contains(it.name)) {
+      PsiTestUtil.addLibrary(it, composeRuntimePath)
+    }
   }
   registerComposeCompilerPlugin(projectRule.project)
 

@@ -58,6 +58,7 @@ import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewInvalidationManager
+import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
@@ -83,7 +84,6 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.isErrorResult
@@ -122,12 +122,14 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.AncestorListenerAdapter
+import com.intellij.util.SlowOperations
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.time.Duration
@@ -230,7 +232,11 @@ fun configureLayoutlibSceneManager(
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
-    interactive = isInteractive
+    // When the cache successful render image is enabled, the scene manager will retain the last
+    // valid image even if subsequent renders fail. But do not cache in interactive mode as it does
+    // not help and it would make unnecessary copies of the bitmap.
+    setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive)
+    setClassesToPreload(if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList())
     isUsePrivateClassLoader = requestPrivateClassLoader
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
@@ -329,12 +335,12 @@ class ComposePreviewRepresentation(
     )
 
   /**
-   * Gives access to the filtered preview elements. For testing only. Users of this class should not
+   * Gives access to the rendered preview elements. For testing only. Users of this class should not
    * use this method.
    */
   @TestOnly
-  fun filteredPreviewElementsInstancesFlowForTest() =
-    composePreviewFlowManager.filteredPreviewElementsFlow
+  fun renderedPreviewElementsInstancesFlowForTest() =
+    composePreviewFlowManager.renderedPreviewElementsFlow
 
   private val renderingBuildStatusManager =
     RenderingBuildStatusManager.create(
@@ -594,6 +600,7 @@ class ComposePreviewRepresentation(
   private fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
+    invalidate()
   }
 
   private fun updateAnimationPanelVisibility() {
@@ -963,8 +970,7 @@ class ComposePreviewRepresentation(
         projectBuildStatus == RenderingBuildStatus.Building)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the
-    // preview
-    // is out of date.
+    // preview is out of date.
     val newStatus =
       ComposePreviewManager.Status(
         !isRefreshing && hasErrorsAndNeedsBuild(),
@@ -975,15 +981,15 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
-        psiFilePointer.element,
+        SlowOperations.allowSlowOperations(
+          ThrowableComputable { runReadAction { psiFilePointer.element } }
+        ),
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
-    // moment we detect a difference,
-    // we immediately ask the editor to refresh the notifications.
+    // moment we detect a difference, we immediately ask the editor to refresh the notifications.
     // For example, IntelliJ will periodically update the toolbar. If one of the actions checks the
-    // state and changes its UI, this will
-    // allow for notifications to be refreshed at the same time.
+    // state and changes its UI, this will allow for notifications to be refreshed at the same time.
     val previousStatus = previousStatusRef.getAndSet(newStatus)
     if (newStatus != previousStatus) {
       requestVisibilityAndNotificationsUpdate()
@@ -1281,9 +1287,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsFlow.value
-                .asCollection()
-                .sortByDisplayAndSourcePosition()
+              composePreviewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
             }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck

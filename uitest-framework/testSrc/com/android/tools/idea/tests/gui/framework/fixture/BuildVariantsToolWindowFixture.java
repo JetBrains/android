@@ -27,6 +27,7 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
@@ -37,10 +38,17 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     myProjectFrame = projectFrame;
   }
 
+  public BuildVariantsToolWindowFixture waitTillTableIsActivated() {
+    JTableFixture table = getJTableFixture();
+    Wait.seconds(30)
+      .expecting("Wait till buildVariant tool window table to be activated")
+      .until(() -> table.rowCount() > 0);
+    return this;
+  }
+
   @NotNull
   public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull final String module, @NotNull String variant) {
     JTableFixture table = getJTableFixture();
-
     JTableCellFixture moduleCell = getModuleCell(table, module);
     TableCell variantCellCoordinates = row(moduleCell.row()).column(1);
     String selectedVariant = table.valueAt(variantCellCoordinates);

@@ -78,6 +78,14 @@ class WearTilePreviewContextComesFromParameterTest {
 
         @Preview
         fun previewUsingContextProperly(context: Context) = tile(context)
+
+        // Regression test for b/357523198
+        @Preview
+        fun usingContextResourcesShouldBeOk(context: Context): TilePreviewData {
+          // this should be valid
+          context.resources
+          return TilePreviewData()
+        }
       """
           .trimIndent(),
       )
@@ -143,6 +151,14 @@ class WearTilePreviewContextComesFromParameterTest {
           @Preview
           TilePreviewData previewUsingContextProperly(Context context) {
             return tile(context);
+          }
+
+          // Regression test for b/357523198
+          @Preview
+          TilePreviewData usingContextResourcesShouldBeOk(Context context) {
+            // this should be valid
+            context.getResources();
+            return new TilePreviewData();
           }
         }
       """

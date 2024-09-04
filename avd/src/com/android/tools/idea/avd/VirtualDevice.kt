@@ -19,10 +19,19 @@ import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Storage
+import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.sdklib.internal.avd.ColdBoot
+import com.android.sdklib.internal.avd.ExternalSdCard
 import com.android.sdklib.internal.avd.GpuMode
+import com.android.sdklib.internal.avd.InternalSdCard
+import com.android.sdklib.internal.avd.OnDiskSkin
+import com.android.sdklib.internal.avd.QuickBoot
+import com.android.sdklib.internal.avd.SdCard
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Files
 import java.nio.file.Path
@@ -48,6 +57,45 @@ internal constructor(
   internal val vmHeapSize: StorageCapacity,
 )
 
+internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
+  this.device = device.device
+  avdName = device.name
+  displayName = device.name
+
+  sdCard = device.expandedStorage.toSdCard()
+  skin = OnDiskSkin(device.skin.path()).takeUnless { device.skin == NoSkin.INSTANCE }
+
+  screenOrientation = device.orientation
+  cpuCoreCount = device.cpuCoreCount ?: 1
+  ram = device.simulatedRam.toStorage()
+  vmHeap = device.vmHeapSize.toStorage()
+  internalStorage = device.internalStorage.toStorage()
+
+  frontCamera = device.frontCamera
+  backCamera = device.rearCamera
+
+  gpuMode = device.graphicAcceleration
+
+  networkSpeed = device.speed
+  networkLatency = device.latency
+
+  bootMode =
+    when (device.defaultBoot) {
+      Boot.COLD -> ColdBoot
+      Boot.QUICK -> QuickBoot
+    // TODO(b/343544613): Boot from snapshot?
+    }
+}
+
+private fun StorageCapacity.toStorage(): Storage {
+  return Storage(value * unit.byteCount)
+}
+
+private fun Storage.toStorageCapacity(): StorageCapacity {
+  val unit = getAppropriateUnits()
+  return StorageCapacity(getSizeAsUnit(unit), StorageCapacity.Unit.valueOf(unit.displayValue))
+}
+
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {
 
@@ -69,3 +117,10 @@ internal object None : ExpandedStorage() {
 }
 
 internal sealed class ExpandedStorage
+
+internal fun ExpandedStorage.toSdCard(): SdCard? =
+  when (this) {
+    is Custom -> InternalSdCard(value.valueIn(StorageCapacity.Unit.B))
+    is ExistingImage -> ExternalSdCard(toString())
+    None -> null
+  }

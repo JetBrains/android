@@ -45,7 +45,9 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
+import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -74,7 +76,6 @@ import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
-import org.jetbrains.annotations.TestOnly
 
 private const val MAX_CELL_TEXT = 200
 
@@ -88,7 +89,7 @@ class TableViewImpl : TableView {
 
   private var columns: List<ViewColumn>? = null
 
-  private val rootPanel = JPanel(null).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
+  private val rootPanel = BorderLayoutPanel()
   override val component: JComponent = rootPanel
 
   private val readOnlyLabel = JLabel("Results are read-only")
@@ -114,7 +115,8 @@ class TableViewImpl : TableView {
 
   private val progressBar = JProgressBar()
 
-  private val centerPanel = JPanel(BorderLayout())
+  private val topPanel = BorderLayoutPanel()
+  private val centerPanel = BorderLayoutPanel()
 
   private val layeredPane = JLayeredPane()
 
@@ -139,9 +141,10 @@ class TableViewImpl : TableView {
     val tableActionsPanel = JPanel().also { it.layout = BoxLayout(it, BoxLayout.X_AXIS) }
 
     isForcedBanner.isVisible = false
-    rootPanel.add(isForcedBanner)
-    rootPanel.add(tableActionsPanel)
-    rootPanel.add(centerPanel)
+    topPanel.addToTop(isForcedBanner)
+    topPanel.addToCenter(tableActionsPanel)
+    rootPanel.addToTop(topPanel)
+    rootPanel.addToCenter(centerPanel)
 
     centerPanel.background = primaryContentBackground
 

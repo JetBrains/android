@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -149,29 +150,36 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    myCategoryToSelectedDefinitionMap = Arrays.stream(Category.values())
-      .collect(Collectors.toMap(category -> category, this::getDefaultDefinition));
+    myCategoryToSelectedDefinitionMap = new HashMap<>();
+    for (Category category : Category.values()) {
+      Device defaultDevice = getDefaultDefinition(category);
+      if (defaultDevice != null) {
+        myCategoryToSelectedDefinitionMap.put(category, defaultDevice);
+      }
+    }
 
     myDefaultDevice = myCategoryToSelectedDefinitionMap.get(Category.PHONE);
   }
 
-  @NotNull
+  @Nullable
   private Device getDefaultDefinition(@NotNull Category category) {
     var id = category.getDefaultDefinitionId();
 
     return myCategoryToDefinitionMultimap.get(category).stream()
       .filter(definition -> definition.getId().equals(id))
       .findFirst()
-      .orElseGet(() -> first(category));
+      .orElseGet(() -> firstOrNull(category));
   }
 
-  private @NotNull Device first(@NotNull Category category) {
-    // This should not happen and, yet, here we are
+  private @Nullable Device firstOrNull(@NotNull Category category) {
+    // We would expect that the default device specified in Category would be present, since we
+    // ship these devices with Studio. However, a device supplied by a system image will override
+    // a built-in device, and could be categorized differently.
+    Logger.getInstance(DeviceDefinitionList.class).warn(
+      "Did not find default " + category.getDefaultDefinitionId() + ' ' + toString(category)
+      + " in " + mapDefinitionsToIds(category));
 
-    Logger.getInstance(DeviceDefinitionList.class).error(
-      "Did not find default " + category.getDefaultDefinitionId() + ' ' + toString(category) + " in " + mapDefinitionsToIds(category));
-
-    return myCategoryToDefinitionMultimap.get(category).first();
+    return myCategoryToDefinitionMultimap.get(category).stream().findFirst().orElse(null);
   }
 
   private static @NotNull String toString(@NotNull Category category) {

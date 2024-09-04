@@ -43,12 +43,7 @@ internal class MirroringConfirmationDialog(val title: String) {
   private fun createPanel(): DialogPanel {
     return panel {
       row {
-        cell(htmlComponent(text = text, lineWrap = true)
-            .apply {
-              isFocusable = false
-              border = JBUI.Borders.empty()
-              minimumSize = Dimension(JBUIScale.scale(540), JBUIScale.scale(200))
-            })
+        text(text = text).applyToComponent { minimumSize = Dimension(JBUIScale.scale(540), JBUIScale.scale(200)) }
       }
     }
   }

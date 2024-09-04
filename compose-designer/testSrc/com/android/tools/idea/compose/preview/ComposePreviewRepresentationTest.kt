@@ -16,8 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
@@ -58,8 +56,10 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
@@ -67,7 +67,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
@@ -103,6 +102,12 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.nio.file.Path
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import javax.swing.JComponent
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -115,15 +120,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.nio.file.Path
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import javax.swing.JComponent
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
@@ -309,7 +311,7 @@ class ComposePreviewRepresentationTest {
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
-    preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed set uiCheckMode",
       25.seconds,
     ) {
@@ -384,7 +386,7 @@ class ComposePreviewRepresentationTest {
 
         """
         .trimIndent(),
-      preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+      preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
         val configurationDeviceSpecText =
@@ -413,7 +415,7 @@ class ComposePreviewRepresentationTest {
     // Check that the surface zooms to fit when exiting UI check mode.
     assertEquals(1.0, mainSurface.zoomController.scale, 0.001)
 
-    preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",
       25.seconds,
     ) {
@@ -429,7 +431,7 @@ class ComposePreviewRepresentationTest {
 
         """
         .trimIndent(),
-      preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+      preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
         "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
@@ -569,6 +571,7 @@ class ComposePreviewRepresentationTest {
       assertFalse(overlayClassLoader.state.paths.isEmpty())
     }
 
+  @Ignore("http://b/351760199")
   @Test
   fun testRerunUiCheckAction() {
     // Use the real FileEditorManager
@@ -733,7 +736,8 @@ class ComposePreviewRepresentationTest {
     runComposePreviewRepresentationTest {
       composePreviewEssentialsModeEnabled = true
 
-      val preview = createPreviewAndCompile()
+      // Only one preview/model is shown in gallery mode
+      val preview = createPreviewAndCompile(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)
     }
@@ -776,7 +780,8 @@ class ComposePreviewRepresentationTest {
     }
 
     runComposePreviewRepresentationTest(testPsiFile) {
-      val preview = createPreviewAndCompile()
+      // The file above contains only 1 preview/model
+      val preview = createPreviewAndCompile(expectedModelCount = 1)
       assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
         preview.uiCheckFilterFlow.value
       )
@@ -805,7 +810,7 @@ class ComposePreviewRepresentationTest {
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Wear OS Devices")
-      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+      preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         25.seconds,
       ) {
@@ -831,7 +836,7 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+        preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
           "\n"
         ) {
           val configurationDeviceSpecText =
@@ -853,6 +858,76 @@ class ComposePreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/353458840
+  @Test
+  fun multiPreviewsAreOrderedByNameWhenNotInUICheckMode() {
+    val testPsiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Preview(name = "1", group = "2")
+            @Preview(name = "2", group = "2")
+            @Preview(name = "3", group = "3")
+            @Preview(name = "4", group = "3")
+            @Preview(name = "5", group = "1")
+            @Preview(name = "6", group = "1")
+            annotation class MyMultiPreview
+
+            @Composable
+            @Preview
+            fun Preview() {
+            }
+
+            @Composable
+            @MyMultiPreview
+            fun MultiPreview() {
+            }
+          """
+          .trimIndent(),
+      )
+
+    runComposePreviewRepresentationTest(testPsiFile) {
+      val preview = createPreviewAndCompile()
+
+      assertEquals(
+        """
+          TestKt.Preview
+          PreviewDisplaySettings(name=Preview, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 1, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 2, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 3, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 4, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 5, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.MultiPreview
+          PreviewDisplaySettings(name=MultiPreview - 6, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+        """
+          .trimIndent(),
+        preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
+          "${it.methodFqn}\n${it.displaySettings}\n"
+        },
+      )
+    }
+  }
+
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
@@ -860,7 +935,13 @@ class ComposePreviewRepresentationTest {
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
   ) {
     val context =
-      ComposePreviewRepresentationTestContext(previewPsiFile, mainSurface, fixture, logger)
+      ComposePreviewRepresentationTestContext(
+        previewPsiFile,
+        mainSurface,
+        fixture,
+        logger,
+        projectRule.buildSystemServices,
+      )
     runBlocking(workerThread) {
       try {
         context.block()
@@ -904,6 +985,7 @@ class ComposePreviewRepresentationTest {
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
     private val logger: Logger,
+    private val buildSystemServices: FakeBuildSystemFilePreviewServices,
   ) {
 
     private lateinit var preview: ComposePreviewRepresentation
@@ -912,7 +994,7 @@ class ComposePreviewRepresentationTest {
 
     private lateinit var dataProvider: DataProvider
 
-    private var modelRenderedLatch: CountDownLatch = CountDownLatch(2)
+    private lateinit var newModelAddedLatch: CountDownLatch
 
     init {
       mainSurface.addListener(
@@ -920,18 +1002,17 @@ class ComposePreviewRepresentationTest {
           override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
             val id = UUID.randomUUID().toString().substring(0, 5)
             logger.info("modelChanged ($id)")
-            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-              logger.info("renderListener ($id)")
-              modelRenderedLatch.countDown()
-            }
+            newModelAddedLatch.countDown()
           }
         }
       )
     }
 
     suspend fun createPreviewAndCompile(
-      previewOverride: ComposePreviewRepresentation? = null
+      previewOverride: ComposePreviewRepresentation? = null,
+      expectedModelCount: Int = 2,
     ): ComposePreviewRepresentation {
+      newModelAddedLatch = CountDownLatch(expectedModelCount)
       composeView = TestComposePreviewView(mainSurface)
       preview =
         previewOverride
@@ -948,14 +1029,11 @@ class ComposePreviewRepresentationTest {
       Disposer.register(fixture.testRootDisposable, preview)
       withContext(workerThread) {
         logger.info("compile")
-        ProjectSystemService.getInstance(fixture.project)
-          .projectSystem
-          .getBuildManager()
-          .compileProject()
+        buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
         logger.info("activate")
         preview.onActivate()
 
-        modelRenderedLatch.await()
+        newModelAddedLatch.await()
         delayWhileRefreshingOrDumb(preview)
       }
       return preview

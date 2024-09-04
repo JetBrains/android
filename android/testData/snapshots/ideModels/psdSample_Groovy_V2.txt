@@ -723,6 +723,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -734,31 +738,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicBarDebugUnitTest
-                    testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicBarReleaseUnitTest
-                    testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicBarSpecialReleaseUnitTest
-                    testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicOtherBarDebugUnitTest
-                    testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicOtherBarReleaseUnitTest
-                    testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
-                    testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidBarDebugUnitTest
-                    testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidBarReleaseUnitTest
-                    testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidBarSpecialReleaseUnitTest
-                    testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidOtherBarDebugUnitTest
-                    testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidOtherBarReleaseUnitTest
-                    testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1342,6 +1321,32 @@ MODULE                        : project
                         testSpecialReleaseWearApp     : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicBarDebugUnitTest
+                        testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicBarReleaseUnitTest
+                        testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicBarSpecialReleaseUnitTest
+                        testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicOtherBarDebugUnitTest
+                        testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicOtherBarReleaseUnitTest
+                        testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
+                        testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidBarDebugUnitTest
+                        testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidBarReleaseUnitTest
+                        testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidBarSpecialReleaseUnitTest
+                        testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidOtherBarDebugUnitTest
+                        testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidOtherBarReleaseUnitTest
+                        testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
             dyn_feature                   : :dyn_feature (DefaultExternalProject)
                 path                          : :dyn_feature [-]
                 identityPath                  : :dyn_feature [-]
@@ -1352,11 +1357,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/dyn_feature
                 buildDir                      : <ROOT>/dyn_feature/build [-]
                 buildFile                     : <ROOT>/dyn_feature/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :dyn_feature:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :dyn_feature:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1477,6 +1477,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :dyn_feature:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :dyn_feature:testReleaseUnitTest
             jav                           : :jav (DefaultExternalProject)
                 path                          : :jav [-]
                 identityPath                  : :jav [-]
@@ -1487,9 +1493,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/jav
                 buildDir                      : <ROOT>/jav/build [-]
                 buildFile                     : <ROOT>/jav/build.gradle
-                tasks
-                    test                          : test (DefaultExternalTask)
-                        qName                         : :jav:test
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : 1.6
@@ -1505,8 +1508,8 @@ MODULE                        : project
                         compileOnlyApi                : <empty>
                         default                       : <empty>
                         implementation                : <empty>
-                        - mainSourceElements          : <ROOT>/jav/src/main/java [-]
                         - mainSourceElements          : <ROOT>/jav/src/main/resources [-]
+                        - mainSourceElements          : <ROOT>/jav/src/main/java [-]
                         runtimeClasspath              : <empty>
                         - runtimeElements             : <ROOT>/jav/build/libs/jav.jar [-]
                         runtimeOnly                   : <empty>
@@ -1556,6 +1559,10 @@ MODULE                        : project
                                     outputDir                     : <ROOT>/jav/out/test/resources [-]
                                     - gradleOutputDirs            : <ROOT>/jav/build/resources/test [-]
                                     patterns                      : FilePatternSetImpl
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        test                          : test (DefaultExternalTask)
+                            qName                         : :jav:test
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -1566,11 +1573,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1689,6 +1691,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
             nested1                       : :nested1 (DefaultExternalProject)
                 path                          : :nested1 [-]
                 identityPath                  : :nested1 [-]
@@ -1696,6 +1704,10 @@ MODULE                        : project
                 qName                         : :nested1
                 group                         : project
                 version                       : unspecified
+                projectDir                    : <ROOT>/nested1
+                buildDir                      : <ROOT>/nested1/build [-]
+                buildFile                     : <ROOT>/nested1/build.gradle
+                externalSystemId              : GRADLE
                 childProjects
                     deep                          : :nested1:deep (DefaultExternalProject)
                         path                          : :nested1:deep [-]
@@ -1707,11 +1719,6 @@ MODULE                        : project
                         projectDir                    : <ROOT>/nested1/deep
                         buildDir                      : <ROOT>/nested1/deep/build [-]
                         buildFile                     : <ROOT>/nested1/deep/build.gradle
-                        tasks
-                            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                                qName                         : :nested1:deep:testDebugUnitTest
-                            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                qName                         : :nested1:deep:testReleaseUnitTest
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1830,15 +1837,12 @@ MODULE                        : project
                                 testRuntimeOnly               : <empty>
                                 testWearApp                   : <empty>
                                 wearApp                       : <empty>
-                projectDir                    : <ROOT>/nested1
-                buildDir                      : <ROOT>/nested1/build [-]
-                buildFile                     : <ROOT>/nested1/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :nested1:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :nested1:testReleaseUnitTest
-                externalSystemId              : GRADLE
+                        taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :nested1:deep:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :nested1:deep:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1956,6 +1960,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested1:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested1:testReleaseUnitTest
             nested2                       : :nested2 (DefaultExternalProject)
                 path                          : :nested2 [-]
                 identityPath                  : :nested2 [-]
@@ -1963,6 +1973,10 @@ MODULE                        : project
                 qName                         : :nested2
                 group                         : project
                 version                       : unspecified
+                projectDir                    : <ROOT>/nested2
+                buildDir                      : <ROOT>/nested2/build [-]
+                buildFile                     : <ROOT>/nested2/build.gradle
+                externalSystemId              : GRADLE
                 childProjects
                     deep                          : :nested2:deep (DefaultExternalProject)
                         path                          : :nested2:deep [-]
@@ -1974,11 +1988,6 @@ MODULE                        : project
                         projectDir                    : <ROOT>/nested2/deep
                         buildDir                      : <ROOT>/nested2/deep/build [-]
                         buildFile                     : <ROOT>/nested2/deep/build.gradle
-                        tasks
-                            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                                qName                         : :nested2:deep:testDebugUnitTest
-                            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                qName                         : :nested2:deep:testReleaseUnitTest
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2097,6 +2106,12 @@ MODULE                        : project
                                 testRuntimeOnly               : <empty>
                                 testWearApp                   : <empty>
                                 wearApp                       : <empty>
+                        taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:deep:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:deep:testReleaseUnitTest
                     trans                         : :nested2:trans (DefaultExternalProject)
                         path                          : :nested2:trans [-]
                         identityPath                  : :nested2:trans [-]
@@ -2104,6 +2119,10 @@ MODULE                        : project
                         qName                         : :nested2:trans
                         group                         : project.nested2
                         version                       : unspecified
+                        projectDir                    : <ROOT>/nested2/trans
+                        buildDir                      : <ROOT>/nested2/trans/build [-]
+                        buildFile                     : <ROOT>/nested2/trans/build.gradle [-]
+                        externalSystemId              : GRADLE
                         childProjects
                             deep2                         : :nested2:trans:deep2 (DefaultExternalProject)
                                 path                          : :nested2:trans:deep2 [-]
@@ -2115,11 +2134,6 @@ MODULE                        : project
                                 projectDir                    : <ROOT>/nested2/trans/deep2
                                 buildDir                      : <ROOT>/nested2/trans/deep2/build [-]
                                 buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
-                                tasks
-                                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                                        qName                         : :nested2:trans:deep2:testDebugUnitTest
-                                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                                        qName                         : :nested2:trans:deep2:testReleaseUnitTest
                                 externalSystemId              : GRADLE
                                 sourceSetModel                : DefaultGradleSourceSetModel
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2238,24 +2252,14 @@ MODULE                        : project
                                         testRuntimeOnly               : <empty>
                                         testWearApp                   : <empty>
                                         wearApp                       : <empty>
-                        projectDir                    : <ROOT>/nested2/trans
-                        buildDir                      : <ROOT>/nested2/trans/build [-]
-                        buildFile                     : <ROOT>/nested2/trans/build.gradle [-]
-                        externalSystemId              : GRADLE
+                                taskModel                     : DefaultGradleTaskModel
+                                    tasks
+                                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                            qName                         : :nested2:trans:deep2:testDebugUnitTest
+                                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                            qName                         : :nested2:trans:deep2:testReleaseUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
-                projectDir                    : <ROOT>/nested2
-                buildDir                      : <ROOT>/nested2/build [-]
-                buildFile                     : <ROOT>/nested2/build.gradle
-                tasks
-                    testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
-                        qName                         : :nested2:testBasicDebugUnitTest
-                    testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :nested2:testBasicReleaseUnitTest
-                    testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
-                        qName                         : :nested2:testPaidDebugUnitTest
-                    testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :nested2:testPaidReleaseUnitTest
-                externalSystemId              : GRADLE
+                        taskModel                     : DefaultGradleTaskModel
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2498,11 +2502,18 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:testBasicDebugUnitTest
+                        testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:testBasicReleaseUnitTest
+                        testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:testPaidDebugUnitTest
+                        testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:testPaidReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

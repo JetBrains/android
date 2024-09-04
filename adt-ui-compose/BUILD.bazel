@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.adt.ui.compose.iml"],
     kotlin_use_compose = True,
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

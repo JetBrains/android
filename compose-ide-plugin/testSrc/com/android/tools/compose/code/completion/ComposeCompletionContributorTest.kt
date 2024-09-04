@@ -1214,6 +1214,7 @@ class ComposeCompletionContributorTest {
       }
 
       class MyComposablesImpl : MyComposables {
+          @Composable
           override fun FoobarOne() {
               TODO("Not yet implemented")
           }

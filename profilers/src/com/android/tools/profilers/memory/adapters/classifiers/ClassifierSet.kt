@@ -25,6 +25,8 @@ import java.util.IdentityHashMap
 import java.util.Objects
 import java.util.stream.Stream
 import kotlin.math.min
+import kotlin.streams.asSequence
+import kotlin.streams.asStream
 
 /**
  * A general base class for classifying/filtering objects into categories.
@@ -52,9 +54,9 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
 
     fun retracted(makeClassifier: () -> Classifier): Coalesced = when (this) {
       is Coalesced -> this
-      is Partitioned -> classifier.allClassifierSets.let { subs ->
+      is Partitioned -> classifier.classifierSetSequence.let { subs ->
         fun instances(extract: (ClassifierSet) -> Stream<InstanceObject>) =
-          LinkedHashSet<InstanceObject>().apply { addAll(subs.stream().flatMap(extract).toList())}
+          subs.flatMapTo(mutableSetOf()) { extract(it).asSequence() }
         Coalesced.Delayed(makeClassifier, instances { it.snapshotInstanceStream }, instances { it.deltaInstanceStream })
       }
     }
@@ -114,7 +116,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       }
       else -> s.retainedSize
     }
-    is State.Partitioned -> s.classifier.allClassifierSets.sumOf { it.totalRetainedSize }
+    is State.Partitioned -> s.classifier.classifierSetSequence.sumOf { it.totalRetainedSize }
   }
   var deltaShallowSize = 0L
     private set
@@ -319,7 +321,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
     state.let { s -> when {
       !condition(this) -> Stream.empty()
       s is State.Coalesced -> extract(s)
-      else -> (s as State.Partitioned).classifier.allClassifierSets.stream().flatMap { it.getStreamOf(condition, extract) }
+      else -> (s as State.Partitioned).classifier.classifierSetSequence.asStream().flatMap { it.getStreamOf(condition, extract) }
     } }
 
   fun hasStackInfo(): Boolean = instancesWithStackInfoCount > 0
@@ -375,7 +377,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         remainders.removeAllFast(s.deltaInstances)
         remainders.removeAllFast(s.snapshotInstances)
       }
-      s is State.Partitioned -> s.classifier.allClassifierSets.forEach { child ->
+      s is State.Partitioned -> s.classifier.classifierSetSequence.forEach { child ->
         child.filterOutInstances(remainders)
         if (remainders.isEmpty()) {
           return
@@ -409,7 +411,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    */
   fun overlapsWith(targetSet: Set<InstanceObject>): Boolean = when (val s = state) {
     is State.Coalesced -> immediateInstancesOverlapWith(targetSet)
-    is State.Partitioned -> s.classifier.allClassifierSets.any { it.overlapsWith(targetSet) }
+    is State.Partitioned -> s.classifier.classifierSetSequence.any { it.overlapsWith(targetSet) }
   }
 
   /**
@@ -452,9 +454,9 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         totalShallowSize = 0
         totalNativeSize = 0
         instancesWithStackInfoCount = 0
-        totalObjectSetCount = s.classifier.allClassifierSets.size
+        totalObjectSetCount = s.classifier.classifierSetSequence.count()
         filteredObjectSetCount = 0
-        for (classifierSet in s.classifier.allClassifierSets) {
+        for (classifierSet in s.classifier.classifierSetSequence) {
           classifierSet.applyFilter(filter, hasMatchedAncestor || isMatched, false, filterChanged)
           totalObjectSetCount += classifierSet.totalObjectSetCount
           if (!classifierSet.isFiltered) {
@@ -482,7 +484,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private fun initState() = State.Coalesced.Delayed(::createSubClassifier, LinkedHashSet(0), LinkedHashSet(0))
 
   private fun countInstanceFilterMatch(filter: CaptureObjectInstanceFilter): Int = when (val s = state) {
-    is State.Partitioned -> s.classifier.allClassifierSets.sumOf { it.getInstanceFilterMatchCount(filter) }
+    is State.Partitioned -> s.classifier.classifierSetSequence.sumOf { it.getInstanceFilterMatchCount(filter) }
     is State.Coalesced -> s.deltaInstances.count(filter.instanceTest) +
                           s.snapshotInstances.count { it !in s.deltaInstances && filter.instanceTest(it) }
   }

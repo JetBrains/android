@@ -100,23 +100,23 @@ AGP_DATA = {
     ],
     AGP_7_3: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ],
     AGP_7_4: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ],
     AGP_8_0: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ],
     AGP_8_1: [
         "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ],
     AGP_8_2: [
         "//prebuilts/studio/sdk:build-tools/34.0.0",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
     ],
 }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.support
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.HeaderEnumValue
@@ -106,6 +107,7 @@ class OnClickEnumSupportTest {
     val testProjectSystem = TestProjectSystem(projectRule.project)
     testProjectSystem.useInTests()
     testProjectSystem.namespace = "p1.p2"
+    FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
   }
 
   @Test

@@ -56,6 +56,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.IndexingTestUtil;
+import com.intellij.testFramework.StartupActivityTestUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -652,6 +653,7 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project, @NotNull Wait indexing) {
     AtomicBoolean isProjectIndexed = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
+    StartupActivityTestUtil.waitForProjectActivitiesToComplete(project);
     IndexingTestUtil.waitUntilIndexesAreReady(project);
 
     try {

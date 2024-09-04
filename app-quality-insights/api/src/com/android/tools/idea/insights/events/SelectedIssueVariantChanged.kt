@@ -31,7 +31,7 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
     if (variant == state.selectedVariant) {
       return StateTransition(state, Action.NONE)
     }
-    val selectedIssueId = (state.issues as? LoadingState.Ready)?.value?.value?.selected?.id
+    val selectedIssueId = state.selectedIssue?.id
     val shouldFetchDetails =
       state.currentIssueVariants is LoadingState.Ready && selectedIssueId != null
     return StateTransition(
@@ -40,10 +40,16 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
         currentIssueDetails =
           if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
+        currentInsight = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
       ),
       if (shouldFetchDetails)
         (Action.FetchDetails(selectedIssueId!!, variant?.id) and
-          Action.ListEvents(selectedIssueId, variant?.id, null))
+          Action.ListEvents(selectedIssueId, variant?.id, null) and
+          Action.FetchInsight(
+            selectedIssueId,
+            state.selectedEvent?.eventId ?: state.selectedIssue!!.sampleEvent.eventId,
+            variant?.id,
+          ))
       else Action.NONE,
     )
   }

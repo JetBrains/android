@@ -60,8 +60,8 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
-                Prompt.Message.CodeChunk(contents, MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
+                Prompt.CodeChunk(contents, MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -84,8 +84,8 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
-                Prompt.Message.CodeChunk(contents, MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The contents of the file \"/src/$path\" are:", filesUsed),
+                Prompt.CodeChunk(contents, MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -115,17 +115,17 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
-                Prompt.Message.TextChunk("The contents before the selected text are:", filesUsed),
-                Prompt.Message.CodeChunk(contents.take(selectionStart), MimeType.TEXT, filesUsed),
-                Prompt.Message.TextChunk("The selected text is:", filesUsed),
-                Prompt.Message.CodeChunk(
+                Prompt.TextChunk("The file \"/src/$path\" is open.", filesUsed),
+                Prompt.TextChunk("The contents before the selected text are:", filesUsed),
+                Prompt.CodeChunk(contents.take(selectionStart), MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The selected text is:", filesUsed),
+                Prompt.CodeChunk(
                   contents.subSequence(selectionStart, selectionEnd).toString(),
                   MimeType.TEXT,
                   filesUsed,
                 ),
-                Prompt.Message.TextChunk("The contents after the selected text are:", filesUsed),
-                Prompt.Message.CodeChunk(contents.drop(selectionEnd), MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The contents after the selected text are:", filesUsed),
+                Prompt.CodeChunk(contents.drop(selectionEnd), MimeType.TEXT, filesUsed),
               )
             )
           )
@@ -154,11 +154,11 @@ class FilesTest : BasePlatformTestCase() {
           listOf(
             Prompt.UserMessage(
               listOf(
-                Prompt.Message.TextChunk("The file \"/src/$path\" is open.", filesUsed),
-                Prompt.Message.TextChunk("The contents before the caret are:", filesUsed),
-                Prompt.Message.CodeChunk(contents.take(caretOffset), MimeType.TEXT, filesUsed),
-                Prompt.Message.TextChunk("The contents after the caret are:", filesUsed),
-                Prompt.Message.CodeChunk(contents.drop(caretOffset), MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The file \"/src/$path\" is open.", filesUsed),
+                Prompt.TextChunk("The contents before the caret are:", filesUsed),
+                Prompt.CodeChunk(contents.take(caretOffset), MimeType.TEXT, filesUsed),
+                Prompt.TextChunk("The contents after the caret are:", filesUsed),
+                Prompt.CodeChunk(contents.drop(caretOffset), MimeType.TEXT, filesUsed),
               )
             )
           )

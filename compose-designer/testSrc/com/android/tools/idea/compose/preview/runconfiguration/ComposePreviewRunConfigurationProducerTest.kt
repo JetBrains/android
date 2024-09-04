@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.AndroidProjectTypes
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
@@ -41,6 +42,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+    FakeBuildSystemFilePreviewServices().register(testRootDisposable)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 

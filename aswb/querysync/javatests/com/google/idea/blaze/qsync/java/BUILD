@@ -1,0 +1,151 @@
+load("//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl", "DEFAULT_TEST_VISIBILITY")
+
+package(default_visibility = DEFAULT_TEST_VISIBILITY)
+
+java_test(
+    name = "PackageStatementParserTest",
+    size = "small",
+    srcs = ["PackageStatementParserTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "@maven//:com.google.guava.guava",
+    ],
+)
+
+java_test(
+    name = "AddCompiledJavaDepsTest",
+    size = "small",
+    srcs = ["AddCompiledJavaDepsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:project_protos",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "@maven//:com.google.guava.guava",
+    ],
+)
+
+java_test(
+    name = "AddDependencyGenSrcsJarsTest",
+    size = "small",
+    srcs = ["AddDependencyGenSrcsJarsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "@maven//:com.google.guava.guava",
+        "@maven//:org.mockito.mockito-core",
+    ],
+)
+
+java_test(
+    name = "AddDependencySrcJarsTest",
+    size = "small",
+    srcs = ["AddDependencySrcJarsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "@maven//:com.google.guava.guava",
+    ],
+)
+
+java_test(
+    name = "AddProjectGenSrcJarsTest",
+    size = "small",
+    srcs = ["AddProjectGenSrcJarsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "@maven//:com.google.guava.guava",
+        "@maven//:io.grpc.grpc-protobuf",
+        "@maven//:org.mockito.mockito-core",
+    ],
+)
+
+java_test(
+    name = "AddProjectGenSrcsTest",
+    size = "small",
+    srcs = ["AddProjectGenSrcsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "@maven//:com.google.guava.guava",
+        "@maven//:io.grpc.grpc-protobuf",
+        "@maven//:org.mockito.mockito-core",
+    ],
+)
+
+java_test(
+    name = "AddDependencyAarsTest",
+    size = "small",
+    srcs = ["AddDependencyAarsTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
+        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "@maven//:com.google.guava.guava",
+        "@maven//:io.grpc.grpc-protobuf",
+        "@maven//:org.mockito.mockito-core",
+    ],
+)

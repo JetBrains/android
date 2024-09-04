@@ -20,8 +20,8 @@
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-shared" />
-    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
@@ -38,16 +38,6 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library name="native artifacts">
-        <CLASSES />
-        <JAVADOC />
-        <NATIVE>
-          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android-uitests/native/testing" />
-        </NATIVE>
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.layout-inspector" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
@@ -76,5 +66,7 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.bleak-config" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
+    <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
   </component>
 </module>

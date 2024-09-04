@@ -94,7 +94,7 @@ private constructor(
       val startMs = _startTimeMs ?: units.keys.minOrNull() ?: return null
       val endMs = _endTimeMs ?: units.keys.maxOrNull() ?: return null
       // Check all dimensions are correct
-      var dimension = units.values.first().components.size
+      var dimension = units.values.firstOrNull()?.components?.size ?: return null
       if (units.values.any { it.components.size != dimension }) return null
       // Check all types are the same
       val valueClass = units.values.first()::class

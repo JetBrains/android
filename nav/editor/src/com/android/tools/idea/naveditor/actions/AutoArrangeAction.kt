@@ -36,7 +36,7 @@ class AutoArrangeAction private constructor(): AnAction() {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     WriteCommandAction.runWriteCommandAction(surface.project) {
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
-      surface.sceneManager?.requestRenderAsync()
+      surface.model?.let { surface.getSceneManager(it) }?.requestRenderAsync()
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
     }
     surface.zoomController.zoomToFit()

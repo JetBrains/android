@@ -15,6 +15,8 @@ class MkSpecTest(unittest.TestCase):
         "lib/resources.jar": {
             "idea/WhiteSpacerApplicationInfo.xml": "<version major=\"2024\" minor=\"1\">",
         },
+        "lib/modules/intellij.platform.coverage.jar": {},
+        "lib/testFramework.jar": {},
         "plugins/foo/lib/foo.jar": {"META-INF/plugin.xml": "<idea-plugin><id>com.sample.foo</id></idea-plugin>"},
         "plugins/bar/lib/bar.jar": {
           "META-INF/plugin.xml": """<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -27,7 +29,7 @@ class MkSpecTest(unittest.TestCase):
         "plugins/noid/lib/noid.jar": {"META-INF/plugin.xml": "<idea-plugin><name>the_name</name></idea-plugin>"},
         "product-info.json": {
             "launch": [{
-                "bootClassPathJarNames": [],
+                "bootClassPathJarNames": ["util.jar"],
                 "additionalJvmArguments": ["-Didea.platform.prefix=WhiteSpacer"],
             }]
         },
@@ -43,6 +45,8 @@ SPEC = struct(
     major_version = "2024",
     minor_version = "1",
     jars = [
+        "/lib/modules/intellij.platform.coverage.jar",
+        "/lib/util.jar",
     ],
     jars_linux = [
     ],

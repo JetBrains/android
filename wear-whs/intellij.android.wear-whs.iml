@@ -40,5 +40,6 @@
     <orderEntry type="module" module-name="intellij.platform.collaborationTools" scope="TEST" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

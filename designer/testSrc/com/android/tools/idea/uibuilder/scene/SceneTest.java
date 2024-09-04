@@ -60,7 +60,7 @@ public abstract class SceneTest extends ApiLayoutTestCase {
   }
 
   protected void buildScene() {
-    mySceneManager = myModel.getSurface().getSceneManager();
+    mySceneManager = myModel.getSurface().getSceneManager(myModel);
     myScene = myModel.getSurface().getScene();
     myScene.setAnimated(false);
     mySceneManager.update();

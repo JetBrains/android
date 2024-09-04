@@ -1,6 +1,7 @@
 package androidx.annotation;
 
 import android.os.Build;
+import android.os.ext.SdkExtensions;
 
 public @interface RequiresExtension {
     int extension();
@@ -9,7 +10,7 @@ public @interface RequiresExtension {
 
 class SdkExtensionsTest {
     public void test() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && android.os.ext.SdkExtensions.getExtensionVersion(android.os.Build.VERSION_CODES.R) >= 4<caret>) {
+        if (<caret>Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 4) {
             requiresExtRv4();
         }
     }

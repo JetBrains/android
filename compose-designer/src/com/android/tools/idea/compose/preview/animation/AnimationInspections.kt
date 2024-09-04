@@ -162,8 +162,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
                 return
 
               // First, check we're analyzing the right call
-              val fqName =
-                callableSymbol.callableId?.asSingleFqName()?.asString() ?: return
+              val fqName = callableSymbol.callableId?.asSingleFqName()?.asString() ?: return
               if (!fqNameCheck(fqName)) return
 
               // Finally, verify the functions has the `label` parameter set, otherwise show a

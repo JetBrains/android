@@ -108,7 +108,11 @@ class DelayedLruActionQueue(
       removeActionFromQueue(actionToRemove)
     }
 
-    Disposer.register(parentDisposable, disposable)
+    if (!Disposer.tryRegister(parentDisposable, disposable)) {
+      // The parent disposable is already disposed so we could not register the disposable.
+      Disposer.dispose(disposable)
+      return
+    }
     val scheduledFuture =
       scheduledExecutorService.schedule(
         {

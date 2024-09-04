@@ -33,6 +33,9 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   val deviceModel: String?
     get() = deviceProperties.model
 
+  val deviceType: DeviceType
+    get() = deviceProperties.deviceType ?: DeviceType.HANDHELD
+
   val isWatch: Boolean
     get() = deviceProperties.deviceType == DeviceType.WEAR
 

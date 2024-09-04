@@ -21,6 +21,6 @@ import com.android.tools.lint.checks.PrivateApiDetector;
 
 public class AndroidLintBlockedPrivateApiInspection extends AndroidLintInspectionBase {
   public AndroidLintBlockedPrivateApiInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.private.api"), PrivateApiDetector.BLOCKED_PRIVATE_API);
+    super(AndroidLintBundle.message("android.lint.inspections.blocked.private.api"), PrivateApiDetector.BLOCKED_PRIVATE_API);
   }
 }

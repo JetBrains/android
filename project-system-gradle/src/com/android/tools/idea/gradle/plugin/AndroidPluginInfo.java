@@ -103,6 +103,26 @@ public class AndroidPluginInfo {
     return null;
   }
 
+  /**
+   * Attempts to find build file where android plugin is defined.
+   * <p/>
+   * This method ignores any {@code AndroidProject}s and reads the plugin's information from build.gradle files.
+   * <p/>
+   * The difference from other methods here that return {@code AndroidPluginInfo} is that this one does not try to find the Module.
+   * It is useful if project is not yet loaded and files do not yet belong to any content root.
+   *
+   * @param project the given project.
+   * @return Virtual file for the build file where the Android plugin information is found.
+   */
+  @Slow
+  @Nullable
+  public static VirtualFile findPluginBuildFile(@NotNull Project project) {
+    return ReadAction.compute(() -> {
+      BuildFileSearchResult result = searchInBuildFiles(project, true);
+      return result.pluginVirtualFile;
+    });
+  }
+
   @Slow
   @Nullable
   private static AndroidPluginInfo findInBuildFiles(@NotNull Project project, @Nullable Module appModule) {

@@ -29,10 +29,10 @@ internal const val MINIMUM_SCALE = 0.01
 internal const val SCALE_UNIT = 0.01
 
 /**
- * Max iteration times of the binary search. Iterate 10 times can search 1% to 1024% range which is
+ * Max iteration times of the binary search. Iterate 10 times can search 1% to 2048% range which is
  * enough in the most use cases.
  */
-internal const val MAX_ITERATION_TIMES = 10
+internal const val MAX_ITERATION_TIMES = 20
 
 /** Returns the sum of both the top and bottom margins */
 val Insets.vertical: Int

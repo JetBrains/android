@@ -19,7 +19,7 @@ import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -142,7 +142,7 @@ class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnActi
 class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val file = fileProvider() ?: return
-    file.project.requestBuild(file.virtualFile)
+    file.project.requestBuildArtifactsForRendering(file.virtualFile)
   }
 }
 

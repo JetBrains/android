@@ -72,6 +72,8 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
         "//tools/adt/idea/avd:intellij.android.avd",
+        "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
+        "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
     ],
     # do not sort: must match IML order
     deps = [

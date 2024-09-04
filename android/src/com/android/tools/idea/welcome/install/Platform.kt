@@ -22,8 +22,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getFullReleaseName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 
 /**
  *
@@ -89,15 +89,12 @@ class Platform(
   public override fun isSelectedByDefault(): Boolean = false
 
   companion object {
-    private fun getLatestPlatform(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): Platform? {
-      val latest = findLatestPlatform(remotePackages, true)
-      if (latest != null) {
-        val version = (latest.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
-        val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
-        val description = "Android platform libraries for targeting platform: $versionName"
-        return Platform(versionName, description, version, !version.isPreview, installUpdates)
-      }
-      return null
+    private fun getPlatformToInstall(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): Platform {
+      val api: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+      val version =  AndroidVersion(api, null, AndroidVersion.getBaseExtensionLevel(api).takeIf { it > 0 }, true)
+      val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
+      val description = "Android platform libraries for targeting platform: $versionName"
+      return Platform(versionName, description, version, !version.isPreview, installUpdates)
     }
 
     private fun getInstalledPlatformVersions(handler: AndroidSdkHandler?): List<AndroidVersion> {
@@ -113,10 +110,9 @@ class Platform(
       return result
     }
 
-    fun createSubtree(remotePackages: Map<String?, RemotePackage>?, installUpdates: Boolean): ComponentTreeNode? {
-      // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
-      val latestPlatform = getLatestPlatform(remotePackages, installUpdates) ?: return null
-      return ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms", listOf(latestPlatform))
+    fun createSubtree(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): ComponentTreeNode {
+      val platformToInstall = getPlatformToInstall(remotePackages, installUpdates)
+      return ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms", listOf(platformToInstall))
     }
   }
 }

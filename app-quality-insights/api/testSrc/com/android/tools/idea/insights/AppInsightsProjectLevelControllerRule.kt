@@ -18,7 +18,6 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -82,7 +81,6 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   override fun before(description: Description) {
-    StudioFlags.CRASHLYTICS_J_UI.override(true)
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
@@ -113,7 +111,6 @@ class AppInsightsProjectLevelControllerRule(
   override fun after(description: Description) {
     runInEdtAndWait { disposableRule.after() }
     internalState.close()
-    StudioFlags.CRASHLYTICS_J_UI.clearOverride()
   }
 
   suspend fun consumeFetchState(
@@ -131,6 +128,7 @@ class AppInsightsProjectLevelControllerRule(
     eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
+    insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
     isTransitionToOnlineMode: Boolean = false,
   ): AppInsightsState {
     client.completeIssuesCallWith(state)
@@ -151,6 +149,8 @@ class AppInsightsProjectLevelControllerRule(
         consumeNext()
         consumeNext()
         client.completeListNotesCallWith(notesState)
+        consumeNext()
+        client.completeFetchInsightCallWith(insightState)
       }
       resultState = consumeNext()
     }
@@ -173,6 +173,7 @@ class AppInsightsProjectLevelControllerRule(
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION),
+    insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
   ): AppInsightsState {
     connections.emit(connectionsState)
     val loadingState = consumeNext()
@@ -182,7 +183,15 @@ class AppInsightsProjectLevelControllerRule(
     assertThat(loadingState.currentIssueVariants).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
-    return consumeFetchState(state, issueVariantsState, eventsState, detailsState, notesState)
+    assertThat(loadingState.currentInsight).isEqualTo(LoadingState.Ready(null))
+    return consumeFetchState(
+      state,
+      issueVariantsState,
+      eventsState,
+      detailsState,
+      notesState,
+      insightState,
+    )
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
@@ -255,6 +264,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listEventsCall = CallInProgress<LoadingState.Done<EventPage>>()
+  private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
@@ -356,4 +366,15 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   suspend fun completeDeleteNoteCallWith(value: LoadingState.Done<Unit>) {
     deleteNoteCall.completeWith(value)
   }
+
+  override suspend fun fetchInsight(
+    connection: Connection,
+    insightIssueId: IssueId,
+    eventId: String,
+    variantId: String?,
+    timeInterval: TimeIntervalFilter,
+  ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
+
+  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
+    fetchInsightCall.completeWith(value)
 }

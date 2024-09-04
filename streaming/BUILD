@@ -98,6 +98,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "@intellij//:com.intellij.platform.images[test]",
@@ -158,8 +159,9 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
+        "ci:studio-linux_very_flaky",  # b/303195243
+        "noci:studio-linux",
         "noci:studio-win",
-        "very_flaky",  # b/303195243
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -181,8 +183,9 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
+        "ci:studio-linux_very_flaky",  # b/303195243
+        "noci:studio-linux",
         "noci:studio-win",
-        "very_flaky",  # b/303195243
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -204,8 +207,9 @@ iml_test(
     ],
     module = ":intellij.android.streaming.integration",
     tags = [
+        "ci:studio-linux_very_flaky",  # b/271008444
+        "noci:studio-linux",
         "noci:studio-win",
-        "very_flaky",  # b/271008444
     ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -241,6 +245,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/.idea/libraries:ffmpeg[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "@intellij//:intellij-sdk[test]",

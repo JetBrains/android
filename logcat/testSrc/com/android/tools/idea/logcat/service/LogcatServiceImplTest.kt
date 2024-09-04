@@ -40,6 +40,7 @@ import com.android.tools.idea.logcat.message.LogLevel.DEBUG
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -83,6 +84,7 @@ class LogcatServiceImplTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       fakeAdb,
       closeables,
       disposableRule,

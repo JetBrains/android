@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * and starts Xvfb to use that. It will also set the native environment variable DISPLAY to the
  * newly found value.
  */
+// LINT.IfChange
 class XvfbServer {
   private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
@@ -49,10 +51,22 @@ class XvfbServer {
     int retry = MAX_RETRIES_TO_FIND_DISPLAY;
     Random random = new Random();
     while (retry-- > 0) {
-      String display = String.format(":%d", random.nextInt(65535));
+      int candidate = random.nextInt(65535);
+      // The only mechanism with our version of Xvfb to know when it's ready
+      // to accept connections is to check for the following file. Additionally,
+      // this serves as a check to know if another server is using the same
+      // display.
+      Path socket = Paths.get("/tmp/.X11-unix", "X" + candidate);
+      if (Files.exists(socket)) {
+        continue;
+      }
+      String display = String.format(":%d", candidate);
       Process process = launchDisplay(display);
       try {
-        boolean exited = process.waitFor(1, TimeUnit.SECONDS);
+        boolean exited = false;
+        while (!exited && !Files.exists(socket)) {
+          exited = process.waitFor(1, TimeUnit.SECONDS);
+        }
         if (!exited) {
           this.process = process;
           System.out.println("Launched xvfb on \"" + display + "\"");
@@ -79,7 +93,10 @@ class XvfbServer {
         display,
         com.android.test.testutils.TestUtils.getWorkspaceRoot().toString(),
         DEFAULT_RESOLUTION
-      ).start();
+      )
+        .redirectErrorStream(true)
+        .redirectOutput(TestUtils.getTestOutputDir().resolve("xvfb.log").toFile())
+        .start();
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -96,3 +113,4 @@ class XvfbServer {
     LibC.INSTANCE.setenv(name, value, 1);
   }
 }
+// LINT.ThenChange(/as-driver/utils/testSrc/com/android/tools/asdriver/tests/XvfbServer.java)

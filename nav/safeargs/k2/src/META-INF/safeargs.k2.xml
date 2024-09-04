@@ -14,12 +14,10 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
-    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.kotlin.k2.SafeArgsResolveExtensionModuleService" />
-  </extensions>
-
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <kaResolveExtensionProvider implementation="com.android.tools.idea.nav.safeargs.kotlin.k2.SafeArgsResolveExtensionProvider" />
+    <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 </idea-plugin>

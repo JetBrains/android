@@ -32,7 +32,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.startOffset
 import com.intellij.xdebugger.frame.XNamedValue
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.Location

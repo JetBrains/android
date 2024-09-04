@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.dvcs.repo.VcsRepositoryManager
@@ -37,9 +35,6 @@ import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.vcsUtil.VcsUtil
 import org.junit.rules.ExternalResource
-import org.junit.rules.RuleChain
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 
 class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : ExternalResource() {
   lateinit var vcs: MockAbstractVcs
@@ -87,11 +82,6 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
   override fun after() {
     clearUpMappingToRootStructure()
     projectLevelVcsManager.unregisterVcs(vcs)
-  }
-
-  override fun apply(base: Statement?, description: Description?): Statement {
-    return RuleChain.outerRule(FlagRule(StudioFlags.APP_INSIGHTS_VCS_SUPPORT, true))
-      .apply(super.apply(base, description), description)
   }
 
   fun addNewMappingToRootStructure(path: String, vcs: AbstractVcs): VirtualFile {

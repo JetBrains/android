@@ -145,8 +145,9 @@ public class ApkParser {
     if (archiveEntry == null){
       return AndroidApplicationInfo.UNKNOWN;
     }
+    Archive archive = archiveEntry.getArchive();
     try {
-      if (archiveEntry.getArchive() instanceof AppBundleArchive) {
+      if (archive instanceof AppBundleArchive) {
         return getAppInfoFromAppBundle(archiveEntry);
       }
       else {
@@ -154,7 +155,10 @@ public class ApkParser {
       }
     }
     catch (Throwable e) {
-      Logger.getInstance(ApkViewPanel.class).warn("Unable to retrieve application info from artifact", e);
+      // Ignore exceptions if the file doesn't exist (b/351919218)
+      if (Files.exists(archive.getPath())) {
+        Logger.getInstance(ApkViewPanel.class).warn("Unable to retrieve application info from artifact", e);
+      }
       return AndroidApplicationInfo.UNKNOWN;
     }
   }

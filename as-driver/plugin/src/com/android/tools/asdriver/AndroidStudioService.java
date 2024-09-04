@@ -554,7 +554,14 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ApplicationManager.getApplication().invokeAndWait(() -> {
       @Nullable String errorMessage = null;
       try {
-        Project project = getSingleProject();
+        Project project = request.hasProjectName()
+                          ? findProjectByName(request.getProjectName())
+                          : Arrays.stream(ProjectManager.getInstance().getOpenProjects()).findFirst().orElse(null);
+
+        if (project == null) {
+          errorMessage = "Project is not available";
+          return;
+        }
         VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(fileName));
         if (virtualFile == null) {
           errorMessage = "File does not exist on filesystem with path: " + fileName;
@@ -594,6 +601,13 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
         if (replacements.isEmpty()) {
           errorMessage = "Could not find a match with these file contents: " + contents;
+          return;
+        }
+        else if (searchRegex.equals(request.getReplacement())) {
+          // If the search regex and replacement are the same, then there's no need to do anything.
+          builder.setResult(ASDriver.EditFileResponse.Result.OK);
+          responseObserver.onNext(builder.build());
+          responseObserver.onCompleted();
           return;
         }
 

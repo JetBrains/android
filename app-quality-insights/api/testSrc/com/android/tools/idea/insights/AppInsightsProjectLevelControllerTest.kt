@@ -658,6 +658,9 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
+    client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+    controllerRule.consumeNext()
+
     controllerRule.refreshAndConsumeLoadingState()
 
     assertThat(
@@ -682,6 +685,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
+          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
           permission = Permission.FULL,
         )
       )
@@ -800,6 +804,7 @@ class AppInsightsProjectLevelControllerTest {
           currentEvents = LoadingState.Loading,
           currentIssueDetails = LoadingState.Loading,
           currentNotes = LoadingState.Loading,
+          currentInsight = LoadingState.Loading,
         )
       )
 
@@ -813,6 +818,10 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.consumeNext()
 
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
+    controllerRule.consumeNext()
+
+    client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
@@ -822,6 +831,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
+          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
       )
     return@runBlocking
@@ -1006,6 +1016,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
+          currentInsight = LoadingState.Ready(AiInsight("")),
         )
       )
 
@@ -1112,6 +1123,7 @@ class AppInsightsProjectLevelControllerTest {
             currentEvents = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
             currentNotes = LoadingState.Loading,
+            currentInsight = LoadingState.Loading,
           )
       )
 

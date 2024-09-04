@@ -59,11 +59,15 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     RenderTestUtil.beforeRenderTestCase();
+    RenderLogger.ignoreFidelityWarning("The current rendering only supports APIs up to 34. You may encounter " +
+                                       "crashes if using with higher APIs. To avoid, you can set a lower API for " +
+                                       "your previews.");
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
+      RenderLogger.resetFidelityErrorsFilters();
       RenderTestUtil.afterRenderTestCase();
     }
     finally {
@@ -178,7 +182,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
@@ -204,7 +208,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
@@ -224,7 +228,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
 
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
@@ -716,7 +720,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       issues.get(0));
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildForRendering\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),

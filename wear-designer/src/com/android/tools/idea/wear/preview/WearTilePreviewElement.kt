@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER
 import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewConfiguration
@@ -22,6 +23,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /** Preview elements implementation for a wear tile. */
 data class WearTilePreviewElement<T>(
@@ -30,9 +32,15 @@ data class WearTilePreviewElement<T>(
   override val previewBody: T?,
   override val methodFqn: String,
   override val configuration: PreviewConfiguration,
-  override val hasAnimations: Boolean = false,
   override val instanceId: String = methodFqn,
 ) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
+  /**
+   * Contains the link to the most recently inflated view. Should be instance of
+   * TileServiceViewAdapter. see [CLASS_TILE_SERVICE_VIEW_ADAPTER] class
+   */
+  val tileServiceViewAdapter: MutableStateFlow<Any?> = MutableStateFlow(null)
+  override var hasAnimations = false
+
   override fun createDerivedInstance(
     displaySettings: PreviewDisplaySettings,
     config: PreviewConfiguration,

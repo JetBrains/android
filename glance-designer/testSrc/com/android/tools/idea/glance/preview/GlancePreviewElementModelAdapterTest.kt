@@ -21,11 +21,13 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.LightVirtualFile
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 internal class TestModel(override var dataContext: DataContext) : DataContextHolder {
@@ -56,6 +58,8 @@ private fun glancePreviewElement(
 
 class GlancePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
+
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun testCalcAffinityPriority() {

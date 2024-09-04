@@ -70,7 +70,11 @@ internal class EmulatorAdbReadyService(private val project: Project): Disposable
       }
     }
     else {
+      val serialNumber = deviceHandleMap.keys.find { deviceHandleMap[it] == this }
       deviceHandleMap.values.remove(this)
+      serialNumber?.let {
+        EventQueue.invokeLater { updateToolbar(serialNumber) }
+      }
     }
   }
 

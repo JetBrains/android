@@ -22,7 +22,6 @@ import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.KeyPressedEvent;
 import com.android.tools.idea.common.surface.KeyReleasedEvent;
-import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.MouseReleasedEvent;
@@ -56,11 +55,6 @@ public class SceneInteraction implements Interaction {
   @Override
   public void begin(@NotNull InteractionEvent event) {
     if (event instanceof MousePressedEvent) {
-      LayoutScannerControl scannerControl = mySceneView.getSurface().getLayoutScannerControl();
-      if (scannerControl != null && mySceneView.getScene().isLiveRenderingEnabled()) {
-        scannerControl.pause();
-      }
-
       MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
@@ -138,7 +132,6 @@ public class SceneInteraction implements Interaction {
       y = mouseEvent.getY();
       modifiers = mouseEvent.getModifiersEx();
     }
-    resumeScanner();
     end(x, y, modifiers);
   }
 
@@ -161,17 +154,9 @@ public class SceneInteraction implements Interaction {
 
   @Override
   public void cancel(@NotNull InteractionEvent event) {
-    resumeScanner();
     Scene scene = mySceneView.getScene();
     scene.mouseCancel();
     mySceneView.getSurface().repaint();
-  }
-
-  private void resumeScanner() {
-    LayoutScannerControl scannerControl = mySceneView.getSurface().getLayoutScannerControl();
-    if (scannerControl != null && mySceneView.getScene().isLiveRenderingEnabled()) {
-      scannerControl.resume();
-    }
   }
 
   @Override

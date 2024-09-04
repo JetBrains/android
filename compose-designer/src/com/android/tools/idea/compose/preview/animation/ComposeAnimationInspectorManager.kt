@@ -51,7 +51,7 @@ object ComposeAnimationInspectorManager {
       ComposeAnimationPreview(
         surface.project,
         ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
-        { surface.sceneManager },
+        { surface.model?.let { surface.getSceneManager(it) } },
         surface,
         psiFilePointer,
       )

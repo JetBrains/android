@@ -38,9 +38,7 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorMessage
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
-import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.STARTUP_TASK_ERRORS
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
@@ -103,6 +101,7 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val processListModel = taskHomeTabModel.processListModel
   val selectedDevice by processListModel.selectedDevice.collectAsState()
   val selectedProcess by processListModel.selectedProcess.collectAsState()
+  val isPrevTaskStartDone by taskHomeTabModel.isPrevTaskStartDone.collectAsState()
 
   val profilers = taskHomeTabModel.profilers
 
@@ -141,7 +140,8 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
         ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers), isCollapsed)
       }
       // The start task button.
-      StartTaskButton(canStartTask = canStartTask, isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,
+      StartTaskButton(canStartTask = canStartTask, isPrevTaskStartDone = isPrevTaskStartDone,
+                      isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,
                       onClick = taskHomeTabModel::onEnterTaskButtonClick)
     }
   }

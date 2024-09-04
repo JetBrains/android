@@ -28,10 +28,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtParameterSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
@@ -43,6 +44,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@OptIn(KaExperimentalApi::class)
 @RunWith(Parameterized::class)
 @RunsInEdt
 class ArgsClassResolveExtensionTest(
@@ -94,10 +96,9 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
-      assertThat(symbol.classIdIfNonLocal?.asFqNameString())
-        .isEqualTo("test.safeargs.Fragment1Args")
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "data class Fragment1Args(someArgument: kotlin.String) : androidx.navigation.NavArgs"
@@ -161,8 +162,8 @@ class ArgsClassResolveExtensionTest(
         val y = x.${caret}someArgument
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType.isString).isTrue()
+    ) { symbol: KaPropertySymbol ->
+      assertThat(symbol.returnType.isStringType).isTrue()
     }
 
     val project = safeArgsRule.project
@@ -178,8 +179,8 @@ class ArgsClassResolveExtensionTest(
         val y = x.${caret}someOtherArgument
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType.isString).isTrue()
+    ) { symbol: KaPropertySymbol ->
+      assertThat(symbol.returnType.isStringType).isTrue()
     }
   }
 
@@ -213,7 +214,7 @@ class ArgsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
+    ) { symbol: KaPropertySymbol ->
       assertThat(symbol.returnType).isNotInstanceOf(KaErrorType::class.java)
     }
 
@@ -226,7 +227,7 @@ class ArgsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
+    ) { symbol: KaPropertySymbol ->
       assertThat(symbol.returnType).isInstanceOf(KaErrorType::class.java)
     }
 
@@ -248,8 +249,8 @@ class ArgsClassResolveExtensionTest(
         val y = x.${caret}someOtherArgument
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
-      assertThat(symbol.returnType.isString).isTrue()
+    ) { symbol: KaPropertySymbol ->
+      assertThat(symbol.returnType.isStringType).isTrue()
     }
   }
 
@@ -312,9 +313,8 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
     """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
-      assertThat(symbol.classIdIfNonLocal?.asFqNameString())
-        .isEqualTo("test.safeargs.Fragment1Args")
+    ) { symbol: KaNamedClassSymbol ->
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
 
       val paramsToTypeNames =
@@ -399,9 +399,8 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
     """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
-      assertThat(symbol.classIdIfNonLocal?.asFqNameString())
-        .isEqualTo("test.safeargs.Fragment1Args")
+    ) { symbol: KaNamedClassSymbol ->
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
 
       val paramsToTypeNames =
@@ -461,7 +460,7 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "data class Fragment1Args(nullable: kotlin.String?, implicitNullable: kotlin.String? = ...) : androidx.navigation.NavArgs"
@@ -505,7 +504,7 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       val renderedValueParameters =
         getPrimaryConstructorSymbol(symbol).valueParameters.map { it.render(RENDERER) }
 
@@ -553,7 +552,7 @@ class ArgsClassResolveExtensionTest(
       val x: ${caret}Fragment1Args = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol)).containsExactly(fragmentTag)
     }
 
@@ -564,7 +563,7 @@ class ArgsClassResolveExtensionTest(
       val x = Fragment1Args(${caret}arg1 = 42)
       """
         .trimIndent()
-    ) { symbol: KtParameterSymbol ->
+    ) { symbol: KaParameterSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol)).containsExactly(argumentTag)
     }
 
@@ -576,7 +575,7 @@ class ArgsClassResolveExtensionTest(
       val y = x.${caret}arg1
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
+    ) { symbol: KaPropertySymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol)).containsExactly(argumentTag)
     }
 
@@ -587,7 +586,7 @@ class ArgsClassResolveExtensionTest(
       val x = Fragment1Args.fromBundle(${caret}bundle = TODO())
       """
         .trimIndent()
-    ) { symbol: KtParameterSymbol ->
+    ) { symbol: KaParameterSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol)).containsExactly(fragmentTag)
     }
 
@@ -599,7 +598,7 @@ class ArgsClassResolveExtensionTest(
       val y = x.${caret}toBundle()
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol)).containsExactly(fragmentTag)
     }
   }

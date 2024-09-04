@@ -16,12 +16,13 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Iconable
 import com.intellij.ui.RowIcon
 import com.intellij.util.PsiIconUtil
+import com.intellij.util.application
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Before
@@ -39,10 +40,13 @@ class ComposableIconProviderTest {
     // Allow @Composable attribute to be used in snippets below.
     projectRule.fixture.addFileToProject(
       "androidx/compose/runtime/Composable.kt",
+      // language=kotlin
       """
-package androidx.compose.runtime
+      package androidx.compose.runtime
 
-annotation class Composable""",
+      annotation class Composable
+      """
+        .trimIndent(),
     )
   }
 
@@ -50,12 +54,13 @@ annotation class Composable""",
   fun getPresentation_notAFunction() {
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
+      // language=kotlin
       """
-package com.example
+      package com.example
 
-val fo<caret>o = 1234
-
-""",
+      val fo<caret>o = 1234
+      """
+        .trimIndent(),
     )
 
     runReadAction {
@@ -70,12 +75,13 @@ val fo<caret>o = 1234
   fun getPresentation_notComposeFunction() {
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
+      // language=kotlin
       """
-package com.example
+      package com.example
 
-fun testFun<caret>ction() {}
-
-""",
+      fun testFun<caret>ction() {}
+      """
+        .trimIndent(),
     )
 
     runReadAction {
@@ -90,17 +96,33 @@ fun testFun<caret>ction() {}
   fun getPresentation_composeFunctionWithVisibility() {
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
+      // language=kotlin
       """
-package com.example
+      package com.example
 
-import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.Composable
 
-@Composable
-fun testFun<caret>ction() {}
+      fun normalPublic<caret>Function() {}
 
-""",
+      @Composable
+      fun testFunction() {}
+      """
+        .trimIndent(),
     )
 
+    // Find the "normal" public icon from the Kotlin plugin.
+    val expectedPublicIcon = runReadAction {
+      val normalPublicFunctionElement = projectRule.fixture.elementAtCaret
+      val normalIcon =
+        PsiIconUtil.getProvidersIcon(normalPublicFunctionElement, Iconable.ICON_FLAG_VISIBILITY)
+          as RowIcon
+      assertThat(normalIcon.iconCount).isEqualTo(2)
+
+      normalIcon.getIcon(1)
+    }
+
+    // Validate that the composable function has both the composable and public icons.
+    application.invokeAndWait { projectRule.fixture.moveCaret("testFun|ction()") }
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
 
@@ -110,7 +132,7 @@ fun testFun<caret>ction() {}
       val rowIcon = icon as RowIcon
       assertThat(rowIcon.iconCount).isEqualTo(2)
       assertThat(rowIcon.getIcon(0)).isEqualTo(COMPOSABLE_FUNCTION)
-      assertThat(rowIcon.getIcon(1)).isEqualTo(AllIcons.Nodes.C_public)
+      assertThat(rowIcon.getIcon(1)).isEqualTo(expectedPublicIcon)
     }
   }
 
@@ -118,15 +140,16 @@ fun testFun<caret>ction() {}
   fun getPresentation_composeFunctionWithoutVisibility() {
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
+      // language=kotlin
       """
-package com.example
+      package com.example
 
-import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.Composable
 
-@Composable
-fun testFun<caret>ction() {}
-
-""",
+      @Composable
+      fun testFun<caret>ction() {}
+      """
+        .trimIndent(),
     )
 
     runReadAction {

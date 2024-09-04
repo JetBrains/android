@@ -30,6 +30,7 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
@@ -72,7 +73,8 @@ class FilterTextFieldTest {
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 EdtRule(), usageTrackerRule, disposableRule)
 
   private val project
     get() = projectRule.project

@@ -40,46 +40,52 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
   private val functions = mutableListOf<Prompt.Function>()
   private var functionCallingMode = Prompt.FunctionCallingMode.AUTO
 
-  open class MessageBuilderImpl(val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
-    PromptBuilder.MessageBuilder {
-    private val myChunks = mutableListOf<Prompt.Message.Chunk>()
+  abstract class MessageBuilderImpl : PromptBuilder.MessageBuilder {
+    protected val myChunks = mutableListOf<Prompt.Chunk>()
 
     /** Adds [str] as text in the message. */
     override fun text(str: String, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(Prompt.Message.TextChunk(str, filesUsed))
+      myChunks.add(Prompt.TextChunk(str, filesUsed))
     }
 
     /** Adds [code] as a formatted code block in the message, with optional [language] specified. */
     override fun code(code: String, language: MimeType?, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(Prompt.Message.CodeChunk(code, language, filesUsed))
+      myChunks.add(Prompt.CodeChunk(code, language, filesUsed))
     }
 
     override fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(Prompt.Message.BlobChunk(mimeType, filesUsed, data))
+      myChunks.add(Prompt.BlobChunk(mimeType, filesUsed, data))
     }
 
-    fun build() = makeMessage(myChunks)
+    abstract fun build(): Prompt.Message
   }
 
-  inner class UserMessageBuilderImpl(makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
-    MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
+  inner class SystemMessageBuilderImpl : MessageBuilderImpl() {
+    override fun build() = Prompt.SystemMessage(myChunks)
+  }
+
+  inner class ModelMessageBuilderImpl : MessageBuilderImpl() {
+    override fun build() = Prompt.ModelMessage(myChunks)
+  }
+
+  inner class UserMessageBuilderImpl : PromptBuilder.UserMessageBuilder, MessageBuilderImpl() {
     override val project = this@PromptBuilderImpl.project
+
+    override fun build() = Prompt.UserMessage(myChunks)
   }
 
-  inner class ContextBuilderImpl(val makeMessage: (ContextBuilderImpl) -> Prompt.Message) :
-    PromptBuilder.ContextBuilder {
-    val files = mutableListOf<Prompt.ContextFile>()
-    val chunks = mutableListOf<Prompt.Message.Chunk>()
+  inner class ContextMessageBuilderImpl : PromptBuilder.ContextBuilder, MessageBuilderImpl() {
+    private val myFiles = mutableListOf<Prompt.ContextFile>()
 
     override fun virtualFile(file: VirtualFile, isCurrentFile: Boolean, selection: TextRange?) {
-      files.add(Prompt.ContextFile(file, isCurrentFile, selection))
+      myFiles.add(Prompt.ContextFile(file, isCurrentFile, selection))
     }
 
     override fun file(file: Prompt.ContextFile) {
-      files.add(file)
+      myFiles.add(file)
     }
 
-    fun build() = makeMessage(this)
+    override fun build() = Prompt.ContextMessage(myChunks, myFiles)
   }
 
   inner class FunctionsBuilderImpl : PromptBuilder.FunctionsBuilder {
@@ -102,19 +108,19 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
         "Prompt can only contain one system message, and it must be the first message."
       )
     }
-    messages.add(MessageBuilderImpl { Prompt.SystemMessage(it) }.apply(builderAction).build())
+    messages.add(SystemMessageBuilderImpl().apply(builderAction).build())
   }
 
   override fun userMessage(builderAction: PromptBuilder.UserMessageBuilder.() -> Unit) {
-    messages.add(UserMessageBuilderImpl { Prompt.UserMessage(it) }.apply(builderAction).build())
+    messages.add(UserMessageBuilderImpl().apply(builderAction).build())
   }
 
   override fun modelMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
-    messages.add(MessageBuilderImpl { Prompt.ModelMessage(it) }.apply(builderAction).build())
+    messages.add(ModelMessageBuilderImpl().apply(builderAction).build())
   }
 
   override fun context(builderAction: PromptBuilder.ContextBuilder.() -> Unit) {
-    messages.add(ContextBuilderImpl { Prompt.Context(it.files) }.apply(builderAction).build())
+    messages.add(ContextMessageBuilderImpl().apply(builderAction).build())
   }
 
   override fun functions(builderAction: PromptBuilder.FunctionsBuilder.() -> Unit) {
@@ -141,10 +147,8 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
   private fun excludedFiles(): Set<VirtualFile> =
     messages
       .flatMap { msg ->
-        when (msg) {
-          is Prompt.Context -> msg.files.map { it.virtualFile }
-          else -> msg.chunks.flatMap { chunk -> chunk.filesUsed }
-        }
+        msg.chunks.flatMap { chunk -> chunk.filesUsed } +
+          ((msg as? Prompt.ContextMessage)?.files?.map { it.virtualFile } ?: emptyList())
       }
       .filter {
         DumbService.getInstance(project).runReadActionInSmartMode<Boolean> {

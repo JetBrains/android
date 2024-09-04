@@ -53,9 +53,9 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.client.ClientSystemInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ExpandableItemsHandler;
@@ -197,7 +197,7 @@ public class NlComponentTree extends Tree
    * the XML declaration.
    */
   private void overrideCtrlClick() {
-    int modifier = SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
+    int modifier = ClientSystemInfo.isMac() ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
     MouseShortcut ctrlClickShortcut = new MouseShortcut(MouseEvent.BUTTON1, modifier, 1);
 
     // Get all the action registered for this component

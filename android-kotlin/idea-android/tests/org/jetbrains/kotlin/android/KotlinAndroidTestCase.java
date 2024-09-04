@@ -23,6 +23,7 @@ import com.android.SdkConstants;
 import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.tests.AdtTestProjectDescriptors;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -32,7 +33,6 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -95,7 +95,12 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacetAndSdk(myModule);
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      myFacet = addAndroidFacetAndSdk(myModule);
+    } else {
+      application.invokeAndWait(() -> myFacet = addAndroidFacetAndSdk(myModule));
+    }
 
     AndroidTestCase.removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
@@ -119,7 +124,12 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
   protected void tearDown() throws Exception {
     try {
       // Finish dispatching any remaining events before shutting down everything
-      UIUtil.dispatchAllInvocationEvents();
+      Application application = ApplicationManager.getApplication();
+      if (application.isDispatchThread()) {
+        UIUtil.dispatchAllInvocationEvents();
+      } else {
+        application.invokeAndWait(UIUtil::dispatchAllInvocationEvents);
+      }
 
       myApplicationComponentStack.restore();
       myApplicationComponentStack = null;

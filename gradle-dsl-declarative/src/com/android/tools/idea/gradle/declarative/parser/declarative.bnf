@@ -42,14 +42,21 @@
     OP_LPAREN = "("
     OP_RPAREN = ")"
     OP_COMMA = ","
-    BLOCK_COMMENT = "BLOCK_COMMENT"
+    SEMI = ";"
+    BLOCK_COMMENT = "BLOCK_COMMENT" // only for declaring this in ElementTypeHolder
 
     line_comment = "regexp://.*"
-    number = "regexp:\d(\d|_+\d)*[Ll]?"
-    string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
     boolean = "regexp:(true|false)"
     null = "null"
-    token = "regexp:[a-z][a-zA-Z0-9]*"
+    token
+    one_line_string_literal
+    multiline_string_literal
+
+    // Numbers
+    integer_literal
+    long_literal
+    unsigned_long
+    unsigned_integer
   ]
 
   implements("assignment|block|factory")=[
@@ -69,9 +76,10 @@
   ]
 }
 
-entries ::= entry*
+entries ::= one_line_entries*
+private one_line_entries::=entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
-private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN)
+private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN|SEMI)
 assignment ::= lvalue OP_EQ rvalue {
    pin=2
    methods=[
@@ -86,7 +94,10 @@ identifier ::= token {
    ]
    mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin"
 }
-literal ::= string | number | boolean {methods=[getValue]}
+
+literal ::= multiline_string_literal | one_line_string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+methods=[getValue]
+}
 private rvalue ::= factory | property | literal
 property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
 qualified ::= property OP_DOT identifier {extends=property pin=2}

@@ -39,6 +39,10 @@ MODULE                        : MultiFlavor
         name                          : MultiFlavor
         qName                         : MultiFlavor
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -50,11 +54,6 @@ MODULE                        : MultiFlavor
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
-                    testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -319,11 +318,14 @@ MODULE                        : MultiFlavor
                         testSecondXyzWearApp          : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                        testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

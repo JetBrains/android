@@ -44,6 +44,7 @@ class AddCppToModuleActionTest {
   @Test
   fun testCreatingNewCppBoilerplate() {
     createPureJavaProject()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val ideFrame = guiTest.ideFrame()
 
@@ -66,6 +67,7 @@ class AddCppToModuleActionTest {
   @Test
   fun testLinkingExistingCppProject_cmake() {
     createPureJavaProject()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val ideFrame = guiTest.ideFrame()
 
@@ -102,6 +104,7 @@ class AddCppToModuleActionTest {
   @Test
   fun testLinkingExistingCppProject_ndkBuild() {
     createPureJavaProject()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val ideFrame = guiTest.ideFrame()
 
@@ -120,23 +123,24 @@ class AddCppToModuleActionTest {
       """.trimIndent())
 
     ideFrame.openAddCppToModuleDialog().apply {
+      guiTest.waitForAllBackgroundTasksToBeCompleted()
       selectLinkCppProject()
       enabledTextField.setText(androidMkFile.absolutePath)
       okButton.click()
     }
-
-    GuiTests.waitForBackgroundTasks(guiTest.robot())
+    ideFrame.waitForGradleSyncToFinish(Wait.seconds(240))
 
     if (getInstance(ideFrame.project).lastSyncFailed()) {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/Android.mk")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("cpp/Android.mk")
   }
 
   @Test
   fun testAddCppToModuleDialogOkButton() {
     createPureJavaProject()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val ideFrame = guiTest.ideFrame()
 

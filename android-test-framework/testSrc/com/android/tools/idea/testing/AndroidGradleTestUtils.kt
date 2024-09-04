@@ -167,7 +167,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleSdkData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
@@ -195,6 +195,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
@@ -902,6 +903,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
@@ -966,6 +968,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
@@ -1117,6 +1120,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     desugaredMethodsFiles = emptyList(),
     generatedClassPaths = emptyMap(),
     bytecodeTransforms = null,
+    generatedAssetFolders = listOf()
   )
 }
 
@@ -2284,7 +2288,7 @@ private fun <T> openPreparedProject(
         val awaitGradleStartupActivity = project.coroutineScope().launch {
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
-        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture())
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.maybeOutputDiagnostics()
         project
@@ -2421,6 +2425,7 @@ fun Project.requestSyncAndWait(
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
     }
   }
+  IndexingTestUtil.waitUntilIndexesAreReady(this);
 }
 
 /**
@@ -2548,7 +2553,7 @@ fun injectSyncOutputDumper(
 ) {
   val projectId = ExternalSystemTaskId.getProjectId(project)
   ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
-    object : ExternalSystemTaskNotificationListenerAdapter() {
+    object : ExternalSystemTaskNotificationListener {
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         if (id.ideProjectId != projectId) return
         outputHandler(project, text)

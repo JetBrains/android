@@ -30,12 +30,8 @@ class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
     StudioIcons.LayoutEditor.Motion.PLAY_YOYO,
   ) {
 
-  private var isSwappingStates = false
-
   override fun actionPerformed(e: AnActionEvent) {
-    isSwappingStates = true
     swapStates()
-    isSwappingStates = false
     tracker.triggerSwapStatesAction()
   }
 

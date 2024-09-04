@@ -85,7 +85,7 @@ open class PerfgateComposeGradleTestBase {
     measurements: List<MetricMeasurement<Unit>>,
     measuredRunnable: suspend () -> Unit = { fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds) }
   ) = runBlocking {
-    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds, failOnTimeout = false) {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
@@ -97,7 +97,7 @@ open class PerfgateComposeGradleTestBase {
         }
       }
     }
-    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
+    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
 
     composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {

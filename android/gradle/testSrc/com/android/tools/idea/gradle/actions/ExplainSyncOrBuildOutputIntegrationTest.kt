@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getGradleFilesContext
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent
@@ -37,6 +37,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import com.android.SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
+import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 
@@ -69,7 +70,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     ) {}
 
     val actual =
-      getErrorShortDescription(eventResults[1])!!
+      getErrorDetails(eventResults[1])!!
         .trimIndent()
         .replace("\r\n", "\n")
         .replace("\\", "/")
@@ -110,7 +111,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     val preparedProject: PreparedTestProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val (contextString, files) =
-      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService(project)) }!!
+      preparedProject.open { getGradleFilesContext(it, FakeAiExcludeService()) }!!
 
     assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
     assertEquals(3, files.size)

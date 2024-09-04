@@ -17,7 +17,6 @@ package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -28,6 +27,7 @@ import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
@@ -36,7 +36,6 @@ import java.nio.file.Files
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
@@ -64,7 +63,7 @@ class AdditionalSettingsPanelTest {
     }
   }
 
-  @get:Rule val rule = createComposeRule()
+  @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
@@ -96,19 +95,17 @@ class AdditionalSettingsPanelTest {
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), MockitoKt.mock())
 
     rule.setContent {
-      IntUiTheme {
-        CompositionLocalProvider(
-          LocalFileSystem provides fileSystem,
-          @OptIn(ExperimentalJewelApi::class) LocalComponent provides MockitoKt.mock(),
-          LocalProject provides null,
-        ) {
-          Column {
-            AdditionalSettingsPanel(
-              state,
-              AdditionalSettingsPanelState(device),
-              onImportButtonClick = {},
-            )
-          }
+      CompositionLocalProvider(
+        LocalFileSystem provides fileSystem,
+        @OptIn(ExperimentalJewelApi::class) LocalComponent provides MockitoKt.mock(),
+        LocalProject provides null,
+      ) {
+        Column {
+          AdditionalSettingsPanel(
+            state,
+            AdditionalSettingsPanelState(device),
+            onImportButtonClick = {},
+          )
         }
       }
     }

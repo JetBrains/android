@@ -19,61 +19,65 @@ import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.internal.avd.AvdBuilder
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Paths
 import org.junit.Test
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class VirtualDevicesTest {
+  private val avdManager = mock<AvdManager>()
+
   @Test
-  fun addAutomotiveDevice() {
+  fun add() {
     val deviceManager =
       DeviceManager.createInstance(mock<AndroidSdkHandler>(), NoErrorsOrWarningsLogger())
-    val avdManagerConnection = mock<AvdManagerConnection>()
     val allDevices = deviceManager.getDevices(DeviceManager.ALL_DEVICES).toList()
     val autoDevice = allDevices.first { it.id == "automotive_1080p_landscape" }
+    val systemImageManager =
+      mockSystemImageManager("system-images;android-33;android-automotive;x86_64")
+    val systemImage = mockSystemImage("system-images;android-33;android-automotive;x86_64")
 
-    whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
-
-    VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
-      .add(
-        autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(34))).toVirtualDevice(),
-        mockSystemImage(),
+    whenever(avdManager.createAvdBuilder(any()))
+      .thenReturn(
+        AvdBuilder(
+          Paths.get("/tmp/avd/automotive.ini"),
+          Paths.get("/tmp/avd/automotive.avd"),
+          autoDevice,
+        )
       )
 
-    val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
-    verify(avdManagerConnection)
-      .createOrUpdateAvd(
-        /* currentInfo = */ isNull(),
-        /* avdName = */ eq("Automotive_1080p_landscape_"),
-        /* device = */ eq(autoDevice),
-        /* systemImageDescription = */ any(),
-        /* orientation = */ eq(ScreenOrientation.PORTRAIT), // TODO: This seems wrong
-        /* isCircular = */ eq(false),
-        /* sdCard = */ isNull(),
-        /* skinFolder = */ any(),
-        /* hardwareProperties = */ hardwarePropertiesCaptor.capture(),
-        /* userSettings = */ isNull(),
-        /* removePrevious = */ eq(true),
-      )
+    val virtualDevice =
+      autoDevice.toVirtualDeviceProfile(setOf(AndroidVersion(33))).toVirtualDevice()
 
-    assertThat(hardwarePropertiesCaptor.value).containsKey(ConfigKey.CLUSTER_WIDTH)
+    VirtualDevices(avdManager, systemImageManager).add(virtualDevice, systemImage)
+
+    val avdBuilderCaptor = argumentCaptor<AvdBuilder>()
+    verify(avdManager).createAvd(avdBuilderCaptor.capture())
+
+    with(avdBuilderCaptor.lastValue) {
+      assertThat(avdName).isEqualTo("Automotive_1080p_landscape_")
+      assertThat(device).isEqualTo(autoDevice)
+      assertThat(displayName).isEqualTo(autoDevice.displayName)
+      assertThat(skin).isNull()
+      assertThat(screenOrientation).isEqualTo(ScreenOrientation.LANDSCAPE)
+      assertThat(configProperties()).containsKey(ConfigKey.CLUSTER_WIDTH)
+    }
   }
 
   private companion object {
-    private fun mockSystemImageManager(): SystemImageManager {
+    private fun mockSystemImageManager(path: String): SystemImageManager {
       val repoPackage = mock<RepoPackage>()
-      whenever(repoPackage.path).thenReturn("system-images;android-33;android-automotive;x86_64")
+      whenever(repoPackage.path).thenReturn(path)
 
       val sdklibImage = mock<com.android.sdklib.repository.targets.SystemImage>()
       whenever(sdklibImage.`package`).thenReturn(repoPackage)
@@ -84,9 +88,9 @@ class VirtualDevicesTest {
       return manager
     }
 
-    private fun mockSystemImage(): SystemImage {
+    private fun mockSystemImage(path: String): SystemImage {
       val image = mock<SystemImage>()
-      whenever(image.path).thenReturn("system-images;android-33;android-automotive;x86_64")
+      whenever(image.path).thenReturn(path)
 
       return image
     }

@@ -29,4 +29,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.scene.decorator">
     <nlDecoratorProvider implementation="com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorProviderImpl"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.handlers.motion.editor.notifications.MotionEditorNotificationProvider" />
+  </extensions>
 </idea-plugin>

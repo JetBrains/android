@@ -20,16 +20,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.testFramework.TestFrameworkUtil
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.registerOrReplaceServiceInstance
-import com.intellij.testFramework.waitUntil
-import com.intellij.util.concurrency.Invoker.EDT
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +31,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import kotlin.time.Duration.Companion.seconds
 
 @RunWith(JUnit4::class)
 class AndroidProjectRootListenerTest {
@@ -71,13 +62,9 @@ class AndroidProjectRootListenerTest {
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-    runBlocking {
-      waitUntil("resourceFolderManagerSpy.checkForChanges was called", timeout = 5.seconds) {
-        runCatching {
-          verify(resourceFolderManagerSpy, times(1)).checkForChanges()
-        }.isSuccess
-      }
-    }
+    ApplicationManager.getApplication().invokeAndWait {}
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 
   @Test
@@ -103,13 +90,8 @@ class AndroidProjectRootListenerTest {
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-
-    runBlocking {
-      waitUntil("resourceFolderManagerSpy.checkForChanges was called", timeout = 5.seconds) {
-        runCatching {
-          verify(resourceFolderManagerSpy, times(1)).checkForChanges()
-        }.isSuccess
-      }
-    }
+    ApplicationManager.getApplication().invokeAndWait {}
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 }

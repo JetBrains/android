@@ -72,12 +72,6 @@ class ConfigureAndroidModuleStep(
       cell(languageCombo).align(AlignX.FILL)
     }
 
-    if (model.isLibrary) {
-      row("Bytecode Level") {
-        cell(bytecodeCombo).align(AlignX.FILL)
-      }
-    }
-
     row("Minimum SDK") {
       cell(apiLevelCombo).align(AlignX.FILL)
     }

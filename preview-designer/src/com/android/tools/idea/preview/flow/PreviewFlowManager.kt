@@ -33,8 +33,19 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
-  /** Flow containing the filtered [T]s from [allPreviewElementsFlow]. */
+  /**
+   * Flow containing the filtered [T]s from [allPreviewElementsFlow]. These filtered [T]s are
+   * sorted.
+   */
   val filteredPreviewElementsFlow: StateFlow<FlowableCollection<T>>
+
+  /**
+   * Flow containing all the [T]s that have completed rendering. These are all the
+   * [filteredPreviewElementsFlow] that have rendered.
+   *
+   * This flow must be updated by calling [updateRenderedPreviews].
+   */
+  val renderedPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
    * Selects a single [T] preview element. If the value is non-null, then
@@ -42,6 +53,13 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
    * the value is null, then the single filter is removed.
    */
   fun setSingleFilter(previewElement: T?)
+
+  /**
+   * Updates the value of [renderedPreviewElementsFlow] with the given list of [T]s.
+   *
+   * @see renderedPreviewElementsFlow
+   */
+  fun updateRenderedPreviews(previewElements: List<T>)
 
   companion object {
     val KEY = DataKey.create<PreviewFlowManager<*>>("PreviewFlowManager")

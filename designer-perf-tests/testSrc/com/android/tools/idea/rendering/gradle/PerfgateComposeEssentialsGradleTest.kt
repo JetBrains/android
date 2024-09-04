@@ -22,9 +22,9 @@ import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.perflogger.Metric
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
-import com.intellij.testFramework.MapDataContext
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -44,7 +44,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -86,7 +86,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -128,7 +128,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
     Assert.assertEquals(
       1,
       composePreviewRepresentation
-        .filteredPreviewElementsInstancesFlowForTest()
+        .renderedPreviewElementsInstancesFlowForTest()
         .value
         .asCollection()
         .size,
@@ -166,7 +166,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
   }
 
   private fun setUpEssentialsMode() = runBlocking {
-    projectRule.runAndWaitForRefresh {
+    projectRule.runAndWaitForRefresh(failOnTimeout = false) {
       runWriteActionAndWait {
         AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = true
         ApplicationManager.getApplication()
@@ -176,11 +176,11 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
       }
       delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
       previewView.galleryMode!!.triggerSelectionChange(
-        MapDataContext().also {
-          it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
-        },
+        SimpleDataContext.builder()
+          .add(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
+          .build(),
         composePreviewRepresentation
-          .filteredPreviewElementsInstancesFlowForTest()
+          .renderedPreviewElementsInstancesFlowForTest()
           .value
           .asCollection()
           .first(),

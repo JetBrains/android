@@ -868,6 +868,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       desugaredMethodsFiles = emptyList(),
       generatedClassPaths = emptyMap(),
       bytecodeTransforms = null,
+      generatedAssetFolders = emptyList()
     )
     return IdeModelWithPostProcessor(
       androidArtifactCoreImpl,

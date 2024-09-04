@@ -38,6 +38,14 @@ interface PositionableContent {
   val contentSize: Dimension
     @AndroidDpCoordinate get() = getContentSize(Dimension())
 
+  /**
+   * The height of the top panel of a [PositionableContent], top panel is not affected by scale
+   * changes, so this value should be used when we need a fine calculation of a
+   * [PositionableContent] having a top panel
+   */
+  val topPanelHeight: Int
+    get() = 0
+
   @get:SwingCoordinate val x: Int
 
   @get:SwingCoordinate val y: Int
@@ -83,3 +91,29 @@ val PositionableContent.scaledContentSize: Dimension
 @SwingCoordinate
 fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
   getContentSize(dimension).scaleBy(scale)
+
+/**
+ * Calculate the total height of a [PositionableContent] adding a scale factor only on parts of the
+ * content that are subject to scale change. Scaled height is calculated considering that
+ * [PositionableContent.topPanelHeight] is not affected by scale changes, while margins and content
+ * are.
+ *
+ * @param height the height of the content where we want to calculate the zoom minus
+ * @param scale the scale to apply during the calculation of the height
+ *   ([PositionableContent.topPanelHeight] is not affected by this value.
+ * @returns the scaled height plus the offset that is not subject for scale change.
+ */
+fun PositionableContent.calculateHeightWithOffset(height: Int, scale: Double): Int {
+  // contentSize takes into account top panel, when we apply the scale we also multiply the size of
+  // the top panel.
+  val scaledTotalHeight = height
+  // The value we want to remove from the scaled total height is the top panel with the scale factor
+  // applied.
+  val scaledTopPanelHeight = topPanelHeight * scale
+
+  // This is the height of the content of the PositionableContent without any top panel
+  val contentHeight = scaledTotalHeight - scaledTopPanelHeight
+  // We add the not scaled top panel height to the content height, to have the correct size.
+  val scaledHeight = (contentHeight + topPanelHeight).toInt()
+  return scaledHeight
+}

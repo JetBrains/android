@@ -143,7 +143,7 @@ class VisualizationForm(
   private var myCancelPendingModelLoad = AtomicBoolean(false)
   private val myProgressIndicator = EmptyProgressIndicator()
   private val analyticsManager: NlAnalyticsManager
-    get() = surface.analyticsManager
+    get() = surface.analyticsManager as NlAnalyticsManager
 
   var editor: FileEditor?
     get() = myEditor
@@ -603,16 +603,22 @@ class VisualizationForm(
 
     // This render the added components.
     for (manager in surface.sceneManagers) {
-      visualLintHandler.setupForLayoutlibSceneManager(manager) {
-        !isActive || isRenderingCanceled.get()
-      }
       renderFuture =
         renderFuture.thenCompose {
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           } else {
             manager.forceReinflate()
-            return@thenCompose manager.requestRenderAsync()
+            return@thenCompose manager
+              .requestRenderAsync()
+              .thenRunAsync(
+                {
+                  visualLintHandler.afterRenderCompleted(manager) {
+                    !isActive || isRenderingCanceled.get()
+                  }
+                },
+                AppExecutorUtil.getAppExecutorService(),
+              )
           }
         }
     }

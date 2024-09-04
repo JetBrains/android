@@ -26,8 +26,8 @@
           <vspacer id="6985c">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-                <preferred-size width="-1" height="48"/>
-                <maximum-size width="-1" height="48"/>
+                <preferred-size width="-1" height="32"/>
+                <maximum-size width="-1" height="32"/>
               </grid>
             </constraints>
           </vspacer>

@@ -104,6 +104,8 @@ const val COMPOSE_MAY_CAUSE_APP_CRASH_KEY = "compose.inspection.may.cause.app.cr
 
 @VisibleForTesting const val COMPOSE_JAR_FOUND_FOUND_KEY = "compose.jar.not.found"
 
+@VisibleForTesting const val LAUNCH_UNKNOWN_ERROR = "compose.inspector.launch.unknown.error"
+
 private const val PROGUARD_LEARN_MORE =
   "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
@@ -445,6 +447,9 @@ class ComposeLayoutInspectorClient(
               error.args["path"]!!,
               inspectorFolderFlag(isRunningFromSourcesInTests),
             )
+          }
+          AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR -> {
+            LayoutInspectorBundle.message(LAUNCH_UNKNOWN_ERROR)
           }
           else -> {
             logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launch error: %s", error)

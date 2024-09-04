@@ -621,6 +621,10 @@ MODULE                        : TestCompositeLib1
         qName                         : TestCompositeLib1
         group                         : com.test.composite1
         version                       : 1.0
+        projectDir                    : <ROOT>/TestCompositeLib1
+        buildDir                      : <ROOT>/TestCompositeLib1/build [-]
+        buildFile                     : <ROOT>/TestCompositeLib1/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :includedLib1:app (DefaultExternalProject)
                 path                          : :app [-]
@@ -632,11 +636,6 @@ MODULE                        : TestCompositeLib1
                 projectDir                    : <ROOT>/TestCompositeLib1/app
                 buildDir                      : <ROOT>/TestCompositeLib1/app/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -853,6 +852,12 @@ MODULE                        : TestCompositeLib1
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             lib                           : :includedLib1:lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :includedLib1:lib [-]
@@ -863,11 +868,6 @@ MODULE                        : TestCompositeLib1
                 projectDir                    : <ROOT>/TestCompositeLib1/lib
                 buildDir                      : <ROOT>/TestCompositeLib1/lib/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -1095,11 +1095,14 @@ MODULE                        : TestCompositeLib1
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>/TestCompositeLib1
-        buildDir                      : <ROOT>/TestCompositeLib1/build [-]
-        buildFile                     : <ROOT>/TestCompositeLib1/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -1715,8 +1718,8 @@ MODULE                        : TestCompositeLib1.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -1733,8 +1736,8 @@ MODULE                        : TestCompositeLib1.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -1751,8 +1754,8 @@ MODULE                        : TestCompositeLib1.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2342,8 +2345,8 @@ MODULE                        : TestCompositeLib1.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2360,8 +2363,8 @@ MODULE                        : TestCompositeLib1.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2378,8 +2381,8 @@ MODULE                        : TestCompositeLib1.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2409,6 +2412,10 @@ MODULE                        : TestCompositeLib3
         name                          : TestCompositeLib3
         qName                         : TestCompositeLib3
         version                       : unspecified
+        projectDir                    : <ROOT>/TestCompositeLib3
+        buildDir                      : <ROOT>/TestCompositeLib3/build [-]
+        buildFile                     : <ROOT>/TestCompositeLib3/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :TestCompositeLib3:app (DefaultExternalProject)
                 path                          : :app [-]
@@ -2420,11 +2427,6 @@ MODULE                        : TestCompositeLib3
                 projectDir                    : <ROOT>/TestCompositeLib3/app
                 buildDir                      : <ROOT>/TestCompositeLib3/app/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2641,6 +2643,12 @@ MODULE                        : TestCompositeLib3
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             lib                           : :TestCompositeLib3:lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :TestCompositeLib3:lib [-]
@@ -2651,11 +2659,6 @@ MODULE                        : TestCompositeLib3
                 projectDir                    : <ROOT>/TestCompositeLib3/lib
                 buildDir                      : <ROOT>/TestCompositeLib3/lib/build [-]
                 buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2763,11 +2766,14 @@ MODULE                        : TestCompositeLib3
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>/TestCompositeLib3
-        buildDir                      : <ROOT>/TestCompositeLib3/build [-]
-        buildFile                     : <ROOT>/TestCompositeLib3/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -3371,8 +3377,8 @@ MODULE                        : TestCompositeLib3.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3389,8 +3395,8 @@ MODULE                        : TestCompositeLib3.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3407,8 +3413,8 @@ MODULE                        : TestCompositeLib3.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3965,9 +3971,6 @@ MODULE                        : com.test.compositeNest3.compositeNest
         projectDir                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
         buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
         buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
-        tasks
-            test                          : test (DefaultExternalTask)
-                qName                         : :test
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4029,6 +4032,10 @@ MODULE                        : com.test.compositeNest3.compositeNest
                             outputDir                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/out/test/resources [-]
                             - gradleOutputDirs            : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
                             patterns                      : FilePatternSetImpl
+        taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :test
 MODULE                        : com.test.compositeNest3.compositeNest.main
 MODULE                        : com.test.compositeNest3.compositeNest.test
 MODULE                        : composite2
@@ -4050,9 +4057,6 @@ MODULE                        : composite2
         projectDir                    : <ROOT>/TestCompositeLib2
         buildDir                      : <ROOT>/TestCompositeLib2/build [-]
         buildFile                     : <ROOT>/TestCompositeLib2/build.gradle
-        tasks
-            test                          : test (DefaultExternalTask)
-                qName                         : :test
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4114,6 +4118,10 @@ MODULE                        : composite2
                             outputDir                     : <ROOT>/TestCompositeLib2/out/test/resources [-]
                             - gradleOutputDirs            : <ROOT>/TestCompositeLib2/build/resources/test [-]
                             patterns                      : FilePatternSetImpl
+        taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :test
 MODULE                        : composite2.main
 MODULE                        : composite2.test
 MODULE                        : composite4
@@ -4135,9 +4143,6 @@ MODULE                        : composite4
         projectDir                    : <ROOT>/TestCompositeLib4
         buildDir                      : <ROOT>/TestCompositeLib4/build [-]
         buildFile                     : <ROOT>/TestCompositeLib4/build.gradle
-        tasks
-            test                          : test (DefaultExternalTask)
-                qName                         : :test
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4199,6 +4204,10 @@ MODULE                        : composite4
                             outputDir                     : <ROOT>/TestCompositeLib4/out/test/resources [-]
                             - gradleOutputDirs            : <ROOT>/TestCompositeLib4/build/resources/test [-]
                             patterns                      : FilePatternSetImpl
+        taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :test
 MODULE                        : composite4.main
 MODULE                        : composite4.test
 MODULE                        : compositeNest
@@ -4220,9 +4229,6 @@ MODULE                        : compositeNest
         projectDir                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
         buildDir                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build [-]
         buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
-        tasks
-            test                          : test (DefaultExternalTask)
-                qName                         : :test
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4284,6 +4290,10 @@ MODULE                        : compositeNest
                             outputDir                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/out/test/resources [-]
                             - gradleOutputDirs            : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/test [-]
                             patterns                      : FilePatternSetImpl
+        taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :test
 MODULE                        : compositeNest.main
 MODULE                        : compositeNest.test
 MODULE                        : project
@@ -4293,6 +4303,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             TestCompositeLib1             : :includedLib1 (DefaultExternalProject) (*seen*)
             TestCompositeLib3             : :TestCompositeLib3 (DefaultExternalProject) (*seen*)
@@ -4306,11 +4320,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4527,6 +4536,12 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             composite2                    : :TestCompositeLib2 (DefaultExternalProject) (*seen*)
             composite4                    : :TestCompositeLib4 (DefaultExternalProject) (*seen*)
             compositeNest                 : :TestCompositeLibNested_3 (DefaultExternalProject) (*seen*)
@@ -4540,11 +4555,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
-                tasks
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -4772,11 +4782,14 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -5392,8 +5405,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -5410,8 +5423,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -5428,8 +5441,8 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -6001,8 +6014,8 @@ MODULE                        : project.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -6019,8 +6032,8 @@ MODULE                        : project.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -6037,8 +6050,8 @@ MODULE                        : project.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
-                    enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    explicitReturnTypes           : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

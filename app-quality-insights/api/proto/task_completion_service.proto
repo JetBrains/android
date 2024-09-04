@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+import "request_contexts.proto";
+import "response_contexts.proto";
+import "task_completion_input.proto";
+import "task_completion_output.proto";
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "TaskCompletionServiceProto";
+
+service TaskCompletionService {
+  // Completes a task based on some specification and context.
+  rpc CompleteTask(TaskCompletionRequest) returns (TaskCompletionResponse) {}
+}
+
+// Input for task completion.
+message TaskCompletionRequest {
+  // The full name of the Instance resource for this generation request.
+  // Format:
+  // `projects/{project}/locations/{location}/instances/{instance}`
+  // Use the special 'default' name to refer to the default instance.
+  optional string instance = 6;
+
+  // Represents the raw input for inference. It will be modified
+  // as part of prompt engineering and other transforms before it
+  // is consumed by the LLM.
+  optional TaskCompletionInput input = 1;
+
+  // Duet product context -- required
+  optional ExperienceContext experience_context = 2;
+  // Additional user content not captured in the `instances` field above
+  optional InputDataContext input_data_context = 3;
+  // Client context (e.g. IDE name, version, etc)
+  optional ClientContext client_context = 4;
+  // The GCP resources that the code generation process needs to reference
+  optional BackendResourcesContext backend_resources_context = 5;
+
+  // (-- Reach out to us (go/atlas-titan-contact) if the above contexts do
+  // not meet your needs --)
+}
+
+// Output of task completion.
+message TaskCompletionResponse {
+  // The task completion/chat output.
+  optional TaskCompletionOutput output = 1;
+
+  // Additional generated data
+  optional OutputDataContext output_data_context = 2;
+  // Output display context
+  optional DisplayContext display_context = 3;
+  // Attribution context
+  optional AttributionContext attribution_context = 4;
+}

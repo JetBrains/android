@@ -315,16 +315,22 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun showLayerSpacingSliderOnlyIfModelIsRotated() {
-    val toolbar = createToolbar()
-    val slider = toolbar.actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
+    val sliderBeforeRotation =
+      createToolbar().actions.find { it is LayerSpacingSliderAction } as? LayerSpacingSliderAction
 
-    val presentationDisabled = getPresentation(slider)
-    assertThat(presentationDisabled.isEnabled).isFalse()
-    assertThat(presentationDisabled.isVisible).isFalse()
+    sliderBeforeRotation?.let {
+      // If the action is not null, check that is disabled.
+      val presentationEnabled = getPresentation(it)
+      assertThat(presentationEnabled.isEnabled).isFalse()
+      assertThat(presentationEnabled.isVisible).isFalse()
+    }
 
     layoutInspectorRule.inspector.renderModel.rotate(10.0, 10.0)
 
-    val presentationEnabled = getPresentation(slider)
+    val sliderAfterRotation =
+      createToolbar().actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
+
+    val presentationEnabled = getPresentation(sliderAfterRotation)
     assertThat(presentationEnabled.isEnabled).isTrue()
     assertThat(presentationEnabled.isVisible).isTrue()
   }

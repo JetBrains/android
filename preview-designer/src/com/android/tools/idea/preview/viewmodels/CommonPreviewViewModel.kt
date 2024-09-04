@@ -26,7 +26,7 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
-import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.invokeLater
@@ -143,7 +143,7 @@ open class CommonPreviewViewModel(
       val actionDataText =
         "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
-        psiFilePointer.element?.virtualFile?.let { project.requestBuild(it) }
+        psiFilePointer.element?.virtualFile?.let { project.requestBuildArtifactsForRendering(it) }
         // workbench.repaint() // Repaint the workbench, otherwise the text and link will keep
         // displaying if the mouse is hovering the link
       }

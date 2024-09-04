@@ -62,7 +62,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
@@ -158,19 +157,10 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val closeListener: CloseListener = CloseListener()
         projectManager.addProjectManagerListener(project, closeListener)
         val semaphore = (CompilerManager.getInstance(project) as CompilerManagerImpl).compilationSemaphore
-        var acquired = false
+        while (!semaphore.tryAcquire(300, TimeUnit.MILLISECONDS)) {
+          ProgressManager.checkCanceled()
+        }
         try {
-          try {
-            while (!acquired) {
-              acquired = semaphore.tryAcquire(300, TimeUnit.MILLISECONDS)
-              if (myProgressIndicator.isCanceled) {
-                // Give up obtaining the semaphore, let compile work begin in order to stop gracefully on cancel event.
-                break
-              }
-            }
-          } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-          }
           addIndicatorDelegate()
           myResultFuture.set(invokeGradleTasks(myBuildAction))
         } finally {
@@ -178,9 +168,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             myProgressIndicator.stop()
             projectManager.removeProjectManagerListener(project, closeListener)
           } finally {
-            if (acquired) {
-              semaphore.release()
-            }
+            semaphore.release()
           }
         }
       } catch (t: Throwable) {
@@ -292,7 +280,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             .withVmOptions(traceJvmArgs)
             .withArguments(commandLineArguments)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
-          val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
+          val listener = object : ExternalSystemTaskNotificationListener {
             override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
               if (myBuildStopper.contains(id)) {
                 taskListener.onStatusChange(event)

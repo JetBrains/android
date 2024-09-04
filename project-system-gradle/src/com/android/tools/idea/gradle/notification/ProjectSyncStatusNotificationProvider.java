@@ -211,7 +211,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
     }
 
     NotificationPanel(@NotNull String text) {
-      super((Color)null, Status.Info);
+      super((Color)null);
       setText(text);
     }
   }

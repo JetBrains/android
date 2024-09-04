@@ -320,48 +320,6 @@ class CommonDragTargetTest : SceneTest() {
     assertTrue(y == textView.drawY)
   }
 
-  fun testTransactionSucceedWhenReleasingMouseAtLegalPositionWithLiveRendering() {
-    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
-    val textView = myScreen.get("@id/textView").sceneComponent!!
-
-    constraintLayout.scene.isLiveRenderingEnabled = true
-
-    val transaction = textView.authoritativeNlComponent.startAttributeTransaction()
-
-    myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag(
-      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat(),
-    )
-    myInteraction.mouseRelease(
-      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat(),
-    )
-
-    assertTrue(transaction.isSuccessful)
-  }
-
-  fun testTransactionRollbackWhenReleasingMouseAtIllegalPositionWithLiveRendering() {
-    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
-    val textView = myScreen.get("@id/textView").sceneComponent!!
-
-    constraintLayout.scene.isLiveRenderingEnabled = true
-
-    val transaction = textView.authoritativeNlComponent.startAttributeTransaction()
-
-    myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag(
-      (constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
-      (constraintLayout.drawY - constraintLayout.drawHeight).toFloat(),
-    )
-    myInteraction.mouseRelease(
-      (constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
-      (constraintLayout.drawY - constraintLayout.drawHeight).toFloat(),
-    )
-
-    assertFalse(transaction.isSuccessful)
-  }
-
   fun testFinalSelection() {
     val textView = myScreen.get("@id/textView").sceneComponent!!
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!

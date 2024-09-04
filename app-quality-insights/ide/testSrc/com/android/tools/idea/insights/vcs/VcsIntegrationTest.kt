@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.InsightsTestProject
@@ -48,15 +46,11 @@ import git4idea.commands.GitCommand
 import git4idea.repo.GitRepository
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 class VcsIntegrationTest {
-  private val projectRule: IntegrationTestEnvironmentRule =
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule =
     AndroidProjectRule.withIntegrationTestEnvironment()
-
-  private val flagRule = FlagRule(StudioFlags.APP_INSIGHTS_VCS_SUPPORT, true)
-
-  @get:Rule val rules = RuleChain.outerRule(projectRule).around(flagRule)
 
   @Test
   fun `test git single repo project`() {

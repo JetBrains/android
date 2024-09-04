@@ -16,9 +16,11 @@
 package com.android.tools.res
 
 import com.android.ide.common.resources.ResourceRepository
+import com.intellij.openapi.application.CachedSingletonsRegistry
 import java.nio.file.Path
 import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
+import java.util.function.Supplier
 
 /**
  * Provides an instance of [ResourceRepository] containing framework resources with specific parameters.
@@ -37,11 +39,15 @@ fun interface FrameworkResourceRepositoryManager {
   }
 
   companion object {
+    @Suppress("UnstableApiUsage")
+    private val instanceSupplier: Supplier<FrameworkResourceRepositoryManager?> =
+      CachedSingletonsRegistry.lazy {
+        ServiceLoader.load(Provider::class.java, this::class.java.classLoader).firstOrNull()?.frameworkResourceRepositoryManager
+      }
+
     @JvmStatic
     fun getInstance(): FrameworkResourceRepositoryManager {
-      val serviceLoader = ServiceLoader.load(Provider::class.java, this::class.java.classLoader)
-      return serviceLoader.firstOrNull()?.frameworkResourceRepositoryManager
-             ?: throw ServiceConfigurationError("Could not find any FrameworkResourceRepositoryManager")
+      return instanceSupplier.get() ?: throw ServiceConfigurationError("Could not find any FrameworkResourceRepositoryManager")
     }
   }
 }

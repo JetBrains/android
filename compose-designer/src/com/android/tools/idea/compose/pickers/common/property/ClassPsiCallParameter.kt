@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterProp
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
 import org.jetbrains.kotlin.idea.util.ImportDescriptorResult
@@ -99,6 +99,6 @@ internal class ClassPsiCallParameter(
 
   private fun setValueAndShorten(fqValue: String, trackableValue: PreviewPickerValue) {
     writeNewValue(fqValue, true, trackableValue)
-    argumentExpression?.let { arg -> shortenReferences(arg) }
+    argumentExpression?.let(ShortenReferencesFacility.getInstance()::shorten)
   }
 }

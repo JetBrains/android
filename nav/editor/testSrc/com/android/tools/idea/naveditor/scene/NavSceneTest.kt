@@ -168,7 +168,7 @@ class NavSceneTest {
     component3.setPosition(200, 200)
     sceneManager.save(listOf(component1, component2, component3))
 
-    model.surface.sceneManager!!.update()
+    model.surface.getSceneManager(model)!!.update()
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
 
@@ -197,7 +197,7 @@ class NavSceneTest {
     component3.setPosition(2200, 2200)
     sceneManager.save(listOf(component1, component2, component3))
 
-    model.surface.sceneManager!!.update()
+    model.surface.getSceneManager(model)!!.update()
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
 
@@ -273,7 +273,7 @@ class NavSceneTest {
     undoManager.undo(editor)
     PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
     model.notifyModified(ChangeType.EDIT)
-    model.surface.sceneManager!!.update()
+    model.surface.getSceneManager(model)!!.update()
     scene.layout(0, sceneView.context)
 
     component2 = scene.getSceneComponent("fragment2")!!
@@ -319,7 +319,7 @@ class NavSceneTest {
     assertDrawRectEquals(sceneView, component2, 580f, 400f, 76.5f, 128f)
     assertDrawRectEquals(sceneView, nested, 400f, 400f, 70f, 19f)
 
-    whenever<NlComponent>(surface.currentNavigation).then { model.treeReader.find("nested")!! }
+    whenever(surface.currentNavigation).then { model.treeReader.find("nested")!! }
     scene.sceneManager.update()
     val component3 = scene.getSceneComponent("fragment3")!!
     moveComponentTo(component3, 200, 20)
@@ -636,13 +636,13 @@ class NavSceneTest {
     list.clear()
     model.configuration
       .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
-    surface.sceneManager!!.update()
+    surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     list.clear()
     model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
-    surface.sceneManager!!.update()
+    surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
   }

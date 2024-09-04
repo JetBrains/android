@@ -204,7 +204,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.
   val existingModels = models.toMutableList()
-  val previewElementsList = previewElements.toList().sortByDisplayAndSourcePosition()
+  val previewElementsList = previewElements.toList()
   val modelIndices =
     if (tryReusingModels) {
       withContext(AndroidDispatchers.workerThread) {

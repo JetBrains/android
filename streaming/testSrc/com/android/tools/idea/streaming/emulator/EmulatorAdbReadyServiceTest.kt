@@ -19,8 +19,6 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
@@ -45,6 +43,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import kotlin.time.Duration.Companion.seconds
 
@@ -116,6 +116,24 @@ class EmulatorAdbReadyServiceTest {
     deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
     deviceHandle.connectToMockDevice(serialNumber)
     delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { button.isEnabled }
+  }
+
+  @Test
+  fun testMainToolbarUpdateOnDisconnect() = runBlocking {
+    val emulator = createFakeEmulator()
+    val serialNumber = emulator.serialNumber
+    val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    deviceHandle.connectToMockDevice(serialNumber)
+    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { isReadyForAdbCommands(project, serialNumber) }
+
+    val panel = createWindowPanel()
+    val ui = runInEdtAndGet { createUi(panel, emulator) }
+    val button = ui.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
+    assertThat(button.isEnabled).isTrue()
+
+    deviceHandle.disconnect()
+    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !button.isEnabled }
   }
 
   private fun FakeDeviceHandle.connectToMockDevice(serialNumber: String) {

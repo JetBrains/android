@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "TaskCompletionMessageProto";
+
+// Represents a single message.
+message TaskCompletionMessage {
+  // Text content of the task completion/chat message.
+  optional string content = 1;
+  // Author tag for the turn.
+  optional string author = 2;
+}

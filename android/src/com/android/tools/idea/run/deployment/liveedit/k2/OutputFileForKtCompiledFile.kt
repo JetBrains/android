@@ -24,7 +24,7 @@ import java.io.File
 /**
  * A class used to convert the compile result of K2 codegen API to [OutputFile].
  */
-@KaExperimentalApi
+@OptIn(KaExperimentalApi::class)
 @ApiStatus.Internal
 class OutputFileForKtCompiledFile(private val compiledFile: KaCompiledFile): OutputFile {
   override val relativePath: String

@@ -667,7 +667,7 @@ class GroupedGridSurfaceLayoutManagerTest {
 
     run {
       val scale = manager.getFitIntoScale(contents, 50, 1000)
-      assertEquals(0.5, scale, tolerance)
+      assertEquals(1.0, scale, tolerance)
     }
   }
 

@@ -3,10 +3,9 @@ load("//tools/adt/idea/jps-build:idea.bzl", "idea_source", "jps_library", "jps_t
 idea_source(
     name = "source",
     include = ["**"],
-    base_dir = "tools/adt/idea/jps-build/tests",
     exclude = ["BUILD"],
+    strip_prefix = "tools/adt/idea/jps-build/tests/",
     target_compatible_with = ["@platforms//os:linux"],
-    target_dir = "tools/idea",
     visibility = ["//visibility:public"],
 )
 

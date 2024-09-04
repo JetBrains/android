@@ -74,7 +74,7 @@ class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
   private val isKotlinPluginBundled: () -> Boolean,
-  private val beforeCompilationStarts: suspend () -> Unit) : CompilerDaemonClient {
+  private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
 
   constructor(project: Project, log: Logger):
     this(project, log, ::isKotlinPluginBundled, {})
@@ -83,7 +83,7 @@ class EmbeddedCompilerClientImpl private constructor(
   constructor(project: Project,
               log: Logger,
               isKotlinPluginBundled: Boolean = true,
-              beforeCompilationStarts: suspend () -> Unit = {}) :
+              beforeCompilationStarts: () -> Unit = {}) :
     this(project, log,
          isKotlinPluginBundled = { isKotlinPluginBundled },
          beforeCompilationStarts = beforeCompilationStarts)
@@ -173,8 +173,10 @@ class EmbeddedCompilerClientImpl private constructor(
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
+          @OptIn(KaExperimentalApi::class)
           val result = backendCodeGenForK2(inputFile, inputFile.module)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+          @OptIn(KaExperimentalApi::class)
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
             it.writeTo(outputDirectory)
           }

@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -76,6 +77,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
    * origin source file to allow for disambiguation.
    * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
+   *
+   * Implementations of this method should avoid performing read actions and grabbing the read lock
+   * to avoid deadlocks when class loading is performed in the render thread. If read actions are
+   * completely necessary, then they must be non-blocking.
    */
   fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
@@ -149,6 +154,13 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(id: GoogleMavenArtifactId): GradleCoordinate? = getResolvedDependency(id.getCoordinate("+"))
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(id: GoogleMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
+    getResolvedDependency(id.getCoordinate("+"), scope)
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus

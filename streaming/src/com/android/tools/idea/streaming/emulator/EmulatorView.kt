@@ -119,6 +119,7 @@ import java.awt.Graphics2D
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.Shape
 import java.awt.color.ColorSpace
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -153,6 +154,8 @@ import java.awt.event.MouseEvent.BUTTON3
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 import java.awt.geom.AffineTransform
+import java.awt.geom.Area
+import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
 import java.awt.image.DataBufferInt
@@ -500,7 +503,7 @@ class EmulatorView(
     if (frameNumber == 0u) {
       hideLongRunningOperationIndicatorInstantly()
     }
-    val skin = screenshot.skinLayout
+    val skin = if (deviceFrameVisible) screenshot.skinLayout else null
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
@@ -510,6 +513,13 @@ class EmulatorView(
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
+    var savedClip: Shape? = null
+    if (skin?.isDisplayRounded == true) {
+      savedClip = g.clip
+      g.clip(Area(RoundRectangle2D.Double(displayRect.x.toDouble(), displayRect.y.toDouble(),
+                                          displayRect.width.toDouble(), displayRect.height.toDouble(),
+                                          skin.displayCornerSize.width.toDouble(), skin.displayCornerSize.height.toDouble())))
+    }
     // Draw display.
     if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
       g.drawImage(screenshot.image, null, displayRect.x, displayRect.y)
@@ -527,11 +537,10 @@ class EmulatorView(
       // Draw multi-touch visual feedback.
       drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
     }
+    savedClip?.let { g.clip = it }
 
-    if (deviceFrameVisible) {
-      // Draw device frame and mask.
-      skin.drawFrameAndMask(g, displayRect)
-    }
+    // Draw device frame and mask.
+    skin?.drawFrameAndMask(g, displayRect)
 
     if (!screenshot.painted) {
       screenshot.painted = true
@@ -540,13 +549,19 @@ class EmulatorView(
     }
   }
 
-  private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
+  private fun computeDisplayRectangle(skin: SkinLayout?): Rectangle {
     // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
     // by a factor that is only slightly below 1.
     val maxSize = computeMaxImageSize()
     val maxWidth = maxSize.width
     val maxHeight = maxSize.height
-    return if (deviceFrameVisible) {
+    return if (skin == null) {
+      val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
+      val w = screenshotShape.width.scaled(scale)
+      val h = screenshotShape.height.scaled(scale)
+      Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
+    }
+    else {
       val frameRectangle = skin.frameRectangle
       val scale = roundScale(min(maxWidth.toDouble() / frameRectangle.width, maxHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
@@ -554,12 +569,6 @@ class EmulatorView(
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
-    }
-    else {
-      val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
-      val w = screenshotShape.width.scaled(scale)
-      val h = screenshotShape.height.scaled(scale)
-      Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
     }
   }
 
@@ -1439,3 +1448,6 @@ private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS
 private const val PRESSURE_RANGE_MAX = 0x400
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
+
+private val SkinLayout.isDisplayRounded: Boolean
+  get() = displayCornerSize.width > 0 && displayCornerSize.height > 0

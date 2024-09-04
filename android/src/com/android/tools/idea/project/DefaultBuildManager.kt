@@ -30,10 +30,6 @@ object DefaultBuildManager : ProjectSystemBuildManager {
     lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
   }
 
-  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-    lastResult = BuildResult(BuildMode.COMPILE_OR_ASSEMBLE, BuildStatus.SUCCESS)
-  }
-
   override fun getLastBuildResult(): BuildResult = lastResult
 
 

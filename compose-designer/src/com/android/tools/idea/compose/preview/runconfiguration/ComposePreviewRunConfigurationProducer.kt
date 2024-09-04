@@ -48,7 +48,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.KClassValue
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 
 /**
  * Producer of [ComposePreviewRunConfiguration] for `@Composable` functions annotated with
@@ -148,9 +147,7 @@ private fun KtAnnotationEntry.providerClassName(): String? {
   return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 
-/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter.
- * TODO: Remove allowAnalysisOnEdt as it is not needed anymore
- */
+/** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {

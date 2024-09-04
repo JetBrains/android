@@ -45,6 +45,11 @@ class ComposableIconProvider : KotlinIconProvider() {
     return null
   }
 
+  override fun isDumbAware(): Boolean {
+    // This provider can't run in dumb mode since it requires looking up annotations.
+    return false
+  }
+
   override fun isMatchingExpected(declaration: KtDeclaration): Boolean {
     return declaration.hasActualModifier() && declaration.hasMatchingExpected()
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.tools.idea.streaming.device.DeviceState.Property
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.AppLocale
@@ -268,7 +269,7 @@ internal class DeviceController(
             is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
             is SupportedDeviceStatesNotification -> onSupportedDeviceStatesChanged(message)
             is DeviceStateNotification -> onDeviceStateChanged(message)
-            is DisplayAddedNotification -> onDisplayAdded(message)
+            is DisplayAddedOrChangedNotification -> onDisplayAddedOrChanged(message)
             is DisplayRemovedNotification -> onDisplayRemoved(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
           }
@@ -324,9 +325,9 @@ internal class DeviceController(
     currentFoldingState = supportedFoldingStates.find { it.id == stateId }
   }
 
-  private fun onDisplayAdded(message: DisplayAddedNotification) {
+  private fun onDisplayAddedOrChanged(message: DisplayAddedOrChangedNotification) {
     for (listener in displayListeners) {
-      listener.onDisplayAdded(message.displayId)
+      listener.onDisplayAddedOrChanged(message.displayId, message.width, message.height, message.rotation, message.displayType)
     }
   }
 
@@ -351,7 +352,7 @@ internal class DeviceController(
 
   internal interface DisplayListener {
     @AnyThread
-    fun onDisplayAdded(displayId: Int)
+    fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType)
 
     @AnyThread
     fun onDisplayRemoved(displayId: Int)

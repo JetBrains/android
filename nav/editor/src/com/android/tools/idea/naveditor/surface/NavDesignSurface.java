@@ -36,8 +36,10 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -51,7 +53,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
+import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.ZoomChange;
 import com.android.tools.idea.common.surface.ZoomControlsPolicy;
 import com.android.tools.idea.common.surface.ZoomListener;
@@ -157,9 +161,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          (surface) -> new SinglePositionableContentLayoutManager(),
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface),
+          SurfaceInteractable::new,
+          (NavInteractionHandler::new),
+          (surface) -> (PositionableContentLayoutManager)(new SinglePositionableContentLayoutManager()),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
+          new DefaultSelectionModel(),
           ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
@@ -177,7 +184,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     myZoomController = new NavDesignSurfaceZoomController(
       getSize(),
       getViewport(),
-      this::getSceneManager,
+      () -> getSceneManager(getModel()),
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
@@ -247,12 +254,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   @Override
   protected NavSceneManager createSceneManager(@NotNull NlModel model) {
     return new NavSceneManager(model, this);
-  }
-
-  @Nullable
-  @Override
-  public NavSceneManager getSceneManager() {
-    return (NavSceneManager)super.getSceneManager();
   }
 
   /**
@@ -474,8 +475,9 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
-    getSceneManager().update();
-    getSceneManager().requestLayoutAsync(false);
+    SceneManager sceneManager = getSceneManager(getModel());
+    sceneManager.update();
+    sceneManager.requestLayoutAsync(false);
     myZoomController.zoomToFit();
     currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
     repaint();
@@ -576,12 +578,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     if (scaled || shouldRecenter) {
       // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
       // or we will re-center the area, we need to re-calculate the bounding box.
-      NavSceneManager sceneManager = getSceneManager();
+      NlModel model = getModel();
+      if (model != null) {
+        NavSceneManager sceneManager = getSceneManager(model);
 
-      if (sceneManager != null) {
-        sceneManager.requestLayoutAsync(false);
-        // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
-        validateScrollArea();
+        if (sceneManager != null) {
+          sceneManager.requestLayoutAsync(false);
+          // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
+          validateScrollArea();
+        }
       }
     }
 

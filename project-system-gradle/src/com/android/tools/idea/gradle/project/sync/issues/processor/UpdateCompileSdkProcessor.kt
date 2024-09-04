@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_MIN_COMPILE_SDK_UPDATED
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -69,6 +69,13 @@ class UpdateCompileSdkProcessor(
 
   @VisibleForTesting
   public override fun performRefactoring(usages: Array<out UsageInfo>) {
+    updateProjectBuildModel(usages)
+
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_MIN_COMPILE_SDK_UPDATED)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel(usages: Array<out UsageInfo>) {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     val elements = Arrays.stream(usages).map { usage: UsageInfo -> usage.element }.collect(Collectors.toList())
@@ -81,7 +88,6 @@ class UpdateCompileSdkProcessor(
       }
     }
     projectBuildModel.applyChanges()
-    getInstance().requestProjectSync(myProject, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_QF_MIN_COMPILE_SDK_UPDATED), null)
   }
 
   override fun getCommandName(): String = "Update Compile Sdk Version"

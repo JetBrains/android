@@ -17,9 +17,9 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
-import com.android.tools.idea.projectsystem.ProjectBuildTracker
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getPathFromFqcn
@@ -181,7 +181,7 @@ private val PRODUCTION_ROOTS_PROVIDER =
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN),
       ProjectSyncModificationTracker.getInstance(module.project),
-      ProjectBuildTracker.getInstance(module.project)
+      GradleBuildState.getInstance(module.project).modificationTracker
     )
   }
 
@@ -194,7 +194,7 @@ private val ANDROID_TEST_ROOTS_PROVIDER =
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_ANDROID_TEST),
       ProjectSyncModificationTracker.getInstance(module.project),
-      ProjectBuildTracker.getInstance(module.project)
+      GradleBuildState.getInstance(module.project).modificationTracker
     )
   }
 
@@ -207,7 +207,7 @@ private val SCREENSHOT_TEST_ROOTS_PROVIDER =
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_SCREENSHOT_TEST),
       ProjectSyncModificationTracker.getInstance(module.project),
-      ProjectBuildTracker.getInstance(module.project)
+      GradleBuildState.getInstance(module.project).modificationTracker
     )
   }
 

@@ -27,10 +27,22 @@ public interface DeclarativeLiteral extends DeclarativeValue {
   PsiElement getBoolean();
 
   @Nullable
-  PsiElement getNumber();
+  PsiElement getIntegerLiteral();
 
   @Nullable
-  PsiElement getString();
+  PsiElement getLongLiteral();
+
+  @Nullable
+  PsiElement getMultilineStringLiteral();
+
+  @Nullable
+  PsiElement getOneLineStringLiteral();
+
+  @Nullable
+  PsiElement getUnsignedInteger();
+
+  @Nullable
+  PsiElement getUnsignedLong();
 
   @Nullable
   Object getValue();

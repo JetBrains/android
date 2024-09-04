@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.device.SetDeviceOrientationMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -25,7 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  */
 internal sealed class DeviceRotateAction(
   private val rotationQuadrants: Int,
-) : AbstractDeviceAction(configFilter = { it.hasOrientationSensors && !it.isWatch }) {
+) : AbstractDeviceAction(configFilter = { it.hasOrientationSensors && it.deviceType == DeviceType.HANDHELD }) {
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {

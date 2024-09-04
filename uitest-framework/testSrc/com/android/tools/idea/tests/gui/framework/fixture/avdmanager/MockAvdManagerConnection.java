@@ -22,9 +22,11 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
+import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import kotlinx.coroutines.Dispatchers;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -49,13 +52,16 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
-  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler, @NotNull Path avdHomeFolder) {
-    super(handler, avdHomeFolder, MoreExecutors.newDirectExecutorService());
+  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler, @NotNull AvdManager avdManager) {
+    super(handler, avdManager, Dispatchers.getUnconfined());
     mySdkHandler = handler;
   }
 
   public static void inject() {
-    setConnectionFactory(MockAvdManagerConnection::new);
+    setConnectionFactory(
+        (handler, avdHomeFolder) ->
+            new MockAvdManagerConnection(
+                handler, IdeAvdManagers.INSTANCE.getAvdManager(handler, avdHomeFolder)));
   }
 
   @NotNull

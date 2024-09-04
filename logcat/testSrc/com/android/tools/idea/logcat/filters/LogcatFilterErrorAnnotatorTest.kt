@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.Annotation
 import com.intellij.lang.annotation.HighlightSeverity
@@ -43,6 +44,7 @@ class LogcatFilterErrorAnnotatorTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       LogcatFilterLanguageRule(),
       EdtRule(),
       FlagRule(StudioFlags.LOGCAT_IS_FILTER),

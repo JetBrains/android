@@ -124,6 +124,14 @@ class SeverityFilterActionTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
+  @Before
+  fun setUp() {
+    rule.projectRule.replaceProjectService(
+      DesignerCommonIssuePanelModelProvider::class.java,
+      TestIssuePanelModelProvider(),
+    )
+  }
+
   @Test
   fun testSelected() {
     ProblemsViewState.getInstance(rule.project).hideBySeverity.clear()

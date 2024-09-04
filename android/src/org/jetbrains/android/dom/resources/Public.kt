@@ -50,7 +50,7 @@ class PublicResourceNameConverter : StringConverter() {
     if (resourceName == null) {
       return null
     }
-    val element = context?.xmlElement ?: return null
+    val element = context.xmlElement ?: return null
     val resourceNamespace = element.resourceNamespace ?: return null
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return null
     val xmlAttribute: XmlAttribute = tag.getAttribute("type") ?: return null
@@ -63,7 +63,7 @@ class PublicResourceNameConverter : StringConverter() {
   }
 
   override fun getVariants(context: ConvertContext): Collection<String> {
-    val element = context?.invocationElement?.parent as? PublicResource ?: return emptyList()
+    val element = context.invocationElement.parent as? PublicResource ?: return emptyList()
     val module = context.module ?: return emptyList()
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
     val elementType = element.getType()?.value

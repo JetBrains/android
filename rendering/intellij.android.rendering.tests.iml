@@ -14,6 +14,7 @@
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
@@ -30,5 +31,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="bouncy-castle-provider" level="project" />
   </component>
 </module>

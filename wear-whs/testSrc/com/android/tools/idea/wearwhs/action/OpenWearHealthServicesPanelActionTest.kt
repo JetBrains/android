@@ -21,8 +21,6 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -40,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.seconds
@@ -50,6 +49,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class OpenWearHealthServicesPanelActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -86,6 +87,7 @@ class OpenWearHealthServicesPanelActionTest {
             )
           )
         whenever(it.emulatorConfig).thenReturn(emulatorConfig)
+        Disposer.register(projectRule.testRootDisposable, it)
       }
     emulatorView = EmulatorView(projectRule.testRootDisposable, emulatorController, 0, null, false)
 

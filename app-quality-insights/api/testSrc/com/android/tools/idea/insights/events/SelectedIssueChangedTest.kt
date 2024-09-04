@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
@@ -28,16 +26,14 @@ import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.VITALS_KEY
+import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
-import org.junit.Rule
 import org.junit.Test
 
 class SelectedIssueChangedTest {
-  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
-
   @Test
   fun `selecting a different issue causes selection to update and actions to dispatch`() {
     val currentState =
@@ -48,7 +44,8 @@ class SelectedIssueChangedTest {
       )
 
     val transition =
-      SelectedIssueChanged(ISSUE2).transition(currentState, TestAppInsightsTracker, TEST_KEY)
+      SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)
@@ -57,6 +54,7 @@ class SelectedIssueChangedTest {
       assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentEvents).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentInsight).isEqualTo(LoadingState.Loading)
 
       assertThat((action as Action.Multiple).actions)
         .containsExactly(
@@ -78,7 +76,8 @@ class SelectedIssueChangedTest {
       )
 
     val transition =
-      SelectedIssueChanged(ISSUE1).transition(currentState, TestAppInsightsTracker, TEST_KEY)
+      SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
   }
@@ -93,7 +92,8 @@ class SelectedIssueChangedTest {
       )
 
     val transition =
-      SelectedIssueChanged(ISSUE2).transition(currentState, TestAppInsightsTracker, VITALS_KEY)
+      SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
+        .transition(currentState, TestAppInsightsTracker, VITALS_KEY)
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)

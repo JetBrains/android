@@ -78,6 +78,7 @@ open class FakeJBPopup<T>(
   private var minSize: Dimension? = null
   private val registeredListeners = mutableListOf<JBPopupListener>()
   private var isVisible = false
+  private var isDisposed = false
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
@@ -87,7 +88,10 @@ open class FakeJBPopup<T>(
     callback?.consume(item)
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    isDisposed = true
+    isVisible = false
+  }
 
   override fun showUnderneathOf(componentUnder: Component) {
     showStyle = ShowStyle.SHOW_UNDERNEATH_OF
@@ -238,9 +242,7 @@ open class FakeJBPopup<T>(
     TODO("Not yet implemented")
   }
 
-  override fun isDisposed(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override fun isDisposed(): Boolean = isDisposed
 
   override fun getOwner(): Component {
     TODO("Not yet implemented")

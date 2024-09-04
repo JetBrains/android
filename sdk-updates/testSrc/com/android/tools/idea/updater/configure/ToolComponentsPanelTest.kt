@@ -18,16 +18,16 @@ package com.android.tools.idea.updater.configure
 import com.android.repository.api.UpdatablePackage
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
 import kotlin.test.assertEquals
 
 class ToolComponentsPanelTest {
   // basic test of tree construction with no packages installed
   @Test
   fun testNodes() {
-    val propertiesComponent = mock(PropertiesComponent::class.java)
+    val propertiesComponent = mock<PropertiesComponent>()
     val panel = ToolComponentsPanel(propertiesComponent)
-    panel.setConfigurable(mock(SdkUpdaterConfigurable::class.java))
+    panel.setConfigurable(mock<SdkUpdaterConfigurable>())
     val foo = createLocalPackage("foo", 1)
     val bar = createLocalPackage("bar", 2)
     val buildTools12 = createLocalPackage("build-tools;1.2", 1, 2)
@@ -59,5 +59,23 @@ class ToolComponentsPanelTest {
        bar
        foo
     """.trimIndent(), panel.myToolsDetailsRootNode.asString())
+  }
+
+  @Test
+  fun testTitles() {
+    val panel = ToolComponentsPanel(mock())
+    panel.setConfigurable(mock())
+    val multiVersionPackage = createLocalPackage("build-tools;1.1", 1, 1).apply { displayName = "Build Tools 1.1" }
+    val nonMultiVersionPackage = createLocalPackage("foo;1.1", 1, 1).apply { displayName = "Foo 1.1" }
+    panel.setPackages(setOf(multiVersionPackage, nonMultiVersionPackage).map { UpdatablePackage(it) }.toSet())
+    val renderer = UpdaterTreeNode.Renderer()
+
+    val multiVersionNode = panel.myToolsDetailsRootNode.children().nextElement().children().nextElement()
+    renderer.getTreeCellRendererComponent(mock(), multiVersionNode, false, false, true, 1, false)
+    assertEquals("1.1", renderer.textRenderer.toString())
+
+    val nonMultiVersionNode = panel.myToolsDetailsRootNode.children().toList()[1]
+    renderer.getTreeCellRendererComponent(mock(), nonMultiVersionNode, false, false, true, 1, false)
+    assertEquals("Foo 1.1", renderer.textRenderer.toString())
   }
 }

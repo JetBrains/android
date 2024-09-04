@@ -34,6 +34,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
+import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.npw.project.determineKotlinVersion
 
 class NewKotlinMultiplatformLibraryModuleModel(
   project: Project,
@@ -49,6 +51,8 @@ class NewKotlinMultiplatformLibraryModuleModel(
   moduleParent = moduleParent,
   wizardContext = NEW_MODULE,
 ) {
+
+  val kgpVersion = StringValueProperty(determineKotlinVersion(project, isNewProject))
 
   override val androidSdkInfo = OptionalValueProperty(
     AndroidVersionsInfo().apply { loadLocalVersions() }

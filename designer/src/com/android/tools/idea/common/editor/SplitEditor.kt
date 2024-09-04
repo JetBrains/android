@@ -42,7 +42,8 @@ import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
-import com.intellij.ui.ExperimentalUI
+import com.intellij.pom.Navigatable
+import com.intellij.ui.NewUI
 import com.intellij.util.containers.orNull
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -61,7 +62,7 @@ abstract class SplitEditor<P : FileEditor>(
   defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW,
 ) :
   TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout),
-
+  TextEditor,
   DataProvider {
 
   private val textViewAction =
@@ -76,12 +77,7 @@ abstract class SplitEditor<P : FileEditor>(
     )
 
   private val previewViewAction =
-    SplitEditorAction(
-      "Design",
-      AllIcons.General.LayoutPreviewOnly,
-      super.showPreviewAction,
-      false,
-    )
+    SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.showPreviewAction, false)
 
   private val navigateLeftAction =
     object : AnAction() {
@@ -124,6 +120,14 @@ abstract class SplitEditor<P : FileEditor>(
     }
     return thisComponent
   }
+
+  override fun getFile() = myEditor.file
+
+  override fun getEditor() = myEditor.editor
+
+  override fun canNavigateTo(navigatable: Navigatable) = myEditor.canNavigateTo(navigatable)
+
+  override fun navigateTo(navigatable: Navigatable) = myEditor.navigateTo(navigatable)
 
   override val showEditorAction: SplitEditorAction
     get() = textViewAction
@@ -248,7 +252,7 @@ abstract class SplitEditor<P : FileEditor>(
     val icon: Icon,
     val delegate: ToggleAction,
     val showDefaultGutterPopup: Boolean,
-  ) : ToggleAction(if (ExperimentalUI.isNewUI()) null else name, name, icon), DumbAware {
+  ) : ToggleAction(if (NewUI.isEnabled()) null else name, name, icon), DumbAware {
 
     // Using EDT since getFakeActionEvent within getSelectedAction requires the DataContext
     // of a UI component.

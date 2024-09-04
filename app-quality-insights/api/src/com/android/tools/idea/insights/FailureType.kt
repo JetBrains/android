@@ -39,7 +39,7 @@ enum class FailureType {
       UNSPECIFIED -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
       FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
       NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
-      ANR -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+      ANR -> AppQualityInsightsUsageEvent.CrashType.ANR
     }
 }
 
@@ -55,14 +55,12 @@ fun convertSeverityList(
   }
   return when (fatalities[0]) {
     FailureType.ANR ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ANR
     FailureType.FATAL ->
       AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL
     FailureType.NON_FATAL ->
       AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.NON_FATAL
     FailureType.UNSPECIFIED ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
-    else ->
       AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
   }
 }

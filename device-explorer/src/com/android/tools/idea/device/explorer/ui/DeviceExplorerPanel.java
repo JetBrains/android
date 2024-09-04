@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.ui;
 import com.android.sdklib.deviceprovisioner.DeviceHandle;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
@@ -40,6 +41,7 @@ public class DeviceExplorerPanel {
     errorPanel.setBackground(UIUtil.getTreeBackground());
     errorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     errorText.setForeground(NamedColorUtil.getInactiveTextColor());
+    errorText.setIconTextGap(16);
   }
 
   @NotNull

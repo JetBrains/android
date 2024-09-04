@@ -51,6 +51,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.max
 
 typealias ThemeStyleFilter = (ConfiguredThemeEditorStyle) -> Boolean
@@ -168,6 +170,7 @@ fun Module.getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: S
 
 /** Studio-specific implementation of [ThemeInfoProvider]. */
 class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
+  private val cachedDefaultThemesLock = ReentrantLock()
   private val cachedDefaultThemes = WeakHashMap<Configuration, ChangeTrackerCachedValue<String>>()
   override val appThemeName: String?
     @Slow
@@ -193,7 +196,9 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
     val modificationTracker = MergedManifestModificationTracker.getInstance(module)
     val dumbServiceTracker = DumbService.getInstance(module.project)
 
-    val defaultThemeCache = cachedDefaultThemes.getOrPut(configuration) { ChangeTrackerCachedValue.softReference() }
+    val defaultThemeCache = cachedDefaultThemesLock.withLock {
+      cachedDefaultThemes.getOrPut(configuration) { ChangeTrackerCachedValue.softReference() }
+    }
     val weakConfig = WeakReference(configuration)
     return runBlocking {
       ChangeTrackerCachedValue.get(defaultThemeCache, {

@@ -31,7 +31,16 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     val literal = DeclarativePsiFactory(project).createStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
     assertThat(literal).isNotNull()
     assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.String::class.java)
+    assertThat(literal.kind!!.value).isEqualTo("a\tb\bc\nd\re\'f\"g\\h\$i")
     assertThat(literal.text).isEqualTo("\"a\\tb\\bc\\nd\\re\\'f\\\"g\\\\h\\\$i\"")
+  }
+
+  fun testCreateMultilineStringEscapes() {
+    val literal = DeclarativePsiFactory(project).createMultiStringLiteral("a\tb\bc\nd\re\'f\"g\\h\$i")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.MultilineString::class.java)
+    assertThat(literal.kind!!.value).isEqualTo("a\tb\bc\nd\re\'f\"g\\h\$i")
+    assertThat(literal.text).isEqualTo("\"\"\"a\tb\bc\nd\re\'f\"g\\h\${'$'}i\"\"\"")
   }
 
   fun testCreateStringUnicodeEscapes() {
@@ -48,45 +57,66 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(literal.text).isEqualTo("\"someOtherLiteral\"")
   }
 
+  fun testCreateLiteralMultiLineString() {
+    val literal = DeclarativePsiFactory(project).createLiteral("someOther\nLiteral")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.MultilineString::class.java)
+    assertThat(literal.text).isEqualTo("\"\"\"someOther\nLiteral\"\"\"")
+  }
+
   fun testCreateIntegerLiteral() {
     val literal = DeclarativePsiFactory(project).createIntLiteral(101)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Int::class.java)
     assertThat(literal.text).isEqualTo("101")
+  }
+
+  fun testCreateUIntegerLiteral() {
+    val literal = DeclarativePsiFactory(project).createUIntLiteral(101U)
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.UInt::class.java)
+    assertThat(literal.text).isEqualTo("101U")
   }
 
   fun testCreateLiteralInteger() {
     val literal = DeclarativePsiFactory(project).createLiteral(102)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Int::class.java)
     assertThat(literal.text).isEqualTo("102")
   }
 
   fun testCreateLongLiteral() {
     val literal = DeclarativePsiFactory(project).createLongLiteral(103L)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Long::class.java)
     assertThat(literal.text).isEqualTo("103L")
   }
 
   fun testCreateLargeLongLiteral() {
     val literal = DeclarativePsiFactory(project).createLongLiteral(281474976710656L)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Int::class.java)
     assertThat(literal.text).isEqualTo("281474976710656")
+  }
+
+  fun testCreateULongLiteral() {
+    val literal = DeclarativePsiFactory(project).createULongLiteral(103UL)
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.ULong::class.java)
+    assertThat(literal.text).isEqualTo("103UL")
   }
 
   fun testCreateLiteralLong() {
     val literal = DeclarativePsiFactory(project).createLiteral(104L)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Long::class.java)
     assertThat(literal.text).isEqualTo("104L")
   }
 
   fun testCreateLiteralLargeLong() {
     val literal = DeclarativePsiFactory(project).createLiteral(281474976710656L)
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Int::class.java)
     assertThat(literal.text).isEqualTo("281474976710656")
   }
 
@@ -121,15 +151,29 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
   fun testCreateIntegerLiteralFromText() {
     val literal = DeclarativePsiFactory(project).createLiteralFromText("42")
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Int::class.java)
     assertThat(literal.text).isEqualTo("42")
+  }
+
+  fun testCreateUnsignedIntegerLiteralFromText() {
+    val literal = DeclarativePsiFactory(project).createLiteralFromText("4__2U")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.UInt::class.java)
+    assertThat(literal.text).isEqualTo("4__2U")
   }
 
   fun testCreateLongLiteralFromText() {
     val literal = DeclarativePsiFactory(project).createLiteralFromText("4__2L")
     assertThat(literal).isNotNull()
-    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Number::class.java)
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.Long::class.java)
     assertThat(literal.text).isEqualTo("4__2L")
+  }
+
+  fun testCreateUnsignedLongLiteralFromText() {
+    val literal = DeclarativePsiFactory(project).createLiteralFromText("4__2UL")
+    assertThat(literal).isNotNull()
+    assertThat(literal.kind).isInstanceOf(DeclarativeLiteralKind.ULong::class.java)
+    assertThat(literal.text).isEqualTo("4__2UL")
   }
 
   fun testCreateBooleanLiteralFromText() {

@@ -830,25 +830,25 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/testFixtures/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testFixtures
-            JavaSource                    : file://<PROJECT>/lib/src/testFixtures/java
-            JavaResource                  : file://<PROJECT>/lib/src/testFixtures/res
+            JavaSource (test)             : file://<PROJECT>/lib/src/testFixtures/java
+            JavaResource (test)           : file://<PROJECT>/lib/src/testFixtures/res
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testFixturesDebug [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/testFixtures/debug [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/testFixtures/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixtures/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixtures/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/testFixtures/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixtures/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/testFixtures/shaders [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixturesDebug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixturesDebug/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/testFixturesDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/testFixturesDebug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixturesDebug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/testFixturesDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/testFixturesDebug/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixtures/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixtures/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testFixtures/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixtures/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testFixtures/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixturesDebug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixturesDebug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testFixturesDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testFixturesDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixturesDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testFixturesDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testFixturesDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -870,6 +870,10 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.17 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         ORDER_ENTRY                   : project.lib.main
+        Classes
+            -                             : file://<PROJECT>/lib/build/intermediates/javac/debugTestFixtures/compileDebugTestFixturesJavaWithJavac/classes
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debugTestFixtures/generateDebugTestFixturesRFile/R.jar!/
+            -                             : file://<PROJECT>/lib/build/generated/res/resValues/testFixtures/debug
         BUILD_TASKS
                 REBUILD                       : :lib:clean
                 BASELINE_PROFILE_GEN          : :lib:generateDebugBaselineProfile

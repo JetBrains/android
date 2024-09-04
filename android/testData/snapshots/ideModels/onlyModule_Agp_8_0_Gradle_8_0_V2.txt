@@ -624,6 +624,10 @@ MODULE                        : project
         name                          : project
         qName                         : project
         version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
         childProjects
             app                           : :app (DefaultExternalProject)
                 path                          : :app [-]
@@ -635,13 +639,6 @@ MODULE                        : project
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
-                tasks
-                    testBenchmarkUnitTest         : testBenchmarkUnitTest (DefaultExternalTask)
-                        qName                         : :app:testBenchmarkUnitTest
-                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                        qName                         : :app:testDebugUnitTest
-                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                        qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -776,6 +773,14 @@ MODULE                        : project
                         testRuntimeOnly               : <empty>
                         testWearApp                   : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        testBenchmarkUnitTest         : testBenchmarkUnitTest (DefaultExternalTask)
+                            qName                         : :app:testBenchmarkUnitTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :app:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :app:testReleaseUnitTest
             benchmark                     : :benchmark (DefaultExternalProject)
                 path                          : :benchmark [-]
                 identityPath                  : :benchmark [-]
@@ -822,6 +827,7 @@ MODULE                        : project
                         runtimeOnly                   : <empty>
                         testedApks                    : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
             test                          : :test (DefaultExternalProject)
                 path                          : :test [-]
                 identityPath                  : :test [-]
@@ -862,6 +868,7 @@ MODULE                        : project
                         runtimeOnly                   : <empty>
                         testedApks                    : <empty>
                         wearApp                       : <empty>
+                taskModel                     : DefaultGradleTaskModel
             test2                         : :test2 (DefaultExternalProject)
                 path                          : :test2 [-]
                 identityPath                  : :test2 [-]
@@ -902,11 +909,9 @@ MODULE                        : project
                         runtimeOnly                   : <empty>
                         testedApks                    : <empty>
                         wearApp                       : <empty>
-        projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
-        buildFile                     : <ROOT>/build.gradle
-        externalSystemId              : GRADLE
+                taskModel                     : DefaultGradleTaskModel
         sourceSetModel                : DefaultGradleSourceSetModel
+        taskModel                     : DefaultGradleTaskModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.2

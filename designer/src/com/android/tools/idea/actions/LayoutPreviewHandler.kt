@@ -21,7 +21,11 @@ import com.intellij.openapi.actionSystem.DataKey
 val LAYOUT_PREVIEW_HANDLER_KEY =
   DataKey.create<LayoutPreviewHandler>(LayoutPreviewHandler::class.java.name)
 
-/** Interface for components that can render and manage previews from a Layout file. */
+/**
+ * Interface for components that can render and manage previews from a Layout file.
+ *
+ * TODO(b/356365034) Change [LayoutPreviewHandler] to [StateFlow]
+ */
 interface LayoutPreviewHandler {
   var previewWithToolsVisibilityAndPosition: Boolean
 }

@@ -18,13 +18,16 @@ package com.android.tools.profilers.taskbased
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionAspect
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 
 /**
  * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.
  */
-abstract class TaskEntranceTabModel(val profilers: StudioProfilers): AspectObserver() {
+abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
+  private val ongoingSessionEndedObserver = AspectObserver()
+
   val taskGridModel: TaskGridModel = TaskGridModel(::updateProfilingProcessStartingPointDropdown)
 
   val selectedTaskType get() = taskGridModel.selectedTaskType.value
@@ -40,13 +43,19 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers): AspectObser
   open fun onEnterTaskButtonClick() {
     val isTaskOngoing = profilers.sessionsManager.isSessionAlive
 
-    // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
-    // existing task tab will be re-opened.
-    if (this is PastRecordingsTabModel) {
-      val selectedSession = selectedRecording!!.session
-      if (selectedSession == profilers.session) {
-        profilers.openTaskTab()
-        return
+    when (this) {
+      // Disable start button until the previous task has started successfully.
+      is TaskHomeTabModel -> {
+        disableStartButtonUntilPrevTaskStarts()
+      }
+      // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
+      // existing task tab will be re-opened.
+      is PastRecordingsTabModel -> {
+        val selectedSession = selectedRecording!!.session
+        if (selectedSession == profilers.session) {
+          profilers.openTaskTab()
+          return
+        }
       }
     }
 
@@ -72,8 +81,8 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers): AspectObser
 
       // If there is an ongoing task, then the ongoing task is stopped. Then, on notification of the stoppage, the new task is entered.
       if (isTaskOngoing) {
-        sessionsManager.addDependency(this).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
-          sessionsManager.removeDependencies(this)
+        sessionsManager.addDependency(ongoingSessionEndedObserver).onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
+          sessionsManager.removeDependencies(ongoingSessionEndedObserver)
           doEnterTaskButton()
         }
         currentTaskHandler.stopTask()

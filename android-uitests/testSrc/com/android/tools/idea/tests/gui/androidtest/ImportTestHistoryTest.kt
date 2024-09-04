@@ -57,7 +57,7 @@ class ImportTestHistoryTest {
       ))
     )
     runWithBleak(bleakOptions) {
-      ideFrameFixture.invokeMenuPath("Run", "Test History", "ExampleInstrumentedTest (1/27/23, 11:11 AM)")
+      ideFrameFixture.invokeMenuPath("Run", "Test History", "ExampleInstrumentedTest (1/27/23, 11:11\u202FAM)")
       ideFrameFixture.runToolWindow.apply {
         findContent("ExampleInstrumentedTest")
         close()

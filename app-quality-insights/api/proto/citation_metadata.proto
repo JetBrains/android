@@ -1,0 +1,48 @@
+
+syntax = "proto3";
+package google.cloud.cloudaicompanion.v1;
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "CitationMetadataProto";
+// (--  DO NOT DIVERGE THIS PROTO FROM THE VERTEX ORIGINAL
+// This proto is a renamed fork of
+// google.cloud.aiplatform.v1.schema.predict.prediction.CitationMetadata
+// Vertex proto. It should always match or be a subset of the original proto. If
+// you are a producer and would like Duet to port recent additions to the Vertex
+// proto to this proto, file a feature request using go/daip-fr. If you
+// are a member of the Duet platform team, as part of syncing recent Vertex
+// proto additions to this one, make sure to add any necessary handling that the
+// Duet platform needs to do for the new fields from compliance perspective.
+// DO NOT DIVERGE THIS PROTO FROM THE VERTEX ORIGINAL --)
+// The schema of citations found in textual prediction outputs. Citations
+// originate from various sources and indicate that these contents should be
+// cited properly.
+message CitationMetadata {
+  // Metadata of all citations found in this prediction output.
+  repeated CitationEntry citations = 1;
+}
+// Metadata of one citation. (named entry because of clash with code.proto)
+message CitationEntry {
+  // Index in the prediction output where the citation starts
+  // (inclusive). Must be >= 0 and < end_index.
+  optional int32 start_index = 1;
+  // Index in the prediction output where the citation ends
+  // (exclusive). Must be > start_index and < len(output).
+  optional int32 end_index = 2;
+  // URL associated with this citation. If present, this URL links to the
+  // webpage of the source of this citation. Possible URLs include news
+  // websites, GitHub repos, etc.
+  optional string url = 3;
+  // Title associated with this citation. If present, it refers to the title
+  // of the source of this citation. Possible titles include
+  // news titles, book titles, etc.
+  optional string title = 4;
+  // License associated with this recitation. If present, it refers to the
+  // license of the source of this citation. Possible licenses include code
+  // licenses, e.g., mit license.
+  optional string license = 5;
+  // Publication date associated with this citation. If present, it refers to
+  // the date at which the source of this citation was published.
+  // Possible formats are YYYY, YYYY-MM, YYYY-MM-DD.
+  optional string publication_date = 6;
+}

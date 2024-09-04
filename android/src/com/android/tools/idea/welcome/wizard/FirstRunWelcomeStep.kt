@@ -22,6 +22,7 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.BottomGap
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
+import icons.StudioIllustrations
 import javax.swing.JComponent
 
 /**
@@ -47,7 +48,7 @@ import an existing Android app into $ideName or start a new Android project.
     }.bottomGap(BottomGap.MEDIUM).topGap(TopGap.MEDIUM)
 
     row {
-      icon(getFormFactorsImage(requireEmulator = false)).align(AlignX.CENTER)
+      icon(StudioIllustrations.Common.DEVICES_LINEUP_LARGE).align(AlignX.CENTER)
     }
   }.let { wrapWithVScroll(it) }
 

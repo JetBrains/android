@@ -47,7 +47,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.description).contains("""
                 Using multiple versions of the Android Gradle Plugin [7.2.1, 7.4.0] across Gradle builds is not allowed.
@@ -70,7 +70,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(1)
         expect.that(buildIssue.description)
@@ -93,7 +93,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(1)
         expect.that(buildIssue.description)
@@ -116,7 +116,7 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
-      verifyBuildIssue = { buildIssue ->
+      verifyBuildIssue = { _, buildIssue ->
         expect.that(buildIssue).isNotNull()
         expect.that(buildIssue.quickFixes.size).isEqualTo(1)
         expect.that(buildIssue.description)

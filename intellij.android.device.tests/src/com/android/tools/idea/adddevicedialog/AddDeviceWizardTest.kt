@@ -24,25 +24,24 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.sdklib.AndroidVersion
-import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
 
 class AddDeviceWizardTest {
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun apiLevel() {
     val source = TestDeviceSource()
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
+    composeTestRule.setContent { wizard.Content() }
 
     composeTestRule.onNodeWithText("Latest").performClick()
     composeTestRule
@@ -64,7 +63,7 @@ class AddDeviceWizardTest {
       }
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
+    composeTestRule.setContent { wizard.Content() }
 
     composeTestRule.onNodeWithText("Pixel Fold").performClick()
     composeTestRule.waitForIdle()
@@ -95,7 +94,7 @@ class AddDeviceWizardTest {
 
     TestDevices.allTestDevices.forEach(source::add)
     val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
-    composeTestRule.setContent { StudioTestTheme { wizard.Content() } }
+    composeTestRule.setContent { wizard.Content() }
 
     assertThat(wizard.nextAction.action).isNull()
 

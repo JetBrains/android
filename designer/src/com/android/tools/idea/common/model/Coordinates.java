@@ -300,7 +300,7 @@ public class Coordinates {
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull DesignSurface<?> surface, @SwingCoordinate int swingDimension) {
     int dpDim = (int)Math.round(swingDimension / surface.getZoomController().getScale());
-    return dpToPx(surface.getSceneManager(), dpDim);
+    return dpToPx(surface.getSceneManager(surface.getModel()), dpDim);
   }
 
   /**

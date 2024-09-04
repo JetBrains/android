@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.createDesignerAnalyticsManagerFake
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
@@ -34,7 +35,7 @@ fun createNavDesignSurfaceZoomController(
   return NavDesignSurfaceZoomController(
     navSelectionModel = null,
     viewPort = navDesignSurface.viewport,
-    sceneManager = { navDesignSurface.sceneManager },
+    sceneManager = { navDesignSurface.model?.let { navDesignSurface.getSceneManager(it) } },
     sceneViewDimensionProvider = dimension,
     analyticsManager = createDesignerAnalyticsManagerFake(trackZoom),
     scenesOwner = navDesignSurface,
@@ -66,12 +67,15 @@ fun mockNavDesignSurface(
         )
     }
 
+  val model = Mockito.mock<NlModel>()
+
   val navDesignSurface =
     Mockito.mock<NavDesignSurface>().apply {
       MockitoKt.whenever(this.viewport).thenReturn(viewportMock)
       MockitoKt.whenever(this.size).thenReturn(Dimension(1, 1))
       MockitoKt.whenever(this.focusedSceneView).thenReturn(focusedSceneView)
-      MockitoKt.whenever(this.sceneManager).thenReturn(sceneManager)
+      MockitoKt.whenever(this.model).thenReturn(model)
+      MockitoKt.whenever(this.getSceneManager(MockitoKt.any())).thenReturn(sceneManager)
     }
 
   return navDesignSurface

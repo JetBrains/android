@@ -16,11 +16,11 @@
 package com.android.tools.idea.common.surface.organization
 
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.intellij.util.ui.UIUtil
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -33,12 +33,12 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class OrganizationHeaderTest {
 
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun openAndCloseGroup() {
     val group = OrganizationGroup("method", "group")
-    composeTestRule.setContent { StudioTestTheme(darkMode = false) { OrganizationHeader(group) } }
+    composeTestRule.setContent(darkMode = false) { OrganizationHeader(group) }
     assertEquals(true, group.isOpened.value)
     composeTestRule.onNodeWithTag("openButton").performClick()
     assertEquals(false, group.isOpened.value)
@@ -49,7 +49,7 @@ class OrganizationHeaderTest {
   @Test
   fun nameIsDisplayed() {
     val group = OrganizationGroup("method", "Organization Display Name")
-    composeTestRule.setContent { StudioTestTheme(darkMode = false) { OrganizationHeader(group) } }
+    composeTestRule.setContent(darkMode = false) { OrganizationHeader(group) }
     composeTestRule
       .onNodeWithTag("displayName", true)
       .assertTextContains("Organization Display Name")

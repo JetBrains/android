@@ -43,10 +43,10 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
   private final boolean myRemoveBuildTools;
 
   public FixBuildToolsProcessor(@NotNull Project project,
-                                 @NotNull List<VirtualFile> buildFiles,
-                                 @NotNull String version,
-                                 boolean requestSync,
-                                 boolean removeBuildTools) {
+                                @NotNull List<VirtualFile> buildFiles,
+                                @NotNull String version,
+                                boolean requestSync,
+                                boolean removeBuildTools) {
     super(project);
     myBuildFiles = buildFiles;
     myVersion = version;

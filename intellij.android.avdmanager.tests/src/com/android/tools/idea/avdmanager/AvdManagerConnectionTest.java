@@ -59,7 +59,6 @@ import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,6 +68,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
@@ -101,7 +101,9 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
+    // We use Dispatchers.Unconfined to show dialogs: this causes MessageDialog to be invoked on the calling thread. We don't simulate
+    // user input in these tests; the dialogs just immediately throw an exception.
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdManager, Dispatchers.getUnconfined());
   }
 
   @Override
@@ -423,7 +425,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinnyAvd != null;
-      mAvdManagerConnection.startAvd(null, skinnyAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.asyncStartAvd(null, skinnyAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {
@@ -454,7 +456,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinlessAvd != null;
-      mAvdManagerConnection.startAvd(null, skinlessAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.asyncStartAvd(null, skinlessAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {

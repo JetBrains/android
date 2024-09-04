@@ -35,7 +35,23 @@ operator fun AndroidLength.times(rhs: Scale): SwingLength = rhs * this
 
 operator fun SwingLength.div(rhs: Scale): AndroidLength = AndroidLength(rhs.value.toFloat() / value)
 
+/**
+ * Apply a scale to the receiver. Notice: this function has lateral effects, the receiver would also
+ * change its size.
+ *
+ * @return the new scaled dimension applied to the receiver.
+ */
 fun Dimension.scaleBy(scale: Double): Dimension {
   setSize((scale * width).toInt(), (scale * height).toInt())
   return this
+}
+
+/**
+ * Returns a dimension with an applied scale factor. Notice: this function doesn't have lateral
+ * effects, it doesn't change the Dimension
+ *
+ * @return the new scaled dimension.
+ */
+fun Dimension.scaleOf(scale: Double): Dimension {
+  return Dimension((scale * width).toInt(), (scale * height).toInt())
 }

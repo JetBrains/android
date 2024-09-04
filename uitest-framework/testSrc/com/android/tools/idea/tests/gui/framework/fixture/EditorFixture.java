@@ -53,6 +53,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -475,18 +476,25 @@ public class EditorFixture {
       }
     );
 
+    List<AnAction> splitActions = actionToolbar.getActions()
+      .stream()
+      .filter((action) -> !(action instanceof Separator))
+      .toList();
+    if (splitActions.isEmpty()) {
+      splitActions = Arrays.asList(editor.getTabActions().getChildren(null));
+    }
     List<ToggleAction> actions =
-      actionToolbar.getActions()
+      splitActions
         .stream()
         .flatMap((action) -> {
           if (action instanceof DefaultActionGroup) {
-            return Arrays.stream(((DefaultActionGroup)action).getChildren(null));
+            return Arrays.stream(((DefaultActionGroup)action).getChildren(null, ActionManager.getInstance()));
           }
           return Stream.of(action);
         })
         .filter(ToggleAction.class::isInstance)
         .map(ToggleAction.class::cast)
-        .collect(Collectors.toList());
+        .toList();
     AnActionEvent e = TestActionEvent.createTestEvent();
     int actionToSelect = -1;
     switch (tab) {

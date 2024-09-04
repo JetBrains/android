@@ -378,6 +378,7 @@ filegroup(
         "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/base/adb-proxy/reverse-daemon:daemon",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
+        "//tools/vendor/google/directaccess-oem-labs/proto:da_oem_labs_proto",
     ],
 )
 
@@ -394,6 +395,7 @@ filegroup(
         ":profiler-artifacts",
         ":transport-artifacts",
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
@@ -520,7 +522,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
-        "@maven//:org.mockito.mockito-core_5.6.0",
+        "@maven//:org.mockito.mockito-core_5.12.0",
         "@maven//:org.robolectric.robolectric_4.8.2",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],

@@ -1320,7 +1320,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     reportRenderingFidelityProblems(logger);
 
     if (!myModule.isDisposed()) {
-      myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler, myModule.getProject()));
+      myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler));
     }
     myIssues.addAll(WearTileRenderErrorContributor.reportWearTileErrors(logger, myLinkManager, myLinkHandler, mySourceFile));
 

@@ -37,7 +37,6 @@ import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.MouseEvent
 import java.util.concurrent.CompletableFuture
-import java.util.function.Function
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Assert.assertFalse
@@ -51,7 +50,7 @@ class InteractionHandlerTest {
 
   @Test
   fun testDesignSurfaceToolbarVisibility() {
-    val handlerProvider: Function<DesignSurface<SceneManager>, InteractionHandler> = Function {
+    val handlerProvider: (DesignSurface<SceneManager>) -> InteractionHandler = {
       object : InteractionHandlerBase(it) {
         override fun createInteractionOnPressed(
           mouseX: Int,
@@ -68,8 +67,8 @@ class InteractionHandlerTest {
     }
 
     val actionManagerProvider:
-      Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>> =
-      Function {
+      (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>> =
+      {
         object : ActionManager<DesignSurface<SceneManager>>(it) {
           override fun registerActionsShortcuts(component: JComponent) = Unit
 
@@ -122,18 +121,17 @@ class InteractionHandlerTest {
 private class Surface(
   project: Project,
   disposable: Disposable,
-  interact: Function<DesignSurface<SceneManager>, InteractionHandler>,
-  actionManager:
-    Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>>,
+  interact: (DesignSurface<SceneManager>) -> InteractionHandler,
+  actionManager: (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>>,
 ) :
   DesignSurface<SceneManager>(
-    project,
-    disposable,
-    actionManager,
-    interact,
-    Function { TestLayoutManager(it) },
-    Function { TestActionHandler(it) },
-    ZoomControlsPolicy.AUTO_HIDE,
+    project = project,
+    parentDisposable = disposable,
+    actionManagerProvider = actionManager,
+    interactionProviderCreator = interact,
+    positionableLayoutManagerProvider = { TestLayoutManager(it) },
+    actionHandlerProvider = { TestActionHandler(it) },
+    zoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE,
   ) {
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?

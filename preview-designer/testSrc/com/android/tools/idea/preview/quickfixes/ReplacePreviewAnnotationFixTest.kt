@@ -377,9 +377,18 @@ class ReplacePreviewAnnotationFixTest {
   }
 
   private inline fun <reified T : PsiElement> invokeQuickFixOnElement(searchText: String) {
-    WriteCommandAction.runWriteCommandAction(project) {
-      val invalidAnnotation = fixture.findElementByText(searchText, T::class.java)
-      ReplacePreviewAnnotationFix(invalidAnnotation, withAnnotationFqn = "valid.Preview").applyFix()
-    }
+    val fix =
+      runReadAction {
+        val invalidAnnotation = fixture.findElementByText(searchText, T::class.java)
+        ReplacePreviewAnnotationFix(invalidAnnotation, withAnnotationFqn = "valid.Preview").takeIf {
+          it.isAvailable(
+            fixture.project,
+            invalidAnnotation.containingFile,
+            invalidAnnotation,
+            invalidAnnotation,
+          )
+        }
+      } ?: return
+    WriteCommandAction.runWriteCommandAction(project) { fix.applyFix() }
   }
 }

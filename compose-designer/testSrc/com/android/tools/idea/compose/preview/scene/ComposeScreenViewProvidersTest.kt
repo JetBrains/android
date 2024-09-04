@@ -91,8 +91,9 @@ class ComposeScreenViewProvidersTest {
     // When showDecorations is true, the scene view should always use the device shape. In this
     // case, round.
     assertTrue(
-      composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape
-        is Ellipse2D
+      composeScreenViewProvider
+        .createPrimarySceneView(surface, surface.getSceneManager(model)!!)
+        .screenShape is Ellipse2D
     )
 
     // When showDecorations is false, the scene view should always use a square shape
@@ -103,8 +104,9 @@ class ComposeScreenViewProvidersTest {
         showDecorations = false,
       )
     assertTrue(
-      composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape
-        is Rectangle
+      composeScreenViewProvider
+        .createPrimarySceneView(surface, surface.getSceneManager(model)!!)
+        .screenShape is Rectangle
     )
   }
 }

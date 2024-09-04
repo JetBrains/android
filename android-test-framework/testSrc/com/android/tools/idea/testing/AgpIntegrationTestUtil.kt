@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 
@@ -49,6 +50,7 @@ object AgpIntegrationTestUtil {
           )
         }
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
       runInEdtAndWait {
         AndroidGradleTests.waitForCreateRunConfigurations(project)
       }

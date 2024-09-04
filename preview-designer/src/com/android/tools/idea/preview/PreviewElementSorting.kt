@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.DisplayPositioning
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -35,28 +36,20 @@ private val sourceOffsetComparator = compareBy<PsiPreviewElement> { it.sourceOff
 private val displayPriorityComparator =
   compareBy<PsiPreviewElement> { it.displaySettings.displayPositioning }
 
-/**
- * Sorts Previews by descending group name as we want to show ungrouped Previews first. Ungrouped
- * Previews will be grouped as if they have "" as group name.
- */
-private val previewGroupsComparator =
-  compareByDescending<PreviewElement<*>> { it.displaySettings.group ?: "" }
 private val lexicographicalNameComparator = compareBy<PreviewElement<*>> { it.displaySettings.name }
 
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line
- * number, smaller first. Previews belonging to groups will be sorted by their group name, ungrouped
- * Previews will appear at the beginning of the list. When Multipreview is enabled, different
- * Previews may have the same [PreviewElement.previewElementDefinition] value, and those will be
- * ordered lexicographically between them, as the actual Previews may be defined in different files
- * and/or in a not structured way, so it is not possible to order them based on code source offsets.
+ * number, smaller first. When MultiPreview is enabled, different Previews may have the same
+ * [PreviewElement.previewElementDefinition] value, and those will be ordered lexicographically
+ * between them, as the actual Previews may be defined in different files and/or in a not structured
+ * way, so it is not possible to order them based on code source offsets.
  */
 fun <T : PsiPreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> =
   runReadAction {
     sortedWith(
       displayPriorityComparator
         .thenComparing(sourceOffsetComparator)
-        .thenComparing(previewGroupsComparator)
         .thenComparing(lexicographicalNameComparator)
     )
   }

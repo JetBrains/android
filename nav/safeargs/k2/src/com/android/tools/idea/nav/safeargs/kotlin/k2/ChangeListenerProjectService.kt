@@ -23,9 +23,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationTopics
 import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleStateModificationKind
+import org.jetbrains.kotlin.idea.util.publishGlobalSourceOutOfBlockModification
 
 /** Raises module-change events when a module's SafeArgs eligibility state may have changed. */
 @Service(Service.Level.PROJECT)
@@ -55,11 +55,7 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
   private fun dispatchGradleSync() {
     // We never care about non-source modules, so we only dispatch a global source module
     // state-change event here, so we don't unnecessarily invalidate binary module cached data.
-    runWriteAction {
-      project.analysisMessageBus
-        .syncPublisher(KotlinModificationTopics.GLOBAL_SOURCE_MODULE_STATE_MODIFICATION)
-        .onModification()
-    }
+    runWriteAction { project.publishGlobalSourceOutOfBlockModification() }
   }
 
   companion object {

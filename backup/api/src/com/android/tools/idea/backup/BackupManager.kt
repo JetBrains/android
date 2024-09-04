@@ -25,6 +25,12 @@ import java.nio.file.Path
 
 /** A project service for app backup/restore */
 interface BackupManager {
+  /** Where in the UI was the action invoked from */
+  enum class Source {
+    DEVICE_EXPLORER,
+    RUN_MENU,
+    PROJECT_VIEW,
+  }
 
   /**
    * Backup an app to a local file and show a progress bar
@@ -39,6 +45,7 @@ interface BackupManager {
     serialNumber: String,
     applicationId: String,
     backupFile: Path,
+    source: Source,
     notify: Boolean = true,
   ): BackupResult
 
@@ -50,7 +57,12 @@ interface BackupManager {
    * @param notify If true, will post a notification on completion
    */
   @UiThread
-  fun restoreModal(serialNumber: String, backupFile: Path, notify: Boolean = true): BackupResult
+  fun restoreModal(
+    serialNumber: String,
+    backupFile: Path,
+    source: Source,
+    notify: Boolean = true,
+  ): BackupResult
 
   /**
    * Restore an app from a local file
@@ -63,6 +75,7 @@ interface BackupManager {
   suspend fun restore(
     serialNumber: String,
     backupFile: Path,
+    source: Source,
     listener: BackupProgressListener? = null,
     notify: Boolean = true,
   ): BackupResult

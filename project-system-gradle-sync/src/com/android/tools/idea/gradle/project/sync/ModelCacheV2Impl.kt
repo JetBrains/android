@@ -634,6 +634,9 @@ internal fun modelCacheV2Impl(
       val dependencyList = when (dependencies) {
         is DependencyGraphCompat.AdjacencyList -> dependencies.edges.toFlatLibraryList()
         is DependencyGraphCompat.GraphItemList -> dependencies.graphItems.toFlatLibraryList()
+        is DependencyGraphCompat.FlatList -> dependencies.libraryKeys.map {
+          LibraryWithDependencies(libraries[it]!!, emptyList()) // There are no nested dependencies in the flat list model
+        }
         null -> emptyList()
       }
       val typedLibraries = getTypedLibraries(dependencyList)
@@ -771,7 +774,7 @@ internal fun modelCacheV2Impl(
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
-      isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
+      isTestArtifact = name == IdeArtifactName.ANDROID_TEST || name == IdeArtifactName.TEST_FIXTURES,
       privacySandboxSdkInfo = if (modelVersions[ModelFeature.HAS_PRIVACY_SANDBOX_SDK_INFO])
         artifact.privacySandboxSdkInfo?.let {
           IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.additionalApkSplitTask, it.additionalApkSplitFile, it.taskLegacy,
@@ -782,6 +785,7 @@ internal fun modelCacheV2Impl(
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
       generatedClassPaths = if (modelVersions[ModelFeature.HAS_GENERATED_CLASSPATHS]) artifact.generatedClassPaths else emptyMap(),
       bytecodeTransforms = if (modelVersions[ModelFeature.HAS_BYTECODE_TRANSFORMS]) artifact.bytecodeTransformations.toIdeModels() else null,
+      generatedAssetFolders = if (modelVersions[ModelFeature.HAS_GENERATED_ASSETS]) artifact.generatedAssetsFolders.deduplicateFiles().distinct() else listOf()
     )
   }
 

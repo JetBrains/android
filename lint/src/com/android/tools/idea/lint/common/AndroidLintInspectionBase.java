@@ -620,7 +620,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @Nullable
-  static HighlightDisplayLevel toHighlightDisplayLevel(@NotNull Severity severity) {
+  public static HighlightDisplayLevel toHighlightDisplayLevel(@NotNull Severity severity) {
     switch (severity) {
       case ERROR:
       case FATAL:

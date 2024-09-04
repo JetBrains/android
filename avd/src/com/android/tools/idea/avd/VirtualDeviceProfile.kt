@@ -57,18 +57,19 @@ internal data class VirtualDeviceProfile(
 
   @Composable
   override fun Icon(modifier: Modifier) {
-    val painterProvider =
+    val iconKey =
       when (formFactor) {
-        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv()
-        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar()
-        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear()
+        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv
+        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
+        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear
         // TODO: Add icon for tablet
-        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone()
+        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
     org.jetbrains.jewel.ui.component.Icon(
-      painter = painterProvider.getPainter().value,
+      iconKey,
       contentDescription = "$formFactor AVD",
       modifier = modifier,
+      iconClass = StudioIconsCompose::class.java,
     )
   }
 

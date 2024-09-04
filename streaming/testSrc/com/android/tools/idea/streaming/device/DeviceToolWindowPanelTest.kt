@@ -18,9 +18,6 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.test.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -71,6 +68,9 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyInt
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -142,7 +142,7 @@ class DeviceToolWindowPanelTest {
 
     // Check appearance.
     waitForFrame()
-    assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
+    assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
 
@@ -251,6 +251,7 @@ class DeviceToolWindowPanelTest {
   }
 
   @Test
+  @Suppress("OverrideOnly")
   fun testFolding() {
     device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
 
@@ -395,7 +396,9 @@ class DeviceToolWindowPanelTest {
 
     val frequencyHz = 440.0
     val durationMillis = 500
-    runBlocking { agent.beep(frequencyHz, durationMillis) }
+    // The 5% of extra sound duration is intended to make sure that there is enough data to satisfy
+    // the following wait condition.
+    runBlocking { agent.beep(frequencyHz, durationMillis * 105 / 100) }
     waitForCondition(2.seconds) {
       testDataLine.dataSize >= AUDIO_SAMPLE_RATE * AUDIO_CHANNEL_COUNT * AUDIO_BYTES_PER_SAMPLE_FMT_S16 * durationMillis / 1000
     }

@@ -53,10 +53,10 @@ class DeclarativeFoldingBuilder : CustomFoldingBuilder(), DumbAware {
   private fun getRangeToFold(node: ASTNode, document: Document): TextRange {
     val psi = node.psi
     if (psi is DeclarativeBlock) {
-     psi.identifier?.nextSibling?.let {
+      psi.identifier?.nextSibling?.let {
         val start = it.textRange.startOffset
         val end = psi.textRange.endOffset
-        return TextRange(start,end)
+        return TextRange(start, end)
       }
     }
 

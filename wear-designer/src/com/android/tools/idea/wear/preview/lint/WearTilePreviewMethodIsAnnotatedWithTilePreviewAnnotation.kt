@@ -53,9 +53,17 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
               isOnTheFly,
               LocalQuickFix.notNullElements(
                 ReplacePreviewAnnotationFix(
-                  sourcePsi,
-                  withAnnotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
-                )
+                    sourcePsi,
+                    withAnnotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
+                  )
+                  .takeIf {
+                    it.isAvailable(
+                      sourcePsi.project,
+                      sourcePsi.containingFile,
+                      sourcePsi,
+                      sourcePsi,
+                    )
+                  }
               ),
               ProblemHighlightType.ERROR,
             )

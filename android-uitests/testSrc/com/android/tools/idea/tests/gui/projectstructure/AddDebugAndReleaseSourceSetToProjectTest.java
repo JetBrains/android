@@ -140,6 +140,7 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
 
     // Release source set test (Steps 8-15)
     ideFrame.getBuildVariantsWindow()
+      .waitTillTableIsActivated()
       .selectVariantForModule("My_Application.app", "release");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -171,11 +172,12 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     editor.moveBetween("BuildVariantReleaseC", "lass")
         .waitUntilErrorAnalysisFinishes();
     invokeAltEnter();
-
     assertThat(editor.getCurrentFileContents()).contains("import " + RELEASE_IMPORT_CLASS_NAME + ";");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Testing toggle between release and debug projects (Step 15)
     ideFrame.getBuildVariantsWindow()
+      .waitTillTableIsActivated()
       .selectVariantForModule("My_Application.app", "debug (default)");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.getProjectView()
@@ -184,6 +186,7 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.getBuildVariantsWindow()
+      .waitTillTableIsActivated()
       .selectVariantForModule("My_Application.app", "release");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.getProjectView()

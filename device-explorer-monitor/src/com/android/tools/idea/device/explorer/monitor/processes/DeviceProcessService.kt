@@ -166,22 +166,30 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
   }
 
   @UiThread
-  fun backupApplication(
+  suspend fun backupApplication(
     project: Project,
-    packageName: String,
+    process: ProcessInfo,
     device: IDevice,
     path: Path,
   ) {
-    if (device.serialNumber == device.serialNumber) {
+    if (process.device.serialNumber == device.serialNumber) {
+      val packageName = process.packageName
+      if (packageName == null) {
+        thisLogger().debug("Backup Application invoked without application id")
+        withContext(uiThreadDispatcher) {
+          reportError("backup application", "Couldn't find application id.")
+        }
+        return
+      }
       val backupManager = BackupManager.getInstance(project)
-      backupManager.backupModal(device.serialNumber, packageName, path)
+      backupManager.backupModal(device.serialNumber, packageName, path, BackupManager.Source.DEVICE_EXPLORER)
     }
   }
 
   @UiThread
   fun restoreApplication(project: Project, device: IDevice, path: Path) {
     val backupManager = BackupManager.getInstance(project)
-    backupManager.restoreModal(device.serialNumber, path)
+    backupManager.restoreModal(device.serialNumber, path, BackupManager.Source.DEVICE_EXPLORER)
   }
 
   private fun reportError(title: String, messageToReport: String) {

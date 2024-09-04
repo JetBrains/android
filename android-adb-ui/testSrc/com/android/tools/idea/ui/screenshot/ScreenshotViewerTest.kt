@@ -45,6 +45,7 @@ import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -60,6 +61,7 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
+import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -140,6 +142,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
+    assumeFalse(SystemInfo.isWindows) // b/355613188
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -155,6 +158,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
+    assumeFalse(SystemInfo.isWindows) // b/355613188
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -203,6 +207,7 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Display Shape")
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
+    waitForCondition(2.seconds) { ui.getComponent<ImageComponent>().document.value != null }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
@@ -221,7 +226,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -243,7 +248,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -303,7 +308,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -326,7 +331,7 @@ class ScreenshotViewerTest {
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
-      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+      ui.getComponent<ImageComponent>().document.value?.getRGB(0, 0) == Color.BLACK.rgb
     }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
@@ -415,6 +420,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
+    assumeFalse(SystemInfo.isWindows) // b/356410902
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)

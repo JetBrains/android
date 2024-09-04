@@ -452,13 +452,13 @@ private:
 // Parameters of all device displays. Sent in response to DisplayConfigurationRequest.
 class DisplayConfigurationResponse : public CorrelatedMessage {
 public:
-  DisplayConfigurationResponse(int32_t request_id, std::vector<std::pair<int32_t, DisplayInfo>>&& displays)
+  DisplayConfigurationResponse(int32_t request_id, std::map<int32_t, DisplayInfo>&& displays)
       : CorrelatedMessage(TYPE, request_id),
         displays_(displays) {
   }
   ~DisplayConfigurationResponse() override = default;
 
-  [[nodiscard]] const std::vector<std::pair<int32_t, DisplayInfo>>& displays() const { return displays_; }
+  [[nodiscard]] const std::map<int32_t, DisplayInfo>& displays() const { return displays_; }
 
   void Serialize(Base128OutputStream& stream) const override;
 
@@ -467,7 +467,7 @@ public:
 private:
   friend class ControlMessage;
 
-  std::vector<std::pair<int32_t, DisplayInfo>> displays_;
+  std::map<int32_t, DisplayInfo> displays_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayConfigurationResponse);
 };
@@ -549,16 +549,23 @@ private:
   DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
 };
 
-// Notification of an added display.
-class DisplayAddedNotification : ControlMessage {
+// Notification of an added or a changed display.
+class DisplayAddedOrChangedNotification : ControlMessage {
 public:
-  explicit DisplayAddedNotification(int32_t display_id)
+  explicit DisplayAddedOrChangedNotification(int32_t display_id, Size logical_size, int32_t rotation, int32_t display_type)
       : ControlMessage(TYPE),
-        display_id_(display_id) {
+        display_id_(display_id),
+        logical_size_(std::move(logical_size)),
+        rotation_(rotation),
+        display_type_(display_type) {
   }
-  ~DisplayAddedNotification() override = default;
+  ~DisplayAddedOrChangedNotification() override = default;
 
   [[nodiscard]] int32_t display_id() const { return display_id_; }
+  [[nodiscard]] const Size& logical_size() const { return logical_size_; }
+  [[nodiscard]] int32_t rotation() const { return rotation_; }
+  [[nodiscard]] int32_t display_type() const { return display_type_; }
+  [[nodiscard]] std::string ToDebugString() const;
 
   void Serialize(Base128OutputStream& stream) const override;
 
@@ -568,8 +575,11 @@ private:
   friend class ControlMessage;
 
   int32_t display_id_;
+  Size logical_size_;
+  int32_t rotation_;
+  int32_t display_type_;
 
-  DISALLOW_COPY_AND_ASSIGN(DisplayAddedNotification);
+  DISALLOW_COPY_AND_ASSIGN(DisplayAddedOrChangedNotification);
 };
 
 // Notification of a removed display.

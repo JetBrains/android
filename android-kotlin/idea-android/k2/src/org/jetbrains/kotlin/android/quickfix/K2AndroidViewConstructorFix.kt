@@ -47,7 +47,6 @@ class K2AndroidViewConstructorFix(
 
     companion object {
         // Called from a background thread in an open analysis session.
-        @OptIn(KaExperimentalApi::class)
         private fun KaSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
             val superTypeReference = diagnostic.psi as? KtTypeReference ?: return null
             val superTypeEntry = superTypeReference.getNonStrictParentOfType<KtSuperTypeEntry>() ?: return null
@@ -60,6 +59,7 @@ class K2AndroidViewConstructorFix(
                 return null
             }
 
+            @OptIn(KaExperimentalApi::class)
             val superConstructors = superType.scope?.getConstructors() ?: return null
             val superConstructorClassSignatures = superConstructors.map { constructor ->
                 constructor.valueParameters.map { param ->

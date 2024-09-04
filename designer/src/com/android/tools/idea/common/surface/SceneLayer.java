@@ -73,7 +73,7 @@ public class SceneLayer extends Layer {
       return;
     }
     if (!myShowAlways && myDesignSurface instanceof NlDesignSurface nlSurface) {
-      if (nlSurface.isRenderingSynchronously() && !nlSurface.isInAnimationScrubbing()) {
+      if (nlSurface.isRenderingSynchronously() && !nlSurface.isAnimationScrubbing()) {
         return;
       }
     }

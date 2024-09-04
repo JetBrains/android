@@ -10,7 +10,6 @@ import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
@@ -26,13 +25,8 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
     else if (element instanceof PsiParameter) {
       return isImplicitParameterUsage((PsiParameter)element);
     }
-    else if (element instanceof PsiMethod) {
-      PsiMethod method = (PsiMethod)element;
-      if (method.isConstructor()) {
-        return isImplicitConstructorUsage(method);
-      } else {
-        return isImplicitMethodUsage(method);
-      }
+    else if (element instanceof PsiMethod method && method.isConstructor()) {
+      return isImplicitConstructorUsage(method);
     }
     return false;
   }
@@ -82,71 +76,6 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
 
   @Override
   public boolean isImplicitWrite(@NotNull PsiElement element) {
-    if (!(element instanceof PsiField)) {
-      return false;
-    }
-    final AndroidFacet facet = AndroidFacet.getInstance(element);
-
-    if (facet == null) {
-      return false;
-    }
-    final PsiField field = (PsiField)element;
-    final PsiModifierList modifierList = field.getModifierList();
-
-    if (modifierList == null) {
-      return false;
-    }
-    for (PsiAnnotation annotation : modifierList.getAnnotations()) {
-      for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
-        final PsiAnnotationMemberValue value = pair.getValue();
-
-        if (isResourceReference(value)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean isResourceReference(@Nullable PsiAnnotationMemberValue value) {
-    if (!(value instanceof PsiReferenceExpression)) {
-      return false;
-    }
-    PsiReferenceExpression exp = (PsiReferenceExpression)value;
-    String refName = exp.getReferenceName();
-
-    if (refName == null || refName.isEmpty()) {
-      return false;
-    }
-    PsiExpression qExp = exp.getQualifierExpression();
-
-    if (!(qExp instanceof PsiReferenceExpression)) {
-      return false;
-    }
-    exp = (PsiReferenceExpression)qExp;
-    refName = exp.getReferenceName();
-
-    if (refName == null || refName.isEmpty()) {
-      return false;
-    }
-    qExp = exp.getQualifierExpression();
-
-    if (!(qExp instanceof PsiReferenceExpression)) {
-      return false;
-    }
-    exp = (PsiReferenceExpression)qExp;
-    return AndroidUtils.R_CLASS_NAME.equals(exp.getReferenceName());
-  }
-
-  public boolean isImplicitMethodUsage(PsiMethod method) {
-     // Methods annotated with lifecycle annotations are not unused
-    for (PsiAnnotation annotation : method.getModifierList().getAnnotations()) {
-      String qualifiedName = annotation.getQualifiedName();
-      if ("android.arch.lifecycle.OnLifecycleEvent".equals(qualifiedName)) {
-        return true;
-      }
-    }
-
     return false;
   }
 

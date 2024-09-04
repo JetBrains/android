@@ -44,16 +44,21 @@ class DeclarativePsiFactory(private val project: Project) {
     createFromText("placeholder = $value") ?: error("Failed to create Declarative literal from text \"$value\"")
 
   fun createLiteral(value: Any?): DeclarativeLiteral =
-    when(value) {
-      is String -> createStringLiteral(value)
+    when (value) {
+      is String -> if (value.contains('\n')) createMultiStringLiteral(value) else createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
+      is ULong -> createULongLiteral(value)
+      is UInt -> createUIntLiteral(value)
       is Boolean -> createBooleanLiteral(value)
       else -> error("Failed to create Declarative literal with type ${value?.javaClass ?: "null"}")
     }
 
   fun createStringLiteral(value: String): DeclarativeLiteral =
     createFromText("placeholder = \"${value.escape()}\"") ?: error("Failed to create Declarative string from $value")
+
+  fun createMultiStringLiteral(value: String): DeclarativeLiteral =
+    createFromText("placeholder = \"\"\"${value.escapeMultilineString()}\"\"\"") ?: error("Failed to create Declarative string from $value")
 
   fun createIntLiteral(value: Int): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Int from $value")
@@ -66,12 +71,23 @@ class DeclarativePsiFactory(private val project: Project) {
     return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
   }
 
+  fun createUIntLiteral(value: UInt): DeclarativeLiteral =
+    createFromText("placeholder = ${value}U") ?: error("Failed to create Declarative Int from $value")
+
+  fun createULongLiteral(value: ULong): DeclarativeLiteral {
+    val text = when (value) {
+      in UInt.MIN_VALUE..UInt.MAX_VALUE -> "${value}UL"
+      else -> "${value}UL"
+    }
+    return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
+  }
+
   fun createBooleanLiteral(value: Boolean): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Boolean from $value")
 
   fun createNewline(): PsiElement = createToken("\n")
 
-  fun createComma(): LeafPsiElement =  createFile(",").descendantOfType()!!
+  fun createComma(): LeafPsiElement = createFile(",").descendantOfType()!!
 
   private fun createToken(token: String): PsiElement =
     PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)

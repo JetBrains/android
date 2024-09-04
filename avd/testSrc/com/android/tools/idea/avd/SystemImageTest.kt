@@ -35,7 +35,6 @@ import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
 import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
 import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
-import com.android.testutils.MockitoKt
 import com.android.utils.NullLogger
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -46,6 +45,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class SystemImageTest {
@@ -275,15 +276,13 @@ class SystemImageTest {
   @Test
   fun testToString() {
     // Arrange
-    val details = MockitoKt.mock<SysImgDetailsType>()
-    MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
+    val details = mock<SysImgDetailsType>()
+    whenever(details.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
 
-    val repoPackage = MockitoKt.mock<LocalPackage>()
-    MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
-    MockitoKt.whenever(repoPackage.path)
-      .thenReturn("system-images;android-34;google_apis_playstore;x86_64")
-    MockitoKt.whenever(repoPackage.displayName)
-      .thenReturn("Google Play Intel x86_64 Atom System Image")
+    val repoPackage = mock<LocalPackage>()
+    whenever(repoPackage.typeDetails).thenReturn(details)
+    whenever(repoPackage.path).thenReturn("system-images;android-34;google_apis_playstore;x86_64")
+    whenever(repoPackage.displayName).thenReturn("Google Play Intel x86_64 Atom System Image")
 
     val image = SystemImage.from(repoPackage)
 
@@ -327,9 +326,9 @@ class SystemImageTest {
   @Test
   fun systemImageTagEqualsWearOsEtc() {
     // Arrange
-    val details = MockitoKt.mock<SysImgDetailsType>()
-    MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(30))
-    MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.WEAR_TAG))
+    val details = mock<SysImgDetailsType>()
+    whenever(details.androidVersion).thenReturn(AndroidVersion(30))
+    whenever(details.tags).thenReturn(listOf(SystemImageTags.WEAR_TAG))
 
     val repoPackage =
       mockRepoPackage(
@@ -385,10 +384,10 @@ class SystemImageTest {
   @Test
   fun systemImageTagsDoesntContainGoogleApisX86() {
     // Arrange
-    val details = MockitoKt.mock<AddonDetailsType>()
-    MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(15))
-    MockitoKt.whenever(details.tag).thenReturn(SystemImageTags.GOOGLE_APIS_TAG as IdDisplayType)
-    MockitoKt.whenever(details.abis).thenReturn(listOf("armeabi"))
+    val details = mock<AddonDetailsType>()
+    whenever(details.androidVersion).thenReturn(AndroidVersion(15))
+    whenever(details.tag).thenReturn(SystemImageTags.GOOGLE_APIS_TAG as IdDisplayType)
+    whenever(details.abis).thenReturn(listOf("armeabi"))
 
     val repoPackage =
       mockRepoPackage(106_624_396, details, "add-ons;addon-google_apis-google-15", "Google APIs")
@@ -402,17 +401,17 @@ class SystemImageTest {
 
   private companion object {
     private fun mockPixel8(): VirtualDevice {
-      val screen = MockitoKt.mock<Screen>()
+      val screen = mock<Screen>()
 
-      val hardware = MockitoKt.mock<Hardware>()
-      MockitoKt.whenever(hardware.screen).thenReturn(screen)
+      val hardware = mock<Hardware>()
+      whenever(hardware.screen).thenReturn(screen)
 
-      val device = MockitoKt.mock<Device>()
-      MockitoKt.whenever(device.defaultHardware).thenReturn(hardware)
+      val device = mock<Device>()
+      whenever(device.defaultHardware).thenReturn(hardware)
 
-      val virtualDevice = MockitoKt.mock<VirtualDevice>()
-      MockitoKt.whenever(virtualDevice.androidVersion).thenReturn(AndroidVersion(34))
-      MockitoKt.whenever(virtualDevice.device).thenReturn(device)
+      val virtualDevice = mock<VirtualDevice>()
+      whenever(virtualDevice.androidVersion).thenReturn(AndroidVersion(34))
+      whenever(virtualDevice.device).thenReturn(device)
 
       return virtualDevice
     }
@@ -431,25 +430,25 @@ class SystemImageTest {
       path: String,
       name: String,
     ): RepoPackage {
-      val complete = MockitoKt.mock<CompleteType>()
-      MockitoKt.whenever(complete.size).thenReturn(size)
+      val complete = mock<CompleteType>()
+      whenever(complete.size).thenReturn(size)
 
-      val archive = MockitoKt.mock<Archive>()
-      MockitoKt.whenever(archive.complete).thenReturn(complete)
+      val archive = mock<Archive>()
+      whenever(archive.complete).thenReturn(complete)
 
-      val repoPackage = MockitoKt.mock<RemotePackage>()
-      MockitoKt.whenever(repoPackage.archive).thenReturn(archive)
-      MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
-      MockitoKt.whenever(repoPackage.path).thenReturn(path)
-      MockitoKt.whenever(repoPackage.displayName).thenReturn(name)
+      val repoPackage = mock<RemotePackage>()
+      whenever(repoPackage.archive).thenReturn(archive)
+      whenever(repoPackage.typeDetails).thenReturn(details)
+      whenever(repoPackage.path).thenReturn(path)
+      whenever(repoPackage.displayName).thenReturn(name)
 
       return repoPackage
     }
 
     private fun mockSysImgDetailsType(version: AndroidVersion, tag: IdDisplay): ApiDetailsType {
-      val details = MockitoKt.mock<SysImgDetailsType>()
-      MockitoKt.whenever(details.androidVersion).thenReturn(version)
-      MockitoKt.whenever(details.tags).thenReturn(listOf(tag))
+      val details = mock<SysImgDetailsType>()
+      whenever(details.androidVersion).thenReturn(version)
+      whenever(details.tags).thenReturn(listOf(tag))
 
       return details
     }

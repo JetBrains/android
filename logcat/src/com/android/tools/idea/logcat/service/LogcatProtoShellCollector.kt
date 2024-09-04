@@ -168,19 +168,24 @@ class LogcatProtoShellCollector(
   /** Reads the payload & header sizes from a [ByteArray] */
   private fun ByteArray.getSize() = ByteBuffer.wrap(this).order(LITTLE_ENDIAN).getLong().toInt()
 
-  private fun LogcatEntryProto.toLogcatMessage() =
-    LogcatMessage(
+  private fun LogcatEntryProto.toLogcatMessage(): LogcatMessage {
+    val processNames = processNameMonitor.getProcessNames(serialNumber, pid.toInt())
+    val processName =
+      processName.takeIf { it.isNotEmpty() } ?: processNames?.processName ?: "pid-$pid"
+    val applicationId = processNames?.applicationId ?: processName
+    return LogcatMessage(
       LogcatHeader(
         priority.toLogLevel(),
         pid.toInt(),
         tid.toInt(),
-        processNameMonitor.getProcessNames(serialNumber, pid.toInt())?.applicationId ?: processName,
+        applicationId,
         processName,
         tag.toTag(),
         Instant.ofEpochSecond(timeSec, timeNsec),
       ),
       message.toMessage(),
     )
+  }
 }
 
 private fun ByteBuffer.getSize() = Math.toIntExact(getLong())

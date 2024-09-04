@@ -40,6 +40,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.TestActionHandler
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
@@ -87,6 +88,8 @@ object NavModelBuilderUtil {
       whenever(surface.extentSize).thenReturn(extentSize)
       whenever(surface.pannable).thenAnswer { TestPannable() }
       whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))
+
+      whenever(surface.actionHandlerProvider).thenReturn { TestActionHandler(it) }
 
       val sceneView = mock(SceneView::class.java)
       whenever(sceneView.configuration).thenReturn(model.configuration)

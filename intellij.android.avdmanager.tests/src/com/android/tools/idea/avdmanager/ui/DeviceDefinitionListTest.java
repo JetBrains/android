@@ -17,8 +17,6 @@ package com.android.tools.idea.avdmanager.ui;
 
 import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -43,6 +41,15 @@ public final class DeviceDefinitionListTest {
     Mockito.when(supplier.get()).thenReturn(definitions);
 
     // Act
+    new DeviceDefinitionList(supplier);
+  }
+
+  @Test
+  public void deviceDefinitionListMissingEntries() {
+    var supplier = Mockito.mock(DeviceSupplier.class);
+    Mockito.when(supplier.get()).thenReturn(List.of());
+
+    // We shouldn't crash when categories don't have their default devices.
     new DeviceDefinitionList(supplier);
   }
 

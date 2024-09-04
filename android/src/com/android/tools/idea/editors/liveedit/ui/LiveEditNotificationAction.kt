@@ -16,12 +16,12 @@
 package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.status.InformationPopupImpl
 import com.android.tools.adtui.status.IssueNotificationAction
+import com.android.tools.adtui.status.POPUP_ACTION
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.editors.liveedit.LiveEditService
@@ -52,6 +52,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.putUserData
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import java.awt.Insets
@@ -129,10 +130,10 @@ internal fun defaultCreateInformationPopup(
         link,
         upgradeAssistant,
         AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
-        object: AnActionLink("Configure Live Edit", configureLiveEditAction) {
-        }.apply {
+        AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
           setDropDownLinkIcon()
           configureLiveEditAction.parentComponent = this
+          putUserData(POPUP_ACTION, true)
         }
       )
     ).also { newPopup ->

@@ -95,12 +95,15 @@ class AndroidTestExtraParamsTableTest {
     // Make sure revert button is displayed and tapping the button reverts the modification on the element.
     val toolbar = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar
     PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
-    val availableActions = toolbar.actions
+    val availableActions = toolbar.run {
+      PlatformTestUtil.waitForFuture(updateActionsAsync())
+      actions
+    }
     val revertAction = availableActions.first { action ->
       action.templatePresentation.icon == AllIcons.Actions.Rollback
     }
     revertAction.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue();
+    dispatchAllEventsInIdeEventQueue()
 
     // Make sure only first two items are reverted.
     assertThat(table.tableView.tableViewModel.items).containsExactly(

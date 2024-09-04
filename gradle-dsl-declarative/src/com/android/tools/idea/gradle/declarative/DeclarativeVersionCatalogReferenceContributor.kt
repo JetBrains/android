@@ -37,7 +37,8 @@ import com.intellij.util.ProcessingContext
 
 class DeclarativeVersionCatalogReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(PlatformPatterns.psiElement(DeclarativeProperty::class.java), DeclarativeVersionCatalogReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(DeclarativeProperty::class.java),
+                                        DeclarativeVersionCatalogReferenceProvider())
   }
 }
 
@@ -73,7 +74,8 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
   }
 
 
-  class VersionCatalogFileReference(private val element: DeclarativeProperty, private val identifier: DeclarativeIdentifier) : PsiReference {
+  class VersionCatalogFileReference(private val element: DeclarativeProperty,
+                                    private val identifier: DeclarativeIdentifier) : PsiReference {
     override fun getElement() = element
     override fun getRangeInElement(): TextRange = identifier.textRange.shiftLeft(element.textRange.startOffset)
     override fun resolve(): PsiElement? = identifier.getVersionCatalogFile()
@@ -82,11 +84,13 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
       identifier.setName(newElementName)
       return element
     }
+
     override fun bindToElement(newElement: PsiElement): PsiElement {
       if (newElement !is PsiFile) return element
       identifier.setName(newElement.name.removeSuffix(".versions.toml"))
       return element
     }
+
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
     override fun isSoft(): Boolean = true
   }
@@ -95,21 +99,24 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     private val element: DeclarativeProperty,
     private val catalogIdentifier: DeclarativeIdentifier,
     private val identifier: DeclarativeIdentifier
-  ): PsiReference {
+  ) : PsiReference {
     override fun getElement() = element
     override fun getRangeInElement(): TextRange = identifier.textRange.shiftLeft(element.textRange.startOffset)
     override fun resolve(): PsiElement? =
       catalogIdentifier.getVersionCatalogFile()?.findDescendantOfType<PsiNamedElement> { it.name == identifier.name }
+
     override fun getCanonicalText(): String = identifier.name!!
     override fun handleElementRename(newElementName: String): PsiElement {
       identifier.setName(newElementName)
       return element
     }
+
     override fun bindToElement(newElement: PsiElement): PsiElement {
       if (newElement !is PsiNamedElement) return element
       newElement.name?.let { identifier.setName(it) }
       return element
     }
+
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
     override fun isSoft(): Boolean = false
   }
@@ -119,34 +126,40 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     private val catalogIdentifier: DeclarativeIdentifier,
     private val tableIdentifier: DeclarativeIdentifier?,
     private val identifiers: List<DeclarativeIdentifier>
-  ): PsiReference {
+  ) : PsiReference {
     override fun getElement() = element
     override fun getRangeInElement(): TextRange = catalogIdentifier.textRange.startOffset.let { offset ->
-      TextRange(identifiers.first().textRange.startOffset, identifiers.last().textRange.endOffset).shiftLeft(offset) }
+      TextRange(identifiers.first().textRange.startOffset, identifiers.last().textRange.endOffset).shiftLeft(offset)
+    }
+
     override fun resolve(): PsiElement? =
       catalogIdentifier.getVersionCatalogFile()
         ?.findDescendantOfType<PsiNamedElement> { it.name == (tableIdentifier?.name ?: "libraries") }
         ?.parent?.parent?.parent
         ?.findDescendantOfType<PsiNamedElement> { it.name?.split(Regex("[-_]")) == identifiers.map { i -> i.name } }
+
     override fun getCanonicalText(): String = StringBuilder().run {
       append(catalogIdentifier.name)
       tableIdentifier?.name?.let { append(".$it") }
-      identifiers.joinTo(this, separator="-", prefix=".") { it.name!! }
+      identifiers.joinTo(this, separator = "-", prefix = ".") { it.name!! }
       toString()
     }
+
     override fun handleElementRename(newElementName: String): PsiElement {
       val string = StringBuilder().run {
         append(catalogIdentifier.name)
         tableIdentifier?.name?.let { append(".$it") }
-        newElementName.split(Regex("[-_]")).joinTo(this, separator="-", prefix=".")
+        newElementName.split(Regex("[-_]")).joinTo(this, separator = "-", prefix = ".")
         toString()
       }
       return element.replace(DeclarativePsiFactory(element.project).createProperty(string))
     }
+
     override fun bindToElement(newElement: PsiElement): PsiElement {
       if (newElement !is PsiNamedElement) return element
       return newElement.name?.let { handleElementRename(it) } ?: element
     }
+
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
     override fun isSoft(): Boolean = false
   }
@@ -162,7 +175,7 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
 
     inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(crossinline predicate: (T) -> Boolean): T? {
       var result: T? = null
-      this.accept(object: PsiRecursiveElementWalkingVisitor() {
+      this.accept(object : PsiRecursiveElementWalkingVisitor() {
         override fun visitElement(element: PsiElement) {
           if (element is T && predicate(element)) {
             result = element

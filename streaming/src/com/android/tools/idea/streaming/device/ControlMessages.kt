@@ -72,7 +72,7 @@ sealed class ControlMessage(val type: Int) {
         ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
         SupportedDeviceStatesNotification.TYPE -> SupportedDeviceStatesNotification.deserialize(stream)
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
-        DisplayAddedNotification.TYPE -> DisplayAddedNotification.deserialize(stream)
+        DisplayAddedOrChangedNotification.TYPE -> DisplayAddedOrChangedNotification.deserialize(stream)
         DisplayRemovedNotification.TYPE -> DisplayRemovedNotification.deserialize(stream)
         UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
         UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
@@ -621,24 +621,38 @@ internal data class DeviceStateNotification(val deviceStateId: Int) : ControlMes
 }
 
 /**
- * Notification of an added display.
+ * Notification of an added or a changed display.
  */
-internal data class DisplayAddedNotification(val displayId: Int) : ControlMessage(TYPE) {
+internal data class DisplayAddedOrChangedNotification(
+  val displayId: Int,
+  val width: Int,
+  val height: Int,
+  val rotation: Int,
+  val displayType: DisplayType
+) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeInt(displayId)
+    stream.writeInt(width)
+    stream.writeInt(height)
+    stream.writeInt(rotation)
+    stream.writeInt(displayType.ordinal)
   }
 
   override fun toString(): String =
-      "DisplayAddedNotification(displayId=$displayId)"
+      "DisplayAddedOrChangedNotification(displayId=$displayId, width=$width, height=$height, rotation=$rotation, displayType=$displayType)"
 
   companion object : Deserializer {
     const val TYPE = 19
 
-    override fun deserialize(stream: Base128InputStream): DisplayAddedNotification {
+    override fun deserialize(stream: Base128InputStream): DisplayAddedOrChangedNotification {
       val displayId = stream.readInt()
-      return DisplayAddedNotification(displayId)
+      val width = stream.readInt()
+      val height = stream.readInt()
+      val rotation = stream.readInt()
+      val displayType = DisplayType.entries[stream.readInt()]
+      return DisplayAddedOrChangedNotification(displayId, width, height, rotation, displayType)
     }
   }
 }

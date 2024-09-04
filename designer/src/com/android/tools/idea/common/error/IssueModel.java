@@ -129,11 +129,8 @@ public class IssueModel implements Disposable {
    * @return The icon for the severity level of the issue.
    */
   @Nullable
-  public static Icon getIssueIcon(@NotNull HighlightSeverity severity, boolean selected) {
+  public static Icon getIssueIcon(@NotNull HighlightSeverity severity) {
     boolean isError = severity == HighlightSeverity.ERROR;
-    if (selected) {
-      return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
-    }
     return isError ? StudioIcons.Common.ERROR_INLINE : StudioIcons.Common.WARNING_INLINE;
   }
 

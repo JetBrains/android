@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.util.FilterHint.AppName
 import com.android.tools.idea.logcat.util.FilterHint.Level
 import com.android.tools.idea.logcat.util.FilterHint.Tag
 import com.intellij.execution.impl.ConsoleViewUtil
+import com.intellij.ide.ui.UISettingsUtils
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -54,7 +55,10 @@ fun createLogcatEditor(project: Project): EditorEx {
   editorSettings.isCaretRowShown = false
   editorSettings.isShowingSpecialChars = false
   editor.gutterComponentEx.isPaintBackground = false
-  editor.colorsScheme = ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme)
+  editor.colorsScheme =
+    ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme).apply {
+      setEditorFontSize(UISettingsUtils.getInstance().scaledConsoleFontSize)
+    }
 
   return editor
 }

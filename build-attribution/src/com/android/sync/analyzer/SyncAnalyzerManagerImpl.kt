@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.SyncViewManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -42,13 +43,14 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 
+
 class SyncAnalyzerManagerImpl(
   val project: Project
 ) : SyncAnalyzerManager {
 
   override fun updateSyncStatsData(id: ExternalSystemTaskId?, syncStats: GradleSyncStats.Builder) {
     if (id == null) return
-    service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)?.let { downloadsData ->
+    project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)?.let { downloadsData ->
       syncStats.downloadsData = transformDownloadsAnalyzerData(downloadsData.downloadsStatsAccumulator.repositoryResults)
     }
   }
@@ -56,14 +58,14 @@ class SyncAnalyzerManagerImpl(
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
     if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
-      val data = service<SyncAnalyzerDataManager>().getOrCreateDataForTask(id, project)
+      val data = project.service<SyncAnalyzerDataManager>().getOrCreateDataForTask(id)
       project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
     }
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
     if (id == null) return
-    service<SyncAnalyzerDataManager>().clearDataForTask(id)
+    project.service<SyncAnalyzerDataManager>().clearDataForTask(id)
   }
 
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
@@ -77,13 +79,12 @@ class SyncAnalyzerManagerImpl(
   }
 }
 
-@Service
-class SyncAnalyzerDataManager {
+@Service(Service.Level.PROJECT)
+class SyncAnalyzerDataManager(val project: Project) : Disposable {
   @VisibleForTesting
   val idToData = ConcurrentHashMap<ExternalSystemTaskId, DataHolder>()
 
-  fun getOrCreateDataForTask(id: ExternalSystemTaskId, project: Project): DataHolder = idToData.computeIfAbsent(id) {
-    Disposer.register(project) { clearDataForTask(id) }
+  fun getOrCreateDataForTask(id: ExternalSystemTaskId): DataHolder = idToData.computeIfAbsent(id) {
     DataHolder(it, project)
   }
 
@@ -91,6 +92,13 @@ class SyncAnalyzerDataManager {
 
   fun clearDataForTask(id: ExternalSystemTaskId) {
     idToData.remove(id)?.let { Disposer.dispose(it.buildDisposable) }
+  }
+
+  override fun dispose() {
+    idToData.forEach {
+      Disposer.dispose(it.value.buildDisposable)
+    }
+    idToData.clear()
   }
 
   class DataHolder(val id: ExternalSystemTaskId, project: Project) {
@@ -113,7 +121,7 @@ class SyncAnalyzerOperationHelperExtension : GradleOperationHelperExtension {
     if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
     val project = id.findProject() ?: return
 
-    val syncData = service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)
+    val syncData = project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)
     if (syncData != null) {
       val downloadEventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(syncData.downloadsStatsAccumulator, syncData.downloadsInfoDataModel)
 

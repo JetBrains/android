@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.task
 
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.ProfilerTaskType.Companion.getNthRankedTask
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -24,7 +25,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * which shows the name and icon of the respective task.
  */
 class TaskGridModel(private val updateProfilingProcessStartingPoint: () -> Unit) {
-  private val _selectedTaskType = MutableStateFlow(ProfilerTaskType.UNSPECIFIED)
+  /**
+   * The first ranked task type is selected by default.
+   */
+  private val _selectedTaskType = MutableStateFlow(getNthRankedTask(0))
   val selectedTaskType = _selectedTaskType.asStateFlow()
 
   fun onTaskSelection(taskType: ProfilerTaskType) {

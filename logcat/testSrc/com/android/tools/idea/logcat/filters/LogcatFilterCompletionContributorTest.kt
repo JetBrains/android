@@ -89,6 +89,7 @@ class LogcatFilterCompletionContributorTest {
         "package:mine ",
         "process:",
         "tag:",
+        "line:",
       )
   }
 
@@ -112,6 +113,7 @@ class LogcatFilterCompletionContributorTest {
         "package:mine ",
         "process:",
         "tag:",
+        "line:",
         "favorite item",
         "history item",
       )
@@ -447,6 +449,7 @@ class LogcatFilterCompletionContributorTest {
           "package:mine ",
           "process:",
           "tag:",
+          "line:",
         )
     }
   }

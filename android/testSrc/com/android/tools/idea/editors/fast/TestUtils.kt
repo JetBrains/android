@@ -17,8 +17,12 @@ package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.editors.build.RenderingBuildStatusManagerForTests
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableSet
+import com.google.common.util.concurrent.Futures
+import com.intellij.psi.search.EverythingGlobalScope
+import com.intellij.psi.search.GlobalSearchScope
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,14 +44,6 @@ fun Path.toFileNameSet(): Set<String> {
   })
   return generatedFilesSet
 }
-
-fun RenderingBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE,
-                                                                   buildStatus: ProjectSystemBuildManager.BuildStatus) {
-  getBuildListenerForTest().buildStarted(buildMode)
-  getBuildListenerForTest().buildCompleted(
-    ProjectSystemBuildManager.BuildResult(buildMode, buildStatus))
-}
-
 
 fun RenderingBuildStatusManagerForTests.simulateResourcesChange() {
   getResourcesListenerForTest().resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))

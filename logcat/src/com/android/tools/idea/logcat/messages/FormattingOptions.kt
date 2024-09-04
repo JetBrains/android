@@ -23,8 +23,6 @@ import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.intellij.openapi.util.NlsActions.ActionText
 import com.intellij.util.Range
 
-private val logcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
-
 /** Formatting options of a Logcat panel. */
 internal data class FormattingOptions(
   var timestampFormat: TimestampFormat = TimestampFormat(DATETIME),
@@ -37,11 +35,11 @@ internal data class FormattingOptions(
   enum class Style(val displayName: @ActionText String) {
     STANDARD(LogcatBundle.message("logcat.format.action.standard")) {
       override val formattingOptions: FormattingOptions
-        get() = logcatFormattingOptions.standardFormattingOptions
+        get() = AndroidLogcatFormattingOptions.getInstance().standardFormattingOptions
     },
     COMPACT(LogcatBundle.message("logcat.format.action.compact")) {
       override val formattingOptions: FormattingOptions
-        get() = logcatFormattingOptions.compactFormattingOptions
+        get() = AndroidLogcatFormattingOptions.getInstance().compactFormattingOptions
     };
 
     // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions
@@ -60,8 +58,8 @@ internal data class FormattingOptions(
 
   fun getStyle(): Style? {
     return when {
-      this == logcatFormattingOptions.standardFormattingOptions -> STANDARD
-      this == logcatFormattingOptions.compactFormattingOptions -> COMPACT
+      this == AndroidLogcatFormattingOptions.getInstance().standardFormattingOptions -> STANDARD
+      this == AndroidLogcatFormattingOptions.getInstance().compactFormattingOptions -> COMPACT
       else -> null
     }
   }

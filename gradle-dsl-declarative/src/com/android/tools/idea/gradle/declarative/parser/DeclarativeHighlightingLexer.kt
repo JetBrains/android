@@ -17,4 +17,4 @@ package com.android.tools.idea.gradle.declarative.parser
 
 import com.intellij.lexer.LayeredLexer
 
-class DeclarativeHighlightingLexer: LayeredLexer(DeclarativeLexer())
+class DeclarativeHighlightingLexer : LayeredLexer(DeclarativeLexer())

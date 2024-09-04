@@ -42,6 +42,7 @@ sealed class AndroidSourceType(
   companion object {
     private const val JAVA_NAME = "java"
     private const val RES_NAME = "res"
+    private const val ASSETS_NAME = "assets"
 
   }
 
@@ -124,8 +125,16 @@ sealed class AndroidSourceType(
   }
 
   object ASSETS : AndroidSourceType(
-    "assets",
+    ASSETS_NAME,
     AllIcons.Modules.ResourcesRoot,
+  ) {
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.assetsDirectories)
+  }
+
+  object GENERATED_ASSETS : AndroidSourceType(
+    ASSETS_NAME,
+    AllIcons.Modules.ResourcesRoot,
+    isGenerated = true,
   ) {
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.assetsDirectories)
   }
@@ -223,6 +232,7 @@ val BUILT_IN_TYPES: List<AndroidSourceType> =
     AndroidSourceType.RENDERSCRIPT,
     AndroidSourceType.SHADERS,
     AndroidSourceType.ASSETS,
+    AndroidSourceType.GENERATED_ASSETS,
     AndroidSourceType.JNILIBS,
     AndroidSourceType.RES,
     AndroidSourceType.GENERATED_RES,

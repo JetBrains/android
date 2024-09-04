@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.build
 
 import com.android.tools.idea.concurrency.awaitStatus
-import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.editors.fast.simulateResourcesChange
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Executor
@@ -37,6 +38,13 @@ class RenderingBuildStatusManagerResourcesTest {
   val project: Project
     get() = projectRule.project
 
+  val buildServices = FakeBuildSystemFilePreviewServices()
+
+  @Before
+  fun setup() {
+    buildServices.register(projectRule.testRootDisposable)
+  }
+
   @Test
   fun testResourcesMakeTheProjectOutOfDate() = runBlocking {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
@@ -46,8 +54,7 @@ class RenderingBuildStatusManagerResourcesTest {
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     // Simulate a successful build
-    (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
-      buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
       5.seconds
@@ -65,8 +72,7 @@ class RenderingBuildStatusManagerResourcesTest {
     ) { it is RenderingBuildStatus.OutOfDate }
 
     // A build should restore the ready state
-    (statusManager as RenderingBuildStatusManagerForTests).simulateProjectSystemBuild(
-      buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
     statusManager.statusFlow.awaitStatus(
       "Ready state expected",
       5.seconds

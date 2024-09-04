@@ -41,6 +41,7 @@ studio_plugin(
         "//prebuilts/tools/common/archive-patcher:explainer",
         "//prebuilts/tools/common/archive-patcher:generator",
         "//prebuilts/tools/common/archive-patcher:shared",
+        "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
@@ -54,6 +55,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//prebuilts/tools/common/m2:oauth2",
         "//prebuilts/tools/common/m2:jewel-ide",
+        "//prebuilts/tools/common/m2:commonmark-0.22.0",
         "//prebuilts/tools/common/m2:compose-desktop",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
@@ -96,6 +98,9 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
+        "//tools/adt/idea/app-quality-insights/ui:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/logcat/proto:logcat-proto",
@@ -628,7 +633,12 @@ studio_plugin(
     licenses = [
         "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
     ],
-    modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
+    modules = {
+        "test-recorder.jar": [
+            "//tools/studio/google/cloud/testing/test-recorder:test-recorder",
+            "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
@@ -642,7 +652,12 @@ studio_plugin(
     libs = [
         "//tools/vendor/google/url-assistant:urlassistant_proto",
     ],
-    modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
+    modules = {
+        "url-assistant.jar": [
+            "//tools/vendor/google/url-assistant:url-assistant",
+            "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",

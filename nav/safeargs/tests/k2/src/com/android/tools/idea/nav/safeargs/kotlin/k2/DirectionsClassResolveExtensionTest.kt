@@ -31,10 +31,12 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolVisibility
 import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -46,6 +48,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@OptIn(KaExperimentalApi::class)
 @RunWith(Parameterized::class)
 @RunsInEdt
 class DirectionsClassResolveExtensionTest(
@@ -106,11 +109,11 @@ class DirectionsClassResolveExtensionTest(
         val x: ${caret}Fragment1Directions = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
-      assertThat(symbol.classIdIfNonLocal?.asFqNameString())
-        .isEqualTo("test.safeargs.Fragment1Directions")
-      assertThat(getPrimaryConstructorSymbol(symbol).visibility).isEqualTo(Visibilities.Private)
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Directions")
+      assertThat(getPrimaryConstructorSymbol(symbol).visibility)
+        .isEqualTo(KaSymbolVisibility.PRIVATE)
       assertThat(getRenderedMemberFunctions(symbol, RENDERER)).isEmpty()
       assertThat(getRenderedMemberFunctions(symbol.companionObject!!, RENDERER))
         .containsExactly(
@@ -160,7 +163,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
 
@@ -180,7 +183,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}someOtherAction
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
   }
@@ -225,7 +228,7 @@ class DirectionsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
+    ) { symbol: KaPropertySymbol ->
       assertThat(symbol.returnType).isNotInstanceOf(KaErrorType::class.java)
     }
 
@@ -239,7 +242,7 @@ class DirectionsClassResolveExtensionTest(
         val y = ${caret}x
       """
         .trimIndent()
-    ) { symbol: KtPropertySymbol ->
+    ) { symbol: KaPropertySymbol ->
       assertThat(symbol.returnType).isInstanceOf(KaErrorType::class.java)
     }
 
@@ -261,7 +264,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}someOtherAction
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.valueParameters).isEmpty()
     }
   }
@@ -362,29 +365,29 @@ class DirectionsClassResolveExtensionTest(
         val x: ${caret}Fragment1Directions = TODO()
       """
         .trimIndent()
-    ) { symbol: KtNamedClassOrObjectSymbol ->
+    ) { symbol: KaNamedClassSymbol ->
       assertThat(getRenderedMemberFunctions(symbol.companionObject!!, RENDERER))
         .containsExactly(
           "fun actionScalar(" +
-          "stringArg: kotlin.String, " +
-          "intArg: kotlin.Int, " +
-          "referenceArg: kotlin.Int, " +
-          "longArg: kotlin.Long, " +
-          "floatArg: kotlin.Float, " +
-          "booleanArg: kotlin.Boolean, " +
-          "inPackageEnumArg: test.safeargs.ArgEnum, " +
-          "outOfPackageEnumArg: other.ArgEnum" +
-          "): androidx.navigation.NavDirections",
+            "stringArg: kotlin.String, " +
+            "intArg: kotlin.Int, " +
+            "referenceArg: kotlin.Int, " +
+            "longArg: kotlin.Long, " +
+            "floatArg: kotlin.Float, " +
+            "booleanArg: kotlin.Boolean, " +
+            "inPackageEnumArg: test.safeargs.ArgEnum, " +
+            "outOfPackageEnumArg: other.ArgEnum" +
+            "): androidx.navigation.NavDirections",
           "fun actionArray(" +
-          "stringArray: kotlin.Array<kotlin.String>, " +
-          "intArray: kotlin.IntArray, " +
-          "referenceArray: kotlin.IntArray, " +
-          "longArray: kotlin.LongArray, " +
-          "floatArray: kotlin.FloatArray, " +
-          "booleanArray: kotlin.BooleanArray, " +
-          "inPackageEnumArray: kotlin.Array<test.safeargs.ArgEnum>, " +
-          "outOfPackageEnumArray: kotlin.Array<other.ArgEnum>" +
-          "): androidx.navigation.NavDirections",
+            "stringArray: kotlin.Array<kotlin.String>, " +
+            "intArray: kotlin.IntArray, " +
+            "referenceArray: kotlin.IntArray, " +
+            "longArray: kotlin.LongArray, " +
+            "floatArray: kotlin.FloatArray, " +
+            "booleanArray: kotlin.BooleanArray, " +
+            "inPackageEnumArray: kotlin.Array<test.safeargs.ArgEnum>, " +
+            "outOfPackageEnumArray: kotlin.Array<other.ArgEnum>" +
+            "): androidx.navigation.NavDirections",
         )
     }
   }
@@ -431,13 +434,13 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2(" +
-          "argumentFromAction: kotlin.Int, " +
-          "argumentFromDestination: kotlin.Int" +
-          "): androidx.navigation.NavDirections"
+            "argumentFromAction: kotlin.Int, " +
+            "argumentFromDestination: kotlin.Int" +
+            "): androidx.navigation.NavDirections"
         )
     }
   }
@@ -485,7 +488,7 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2(argument: kotlin.Int = ...): androidx.navigation.NavDirections"
@@ -539,12 +542,11 @@ class DirectionsClassResolveExtensionTest(
         val x = Fragment1Directions::${caret}actionFragment1ToFragment2
       """
         .trimIndent()
-    ) { symbol: KtFunctionSymbol ->
+    ) { symbol: KaNamedFunctionSymbol ->
       val argumentBody =
         if (navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
           "argumentBefore: kotlin.Int, argumentAfter: kotlin.Int, argumentWithDefault: kotlin.Int = ..."
-        }
-        else {
+        } else {
           "argumentBefore: kotlin.Int, argumentWithDefault: kotlin.Int = ..., argumentAfter: kotlin.Int"
         }
       assertThat(symbol.render(RENDERER))
@@ -625,7 +627,7 @@ class DirectionsClassResolveExtensionTest(
         ${this}
       """
         .trimIndent()
-    ) { symbol: KtSymbol ->
+    ) { symbol: KaSymbol ->
       assertThat(getResolveExtensionPsiNavigationTargets(symbol))
         .containsExactlyElementsIn(listOfNotNull(target))
     }

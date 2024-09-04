@@ -148,9 +148,9 @@ class NlPropertiesModelTest {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.surface.sceneManager!!.resourcesChanged(
-      ImmutableSet.of(ResourceNotificationManager.Reason.EDIT)
-    )
+    nlModel.surface
+      .getSceneManager(nlModel)!!
+      .resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
@@ -172,7 +172,7 @@ class NlPropertiesModelTest {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.notifyLiveUpdate(false)
+    nlModel.notifyLiveUpdate()
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener, atLeast(1)).propertyValuesChanged(model)

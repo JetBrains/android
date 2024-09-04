@@ -33,6 +33,7 @@ import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -69,6 +70,7 @@ class WearHealthServicesStateManagerTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
+    val TEST_STATE_STALENESS_THRESHOLD = 2.seconds
   }
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -87,10 +89,11 @@ class WearHealthServicesStateManagerTest {
     deviceManager = FakeDeviceManager(capabilities)
     stateManager =
       WearHealthServicesStateManagerImpl(
-          deviceManager,
-          logger,
-          testWorkerScope,
-          TEST_POLLING_INTERVAL_MILLISECONDS,
+          deviceManager = deviceManager,
+          eventLogger = logger,
+          workerScope = testWorkerScope,
+          pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+          stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also {
           it.serialNumber = "test"
@@ -193,6 +196,9 @@ class WearHealthServicesStateManagerTest {
   @Test
   fun `test state manager sets capabilities that are not returned by device manager to default state`() =
     runBlocking {
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
       stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
       stateManager.setOverrideValue(heartRateBpmCapability, 3f)
 
@@ -297,6 +303,9 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
     stateManager
       .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }
@@ -324,8 +333,9 @@ class WearHealthServicesStateManagerTest {
     stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
     stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(false)
 
-    stateManager.applyChanges()
+    val result = stateManager.applyChanges()
 
+    assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
@@ -355,12 +365,64 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
+  fun `when not in an exercise applyChanges only updates capabilities and does not update override values`():
+    Unit = runBlocking {
+    deviceManager.activeExercise = false
+
+    stateManager
+      .getState(heartRateBpmCapability)
+      .mapState { it.capabilityState.enabled }
+      .waitForValue(true)
+    stateManager
+      .getState(locationCapability)
+      .mapState { it.capabilityState.enabled }
+      .waitForValue(true)
+    stateManager
+      .getState(stepsCapability)
+      .mapState { it.capabilityState.enabled }
+      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(true)
+
+    stateManager.setOverrideValue(heartRateBpmCapability, 80)
+    stateManager.setCapabilityEnabled(locationCapability, false)
+    stateManager.setCapabilityEnabled(stepsCapability, false)
+    stateManager.setOverrideValue(stepsCapability, 30)
+
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(false)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(false)
+
+    val result = stateManager.applyChanges()
+
+    assertThat(result.isSuccess).isTrue()
+    stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
+
+    stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.synced }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.synced }.waitForValue(true)
+
+    val capabilityStates = deviceManager.loadCurrentCapabilityStates().getOrThrow()
+    assertThat(capabilityStates)
+      .containsEntry(
+        heartRateBpmCapability.dataType,
+        CapabilityState.enabled(WhsDataType.HEART_RATE_BPM),
+      )
+    assertThat(capabilityStates)
+      .containsEntry(locationCapability.dataType, CapabilityState.disabled(WhsDataType.LOCATION))
+    assertThat(capabilityStates)
+      .containsEntry(stepsCapability.dataType, CapabilityState.disabled(WhsDataType.STEPS))
+  }
+
+  @Test
   fun `test applyChanges sends error status update`(): Unit = runBlocking {
     deviceManager.failState = true
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager.applyChanges()
+    val result = stateManager.applyChanges()
 
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     assertThat(loggedEvents).hasSize(2)
@@ -380,12 +442,14 @@ class WearHealthServicesStateManagerTest {
 
     deviceManager.failState = true
 
-    stateManager.applyChanges()
+    var result = stateManager.applyChanges()
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     deviceManager.failState = false
 
-    stateManager.applyChanges()
+    result = stateManager.applyChanges()
+    assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
   }
 
@@ -435,8 +499,9 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `test triggered events are forwarded to device manager`(): Unit = runBlocking {
-    stateManager.triggerEvent(EventTrigger("key", "label"))
+    val result = stateManager.triggerEvent(EventTrigger("key", "label"))
 
+    assertThat(result.isSuccess).isTrue()
     assertThat(deviceManager.triggeredEvents).hasSize(1)
     assertThat(deviceManager.triggeredEvents[0].eventKey).isEqualTo("key")
   }
@@ -445,8 +510,9 @@ class WearHealthServicesStateManagerTest {
   fun `test triggered event failures are reflected in state manager`(): Unit = runBlocking {
     deviceManager.failState = true
 
-    stateManager.triggerEvent(EventTrigger("key", "label"))
+    val result = stateManager.triggerEvent(EventTrigger("key", "label"))
 
+    assertThat(result.isSuccess).isFalse()
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
   }
 
@@ -455,8 +521,9 @@ class WearHealthServicesStateManagerTest {
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
-    stateManager.reset()
+    val result = stateManager.reset()
 
+    assertThat(result.isSuccess).isTrue()
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
   }
 
@@ -466,11 +533,27 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(false)
     deviceManager.failState = true
-    stateManager.reset()
+    val result = stateManager.reset()
 
+    assertThat(result.isSuccess).isFalse()
     try {
       stateManager.getState(heartRateBpmCapability).mapState { it.synced }.waitForValue(true)
       fail("Value should not reset if the communication with the device is lost")
     } catch (_: AssertionError) {}
+  }
+
+  @Test
+  fun `the state will become stale when sync fails`(): Unit = runBlocking {
+    // after a successful sync the state should not be state
+    deviceManager.failState = false
+    stateManager.isStateStale.waitForValue(false)
+
+    // when the state can't sync then it should eventually become stale
+    deviceManager.failState = true
+    stateManager.isStateStale.waitForValue(true)
+
+    // once it's possible to sync again, then it the state should no longer be stale
+    deviceManager.failState = false
+    stateManager.isStateStale.waitForValue(false)
   }
 }

@@ -75,9 +75,8 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExt
 
   private val navigationTargetsProvider by lazy {
     object : KaResolveExtensionNavigationTargetsProvider() {
-      override fun KaSession.getNavigationTargets(
-        element: KtElement
-      ): Collection<PsiElement> = listOfNotNull(getNavigationElement(element))
+      override fun KaSession.getNavigationTargets(element: KtElement): Collection<PsiElement> =
+        listOfNotNull(getNavigationElement(element))
     }
   }
 

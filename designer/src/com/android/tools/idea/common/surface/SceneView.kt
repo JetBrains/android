@@ -28,10 +28,8 @@ import com.android.tools.idea.common.scene.draw.ColorSet
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
 import java.awt.Graphics2D
-import java.awt.Insets
 import java.awt.Shape
 import java.util.function.Consumer
 
@@ -108,10 +106,6 @@ abstract class SceneView(
   @get:SwingCoordinate
   val scaledContentSize: Dimension
     get() = getScaledContentSize(null)
-
-  /** Returns the margin requested by this [SceneView] */
-  val margin: Insets
-    get() = JBInsets.emptyInsets()
 
   @AndroidDpCoordinate abstract fun getContentSize(dimension: Dimension?): Dimension
 

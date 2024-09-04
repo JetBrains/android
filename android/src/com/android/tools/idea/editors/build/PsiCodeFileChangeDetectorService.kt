@@ -28,6 +28,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.TestOnly
@@ -146,18 +147,14 @@ interface PsiCodeFileOutOfDateStatusReporter {
  * which is accessible via [PsiCodeFileOutOfDateStatusReporter].
  */
 interface PsiCodeFileUpToDateStatusRecorder {
-  // TODO: b/331381702 - This method should accept a scope (probably [GlobalSearchScope]) that defines the scope of the build that is being
-  // started. Note, that currently any completed build (of type compile and assemble) marks all out-of-date files as up-to-date, which is
-  // often incorrect (unless the whole project is being built).
-
   /**
    * An action that knows the set of out-of-date files at the moment of its instantiation and can be used to mark them as up-to-date.
    */
   fun interface MarkUpToDateAction {
     /**
-     * Marks files that were out-of-date when the action was created as up-to-date.
+     * Marks files that both were out-of-date when the action was created and are in the [scope] now as up-to-date.
      */
-    fun markUpToDate()
+    fun markUpToDate(scope: GlobalSearchScope)
   }
   /**
    * Returns an action (a callback) that marks currently out-of-date files as being up-to-date
@@ -226,7 +223,9 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
 
   override fun prepareMarkUpToDate(): PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction {
     val changed = outOfDateFiles
-    return PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction{ markAsUpToDate(changed) }
+    return PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction { scope ->
+      markAsUpToDate(changed.filter { scope.contains(it.virtualFile) })
+    }
   }
 
   /**

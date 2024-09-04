@@ -712,9 +712,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -724,7 +724,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false
@@ -901,9 +901,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -913,7 +913,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false
@@ -1033,9 +1033,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.5
+            ApiLevel                      : 2.0
             CompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -1045,7 +1045,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.5
+                apiVersion                    : 2.0
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false

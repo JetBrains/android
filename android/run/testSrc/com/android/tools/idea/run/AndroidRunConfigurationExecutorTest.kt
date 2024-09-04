@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.run
 
-import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
-import com.android.adblib.ddmlibcompatibility.testutils.createAdbSession
+import com.android.adblib.ddmlibcompatibility.testutils.createIDeviceManagerFactoryFactory
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.idevicemanager.IDeviceManagerFactory
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.flags.junit.FlagRule
@@ -33,6 +31,7 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.BackupManager.Source.RUN_MENU
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionException
@@ -105,13 +104,16 @@ class AndroidRunConfigurationExecutorTest {
     val ACTIVITY_NAME = "google.simpleapplication.MyActivity"
   }
 
-  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule().withIDeviceManagerFactoryFactory { iDeviceManagerFactoryFactory() }
+  val closeables = CloseablesRule()
+
+  val fakeAdb = FakeAdbTestRule().apply {
+      withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
+    }
+
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
   val cleaner = MockitoCleanerRule()
-
-  val closeables = CloseablesRule()
 
   val usageTrackerRule = UsageTrackerRule()
 
@@ -119,15 +121,11 @@ class AndroidRunConfigurationExecutorTest {
   val chain = RuleChain.outerRule(cleaner)
     .around(closeables)
     .around(usageTrackerRule)
-    .around(projectRule)
     .around(fakeAdb)
+    .around(projectRule)
     .around(FlagRule(StudioFlags.BACKUP_ENABLED, true))
 
   private val mockBackupManager = mock<BackupManager>()
-  private val iDeviceManagerFactoryFactory: () -> IDeviceManagerFactory = {
-    val adbSession = fakeAdb.createAdbSession(closeables)
-    AdbLibIDeviceManagerFactory(adbSession)
-  }
 
   @Before
   fun setUp() {
@@ -195,7 +193,7 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
     }
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
@@ -254,7 +252,7 @@ class AndroidRunConfigurationExecutorTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
     }
 
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()

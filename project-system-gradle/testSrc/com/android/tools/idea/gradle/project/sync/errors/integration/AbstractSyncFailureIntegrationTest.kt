@@ -31,6 +31,8 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
@@ -38,6 +40,7 @@ import org.junit.Rule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@RunsInEdt
 abstract class AbstractSyncFailureIntegrationTest {
 
   @get:Rule
@@ -47,7 +50,7 @@ abstract class AbstractSyncFailureIntegrationTest {
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
 
-  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+  protected val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   @Before
   fun setUp() {
@@ -62,7 +65,7 @@ abstract class AbstractSyncFailureIntegrationTest {
 
   protected fun runSyncAndCheckGeneralFailure(
     preparedProject: PreparedTestProject,
-    verifySyncViewEvents: (List<BuildEvent>) -> Unit,
+    verifySyncViewEvents: (Project, List<BuildEvent>) -> Unit,
     verifyFailureReported: (AndroidStudioEvent) -> Unit
   ) {
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
@@ -86,11 +89,10 @@ abstract class AbstractSyncFailureIntegrationTest {
           }
         )
       }
-    ) {
+    ) { project ->
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
+      verifySyncViewEvents(project, buildEvents)
     }
-
-    verifySyncViewEvents(buildEvents)
 
     val reportedFailureDetails = usageTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }

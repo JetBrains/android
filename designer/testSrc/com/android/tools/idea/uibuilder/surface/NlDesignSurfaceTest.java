@@ -103,7 +103,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
 
     mySurface.requestRender().join();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertFalse(mySurface.getIssueModel().getIssues()
                   .stream()
                   .anyMatch(
@@ -166,20 +166,20 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
+    assertNull(mySurface.getSceneManager(model).getRenderResult());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
-    assertNull(mySurface.getSceneManager().getSecondarySceneView());
+    assertNull(mySurface.getSceneManager(model).getSecondarySceneView());
 
     mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false);
     mySurface.requestRender();
-    assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
 
     SceneView screenView = mySurface.getFocusedSceneView();
-    SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
+    SceneView blueprintView = mySurface.getSceneManager(model).getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
 
@@ -415,7 +415,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    mySurface.setScrollViewSizeAndValidate(1000, 1000);
+    mySurface.setScrollViewSizeAndValidateForTest(1000, 1000);
     mySurface.getZoomController().zoomToFit();
     double origScale = mySurface.getZoomController().getScale();
     assertEquals(origScale, mySurface.getZoomController().getMinScale());
@@ -442,7 +442,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.getZoomController().zoom(ZoomType.OUT);
     assertEquals(mySurface.getZoomController().getScale(), origScale);
 
-    mySurface.setScrollViewSizeAndValidate(2000, 2000);
+    mySurface.setScrollViewSizeAndValidateForTest(2000, 2000);
     assertEquals(1.0, mySurface.getZoomController().getMinScale());
 
     mySurface.getZoomController().setScale(1.099, 0, 0);
@@ -468,7 +468,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.setConfiguration(config);
     mySurface.setModel(model);
     assertEquals(2.f, mySurface.getSceneManager(model).getSceneScalingFactor());
-    mySurface.setScrollViewSizeAndValidate(1000, 1000);
+    mySurface.setScrollViewSizeAndValidateForTest(1000, 1000);
     mySurface.getZoomController().zoomToFit();
     double origScale = mySurface.getZoomController().getScale();
     assertEquals(origScale, mySurface.getZoomController().getMinScale());
@@ -495,7 +495,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.getZoomController().zoom(ZoomType.OUT);
     assertEquals(mySurface.getZoomController().getScale(), origScale);
 
-    mySurface.setScrollViewSizeAndValidate(2000, 2000);
+    mySurface.setScrollViewSizeAndValidateForTest(2000, 2000);
     assertEquals(1.0, mySurface.getZoomController().getMinScale());
 
     mySurface.getZoomController().setScale(1.099, 0, 0);

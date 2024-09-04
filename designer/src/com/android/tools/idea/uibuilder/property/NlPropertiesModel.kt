@@ -39,10 +39,8 @@ import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
-import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
@@ -97,7 +95,6 @@ open class NlPropertiesModel(
     AccessorySelectionListener { panel, type, accessory, selection ->
       handlePanelSelectionUpdate(panel, type, accessory, selection)
     }
-  private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface<*>? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
@@ -313,9 +310,7 @@ open class NlPropertiesModel(
     if (surface != activeSurface) {
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
-      (activeSceneView as? ScreenView)?.sceneManager?.removeRenderListener(renderListener)
       activeSceneView = surface?.focusedSceneView
-      (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
     makeInitialSelection(surface, activePanel)
   }
@@ -491,12 +486,6 @@ open class NlPropertiesModel(
       .submit(AppExecutorUtil.getAppExecutorService())
   }
 
-  private fun handleRenderingCompleted() {
-    if (defaultValueProvider?.hasDefaultValuesChanged() == true) {
-      ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
-    }
-  }
-
   fun firePropertiesGenerated() {
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
@@ -557,7 +546,7 @@ open class NlPropertiesModel(
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
 
-    override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
+    override fun modelLiveUpdate(model: NlModel) {
       // Move the handling onto the event dispatch thread in case this notification is sent from a
       // different thread:
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }

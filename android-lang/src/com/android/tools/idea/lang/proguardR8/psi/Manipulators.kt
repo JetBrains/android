@@ -78,13 +78,16 @@ class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8
 class ProguardR8ClassMemberNameManipulator : AbstractElementManipulator<ProguardR8ClassMemberName>() {
 
   override fun handleContentChange(element: ProguardR8ClassMemberName, range: TextRange, newContent: String): ProguardR8ClassMemberName {
-    /**
-     * Throwing an exception here blocks refactoring, included renames started from a Kotlin file,
-     * even if the Shrinker Config File wasn't even open. For the user this means a error message is displayed and refactoring is cancelled.
-     * It blocks it just in case name is used in Shrinker Config File.
-     */
+    // Throwing an exception here blocks refactoring, included renames started from a Kotlin file,
+    // even if the Shrinker Config File wasn't even open. For the user this means a error message is displayed and refactoring is cancelled.
+    // It blocks it just in case name is used in Shrinker Config File.
     if (!ProguardR8Lexer.isJavaIdentifier(newContent)) {
-      throw IncorrectOperationException("\"$newContent\" is not an identifier for Shrinker Config.")
+      // After the 2024.2 merge, this identifier (coming from Kotlin) may be surrounding in back-ticks since it's not valid Java. For the
+      // error message, it's okay to remove that.
+      val identifierForError =
+        if (newContent.startsWith('`') && newContent.endsWith('`')) newContent.substring(1, newContent.length - 1)
+        else newContent
+      throw IncorrectOperationException("\"$identifierForError\" is not an identifier for Shrinker Config.")
     }
 
     val identifier = element.node.findChildByType(ProguardR8PsiTypes.JAVA_IDENTIFIER) as? LeafPsiElement

@@ -96,7 +96,10 @@ enum class ModelFeature(
   HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH(AgpVersion.parse("8.2.0-alpha03")),
   HAS_SCREENSHOT_TESTS_SUPPORT(AgpVersion.parse("8.4.0-alpha07")),
   HAS_EXPERIMENTAL_PROPERTIES(AgpVersion.parse("8.6.0-alpha01")),
-  HAS_DATA_BINDING(ModelVersion(9))
+  HAS_DATA_BINDING(ModelVersion(9)),
+  HAS_PROJECT_GRAPH_MODEL(ModelVersion(10, 0)),
+  HAS_GENERATED_ASSETS(ModelVersion(11, 0)),
+  HAS_FLAT_DEPENDENCY_MODEL(ModelVersion(12, 0))
   ;
 
   init {
@@ -280,8 +283,8 @@ internal class BasicV2AndroidModuleGradleProject(
               buildRuntimeClasspathForLibraryUnitTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
               buildRuntimeClasspathForLibraryScreenshotTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests
             ),
-            useNewDependencyGraphModel = syncActionOptions.flags.studioFlagUseNewDependencyGraphModel
-                                         && modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]
+            useFlatDependencyGraphModel = syncActionOptions.flags.studioFlagUseFlatDependencyGraphModel
+                                          && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL]
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

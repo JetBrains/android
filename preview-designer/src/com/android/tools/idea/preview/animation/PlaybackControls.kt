@@ -245,8 +245,6 @@ class PlaybackControls(
   /**
    * Action to speed up or slow down the timeline. The clock runs faster/slower depending on the
    * value selected.
-   *
-   * TODO(b/157895086): Add a proper icon for the action.
    */
   private inner class TimelineSpeedAction :
     DropDownAction(

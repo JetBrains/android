@@ -23,9 +23,10 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
-import com.android.tools.rendering.RenderResult
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.api.RenderModelModule
+import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -84,16 +85,6 @@ open class SyncLayoutlibSceneManager(
     return result
   }
 
-  override fun renderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
-  ): CompletableFuture<RenderResult> {
-    if (ignoreRenderRequests) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger, reverseUpdate))
-  }
-
   override fun requestRenderAsync(): CompletableFuture<Void> {
     if (ignoreRenderRequests) {
       return CompletableFuture.completedFuture(null)
@@ -130,11 +121,15 @@ open class SyncLayoutlibSceneManager(
       forceReinflate()
       requestRenderAsync().join()
     }
-    var map: MutableMap<ResourceReference, ResourceValue> =
+    val map: MutableMap<ResourceReference, ResourceValue> =
       renderResult!!.defaultProperties.getOrPut(component.snapshot!!) { HashMap() }
     val reference = ResourceReference.attr(namespace, attributeName)
     val resourceValue: ResourceValue =
       StyleItemResourceValueImpl(namespace, attributeName, value, null)
+    if (map[reference] != resourceValue) {
+      // Make sure to "emulate" the consequences of a change
+      resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
+    }
     map[reference] = resourceValue
   }
 }

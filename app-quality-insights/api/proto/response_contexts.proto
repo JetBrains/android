@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+import "citation_metadata.proto";
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "ResponseContextsProto";
+
+// Intended to hold LLM-generated content over and above what is present in
+// the `predictions` field. E.g. tooltip instructions.
+// (-- This is the ONLY response context that can contain LLM-generated content
+// --)
+message OutputDataContext {
+  // Represents GCP product specific source code context.
+  // (-- Extensibility point; GCP team can wrap any proto inside this --)
+  // (-- api-linter: core::0146::any=disabled
+  //     aip.dev/not-precedent: We need to do this because this provides the
+  //     extensibility that Duet platform needs to support multiple GCP
+  //     products. See go/duet-dataplane-apis for design. --)
+  google.protobuf.Any additional_context = 1;
+}
+
+// Represents context about the display requirements of the output.
+// (-- Must NOT contain LLM-generated content --)
+message DisplayContext {
+  // Represents GCP product specific UI/client context.
+  //(--  Extensibility point; GCP team can wrap any proto inside this
+  //--)
+  // (-- api-linter: core::0146::any=disabled
+  //     aip.dev/not-precedent: We need to do this because this provides the
+  //     extensibility that Duet platform needs to support multiple GCP
+  //     products. See go/duet-dataplane-apis for design. --)
+  google.protobuf.Any additional_context = 2;
+}
+
+// Represents citation and attribution context of the output.
+// (-- Must NOT contain LLM-generated content --)
+message AttributionContext {
+  // Citation metadata of the output
+  CitationMetadata citation_metadata = 1;
+}

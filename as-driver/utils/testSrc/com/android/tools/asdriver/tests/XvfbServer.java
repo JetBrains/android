@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An X server potentially backed by Xvfb.
  */
+// LINT.IfChange
 public class XvfbServer implements Display {
   private static final String DEFAULT_RESOLUTION = "1280x1024x24";
   private static final int MAX_RETRIES_TO_FIND_DISPLAY = 20;
@@ -135,7 +136,10 @@ public class XvfbServer implements Display {
         display,
         TestUtils.getWorkspaceRoot().toString(),
         resolution
-      ).start();
+      )
+        .redirectErrorStream(true)
+        .redirectOutput(TestUtils.getTestOutputDir().resolve("xvfb.log").toFile())
+        .start();
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -154,3 +158,4 @@ public class XvfbServer implements Display {
     }
   }
 }
+// LINT.ThenChange(/adt-testutils/src/main/java/com/android/tools/tests/XvfbServer.java)

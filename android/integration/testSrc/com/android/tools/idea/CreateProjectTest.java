@@ -50,7 +50,7 @@ public class CreateProjectTest {
     // The Gradle version is chosen based on this. AGP 7.4.1 corresponds to Gradle 7.5.0 (see
     // GradleVersionRefactoringProcessor#getCompatibleGradleVersion).
     // AGP version 7.4.1 is chosen because version catalogs requires at least AGP 7.4.0
-    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=7.4.1");
+    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.1.0");
 
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();

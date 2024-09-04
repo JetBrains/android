@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
@@ -36,15 +40,13 @@ import com.intellij.psi.PsiFile
  * Note: In the case of the Gradle project system an implementation of `BuildTargetReference` is likely to simply wrap an IDE module.
  */
 interface BuildTargetReference {
-  val project: Project
+  val project: Project get() = module.project
   val module: Module
 
-  private data class GradleOnlyBuildTargetReference(override val module: Module): BuildTargetReference {
-    override val project: Project
-      get() = module.project
-  }
-
   companion object {
+    private val Project.buildTargets: BuildSystemFilePreviewServices.BuildTargets
+      get() = getProjectSystem().getBuildSystemFilePreviewServices().buildTargets
+
     /**
      * Obtains a reference to a build target that contains the given [targetFile].
      *
@@ -53,19 +55,17 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        // NOTE: This method has two parameters even though `targetFile` seems enough. This is to make sure correct migration of all
-        // callers from facet based to target file based services. It is important for a narrower scope defined by the file to be nested
-        // in a wider scope defined by the facet as otherwise different code paths may try to obtain services from different modules.
-        // The following check is supposed to catch cases when, for example, a caller passes a resource file from a dependency or the
-        // framework as a target file that is supposed to define the build ocntext.
-        runReadAction {
-          if (!ModuleRootManager.getInstance(module).fileIndex.isInContent(targetFile)) {
-            error("'$targetFile' is not under '${module}' content roots")
-          }
-        }
-      }
-      return gradleOnly(module)
+      maybeValidateModule(module, targetFile)
+      return module.project.buildTargets.from(module, targetFile)
+    }
+
+    /**
+     * Obtains a reference to a build target that contains the given [targetFile].
+     */
+    @JvmStatic
+    fun from(project: Project, targetFile: VirtualFile): BuildTargetReference? {
+      val module = runReadAction { ProjectFileIndex.getInstance(project).getModuleForFile(targetFile)} ?: return null
+      return project.buildTargets.from(module, targetFile)
     }
 
     /**
@@ -73,7 +73,8 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun from(targetFile: PsiFile): BuildTargetReference? {
-      return from(runReadAction { ModuleUtilCore.findModuleForPsiElement(targetFile) } ?: return null, targetFile.originalFile.virtualFile)
+      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(targetFile) } ?: return null
+      return targetFile.project.buildTargets.from(module, targetFile.originalFile.virtualFile)
     }
 
     /**
@@ -84,7 +85,22 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun gradleOnly(module: Module): BuildTargetReference {
-      return GradleOnlyBuildTargetReference(module)
+      return module.project.buildTargets.fromModuleOnly(module)
+    }
+  }
+}
+
+private fun maybeValidateModule(module: Module, targetFile: VirtualFile) {
+  if (ApplicationManager.getApplication().isUnitTestMode) {
+    // NOTE: This method has two parameters even though `targetFile` seems enough. This is to make sure correct migration of all
+    // callers from facet based to target file based services. It is important for a narrower scope defined by the file to be nested
+    // in a wider scope defined by the facet as otherwise different code paths may try to obtain services from different modules.
+    // The following check is supposed to catch cases when, for example, a caller passes a resource file from a dependency or the
+    // framework as a target file that is supposed to define the build ocntext.
+    runReadAction {
+      if (!ModuleRootManager.getInstance(module).fileIndex.isInContent(targetFile)) {
+        error("'$targetFile' is not under '${module}' content roots")
+      }
     }
   }
 }

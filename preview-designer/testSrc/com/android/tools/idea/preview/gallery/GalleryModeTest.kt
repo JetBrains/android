@@ -26,7 +26,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndWait
@@ -151,10 +151,10 @@ class GalleryModeTest(private val newGalleryPreview: Boolean) {
       else findGalleryTabs(gallery.component)
     val refresh = {
       val context =
-        MapDataContext().also {
-          it.put(PreviewModeManager.KEY, previewModeManager)
-          it.put(PreviewFlowManager.KEY, previewFlowManager())
-        }
+        SimpleDataContext.builder()
+          .add(PreviewModeManager.KEY, previewModeManager)
+          .add(PreviewFlowManager.KEY, previewFlowManager())
+          .build()
       tabsToolbar.actionGroup.update(createTestEvent(context))
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
     }
@@ -168,9 +168,17 @@ class GalleryModeTest(private val newGalleryPreview: Boolean) {
         MutableStateFlow(FlowableCollection.Present(previewElements))
 
       override val filteredPreviewElementsFlow = MutableStateFlow(FlowableCollection.Uninitialized)
+
+      override val renderedPreviewElementsFlow =
+        MutableStateFlow<FlowableCollection<PreviewElement<*>>>(FlowableCollection.Uninitialized)
+
       override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(setOf())
       override var groupFilter: PreviewGroup = PreviewGroup.All
 
       override fun setSingleFilter(previewElement: PreviewElement<*>?) {}
+
+      override fun updateRenderedPreviews(previewElements: List<PreviewElement<*>>) {
+        renderedPreviewElementsFlow.value = FlowableCollection.Present(previewElements)
+      }
     }
 }

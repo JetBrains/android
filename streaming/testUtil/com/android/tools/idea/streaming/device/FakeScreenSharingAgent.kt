@@ -353,7 +353,7 @@ class FakeScreenSharingAgent(
     executor.execute {
       if (displays.find { it.displayId == displayId } == null) {
         displays = (displays + DisplayDescriptor(displayId, width, height, 0, displayType)).sortedBy { it.displayId }
-        sendNotificationOrResponse(DisplayAddedNotification(displayId))
+        sendNotificationOrResponse(DisplayAddedOrChangedNotification(displayId, width, height, 0, displayType))
       }
       else {
         thisLogger().error("Display $displayId already exists")

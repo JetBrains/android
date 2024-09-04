@@ -25,6 +25,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -261,20 +262,20 @@ fun Project.requiresAndroidModel(): Boolean {
   return ContainerUtil.exists(androidFacets) { facet: AndroidFacet -> AndroidModel.isRequired(facet) }
 }
 
-fun isAndroidTestFile(project: Project, file: VirtualFile?) = runReadAction {
+fun isAndroidTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
   val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) } ?: false
-}
+}.executeSynchronously()
 
-fun isUnitTestFile(project: Project, file: VirtualFile?) = runReadAction {
+fun isUnitTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
   val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isUnitTestSource(file) } ?: false
-}
+}.executeSynchronously()
 
-fun isScreenshotTestFile(project: Project, file: VirtualFile?) = runReadAction {
+fun isScreenshotTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
   val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
   module?.let { TestArtifactSearchScopes.getInstance(module)?.isScreenshotTestSource(file) } ?: false
-}
+}.executeSynchronously()
 
 fun isTestFile(project: Project, file: VirtualFile?) =
   isUnitTestFile(project, file) || isAndroidTestFile(project, file) || isScreenshotTestFile(project, file)

@@ -41,12 +41,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.Component
-import java.awt.Graphics
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
@@ -61,15 +60,8 @@ val REFRESH_BUTTON =
     JBColor(0x59A869, 0x499C54)
   )
 
-internal fun chipBorder(color: Color): Border = object: RoundedLineBorder(
-  UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS) {
-  override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
-    // Slightly hack RoundedLineBorder since it has a rendering bug in HiDPI modes.
-    // Will need to properly fix this by overriding the underlying component's paint method to
-    // use a filled Path instead of line rendering for border drawing.
-    super.paintBorder(c, g, x+1, y+1, width-1, height-1)
-  }
-}
+internal fun chipBorder(color: Color): Border =
+  RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS)
 
 /**
  * Represents the status of the IDE regarding states that are relevant to UI Previews and Live Edit,
@@ -231,7 +223,7 @@ open class IssueNotificationAction(
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       // Whenever the mouse is inside the popup we cancel the existing alarms via callback
       newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
-      getDisposableParentForPopup(e)?.let { newPopup.showPopup(it, e.inputEvent!!) } ?: newPopup.showPopup(this, e.inputEvent!!)
+      getDisposableParentForPopup(e)?.let { newPopup.showPopup(it, e.inputEvent!!.component as JComponent) } ?: newPopup.showPopup(this, e.inputEvent!!.component as JComponent)
     }
   }
 

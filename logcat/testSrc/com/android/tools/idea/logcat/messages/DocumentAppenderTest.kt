@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.asTextRange
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
-import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -41,7 +42,8 @@ private val redKey = TextAttributesKey.createTextAttributesKey("red")
 class DocumentAppenderTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
+                                 EdtRule())
 
   private val document: DocumentEx = DocumentImpl("", true)
   private val markupModel by lazy {
@@ -289,7 +291,7 @@ class DocumentAppenderTest {
 }
 
 private fun RangeHighlighter.toTextAttributesRange() =
-  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)
+  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, getTextAttributes(null)!!)
 
 private fun RangeHighlighter.toTextAttributesKeyRange() =
-  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, textAttributesKey!!)
+  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, textAttributesKey!!)

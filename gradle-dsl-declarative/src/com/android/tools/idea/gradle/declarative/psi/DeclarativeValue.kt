@@ -15,5 +15,5 @@
  */
 package com.android.tools.idea.gradle.declarative.psi
 
-interface DeclarativeValue: DeclarativeElement {
+interface DeclarativeValue : DeclarativeElement {
 }

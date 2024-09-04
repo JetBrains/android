@@ -40,8 +40,8 @@ class WidgetConstraintModelTest : SceneTest() {
   }
 
   override fun tearDown() {
-    super.tearDown()
     defaultLocale?.let { Locale.setDefault(it) }
+    super.tearDown()
   }
 
   override fun createModel(): ModelBuilder {
@@ -346,7 +346,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   // To speed up the tests ignore all render requests
   private fun ignoreRendering() {
-    val manager = myModel.surface.sceneManager as? SyncLayoutlibSceneManager ?: return
+    val manager = myModel.surface.getSceneManager(myModel) as? SyncLayoutlibSceneManager ?: return
     manager.ignoreRenderRequests = true
   }
 }

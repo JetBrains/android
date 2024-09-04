@@ -26,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.ui.IconManager
@@ -72,6 +73,7 @@ class SafeArgsIconsRenderingTest {
   @Test
   fun testClassIcons() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     val file =
       fixture.project
@@ -124,6 +126,7 @@ class SafeArgsIconsRenderingTest {
   @Test
   fun testMethodAndPropertyIcons() {
     projectRule.requestSyncAndWait()
+    IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
 
     val file =
       fixture.project

@@ -30,6 +30,7 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
+import org.jetbrains.annotations.VisibleForTesting
 
 class SuppressUnsupportedSdkVersionPropertyProcessor(
   val project: Project,
@@ -74,28 +75,37 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
   }
 
   public override fun performRefactoring(usages: Array<UsageInfo>) {
+    updateProjectBuildModel(usages)
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PROJECT_MODIFIED)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel(usages: Array<UsageInfo>) {
     usages.forEach { usage ->
-      val propertiesFile = when(val element = usage.element) {
+      val propertiesFile = when (val element = usage.element) {
         is PsiFile -> element as? PropertiesFile
-        is PsiDirectory -> (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile (FN_GRADLE_PROPERTIES)).let {
-          (it as? PropertiesFile ?: return)
+        is PsiDirectory -> (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile(FN_GRADLE_PROPERTIES)).let {
+          (it as? PropertiesFile ?: return@forEach)
         }
+
         is PsiElement -> element.containingFile as? PropertiesFile
-        else -> return
+        else -> return@forEach
       }
 
       val existing = propertiesFile?.findPropertyByKey("android.suppressUnsupportedCompileSdk")
       if (existing != null) {
         existing.setValue(sdkVersionsToSuppress)
-      } else {
+      }
+      else {
         propertiesFile?.addProperty("android.suppressUnsupportedCompileSdk", sdkVersionsToSuppress)
       }
     }
 
     val projectBuildModel = ProjectBuildModel.get(myProject)
     projectBuildModel.applyChanges()
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PROJECT_MODIFIED)
   }
+
 
   public override fun getCommandName(): String {
     return "Updating or adding android.suppressUnsupportedCompileSdk gradle property"

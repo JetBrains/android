@@ -66,7 +66,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                 }
               )
             }
-            add(ScreenViewLayer(it, colorBlindFilter, surface, surface::getRotateSurfaceDegree))
+            add(ScreenViewLayer(it, colorBlindFilter, surface, surface::rotateSurfaceDegree))
             add(
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true

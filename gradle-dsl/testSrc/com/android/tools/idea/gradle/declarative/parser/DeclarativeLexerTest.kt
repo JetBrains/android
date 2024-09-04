@@ -42,7 +42,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.one_line_string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -55,7 +55,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/** foo */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.one_line_string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -70,7 +70,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/*\n * foo\n */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.one_line_string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -83,7 +83,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo // bar */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.one_line_string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -99,7 +99,7 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
         DeclarativeTokenType.BLOCK_COMMENT ('/* foo\n   bar /* baz */\n   quux\n */')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"abc"')
+        DeclarativeTokenType.one_line_string_literal ('"abc"')
       """.trimIndent()
     )
   }
@@ -113,30 +113,11 @@ class DeclarativeLexerTest : LexerTestCase() {
       """
       DeclarativeTokenType.BLOCK_COMMENT ('/**/')
       WHITE_SPACE (' ')
-      DeclarativeTokenType.string ('"abc"')
+      DeclarativeTokenType.one_line_string_literal ('"abc"')
       WHITE_SPACE ('\n')
       DeclarativeTokenType.BLOCK_COMMENT ('/***/')
       WHITE_SPACE (' ')
-      DeclarativeTokenType.string ('"def"')
-      """.trimIndent()
-    )
-  }
-
-  fun testNumber() {
-    doTest(
-      """
-        1 23 456 7_8 9__10L
-      """.trimIndent(),
-      """
-        DeclarativeTokenType.number ('1')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('23')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('456')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('7_8')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.number ('9__10L')
+      DeclarativeTokenType.one_line_string_literal ('"def"')
       """.trimIndent()
     )
   }
@@ -144,12 +125,18 @@ class DeclarativeLexerTest : LexerTestCase() {
   fun testString() {
     doTest(
       """
-        "abc" "def"
+        "abc" "def" "\t\n" "\uF0FF" "$"
       """.trimIndent(),
       """
-        DeclarativeTokenType.string ('"abc"')
-        WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"def"')
+      DeclarativeTokenType.one_line_string_literal ('"abc"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.one_line_string_literal ('"def"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.one_line_string_literal ('"\t\n"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.one_line_string_literal ('"\uF0FF"')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.one_line_string_literal ('"$"')
       """.trimIndent()
     )
   }
@@ -160,10 +147,51 @@ class DeclarativeLexerTest : LexerTestCase() {
         "foo", "bar"
       """.trimIndent(),
       """
-        DeclarativeTokenType.string ('"foo"')
+        DeclarativeTokenType.one_line_string_literal ('"foo"')
         DeclarativeTokenType., (',')
         WHITE_SPACE (' ')
-        DeclarativeTokenType.string ('"bar"')
+        DeclarativeTokenType.one_line_string_literal ('"bar"')
+      """.trimIndent()
+    )
+  }
+
+  fun testNumbers() {
+    doTest(
+      """
+        1
+        123
+        123_123
+        123L
+        123UL
+        0xFFF
+        0xFFFU
+        0xFFFUL
+        0b0111
+        0b0111L
+        0b0111UL
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.integer_literal ('1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('123')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('123_123')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.long_literal ('123L')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('123UL')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('0xFFF')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_integer ('0xFFFU')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('0xFFFUL')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.integer_literal ('0b0111')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.long_literal ('0b0111L')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.unsigned_long ('0b0111UL')
       """.trimIndent()
     )
   }
@@ -180,6 +208,7 @@ class DeclarativeLexerTest : LexerTestCase() {
         DeclarativeTokenType.boolean ('false')
       """.trimIndent()
     )
+    """""""""""".trimIndent()
   }
 
   fun testNull() {
@@ -197,6 +226,70 @@ class DeclarativeLexerTest : LexerTestCase() {
         DeclarativeTokenType.token ('def')
         DeclarativeTokenType.. ('.')
         DeclarativeTokenType.token ('ghi')
+      """.trimIndent())
+  }
+
+  fun testToken2() {
+    doTest(
+      """
+        name age _count student1 calculateArea `_name_` `$%&^%&^`
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.token ('name')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('age')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('_count')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('student1')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('calculateArea')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`_name_`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`$%&^%&^`')
+      """.trimIndent())
+  }
+
+  fun testWrongIdentifier() {
+    doTest(
+      """
+        1name ``
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.integer_literal ('1')
+      DeclarativeTokenType.token ('name')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('`')
+      BAD_CHARACTER ('`')
+      """.trimIndent())
+  }
+
+  fun testMultilineString() {
+    val quotes = "\"\"\""
+    doTest("""
+      a=$quotes my string $quotes
+      b=$quotes this is ""the"" "link" $quotes
+      """.trimIndent(),
+      """
+        DeclarativeTokenType.token ('a')
+        DeclarativeTokenType.= ('=')
+        DeclarativeTokenType.multiline_string_literal ('$quotes my string $quotes')
+        WHITE_SPACE ('\n')
+        DeclarativeTokenType.token ('b')
+        DeclarativeTokenType.= ('=')
+        DeclarativeTokenType.multiline_string_literal ('$quotes this is ""the"" "link" $quotes')
+       """.trimIndent())
+
+    doTest(
+      """
+        $quotes
+        my
+        string
+        $quotes
+      """.trimIndent(),
+      """
+        DeclarativeTokenType.multiline_string_literal ('$quotes\nmy\nstring\n$quotes')
       """.trimIndent())
   }
 

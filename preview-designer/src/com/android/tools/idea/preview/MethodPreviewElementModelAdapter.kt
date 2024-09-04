@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.preview.MethodPreviewElement
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 
 /** Base model adapter for [MethodPreviewElement]s. */
@@ -53,12 +54,8 @@ abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement<*>, M :
    * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
    * [modelToElement] call against that model.
    */
-  override fun createDataContext(previewElement: T) = DataContext { dataId ->
-    when (dataId) {
-      elementKey.name -> previewElement
-      else -> null
-    }
-  }
+  override fun createDataContext(previewElement: T) =
+    SimpleDataContext.builder().add(elementKey, previewElement).build()
 
   override fun toLogString(previewElement: T): String =
     """

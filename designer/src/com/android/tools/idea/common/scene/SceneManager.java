@@ -221,7 +221,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   public abstract CompletableFuture<Void> requestRenderAsync();
 
   @NotNull
-  public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
+  public CompletableFuture<Void> requestLayoutAndRenderAsync() {
     return CompletableFuture.completedFuture(null);
   }
 

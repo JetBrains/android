@@ -45,6 +45,7 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewInvalidationManager
+import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
@@ -74,7 +75,6 @@ import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
-import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
@@ -115,7 +115,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -171,7 +170,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   configureDesignSurface: NlSurfaceBuilder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
-  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
+  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = {
+    null
+  },
   private val onAfterRender: (LayoutlibSceneManager) -> Unit = {},
 ) :
   PreviewRepresentation,
@@ -333,10 +334,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val myPsiCodeFileOutOfDateStatusReporter =
     PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
-  private var renderedElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
-
-  private val previewFlowManager = CommonPreviewFlowManager(renderedElementsFlow)
+  private val previewFlowManager = CommonPreviewFlowManager<T>()
 
   private val previewElementProvider =
     MemoizedPreviewElementProvider(
@@ -489,7 +487,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
-      renderedElementsFlow.value = FlowableCollection.Present(filePreviewElements)
+      previewFlowManager.updateRenderedPreviews(filePreviewElements)
     } else {
       // Some preview elements did not result in model creations. This could be because of failed
       // PreviewElements instantiation.
@@ -525,9 +523,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       try {
         refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
         val filePreviewElements =
-          previewFlowManager.filteredPreviewElementsFlow.value
-            .asCollection()
-            .sortByDisplayAndSourcePosition()
+          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
 
         val needsFullRefresh =
           request.refreshType != CommonPreviewRefreshType.QUALITY && invalidated.getAndSet(false)
@@ -689,7 +685,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     layoutlibSceneManager: LayoutlibSceneManager,
   ) =
     layoutlibSceneManager.apply {
-      interactive = mode.value is PreviewMode.Interactive
+      setCacheSuccessfulRenderImage(
+        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && mode.value !is PreviewMode.Interactive
+      )
+      setClassesToPreload(
+        if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      )
       isUsePrivateClassLoader = mode.value is PreviewMode.Interactive
       quality = qualityManager.getTargetQuality(this@apply)
     }
@@ -873,10 +874,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     ActivityTracker.getInstance().inc()
   }
 
-  private suspend fun stopInteractivePreview() {
+  private fun stopInteractivePreview() {
     LOG.debug("Stopping interactive preview mode")
     interactiveManager.stop()
-    invalidateAndRefresh()
+    invalidate()
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
@@ -893,4 +894,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private fun isFastPreviewAvailable() =
     FastPreviewManager.getInstance(project).isAvailable &&
       !PreviewEssentialsModeManager.isEssentialsModeEnabled
+
+  /**
+   * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.
+   * This method is for testing purposes only and should not be used outside of tests.
+   */
+  @TestOnly
+  fun renderedPreviewElementsFlowForTest() = previewFlowManager.renderedPreviewElementsFlow
 }

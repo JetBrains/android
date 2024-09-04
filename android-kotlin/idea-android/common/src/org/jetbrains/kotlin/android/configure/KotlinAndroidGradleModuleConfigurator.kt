@@ -16,7 +16,14 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CORE_KTX
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LIFECYCLE_EXTENSIONS
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LIFECYCLE_VIEWMODEL_KTX
+import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_FRAGMENT
+import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_FRAGMENT_KTX
+import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI
+import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI_KTX
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
@@ -274,8 +281,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         else {
             changedFiles.storeOriginalFileContent(file)
             if (file.project.isAndroidx()) {
-                val ktxCoreVersion = IdeGoogleMavenRepository.findVersion(ANDROIDX_CORE_GROUP, CORE_KTX)?.toString() ?: "+"
-                (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_GROUP, CORE_KTX, ktxCoreVersion) +
+                val ktxCoreVersion = IdeGoogleMavenRepository
+                  .findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
+                  ?.toString() ?: "+"
+                (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, ktxCoreVersion) +
                  addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
                   .let {
                       changedFiles.addAll(it)
@@ -315,6 +324,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         configureAndGetConfiguredModules(project, excludeModules)
     }
 
+    @JvmSuppressWildcards
     override fun configureAndGetConfiguredModules(project: Project, excludeModules: Collection<Module>): Set<Module> {
         // We override this, inlining the superclass method, in order to be able to trigger sync on undo and redo
         // across this operation.
@@ -329,11 +339,9 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return configuredModules
     }
 
-    fun doConfigure(
-      project: Project,
-      modules: List<Module>,
-      version: IdeKotlinVersion
-    ): Pair<NotificationMessageCollector, Set<Module>> {
+    private fun doConfigure(project: Project,
+                            modules: List<Module>,
+                            version: IdeKotlinVersion): Pair<NotificationMessageCollector, Set<Module>> {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
             val modulesAndJvmTargets = modules
@@ -364,19 +372,17 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     private fun addDependency(
       projectBuildModel: ProjectBuildModel,
       moduleBuildModel: GradleBuildModel,
-      groupId: String,
-      artifactId: String,
+      id: GoogleMavenArtifactId,
       version: String
     ): Set<PsiFile> =
       DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
-                                                                    ArtifactDependencySpec.create(artifactId, groupId, version).compactNotation(),
+                                                                    ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version).compactNotation(),
                                                                     moduleBuildModel)
 
     // Return version string of the specified dependency if module depends on it, and null otherwise.
-    private fun getDependencyVersion(module: Module, groupId: String, artifactId: String): String? {
+    private fun getDependencyVersion(module: Module, id: GoogleMavenArtifactId): String? {
         try {
-            val coordinate = GradleCoordinate(groupId, artifactId, "+")
-            return module.getModuleSystem().getResolvedDependency(coordinate)?.revision
+            return module.getModuleSystem().getResolvedDependency(id)?.revision
         }
         catch (e: DependencyManagementException) {
             return null
@@ -387,15 +393,13 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
       projectBuildModel: ProjectBuildModel,
       module: Module,
       moduleBuildModel: GradleBuildModel,
-      libraryMap: Map<String, String>
+      libraryMap: Map<GoogleMavenArtifactId, GoogleMavenArtifactId>
     ): Set<PsiFile> {
         val updatedFiles = mutableSetOf<PsiFile>()
         for ((library, ktxLibrary) in libraryMap) {
-            val ids = library.split(":")
-            val ktxIds = ktxLibrary.split(":")
-            getDependencyVersion(module, ids[0], ids[1])?.let {
+            getDependencyVersion(module, library)?.let {
                 updatedFiles.addAll(
-                  addDependency(projectBuildModel, moduleBuildModel, ktxIds[0], ktxIds[1], it)
+                  addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, it)
                 )
             }
         }
@@ -441,21 +445,23 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
+    override fun queueSyncIfNeeded(project: Project) {
+        // Do nothing; we queue syncs for Gradle and Maven projects for Kotlin stdlib to be loaded before Java to Kotlin conversion
+    }
+
+
     companion object {
         private const val NAME = "android-gradle"
 
         private const val KOTLIN_ANDROID = "kotlin-android"
 
-        private const val ANDROIDX_CORE_GROUP = "androidx.core"
-        private const val CORE_KTX = "core-ktx"
-
         private val nonAndroidxKtxLibraryMap = mapOf(
-          "android.arch.navigation:navigation-ui" to "android.arch.navigation:navigation-ui-ktx",
-          "android.arch.navigation:navigation-fragment" to "android.arch.navigation:navigation-fragment-ktx"
+          NAVIGATION_UI to NAVIGATION_UI_KTX,
+          NAVIGATION_FRAGMENT to NAVIGATION_FRAGMENT_KTX,
         )
 
         private val androidxKtxLibraryMap = mapOf(
-          "androidx.lifecycle:lifecycle-extensions" to "androidx.lifecycle:lifecycle-viewmodel-ktx"
+          ANDROIDX_LIFECYCLE_EXTENSIONS to ANDROIDX_LIFECYCLE_VIEWMODEL_KTX,
         )
     }
 }

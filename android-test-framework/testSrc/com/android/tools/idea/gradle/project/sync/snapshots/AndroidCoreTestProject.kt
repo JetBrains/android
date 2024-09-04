@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.builder.model.v2.ide.SyncIssue
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
@@ -96,6 +97,16 @@ enum class AndroidCoreTestProject(
   SCRIPTED_DIMENSIONS(TestProjectPaths.SCRIPTED_DIMENSIONS),
   SIMPLE_APP_WITH_OLDER_SUPPORT_LIB(TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB),
   SIMPLE_APPLICATION(TestProjectPaths.SIMPLE_APPLICATION),
+  SIMPLE_APPLICATION_DEPENDENCY_ERROR(TestProjectPaths.SIMPLE_APPLICATION,
+    patch = {
+      // Set two flavors as default
+      it.resolve("app/build.gradle").apply {
+        replaceInContent("com.google.guava:guava:19.0", "com.google.guava:guava:99999.9999")
+
+      }
+    },
+    expectedSyncIssues = setOf(SyncIssue.TYPE_UNRESOLVED_DEPENDENCY)
+  ),
   SIMPLE_APPLICATION_PLUGINS_DSL(TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL),
   SIMPLE_APPLICATION_VERSION_CATALOG(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG),
   SPLIT_BUILD_FILES(TestProjectPaths.SPLIT_BUILD_FILES),

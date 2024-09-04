@@ -109,13 +109,12 @@ class DeviceMonitorModel @NonInjectable constructor(
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
     val processInfo = tableModel.getValueForRow(rows.first())
-    val packageName = processInfo.packageName ?: throw IllegalStateException("Failed to get package name")
-    val backupFile = BackupManager.getInstance(project).chooseBackupFile(packageName) ?: return
+    val backupFile = BackupManager.getInstance(project).chooseBackupFile(processInfo.packageName ?: "backup") ?: return
 
-    processService.backupApplication(project, packageName, adbDevice.device, backupFile)
+    processService.backupApplication(project, processInfo, adbDevice.device, backupFile)
   }
 
-  suspend fun restoreApplication(project: Project, rows: IntArray) {
+  fun restoreApplication(project: Project, rows: IntArray) {
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
     val backupFile = BackupManager.getInstance(project).chooseRestoreFile() ?: return

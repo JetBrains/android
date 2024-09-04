@@ -16,7 +16,6 @@
 package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
@@ -38,13 +37,14 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 
 class RecordingListTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  val composeTestRule = createComposeRule()
+  val composeTestRule = createStudioComposeTestRule()
 
   @get:Rule
   val ignoreTestRule = IgnoreTestRule()
@@ -90,10 +90,8 @@ class RecordingListTest {
 
   @Test
   fun `test import file renders in UI and is reflected in data model`() {
-    composeTestRule.setContent {
-      StudioTestTheme (darkMode = true) {
-        RecordingList(recordingListModel)
-      }
+    composeTestRule.setContent (darkMode = true) {
+      RecordingList(recordingListModel)
     }
 
     recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))

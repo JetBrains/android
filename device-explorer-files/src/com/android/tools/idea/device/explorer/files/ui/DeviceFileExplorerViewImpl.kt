@@ -44,7 +44,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.treeStructure.Tree
-import icons.AndroidIcons
+import icons.StudioIllustrations
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.GraphicsEnvironment
@@ -132,7 +132,7 @@ class DeviceFileExplorerViewImpl(
   }
 
   override fun showNoDeviceScreen() {
-    panel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device", AndroidIcons.Explorer.DevicesLineup)
+    panel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device", StudioIllustrations.Common.DEVICES_LINEUP)
   }
 
   override fun startTreeBusyIndicator() {

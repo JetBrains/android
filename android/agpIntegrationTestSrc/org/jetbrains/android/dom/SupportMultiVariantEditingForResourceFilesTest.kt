@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.VfsTestUtil
 import org.junit.Test
 
@@ -46,6 +47,8 @@ class SupportMultiVariantEditingForResourceFilesTest : AndroidGradleTestCase() {
               <string name="server_url">https://...</string>
           </resources>
           """)
+
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
 
     myFixture.openFileInEditor(debugRes)
     myFixture.moveCaret("schemas.andro|id.com")

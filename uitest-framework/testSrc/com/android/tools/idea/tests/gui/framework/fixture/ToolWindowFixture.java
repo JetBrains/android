@@ -64,7 +64,7 @@ public abstract class ToolWindowFixture {
     activate();
     waitUntilIsVisible();
     ActionButton optionsButton =
-      myRobot.finder().find(myToolWindow.getComponent().getParent(), Matchers.buttonWithIcon(AllIcons.General.GearPlain));
+      myRobot.finder().find(myToolWindow.getComponent().getParent(), Matchers.buttonWithIcon(AllIcons.Actions.More));
     myRobot.click(optionsButton);
   }
 

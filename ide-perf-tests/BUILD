@@ -26,6 +26,16 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
+        "SantaTrackerKotlinBenchmark_k2": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinK2Benchmark",
+            "tags": [
+                "cpu:3",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
+        },
         "tests": {
             "test_filter": "com.android.tools.idea.benchmarks.tests",
             "timeout": "long",
@@ -157,6 +167,6 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.mockito.mockito-core_5.6.0",
+        "@maven//:org.mockito.mockito-core_5.12.0",
     ],
 )

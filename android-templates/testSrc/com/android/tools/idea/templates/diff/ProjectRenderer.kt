@@ -90,13 +90,12 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
     val moduleRecipe: Recipe =
       when (template.formFactor) {
         // TODO(qumeric): support C++
-        // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
         FormFactor.Mobile -> { data: TemplateData ->
             this.generateAndroidModule(
               data as ModuleTemplateData,
               appTitle,
               false,
-              BytecodeLevel.L8
+              BytecodeLevel.default
             )
           }
         FormFactor.Wear -> { data: TemplateData ->

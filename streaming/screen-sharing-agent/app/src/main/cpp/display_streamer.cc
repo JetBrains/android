@@ -207,7 +207,7 @@ void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
   // Don't listen to display events on non-foldable HONOR phones. HONOR 90 is producing bogus display change events (b/348562991).
-  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::Agent::device_manufacturer() != HONOR) {
+  if (!DeviceStateManager::GetSupportedDeviceStates(jni).empty() || Agent::device_manufacturer() != HONOR) {
     DisplayManager::AddDisplayListener(jni, this);
   }
 

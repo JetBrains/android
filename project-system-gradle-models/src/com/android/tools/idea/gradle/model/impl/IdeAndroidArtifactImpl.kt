@@ -50,6 +50,7 @@ data class IdeAndroidArtifactCoreImpl(
   override val desugaredMethodsFiles: Collection<File>,
   override val generatedClassPaths: Map<String, File>,
   override val bytecodeTransforms: Collection<IdeBytecodeTransformation>?,
+  override val generatedAssetFolders: Collection<File>,
 ) : IdeAndroidArtifactCore
 
 data class IdeAndroidArtifactImpl(

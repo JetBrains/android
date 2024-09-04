@@ -228,7 +228,7 @@ internal fun visualizationProvider(
         .apply {
           // Always has border in visualization tool.
           add(BorderLayer(it, isRotating = { surface.isRotating }))
-          add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
+          add(ScreenViewLayer(it, colorBlindMode, surface, surface::rotateSurfaceDegree))
           add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
           add(
             WarningLayer(it) {
@@ -278,12 +278,10 @@ internal fun colorBlindProvider(
           // Try to get the specific blind mode for this manager/model
           val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
           if (colorBlindMode != null) {
-            add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
+            add(ScreenViewLayer(it, colorBlindMode, surface, surface::rotateSurfaceDegree))
           } else {
             // ERROR - at least show the original.
-            add(
-              ScreenViewLayer(it, defaultColorBlindMode, surface, surface::getRotateSurfaceDegree)
-            )
+            add(ScreenViewLayer(it, defaultColorBlindMode, surface, surface::rotateSurfaceDegree))
           }
         }
         .build()

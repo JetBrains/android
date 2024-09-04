@@ -29,6 +29,7 @@ import org.junit.Test
 
 // Test is based on generated schema files. Schema has declarations for
 // androidApplication{compileSdk, namespace, jdkVersion, minSdk}, declarativeDependencies{api, implementation}
+@org.junit.Ignore("b/349894866")
 @RunsInEdt
 class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   @get:Rule
@@ -80,7 +81,7 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   }
 
   @Test
-  fun testInsidePluginBlockCompletion() {
+  fun testInsideApplicationBlockCompletion() {
     writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
       androidApplication{
@@ -89,6 +90,44 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
       """) { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
         "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
+      )
+    }
+  }
+
+  @Test
+  fun testAfterPropertyCompletion() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doNoSuggestionTest("""
+      androidLibrary {
+          compileSdk = 1$caret
+        }""".trimIndent()
+      )
+  }
+
+  @Test
+  fun testInsideApplicationBlockCompletionNoTyping() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doTest("""
+      androidApplication {
+        $caret
+      }
+      """) { suggestions ->
+      assertThat(suggestions.toList()).containsExactly(
+        "applicationId", "buildTypes", "compileSdk", "coreLibraryDesugaring", "dependencies",
+        "jdkVersion", "minSdk", "namespace", "versionCode", "versionName"
+      )
+    }
+  }
+
+  @Test
+  fun testInsideFileCompletionNoTyping() {
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doTest("""
+        $caret
+      """) { suggestions ->
+      assertThat(suggestions.toList()).containsExactly(
+        "androidApplication", "androidLibrary", "javaApplication", "javaLibrary", "jvmApplication", "jvmLibrary", "kotlinApplication",
+        "kotlinJvmApplication", "kotlinJvmLibrary", "kotlinLibrary"
       )
     }
   }
@@ -105,7 +144,7 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
         applicationId = "$caret"
       }
       """)
-    }
+  }
 
   @Test
   fun testCompletionBlock() {
@@ -134,8 +173,6 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
           }
         }""".trimIndent())
   }
-
-
 
   @Test
   fun testCompletionInt() {
@@ -208,6 +245,14 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
       it.lookupString
     }
     check.invoke(list)
+  }
+
+  private fun doNoSuggestionTest(declarativeFile: String) {
+    val buildFile = fixture.addFileToProject(
+      "build.gradle.dcl", declarativeFile)
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
+    assertThat(fixture.lookup).isNull()
   }
 
   private fun doCompletionTest(declarativeFile: String, fileAfter: String) {

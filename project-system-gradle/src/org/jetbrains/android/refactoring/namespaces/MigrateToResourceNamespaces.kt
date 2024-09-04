@@ -336,7 +336,7 @@ class MigrateToResourceNamespacesProcessor(
             }
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
-            val newStringValue = usageInfo.converter.convertToString(
+            val newStringValue = usageInfo.converter.doToString(
               ResourceValue.referenceTo(
                 resourceValue.prefix,
                 namespace,

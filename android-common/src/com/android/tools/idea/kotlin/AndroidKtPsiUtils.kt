@@ -22,18 +22,24 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KaConstantInitializerValue
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
-import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
-import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.singleVariableAccessCall
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
-import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.psiSafe
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
@@ -43,6 +49,7 @@ import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -58,7 +65,9 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -73,9 +82,9 @@ import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
 fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
-// TODO(b/269691940): Require callers to provide their own [KaSession], and remove this function.
+// TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
 @OptIn(KaAllowAnalysisOnEdt::class)
-inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.() -> T): T =
+inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
   if (this != null) {
     block()
   } else {
@@ -106,7 +115,7 @@ fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
+      resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
@@ -114,7 +123,7 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): Stri
 }
 
 /**
- * This function is exactly same as the above [KtAnnotationEntry.getQualifiedName] function for K2, but it can run
+ * This function is like the function [KtAnnotationEntry.getQualifiedName] above, but for K2. It can run
  * on write-action. Please be aware that this function must be used only when we cannot avoid calling this function
  * on write-action. Otherwise, the above [KtAnnotationEntry.getQualifiedName] function must be used. The analysis
  * API use on a write-action can cause IDE freeze. However, we have some cases like code-format or
@@ -124,11 +133,11 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): Stri
  * code-format and reference-shortener on a write-action.
  */
 @OptIn(KaAllowAnalysisFromWriteAction::class, KaAllowAnalysisOnEdt::class)
-fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(analysisSession: KaSession): String? =
+fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
   allowAnalysisFromWriteAction {
     allowAnalysisOnEdt {
-      analysisSession.applyOrAnalyze(this) {
-        resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
+      analyze(this) {
+        resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
       }
     }
   }
@@ -223,10 +232,53 @@ fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): K
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
+/**
+ * Evaluate a property expression with a constant initializer.
+ *
+ * The Analysis API's constant evaluator will only evaluate constants that are legal for use in a
+ * `const val` context - in particular, the expressions can only make references to other `const`
+ * variables, and any reference to a non-`const` variable will prevent constant evaluation, even
+ * if that variable has an initializer that would otherwise allow it to be `const`. This behavior
+ * diverges from FE1.0's constant evaluator, which will allow any "effectively final" constant
+ * references to be evaluated.
+ *
+ * To partially work around this limitation, we need to translate references to variables into
+ * references to their initializers, so that we can perform constant evaluation directly on the
+ * initializer expression. This misses some cases of more-complex initializer expressions, but
+ * should cover most common cases in Android code.
+ *
+ * This workaround should be removed if the Analysis API reintroduces the "constant-like expression
+ * evaluation" mode that was previously available in prerelease API versions.
+ */
+@OptIn(KaExperimentalApi::class)
+tailrec fun KaSession.evaluatePossiblePropertyExpression(expression: KtExpression): KaConstantValue? {
+  if (expression is KtSimpleNameExpression) {
+    val variableSymbol =
+      expression.resolveToCall()
+        ?.singleVariableAccessCall()
+        ?.symbol
+        ?.takeIf { it.isVal }
+
+    val initializerPsi =
+      when (val initializer = (variableSymbol as? KaPropertySymbol)?.initializer) {
+        is KaConstantInitializerValue -> return initializer.constant
+        is KaInitializerValue -> initializer.initializerPsi
+        else -> null
+      }
+      ?: variableSymbol?.psiSafe<KtVariableDeclaration>()?.initializer
+
+    if (initializerPsi != null) {
+      return evaluatePossiblePropertyExpression(initializerPsi)
+    }
+  }
+
+  return expression.evaluate()
+}
+
 inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession? = null): T? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      evaluate()
+      evaluatePossiblePropertyExpression(this@evaluateConstant)
         ?.takeUnless { it is KaConstantValue.ErrorValue }
         ?.value as? T
     }
@@ -307,7 +359,7 @@ private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
 } ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDeclarationSymbol) -> T?): T? =
+private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
   allowAnalysisOnEdt {
     @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {

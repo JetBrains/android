@@ -79,12 +79,12 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_71(agpVersion = "7.1.0", gradleVersion = "7.2", jdkVersion = JDK_17, kotlinVersion = "1.9.22", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72_V1(agpVersion = "7.2.0", gradleVersion = "7.3.3", jdkVersion = JDK_17, modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72(agpVersion = "7.2.0", gradleVersion = "7.3.3", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "32"),
-  AGP_73(agpVersion = "7.3.0", gradleVersion = "7.4", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
-  AGP_74(agpVersion = "7.4.1", gradleVersion = "7.5", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+  AGP_73(agpVersion = "7.3.0", gradleVersion = "7.4", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
+  AGP_74(agpVersion = "7.4.1", gradleVersion = "7.5", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
 
-  AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
-  AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
-  AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
+  AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
+  AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
+  AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
 
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION),
   AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION),

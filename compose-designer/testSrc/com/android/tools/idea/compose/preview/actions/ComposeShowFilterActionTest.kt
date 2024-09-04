@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
@@ -31,6 +29,8 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class ComposeShowFilterActionTest {
 

@@ -21,9 +21,11 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
@@ -48,6 +50,8 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(PATTERN)) return null
+
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE)
 
     return BuildIssueComposer(message).apply {
       // Display the link to the quickFix, but it will only effectively write to the build file is the block doesn't exist already.

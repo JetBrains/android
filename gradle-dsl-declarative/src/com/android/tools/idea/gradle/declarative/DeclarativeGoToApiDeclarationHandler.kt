@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -72,8 +71,7 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
 
 private fun findDslElementClassName(path: List<String>, element: DeclarativeIdentifier): String? {
   val service = DeclarativeService.getInstance(element.project)
-  val module = ModuleUtil.findModuleForPsiElement(element.containingFile) ?: return null
-  val schema = service.getSchema(module) ?: return null
+  val schema = service.getSchema() ?: return null
 
   if (path.isEmpty()) {
     return element.name?.let { getTopLevelReceiverByName(it, schema) }?.qualifiedName

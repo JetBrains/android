@@ -38,6 +38,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyIssue
 import org.jetbrains.plugins.gradle.util.GradleBundle
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
@@ -115,9 +116,16 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
       error?.message?.startsWith("Compilation failed; see the compiler error output for details.") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
+      error?.message?.startsWith("Cannot cast object ") == true -> GradleSyncFailure.CANNOT_BE_CAST_TO // Cast exception in groovy code
       error?.message?.startsWith("Invalid TOML catalog definition:") == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
       error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
         GradleSyncFailure.GROOVY_COMPILATION_ERROR
+      error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: 'com.android.") == true ->
+        GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID
+      error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: '") == true ->
+        GradleSyncFailure.UNKNOWN_PLUGIN_OTHER
+      error?.cause?.toString()?.startsWith("org.gradle.internal.resolve.ModuleVersionNotFoundException:") == true ->
+        GradleSyncFailure.MISSING_DEPENDENCY_OTHER
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
   }

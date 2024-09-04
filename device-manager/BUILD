@@ -54,6 +54,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common.tests[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/intellij.android.device[module, test]",
         "//tools/adt/idea/device-manager:intellij.android.device-manager[module, test]",

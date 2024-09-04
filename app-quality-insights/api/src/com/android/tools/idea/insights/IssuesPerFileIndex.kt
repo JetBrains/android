@@ -23,7 +23,7 @@ import com.google.common.collect.SetMultimap
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import java.util.concurrent.atomic.AtomicReference
+import com.jetbrains.rd.util.ConcurrentHashMap
 
 /**
  * A project level service used to update, store, and retrieve crash frames on a per-file basis.
@@ -33,17 +33,18 @@ import java.util.concurrent.atomic.AtomicReference
 @Service(Service.Level.PROJECT)
 class IssuesPerFileIndex(private val project: Project) {
 
-  private val mutableIssuesPerFilename: AtomicReference<SetMultimap<String, IssueInFrame>> =
-    AtomicReference(ImmutableSetMultimap.of())
+  private val issueFileMapPerProviderKey =
+    ConcurrentHashMap<InsightsProviderKey, SetMultimap<String, IssueInFrame>>()
 
   /**
-   * A view of [AppInsightsIssue]s grouped by the filename they are associated to.
+   * A view of [AppInsightsIssue]s grouped by the filename and [InsightsProviderKey] they are
+   * associated to.
    *
    * Issues are wrapped in [IssueInFrame] objects that provide context of the stacktrace frame where
    * they occur. These objects are group by and map to their corresponding files by filename.
    */
-  val issuesPerFilename: SetMultimap<String, IssueInFrame>
-    get() = mutableIssuesPerFilename.get()
+  fun getIssuesPerFilename(key: InsightsProviderKey): SetMultimap<String, IssueInFrame> =
+    issueFileMapPerProviderKey.getOrDefault(key, ImmutableSetMultimap.of())
 
   private fun computeIssuesPerFilename(
     issues: LoadingState<Selection<AppInsightsIssue>>
@@ -77,9 +78,13 @@ class IssuesPerFileIndex(private val project: Project) {
       else -> ImmutableSetMultimap.of()
     }
 
-  fun updateIssueIndex(issues: LoadingState<Selection<AppInsightsIssue>>) {
+  fun updateIssueIndex(
+    issues: LoadingState<Selection<AppInsightsIssue>>,
+    key: InsightsProviderKey,
+  ) {
     val newIndex = computeIssuesPerFilename(issues)
-    if (mutableIssuesPerFilename.getAndSet(newIndex) != newIndex) {
+    val oldIndex = issueFileMapPerProviderKey.put(key, newIndex)
+    if (oldIndex != newIndex) {
       DaemonCodeAnalyzer.getInstance(project).restart()
     }
   }

@@ -170,7 +170,7 @@ public class MotionLayoutComponentHelper {
     }
 
     myFuture.thenRunAsync(() -> {
-      if (myDesignTool == null) {
+      if (myDesignTool != null) {
         runnable.run();
       }
     }, EdtExecutorService.getInstance());
@@ -417,7 +417,7 @@ public class MotionLayoutComponentHelper {
         return;
       }
 
-      model.notifyLiveUpdate(false);
+      model.notifyLiveUpdate();
       refresh(myMotionLayoutComponent);
     });
   }
@@ -455,7 +455,7 @@ public class MotionLayoutComponentHelper {
       return;
     }
     NlModel model = myMotionLayoutComponent.getModel();
-    model.notifyLiveUpdate(false);
+    model.notifyLiveUpdate();
   }
 
   public void setState(String state) {
@@ -488,7 +488,7 @@ public class MotionLayoutComponentHelper {
         return;
       }
       NlModel model = myMotionLayoutComponent.getModel();
-      model.notifyLiveUpdate(false);
+      model.notifyLiveUpdate();
     });
   }
 
@@ -548,7 +548,7 @@ public class MotionLayoutComponentHelper {
           myCachedState = (String)myCallGetState.invoke(myDesignTool);
         }
         catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-          myCallSetState = null;
+          myCallGetState = null;
           Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         }
       });

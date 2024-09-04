@@ -1,11 +1,14 @@
 """This module implements JPS rules."""
 
+load("//tools/base/bazel:functions.bzl", "create_option_file")
+
 def idea_source(
         name,
         include,
         exclude,
-        target_dir,
+        target_dir = None,
         base_dir = None,
+        strip_prefix = None,
         tags = [],
         **kwargs):
     """Bundles IDEA sources.
@@ -20,18 +23,77 @@ def idea_source(
 
     """
 
-    cmd = "tar -chf $@"
-    if base_dir:
-        cmd += " -C " + base_dir
-    cmd += " " + target_dir
-    native.genrule(
+    srcs = native.glob(include = include, exclude = exclude)
+    zips = {}
+    outs = {}
+    for src in srcs:
+        if strip_prefix and src.startswith(strip_prefix):
+            src = src[len(strip_prefix):]
+        ix = src.find("/")
+        suffix = "" if ix == -1 else "_" + src[0:ix]
+        zip_name = name + suffix + ".zip"
+        zips[src] = zip_name
+        outs[zip_name] = True
+
+    _idea_source(
         name = name,
-        srcs = native.glob(include = include, exclude = exclude),
+        zips = zips,
+        strip_prefix = strip_prefix,
+        outs = outs.keys(),
         tags = tags + ["no-remote-exec"],  # Too many inoputs for RBE
-        cmd = cmd,
-        outs = [name + ".tar"],
         **kwargs
     )
+
+def _idea_source_impl(ctx):
+    zip_files = {}
+    for out in ctx.outputs.outs:
+        zip_files[out.basename] = out
+
+    zips = {}
+    for file, zip in ctx.attr.zips.items():
+        if zip not in zips:
+            zips[zip] = []
+        zips[zip].extend(file[DefaultInfo].files.to_list())
+
+    for zip, files in zips.items():
+        zip_file = zip_files[zip]
+        zipper_args = ["c", zip_file.path]
+        zipper_files = []
+        for f in files:
+            zip_path = f.short_path
+            if zip_path.startswith(ctx.attr.strip_prefix):
+                zip_path = zip_path[len(ctx.attr.strip_prefix):]
+            zipper_files.append(zip_path + "=" + f.path + "\n")
+        zipper_content = "".join(zipper_files)
+        zipper_list = create_option_file(ctx, zip + ".res.lst", zipper_content)
+        zipper_args.append("@" + zipper_list.path)
+        ctx.actions.run(
+            inputs = files + [zipper_list],
+            outputs = [zip_file],
+            executable = ctx.executable._zipper,
+            arguments = zipper_args,
+            progress_message = "Creating sources zip...",
+            mnemonic = "zipper",
+        )
+
+    return [
+        DefaultInfo(files = depset(ctx.outputs.outs)),
+        JpsSourceInfo(files = [], strip_prefix = "", zips = ctx.outputs.outs),
+    ]
+
+_idea_source = rule(
+    attrs = {
+        "zips": attr.label_keyed_string_dict(allow_files = True),
+        "outs": attr.output_list(),
+        "strip_prefix": attr.string(),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "exec",
+            executable = True,
+        ),
+    },
+    implementation = _idea_source_impl,
+)
 
 def _strip(prefix, path):
     if not path.startswith(prefix):
@@ -164,8 +226,6 @@ def _jps_test_impl(ctx):
         "home/.java",
         "--ignore_dir",
         "home/.cache",
-        "--source",
-        ctx.attr.download_cache,
         "--download_cache",
         ctx.attr.download_cache,
         "--env BAZEL_RUNNER $PWD/" + ctx.file._bazel_runner.short_path,

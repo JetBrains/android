@@ -86,8 +86,7 @@ class ComposeCreateComposableFunctionQuickFix(
       listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
     }
 
-    context(KaSession)
-    private fun createComposableFunctionQuickFixIfApplicable(
+    private fun KaSession.createComposableFunctionQuickFixIfApplicable(
       diagnostic: KaFirDiagnostic.UnresolvedReference
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
@@ -115,7 +114,6 @@ class ComposeCreateComposableFunctionQuickFix(
      *
      * See b/267429486.
      */
-    @OptIn(KaExperimentalApi::class)
     private fun KaSession.buildNewComposableFunction(
       unresolvedCall: KtCallExpression,
       unresolvedName: String,
@@ -135,6 +133,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 val paramName =
                   if (isLastLambdaArgument) "content"
                   else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+                @OptIn(KaExperimentalApi::class)
                 param(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${

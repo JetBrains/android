@@ -27,11 +27,13 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
 import com.android.flags.LongFlag;
+import com.android.flags.MendelFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
+import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +42,7 @@ import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -58,12 +61,36 @@ public final class StudioFlags {
     Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
     if (app != null && !app.isUnitTestMode()) {
-      userOverrides = Cancellation.forceNonCancellableSectionInClassInitializer(() -> StudioFlagSettings.getInstance());
+      userOverrides = new LazyStudioFlagSettings();
     }
     else {
       userOverrides = new DefaultFlagOverrides();
     }
-    return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
+    return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides());
+  }
+
+  // This class is a workaround for b/355292387: IntelliJ 2024.2 does not allow services to be instantiated inside static initializers.
+  private static class LazyStudioFlagSettings implements FlagOverrides {
+    @Override
+    public void clear() {
+      StudioFlagSettings.getInstance().clear();
+    }
+
+    @Override
+    public void put(@NotNull Flag<?> flag, @NotNull String value) {
+      StudioFlagSettings.getInstance().put(flag, value);
+    }
+
+    @Override
+    public void remove(@NotNull Flag<?> flag) {
+      StudioFlagSettings.getInstance().remove(flag);
+    }
+
+    @Nullable
+    @Override
+    public String get(@NotNull Flag<?> flag) {
+      return StudioFlagSettings.getInstance().get(flag);
+    }
   }
 
   @TestOnly
@@ -128,13 +155,17 @@ public final class StudioFlags {
     NPW, "genai.template",
     "Enable GenAI template",
     "Allows the GenAI template to be used.",
-    Cancellation.forceNonCancellableSectionInClassInitializer(() -> ChannelDefault.enabledUpTo(CANARY))
-  );
+    true);
 
   public static final Flag<Boolean> NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE = new BooleanFlag(
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.",
     false);
+
+  public static final Flag<Integer> NPW_COMPILE_SDK_VERSION = new IntFlag(
+    NPW, "new.project.compile.sdk", "New project Compile SDK version",
+    "SDK version to be used for compileSdk for newly created project.",
+    34);
   //endregion
 
   //region Memory Usage Reporting
@@ -224,8 +255,8 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = new BooleanFlag(PROFILER, "task.based.ux", "Task-based UX",
-    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
-    true);
+                                                                             "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
+                                                                             true);
 
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
@@ -249,6 +280,14 @@ public final class StudioFlags {
     "Configure the max size of the cache used by GradleClassFileFinder",
     "Allow configuring the maximum number of file references to be kept.",
     150L
+  );
+
+  public static final Flag<Boolean> MOTION_EDITOR_DEPRECATION_WARNING = new BooleanFlag(
+    DESIGN_TOOLS,
+    "motion.editor.deprecation.warning",
+    "Shows the Motion Editor deprecation warning",
+    "Shows the Motion Editor deprecation warning.",
+    false
   );
   //endregion
 
@@ -329,7 +368,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = new BooleanFlag(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-     "Changing the value of this flag requires restarting " + Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) + ".",
+    "Changing the value of this flag requires restarting " +
+    Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) +
+    ".",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
@@ -734,7 +775,9 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = new BooleanFlag(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running " + getFullProductName() + " internally.", false);
+    "This option is only respected when running " +
+    Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) +
+    " internally.", false);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = new BooleanFlag(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
@@ -878,13 +921,13 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> USE_NEW_DEPENDENCY_GRAPH_MODEL = new BooleanFlag(
+  public static final Flag<Boolean> USE_FLAT_DEPENDENCY_GRAPH_MODEL = new BooleanFlag(
     GRADLE_IDE,
-    "use.new.dependency.graph.model",
-    "Switches to a new dependency graph model that reduces memory use",
-    "Switches to a new dependency graph model that reduces memory use. This Flag is introduced as a killswitch in case there" +
-    "unexpected issues with the new model.",
-    true
+    "use.flat.dependency.graph.model",
+    "Switches to a flat representation of the dependency model to improve performance",
+    "Switches to a flat representation of the dependency model to improve performance. The behaviour is guarded behind a flag" +
+    "until we can decide to enable it. This currently reduces some functionality around views / analyses regarding dependency structure",
+    false
   );
 
   //endregion
@@ -1044,10 +1087,10 @@ public final class StudioFlags {
   @NotNull
   public static final Flag<String> DEVICE_DEFINITION_DOWNLOAD_SERVICE_URL =
     new StringFlag(DEVICE_DEFINITION_DOWNLOAD_SERVICE,
-                "url",
-                "URL",
-                "The URL to download the device definitions from",
-                "");
+                   "url",
+                   "URL",
+                   "The URL to download the device definitions from",
+                   "");
   // endregion
 
   //region Refactorings
@@ -1190,6 +1233,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> SKIP_NAV_INFO_DUMB_MODE_CHECK = new BooleanFlag(
+    EDITOR, "skip.nav.info.dumb.mode.check",
+    "Skip check for dumb mode in NavInfoFetcher.kt",
+    "When true, NavInfoFetched.kt does not check for dumb mode, and instead allows a caller to handle an IndexNotReadyException.",
+    true
+  );
+
   //endregion
 
   //region Essentials Mode
@@ -1206,9 +1256,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = new BooleanFlag(
     ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
     "Essential Highlighting mode on in Essentials mode",
-   "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
-   "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
-   false);
+    "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
+    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
+    false);
 
   public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = new BooleanFlag(
     ESSENTIALS_MODE, "essentials.mode.gets.recommend",
@@ -1363,7 +1413,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy.confined.analysis",
     "LiveEdit: Limit compilation error analysis to only the current file",
     "If enabled, Live Edit will aggressively live update even if there are analysis errors " +
-      "provided that the current file is error-free.",
+    "provided that the current file is error-free.",
     false
   );
 
@@ -1375,11 +1425,18 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<String> COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS = new StringFlag(
+    COMPOSE, "deploy.live.edit.deploy.compiler.flags",
+    "LiveEdit: Set custom kotlin compiler flags",
+    "If enabled, the flags passed to the Kotlin compiler in Live Edit will be replaced with the list of flags provided",
+    ""
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK = new BooleanFlag(
     COMPOSE, "deploy.live.edit.allow.multiple.min.api.dex.markers.in.apk",
     "LiveEdit: Allow multiple min api dex markers in apk",
     "If enabled, apk may contain multiple min api dex markers and LiveEdit picks the lowest among them",
-   false
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING = new BooleanFlag(
@@ -1531,6 +1588,11 @@ public final class StudioFlags {
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
     true);
+
+  public static final Flag<Boolean> WEAR_TILE_ANIMATION_INSPECTOR = new BooleanFlag(
+    WEAR_SURFACES, "wear.tile.preview.animation.inspector.enabled", "Enable Wear Tile Preview Animation Inspector",
+    "If enabled, a Wear Tile Animation Inspector functionality is available in Preview",
+    false);
   // endregion
 
   // region Wear Health Services
@@ -1724,21 +1786,14 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
-  public static final Flag<Boolean> APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT =
-    new BooleanFlag(
+  public static final Flag<String> APP_INSIGHTS_AI_INSIGHT_ENDPOINT =
+    new StringFlag(
       APP_INSIGHTS,
-      "insights.change.aware.annotation",
-      "Change-aware Annotation Support",
-      "Enhance annotation to aid crash investigation with the recorded VCS info",
-      true);
-
-  public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "insights.vcs",
-      "VCS Support",
-      "Enhance code navigation to aid crash investigation with the recorded VCS info",
-      true);
+      "app.insights.ai.insight.endpoint",
+      "App insights AI insight endpoint",
+      "Endpoint for getting AI insight",
+      "cloudaicompanion.googleapis.com"
+    );
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
@@ -1756,40 +1811,14 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
-  public static final Flag<Boolean> CRASHLYTICS_VARIANTS =
+  public static final Flag<Boolean> CRASHLYTICS_INSIGHT_IN_TOOLWINDOW =
     new BooleanFlag(
       APP_INSIGHTS,
-      "crashlytics.variants",
-      "Crashlytics Variants Support",
-      "Enabled Variant Selection in AQI Crashlytics",
-      true
+      "crashlytics.show.insight.tool.window",
+      "Show insight toolwindow in Crashlytics",
+      "Show AI generated insights for Crashlytics issue in insight toolwindow",
+      false
     );
-
-  public static final Flag<Boolean> CRASHLYTICS_J_UI =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "crashlytics.2023h2.ui",
-      "Crashlytics UI changes for J",
-      "Enabled Logs & Keys, Multi-event",
-      true
-    );
-
-  public static final Flag<Boolean> CRASHLYTICS_SHOW_INSIGHT =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "crashlytics.show.insight",
-      "Show insight for Crashlytics",
-      "Show AI generated insights for Crashlytics issue",
-      true
-    );
-
-  public static final Flag<Boolean> PLAY_VITALS_ENABLED =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "enable.play.vitals",
-      "Enable the play vitals tool window tab.",
-      "Enables the play vitals tab and its associated functionality.",
-      true);
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     new StringFlag(
@@ -1829,20 +1858,21 @@ public final class StudioFlags {
   private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "app.links.assistant", "App Links Assistant");
   public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
     new BooleanFlag(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
-                "Improvements to Website Association Generator.", false);
+                    "Improvements to Website Association Generator.", false);
   public static final Flag<String> DEEPLINKS_GRPC_SERVER =
     new StringFlag(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
-                "Deep links gRPC server address. Use a non-default value for testing purposes.",
-                "deeplinkassistant-pa.googleapis.com");
+                   "Deep links gRPC server address. Use a non-default value for testing purposes.",
+                   "deeplinkassistant-pa.googleapis.com");
   public static final Flag<Boolean> CREATE_APP_LINKS_V2 =
     new BooleanFlag(APP_LINKS_ASSISTANT, "create.app.links.v2", "Create App Links V2",
-                "Improvements to the Create App Links functionalities.", false);
+                    "Improvements to the Create App Links functionalities.", false);
   public static final Flag<Boolean> IMPACT_TRACKING =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
-                "Impact tracking for the App Links Assistant", false);
-  public static final Flag<Boolean> WEB_CHECKS =
-    new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.web.checks", "App Links Assistant web checks",
-                "Web checks (i.e. domain-side validation) for the App Links Assistant", true);
+                    "Impact tracking for the App Links Assistant", false);
+  public static final Flag<Boolean> JSON_GENERATION =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.json.generation", "App Links Assistant JSON generation",
+                    "JSON generation (i.e. automated assistance with fixing web issues) in the App Links Assistant",
+                    ChannelDefault.enabledUpTo(CANARY));
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
@@ -1851,10 +1881,15 @@ public final class StudioFlags {
 
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
-  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART = new BooleanFlag(TSDKVUA, "filters.onstart", "Run filters on assistant startup", "Run filters on assistant startup", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART_RESET = new BooleanFlag(TSDKVUA, "filters.onstart.reset", "Reset the results cache before running filters on startup", "Reset the results cache before running filters on startup", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS_WIP = new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
-  public static final Flag<Boolean> TSDKVUA_API_35 = new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART =
+    new BooleanFlag(TSDKVUA, "filters.onstart", "Run filters on assistant startup", "Run filters on assistant startup", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART_RESET =
+    new BooleanFlag(TSDKVUA, "filters.onstart.reset", "Reset the results cache before running filters on startup",
+                    "Reset the results cache before running filters on startup", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_WIP =
+    new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
+  public static final Flag<Boolean> TSDKVUA_API_35 =
+    new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
   // endregion TargetSDKVersion Upgrade Assistant
 
   // region PROCESS_NAME_MONITOR
@@ -1919,16 +1954,16 @@ public final class StudioFlags {
                     "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
                     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
-                    "Enable sending context with build/sync error queries.",
-                    "When enabled, build/sync error queries will attach context from the project.",
+  public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
+    new MendelFlag(STUDIOBOT, "compiler.error.context.enabled", 97695187,
+                    "Enable sending context with compiler error queries.",
+                    "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
                     ChannelDefault.enabledUpTo(DEV));
 
-  public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
-                "Enable sending context with compiler error queries.",
-                "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
+  public static final Flag<Boolean> STUDIOBOT_PROJECT_FACTS_CONTEXT_ENABLED =
+    new MendelFlag(STUDIOBOT, "project.facts.context.enabled", 97715007,
+                    "Enable sending project facts with chat queries.",
+                    "When enabled, chat queries will attach summarized facts about the project.",
                     ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED =
@@ -1998,10 +2033,10 @@ public final class StudioFlags {
                     ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "current.file.context",
-                    "Use the current file as context",
-                    "Attach the current file's path, contents, and selection with chat queries.",
-                    ChannelDefault.enabledUpTo(DEV));
+    new MendelFlag(STUDIOBOT, "current.file.context", 97694800,
+                   "Use the current file as context",
+                   "Attach the current file's path, contents, and selection with chat queries.",
+                   ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_OPEN_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
@@ -2013,7 +2048,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
-                    true);
+                    Cancellation.forceNonCancellableSectionInClassInitializer(() -> ChannelDefault.enabledUpTo(CANARY)));
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
@@ -2044,9 +2079,9 @@ public final class StudioFlags {
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
-                    "AI completion requests per hour",
-                    "AI completion requests per hour",
-                    36000);
+                "AI completion requests per hour",
+                "AI completion requests per hour",
+                36000);
 
   public static final Flag<Integer> STUDIOBOT_CONVERSATIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "conversations.per.hour",
@@ -2093,7 +2128,7 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");
   public static final Flag<Boolean> WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED =
     new BooleanFlag(WEAR_RUN_CONFIGS_AUTOCREATE, "enabled", "Enable Autocreate Wear Run Configs",
-                "When enabled, Wear run configurations will be automatically created.", true);
+                    "When enabled, Wear run configurations will be automatically created.", true);
   public static final Flag<Integer> WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS =
     new IntFlag(WEAR_RUN_CONFIGS_AUTOCREATE, "max.total.runconfigs", "Maximum total run configurations",
                 "Maximum total number of all types of run configurations that can be reached after autocreating Wear Run Configs. Wear Run Configurations will not be created if this limit is breached.",
@@ -2127,7 +2162,36 @@ public final class StudioFlags {
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
       false);
+
+  public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
+    new IntFlag(
+      BACKUP,
+      "gmscore.min.version",
+      "Minimum version of the GmsCore Backup module that is supported",
+      "Minimum version of the GmsCore Backup module that is supported",
+      Integer.MAX_VALUE); // TODO(b/356613310) Replace with actual version when available
   // endregion Backup
+
+  // region GOOGLE_PLAY_SDK_INDEX
+  private static final FlagGroup GOOGLE_PLAY_SDK_INDEX = new FlagGroup(FLAGS, "google.play.sdk.index", "Google Play SDK Index");
+  public static final Flag<Boolean> SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.notes", "Show notes from SDK developer",
+    "Whether or not SDK Index critical issues should include notes from developer",
+    // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER so the behavior of Android Studio and CLI is consistent
+    ChannelDefault.enabledUpTo(CANARY)
+  );
+  public static final Flag<Boolean> SHOW_SDK_INDEX_RECOMMENDED_VERSIONS = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.recommended.versions", "Show SDK recommended versions",
+    "Whether or not to display recommended versions on SDK Index issues",
+    // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS so the behavior of Android Studio and CLI is consistent
+    ChannelDefault.enabledUpTo(CANARY)
+  );
+  public static final Flag<Boolean> SHOW_SUMMARY_NOTIFICATION = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.summary.notification", "Show a notification for SDK Index issues",
+    "Show a notification after initial sync when there are blocking SDK Index issues",
+    ChannelDefault.enabledUpTo(CANARY)
+  );
+  // endregion GOOGLE_PLAY_SDK_INDEX
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
     return BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()

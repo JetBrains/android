@@ -31,7 +31,10 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.symbols.*
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.name.ClassId
 
 /*

@@ -21,6 +21,6 @@ import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
  * An interface which scroll the [DesignSurfaceViewport]. Can be used to calculate the viewport
  * position of scroll view when its size is changed.
  */
-interface DesignSurfaceViewportScroller {
+fun interface DesignSurfaceViewportScroller {
   fun scroll(port: DesignSurfaceViewport)
 }

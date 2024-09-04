@@ -25,6 +25,7 @@ class SyncCounters {
   val additionalArtifactsPhase = Counter("additionalArtifactsPhase")
 
   val projectModel = Counter("projectModel")
+  val projectGraphModel = Counter("projectGraphModel")
   val variantDependenciesModel = Counter("variantDependenciesModel")
   val additionalArtifactsModel = Counter("additionalArtifactsModel")
   val kotlinModel = Counter("kotlinModel")
@@ -41,6 +42,7 @@ class SyncCounters {
       append(variantAndDependencyResolutionPhase)
       append(additionalArtifactsPhase)
       append(projectModel)
+      append(projectGraphModel)
       append(variantDependenciesModel)
       append(additionalArtifactsModel)
       append(kotlinModel)

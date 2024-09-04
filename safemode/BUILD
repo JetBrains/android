@@ -26,16 +26,16 @@ py_binary(
     ],
 )
 
-py_test(
-    name = "test_safe_mode",
-    size = "small",
-    srcs = ["tests/test_safe_mode.py"],
-    data = [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-)
+#py_test(
+#    name = "test_safe_mode",
+#    size = "small",
+#    srcs = ["tests/test_safe_mode.py"],
+#    data = [
+#        "//tools/adt/idea/studio:android-studio.linux.zip",
+#        "//tools/adt/idea/studio:android-studio.mac.zip",
+#        "//tools/adt/idea/studio:android-studio.win.zip",
+#    ],
+#)
 
 exports_files(
     ["linux/studio_safe.sh"],

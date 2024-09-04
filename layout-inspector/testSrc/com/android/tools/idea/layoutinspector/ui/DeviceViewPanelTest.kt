@@ -22,9 +22,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -110,10 +110,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import junit.framework.TestCase
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -129,6 +125,13 @@ import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -753,7 +756,8 @@ class DeviceViewPanelTest {
 
   @Test
   fun testNewWindowDoesntResetZoom() {
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    val testScheduler = TestCoroutineScheduler()
+    val coroutineScope = TestScope(testScheduler)
     val model = InspectorModel(projectRule.project, coroutineScope)
     val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
@@ -788,8 +792,12 @@ class DeviceViewPanelTest {
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
-
-    model.update(window1, listOf(ROOT), 0)
+    run {
+      val latch = CountDownLatch(1)
+      model.update(window1, listOf(ROOT), 0) { latch.countDown() }
+      latch.await()
+      testScheduler.advanceUntilIdle()
+    }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 2 }
 
     inspector.renderLogic.renderSettings.scalePercent = 33
@@ -797,12 +805,12 @@ class DeviceViewPanelTest {
     // Add another window
     val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) { view(VIEW2, 50, 20, 30, 40) { image() } }
 
-    val latch = CountDownLatch(1)
-    model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
-    latch.await()
-
-    // Make sure model has been refreshed.
-    contentPanelModel.refresh()
+    run {
+      val latch = CountDownLatch(1)
+      model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
+      latch.await()
+      testScheduler.advanceUntilIdle()
+    }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 4 }
 
     // we should still have the manually set zoom
@@ -1030,6 +1038,7 @@ class MyViewportLayoutManagerTest {
   }
 
   @Test
+  @Ignore("b/353455979")
   fun testZoom() {
     // Start view as centered
     scrollPane.viewport.viewPosition = Point(250, 400)

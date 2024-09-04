@@ -101,7 +101,6 @@ interface IdeVariantCore : IdeVariantHeader {
 
   /**
    * The test instrumentation runner. This is only the value set on this product flavor.
-   * TODO: make test instrumentation runner available through the model.
    */
   val testInstrumentationRunner: String?
 

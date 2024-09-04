@@ -37,7 +37,6 @@
     <orderEntry type="module" module-name="intellij.android.logcat" />
     <orderEntry type="module" module-name="intellij.android.backup" />
     <orderEntry type="module" module-name="intellij.android.mlkit" />
-    <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
@@ -62,9 +61,14 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.native-symbolizer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.avd" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />
-  </component>
+    </component>
 </module>

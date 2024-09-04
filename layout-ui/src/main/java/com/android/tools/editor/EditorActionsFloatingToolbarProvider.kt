@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -263,11 +264,12 @@ private fun createToolbar(
   val toolbar =
     actionManager.createActionToolbar(place, actionGroup, false).apply {
       layoutStrategy = ToolbarLayoutStrategy.WRAP_STRATEGY
-      setTargetComponent(target)
-      setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+      targetComponent = target
+      minimumButtonSize = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
       component.apply {
         border = JBUI.Borders.empty(1)
         isOpaque = false
+        putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
       }
     }
   ActionToolbarUtil.makeToolbarNavigable(toolbar)

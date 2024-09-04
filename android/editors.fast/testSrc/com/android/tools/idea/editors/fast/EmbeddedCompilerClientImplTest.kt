@@ -314,13 +314,14 @@ internal class EmbeddedCompilerClientImplTest {
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
                                                 isKotlinPluginBundled = true
       ) {
-        blockingContext {
+        // TODO Android Studio (Ladybug Canary 7) Merge - re-apply commit
+        //blockingContext {
           beforeCompileCallCount.incrementAndGet()
           compilationHasStarted.complete(Unit)
           while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
             ProgressManager.checkCanceled()
           }
-        }
+        //}
       }
       launch(workerThread) {
         compilationHasStarted.await()

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package google.cloud.cloudaicompanion.v1;
+
+import "task_completion_message.proto";
+
+option java_multiple_files = true;
+option java_package = "com.google.cloud.cloudaicompanion.v1main";
+option java_outer_classname = "TaskCompletionInstanceProto";
+
+// Input format for Task completion/multi-turn chat coversation.
+message TaskCompletionInput {
+  // Text that should be provided to the model first to ground the response.
+  optional string preamble = 1;
+
+  // Chat messages between 2 users. The messages are ordered by time
+  // with the zed value (0) being the oldest message.
+  repeated TaskCompletionMessage messages = 2;
+}

@@ -492,7 +492,7 @@ class TreeDropDownActionTest {
 fun TreeNode.checkedChildren(): List<CheckedTreeNode> =
   (children() as Enumeration<CheckedTreeNode>).toList()
 
-suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {
+private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 5000) {
   val received = mutableListOf<T>()
   try {
     withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }

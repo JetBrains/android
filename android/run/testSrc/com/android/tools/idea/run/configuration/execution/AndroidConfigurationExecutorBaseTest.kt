@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
-import com.android.adblib.ddmlibcompatibility.testutils.createAdbSession
+import com.android.adblib.ddmlibcompatibility.testutils.createIDeviceManagerFactoryFactory
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.idevicemanager.IDeviceManagerFactory
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.tools.idea.run.ApkInfo
@@ -46,30 +44,26 @@ abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
 
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule().withIDeviceManagerFactoryFactory { iDeviceManagerFactoryFactory() }
+  val closeables = CloseablesRule()
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule().apply {
+    withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
+  }
 
   val projectRule = ProjectRule()
-
   val cleaner = MockitoCleanerRule()
-  val closeables = CloseablesRule()
 
   @get:Rule
   val chain = RuleChain
     .outerRule(cleaner)
     .around(closeables)
-    .around(projectRule)
     .around(fakeAdbRule)
+    .around(projectRule)
 
   val project: Project
     get() = projectRule.project
 
   val myModule: com.intellij.openapi.module.Module
     get() = projectRule.module
-
-  private val iDeviceManagerFactoryFactory: () -> IDeviceManagerFactory = {
-    val adbSession = fakeAdbRule.createAdbSession(closeables)
-    AdbLibIDeviceManagerFactory(adbSession)
-  }
 
   @After
   fun after() {

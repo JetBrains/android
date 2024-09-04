@@ -121,7 +121,6 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
@@ -192,7 +191,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         projectDataNode.createChild(
           AndroidProjectKeys.NATIVE_VARIANTS,
           IdeAndroidNativeVariantsModelsWrapper(
-            GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule!!),
+            gradleModule.projectIdentifier.projectPath,
             nativeVariants
           )
         )
@@ -482,9 +481,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
 
     if (myResolvedLibraryTable == null) {
-      val ideLibraryTable = resolverCtx.getRootModel(
-        IdeUnresolvedLibraryTableImpl::class.java
-      )
+      val ideLibraryTable = resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
         ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
       myResolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
       ideProject.createChild(

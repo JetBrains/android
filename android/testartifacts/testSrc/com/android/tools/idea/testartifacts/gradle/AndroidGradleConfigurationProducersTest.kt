@@ -40,7 +40,7 @@ import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -76,7 +76,9 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadSimpleApplication()
     verifyCanCreateClassGradleRunConfigurationFromTestScope()
     verifyCannotCreateClassGradleRunConfigurationFromAndroidTestScope()
-    verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory()
+    verifyCannotCreateMethodGradleRunConfigurationFromAndroidTestMethodScope()
+    verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory("app/src/androidTest/java")
+    verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory("app/src/androidTest")
     verifyCanCreateGradleConfigurationFromTestDirectory()
   }
 
@@ -90,7 +92,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testKotlinTestSupport() {
     loadProject(TEST_ARTIFACTS_KOTLIN)
-    verifyCannotCreateGradleConfigurationFromAndroidTestDirectory()
+    verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory("app/src/androidTest/java")
     verifyCannotCreateKotlinClassGradleConfigurationFromAndroidTestScope()
     verifyCanCreateGradleConfigurationFromTestDirectoryKotlin()
   }
@@ -107,7 +109,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_RESOURCES)
 
     // Create the Run configuration.
-    val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
+    val listener = object : ExternalSystemTaskNotificationListener {
       var messagesLog = StringBuilder()
       var finalMessage = ""
 
@@ -235,7 +237,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       project.basePath!!,
       GradleManager().executionSettingsProvider.`fun`(Pair.create(project, project.basePath)),
       null,
-      object : ExternalSystemTaskNotificationListenerAdapter() {}
+      ExternalSystemTaskNotificationListener.NULL_OBJECT
     )
 
     // Check that the JavaCoverageEngine won't require project rebuild.
@@ -319,10 +321,6 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
 
     assertThat(configuration!!.settings.taskNames).isEqualTo(configurationTasks)
   }
-  
-  private fun verifyCannotCreateGradleConfigurationFromAndroidTestDirectory() {
-    assertThat(createAndroidGradleConfigurationFromDirectory(project, "app/src/androidTest/java")).isNull()
-  }
 
   private fun verifyCannotCreateKotlinClassGradleConfigurationFromAndroidTestScope() {
     assertThat(
@@ -338,8 +336,15 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     assertThat(createAndroidGradleTestConfigurationFromClass(project, "google.simpleapplication.ApplicationTest")).isNull()
   }
 
-  private fun verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory() {
-    assertThat(createAndroidGradleConfigurationFromDirectory(project, "app/src/androidTest/java")).isNull()
+  private fun verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory(directory: String) {
+    assertThat(createAndroidGradleConfigurationFromDirectory(project, directory)).isNull()
+  }
+
+  private fun verifyCannotCreateMethodGradleRunConfigurationFromAndroidTestMethodScope() {
+    val psiMethod = myFixture.findClass("google.simpleapplication.ApplicationTest")
+      .findMethodsByName("exampleTest", false).first()
+    val configuration = createGradleConfigurationFromPsiElement(project, psiMethod)
+    assertThat(configuration).isNull()
   }
 
   private fun verifyCanCreateKotlinClassGradleConfigurationFromAndroidUnitTest() {

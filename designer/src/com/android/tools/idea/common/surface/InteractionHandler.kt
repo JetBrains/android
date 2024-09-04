@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.annotations.InputEventMask
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.showPopup
@@ -57,7 +58,7 @@ interface InteractionHandler {
   fun createInteractionOnPressed(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ): Interaction?
 
   /**
@@ -68,7 +69,7 @@ interface InteractionHandler {
   fun createInteractionOnDrag(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ): Interaction?
 
   /**
@@ -87,7 +88,7 @@ interface InteractionHandler {
   fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -101,7 +102,7 @@ interface InteractionHandler {
   fun singleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -115,7 +116,7 @@ interface InteractionHandler {
   fun doubleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   )
 
   /** Called by [GuiInputHandler] when a zooming event happens. */
@@ -128,7 +129,7 @@ interface InteractionHandler {
   fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   )
 
   /**
@@ -150,7 +151,7 @@ interface InteractionHandler {
   fun getCursorWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ): Cursor?
 
   /**
@@ -224,7 +225,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ) {
     val allowToggle =
       modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) !=
@@ -239,7 +240,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ) {
     val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
@@ -290,7 +291,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun singleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ) {
     val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
     if (selectedEditor is DesignToolsSplitEditor) {
@@ -309,7 +310,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun doubleClick(
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ) {
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
 
@@ -330,7 +331,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun getCursorWhenNoInteraction(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int,
+    @InputEventMask modifiersEx: Int,
   ): Cursor? {
     return cursorWhenNoInteraction
   }

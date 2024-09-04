@@ -24,7 +24,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.Callable
 
 class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepositorySearchService>) : ArtifactRepositorySearchService {
 
@@ -33,7 +32,7 @@ class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepo
     return Futures
       .whenAllComplete(futures)
       .call(
-        Callable { futures.mapNotNull { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
+        { futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
         PooledThreadExecutor.INSTANCE)
   }
 }

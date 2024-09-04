@@ -25,23 +25,48 @@ val DeclarativeLiteral.kind: DeclarativeLiteralKind?
   }
 
 sealed class DeclarativeLiteralKind(val node: ASTNode) {
-  abstract val value:Any?
+  abstract val value: Any?
+
   class Boolean(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.Boolean = node.text == "true"
   }
-  class Number(node: ASTNode) : DeclarativeLiteralKind(node) {
-    override val value: kotlin.Number? = node.text.toIntOrNull(10)
-  }
+
   class String(node: ASTNode) : DeclarativeLiteralKind(node) {
-    override val value: kotlin.String = node.text.trim('\"')
+    override val value: kotlin.String = node.text.trim('\"').unescape() ?: ""
+  }
+
+  class MultilineString(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.String =
+      (if (node.text.length >= 6) node.text.removePrefix("\"\"\"").removeSuffix("\"\"\"") else node.text)
+        .unescapeMultiline() ?: ""
+  }
+
+  class Long(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Long? = node.text.toLongOrNull()
+  }
+
+  class ULong(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Long? = node.text.toLongOrNull()
+  }
+
+  class Int(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Int? = node.text.toIntOrNull()
+  }
+
+  class UInt(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: kotlin.Int? = node.text.toIntOrNull()
   }
 
   companion object {
     fun fromAstNode(node: ASTNode): DeclarativeLiteralKind? {
       return when (node.elementType) {
         DeclarativeElementTypeHolder.BOOLEAN -> Boolean(node)
-        DeclarativeElementTypeHolder.NUMBER -> Number(node)
-        DeclarativeElementTypeHolder.STRING -> String(node)
+        DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL -> String(node)
+        DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL -> MultilineString(node)
+        DeclarativeElementTypeHolder.LONG_LITERAL -> Long(node)
+        DeclarativeElementTypeHolder.INTEGER_LITERAL -> Int(node)
+        DeclarativeElementTypeHolder.UNSIGNED_LONG -> ULong(node)
+        DeclarativeElementTypeHolder.UNSIGNED_INTEGER -> UInt(node)
         else -> null
       }
     }

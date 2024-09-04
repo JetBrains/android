@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
@@ -81,14 +82,15 @@ fun createTestEvent(source: Component, project: Project, place: String = ActionP
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extraData: Map<String, Any?> = emptyMap()): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  return AnActionEvent(inputEvent, TestDataContext(source, project, extraData), place, presentation, ActionManager.getInstance(), 0)
+  val dataContext = CustomizedDataContext.withProvider(DataContext.EMPTY_CONTEXT, TestDataProvider(source, project, extraData))
+  return AnActionEvent(inputEvent, dataContext, place, presentation, ActionManager.getInstance(), 0)
 }
 
-private class TestDataContext(
+private class TestDataProvider(
   private val component: Component,
   private val project: Project,
   private val extraData: Map<String, Any?> = emptyMap(),
-) : CustomizedDataContext() {
+) : DataProvider {
 
   private val emulatorView
     get() = component as? EmulatorView
@@ -97,9 +99,7 @@ private class TestDataContext(
   private val displayView
     get() = component as? AbstractDisplayView
 
-  override fun getParent(): DataContext = EMPTY_CONTEXT
-
-  override fun getRawCustomData(dataId: String): Any? {
+  override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator

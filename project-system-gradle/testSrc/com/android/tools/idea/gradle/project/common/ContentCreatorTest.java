@@ -91,14 +91,21 @@ public class ContentCreatorTest extends HeavyPlatformTestCase {
     List<String> jarPaths = Arrays.asList("/path/to/jar1", "/path/to/jar2");
     when(myJavaLibraryPluginJars.getJarPaths()).thenReturn(jarPaths);
 
-    String expected = "initscript {\n" +
+    String expected = "import org.gradle.util.GradleVersion\n" +
+                      "initscript {\n" +
                       "    dependencies {\n" +
                       "        classpath files([mapPath('/path/to/jar1'), mapPath('/path/to/jar2')])\n" +
                       "    }\n" +
                       "}\n" +
-                      "allprojects {\n" +
-                      "    apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
-                      "}\n";
+                      "if (GradleVersion.current() < GradleVersion.version(\"8.8\")) {\n" +
+                      "    allprojects {\n" +
+                      "        apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
+                      "    }\n" +
+                      "} else {\n" +
+                      "    lifecycle.beforeProject {\n" +
+                      "        apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
+                      "    }\n" +
+                      "\n}";
 
     String content = myContentCreator.createAndroidStudioToolingPluginInitScriptContent();
     assertEquals(expected, content);

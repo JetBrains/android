@@ -21,6 +21,6 @@ import com.android.tools.lint.checks.GradleDetector;
 
 public class AndroidLintChromeOsAbiSupportInspection extends AndroidLintInspectionBase {
   public AndroidLintChromeOsAbiSupportInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.chromeos.missing.abi"), GradleDetector.CHROMEOS_ABI_SUPPORT);
+    super(AndroidLintBundle.message("android.lint.inspections.chrome.os.abi.support"), GradleDetector.CHROMEOS_ABI_SUPPORT);
   }
 }

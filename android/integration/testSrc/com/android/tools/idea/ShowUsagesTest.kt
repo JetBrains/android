@@ -56,7 +56,7 @@ class ShowUsagesTest {
         .let { studio.waitForComponent(it) }
       // This is here instead of above because sometimes Studio kicks off some additional indexing after we open the file.
       studio.waitForIndex()
-      studio.executeAction("ShowUsages", AndroidStudio.DataContextSource.SELECTED_TEXT_EDITOR)
+      repeat(2) { studio.executeAction("ShowUsages", AndroidStudio.DataContextSource.SELECTED_TEXT_EDITOR) }
       repeat(2) { installation.ideaLog.waitForMatchingLine(regex, 1L, TimeUnit.MINUTES) }
     }
   }

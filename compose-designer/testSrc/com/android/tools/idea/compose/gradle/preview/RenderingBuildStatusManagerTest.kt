@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.Executor
 import kotlin.time.Duration.Companion.seconds
@@ -51,6 +52,7 @@ class RenderingBuildStatusManagerTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+
   val project: Project
     get() = projectRule.project
 
@@ -75,6 +77,8 @@ class RenderingBuildStatusManagerTest {
         .guessProjectDir()!!
         .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
+
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     var onReadyCalled = false
     val statusManager =

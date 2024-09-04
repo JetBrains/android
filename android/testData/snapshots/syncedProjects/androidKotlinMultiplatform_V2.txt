@@ -2096,7 +2096,7 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
-            *CLASSES                      : jar://<PROJECT>/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlin-kotlin-stdlib-<KOTLIN_VERSION>.klib!/
+            *CLASSES                      : jar://<PROJECT>/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlin-kotlin-stdlib-<KOTLIN_VERSION>_w.klib!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-test-junit/<KOTLIN_VERSION>/kotlin-test-junit-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>

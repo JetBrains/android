@@ -45,7 +45,7 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
 
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
-      verifySyncViewEvents = { buildEvents ->
+      verifySyncViewEvents = { _, buildEvents ->
         // Make sure no additional error build events are generated
         expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
         expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()

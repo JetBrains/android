@@ -45,8 +45,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -54,8 +56,11 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testFramework.IndexingTestUtil;
+import com.intellij.testFramework.RegistryKeyRule;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
+import com.intellij.ui.BalloonImpl;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -150,7 +155,8 @@ public class GuiTestRule implements TestRule {
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(new DiagnosticsOnFailure())
-      .around(myInnerTimeout);
+      .around(myInnerTimeout)
+      .around(new RegistryKeyRule("ide.experimental.ui.meetNewUi", false)); // Do not show "Meet New UI" tool window for UI tests
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
     if (TestUtils.runningFromBazel()) {
@@ -172,6 +178,10 @@ public class GuiTestRule implements TestRule {
           if (!TestUtils.runningFromBazel()) {
             restartIdeIfWelcomeFrameNotShowing();
           }
+          // Clear all notifications in welcome screen.
+          // Welcome screen buttons are partially covered by notification balloons
+          // and are blocking the mouse clicks in tests.
+          clearAllNotificationsInWelcomeScreen();
           setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
           try {
@@ -195,6 +205,21 @@ public class GuiTestRule implements TestRule {
         }
       };
     }
+  }
+
+  private void clearAllNotificationsInWelcomeScreen() {
+    List<BalloonImpl.ActionButton> allNotificationActions =
+      Lists.newArrayList(robot().finder().findAll(welcomeFrame().target(), Matchers.byType(BalloonImpl.ActionButton.class)));
+    //if (allNotificationActions.size() > 0) {
+    if (!allNotificationActions.isEmpty()) {
+      for (BalloonImpl.ActionButton closeAction : allNotificationActions) {
+        if (closeAction.isShowing() &
+            closeAction.getClass().getName().toLowerCase().contains("closebutton")) {
+          robot().click(closeAction);
+        }
+      }
+    }
+    welcomeFrame().target().requestFocus();
   }
 
   private void restartIdeIfWelcomeFrameNotShowing() {
@@ -221,6 +246,9 @@ public class GuiTestRule implements TestRule {
     myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
     GeneralSettings.getInstance().setReopenLastProject(false);
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
+    // Our MenuFixture does not support at the moment the new UI menu.
+    // Setting it to separate main menu will ensure that it still works in tests.
+    UISettings.getInstance().setSeparateMainMenu(true);
     GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
@@ -585,6 +613,7 @@ public class GuiTestRule implements TestRule {
   }
 
   public void waitForAllBackgroundTasksToBeCompleted() {
+    IndexingTestUtil.waitUntilIndexesAreReady(ideFrame().getProject());
     waitForBackgroundTasks();
     robot().waitForIdle();
   }

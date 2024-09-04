@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import org.junit.Test
 
 class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
@@ -125,7 +126,7 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
     )
   }
 
-  private fun verifyBuildIssue(buildIssue: BuildIssue) {
+  private fun verifyBuildIssue(project: Project, buildIssue: BuildIssue) {
     val message = buildIssue.description
     expect.that(message).contains("Gradle's dependency cache may be corrupt")
     expect.that(message).contains("Re-download dependencies and sync project")

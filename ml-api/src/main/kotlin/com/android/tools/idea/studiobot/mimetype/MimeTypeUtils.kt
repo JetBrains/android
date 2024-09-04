@@ -624,6 +624,13 @@ fun MimeType.isCompatibleWith(other: MimeType?): Boolean {
       return false
     }
   }
+  if (language == KOTLIN) {
+    if (isGradle() != other.isGradle()) {
+      // .gradle.kts and regular Kotlin probably shouldn't be mixed
+      // b/352221069
+      return false
+    }
+  }
 
   return true
 }

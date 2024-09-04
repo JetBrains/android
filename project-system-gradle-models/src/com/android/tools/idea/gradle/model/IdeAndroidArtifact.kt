@@ -92,6 +92,8 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
    * Files listing any D8 backported desugared methods or core library desugared methods for this artifact
    */
   val desugaredMethodsFiles: Collection<File>
+
+  val generatedAssetFolders: Collection<File>
 }
 
 interface IdeAndroidArtifact : IdeAndroidArtifactCore, IdeBaseArtifact

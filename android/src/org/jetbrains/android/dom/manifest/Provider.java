@@ -44,4 +44,8 @@ public interface Provider extends ApplicationComponent {
   IntentFilter addIntentFilter();
 
   List<Property> getProperties();
+
+  List<GrantUriPermission> getGrantUriPermissions();
+
+  List<PathPermission> getPathPermissions();
 }

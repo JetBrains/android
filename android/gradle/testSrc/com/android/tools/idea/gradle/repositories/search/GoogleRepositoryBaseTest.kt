@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.StubGoogleMavenRepository
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepositoryBase
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 class GoogleRepositoryBaseTest {
@@ -116,7 +117,7 @@ class GoogleRepositoryBaseTest {
 
   @Before
   fun setUp() {
-    repository = GoogleRepositoryBase(StubGoogleMavenRepository(builtInData))
+    repository = GoogleRepositoryBase(IdeStubGoogleMavenRepository(builtInData))
   }
 
   @Test
@@ -200,5 +201,17 @@ class GoogleRepositoryBaseTest {
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON_JAVA8))))
   }
 }
+
+class IdeStubGoogleMavenRepository @JvmOverloads constructor(
+  private val builtInData: Map<String, String> = emptyMap(),
+  private val urls: Map<String, String> = emptyMap(),
+  cacheDir: Path? = null
+) : IdeGoogleMavenRepositoryBase(cacheDir = cacheDir) {
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+    ReadUrlDataResult(urls[url]?.toByteArray(), true)
+  override fun error(throwable: Throwable, message: String?) = throw throwable
+  override fun readDefaultData(relative: String) = builtInData[relative]?.byteInputStream()
+}
+
 
 private fun SearchResult.clearStats() = copy(stats = SearchResultStats.EMPTY)

@@ -1,0 +1,277 @@
+syntax = "proto3";
+
+package ij.qsync;
+
+import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/language_class.proto";
+
+// option java_api_version = 2;
+option java_outer_classname = "ProjectProto";
+option java_package = "com.google.idea.blaze.qsync.project";
+
+message Project {
+  repeated Library library = 1;
+  repeated Module modules = 2;
+  CcWorkspace cc_workspace = 3;
+  /**
+   * Active languages are those that appear in the project and/or have had
+   * analysis enabled for them. The exact semantics depend on the language in
+   * question.
+   */
+  repeated LanguageClass active_languages = 4;
+  ArtifactDirectories artifact_directories = 5;
+}
+
+/**
+ * Represents a module in the IntelliJ project model.
+ *
+ * @see com.intellij.openapi.module.Module
+ */
+message Module {
+  /** Name of the module. Unique within the project. */
+  string name = 1;
+  ModuleType type = 2;
+  repeated ContentEntry content_entries = 3;
+  /**
+   * Libraries for this module. The entries in this set refer to names of
+   * libraries in the containing project proto.
+   */
+  repeated string library_name = 4;
+
+  // TODO these two are temporary. They should be better represented, reflecting
+  //  the IJ project model API, and the syncPlugin.updateProjectStructure call
+  //  should be updated to accept a ModuleSpec or other suitable data type.
+  repeated string android_resource_directories = 5;
+  repeated string android_source_packages = 6;
+
+  // Separate custom package with source packages as it's only used by R class.
+  repeated string android_custom_packages = 7;
+
+  // Android libs are kept separate to regular libraries reflecting the
+  // separatation between the APIs we use to configure them.
+  repeated ExternalAndroidLibrary android_external_libraries = 8;
+}
+
+/**
+ * Represents the type of a module in the IJ project model.
+ *
+ * @see com.intellij.openapi.module.ModuleType
+ */
+enum ModuleType {
+  MODULE_TYPE_DEFAULT = 0;
+}
+
+/**
+ * A path within the IJ project model, relative to a root.
+ */
+message ProjectPath {
+  /**
+   * Specifies base to which the root path is relative.
+   */
+  enum Base {
+    UNSPECIFIED = 0;
+    WORKSPACE = 1;
+    PROJECT = 2;
+    ABSOLUTE = 3;
+  }
+
+  // path to the content root, relative to base.
+  string path = 1;
+  Base base = 2;
+  // inner path within the content root. Only relevant for jar files.
+  string inner_path = 3;
+}
+
+message BuildArtifact {
+  string digest = 1;
+}
+
+/**
+ * Represents a content entry within the IJ project model.
+ *
+ * @see com.intellij.openapi.roots.ContentEntry
+ */
+message ContentEntry {
+  /** Root of the content entry. Unique within the module. */
+  ProjectPath root = 1;
+  repeated SourceFolder sources = 3;
+  repeated string excludes = 2;
+}
+
+/**
+ * A source folder within a content entry.
+ *
+ * @see com.intellij.openapi.roots.SourceFolder
+ */
+message SourceFolder {
+  bool is_test = 2;
+  string package_prefix = 3;
+  bool is_generated = 4;
+  ProjectPath project_path = 5;
+}
+
+/** Represents a library within the IJ project model. */
+message Library {
+  /** Unique name for the library */
+  string name = 1;
+  /** classes.jar directories */
+  repeated JarDirectory classes_jar = 2;
+  repeated LibrarySource sources = 3;
+}
+
+/**
+ * Represents a jar directory for a library within the IJ project model.
+ *
+ * @see
+ * com.intellij.openapi.roots.libraries.Library.ModifiableModel#addJarDirectory
+ */
+message JarDirectory {
+  string path = 1;
+  bool recursive = 2;
+}
+
+/**
+ * Represents a library source root.
+ */
+message LibrarySource {
+  reserved 1;
+  ProjectPath srcjar = 2;
+}
+
+/**
+ * An external android library.
+ *
+ * Corresponds to the AS class com.android.projectmodel.ExternalAndroidLibrary.
+ */
+message ExternalAndroidLibrary {
+  string name = 1;
+  ProjectPath location = 2;
+  ProjectPath manifest_file = 3;
+  ProjectPath res_folder = 4;
+  ProjectPath symbol_file = 5;
+  string package_name = 6;
+}
+
+/**
+ * A single compiler flag that supports resolving to an absolute path when
+ * configuring the project model.
+ */
+message CcCompilerFlag {
+  string flag = 1;  // The flag itself, e.g. -D, -i, etc. (including the "-")
+  oneof Value {
+    ProjectPath path = 2;
+    string plain_value = 3;
+  }
+}
+
+/**
+ * A set of C/C++ compiler flags.
+ *
+ * @see com.jetbrains.cidr.lang.toolchains.CidrCompilerSwitches
+ */
+message CcCompilerFlagSet {
+  repeated CcCompilerFlag flags = 2;
+}
+
+/**
+ * A C based language.
+ *
+ * @see com.jetbrains.cidr.lang.CLanguageKind
+ */
+enum CcLanguage {
+  CC_LANGUAGE_UNKNOWN = 0;
+  C = 1;
+  OBJ_C = 2;
+  CPP = 3;
+  OBJ_CPP = 4;
+  NEW = 5;
+}
+
+/**
+ * A single source file.
+ *
+ * @see
+ * com.jetbrains.cidr.lang.workspace.OCResolveConfiguration.ModifiableModel#addSource
+ */
+message CcSourceFile {
+  string workspace_path = 1;
+  CcLanguage language = 2;
+  CcCompilerSettings compiler_settings = 4;
+}
+
+/**
+ * A compilation context (or resolve configuration in IJ parlance).
+ *
+ * @see com.jetbrains.cidr.lang.workspace.OCResolveConfiguration
+ */
+message CcCompilationContext {
+  string id = 1;
+  string human_readable_name = 2;
+  // Map keys are CcLanguage.name:
+  map<string, CcCompilerSettings> language_to_compiler_settings = 3;
+  repeated CcSourceFile sources = 4;
+}
+
+/**
+ * Compiler settings.
+ *
+ * @see com.jetbrains.cidr.lang.workspace.OCCompilerSettings
+ */
+message CcCompilerSettings {
+  ProjectPath compiler_executable_path = 1;
+  // ID of the flag set within CcWorkspace.flag_sets
+  string flag_set_id = 2;
+}
+
+/**
+ * A C based workspace.
+ *
+ * @see com.jetbrains.cidr.lang.workspace.OCWorkspace
+ */
+message CcWorkspace {
+  // Unique flags sets, by ID.
+  // The IDs are referred to from CcCompilerSettings.flag_set_id
+  map<string, CcCompilerFlagSet> flag_sets = 1;
+  repeated CcCompilationContext contexts = 3;
+}
+
+// Defines the layout of artifact directories within the project directory.
+// Each key in the map is the name (or path) of a directory within the project
+// dir, the values exactly define the contents of that directory. Any other
+// directories within the project dir will be ignored.
+message ArtifactDirectories {
+  // map of directory name to its contents.
+  map<string, ArtifactDirectoryContents> directories = 1;
+}
+
+message ArtifactDirectoryContents {
+  // Contents of the directory.
+  // The contents are canonical: i.e. any files already present in the directory
+  // that are not included here are to be deleted.
+  map<string, ProjectArtifact> contents = 1;
+}
+
+// An artifact to be placed within the IDE project directory. The destination
+// path is given by the keys of the map in which message instances are
+// contained. Depending on the transform, the final destination may be
+// subpath(s) of this.
+message ProjectArtifact {
+  ArtifactTransform transform = 2;
+  oneof Origin {
+    BuildArtifact build_artifact = 3;
+    string workspace_relative_path = 4;
+  }
+  string target = 5;
+
+  enum ArtifactTransform {
+    NONE = 0;
+    // Copy the artifact to its destination without modifying it. The
+    // destination is a filename.
+    COPY = 1;
+    // Unzip the artifact. The destination is a directory into which the file
+    // will be unzipped.
+    UNZIP = 2;
+    // Strip generated sources from a .srcjar file that we don't need due to an
+    // IDE plugin that makes the redundant.
+    STRIP_SUPPORTED_GENERATED_SOURCES = 3;
+  }
+}

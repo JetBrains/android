@@ -21,9 +21,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.AndroidSdks
@@ -33,12 +31,12 @@ import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -47,14 +45,19 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ConcurrencyUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.After
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Test for [EmptyStatePanel].
@@ -117,6 +120,7 @@ class EmptyStatePanelTest {
   fun testEmulatorTooOld() {
     EmulatorSettings.getInstance().launchInToolWindow = true
     emulatorPackage.setRevision(Revision(35, 1, 2))
+    waitForCondition(2.seconds) { ui.getComponent<JEditorPane>().normalizedText.contains("install Android Emulator") }
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
         "To launch virtual devices in this window, install Android Emulator 35.1.3 or higher." +

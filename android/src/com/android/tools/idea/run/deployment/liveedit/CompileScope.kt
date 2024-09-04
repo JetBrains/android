@@ -20,9 +20,8 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
@@ -32,6 +31,8 @@ import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -220,7 +221,15 @@ private object CompileScopeImpl : CompileScope {
           put(CommonConfigurationKeys.MODULE_NAME, it)
         }
       }
-      setOptions(input.first().languageVersionSettings)
+
+      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.isOverridden) {
+        val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
+        val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
+        val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(MessageCollector.NONE)
+        setOptions(languageSettings)
+      } else {
+        setOptions(input.first().languageVersionSettings)
+      }
     }
 
     val generationStateBuilder = GenerationState.Builder(project,

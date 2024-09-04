@@ -1084,6 +1084,8 @@ MODULE: kotlinMultiPlatform.module2
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
+                AssetsDirectoryUrls:
+                    file://./module2/build/generated/assets/debugAssetsCopyForAGP
                 JavaDirectoryUrls:
                     file://./module2/build/generated/ap_generated_sources/debug/out
                 ResDirectoryUrls:

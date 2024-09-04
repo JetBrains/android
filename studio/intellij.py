@@ -45,7 +45,7 @@ class IntelliJ:
     )
     prefix = _read_platform_prefix(product_info)
     major, minor = read_version(path/_idea_home[platform]/"lib", prefix)
-    jars = read_platform_jars(product_info)
+    jars = read_platform_jars(path/_idea_home[platform], product_info)
     plugin_jars = _read_plugin_jars(path/_idea_home[platform])
     return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars)
 
@@ -72,10 +72,11 @@ def read_version(lib_dir: Path, prefix: str) -> (str, str):
   return major, minor
 
 
-def read_platform_jars(product_info):
+def read_platform_jars(ide_home: Path, product_info):
   # Extract the runtime classpath from product-info.json.
-  launch_config = product_info["launch"][0]
-  jars = ["/lib/" + jar for jar in launch_config["bootClassPathJarNames"]]
+  bootClassPath = product_info["launch"][0]["bootClassPathJarNames"]
+  modules = ide_home.glob("lib/modules/*.jar")
+  jars = ["/lib/" + jar for jar in bootClassPath] + ["/lib/modules/" + jar.name for jar in modules]
   return set(jars)
 
 
@@ -121,7 +122,7 @@ def _read_plugin_jars(idea_home: Path):
     if not plugin_path.is_dir():
       continue
     plugin_id = _read_plugin_id(plugin_path)
-    jars = plugin_path.glob("lib/*.jar")
+    jars = [*plugin_path.glob("lib/*.jar"), *plugin_path.glob("lib/modules/*.jar")]
     jars = [f"/{jar.relative_to(idea_home)}" for jar in jars]
     plugins[plugin_id] = set(jars)
 

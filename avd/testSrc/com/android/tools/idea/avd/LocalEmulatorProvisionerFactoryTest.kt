@@ -63,7 +63,6 @@ class LocalEmulatorProvisionerFactoryTest {
   @Test
   fun testIcons(): Unit = runBlockingWithTimeout {
     suspend fun validateIcon(avdInfo: AvdInfo, icon: Icon) {
-      println("e")
       avdManager.createAvd(avdInfo)
       plugin.refreshDevices()
       yieldUntil { provisioner.devices.value.size == 1 }

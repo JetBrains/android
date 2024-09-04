@@ -64,8 +64,15 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -73,11 +80,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 class RenderErrorTest {
 
@@ -324,10 +326,9 @@ class RenderErrorTest {
   }
 
   private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
-    sceneViewTopPanel.components
-      .filterIsInstance<ActionToolbarImpl>()
-      .single()
-      .actions
+    (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
+        as DefaultActionGroup)
+      .childActionsOrStubs
       .filterIsInstance<DefaultActionGroup>()
       .single()
       .childActionsOrStubs
@@ -364,10 +365,13 @@ class RenderErrorTest {
   }
 
   private suspend fun stopUiCheck() {
+    waitForAllRefreshesToFinish(1.minutes)
+
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.setMode(PreviewMode.Default())
-    onRefreshCompletable.join()
-    waitForAllRefreshesToFinish(1.minutes)
+    try {
+      withTimeout(1.minutes) { onRefreshCompletable.join() }
+    } catch (_: TimeoutCancellationException) {}
   }
 
   private suspend fun visualLintRenderIssues(

@@ -103,7 +103,7 @@ class NShotXmlToComposeConverterTest {
       query.messages
         .flatMap { it.chunks }
         .any {
-          it is Prompt.Message.TextChunk &&
+          it is Prompt.TextChunk &&
             it.text.contains(
               "Create a subclass of androidx.lifecycle.ViewModel to store the states."
             )
@@ -218,8 +218,8 @@ class NShotXmlToComposeConverterTest {
     )
   }
 
-  private fun Prompt.Message.Chunk.containsText(text: String) =
-    this is Prompt.Message.TextChunk && this.text.contains(text)
+  private fun Prompt.Chunk.containsText(text: String) =
+    this is Prompt.TextChunk && this.text.contains(text)
 
   // language=kotlin
   private fun simpleKotlinCode() =

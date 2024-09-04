@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradle
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.UpdateCompileSdkProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_MIN_COMPILE_SDK_UPDATED
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -76,8 +79,9 @@ class UpdateCompileSdkProcessorTest : AndroidGradleTestCase() {
     })
 
     WriteCommandAction.runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
+      processor.updateProjectBuildModel(usages)
     }
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_MIN_COMPILE_SDK_UPDATED)
 
     assertTrue(String(buildFile.contentsToByteArray()).contains("compileSdk $newCompileSdkVersion"))
     assertTrue(synced)

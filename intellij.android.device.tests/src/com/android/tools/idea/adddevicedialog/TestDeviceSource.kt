@@ -65,19 +65,15 @@ data class TestDevice(
 
   @Composable
   override fun Icon(modifier: Modifier) {
-    val painterProvider =
+    val iconKey =
       when (formFactor) {
-        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceTv()
-        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceCar()
-        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceWear()
+        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceTv
+        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceCar
+        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceWear
         // TODO: Add icon for tablet
-        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone()
+        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
-    Icon(
-      painter = painterProvider.getPainter().value,
-      contentDescription = "$formFactor Test Device",
-      modifier = modifier,
-    )
+    Icon(key = iconKey, contentDescription = "$formFactor Test Device", modifier = modifier)
   }
 
   class Builder : DeviceProfile.Builder() {

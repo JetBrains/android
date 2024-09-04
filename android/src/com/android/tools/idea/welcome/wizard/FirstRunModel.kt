@@ -91,7 +91,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
            StudioDownloader(), StudioSettingsController.getInstance())
     }
 
-    val remotePackages = sdkManager.packages.remotePackages
+    val remotePackages = sdkManager.packages.remotePackages.values
 
     val platforms = Platform.createSubtree(remotePackages, installUpdates)
     if (platforms != null) {

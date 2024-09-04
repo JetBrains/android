@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.REPO_INFO
@@ -31,23 +29,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: Boolean) {
+class AppInsightsExternalAnnotatorTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
-  private val changeAwareFlagRule =
-    FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, enableChangeAwareAnnotation)
 
-  @get:Rule
-  val rule: RuleChain =
-    RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(changeAwareFlagRule)
-
-  companion object {
-    @JvmStatic @Parameterized.Parameters(name = "{0}") fun data() = listOf(true, false)
-  }
+  @get:Rule val rule: RuleChain = RuleChain.outerRule(projectRule).around(vcsInsightsRule)
 
   private lateinit var appVcsInfo: AppVcsInfo
 

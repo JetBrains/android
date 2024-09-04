@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -28,6 +28,7 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Processor to remove jcenter usages in the following places:
@@ -96,6 +97,13 @@ class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Mod
   }
 
   public override fun performRefactoring(usages: Array<out UsageInfo>) {
+    updateProjectBuildModel(usages)
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel(usages: Array<out UsageInfo>) {
     val projectBuildModel = ProjectBuildModel.get(myProject)
     for (usage in usages) {
       if (usage is RepositoryUsageInfo) {
@@ -103,9 +111,6 @@ class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Mod
       }
     }
     projectBuildModel.applyChanges()
-
-    val trigger = GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, trigger)
   }
 
   public override fun getCommandName() = "Remove JCenter From Repositories"

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.k2
 
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.IrClassCache
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
@@ -27,10 +28,11 @@ import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
-import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
@@ -49,9 +51,13 @@ internal class LiveEditCompilerForK2(
   private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module? = null,
 ) {
+
+  private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
+
   @OptIn(KaExperimentalApi::class)
   fun compile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
     runWithCompileLock {
+      LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
       val result = backendCodeGenForK2(file, module)
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
@@ -66,7 +72,7 @@ internal class LiveEditCompilerForK2(
   }
 }
 
-@KaExperimentalApi
+@OptIn(KaExperimentalApi::class)
 fun backendCodeGenForK2(file: KtFile, module: Module?): KaCompilationResult.Success {
   module?.let {
     if (file.module != it) {

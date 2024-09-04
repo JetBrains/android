@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor.runsGradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
+import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.junit.Test
@@ -60,7 +63,7 @@ class FixBuildToolsProcessorIntegrationTest : AndroidGradleTestCase() {
     val module = getModule("app")
     val file = GradleProjectSystemUtil.getGradleBuildFile(module)!!
 
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", true, false)
+    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
@@ -72,6 +75,7 @@ class FixBuildToolsProcessorIntegrationTest : AndroidGradleTestCase() {
     WriteCommandAction.runWriteCommandAction(project) {
       processor.performRefactoring(usages)
     }
+    getInstance().requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED)
 
     assertTrue(synced)
   }

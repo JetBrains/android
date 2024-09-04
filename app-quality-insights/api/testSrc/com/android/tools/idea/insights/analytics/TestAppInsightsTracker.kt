@@ -65,4 +65,18 @@ object TestAppInsightsTracker : AppInsightsTracker {
     mode: ConnectionMode,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   ) = Unit
+
+  override fun logEventViewed(
+    unanonymizedAppId: String,
+    mode: ConnectionMode,
+    issueId: String,
+    eventId: String,
+    isFetched: Boolean,
+  ) = Unit
+
+  override fun logInsightSentiment(
+    sentiment: AppQualityInsightsUsageEvent.InsightSentiment.Sentiment,
+    experiment: AppQualityInsightsUsageEvent.InsightSentiment.Experiment,
+    crashType: AppQualityInsightsUsageEvent.CrashType,
+  ) = Unit
 }

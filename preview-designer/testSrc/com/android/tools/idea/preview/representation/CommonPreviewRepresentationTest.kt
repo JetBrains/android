@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -49,30 +50,40 @@ import com.android.tools.idea.preview.requestRefreshSync
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.preview.waitUntilRefreshStarts
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.preview.DisplayPositioning
 import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.DumbModeTestUtils.waitForSmartMode
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.testFramework.waitUntil
+import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFails
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -88,20 +99,20 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.util.concurrent.CountDownLatch
-import kotlin.test.assertFails
-import kotlin.time.Duration.Companion.seconds
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
 
-private class TestPreviewElementProvider(private val previewElement: PsiTestPreviewElement) :
-  PreviewElementProvider<PsiTestPreviewElement> {
-  override suspend fun previewElements(): Sequence<PsiTestPreviewElement> =
-    sequenceOf(previewElement)
+private class TestPreviewElementProvider(
+  private val previewElements: Sequence<PsiTestPreviewElement>
+) : PreviewElementProvider<PsiTestPreviewElement> {
+  override suspend fun previewElements(): Sequence<PsiTestPreviewElement> = previewElements
 }
 
-private class TestPreviewElementModelAdapter(private val previewElement: PsiTestPreviewElement) :
+private val TEST_PREVIEW_ELEMENT_KEY =
+  DataKey.create<PsiTestPreviewElement>("PsiTestPreviewElement")
+
+private class TestPreviewElementModelAdapter :
   PreviewElementModelAdapter<PsiTestPreviewElement, NlModel> {
   override fun calcAffinity(el1: PsiTestPreviewElement, el2: PsiTestPreviewElement?): Int = 0
 
@@ -112,10 +123,13 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
     configuration: Configuration,
   ) {}
 
-  override fun modelToElement(model: NlModel): PsiTestPreviewElement? = previewElement
+  override fun modelToElement(model: NlModel): PsiTestPreviewElement? =
+    if (!model.isDisposed) {
+      model.dataContext.getData(TEST_PREVIEW_ELEMENT_KEY)
+    } else null
 
   override fun createDataContext(previewElement: PsiTestPreviewElement): DataContext =
-    mock(DataContext::class.java)
+    SimpleDataContext.builder().add(TEST_PREVIEW_ELEMENT_KEY, previewElement).build()
 
   override fun toLogString(previewElement: PsiTestPreviewElement): String = ""
 
@@ -131,6 +145,9 @@ class CommonPreviewRepresentationTest {
   private lateinit var myScope: CoroutineScope
   private lateinit var refreshManager: PreviewRefreshManager
   private lateinit var psiFile: PsiFile
+  private lateinit var smartPointerManager: SmartPointerManager
+  private val buildSystemServices = FakeBuildSystemFilePreviewServices()
+  private val modelAdapter = TestPreviewElementModelAdapter()
 
   private val fixture
     get() = projectRule.fixture
@@ -142,8 +159,10 @@ class CommonPreviewRepresentationTest {
   fun setup() {
     setUpComposeInProjectFixture(projectRule)
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
+    buildSystemServices.register(fixture.testRootDisposable)
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
+    smartPointerManager = SmartPointerManager.getInstance(project)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common
     // representation uses it
     refreshManager =
@@ -183,7 +202,7 @@ class CommonPreviewRepresentationTest {
 
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+      buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
       delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
         previewRepresentation.isInvalidatedForTest()
       }
@@ -440,6 +459,81 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/353458840
+  @Test
+  fun previewsAreOrderedByPositioningThenOffsetThenName() {
+    runBlocking(workerThread) {
+      psiFile =
+        fixture.configureByText(
+          "Test.kt",
+          // language=kotlin
+          """
+      annotation class Preview
+
+      @Preview // second due to source offset
+      fun second() {
+      }
+
+      @Preview // third, fourth and fifth - will have different names and groups
+      fun thirdFourthFifth() {
+      }
+
+      @Preview // first - will have the TOP display positioning
+      fun first() {
+      }
+    """
+            .trimIndent(),
+        )
+
+      val first =
+        PsiTestPreviewElement(
+          displayPositioning = DisplayPositioning.TOP,
+          previewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // first"),
+        )
+
+      val second =
+        PsiTestPreviewElement(
+          previewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // second")
+        )
+
+      val thirdFourthAndFifthPreviewElementDefinition =
+        previewElementDefinitionForTextAtCaret("@|Preview // third, fourth and fifth")
+
+      val third =
+        PsiTestPreviewElement(
+          displayName = "1",
+          groupName = "3",
+          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
+        )
+      val fourth =
+        PsiTestPreviewElement(
+          displayName = "2",
+          groupName = "2",
+          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
+        )
+      val fifth =
+        PsiTestPreviewElement(
+          displayName = "3",
+          groupName = "1",
+          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
+        )
+
+      val preview =
+        createPreviewRepresentation(
+          TestPreviewElementProvider(sequenceOf(first, second, third, fourth, fifth).shuffled())
+        )
+      preview.compileAndWaitForRefresh()
+
+      val actualPreviewElements =
+        preview.renderedPreviewElementsFlowForTest().value.asCollection().toList()
+      assertThat(actualPreviewElements)
+        .containsExactly(first, second, third, fourth, fifth)
+        .inOrder()
+
+      preview.onDeactivateImmediately()
+    }
+  }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -462,25 +556,29 @@ class CommonPreviewRepresentationTest {
     return blockingRefresh
   }
 
-  private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
-    val smartPointerManager = SmartPointerManager.getInstance(project)
-    val previewElement =
-      PsiTestPreviewElement(
-        previewElementDefinition =
-          runReadAction {
-            fixture.findElementByText("@Preview", KtAnnotationEntry::class.java)?.let {
-              smartPointerManager.createSmartPsiElementPointer(it)
-            }
-          }
-      )
-    val previewElementProvider = TestPreviewElementProvider(previewElement)
-    val previewElementModelAdapter = TestPreviewElementModelAdapter(previewElement)
+  private fun createPreviewRepresentation(
+    customPreviewElementProvider: PreviewElementProvider<PsiTestPreviewElement>? = null
+  ): CommonPreviewRepresentation<PsiTestPreviewElement> {
+    val previewElementProvider =
+      customPreviewElementProvider
+        ?: TestPreviewElementProvider(
+          sequenceOf(
+            PsiTestPreviewElement(
+              previewElementDefinition =
+                runReadAction {
+                  fixture.findElementByText("@Preview", KtAnnotationEntry::class.java)?.let {
+                    smartPointerManager.createSmartPsiElementPointer(it)
+                  }
+                }
+            )
+          )
+        )
     val previewRepresentation =
       CommonPreviewRepresentation(
         adapterViewFqcn = "TestAdapterViewFqcn",
         psiFile,
         { previewElementProvider },
-        previewElementModelAdapter,
+        modelAdapter,
         viewConstructor = { project, surfaceBuilder, parentDisposable ->
           CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
             previewView = it
@@ -520,12 +618,21 @@ class CommonPreviewRepresentationTest {
     assertTrue(isInvalidatedForTest())
 
     // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    delayUntilCondition(delayPerIterationMs = 1000, 40.seconds) {
       !isInvalidatedForTest() &&
         refreshManager.getTotalRequestsInQueueForTest() == 0 &&
         refreshManager.refreshingTypeFlow.value == null
     }
     assertFalse(isInvalidatedForTest())
+  }
+
+  private suspend fun previewElementDefinitionForTextAtCaret(
+    textWithCaret: String
+  ): SmartPsiElementPointer<PsiElement> {
+    withContext(uiThread) { fixture.moveCaret(textWithCaret) }
+    return runReadAction {
+      fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) }
+    }
   }
 }

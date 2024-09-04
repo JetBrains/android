@@ -22,7 +22,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_SC
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -167,11 +166,8 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
       }
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
-
-    runWriteCommandAction(getProject(), () -> {
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
-    });
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
 
     latch.await();
 

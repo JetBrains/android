@@ -27,6 +27,7 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Tool to rewrite build.gradle file to add or update android.ndkVersion section.
@@ -104,6 +105,13 @@ class FixNdkVersionProcessor(
    * Once all build.gradle files have been modified, the project is synced.
    */
   public override fun performRefactoring(usages: Array<UsageInfo>) {
+    updateProjectBuildModel()
+
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
+  }
+
+  @VisibleForTesting
+  fun updateProjectBuildModel() {
     val projectBuildModel = ProjectBuildModel.get(myProject)
 
     for (file in buildFiles) {
@@ -117,8 +125,6 @@ class FixNdkVersionProcessor(
     }
 
     projectBuildModel.applyChanges()
-
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
   }
 
   /**

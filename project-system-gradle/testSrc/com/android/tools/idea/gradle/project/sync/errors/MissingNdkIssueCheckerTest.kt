@@ -21,8 +21,9 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.replaceService
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -94,8 +95,8 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
 
   fun testNotInstalledNoPreferred() {
     val spyIdeSdks = spy(IdeSdks.getInstance())
-    IdeComponents(project).replaceApplicationService(IdeSdks::class.java, spyIdeSdks)
     doReturn(null).whenever(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, this.testRootDisposable)
     verifyWithInstall("NDK location not found.")
   }
 

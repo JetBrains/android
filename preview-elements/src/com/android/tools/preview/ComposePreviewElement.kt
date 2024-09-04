@@ -354,8 +354,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
     }
     // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
-    // should handle the exception that will be
-    // thrown for this method not being found.
+    // should handle the exception that will be thrown for this method not being found.
     // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
     val fakeElementFqn =
       "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"

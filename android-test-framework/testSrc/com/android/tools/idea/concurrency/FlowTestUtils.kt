@@ -37,7 +37,7 @@ suspend fun <T> StateFlow<T>.awaitStatus(message: String? = null, timeout: Durat
         .first()
     }
   } catch (e: TimeoutCancellationException) {
-    Assert.fail(message)
+    Assert.fail("$message\nStatus: $value")
   }
 }
 /**

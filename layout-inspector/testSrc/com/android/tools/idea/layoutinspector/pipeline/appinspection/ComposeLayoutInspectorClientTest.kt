@@ -24,6 +24,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo.Status
@@ -141,6 +142,34 @@ class ComposeLayoutInspectorClientTest {
       .thenReturn(target)
 
     checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE, expectClient = true)
+  }
+
+  @Test
+  fun testClientCreationReportsUnknownError() = runBlocking {
+    val artifactService = mock<InspectorArtifactService>()
+    val messenger = mock<AppInspectorMessenger>()
+    whenever(artifactService.getOrResolveInspectorArtifact(any(), any()))
+      .thenReturn(Paths.get("/foo/bar"))
+    ApplicationManager.getApplication()
+      .registerServiceInstance(InspectorArtifactService::class.java, artifactService)
+    val apiServices = mock<AppInspectionApiServices>()
+    whenever(apiServices.launchInspector(any())).then {
+      throw AppInspectionLaunchException("launch error")
+    }
+    val target = mock<AppInspectionTarget>()
+    whenever(messenger.sendRawCommand(any()))
+      .thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatibilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
+      .thenReturn(target)
+
+    checkLaunch(
+      apiServices,
+      "An unknown error happened while launching the compose inspector",
+      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR,
+      expectClient = false,
+    )
   }
 
   @Test

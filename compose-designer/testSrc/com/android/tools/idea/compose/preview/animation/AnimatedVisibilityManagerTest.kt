@@ -58,6 +58,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals("Enter", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      delayUntilCondition(200) { toolbar.components[2].findComboBox().text == "Exit" }
       assertEquals("Exit", toolbar.components[2].findComboBox().text)
     }
   }
@@ -82,6 +83,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals("Enter", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      delayUntilCondition(200) { toolbar.components[2].findComboBox().text == "Exit" }
       assertEquals("Exit", toolbar.components[2].findComboBox().text)
     }
   }
@@ -105,6 +107,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals("Exit", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      delayUntilCondition(200) { toolbar.components[2].findComboBox().text == "Enter" }
       assertEquals("Enter", toolbar.components[2].findComboBox().text)
     }
   }
@@ -129,6 +132,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       assertEquals("Exit", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
       assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      delayUntilCondition(200) { toolbar.components[2].findComboBox().text == "Enter" }
       assertEquals("Enter", toolbar.components[2].findComboBox().text)
     }
   }

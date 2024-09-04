@@ -82,14 +82,33 @@ open class SdkIndexTestBase {
           system.installation.ideaLog.waitForMatchingLine(escapedLine, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
         }
       }
-      // Now check that only expected issues were present
+      // Now check that only expected issues were present and that the expected lines after them were included
       val foundHeaders: MutableSet<String> = mutableSetOf()
       while (true) {
         try {
           // TODO(b/243691427): Change the way we confirm no more issues were created
           val matcher = system.installation.ideaLog.waitForMatchingLine(".*IdeGooglePlaySdkIndex - (.*)$", timeoutBetweenIssuesSeconds,
                                                                         TimeUnit.SECONDS)
-          foundHeaders.add(matcher.group(1))
+          val header = matcher.group(1)
+          for (issue in expectedIssues) {
+            if (header == issue[0]) {
+              // Confirm the expected lines follow
+              var allLinesFound = true
+              for (line in issue.drop(1)) {
+                val escapedLine = "${Pattern.quote(line)}$"
+                try {
+                  system.installation.ideaLog.waitForMatchingLine(escapedLine, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)
+                }
+                catch (unexpected: InterruptedException) {
+                  allLinesFound = false
+                  break
+                }
+              }
+              assertWithMessage("Lines for $header could not be found").that(allLinesFound).isTrue()
+              break
+            }
+          }
+          foundHeaders.add(header)
         }
         catch (expected: InterruptedException) {
           // This means that no more matches were found

@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -56,6 +57,7 @@ class StringResourceDataTest {
       testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
     }
   }
+  private val project by lazy { androidProjectRule.project }
   private val module by lazy { fixture.module }
   private val facet by lazy { module.androidFacet!! }
 
@@ -75,7 +77,7 @@ class StringResourceDataTest {
     val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO,
                                                                   dynamicRepository)
 
-    data = create(module.project, Utils.createStringRepository(moduleRepository))
+    data = create(module.project, Utils.createStringRepository(moduleRepository, module.project))
   }
 
   @Test
@@ -292,6 +294,41 @@ class StringResourceDataTest {
     val tag2 = getNthXmlTag(file, 1)
     assertThat(tag2.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key2")
     assertThat(tag2.value.text).isEqualTo("二")
+  }
+
+  @Test
+  fun insertTranslation2() {
+    val file = requireNotNull(resourceDirectory.findFileByRelativePath("values/strings.xml"))
+    val tag2 = getNthXmlTag(file, 1)
+    assertThat(tag2.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key2")
+
+    val resources = tag2.parentTag!!
+    val newTag = resources.createChildTag("string", "", "New Text", false)
+    newTag.setAttribute(SdkConstants.ATTR_NAME, "newKey")
+    WriteCommandAction.runWriteCommandAction(project) {
+      resources.addAfter(newTag, tag2)
+    }
+    val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO)
+    data = create(module.project, Utils.createStringRepository(moduleRepository, module.project))
+
+    val locale = Locale.create("fr")
+    val newResource = data.getStringResource(newStringResourceKey("newKey"))
+    assertThat(newResource.getTranslationAsResourceItem(locale)).isNull()
+    assertThat(putTranslation(newResource, locale, "nouveau texte")).isTrue()
+
+    val file2 = requireNotNull(resourceDirectory.findFileByRelativePath("values-fr/strings.xml"))
+
+    val french1 = getNthXmlTag(file2, 0)
+    assertThat(french1.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key2")
+    assertThat(french1.value.text).isEqualTo("Key 2 fr")
+
+    val french2 = getNthXmlTag(file2, 1)
+    assertThat(french2.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("newKey")
+    assertThat(french2.value.text).isEqualTo("nouveau texte")
+
+    val french3 = getNthXmlTag(file2, 2)
+    assertThat(french3.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key3")
+    assertThat(french3.value.text).isEqualTo("Key 3 fr")
   }
 
   private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean {

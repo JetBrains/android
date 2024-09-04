@@ -20,9 +20,11 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
+import com.android.builder.model.v2.models.ProjectGraph
 import com.android.builder.model.v2.models.ProjectSyncIssues
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
+import com.android.builder.model.v2.models.VariantDependenciesFlatList
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
@@ -90,6 +92,8 @@ data class ActionToRun<T>(
       AndroidProject::class.java -> fetchesV2Models
       VariantDependencies::class.java -> fetchesV2Models
       VariantDependenciesAdjacencyList::class.java -> fetchesV2Models
+      VariantDependenciesFlatList::class.java -> fetchesV2Models
+      ProjectGraph::class.java -> fetchesV2Models
       AndroidDsl::class.java -> fetchesV2Models
       ProjectSyncIssues::class.java -> fetchesV2Models
       AndroidProjectV1::class.java -> fetchesV1Models
@@ -162,13 +166,13 @@ data class ActionToRun<T>(
 
       override fun getBuildModel(): GradleBuild = error("Not intended to be used")
 
-      override fun <T : Any?> send(value: T) = error("Not intended to be used")
-
       @Suppress("UnstableApiUsage")
       override fun <T : Any?> run(p0: Collection<out BuildAction<out T>>?): List<T> = error("Not intended to be used")
 
       @Suppress("UnstableApiUsage")
       override fun getCanQueryProjectModelInParallel(p0: Class<*>?): Boolean = error("Not intended to be used")
+
+      override fun <T : Any?> send(p0: T): Unit = error("Not intended to be used")
     }
   }
 }
@@ -313,6 +317,8 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     AndroidProject::class.java -> projectModel
     VariantDependencies::class.java -> variantDependenciesModel
     VariantDependenciesAdjacencyList::class.java -> variantDependenciesModel
+    VariantDependenciesFlatList::class.java -> variantDependenciesModel
+    ProjectGraph::class.java -> projectGraphModel
     AndroidDsl::class.java -> projectModel
     ProjectSyncIssues::class.java -> otherModel
     AndroidProjectV1::class.java -> projectModel

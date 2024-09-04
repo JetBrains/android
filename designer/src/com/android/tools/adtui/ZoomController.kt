@@ -62,6 +62,12 @@ interface ZoomController : Zoomable {
     return setScale(scale, -1, -1)
   }
 
+  /** Get [scale] bounded by [minScale] and [maxScale]. */
+  @SurfaceScale
+  fun getBoundedScale(@SurfaceScale scale: Double): Double {
+    return scale.coerceIn(minScale, maxScale)
+  }
+
   /**
    * Applies zoom to fit.
    *

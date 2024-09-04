@@ -73,7 +73,6 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
 
   override fun getText(): String = displayText
 
-  @OptIn(KaIdeApi::class)
   override fun invoke(project: Project, editor: Editor?, file: KtFile) {
     element?.addAnnotation(ComposeClassIds.Composable)
 
@@ -81,6 +80,7 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
     //                  element to shorten seems to be wrong. It will be fixed in the upstream.
     //                  After fixing it, remove the following reference shortener call.
     if (KotlinPluginModeProvider.isK2Mode()) {
+      @OptIn(KaIdeApi::class)
       (element?.parent as? KtElement)?.let { parent -> shortenReferences(parent) }
     }
   }

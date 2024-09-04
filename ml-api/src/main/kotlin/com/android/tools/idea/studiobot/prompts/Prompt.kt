@@ -32,45 +32,45 @@ interface Prompt {
 
   val functionCallingMode: FunctionCallingMode
 
-  sealed class Message(open val chunks: List<Chunk>) {
-    sealed class Chunk(open val filesUsed: Collection<VirtualFile>)
+  sealed class Chunk(open val filesUsed: Collection<VirtualFile>)
 
-    data class TextChunk(val text: String, override val filesUsed: Collection<VirtualFile>) :
-      Chunk(filesUsed)
+  data class TextChunk(val text: String, override val filesUsed: Collection<VirtualFile>) :
+    Chunk(filesUsed)
 
-    data class CodeChunk(
-      val text: String,
-      val language: MimeType?,
-      override val filesUsed: Collection<VirtualFile>,
-    ) : Chunk(filesUsed)
+  data class CodeChunk(
+    val text: String,
+    val language: MimeType?,
+    override val filesUsed: Collection<VirtualFile>,
+  ) : Chunk(filesUsed)
 
-    data class BlobChunk(
-      val mimeType: MimeType,
-      override val filesUsed: Collection<VirtualFile>,
-      val data: ByteArray,
-    ) : Chunk(filesUsed) {
+  data class BlobChunk(
+    val mimeType: MimeType,
+    override val filesUsed: Collection<VirtualFile>,
+    val data: ByteArray,
+  ) : Chunk(filesUsed) {
 
-      override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
 
-        other as BlobChunk
+      other as BlobChunk
 
-        if (mimeType != other.mimeType) return false
-        if (filesUsed != other.filesUsed) return false
-        if (!data.contentEquals(other.data)) return false
+      if (mimeType != other.mimeType) return false
+      if (filesUsed != other.filesUsed) return false
+      if (!data.contentEquals(other.data)) return false
 
-        return true
-      }
+      return true
+    }
 
-      override fun hashCode(): Int {
-        var result = mimeType.hashCode()
-        result = 31 * result + filesUsed.hashCode()
-        result = 31 * result + data.contentHashCode()
-        return result
-      }
+    override fun hashCode(): Int {
+      var result = mimeType.hashCode()
+      result = 31 * result + filesUsed.hashCode()
+      result = 31 * result + data.contentHashCode()
+      return result
     }
   }
+
+  sealed class Message(open val chunks: List<Chunk>)
 
   // -- Regular messages --
 
@@ -84,14 +84,14 @@ interface Prompt {
 
   data class FunctionResponseMessage(val name: String, val response: String) : Message(emptyList())
 
-  // -- Context --
+  data class ContextMessage(override val chunks: List<Chunk>, val files: List<ContextFile>) :
+    Message(emptyList())
+
   data class ContextFile(
     val virtualFile: VirtualFile,
     val isCurrentFile: Boolean = false,
     val selection: TextRange? = null,
   )
-
-  data class Context(val files: List<ContextFile>) : Message(emptyList())
 
   sealed class FunctionParameterType(val name: kotlin.String) {
     object String : FunctionParameterType("string")

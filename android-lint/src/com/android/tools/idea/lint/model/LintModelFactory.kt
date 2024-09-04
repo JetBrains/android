@@ -751,7 +751,10 @@ class LintModelFactory : LintModelModuleLoader {
       get() = null // Injected by legacy AGP lint runner
 
     override val `package`: String?
-      get() = null // not in the old builder model
+      get() =
+        project.namespace
+          // not the same as the namespace, which isn't present, but better than null
+          ?: variant.mainArtifact.applicationId
 
     override val minSdkVersion: AndroidVersion?
       get() = variant.minSdkVersion.toAndroidVersion()

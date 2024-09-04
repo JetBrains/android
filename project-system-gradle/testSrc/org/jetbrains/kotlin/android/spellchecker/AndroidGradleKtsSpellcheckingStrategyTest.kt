@@ -17,6 +17,7 @@ package org.jetbrains.kotlin.android.spellchecker
 
 import com.google.common.truth.Truth
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
+import com.intellij.codeInsight.daemon.impl.analysis.DefaultHighlightingSettingProvider
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
@@ -25,6 +26,7 @@ import org.jetbrains.android.AndroidTestCase
 class AndroidGradleKtsSpellcheckingStrategyTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
+    maskExtensions(DefaultHighlightingSettingProvider.EP_NAME, listOf(), myFixture.projectDisposable)
     maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(), myFixture.projectDisposable)
     unmaskKotlinHighlightVisitor()
   }

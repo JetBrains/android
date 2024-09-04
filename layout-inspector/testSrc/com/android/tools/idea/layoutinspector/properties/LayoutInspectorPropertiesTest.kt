@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
-import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
@@ -58,7 +57,7 @@ class LayoutInspectorPropertiesTest {
       parentDisposable = projectRule.testRootDisposable,
     )
     val infoText =
-      UIUtil.findComponentsOfType(properties.component, JLabel::class.java).single {
+      UIUtil.findComponentsOfType(properties.component, JPanel::class.java).single {
         it.name == INFO_TEXT
       }
     val props =

@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
@@ -84,6 +85,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         System.out.println(expected);
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       executeHyperLink(project, myHyperlink);
@@ -132,6 +134,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       executeHyperLink(project, myHyperlink);
@@ -181,6 +184,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.TARGET);
       executeHyperLink(project, myHyperlink);
@@ -194,7 +198,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk android:maxSdkVersion='21'/>\n" +
+        "<uses-sdk android:maxSdkVersion='21' />\n" +
         "</manifest>\n"
       );
 
@@ -231,6 +235,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
       executeHyperLink(project, myHyperlink);
@@ -283,6 +288,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       catch (Throwable expected) {
         // Sync issues are expected.
       }
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule, libModule), SdkProperty.MIN);
       executeHyperLink(project, myHyperlink);
@@ -296,7 +302,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk android:targetSdkVersion='27'/>\n" +
+        "<uses-sdk  android:targetSdkVersion='27'/>\n" +
         "</manifest>\n"
       );
 
@@ -305,7 +311,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk android:targetSdkVersion='26'/>\n" +
+        "<uses-sdk  android:targetSdkVersion='26'/>\n" +
         "</manifest>\n"
       );
 
