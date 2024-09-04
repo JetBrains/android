@@ -88,7 +88,7 @@ class BlazeAndroidConfigurationExecutor(
     val processHandler = AndroidProcessHandler(applicationId, { it.forceStop(applicationId) })
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, false, indicator, console, applicationId)
+    doRun(devices, processHandler, false, indicator, console, applicationContext)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -111,8 +111,9 @@ class BlazeAndroidConfigurationExecutor(
     isDebug: Boolean,
     indicator: ProgressIndicator,
     console: ConsoleView,
-    applicationId: String
+    applicationProjectContext: ApplicationProjectContext
   ) = coroutineScope {
+    val applicationId = applicationProjectContext.applicationId
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     indicator.text = "Launching on devices"
@@ -134,7 +135,7 @@ class BlazeAndroidConfigurationExecutor(
           LiveEditHelper().invokeLiveEdit(
             liveEditService,
             env,
-            applicationId,
+            applicationProjectContext,
             apkProvider.getApks(device),
             device
           ) // Notify listeners of the deployment.
@@ -170,7 +171,7 @@ class BlazeAndroidConfigurationExecutor(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, true, indicator, console, applicationId)
+    doRun(devices, processHandler, true, indicator, console, applicationContext)
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
