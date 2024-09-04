@@ -85,7 +85,7 @@ class DeviceTableTest {
       TestDeviceTable(source.profiles.value.value)
     }
 
-    composeTestRule.onNode(hasSetTextAction()).performTextReplacement("sam")
+    composeTestRule.onNode(hasSetTextAction()).performTextReplacement("gal")
 
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
