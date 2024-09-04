@@ -101,7 +101,7 @@ fun RecipeExecutor.addAndroidMain(
   val ext = language.extension
   save(
     exampleAndroidMain(packageName),
-    outFolder.resolve("AndroidPlatform.$ext")
+    outFolder.resolve("Platform.android.$ext")
   )
 }
 
