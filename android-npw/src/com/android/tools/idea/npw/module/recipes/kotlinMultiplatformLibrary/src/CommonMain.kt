@@ -20,9 +20,5 @@ import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 fun exampleCommonMain(packageName: String) = """
   package ${escapeKotlinIdentifier(packageName)}
 
-  interface Platform {
-    val name: String
-  }
-
-  expect fun getPlatform(): Platform
+  expect fun platform(): String
 """
