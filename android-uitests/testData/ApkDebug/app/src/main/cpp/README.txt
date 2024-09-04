@@ -69,7 +69,7 @@ probably unfinished as well.
 
 Thanks and Acknowledgements:
 
-* Toni Lönnberg (!Cube) created the music for original version, which
+* Toni Lï¿½nnberg (!Cube) created the music for original version, which
   is not featured in this OpenGL ES port.
 * Sara Kapli (st Rana) for additional camera work.
 * Paul Bourke for information about the supershapes.
