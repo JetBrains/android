@@ -25,8 +25,8 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.ai.GeminiToolkit
 import com.android.tools.idea.insights.client.AppInsightsClient
-import com.android.tools.idea.insights.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
@@ -86,7 +86,7 @@ class ActionDispatcher(
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
   private val defaultFilters: Filters,
-  private val codeContextResolver: CodeContextResolver,
+  private val geminiToolkit: GeminiToolkit,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -354,7 +354,9 @@ class ActionDispatcher(
     return scope
       .launch {
         val insight =
-          if (state.mode == ConnectionMode.OFFLINE) {
+          if (!geminiToolkit.isGeminiEnabled) {
+            LoadingState.Unauthorized("Gemini is not enabled")
+          } else if (state.mode == ConnectionMode.OFFLINE) {
             LoadingState.NetworkFailure(null)
           } else {
             val timeFilter =
@@ -365,8 +367,9 @@ class ActionDispatcher(
               action.event,
               action.variantId,
               timeFilter,
-              state.selectedEvent?.let { codeContextResolver.getSource(it.stacktraceGroup) }
-                ?: emptyList(),
+              state.selectedEvent?.let {
+                geminiToolkit.codeContextResolver.getSource(it.stacktraceGroup)
+              } ?: emptyList(),
             )
           }
         eventEmitter(AiInsightFetched(insight))
