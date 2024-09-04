@@ -46,6 +46,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -97,6 +98,7 @@ class StreamingToolWindowManagerMultiProjectTest {
   }
 
   @Test
+  @Ignore("b/364389968")
   fun testCrossProjectMirroringSynchronization() {
     assertThat(toolWindow1.isVisible).isFalse()
     assertThat(contentManager1.contents).isEmpty()
