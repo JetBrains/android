@@ -503,7 +503,12 @@ internal fun createWearHealthServicesPanel(
         }
       )
       add(
-        JButton(message("wear.whs.panel.apply")).apply {
+        JButton(message("wear.whs.panel.reapply")).apply {
+          stateManager.hasUserChanges
+            .onEach {
+              text = if (it) message("wear.whs.panel.apply") else message("wear.whs.panel.reapply")
+            }
+            .launchIn(uiScope)
           stateManager.ongoingExercise
             .onEach {
               toolTipText =
@@ -517,13 +522,14 @@ internal fun createWearHealthServicesPanel(
             workerScope.launch {
               try {
                 onApplyChangesChannel.send(Unit)
+                val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
                 stateManager
                   .applyChanges()
                   .onSuccess {
-                    notifyUser(message("wear.whs.panel.apply.success"), MessageType.INFO)
+                    notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO)
                   }
                   .onFailure {
-                    notifyUser(message("wear.whs.panel.apply.failure"), MessageType.ERROR)
+                    notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR)
                   }
               } finally {
                 uiScope.launch { isEnabled = true }

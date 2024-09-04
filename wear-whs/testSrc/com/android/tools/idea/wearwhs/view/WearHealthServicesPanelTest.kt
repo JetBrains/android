@@ -364,20 +364,33 @@ class WearHealthServicesPanelTest {
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
     applyButton.doClick()
 
     userApplyChanges.take(1).collect {}
   }
 
   @Test
-  fun `test successful apply changes shows in information label when panel is showing`(): Unit =
+  fun `test successful apply and reapply shows in information label when panel is showing`(): Unit =
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
 
-      fakeUi.clickOnApplyButton()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.success") }
+      }
+
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+      }
     }
 
   @Test
@@ -387,9 +400,21 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      fakeUi.clickOnApplyButton()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.failure") }
+      }
+
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+      }
     }
 
   @Test
@@ -397,12 +422,29 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
 
-      fakeUi.clickOnApplyButton()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.success") &&
-            it.type == NotificationType.INFORMATION
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.reapply.success") &&
+              it.type == NotificationType.INFORMATION
+          }
+        }
+      }
+
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.apply.success") &&
+              it.type == NotificationType.INFORMATION
+          }
         }
       }
     }
@@ -414,11 +456,29 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      fakeUi.clickOnApplyButton()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.failure") && it.type == NotificationType.ERROR
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.reapply.failure") &&
+              it.type == NotificationType.ERROR
+          }
+        }
+      }
+
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.apply.failure") &&
+              it.type == NotificationType.ERROR
+          }
         }
       }
     }
@@ -572,7 +632,8 @@ class WearHealthServicesPanelTest {
     val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = false
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
     assertThat(applyButton.toolTipText)
       .isEqualTo(message("wear.whs.panel.apply.tooltip.no.exercise"))
 
@@ -580,6 +641,23 @@ class WearHealthServicesPanelTest {
     waitForCondition(5.seconds) {
       applyButton.toolTipText == message("wear.whs.panel.apply.tooltip.during.exercise")
     }
+  }
+
+  @Test
+  fun `the apply button has the label 'Reapply' when there no pending user changes and 'Apply' when there are`():
+    Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
+
+    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+    waitForCondition(1.seconds) { applyButton.text == message("wear.whs.panel.apply") }
+
+    // Once the changes are applied, the label should go back to "Reapply"
+    stateManager.applyChanges()
+    waitForCondition(1.seconds) { applyButton.text == message("wear.whs.panel.reapply") }
   }
 
   @Test
@@ -770,7 +848,10 @@ class WearHealthServicesPanelTest {
     parent.findDescendant<JLabel> { it.text == text } != null
 
   private suspend fun FakeUi.clickOnApplyButton() {
-    val applyButton = waitForDescendant<JButton> { it.text == "Apply" }
+    val applyButton =
+      waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.reapply") || it.text == message("wear.whs.panel.apply")
+      }
     applyButton.doClick()
     // we need to consume this flow to allow calling StateManager.applyChanges
     whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
