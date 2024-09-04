@@ -97,6 +97,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -181,7 +182,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     myZoomController = new NavDesignSurfaceZoomController(
       getSize(),
       getViewport(),
-      () -> getSceneManager(getModel()),
+      () -> {
+        NlModel model = getModel();
+        return model != null ? getSceneManager(model) : null;
+      },
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
@@ -447,7 +451,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   private Boolean validateCurrentNavigation() {
     NlComponent current = myCurrentNavigation;
-    if (current == null || current.getModel() != getModel()) {
+    NlModel surfaceModel = getModel();
+    if (current == null || surfaceModel == null || current.getModel() != surfaceModel) {
       return false;
     }
 
@@ -460,21 +465,26 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       current = parent;
     }
 
-    List<NlComponent> components = getModel().getTreeReader().getComponents();
+    List<NlComponent> components = surfaceModel.getTreeReader().getComponents();
     assert (components.size() == 1);
 
     return (current == components.get(0));
   }
 
-  public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
+  public CompletableFuture<Void> setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     SceneManager sceneManager = getSceneManager(getModel());
-    sceneManager.update();
-    sceneManager.requestLayoutAsync(false);
-    myZoomController.zoomToFit();
-    currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
-    repaint();
+    if (sceneManager != null) {
+      sceneManager.update();
+      currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
+    }
+    return sceneManager
+      .requestLayoutAsync(false)
+      .whenCompleteAsync((result, ex) -> {
+        myZoomController.zoomToFit();
+        repaint();
+      }, EdtExecutorService.getInstance());
   }
 
   @Override

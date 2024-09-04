@@ -32,6 +32,7 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.uibuilder.scene.AsyncDisplayRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
@@ -66,10 +67,12 @@ import org.junit.rules.RuleChain
 
 class NlDesignSurfaceZoomControlsTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
+  private val asyncDisplayRule = AsyncDisplayRule()
 
   @get:Rule
   val ruleChain =
     RuleChain.outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
+      .around(asyncDisplayRule)
       .around(androidProjectRule)!!
 
   private val facet: AndroidFacet
@@ -190,7 +193,12 @@ class NlDesignSurfaceZoomControlsTest {
       repeat(3) { zoomInAction.actionPerformed(event) }
       assertTrue(surface.zoomController.scale > originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), fakeUi.render(), 0.1, 1)
+      ImageDiffUtil.assertImageSimilar(
+        getGoldenImagePath("zoomIn"),
+        asyncDisplayRule.renderInFakeUi(fakeUi),
+        0.1,
+        1,
+      )
     }
 
     // Verify zoom to fit
@@ -198,7 +206,12 @@ class NlDesignSurfaceZoomControlsTest {
       zoomToFitAction.actionPerformed(event)
       assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), fakeUi.render(), 0.1, 1)
+      ImageDiffUtil.assertImageSimilar(
+        getGoldenImagePath("zoomFit"),
+        asyncDisplayRule.renderInFakeUi(fakeUi),
+        0.1,
+        1,
+      )
     }
 
     // Verify zoom out
@@ -207,7 +220,12 @@ class NlDesignSurfaceZoomControlsTest {
       repeat(3) { zoomOutAction.actionPerformed(event) }
       assertTrue(surface.zoomController.scale < originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), fakeUi.render(), 0.1, 1)
+      ImageDiffUtil.assertImageSimilar(
+        getGoldenImagePath("zoomOut"),
+        asyncDisplayRule.renderInFakeUi(fakeUi),
+        0.1,
+        1,
+      )
     }
   }
 

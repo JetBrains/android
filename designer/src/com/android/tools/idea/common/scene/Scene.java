@@ -21,6 +21,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.AnyThread;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
@@ -414,6 +415,7 @@ public class Scene implements SelectionListener, Disposable {
    * @param time frame time to build the display list
    * @param sceneContext the {@link SceneContext}
    */
+  @AnyThread
   void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     if (myRoot != null) {
       // clear the objects and release
@@ -443,6 +445,7 @@ public class Scene implements SelectionListener, Disposable {
    * @param sceneContext the {@link SceneContext}
    * @return true if we need to repaint the screen
    */
+  @AnyThread
   public boolean layout(long time, SceneContext sceneContext) {
     boolean needsToRebuildDisplayList = false;
     if (myRoot != null) {
