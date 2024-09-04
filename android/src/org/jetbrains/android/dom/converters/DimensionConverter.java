@@ -60,7 +60,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     return doFromString(s);
   }
 
-  public @NonNls @Nullable String doFromString(@NonNls @Nullable String s) {
+  public static @NonNls @Nullable String doFromString(@NonNls @Nullable String s) {
     final String unit = getUnitFromValue(s);
 
     if (unit == null || unit.isEmpty()) {
