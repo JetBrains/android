@@ -28,11 +28,8 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
-  ): StateTransition<Action> {
-    val selectedIssueId = state.selectedIssue?.id ?: return StateTransition(state, Action.NONE)
-    val selectedEvent = state.selectedEvent ?: state.selectedIssue!!.sampleEvent
-
-    return StateTransition(
+  ) =
+    StateTransition(
       state.copy(
         currentIssueVariants =
           if (variants is LoadingState.Failure) variants
@@ -40,8 +37,6 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
             variants.map { Selection(null, it) }
           }
       ),
-      if (state.selectedIssue != null) Action.FetchInsight(selectedIssueId, selectedEvent, null)
-      else Action.NONE,
+      Action.NONE,
     )
-  }
 }

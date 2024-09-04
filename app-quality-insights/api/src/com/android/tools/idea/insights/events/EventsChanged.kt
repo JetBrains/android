@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
@@ -35,30 +36,38 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
       return StateTransition(state, Action.NONE)
     }
     val newEvents = (eventPage as LoadingState.Ready).value
+    val selectedEvent: Event?
     return StateTransition(
         newState =
-          state.copy(
-            currentEvents =
-              if (state.currentEvents is LoadingState.Ready) {
-                state.currentEvents.map { currentEvents ->
-                  if (currentEvents == null) {
-                    Logger.getInstance(this::class.java)
-                      .warn(
-                        "currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready"
-                      )
-                    DynamicEventGallery(newEvents.events, 0, newEvents.token)
-                  } else {
-                    currentEvents.appendEventPage(newEvents).next()
+          state
+            .copy(
+              currentEvents =
+                if (state.currentEvents is LoadingState.Ready) {
+                  state.currentEvents.map { currentEvents ->
+                    if (currentEvents == null) {
+                      Logger.getInstance(this::class.java)
+                        .warn(
+                          "currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready"
+                        )
+                      DynamicEventGallery(newEvents.events, 0, newEvents.token)
+                    } else {
+                      currentEvents.appendEventPage(newEvents).next()
+                    }
+                  }
+                } else {
+                  eventPage.map {
+                    if (it == EventPage.EMPTY) null
+                    else DynamicEventGallery(newEvents.events, 0, newEvents.token)
                   }
                 }
-              } else {
-                eventPage.map {
-                  if (it == EventPage.EMPTY) null
-                  else DynamicEventGallery(newEvents.events, 0, newEvents.token)
-                }
-              }
-          ),
-        action = Action.NONE,
+            )
+            .also { selectedEvent = it.selectedEvent },
+        action =
+          if (state.currentInsight is LoadingState.Loading && selectedEvent != null) {
+            Action.FetchInsight(state.selectedIssue!!.id, selectedEvent, state.selectedVariant?.id)
+          } else {
+            Action.NONE
+          },
       )
       .also {
         if (it.newState.currentEvents is LoadingState.Ready) {
