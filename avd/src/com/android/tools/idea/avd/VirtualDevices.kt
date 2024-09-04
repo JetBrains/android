@@ -28,10 +28,9 @@ internal class VirtualDevices(
 ) {
   internal fun add(device: VirtualDevice, image: ISystemImage) {
     val avdBuilder = avdManager.createAvdBuilder(device.device)
-    avdBuilder.copyFrom(device)
+    avdBuilder.copyFrom(device, image)
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
     avdBuilder.displayName = device.name
-    avdBuilder.systemImage = image
 
     avdManager.createAvd(avdBuilder)
   }
