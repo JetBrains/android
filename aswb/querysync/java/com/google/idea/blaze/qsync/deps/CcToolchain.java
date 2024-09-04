@@ -98,9 +98,15 @@ public abstract class CcToolchain {
 
     public abstract Builder builtInIncludeDirectories(ImmutableList<ProjectPath> value);
 
+    public abstract Builder builtInIncludeDirectories(ProjectPath... value);
+
     public abstract Builder cOptions(ImmutableList<String> value);
 
+    public abstract Builder cOptions(String... value);
+
     public abstract Builder cppOptions(ImmutableList<String> value);
+
+    public abstract Builder cppOptions(String... value);
 
     public abstract CcToolchain build();
   }
