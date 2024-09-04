@@ -16,11 +16,14 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
@@ -34,6 +37,7 @@ import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
@@ -47,9 +51,11 @@ internal fun ConfigureDevicePanel(
   onImportButtonClick: () -> Unit,
 ) {
   Column {
-    Text("Configure device")
-    Text("Add a device to device manager")
-
+    Text(
+      "Configure virtual device",
+      fontWeight = FontWeight.SemiBold,
+      fontSize = LocalTextStyle.current.fontSize * 1.2,
+    )
     Tabs(
       configureDevicePanelState,
       images,
@@ -113,12 +119,14 @@ private fun Tabs(
         onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
         onSystemImageTableRowClick,
+        Modifier.padding(Padding.SMALL),
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
         configureDevicePanelState,
         additionalSettingsPanelState,
         onImportButtonClick,
+        Modifier.padding(Padding.SMALL),
       )
   }
 }
