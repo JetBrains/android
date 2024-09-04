@@ -87,6 +87,7 @@ class PsiImplUtil {
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
       literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
       literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
+      literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
       literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
       literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
       literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()

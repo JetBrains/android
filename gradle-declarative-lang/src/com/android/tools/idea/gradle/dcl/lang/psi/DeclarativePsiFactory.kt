@@ -47,6 +47,8 @@ class DeclarativePsiFactory(private val project: Project) {
       is String -> if (value.contains('\n')) createMultiStringLiteral(value) else createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
+      is Float -> createFloatLiteral(value)
+      is Double -> createDoubleLiteral(value)
       is ULong -> createULongLiteral(value)
       is UInt -> createUIntLiteral(value)
       is Boolean -> createBooleanLiteral(value)
@@ -61,6 +63,12 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createIntLiteral(value: Int): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Int from $value")
+
+  fun createDoubleLiteral(value: Double): DeclarativeLiteral =
+    createFromText("placeholder = $value") ?: error("Failed to create Declarative Double from $value")
+
+  fun createFloatLiteral(value: Float): DeclarativeLiteral =
+    createFromText("placeholder = $value") ?: error("Failed to create Declarative Double from $value")
 
   fun createLongLiteral(value: Long): DeclarativeLiteral {
     val text = when (value) {

@@ -301,13 +301,14 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // multiline_string_literal | one_line_string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean
+  // multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean
   public static boolean literal(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL, "<literal>");
     r = consumeToken(b, MULTILINE_STRING_LITERAL);
     if (!r) r = consumeToken(b, ONE_LINE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, DOUBLE_LITERAL);
     if (!r) r = consumeToken(b, INTEGER_LITERAL);
     if (!r) r = consumeToken(b, LONG_LITERAL);
     if (!r) r = consumeToken(b, UNSIGNED_LONG);
