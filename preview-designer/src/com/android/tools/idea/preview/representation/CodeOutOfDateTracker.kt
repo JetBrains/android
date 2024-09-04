@@ -72,8 +72,7 @@ object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
   override fun getModificationCount(): Long = 0
 }
 
-private class CodeOutOfDateTrackerImpl
-constructor(
+private class CodeOutOfDateTrackerImpl(
   buildTargetReference: BuildTargetReference,
   parentDisposable: Disposable,
   needsRefreshCallback: () -> Unit,
