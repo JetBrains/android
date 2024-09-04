@@ -41,7 +41,7 @@ class NewKotlinMultiplatformLibraryModuleModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
-  name: String = "kmplibrary",
+  name: String = "shared",
 ) : ModuleModel(
   name = name,
   commandName = "New Kotlin Multiplatform Library Module",
