@@ -354,7 +354,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_BACKGROUND_DISPLAY_LIST = new BooleanFlag(
     NELE, "background.displaylist", "Enable Display List background creation",
     "When enabled, the scene display list is created in the background.",
-    true);
+    false);
   //endregion
 
   //region Resource Repository
