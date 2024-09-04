@@ -657,6 +657,17 @@ iml_studio_test(
     test_class = "com.android.tools.idea.MultiProjectTest",
 )
 
+iml_studio_test(
+    name = "MultiProjectSameWindowTest",
+    timeout = "long",
+    data = multi_project_test_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.MultiProjectSameWindowTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier
