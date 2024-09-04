@@ -84,7 +84,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
@@ -382,9 +381,6 @@ internal class DeviceView(
     }
 
     val decoder = deviceClient.videoDecoder ?: return
-    val g = graphics.create() as Graphics2D
-    val physicalToVirtualScale = 1.0 / screenScale
-    g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw device display.
     decoder.consumeDisplayFrame(displayId) { displayFrame ->
@@ -406,6 +402,7 @@ internal class DeviceView(
       val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
       displayRectangle = displayRect
       val image = displayFrame.image
+      val g = createAdjustedGraphicsContext(graphics)
       if (displayRect.width == image.width && displayRect.height == image.height) {
         g.drawImage(image, null, displayRect.x, displayRect.y)
       }
