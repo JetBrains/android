@@ -112,6 +112,7 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfig
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
 import com.intellij.icons.AllIcons
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.actions.CopyAction
 import com.intellij.ide.actions.SearchWebAction
 import com.intellij.idea.ActionsBundle
@@ -611,6 +612,7 @@ constructor(
         override fun mouseWheelMoved(e: MouseWheelEvent) {
           if (e.isShiftDown) return // ignore horizontal scrolling
           updateScrollToEndState(false)
+          ActivityTracker.getInstance().inc()
         }
       }
     val scrollPane = editor.scrollPane
