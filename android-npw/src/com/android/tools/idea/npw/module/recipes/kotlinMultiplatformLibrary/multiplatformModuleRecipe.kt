@@ -61,6 +61,7 @@ private fun RecipeExecutor.generateModule(
   save(
     buildKmpGradle(
       projectData.agpVersion,
+      data.name,
       data.namespace,
       data.apis.buildApi.apiString,
       data.apis.minApi.apiString,
@@ -78,6 +79,7 @@ private fun RecipeExecutor.generateModule(
   addAndroidMain(packageName, data.srcDir, language)
   data.commonSrcDir?.let { dir ->
     addCommonMain(packageName, dir, language)
+    addCommonMainDependencies(projectData.kotlinVersion)
     addCommonTestDependencies(projectData.kotlinVersion)
   }
   data.iosSrcDir?.let { addIosMain(packageName, it, language) }
@@ -85,6 +87,10 @@ private fun RecipeExecutor.generateModule(
   addMultiplatformLocalTests(packageName, data.unitTestDir)
   addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
   addInstrumentedTestDependencies()
+}
+
+fun RecipeExecutor.addCommonMainDependencies(kotlinVersion: String) {
+  addDependency("org.jetbrains.kotlin:kotlin-stdlib:+", "implementation", minRev = kotlinVersion, sourceSetName = "commonMain")
 }
 
 fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {

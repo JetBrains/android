@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 
 fun buildKmpGradle(
   agpVersion: AgpVersion,
+  name: String,
   packageName: String,
   compileApiString: String,
   minApi: String,
@@ -33,6 +34,8 @@ fun buildKmpGradle(
     packageName = packageName,
   )
 
+  val iosTargetBlock = iosTargetConfig(name)
+
   val sourceSetConfigurationsBlock = """
     // Source set declarations.
     // Declaring a target automatically creates a source set with the same name. By default, the
@@ -42,13 +45,12 @@ fun buildKmpGradle(
     sourceSets {
       commonMain {
         dependencies {
-          // Add common multiplatform dependencies here
+          // Add KMP dependencies here
         }
       }
 
       commonTest {
         dependencies {
-          // Add common multiplatform test dependencies here
         }
       }
 
@@ -64,12 +66,23 @@ fun buildKmpGradle(
         dependencies {
         }
       }
+
+      iosMain {
+        dependencies {
+          // Add iOS-specific dependencies here. This a source set created by Kotlin Gradle
+          // Plugin (KGP) that each specific iOS target (e.g., iosX64) depends on as
+          // part of KMP’s default source set hierarchy. Note that this source set depends
+          // on common by default and will correctly pull the iOS artifacts of any
+          // KMP dependencies declared in commonMain.
+        }
+      }
     }
-  """.trimIndent()
+  """
 
   val kotlinBlock = """
     kotlin {
       $androidTargetBlock
+      $iosTargetBlock
       $sourceSetConfigurationsBlock
     }
   """.trimIndent()
@@ -109,5 +122,35 @@ private fun androidTargetConfig(
           sourceSetTreeName = "test"
       }
     }
-    """.trimIndent()
+"""
+}
+
+private fun iosTargetConfig(name: String): String {
+  return """
+    // For iOS targets, this is also where you should
+    // configure native binary output. For more information, see:
+    // https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+
+    // A step-by-step guide on how to include this library in an XCode
+    // project can be found here: TODO provide link to jetpack guidance
+    val xcfName = "$name"
+
+    iosX64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+
+    iosArm64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+
+    iosSimulatorArm64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+  """
 }
