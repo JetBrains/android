@@ -98,9 +98,9 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 }
 
 fun AndroidEditorSettings.GlobalState.preferredSurfaceState() =
-  when (preferredEditorMode) {
+  when (preferredResourcesEditorMode) {
     AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
     AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
     AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
-    else -> DesignerEditorPanel.State.FULL // default
+    null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
