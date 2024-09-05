@@ -17,19 +17,18 @@ package com.google.idea.blaze.android.run;
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider;
-import com.google.idea.blaze.android.projectsystem.BlazeProjectSystem;
-import com.google.idea.blaze.android.projectsystem.BlazeToken;
-import com.intellij.openapi.project.Project;
+import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
+import com.google.idea.blaze.android.projectsystem.BazelToken;
 import javax.annotation.Nullable;
 
 /** An implementation of {@link ApplicationProjectContextProvider} for the Blaze project system. */
 public class BazelApplicationProjectContextProvider
-    implements ApplicationProjectContextProvider<BlazeProjectSystem>, BlazeToken {
+    implements ApplicationProjectContextProvider<BazelProjectSystem>, BazelToken {
 
   @Nullable
   @Override
   public ApplicationProjectContext computeApplicationProjectContext(
-    BlazeProjectSystem projectSystem,
+    BazelProjectSystem projectSystem,
     ApplicationProjectContextProvider.RunningApplicationIdentity identity
   ) {
     String applicationId = identity.getHeuristicApplicationId();

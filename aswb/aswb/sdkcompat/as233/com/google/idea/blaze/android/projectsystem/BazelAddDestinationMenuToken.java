@@ -26,11 +26,11 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /** Blaze implementation of project system tokens for the navigation editor: Add Destination Menu */
-public class BlazeAddDestinationMenuToken
-    implements AddDestinationMenuToken<BlazeProjectSystem>, BlazeToken {
+public class BazelAddDestinationMenuToken
+    implements AddDestinationMenuToken<BazelProjectSystem>, BazelToken {
   @Override
   public void modifyProject(
-      @NotNull BlazeProjectSystem projectSystem, @NotNull AddDestinationMenuToken.Data data) {
+      @NotNull BazelProjectSystem projectSystem, @NotNull AddDestinationMenuToken.Data data) {
     NlModel model = data.getSurface().getModel();
     if (model == null) {
       return;

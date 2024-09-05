@@ -38,9 +38,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Integration tests for {@link BlazeModuleSystem#getResourceModuleDependencies()}. */
+/** Integration tests for {@link BazelModuleSystem#getResourceModuleDependencies()}. */
 @RunWith(JUnit4.class)
-public class BlazeModuleSystemResourceModuleDependenciesTest
+public class BazelModuleSystemResourceModuleDependenciesTest
     extends BlazeAndroidIntegrationTestCase {
   @Before
   public void setup() {
