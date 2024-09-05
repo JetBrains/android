@@ -40,17 +40,16 @@ class PsiCodeFileChangeDetectorServiceTest {
     myPsiCodeFileUpToDateStatusRecorder =
       PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
 
-    kotlinFile =
-      fixture.addFileToProject(
-        "src/a/declarations.kt",
-        // language=kotlin
-        """
+    fixture.addFileToProject(
+      "src/a/declarations.kt",
+      // language=kotlin
+      """
         package a
 
         annotation class Annotation(value: String)
       """
-          .trimIndent()
-      )
+        .trimIndent()
+    )
 
     kotlinFile =
       fixture.addFileToProject(
