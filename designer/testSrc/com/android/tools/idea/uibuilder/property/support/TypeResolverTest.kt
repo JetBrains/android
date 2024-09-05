@@ -28,6 +28,7 @@ import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.ATTR_LAYOUT_ABOVE
 import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_ANCHOR
 import com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
@@ -109,6 +110,8 @@ class TypeResolverTest {
       .isEqualTo(NlPropertyType.ANIMATOR)
     assertThat(TypeResolver.resolveType(NavigationSchema.ATTR_POP_ENTER_ANIM, null, null))
       .isEqualTo(NlPropertyType.ANIMATOR)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ANCHOR, null, null))
+      .isEqualTo(NlPropertyType.ID)
   }
 
   @Test
