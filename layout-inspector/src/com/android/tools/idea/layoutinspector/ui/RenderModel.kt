@@ -53,7 +53,7 @@ class RenderModel(
   val model: InspectorModel,
   val notificationModel: NotificationModel,
   val treeSettings: TreeSettings,
-  private val currentClientProvider: () -> InspectorClient,
+  val currentClientProvider: () -> InspectorClient,
 ) {
   /**
    * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode],

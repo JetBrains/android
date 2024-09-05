@@ -281,6 +281,7 @@ class LayoutInspectorRenderer(
       GotoDeclarationAction.navigateToSelectedView(
         coroutineScope,
         renderModel.model,
+        renderModel.currentClientProvider(),
         renderModel.notificationModel,
       )
       currentSessionStatistics().gotoSourceFromRenderDoubleClick()

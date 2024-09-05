@@ -74,7 +74,7 @@ class DeviceViewContentPanel(
   val treeSettings: TreeSettings,
   val renderModel: RenderModel,
   val renderLogic: RenderLogic,
-  val currentClient: () -> InspectorClient?,
+  val currentClient: () -> InspectorClient,
   val pannable: Pannable,
   @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
   disposableParent: Disposable,
@@ -260,6 +260,7 @@ class DeviceViewContentPanel(
             GotoDeclarationAction.navigateToSelectedView(
               coroutineScope,
               renderModel.model,
+              currentClient(),
               renderModel.notificationModel,
             )
             currentClient()?.stats?.gotoSourceFromRenderDoubleClick()
