@@ -21,7 +21,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -32,10 +36,12 @@ import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.getFullApiName
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.ApiFilter
+import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
+import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
@@ -48,6 +54,7 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun DevicePanel(
@@ -175,15 +182,30 @@ private fun SystemImageTable(
   onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val sortedImages = images.sortedWith(SystemImageComparator)
+  val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isRecommended() })
+  val starColumn = remember {
+    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) {
+      if (it == starredImage) {
+        Icon(
+          AllIconsKeys.Nodes.Favorite,
+          contentDescription = "Recommended",
+          modifier = Modifier.size(16.dp),
+        )
+      }
+    }
+  }
   val columns =
     listOf(
+      starColumn,
       TableColumn(
         "",
         TableColumnWidth.Fixed(16.dp),
         Comparator.comparing { it is RemoteSystemImage },
       ) {
-        if (it is RemoteSystemImage)
+        if (it is RemoteSystemImage) {
           DownloadButton(onClick = { onDownloadButtonClick(it.`package`.path) })
+        }
       },
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
       TableTextColumn(
@@ -199,6 +221,13 @@ private fun SystemImageTable(
     images,
     { it },
     modifier,
+    tableSortState =
+      remember {
+        TableSortState<ISystemImage>().apply {
+          sortColumn = starColumn
+          sortOrder = SortOrder.DESCENDING
+        }
+      },
     tableSelectionState = selectionState,
     onRowClick = onRowClick,
   )
