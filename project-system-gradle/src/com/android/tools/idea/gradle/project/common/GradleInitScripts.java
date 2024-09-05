@@ -136,8 +136,7 @@ public class GradleInitScripts {
       file.deleteOnExit();
       writeToFile(file, content);
       getLogger().info(String.format("init script file %s contents %s", fileName, escapeAsStringLiteral(content)));
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       getLogger().error("Failed to create init script: " + fileName, ex);
       throw ex;
     }

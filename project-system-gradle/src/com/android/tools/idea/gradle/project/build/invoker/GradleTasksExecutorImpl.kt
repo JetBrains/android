@@ -242,7 +242,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val buildState = GradleBuildState.getInstance(myProject!!)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
         var buildAttributionManager: BuildAttributionManager? = null
-        val enableBuildAttribution = isBuildAttributionEnabledForProject(myProject)
+        val enableBuildAttribution = isBuildAttributionEnabledForProject(myProject!!)
         val invocationResult = try {
           val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
           val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
@@ -317,7 +317,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           }
           GradleExecutionHelper.prepare(connection, operation, id, executionSettings, listener)
           if (enableBuildAttribution) {
-            buildAttributionManager = myProject.getService(BuildAttributionManager::class.java)
+            buildAttributionManager = myProject!!.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
               operation, buildAttributionManager,  // In some tests we don't care about build attribution being setup
               ApplicationManager.getApplication().isUnitTestMode

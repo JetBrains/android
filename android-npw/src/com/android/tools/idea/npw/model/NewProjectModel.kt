@@ -20,8 +20,8 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.setAndroidNewProjectInitializationStartupActivityProjectInitializer
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -55,6 +55,7 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
@@ -125,7 +126,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         this@NewProjectModel.project = newProject
 
-        setAndroidNewProjectInitializationStartupActivityProjectInitializer(newProject) {
+        newProject.service<AndroidNewProjectInitializationStartupActivity.StartupService>().setProjectInitializer {
           logger.info("Rendering a new project.")
           NonProjectFileWritingAccessProvider.disableChecksDuring {
             renderer(newProject)
