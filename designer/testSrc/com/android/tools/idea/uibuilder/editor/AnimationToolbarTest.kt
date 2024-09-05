@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 
 class AnimationToolbarTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
@@ -36,7 +36,7 @@ class AnimationToolbarTest {
         0L,
       )
     }
-    val listener = MockitoKt.mock<AnimationControllerListener>()
+    val listener = mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
 
     // We use callback to test only.
@@ -67,7 +67,7 @@ class AnimationToolbarTest {
       )
     }
     toolbar.setLooping(false)
-    val listener = MockitoKt.mock<AnimationControllerListener>()
+    val listener = mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
 
     toolbar.play()

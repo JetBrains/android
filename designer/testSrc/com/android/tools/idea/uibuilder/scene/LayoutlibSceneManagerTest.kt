@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -27,6 +26,7 @@ import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
 import kotlinx.coroutines.runBlocking
+import org.mockito.kotlin.whenever
 
 class LayoutlibSceneManagerTest : SceneTest() {
 

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.rendering.errors
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.errors.WearTileRenderErrorContributor.isHandledByWearTileContributor
@@ -32,6 +30,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class WearTileRenderErrorContributorTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()

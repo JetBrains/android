@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.actions.RefreshRenderAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.disposable
@@ -36,6 +34,8 @@ import org.junit.Test
 import org.mockito.AdditionalAnswers.delegatesTo
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class RefreshRenderActionTest {
   @get:Rule val projectRule = ProjectRule()

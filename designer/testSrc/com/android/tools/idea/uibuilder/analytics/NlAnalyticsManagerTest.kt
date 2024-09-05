@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.analytics
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.type.DefaultDesignerFileType
@@ -36,6 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class NlAnalyticsManagerTest {
 

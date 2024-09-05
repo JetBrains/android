@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.eq
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
@@ -39,6 +38,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
 
 private class HolderViewActionPresentation : ViewActionPresentation {
   var _label: String = ""

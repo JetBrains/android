@@ -18,13 +18,13 @@ package com.android.tools.idea.common.scene
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.junit.Assert.assertNotEquals
+import org.mockito.kotlin.whenever
 
 open class SceneComponentTest : SceneTest() {
 

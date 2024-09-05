@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -41,6 +40,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class IssuePanelViewOptionActionGroupTest {
 

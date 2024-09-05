@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.layout.scroller
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.layout.TestDesignSurfaceViewport
 import java.awt.Component
 import java.awt.Dimension
@@ -24,6 +22,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ZoomCenterScrollerTest {
 
@@ -33,7 +33,7 @@ class ZoomCenterScrollerTest {
     // (2000 x 2000).
     val viewRect = Rectangle(250, 250, 500, 500)
 
-    val viewportComponent = MockitoKt.mock<Component>()
+    val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(viewRect.width)
     whenever(viewportComponent.height).thenReturn(viewRect.height)
     val viewport =
@@ -55,7 +55,7 @@ class ZoomCenterScrollerTest {
     // (2000 x 2000).
     val viewRect = Rectangle(250, 250, 500, 500)
 
-    val viewportComponent = MockitoKt.mock<Component>()
+    val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
     val viewport =
@@ -76,7 +76,7 @@ class ZoomCenterScrollerTest {
     // (1000 x 1000).
     val viewRect = Rectangle(500, 500, 500, 500)
 
-    val viewportComponent = MockitoKt.mock<Component>()
+    val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
     val viewport =
@@ -97,7 +97,7 @@ class ZoomCenterScrollerTest {
     // (1000 x 1000).
     val viewRect = Rectangle(500, 500, 500, 500)
 
-    val viewportComponent = MockitoKt.mock<Component>()
+    val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
     val viewport =

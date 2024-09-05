@@ -23,7 +23,6 @@ import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -94,6 +93,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
 private const val DIFF_THRESHOLD = 0.01

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
@@ -32,6 +31,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
 
 class SceneViewIssueNodeVisitorTest {
 

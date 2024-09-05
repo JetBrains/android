@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.palette
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -48,6 +46,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NlPaletteModelTest {
   private var facet: AndroidFacet? = null
