@@ -46,6 +46,9 @@ private const val CONTENT_CARD = "content"
 private const val EMPTY_CARD = "empty"
 private const val TOS_NOT_ACCEPTED = "tos_not_accepted"
 
+private const val RESOURCE_EXHAUSTED_MESSAGE =
+  "Quota exceeded for quota metric 'Duet Task API requests' and limit 'Duet Task API requests per day per user'"
+
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
   scope: CoroutineScope,
@@ -219,9 +222,18 @@ class InsightContentPanel(
               showEmptyCard()
             }
             is LoadingState.NetworkFailure -> {
-              emptyStateText.apply {
-                clear()
-                appendText("Insights data is not available.")
+              val message = aiInsight.message
+              if (message?.contains(RESOURCE_EXHAUSTED_MESSAGE) == true) {
+                emptyStateText.apply {
+                  clear()
+                  appendText("Quota exhausted", EMPTY_STATE_TITLE_FORMAT)
+                  appendLine("You have consumed your available daily quota for insights.")
+                }
+              } else {
+                emptyStateText.apply {
+                  clear()
+                  appendText("Insights data is not available.")
+                }
               }
               showEmptyCard()
             }
