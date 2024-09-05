@@ -60,7 +60,6 @@ import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -89,8 +88,6 @@ internal fun AdditionalSettingsPanel(
           },
           Modifier.padding(end = Padding.MEDIUM),
         )
-
-        OutlinedButton(onImportButtonClick) { Text("Import") }
       }
 
       CameraGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
