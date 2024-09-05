@@ -89,7 +89,7 @@ data class SelectedIssueChanged(
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)
-          actionsForSelectedIssue(key, issue.id, issue.sampleEvent)
+          actionsForSelectedIssue(key, issue.id, issue.issueDetails.fatality, issue.sampleEvent)
         else Action.NONE,
     )
   }

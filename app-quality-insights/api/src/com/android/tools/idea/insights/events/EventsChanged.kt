@@ -64,7 +64,13 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
             .also { selectedEvent = it.selectedEvent },
         action =
           if (state.currentInsight is LoadingState.Loading && selectedEvent != null) {
-            Action.FetchInsight(state.selectedIssue!!.id, selectedEvent, state.selectedVariant?.id)
+            val selectedIssue = state.selectedIssue!!
+            Action.FetchInsight(
+              selectedIssue.id,
+              selectedIssue.issueDetails.fatality,
+              selectedEvent,
+              state.selectedVariant?.id,
+            )
           } else {
             Action.NONE
           },

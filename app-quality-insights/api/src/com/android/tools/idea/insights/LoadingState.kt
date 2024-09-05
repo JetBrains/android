@@ -116,6 +116,13 @@ sealed class LoadingState<out T> {
     override fun <U> map(fn: (Nothing) -> U) = this
   }
 
+  data class UnsupportedOperation(
+    override val message: String?,
+    override val cause: Throwable? = null,
+  ) : Failure() {
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
   /** Generic(catch all) failure. */
   data class UnknownFailure(override val message: String?, override val cause: Throwable? = null) :
     Failure() {

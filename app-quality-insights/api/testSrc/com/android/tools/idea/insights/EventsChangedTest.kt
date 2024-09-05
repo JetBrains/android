@@ -39,7 +39,8 @@ class EventsChangedTest {
     val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
-    assertThat(transition.action).isEqualTo(Action.FetchInsight(ISSUE1.id, eventList[0], null))
+    assertThat(transition.action)
+      .isEqualTo(Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, eventList[0], null))
   }
 
   @Test
