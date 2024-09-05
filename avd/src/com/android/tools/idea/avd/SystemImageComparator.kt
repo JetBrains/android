@@ -20,13 +20,14 @@ import com.android.sdklib.SystemImageTags
 
 /** Sorts system images by preference: least preferred to most */
 internal object SystemImageComparator :
-  Comparator<ISystemImage> by (compareBy<ISystemImage> { image -> image.isForTablet() }
-    .thenByDescending { image -> image.androidVersion.isPreview }
-    .thenBy { image -> image.androidVersion.featureLevel }
-    .thenByDescending { image -> image.androidVersion.extensionLevel ?: 0 }
-    .thenByDescending { image -> image.getServices() }
-    .thenByDescending { image -> image.getOtherTagCount() }
-    .thenByDescending { image -> image.`package`.displayName })
+  Comparator<ISystemImage> by (compareBy<ISystemImage> { it.isRecommended() }
+    .thenBy { it.isForTablet() }
+    .thenByDescending { it.androidVersion.isPreview }
+    .thenBy { it.androidVersion.featureLevel }
+    .thenByDescending { it.androidVersion.extensionLevel ?: 0 }
+    .thenByDescending { it.getServices() }
+    .thenByDescending { it.getOtherTagCount() }
+    .thenByDescending { it.`package`.displayName })
 
 private fun ISystemImage.isForTablet() = tags.contains(SystemImageTags.TABLET_TAG)
 

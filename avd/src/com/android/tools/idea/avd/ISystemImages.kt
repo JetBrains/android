@@ -18,12 +18,16 @@ package com.android.tools.idea.avd
 import com.android.repository.api.RepoManager
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageSupplier
+import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Abi
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.utils.CpuArchitecture
+import com.android.utils.osArchitecture
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -88,3 +92,16 @@ internal fun ISystemImage.getServices(): Services {
 
   return Services.ANDROID_OPEN_SOURCE
 }
+
+internal fun ISystemImage.isRecommendedForHost(): Boolean =
+  when (osArchitecture) {
+    CpuArchitecture.X86_64 -> Abi.getEnum(primaryAbiType) in listOf(Abi.X86_64, Abi.X86)
+    // An ARM host can only run ARM64 images (not 32-bit ARM).
+    CpuArchitecture.X86_ON_ARM,
+    CpuArchitecture.ARM -> Abi.getEnum(primaryAbiType) == Abi.ARM64_V8A
+    // We don't support 32-bit x86 hosts.
+    else -> false
+  }
+
+internal fun ISystemImage.isRecommended(): Boolean =
+  isRecommendedForHost() && !SystemImageTags.isAtd(tags)
