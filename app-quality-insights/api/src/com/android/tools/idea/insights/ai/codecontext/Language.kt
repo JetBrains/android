@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.codecontext
+package com.android.tools.idea.insights.ai.codecontext
 
-import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+enum class Language(val language: String) {
+  KOTLIN("Kotlin"),
+  JAVA("Java");
 
-class LanguageTest {
+  override fun toString() = language
 
-  @Test
-  fun `convert extension to Language`() {
-    assertThat(Language.fromExtension("kt")).isEqualTo(Language.KOTLIN)
-    assertThat(Language.fromExtension("java")).isEqualTo(Language.JAVA)
+  companion object {
+    fun fromExtension(extension: String) =
+      when (extension) {
+        "kt" -> KOTLIN
+        "java" -> JAVA
+        else -> null
+      }
   }
 }

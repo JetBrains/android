@@ -183,6 +183,19 @@ class InsightContentPanel(
               insightTextPane.text = ""
               showContentCard(true)
             }
+            // Gemini plugin disabled or scope is not authorized
+            is LoadingState.Unauthorized -> {
+              emptyStateText.apply {
+                clear()
+                appendText("Gemini is disabled", EMPTY_STATE_TITLE_FORMAT)
+                appendLine(
+                  "To see insights, please enable and authorize the Gemini plugin",
+                  EMPTY_STATE_TEXT_FORMAT,
+                  null,
+                )
+              }
+              showEmptyCard()
+            }
             // Permission denied message is confusing. Provide a generic message
             is LoadingState.PermissionDenied -> {
               emptyStateText.apply {

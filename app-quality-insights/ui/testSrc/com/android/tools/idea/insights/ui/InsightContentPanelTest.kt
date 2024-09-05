@@ -160,6 +160,18 @@ class InsightContentPanelTest {
     assertThat(secondaryText).isEmpty()
   }
 
+  @Test
+  fun `test gemini is not enabled`() = runBlocking {
+    currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
+
+    FakeUi(insightContentPanel)
+    delayUntilStatusTextVisible()
+
+    assertThat(errorText).isEqualTo("Gemini is disabled")
+    assertThat(secondaryText)
+      .isEqualTo("To see insights, please enable and authorize the Gemini plugin")
+  }
+
   private suspend fun delayUntilStatusTextVisible() =
     delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }
 }

@@ -18,6 +18,9 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -26,7 +29,6 @@ import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
-import com.android.tools.idea.insights.codecontext.CodeContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
@@ -81,6 +83,15 @@ class AppInsightsProjectLevelControllerRule(
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
+  private val geminiToolkit =
+    object : GeminiToolkit {
+      override val isGeminiEnabled = true
+      override val codeContextResolver =
+        object : CodeContextResolver {
+          override suspend fun getSource(stack: StacktraceGroup) = emptyList<CodeContext>()
+        }
+    }
+
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
@@ -103,6 +114,7 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
+        geminiToolkit = geminiToolkit,
       )
     internalState = Channel(capacity = 5)
     scope.launch { controller.state.collect { internalState.send(it) } }

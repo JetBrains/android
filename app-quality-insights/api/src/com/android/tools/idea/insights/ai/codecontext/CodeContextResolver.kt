@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.codecontext
+package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
@@ -22,6 +22,7 @@ import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.readText
@@ -39,6 +40,10 @@ data class CodeContext(
 /** Pulls source code from the editor based on the provided stack trace. */
 interface CodeContextResolver {
   suspend fun getSource(stack: StacktraceGroup): List<CodeContext>
+
+  companion object {
+    fun getInstance(project: Project) = project.service<CodeContextResolver>()
+  }
 }
 
 class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
