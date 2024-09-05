@@ -40,7 +40,6 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
-import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.icons.AllIcons
@@ -54,7 +53,6 @@ import kotlin.math.max
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Icon
@@ -76,7 +74,7 @@ internal fun AdditionalSettingsPanel(
       verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
     ) {
       Row {
-        Text("Device skin", Modifier.padding(end = Padding.SMALL))
+        Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
         Dropdown(
           configureDevicePanelState.device.skin,
@@ -84,7 +82,7 @@ internal fun AdditionalSettingsPanel(
           onSelectedItemChange = {
             configureDevicePanelState.device = configureDevicePanelState.device.copy(skin = it)
           },
-          Modifier.padding(end = Padding.MEDIUM),
+          Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
         )
       }
 
@@ -386,20 +384,6 @@ private fun EmulatedPerformanceGroup(
     GroupHeader("Emulated Performance")
 
     Row {
-      CheckboxRow(
-        "Enable multithreading",
-        device.cpuCoreCount != null,
-        onCheckedChange = {
-          val count = if (it) EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES else null
-          onDeviceChange(device.copy(cpuCoreCount = count))
-        },
-        Modifier.padding(end = Padding.MEDIUM),
-      )
-
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
-    }
-
-    Row {
       Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
       val cpuCoreCount = device.cpuCoreCount ?: 1
 
@@ -422,7 +406,7 @@ private fun EmulatedPerformanceGroup(
     }
 
     Row {
-      Text("Graphic acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      Text("Graphics acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       Dropdown(
         device.graphicsMode,
@@ -433,7 +417,7 @@ private fun EmulatedPerformanceGroup(
     }
 
     Row {
-      Text("Simulated RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+      Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
         device.simulatedRam,
