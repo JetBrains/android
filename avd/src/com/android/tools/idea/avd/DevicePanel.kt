@@ -16,8 +16,10 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -98,14 +100,22 @@ internal fun DevicePanel(
       )
     }
 
-    SystemImageTable(
-      images,
-      devicePanelState,
-      configureDevicePanelState.systemImageTableSelectionState,
-      onDownloadButtonClick,
-      onSystemImageTableRowClick,
-      Modifier.weight(1f).padding(bottom = Padding.SMALL),
-    )
+    Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
+      val filteredImages = images.filter(devicePanelState::test)
+      if (filteredImages.isEmpty()) {
+        EmptyStatePanel(
+          "No system images available matching the current set of filters.",
+          Modifier.fillMaxSize(),
+        )
+      } else {
+        SystemImageTable(
+          filteredImages,
+          configureDevicePanelState.systemImageTableSelectionState,
+          onDownloadButtonClick,
+          onSystemImageTableRowClick,
+        )
+      }
+    }
 
     ShowSdkExtensionSystemImagesCheckbox(
       devicePanelState.sdkExtensionSystemImagesVisible,
@@ -162,8 +172,7 @@ private fun ServicesDropdown(
 
 @Composable
 private fun SystemImageTable(
-  images: ImmutableList<ISystemImage>,
-  devicePanelState: DevicePanelState,
+  images: List<ISystemImage>,
   selectionState: TableSelectionState<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onRowClick: (ISystemImage) -> Unit,
@@ -190,7 +199,7 @@ private fun SystemImageTable(
 
   Table(
     columns,
-    images.filter(devicePanelState::test),
+    images,
     { it },
     modifier,
     tableSelectionState = selectionState,
@@ -250,4 +259,9 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
 
     InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
   }
+}
+
+@Composable
+private fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
+  Box(modifier) { Text(text, Modifier.align(Alignment.Center)) }
 }
