@@ -314,7 +314,7 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.sampleEvent, null)
+            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent, null)
         )
     }
   }

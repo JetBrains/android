@@ -184,6 +184,17 @@ class InsightContentPanelTest {
       .isEqualTo("To see insights, please enable and authorize the Gemini plugin")
   }
 
+  @Test
+  fun `test unsupported operation`() = runBlocking {
+    currentInsightFlow.update { LoadingState.UnsupportedOperation("Some message") }
+
+    FakeUi(insightContentPanel)
+    delayUntilStatusTextVisible()
+
+    assertThat(errorText).isEqualTo("No insight available")
+    assertThat(secondaryText).isEqualTo("Some message")
+  }
+
   private suspend fun delayUntilStatusTextVisible() =
     delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }
 }

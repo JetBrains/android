@@ -107,7 +107,7 @@ class SelectedIssueChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE2.id) and
-            Action.FetchInsight(ISSUE2.id, ISSUE2.sampleEvent, null)
+            Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent, null)
         )
     }
   }
