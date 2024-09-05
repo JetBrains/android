@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
@@ -48,8 +49,7 @@ interface PreviewCanvasTracker {
         NOP_TRACKER,
       )
 
-    // This tracker is shared between all compose preview. No key is needed.
-    fun getInstance() = MANAGER.getInstance(null)
+    fun getInstance(surface: DesignSurface<*>) = MANAGER.getInstance(surface)
   }
 }
 

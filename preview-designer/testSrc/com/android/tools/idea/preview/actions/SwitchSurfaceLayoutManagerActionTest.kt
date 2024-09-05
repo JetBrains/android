@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -27,6 +28,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent
@@ -182,10 +184,13 @@ class SwitchSurfaceLayoutManagerActionTest {
     val previewModeManager = mock<PreviewModeManager>()
     whenever(previewModeManager.mode).thenReturn(MutableStateFlow(currentPreviewMode))
 
+    val designSurface = mock<NlDesignSurface>()
+
     val dataContext = DataContext {
       when (it) {
         PreviewModeManager.KEY.name -> previewModeManager
         PreviewFlowManager.KEY.name -> previewFlowManager
+        DESIGN_SURFACE.name -> designSurface
         else -> null
       }
     }
