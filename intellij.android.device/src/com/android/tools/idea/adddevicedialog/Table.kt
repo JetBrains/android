@@ -56,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.Stroke
 import org.jetbrains.jewel.foundation.modifier.border
@@ -66,6 +65,7 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.util.thenIf
 
 data class TableColumn<in T>(
@@ -117,8 +117,8 @@ internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
-    SortOrder.ASCENDING -> Icon("general/arrowUp.svg", null, AllIcons::General::class.java)
-    SortOrder.DESCENDING -> Icon("general/arrowDown.svg", null, AllIcons::General::class.java)
+    SortOrder.ASCENDING -> Icon(AllIconsKeys.General.ArrowUp, null)
+    SortOrder.DESCENDING -> Icon(AllIconsKeys.General.ArrowDown, null)
   }
 
 @Stable

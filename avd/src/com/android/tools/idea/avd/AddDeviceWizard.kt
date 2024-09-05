@@ -188,7 +188,6 @@ private val playColumn =
         StudioIconsCompose.Avd.DevicePlayStore,
         contentDescription = "Play Store supported",
         modifier = Modifier.size(16.dp),
-        iconClass = StudioIconsCompose::class.java,
       )
     }
   }
