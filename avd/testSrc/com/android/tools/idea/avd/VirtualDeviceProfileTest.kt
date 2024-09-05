@@ -30,6 +30,7 @@ class VirtualDeviceProfileTest {
         .build()
 
     assertThat(deviceProfile.name).startsWith("Pixel 8")
+    assertThat(deviceProfile.isGooglePlaySupported).isTrue()
     assertThat(deviceProfile.toBuilder().build()).isEqualTo(deviceProfile)
     assertThat(deviceProfile.update { name = "SquarePhone" }.name).isEqualTo("SquarePhone")
   }
