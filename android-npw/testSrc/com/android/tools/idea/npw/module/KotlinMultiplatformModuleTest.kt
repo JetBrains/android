@@ -60,11 +60,14 @@ class KotlinMultiplatformModuleTest {
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
     assertThat(buildGradleContent).isEqualTo(EXPECTED_BUILD_GRADLE_FILE)
 
-    val androidPlatformContent = rootDir.resolve("androidMain").resolve("AndroidPlatform.kt").readText()
+    val androidPlatformContent = rootDir.resolve("androidMain").resolve("Platform.android.kt").readText()
     assertThat(androidPlatformContent).isEqualTo(EXPECTED_ANDROID_MAIN_CONTENT)
 
     val commonPlatformContent = rootDir.resolve("commonMain").resolve("Platform.kt").readText()
     assertThat(commonPlatformContent).isEqualTo(EXPECTED_COMMON_MAIN_CONTENT)
+
+    val iosPlatformContent = rootDir.resolve("iosMain").resolve("Platform.ios.kt").readText()
+    assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
     val androidUnitTestContent = rootDir.resolve("androidUnitTest").resolve("ExampleUnitTest.kt").readText()
     assertThat(androidUnitTestContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
@@ -93,6 +96,7 @@ class KotlinMultiplatformModuleTest {
     val packageName = "com.kmplib.packagename"
     val androidMainDir = tmpFolderRule.root.resolve("androidMain").also { it.mkdir() }
     val commonMainDir = tmpFolderRule.root.resolve("commonMain").also { it.mkdir() }
+    val iosMainDir = tmpFolderRule.root.resolve("iosMain").also { it.mkdir() }
     val rootDir = tmpFolderRule.root
 
     projectRule.loadProject(projectPath = TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM, agpVersion = projectRuleAgpVersion)
@@ -142,6 +146,7 @@ class KotlinMultiplatformModuleTest {
       unitTestDir = rootDir.resolve("androidUnitTest").also { it.mkdir() },
       aidlDir = null,
       commonSrcDir = commonMainDir,
+      iosSrcDir = iosMainDir,
       rootDir = rootDir,
       isNewModule = true,
       name = name,
@@ -174,8 +179,9 @@ class KotlinMultiplatformModuleTest {
 plugins {
 }
 
-        kotlin {
-      // Target declarations - add or remove as needed below. These define
+    kotlin {
+
+// Target declarations - add or remove as needed below. These define
 // which platforms this KMP module supports.
 // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
@@ -194,7 +200,34 @@ androidLibrary {
       sourceSetTreeName = "test"
   }
 }
-      // Source set declarations.
+
+// For iOS targets, this is also where you should
+// configure native binary output. For more information, see:
+// https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+
+// A step-by-step guide on how to include this library in an XCode
+// project can be found here: TODO provide link to jetpack guidance
+val xcfName = "shared"
+
+iosX64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+iosArm64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+iosSimulatorArm64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+// Source set declarations.
 // Declaring a target automatically creates a source set with the same name. By default, the
 // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
 // common to share sources between related targets.
@@ -202,13 +235,12 @@ androidLibrary {
 sourceSets {
   commonMain {
     dependencies {
-      // Add common multiplatform dependencies here
+      // Add KMP dependencies here
     }
   }
 
   commonTest {
     dependencies {
-      // Add common multiplatform test dependencies here
     }
   }
 
@@ -224,28 +256,37 @@ sourceSets {
     dependencies {
     }
   }
-}
+
+  iosMain {
+    dependencies {
+      // Add iOS-specific dependencies here. This a source set created by Kotlin Gradle
+      // Plugin (KGP) that each specific iOS target (e.g., iosX64) depends on as
+      // part of KMP’s default source set hierarchy. Note that this source set depends
+      // on common by default and will correctly pull the iOS artifacts of any
+      // KMP dependencies declared in commonMain.
     }
+  }
+}
+
+}
 """.trimIndent()
 
     val EXPECTED_ANDROID_MAIN_CONTENT = """
 package com.kmplib.packagename
 
-  class AndroidPlatform : Platform {
-    override val name: String = "Android ${'$'}{android.os.Build.VERSION.SDK_INT}"
-  }
-
-  actual fun getPlatform(): Platform = AndroidPlatform()
+  actual fun platform() = "Android"
     """.trimIndent()
 
     val EXPECTED_COMMON_MAIN_CONTENT = """
 package com.kmplib.packagename
 
-  interface Platform {
-    val name: String
-  }
+  expect fun platform(): String
+    """.trimIndent()
 
-  expect fun getPlatform(): Platform
+    val EXPECTED_IOS_MAIN_CONTENT = """
+package com.kmplib.packagename
+
+  actual fun platform() = "iOS"
     """.trimIndent()
 
     val EXPECTED_ANDROID_UNIT_TEST_CONTENT = """
@@ -297,7 +338,7 @@ package com.kmplib.packagename
     val EXPECTED_MODULE_FILES = arrayOf(
       "AndroidManifest.xml", "commonMain/Platform.kt", "androidUnitTest/ExampleUnitTest.kt",
       "androidInstrumentedTest/ExampleInstrumentedTest.kt", "build.gradle.kts", ".gitignore",
-      "androidMain/AndroidPlatform.kt"
+      "androidMain/Platform.android.kt", "iosMain/Platform.ios.kt"
     )
   }
 }
