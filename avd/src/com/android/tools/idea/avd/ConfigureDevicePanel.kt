@@ -72,7 +72,12 @@ private fun Tabs(
 
   TabStrip(
     Tab.values().map { tab ->
-      TabData.Default(selectedTab == tab, { Text(tab.text) }, onClick = { selectedTab = tab })
+      TabData.Default(
+        selectedTab == tab,
+        { Text(tab.text) },
+        onClick = { selectedTab = tab },
+        closable = false,
+      )
     }
   )
 
