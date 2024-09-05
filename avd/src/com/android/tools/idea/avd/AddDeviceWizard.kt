@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.FormFactor
 import com.android.tools.idea.adddevicedialog.SingleSelectionDropdown
+import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
@@ -48,9 +50,11 @@ import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import icons.StudioIconsCompose
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.ui.component.CheckboxRow
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
@@ -169,5 +173,23 @@ private val virtualDeviceName =
     maxLines = 2,
   )
 
+private val playColumn =
+  TableColumn<VirtualDeviceProfile>(
+    "Play",
+    TableColumnWidth.Fixed(40.dp),
+    comparator = compareBy { it.isGooglePlaySupported },
+  ) {
+    if (it.isGooglePlaySupported) {
+      Icon(
+        StudioIconsCompose.Avd.DevicePlayStore,
+        contentDescription = "Play Store supported",
+        modifier = Modifier.size(16.dp),
+        iconClass = StudioIconsCompose::class.java,
+      )
+    }
+  }
+
 private val avdColumns =
-  with(DeviceTableColumns) { persistentListOf(icon, virtualDeviceName, width, height, density) }
+  with(DeviceTableColumns) {
+    persistentListOf(icon, virtualDeviceName, playColumn, width, height, density)
+  }
