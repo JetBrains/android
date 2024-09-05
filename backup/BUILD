@@ -50,6 +50,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
