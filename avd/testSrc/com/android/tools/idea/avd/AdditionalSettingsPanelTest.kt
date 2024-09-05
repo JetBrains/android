@@ -25,7 +25,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.sdklib.internal.avd.GpuMode
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
@@ -70,7 +69,7 @@ class AdditionalSettingsPanelTest {
         internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        graphicAcceleration = GpuMode.AUTO,
+        graphicsMode = GraphicsMode.AUTO,
         simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )

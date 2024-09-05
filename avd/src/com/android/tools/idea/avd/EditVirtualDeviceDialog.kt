@@ -62,7 +62,7 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
       val wizard =
         ComposeWizard(project, "Edit Device") {
           ConfigurationPage(device, avdInfo.systemImage, skins) { device, image ->
-            builder.copyFrom(device)
+            builder.copyFrom(device, image)
 
             // At this point, builder.avdName still reflects its on-disk location. If the user
             // updated the display name, try to update avdName to reflect the new display name.
@@ -70,7 +70,6 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
               builder.avdName =
                 avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
             }
-            builder.systemImage = image
             val success =
               withContext(AndroidDispatchers.diskIoThread) {
                 avdManager.editAvd(avdInfo, builder) != null
