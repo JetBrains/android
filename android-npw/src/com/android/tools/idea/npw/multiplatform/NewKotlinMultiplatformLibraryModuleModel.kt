@@ -69,6 +69,8 @@ class NewKotlinMultiplatformLibraryModuleModel(
       moduleTemplateDataBuilder.apply {
         commonSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
           .getCommonSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
+        iosSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
+          .getIosSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
       }
     }
     override val recipe: Recipe
