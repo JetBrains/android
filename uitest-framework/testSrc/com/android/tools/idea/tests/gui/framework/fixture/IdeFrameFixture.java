@@ -45,7 +45,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceS
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionBundle;
-import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -767,20 +766,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void selectApp(@NotNull String appName) {
-    ActionButtonFixture runButton = findRunApplicationButton();
-    Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
-
-    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByClientPropertyAndText(
-      robot(),
-      actionToolbarContainer,
-      "styleCombo",
-      RunConfigurationsComboBoxAction.class,
-      appName);
-
-    comboBoxActionFixture.selectItem(appName);
+    ActionButtonFixture.locateByActionId("RedesignedRunConfigurationSelector", robot(), target(), 30).click();
+    ListPopupFixture.selectItemByText(this, appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    Wait.seconds(1).expecting("ComboBox to be selected")
-      .until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
   }
 
   /**
