@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleAndroidMain
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleCommonMain
+import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src.exampleIosMain
 import com.android.tools.idea.npw.module.recipes.setKotlinVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.Language
@@ -79,6 +80,7 @@ private fun RecipeExecutor.generateModule(
     addCommonMain(packageName, dir, language)
     addCommonTestDependencies(projectData.kotlinVersion)
   }
+  data.iosSrcDir?.let { addIosMain(packageName, it, language) }
 
   addMultiplatformLocalTests(packageName, data.unitTestDir)
   addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
@@ -112,6 +114,16 @@ fun RecipeExecutor.addCommonMain(
   save(
     exampleCommonMain(packageName),
     outFolder.resolve("Platform.$ext")
+  )
+}
+
+fun RecipeExecutor.addIosMain(
+  packageName: String, outFolder: File, language: Language
+) {
+  val ext = language.extension
+  save(
+    exampleIosMain(packageName),
+    outFolder.resolve("Platform.ios.$ext")
   )
 }
 
