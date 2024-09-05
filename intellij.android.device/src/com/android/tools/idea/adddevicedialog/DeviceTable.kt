@@ -61,7 +61,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
         placeholder = {
           Text(
-            "Search for a device by name, model, or OEM",
+            filterState.textFilter.description,
             fontWeight = FontWeight.Light,
             modifier = Modifier.padding(start = 4.dp),
           )

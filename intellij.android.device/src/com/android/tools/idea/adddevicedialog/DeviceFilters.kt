@@ -53,19 +53,18 @@ fun DeviceFiltersPanel(modifier: Modifier = Modifier, content: @Composable () ->
 @Stable
 open class DeviceFilterState<in DeviceT : DeviceProfile> : RowFilter<DeviceT> {
   val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
-  val textFilter = TextFilterState()
+  open val textFilter = TextFilterState<DeviceT>()
 
   override fun apply(row: DeviceT): Boolean = formFactorFilter.apply(row) && textFilter.apply(row)
 }
 
 @Stable
-class TextFilterState : RowFilter<DeviceProfile> {
+open class TextFilterState<in DeviceT : DeviceProfile> : RowFilter<DeviceT> {
   var searchText: String by mutableStateOf("")
+  open val description = "Search for a device by name"
 
-  override fun apply(row: DeviceProfile): Boolean =
-    searchText.isBlank() ||
-      row.manufacturer.contains(searchText.trim(), ignoreCase = true) ||
-      row.name.contains(searchText.trim(), ignoreCase = true)
+  override fun apply(row: DeviceT): Boolean =
+    searchText.isBlank() || row.name.contains(searchText.trim(), ignoreCase = true)
 }
 
 val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
