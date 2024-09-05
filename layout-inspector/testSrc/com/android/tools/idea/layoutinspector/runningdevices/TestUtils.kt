@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -44,6 +45,7 @@ import com.intellij.openapi.ui.Splitter
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 
 /** Proxy used to avoid exposing the entire [LayoutInspectorSettings]. */
 object EmbeddedLayoutInspectorSettingsProxy {
@@ -277,7 +279,8 @@ private fun verifyToolbar(container: Container, shouldContainProcessPicker: Bool
   val toolbar = toolbars.first()
 
   // Force actions to update.
-  toolbar.updateActionsAsync().get()
+  val promise = toolbar.updateActionsAsync()
+  waitForCondition(10.seconds) { promise.isDone }
 
   if (shouldContainProcessPicker) {
     assertThat(toolbar.actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
