@@ -84,7 +84,7 @@ class KotlinMultiplatformModuleTest {
     useKts: Boolean,
     projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor
   ): File {
-    val name = "kmplibrary"
+    val name = "shared"
     val buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
     val targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
     val minApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
