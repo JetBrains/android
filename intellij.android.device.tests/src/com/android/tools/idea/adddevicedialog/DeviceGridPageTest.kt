@@ -39,7 +39,7 @@ class DeviceGridPageTest {
   fun tableSelectionStateIsPreserved() {
     val source =
       object : TestDeviceSource() {
-        override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+        override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
           nextAction = WizardAction { pushPage { Text("Configuring ${profile.name}") } }
         }
       }
@@ -69,7 +69,7 @@ class DeviceGridPageTest {
   fun canAdvanceOnlyWhenDeviceSelected() {
     val source =
       object : TestDeviceSource() {
-        override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+        override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
           nextAction = WizardAction { pushPage { Text("Config page") } }
         }
       }

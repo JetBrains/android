@@ -24,8 +24,6 @@ import java.util.NavigableSet
 import kotlin.time.Duration
 
 interface DeviceProfile {
-  val source: Class<out DeviceSource>
-
   // TODO: alert icon, text
 
   val apiLevels: NavigableSet<AndroidVersion>

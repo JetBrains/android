@@ -68,10 +68,10 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.util.thenIf
 
-data class TableColumn<T>(
+data class TableColumn<in T>(
   val name: String,
   val width: TableColumnWidth,
-  val comparator: Comparator<T>? = null,
+  val comparator: Comparator<in T>? = null,
   val rowContent: @Composable (T) -> Unit,
 )
 
@@ -131,14 +131,11 @@ class TableSortState<T> {
   var sortColumn: TableColumn<T>? by mutableStateOf(null)
   var sortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
 
-  val comparator: Comparator<T>?
-    get() =
-      sortColumn?.comparator?.let {
-        when (sortOrder) {
-          SortOrder.ASCENDING -> it
-          SortOrder.DESCENDING -> it.reversed()
-        }
-      }
+  val comparator: Comparator<in T>?
+    get() = sortColumn?.comparator?.reverseIf(sortOrder == SortOrder.DESCENDING)
+
+  // Without this auxiliary method, typechecking fails
+  private fun <T> Comparator<T>.reverseIf(reverse: Boolean) = if (reverse) reversed() else this
 }
 
 @Composable
