@@ -48,14 +48,14 @@ import com.android.SdkConstants.PreferenceAttributes.ATTR_DEFAULT_VALUE
 import com.android.SdkConstants.PreferenceClasses
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class TypeResolverTest {
 
@@ -216,7 +216,7 @@ class TypeResolverTest {
     names.reverse()
     for (name in names) {
       psiClass =
-        mock<PsiClass?>().apply {
+        mock<PsiClass>().apply {
           whenever(this?.superClass).thenReturn(psiClass)
           whenever(this?.qualifiedName).thenReturn(name)
         }

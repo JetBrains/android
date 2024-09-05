@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.layout.manager
 
 import com.android.testutils.MockitoKotlinUtils.safeAny
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
@@ -36,6 +34,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NlDesignSurfacePositionableContentLayoutManagerTest {
   @get:Rule val applicationRule = ApplicationRule()

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,6 +30,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class ImageViewAssistantTest {
 

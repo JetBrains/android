@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.palette
 import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Dependency
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -93,6 +91,8 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 private const val BUTTON_CATEGORY_INDEX = 2
 private const val CHECKBOX_ITEM_INDEX = 2

@@ -54,7 +54,6 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
@@ -104,6 +103,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 private const val HELLO_WORLD = "Hello World"
 

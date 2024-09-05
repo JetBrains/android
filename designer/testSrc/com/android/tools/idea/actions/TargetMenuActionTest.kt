@@ -18,8 +18,6 @@ package com.android.tools.idea.actions
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.TargetMenuAction.SetTargetAction
 import com.android.tools.idea.configurations.ConfigurationForFile
@@ -33,6 +31,8 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class TargetMenuActionTest : AndroidTestCase() {
 

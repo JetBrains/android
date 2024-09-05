@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface
 
 import android.view.View
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
 import org.junit.Assert.assertEquals
@@ -25,6 +24,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class NlScannerLayoutParserTest {

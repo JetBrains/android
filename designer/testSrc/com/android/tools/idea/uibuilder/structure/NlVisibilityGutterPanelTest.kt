@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -33,6 +32,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class NlVisibilityGutterPanelTest : LayoutTestCase() {
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -45,6 +44,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
 
 class TestSceneManager(
   model: NlModel,

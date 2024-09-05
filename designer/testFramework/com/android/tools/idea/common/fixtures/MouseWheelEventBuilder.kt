@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.fixtures
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
+import org.mockito.kotlin.whenever
 
 class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
   MouseEventBuilder(x, y) {
