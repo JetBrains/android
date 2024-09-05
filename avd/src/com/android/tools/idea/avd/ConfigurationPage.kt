@@ -90,11 +90,17 @@ internal fun WizardPageScope.ConfigurationPage(
     Box(Modifier.fillMaxSize()) {
       Text("No system images available.", modifier = Modifier.align(Alignment.Center))
     }
+    return
   }
 
-  // TODO: http://b/342003916
   val configureDevicePanelState =
-    remember(device) { configureDevicePanelState(device, skins, image) }
+    remember(device) {
+      configureDevicePanelState(
+        device,
+        skins,
+        image ?: images.sortedWith(SystemImageComparator).last().takeIf { it.isRecommended() },
+      )
+    }
 
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
