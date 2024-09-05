@@ -32,7 +32,6 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
-import com.android.tools.idea.logcat.actions.AskStudioBotAction
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
@@ -101,7 +100,6 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Projec
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
@@ -555,11 +553,6 @@ constructor(
       add(IgnoreTagAction())
       add(CreateScratchFileAction())
       add(Separator.create())
-      val studioBot = StudioBot.getInstance()
-      if (studioBot.isAvailable()) {
-        add(AskStudioBotAction())
-        add(Separator.create())
-      }
       actions.forEach { add(it) }
       if (
         StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&

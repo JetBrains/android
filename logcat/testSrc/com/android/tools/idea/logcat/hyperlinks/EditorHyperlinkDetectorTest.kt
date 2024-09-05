@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.studiobot.StudioBot
@@ -28,6 +29,7 @@ import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.filters.UrlFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
@@ -37,6 +39,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerExtension
 import org.junit.Rule
 import org.junit.Test
 
@@ -87,29 +90,22 @@ class EditorHyperlinkDetectorTest {
     }
   }
 
-  /** Tests that we are using the StudioBot filter when StudioBot instance is not available. */
+  /** Tests that we include filters from the extensions. */
   @Test
-  fun usesCorrectFilters_containsStudioBotFilter_whenStudioBotIsUnavailable() {
-    TestStudioBot.available = false
+  fun usesCorrectFilters_containsFiltersFromExtensions() {
+    val filter = Filter { _, _ -> null }
+    val ext =
+      object : LogcatConsoleFilterProvider {
+        override fun create(editor: EditorEx): Filter {
+          return filter
+        }
+      }
+    ApplicationManager.getApplication()
+      .registerExtension(LogcatConsoleFilterProvider.EP_NAME, ext, disposableRule.disposable)
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
-
-    val expected = StudioBotFilter::class
     waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
-    }
-  }
-
-  /** Tests that we are using the StudioBot filter when StudioBot instance is available. */
-  @Test
-  fun usesCorrectFilters_containsStudioBotFilter_whenStudioBotIsAvailable() {
-    TestStudioBot.available = true
-
-    val hyperlinkDetector = editorHyperlinkDetector(editor)
-
-    val expected = StudioBotFilter::class
-    waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(filter::class)
     }
   }
 

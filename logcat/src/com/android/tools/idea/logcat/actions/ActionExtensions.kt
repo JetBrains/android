@@ -22,14 +22,14 @@ import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.SelectionModel
 
-internal fun AnActionEvent.getEditor() = getData(LogcatPresenter.EDITOR)
+fun AnActionEvent.getEditor() = getData(LogcatPresenter.EDITOR)
 
 internal fun AnActionEvent.getLogcatPresenter() = getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION)
 
 internal fun AnActionEvent.getConnectedDevice() = getData(LogcatPresenter.CONNECTED_DEVICE)
 
 /** Gets the Logcat message surrounding the caret position or null if there is none */
-internal fun AnActionEvent.getLogcatMessage(): LogcatMessage? {
+fun AnActionEvent.getLogcatMessage(): LogcatMessage? {
   val offset = getEditor()?.caretModel?.offset ?: return null
   return getLogcatMessages(offset, offset).firstOrNull()
 }
