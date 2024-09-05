@@ -102,6 +102,7 @@ internal fun WizardPageScope.ConfigurationPage(
 
   ConfigureDevicePanel(
     configureDevicePanelState,
+    image,
     images,
     onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
     onSystemImageTableRowClick = {

@@ -45,6 +45,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
+  initialSystemImage: ISystemImage?,
   images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -58,6 +59,7 @@ internal fun ConfigureDevicePanel(
     )
     Tabs(
       configureDevicePanelState,
+      initialSystemImage,
       images,
       onDownloadButtonClick,
       onSystemImageTableRowClick,
@@ -69,6 +71,7 @@ internal fun ConfigureDevicePanel(
 @Composable
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
+  initialSystemImage: ISystemImage?,
   images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -95,12 +98,21 @@ private fun Tabs(
   // TODO: http://b/335494340
   var devicePanelState by remember {
     mutableStateOf(
-      DevicePanelState(
-        AndroidVersionSelection(
-          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-        ),
-        servicesSet.firstOrNull(),
-      )
+      if (initialSystemImage == null) {
+        DevicePanelState(
+          AndroidVersionSelection(
+            androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+          ),
+          servicesSet.firstOrNull(),
+        )
+      } else {
+        DevicePanelState(
+          AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
+          initialSystemImage.getServices(),
+          sdkExtensionSystemImagesVisible = !initialSystemImage.androidVersion.isBaseExtension,
+          onlyRecommendedSystemImages = initialSystemImage.isRecommended(),
+        )
+      }
     )
   }
 
