@@ -119,6 +119,10 @@
     <testRecorderRunConfigurationProxyProvider implementation="com.google.idea.blaze.android.run.testrecorder.TestRecorderBlazeCommandRunConfigurationProxyProvider" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.BazelBuildSystemFilePreviewServices"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
     <androidDebuggerInfoProvider implementation="com.google.idea.blaze.android.run.BlazeCommandAndroidDebuggerInfoProvider" />
   </extensions>
