@@ -4,8 +4,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.options.AndroidDesignerBundle.message
-import com.android.tools.idea.uibuilder.options.analytics.ResourceUsageType
-import com.android.tools.idea.uibuilder.options.analytics.UiToolsPreferenceUsageTracker
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.application.ApplicationManager
@@ -32,7 +30,6 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
 import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONFIGURABLE_ID = "nele.options"
@@ -80,10 +77,11 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     }
   }
 
-  private class LayoutModeCellRenderer : SimpleListCellRenderer<LayoutType>() {
+  private class LayoutModeCellRenderer :
+    SimpleListCellRenderer<AndroidEditorSettings.LayoutType>() {
     override fun customize(
-      list: JList<out LayoutType>,
-      value: LayoutType?,
+      list: JList<out AndroidEditorSettings.LayoutType>,
+      value: AndroidEditorSettings.LayoutType?,
       index: Int,
       selected: Boolean,
       hasFocus: Boolean,
@@ -94,7 +92,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
 
   private lateinit var preferredResourcesEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
   private lateinit var preferredEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
-  private lateinit var myPreferredLayoutType: ComboBox<LayoutType>
+  private lateinit var myPreferredLayoutType: ComboBox<AndroidEditorSettings.LayoutType>
   private lateinit var shouldShowSplitView: JBCheckBox
 
   private var magnifySensitivity: JSlider? = null
@@ -108,8 +106,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     return comboBox(AndroidEditorSettings.EditorMode.values().asList(), EditorModeCellRenderer())
   }
 
-  private fun Row.editorPreviewLayoutModeComboBox(): Cell<ComboBox<LayoutType>> {
-    return comboBox(LayoutType.values().asList(), LayoutModeCellRenderer())
+  private fun Row.editorPreviewLayoutModeComboBox():
+    Cell<ComboBox<AndroidEditorSettings.LayoutType>> {
+    return comboBox(AndroidEditorSettings.LayoutType.values().asList(), LayoutModeCellRenderer())
   }
 
   override fun createPanel(): DialogPanel {
@@ -255,35 +254,10 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       preferredResourcesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.showSplitViewForPreviewFiles = shouldShowSplitView.isSelected
-    state.preferredPreviewLayoutMode = myPreferredLayoutType.selectedItem as LayoutType
+    state.preferredPreviewLayoutMode =
+      myPreferredLayoutType.selectedItem as AndroidEditorSettings.LayoutType
     magnifySensitivity?.let { state.magnifySensitivity = percentageValueToDouble(it.value) }
-
-    trackAppliedPreferences()
     fireOptionsChanged()
-  }
-
-  private fun trackAppliedPreferences() {
-    val preferencesUsageTracker = UiToolsPreferenceUsageTracker.getInstance()
-
-    with(preferencesUsageTracker) {
-      val magnifyLevel = magnifySensitivity?.value
-
-      val usageType =
-        when {
-          state.isPreviewEssentialsModeEnabled -> ResourceUsageType.ESSENTIAL
-          fastPreviewState.isEnabled -> ResourceUsageType.DEFAULT
-          else -> ResourceUsageType.DEFAULT_WITHOUT_LIVE_UPDATES
-        }
-
-      track(
-        resourcesViewMode = state.preferredResourcesEditorMode,
-        kotlinViewMode = state.preferredKotlinEditorMode,
-        shouldAlwaysShowSplitMode = state.showSplitViewForPreviewFiles,
-        previewLayoutType = state.preferredPreviewLayoutMode,
-        trackPadSensitivity = magnifyLevel,
-        resourceUsage = usageType,
-      )
-    }
   }
 
   override fun reset() {
@@ -300,7 +274,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       // Default drawables to SPLIT and other resource types to DESIGN
       preferredResourcesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
       preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
-      myPreferredLayoutType.selectedItem = LayoutType.GRID
+      myPreferredLayoutType.selectedItem = AndroidEditorSettings.LayoutType.GRID
     } else {
       preferredResourcesEditorMode.selectedItem = state.preferredResourcesEditorMode
       preferredEditorMode.selectedItem = state.preferredEditorMode
