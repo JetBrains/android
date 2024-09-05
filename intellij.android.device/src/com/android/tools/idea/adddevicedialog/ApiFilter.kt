@@ -36,12 +36,12 @@ fun ApiFilter(
   apiLevels: List<AndroidVersion>,
   selectedApiLevel: AndroidVersionSelection,
   onApiLevelChange: (AndroidVersionSelection) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  Column(modifier = Modifier.padding(6.dp)) {
-    Text("API")
+  Column(modifier) {
+    Text("API", Modifier.padding(bottom = 6.dp))
 
     Dropdown(
-      modifier = Modifier.padding(2.dp),
       menuContent = {
         val apiLevels = apiLevels.map { AndroidVersionSelection(it) }
         items(
@@ -51,7 +51,7 @@ fun ApiFilter(
         ) { index ->
           ApiLevel(apiLevels[index])
         }
-      },
+      }
     ) {
       ApiLevel(selectedApiLevel)
     }
