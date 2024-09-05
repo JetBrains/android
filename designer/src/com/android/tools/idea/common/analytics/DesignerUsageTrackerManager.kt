@@ -51,7 +51,7 @@ class DesignerUsageTrackerManager<T, K : Disposable>(
     return sTrackersCache.get(key) {
       if (createIfNotExists) {
         val newTracker = factory(ourExecutorService, key, Consumer { UsageTracker.log(it) })
-        Disposer.register(key, Disposable { sTrackersCache.invalidate(key) })
+        Disposer.register(key) { sTrackersCache.invalidate(key) }
         newTracker
       } else {
         nopTracker
