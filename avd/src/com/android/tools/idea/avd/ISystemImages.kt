@@ -29,6 +29,7 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
 import com.intellij.openapi.diagnostic.thisLogger
+import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
@@ -64,7 +65,7 @@ internal object ISystemImages {
         repoManager.addRemoteChangeListener(listener)
 
         repoManager.loadSynchronously(
-          0,
+          1.days.inWholeMilliseconds,
           indicator,
           StudioDownloader(),
           StudioSettingsController.getInstance(),
