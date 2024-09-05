@@ -41,6 +41,7 @@ private const val EMPTY_CARD = "empty"
 class InsightMainPanel(
   controller: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
+  permissionDeniedHandler: InsightPermissionDeniedHandler,
 ) : JPanel(), DataProvider {
 
   private val scope =
@@ -49,7 +50,12 @@ class InsightMainPanel(
   private var isShowingInsight = false
 
   private val mainContentPanel =
-    InsightContentPanel(scope, controller.state.map { it.currentInsight }, parentDisposable)
+    InsightContentPanel(
+      scope,
+      controller.state.map { it.currentInsight },
+      parentDisposable,
+      permissionDeniedHandler,
+    )
 
   private val issueFlow =
     controller.state
