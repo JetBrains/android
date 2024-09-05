@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.sdklib.devices.Abi
 import com.android.sdklib.getFullApiName
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.ApiFilter
@@ -38,8 +37,6 @@ import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
-import com.android.utils.CpuArchitecture
-import com.android.utils.osArchitecture
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -126,10 +123,10 @@ internal fun DevicePanel(
     )
 
     CheckboxRow(
-      "Only show system images recommended for my host CPU architecture",
-      devicePanelState.onlyForHostCpuArchitectureVisible,
+      "Show only recommended system images",
+      devicePanelState.onlyRecommendedSystemImages,
       onCheckedChange = {
-        onDevicePanelStateChange(devicePanelState.copy(onlyForHostCpuArchitectureVisible = it))
+        onDevicePanelStateChange(devicePanelState.copy(onlyRecommendedSystemImages = it))
       },
     )
   }
@@ -212,7 +209,7 @@ internal constructor(
   internal val selectedApiLevel: AndroidVersionSelection,
   internal val selectedServices: Services?,
   internal val sdkExtensionSystemImagesVisible: Boolean = false,
-  internal val onlyForHostCpuArchitectureVisible: Boolean = true,
+  internal val onlyRecommendedSystemImages: Boolean = true,
 ) {
   internal fun test(image: ISystemImage): Boolean {
     val servicesMatch = selectedServices == null || image.getServices() == selectedServices
@@ -221,20 +218,9 @@ internal constructor(
       (sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension) &&
         selectedApiLevel.matches(image.androidVersion)
 
-    val abisMatch =
-      !onlyForHostCpuArchitectureVisible ||
-        image.abiTypes.contains(valueOfCpuArchitecture(osArchitecture))
-
-    return servicesMatch && androidVersionMatches && abisMatch
-  }
-
-  private companion object {
-    private fun valueOfCpuArchitecture(architecture: CpuArchitecture) =
-      when (architecture) {
-        CpuArchitecture.X86_64 -> Abi.X86_64.toString()
-        CpuArchitecture.ARM -> Abi.ARM64_V8A.toString()
-        else -> throw IllegalArgumentException(architecture.toString())
-      }
+    return servicesMatch &&
+      androidVersionMatches &&
+      (!onlyRecommendedSystemImages || image.isRecommended())
   }
 }
 
