@@ -1364,7 +1364,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GALLERY_PREVIEW = new BooleanFlag(
     PREVIEW_COMMON, "preview.gallery.dropdown", "Enable new Gallery view with dropdown",
     "If enabled, Gallery view will only have dropdown selector instead of tabs.",
-    true);
+    false);
 
   //endregion
 
