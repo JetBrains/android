@@ -28,15 +28,15 @@ import java.io.File;
 import java.nio.file.Path;
 
 /** Blaze implementation of {@link AndroidModuleSystem}. */
-public class BlazeModuleSystem extends BlazeModuleSystemBase {
+public class BazelModuleSystem extends BlazeModuleSystemBase {
 
-  BlazeModuleSystem(Module module) {
+  BazelModuleSystem(Module module) {
     super(module);
   }
 
   @Override
   public ModuleDependencies getModuleDependencies() {
-    return new BlazeModuleDependencies(getModule());
+    return new BazelModuleDependencies(getModule());
   }
 
   public String blazeTargetNameToKotlinModuleName(String blazeTargetName) {

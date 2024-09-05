@@ -45,7 +45,7 @@
     <applicationService serviceInterface="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService"
         serviceImplementation="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService$DefaultImpl"/>
     <dom.fileMetaData implementation="com.google.idea.blaze.android.resources.BlazeResourcesDomFileDescription" rootTagName="resources"/>
-    <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeModuleSystem"/>
+    <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BazelModuleSystem"/>
     <runConfigurationProducer
         implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
         order="first"/>

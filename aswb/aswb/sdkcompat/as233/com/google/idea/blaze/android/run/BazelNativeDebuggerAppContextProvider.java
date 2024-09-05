@@ -20,7 +20,7 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.android.tools.ndk.run.NativeDebuggerAppContext;
 import com.android.tools.ndk.run.NativeDebuggerAppContextProvider;
 import com.android.tools.ndk.run.SymbolDir;
-import com.google.idea.blaze.android.projectsystem.BlazeToken;
+import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 /** An implementation of {@link NativeDebuggerAppContextProvider} for the Blaze project system. */
-public class BlazeNativeDebuggerAppContextProvider
-    implements NativeDebuggerAppContextProvider, BlazeToken {
+public class BazelNativeDebuggerAppContextProvider
+    implements NativeDebuggerAppContextProvider, BazelToken {
 
   @Override
   public NativeDebuggerAppContext getNativeDebuggerAppContext(

@@ -34,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** ASwB specific implementation of [ModuleDependencies]. */
-public class BlazeModuleDependencies implements ModuleDependencies {
+public class BazelModuleDependencies implements ModuleDependencies {
 
   Module module;
 
-  BlazeModuleDependencies(Module module) {
+  BazelModuleDependencies(Module module) {
     this.module = module;
   }
 
@@ -60,7 +60,7 @@ public class BlazeModuleDependencies implements ModuleDependencies {
     // locations
     return ImmutableList.<String>builder()
         .addAll(
-            BlazeModuleSystem.getInstance(module)
+          BazelModuleSystem.getInstance(module)
                 .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
                 .stream()
                 .map(ExternalAndroidLibrary::getPackageName)

@@ -19,9 +19,9 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.Token;
 
 /** A mix-in implementation of the {@link Token} interface for the Blaze project system. */
-public interface BlazeToken extends Token {
+public interface BazelToken extends Token {
   @Override
   default boolean isApplicable(AndroidProjectSystem projectSystem) {
-    return projectSystem instanceof BlazeProjectSystem;
+    return projectSystem instanceof BazelProjectSystem;
   }
 }
