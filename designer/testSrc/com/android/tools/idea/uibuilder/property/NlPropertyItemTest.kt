@@ -35,6 +35,7 @@ import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_SRC_COMPAT
 import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
+import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -71,6 +72,7 @@ import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.application.readAction
@@ -858,6 +860,28 @@ class NlPropertyItemTest {
           .isEqualTo(EDITOR_NO_ERROR)
       }
     }
+
+  @Test
+  fun testFontFamilyProperty() {
+    val util = SupportTestUtil(projectRule, createTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STRING)
+    val textView = util.components.single()
+    val snapshot: TagSnapshot = mock()
+    textView.snapshot = snapshot
+    val styleName = "?android:attr/textAppearanceLarge"
+    whenever(snapshot.getAttribute(ATTR_STYLE, "")).thenReturn(styleName)
+    val manager = getSceneManager(property)
+    manager.putDefaultPropertyValue(
+      textView,
+      ResourceNamespace.ANDROID,
+      ATTR_TEXT_APPEARANCE,
+      styleName,
+    )
+    waitUntilLastSelectionUpdateCompleted(property.model)
+
+    assertThat(property.value).isNull()
+    assertThat(property.defaultValue).isEqualTo("sans-serif")
+  }
 
   private fun createTextView(): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
