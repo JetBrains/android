@@ -93,7 +93,9 @@ internal fun AdditionalSettingsPanel(
       StorageGroup(
         configureDevicePanelState.device,
         additionalSettingsPanelState.storageGroupState,
+        configureDevicePanelState.isValid,
         configureDevicePanelState::device::set,
+        configureDevicePanelState::setExpandedStorage,
       )
 
       EmulatedPerformanceGroup(
@@ -208,7 +210,9 @@ private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 private fun StorageGroup(
   device: VirtualDevice,
   storageGroupState: StorageGroupState,
+  isValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onExpandedStorageChange: (ExpandedStorage) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
@@ -236,9 +240,7 @@ private fun StorageGroup(
         storageGroupState.selectedRadioButton,
         onClick = {
           storageGroupState.selectedRadioButton = RadioButton.CUSTOM
-
-          val custom = storageGroupState.custom.withMaxUnit()
-          onDeviceChange(device.copy(expandedStorage = Custom(custom)))
+          onExpandedStorageChange(Custom(storageGroupState.custom.withMaxUnit()))
         },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
       )
@@ -255,7 +257,6 @@ private fun StorageGroup(
     }
 
     Row {
-      val existingImageFieldState = storageGroupState.existingImageFieldState
       val fileSystem = LocalFileSystem.current
 
       RadioButtonRow(
@@ -264,26 +265,19 @@ private fun StorageGroup(
         onClick = {
           storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
 
-          if (existingImageFieldState.valid) {
-            val image = fileSystem.getPath(existingImageFieldState.value)
-            onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
-          }
+          val image = fileSystem.getPath(storageGroupState.existingImage)
+          onExpandedStorageChange(ExistingImage(image))
         },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
       )
 
       ExistingImageField(
-        existingImageFieldState,
+        storageGroupState.existingImage,
         storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
-        onStateChange = {
-          storageGroupState.existingImageFieldState = it
-
-          if (it.valid) {
-            val image = fileSystem.getPath(it.value)
-            onDeviceChange(device.copy(expandedStorage = ExistingImage(image)))
-          }
-
-          // TODO Else image is not valid. Disable the Add button.
+        isValid,
+        onExistingImageChange = {
+          storageGroupState.existingImage = it
+          onExpandedStorageChange(ExistingImage(fileSystem.getPath(it)))
         },
         Modifier.alignByBaseline(),
       )
@@ -294,7 +288,7 @@ private fun StorageGroup(
       storageGroupState.selectedRadioButton,
       onClick = {
         storageGroupState.selectedRadioButton = RadioButton.NONE
-        onDeviceChange(device.copy(expandedStorage = None))
+        onExpandedStorageChange(None)
       },
     )
   }
@@ -312,25 +306,23 @@ private fun <E : Enum<E>> RadioButtonRow(
 
 @Composable
 private fun ExistingImageField(
-  state: ExistingImageFieldState,
+  existingImage: String,
   enabled: Boolean,
-  onStateChange: (ExistingImageFieldState) -> Unit,
+  isValid: Boolean,
+  onExistingImageChange: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier) {
-    if (enabled && !state.valid) {
+    if (enabled && !isValid) {
       Text("The specified image must be a valid file")
     }
 
-    val fileSystem = LocalFileSystem.current
     @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
     val project = LocalProject.current
 
     TextField(
-      state.value,
-      onValueChange = {
-        onStateChange(ExistingImageFieldState(it, Files.isRegularFile(fileSystem.getPath(it))))
-      },
+      existingImage,
+      onExistingImageChange,
       Modifier.testTag("ExistingImageField"),
       enabled,
       trailingIcon = {
@@ -342,10 +334,7 @@ private fun ExistingImageField(
               enabled,
               onClick = {
                 val image = chooseFile(component, project)
-
-                if (image != null) {
-                  onStateChange(ExistingImageFieldState(image.toString(), true))
-                }
+                if (image != null) onExistingImageChange(image.toString())
               },
             )
             .pointerHoverIcon(PointerIcon.Default),
@@ -449,9 +438,7 @@ internal class AdditionalSettingsPanelState internal constructor(device: Virtual
 internal class StorageGroupState internal constructor(device: VirtualDevice) {
   internal var selectedRadioButton by mutableStateOf(RadioButton.valueOf(device.expandedStorage))
   internal var custom by mutableStateOf(customValue(device))
-
-  internal var existingImageFieldState by
-    mutableStateOf(ExistingImageFieldState.from(device.expandedStorage))
+  internal var existingImage by mutableStateOf(device.expandedStorage.toTextFieldValue())
 
   private companion object {
     private fun customValue(device: VirtualDevice) =
@@ -460,6 +447,8 @@ internal class StorageGroupState internal constructor(device: VirtualDevice) {
       } else {
         StorageCapacity(512, StorageCapacity.Unit.MB)
       }
+
+    private fun ExpandedStorage.toTextFieldValue() = if (this is ExistingImage) toString() else ""
   }
 }
 
@@ -480,28 +469,6 @@ internal enum class RadioButton {
         is Custom -> CUSTOM
         is ExistingImage -> EXISTING_IMAGE
         is None -> NONE
-      }
-  }
-}
-
-/**
- * @property value the value of the Existing image text field
- * @property valid if Files.isRegularFile(Path.of(value)) is true
- */
-internal data class ExistingImageFieldState
-internal constructor(internal val value: String, internal val valid: Boolean) {
-  internal companion object {
-    internal fun from(storage: ExpandedStorage) =
-      if (storage is ExistingImage) {
-        // If storage is an ExistingImage the Existing image radio button is selected.
-        // storage.toString() returns storage.value.toString() which must be a valid path. Set valid
-        // to true.
-        ExistingImageFieldState(storage.toString(), true)
-      } else {
-        // The Existing image radio button is not selected. The Existing image text field is still
-        // displayed, and it still needs a string value. Use the empty string and set valid to false
-        // because the empty string is not a path to a real file.
-        ExistingImageFieldState("", false)
       }
   }
 }

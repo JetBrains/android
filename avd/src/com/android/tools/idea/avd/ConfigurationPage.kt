@@ -31,6 +31,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
+import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.Skin
@@ -93,7 +94,7 @@ internal fun WizardPageScope.ConfigurationPage(
     return
   }
 
-  val configureDevicePanelState =
+  val state =
     remember(device) {
       configureDevicePanelState(
         device,
@@ -107,15 +108,13 @@ internal fun WizardPageScope.ConfigurationPage(
   val coroutineScope = rememberCoroutineScope()
 
   ConfigureDevicePanel(
-    configureDevicePanelState,
+    state,
     image,
     images,
     onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
     onSystemImageTableRowClick = {
-      configureDevicePanelState.systemImageTableSelectionState.selection = it
-
-      val skin = resolve(configureDevicePanelState.device.skin.path(), it.skins)
-      configureDevicePanelState.setSkin(skin)
+      state.systemImageTableSelectionState.selection = it
+      state.setSkin(resolve(state.device.skin.path(), it.skins))
     },
     onImportButtonClick = {
       // TODO Validate the skin
@@ -127,26 +126,22 @@ internal fun WizardPageScope.ConfigurationPage(
           null,
         )
 
-      if (skin != null) {
-        configureDevicePanelState.setSkin(skin.toNioPath())
-      }
+      if (skin != null) state.setSkin(skin.toNioPath())
     },
   )
 
   nextAction = WizardAction.Disabled
 
-  finishAction = WizardAction {
-    coroutineScope.launch {
-      val selectedDevice = configureDevicePanelState.device
-      val selectedImage = configureDevicePanelState.systemImageTableSelectionState.selection!!
-
-      if (ensureSystemImageIsPresent(selectedImage, parent)) {
-        if (finish(selectedDevice, selectedImage)) {
-          close()
+  finishAction =
+    if (state.isValid) {
+      WizardAction {
+        coroutineScope.launch {
+          finish(state.device, state.systemImageTableSelectionState.selection!!, parent, finish)
         }
       }
+    } else {
+      WizardAction.Disabled
     }
-  }
 }
 
 private fun configureDevicePanelState(
@@ -162,6 +157,19 @@ private fun configureDevicePanelState(
   }
 
   return state
+}
+
+private suspend fun WizardDialogScope.finish(
+  device: VirtualDevice,
+  image: ISystemImage,
+  parent: Component,
+  finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+) {
+  if (ensureSystemImageIsPresent(image, parent)) {
+    if (finish(device, image)) {
+      close()
+    }
+  }
 }
 
 /**
