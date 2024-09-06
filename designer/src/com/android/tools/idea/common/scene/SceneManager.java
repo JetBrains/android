@@ -29,6 +29,7 @@ import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -279,29 +280,24 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @Override
   public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reasons) {
-    for (ResourceNotificationManager.Reason reason : reasons) {
-      switch (reason) {
-        case RESOURCE_EDIT:
-          myModel.notifyModified(ChangeType.RESOURCE_EDIT);
-          break;
-        case EDIT:
-          myModel.notifyModified(ChangeType.EDIT);
-          break;
-        case IMAGE_RESOURCE_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(ChangeType.RESOURCE_CHANGED);
-          break;
-        case GRADLE_SYNC:
-        case PROJECT_BUILD:
-        case VARIANT_CHANGED:
-        case SDK_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(ChangeType.BUILD);
-          break;
-        case CONFIGURATION_CHANGED:
-          myModel.notifyModified(ChangeType.CONFIGURATION_CHANGE);
-          break;
-      }
-    }
+    boolean shouldClearRenderCache = reasons.stream().anyMatch((reason -> {
+      ChangeType changeType = getNlModelChangeType(reason);
+      return changeType == ChangeType.BUILD || changeType == ChangeType.RESOURCE_CHANGED;
+    }));
+    // TODO(b/365124075): add support for using a set of reasons and not only the last one.
+    ResourceNotificationManager.Reason lastReason = Iterables.getLast(reasons, null);
+
+    if (shouldClearRenderCache) RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
+    if (lastReason != null) myModel.notifyModified(getNlModelChangeType(lastReason));
+  }
+
+  private ChangeType getNlModelChangeType(ResourceNotificationManager.Reason reason) {
+    return switch (reason) {
+      case RESOURCE_EDIT -> ChangeType.RESOURCE_EDIT;
+      case EDIT -> ChangeType.EDIT;
+      case CONFIGURATION_CHANGED -> ChangeType.CONFIGURATION_CHANGE;
+      case IMAGE_RESOURCE_CHANGED -> ChangeType.RESOURCE_CHANGED;
+      default -> ChangeType.BUILD;
+    };
   }
 }
