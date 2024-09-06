@@ -37,17 +37,15 @@ interface BackupManager {
    *
    * @param serialNumber Serial number of a connected device
    * @param applicationId Application ID (package name) of the app
-   * @param backupFile A path to write the backup data to
    * @param notify If true, will post a notification on completion
    */
   @UiThread
-  fun backupModal(
+  fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
-    backupFile: Path,
     source: Source,
     notify: Boolean = true,
-  ): BackupResult
+  )
 
   /**
    * Restore an app from a local file and show a progress dialog
@@ -79,9 +77,6 @@ interface BackupManager {
     listener: BackupProgressListener? = null,
     notify: Boolean = true,
   ): BackupResult
-
-  /** Display a file chooser dialog for saving a backup file */
-  suspend fun chooseBackupFile(nameHint: String): Path?
 
   /** Display a file chooser dialog for loading a backup file */
   fun chooseRestoreFile(): Path?

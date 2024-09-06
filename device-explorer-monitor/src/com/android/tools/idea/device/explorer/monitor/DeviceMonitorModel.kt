@@ -109,9 +109,7 @@ class DeviceMonitorModel @NonInjectable constructor(
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
     val processInfo = tableModel.getValueForRow(rows.first())
-    val backupFile = BackupManager.getInstance(project).chooseBackupFile(processInfo.packageName ?: "backup") ?: return
-
-    processService.backupApplication(project, processInfo, adbDevice.device, backupFile)
+    processService.backupApplication(project, processInfo, adbDevice.device)
   }
 
   fun restoreApplication(project: Project, rows: IntArray) {

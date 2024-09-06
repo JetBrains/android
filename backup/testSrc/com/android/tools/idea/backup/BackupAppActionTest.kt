@@ -17,9 +17,6 @@ package com.android.tools.idea.backup
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.testing.FakeActionHelper
-import com.android.tools.idea.backup.testing.FakeBackupManager
-import com.android.tools.idea.backup.testing.FakeBackupManager.Action.BackupModal
-import com.android.tools.idea.backup.testing.FakeBackupManager.Action.ChooseBackupFile
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -32,11 +29,13 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
-import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 
 /** Tests for [BackupAppAction] */
 @RunWith(JUnit4::class)
@@ -45,14 +44,14 @@ internal class BackupAppActionTest {
   private val project
     get() = projectRule.project
 
-  private val fakeBackupManager = FakeBackupManager()
+  private val mockBackupManager = mock<BackupManager>()
 
   @get:Rule
   val rule =
     RuleChain(
       projectRule,
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
-      ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
+      ProjectServiceRule(projectRule, BackupManager::class.java, mockBackupManager),
     )
 
   @Test
@@ -100,12 +99,9 @@ internal class BackupAppActionTest {
     action.actionPerformed(event)
 
     runInEdtAndWait {}
-    assertThat(fakeBackupManager.actions)
-      .containsExactly(
-        ChooseBackupFile("com.app"),
-        BackupModal("serial", "com.app", Path.of("com.app.backup"), notify = true),
-      )
-      .inOrder()
+
+    verify(mockBackupManager)
+      .showBackupDialog("serial", "com.app", BackupManager.Source.RUN_MENU, notify = true)
     assertThat(actionHelper.warnings).isEmpty()
   }
 
@@ -118,7 +114,7 @@ internal class BackupAppActionTest {
     action.actionPerformed(event)
 
     runInEdtAndWait {}
-    assertThat(fakeBackupManager.actions).isEmpty()
+    verifyNoInteractions(mockBackupManager)
     assertThat(actionHelper.warnings)
       .containsExactly("Cannot Backup Application: Selected device is not running")
   }
@@ -131,7 +127,7 @@ internal class BackupAppActionTest {
     action.actionPerformed(event)
 
     runInEdtAndWait {}
-    assertThat(fakeBackupManager.actions).isEmpty()
+    verifyNoInteractions(mockBackupManager)
     assertThat(actionHelper.warnings)
       .containsExactly("Cannot Backup Application: Action is not supported for multiple devices")
   }
@@ -145,7 +141,7 @@ internal class BackupAppActionTest {
     action.actionPerformed(event)
 
     runInEdtAndWait {}
-    assertThat(fakeBackupManager.actions).isEmpty()
+    verifyNoInteractions(mockBackupManager)
     assertThat(actionHelper.warnings)
       .containsExactly("Cannot Backup Application: Selected device is not running")
   }
