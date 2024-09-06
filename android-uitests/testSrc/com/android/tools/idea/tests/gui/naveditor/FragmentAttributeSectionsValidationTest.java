@@ -54,8 +54,6 @@ public class FragmentAttributeSectionsValidationTest {
   private NlEditorFixture myNlEditorFixture;
   @Before
   public void setUp() throws Exception {
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
