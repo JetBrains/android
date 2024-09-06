@@ -249,7 +249,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       getModel().newRenderTemplate
     );
 
-    myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
+    myProjectLocation.addBrowseFolderListener(null, createSingleFolderDescriptor());
 
     myListeners.listenAndFire(getModel().formFactor, () -> {
       FormFactor formFactor = getModel().formFactor.get();

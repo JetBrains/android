@@ -995,10 +995,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
         return super.isFileVisible(file, true);
       }
-    };
-
-    fileChooserDescriptor.setHideIgnored(false);
-    myExternalSdCard.addBrowseFolderListener("Select SD Card", "Select an existing SD card image", myProject, fileChooserDescriptor);
+    }.withHideIgnored(false).withTitle("Select SD Card").withDescription("Select an existing SD card image");
+    myExternalSdCard.addBrowseFolderListener(myProject, fileChooserDescriptor);
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
