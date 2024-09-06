@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.getOrCreateUserData
+import com.intellij.openapi.util.getOrCreateUserDataUnsafe
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import java.util.WeakHashMap
@@ -79,7 +80,7 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
   private fun getBuildServicesStatus(buildTarget: GradleBuildTargetReference): GradleBuildServicesStatus {
     val module = buildTarget.module
-    return module.getOrCreateUserData(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
+    return module.getOrCreateUserDataUnsafe(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
   }
 
   /**
