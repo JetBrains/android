@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
