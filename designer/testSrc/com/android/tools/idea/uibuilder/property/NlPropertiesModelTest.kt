@@ -151,7 +151,6 @@ class NlPropertiesModelTest {
     nlModel.surface
       .getSceneManager(nlModel)!!
       .resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
-    nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
@@ -173,7 +172,6 @@ class NlPropertiesModelTest {
     model.addListener(listener)
 
     nlModel.notifyLiveUpdate()
-    nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener, atLeast(1)).propertyValuesChanged(model)
   }
@@ -194,7 +192,6 @@ class NlPropertiesModelTest {
     model.addListener(listener)
 
     textView.fireLiveChangeEvent()
-    nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
@@ -281,7 +278,6 @@ class NlPropertiesModelTest {
       "@android:style/TextAppearance.Large",
     )
     manager.requestRenderAsync()
-    nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
