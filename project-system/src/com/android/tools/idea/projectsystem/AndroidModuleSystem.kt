@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -385,6 +386,16 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   /** Return a string suitable for presenting to the user to identify this Module System's module. */
   fun getDisplayNameForModule(): String = module.name
+
+  /**
+   * Is this module an Android module that contains Android entities that are potentially relevant for production?  Returning
+   * `true` from this implies the presence of an [AndroidFacet] for the [module].
+   */
+  // TODO(xof): this (by and large) replaces calls to isMainModule, except that there might be two sorts of uses of isMainModule().  One
+  //  is approximately "does this module contain production sources?"; the other is "is this module the most likely-relevant module from
+  //  all the modules in this linked module group".  The difference shows up in projects that have type = Type.TEST under Gradle, where
+  //  the main module of that linked group is not a production module.
+  fun isProductionAndroidModule() = AndroidFacet.getInstance(module) != null
 }
 
 /**

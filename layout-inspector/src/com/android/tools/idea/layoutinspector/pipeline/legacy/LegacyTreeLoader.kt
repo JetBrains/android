@@ -33,7 +33,7 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.data.createReference
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -42,7 +42,6 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 
 private val CONFIGURATION_REGEX = Regex("config: (.*)")
 private val ACTIVITY_REGEX = Regex("mFocusedActivity: ActivityRecord\\{[^ ]+ [^ ]+ ([^ ]+) [^ ]+}")
@@ -151,7 +150,8 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     client.latestTheme = ""
     val activity = findCurrentActivity(adb)
     val module =
-      client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
+      client.model.project.modules.find { it.getModuleSystem().isProductionAndroidModule() }
+        ?: return null
     val themeString =
       activity?.let { module.getThemeNameForActivity(it) }
         ?: module.getAppThemeName()
