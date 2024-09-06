@@ -18,23 +18,28 @@ package com.android.tools.idea.testing
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.util.ThrowableRunnable
 
-/**
- * Executes the given runnable and returns the logged error messages.
- */
+/** Executes the given runnable and returns the logged error messages. */
 fun executeCapturingLoggedErrors(runnable: ThrowableRunnable<RuntimeException>): List<String> {
   val errorProcessor = LoggedErrorCapturer()
   LoggedErrorProcessor.executeWith(errorProcessor, runnable)
   return errorProcessor.errorMessages
 }
 
-/**
- * Executes the given runnable and returns the warning messages.
- */
+/** Executes the given runnable and returns the logged warning messages. */
 fun executeCapturingLoggedWarnings(runnable: ThrowableRunnable<RuntimeException>): List<String> {
   val errorProcessor = LoggedErrorCapturer()
   LoggedErrorProcessor.executeWith(errorProcessor, runnable)
   return errorProcessor.warningMessages
 }
+
+/** Executes the given runnable and returns the logged error and warning messages. */
+fun executeCapturingLoggedErrorsAndWarnings(runnable: ThrowableRunnable<RuntimeException>): LoggedMessages {
+  val errorProcessor = LoggedErrorCapturer()
+  LoggedErrorProcessor.executeWith(errorProcessor, runnable)
+  return LoggedMessages(errorProcessor.errorMessages, errorProcessor.warningMessages)
+}
+
+data class LoggedMessages(val errors: List<String>, val warnings: List<String>)
 
 private class LoggedErrorCapturer : LoggedErrorProcessor() {
   val errorMessages = mutableListOf<String>()
