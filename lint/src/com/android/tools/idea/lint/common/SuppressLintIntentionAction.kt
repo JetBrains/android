@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeFileType
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType
 import com.android.tools.lint.detector.api.Issue
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.icons.AllIcons

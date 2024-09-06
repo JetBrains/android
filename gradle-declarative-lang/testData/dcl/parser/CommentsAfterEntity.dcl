@@ -1,0 +1,5 @@
+dependencies{
+}
+/* Some comment
+ foo()
+*/

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
