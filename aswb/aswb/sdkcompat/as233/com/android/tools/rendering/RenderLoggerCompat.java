@@ -22,7 +22,7 @@ import java.util.Set;
 public class RenderLoggerCompat {
   private final RenderLogger renderLogger;
 
-  public RenderLoggerCompat(RenderResultCompat result) {
+  public RenderLoggerCompat(RenderResult result) {
     renderLogger = result.getLogger();
   }
 

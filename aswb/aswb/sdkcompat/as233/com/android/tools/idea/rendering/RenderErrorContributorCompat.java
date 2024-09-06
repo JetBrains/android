@@ -16,14 +16,14 @@
 package com.android.tools.idea.rendering;
 
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.rendering.RenderResultCompat;
+import com.android.tools.rendering.RenderResult;
 import com.intellij.openapi.actionSystem.DataContext;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 
 /** Contribute blaze specific render errors. */
 public class RenderErrorContributorCompat extends RenderErrorContributorImpl {
   public RenderErrorContributorCompat(
-      EditorDesignSurface surface, RenderResultCompat result, @Nullable DataContext dataContext) {
-    super(surface, result.get());
+    EditorDesignSurface surface, RenderResult result, @Nullable DataContext dataContext) {
+    super(surface, result);
   }
 }

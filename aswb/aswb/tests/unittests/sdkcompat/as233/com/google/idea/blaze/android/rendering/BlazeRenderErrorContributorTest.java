@@ -21,9 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.rendering.RenderErrorContributor;
+import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderIssueCollectionConsumer;
+import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.rendering.RenderResultCompat;
+import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -94,7 +96,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   private ProjectFileIndex projectFileIndex;
   private Module module;
   private MockBlazeProjectDataManager projectDataManager;
-  private RenderResultCompat.BlazeProvider provider;
+  private RenderErrorContributor.Provider provider;
 
   @Override
   protected void initTest(Container applicationServices, Container projectServices) {
@@ -131,7 +133,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
         registerExtensionPoint(
             ExtensionPointName.create("com.android.rendering.renderErrorContributor"),
             RenderErrorContributor.Provider.class);
-    extensionPoint.registerExtension(new RenderResultCompat.BlazeProvider());
+    extensionPoint.registerExtension(new BlazeRenderErrorContributor.Provider());
     ExtensionPoint<RenderIssueCollectionConsumer.Provider> consumerExtensionPoint =
         registerExtensionPoint(
             ExtensionPointName.create(
@@ -142,7 +144,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     module = new MockModule(project, () -> {});
 
     // For the isApplicable tests.
-    provider = new RenderResultCompat.BlazeProvider();
+    provider = new BlazeRenderErrorContributor.Provider();
   }
 
   @Test
@@ -162,7 +164,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     when(projectFileIndex.getModuleForFile(virtualFile)).thenReturn(module);
     PsiFile file = new MockPsiFile(virtualFile, new MockPsiManager(project));
     file.putUserData(ModuleUtilCore.KEY_MODULE, module);
-    RenderErrorModel errorModel = RenderResultCompat.createBlank(file).createErrorModel();
+    RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(null, RenderResults.createBlank(file));
     assertThat(errorModel.getIssues()).isEmpty();
   }
 
@@ -333,11 +335,11 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     when(projectFileIndex.getModuleForFile(virtualFile)).thenReturn(module);
     PsiFile file = new MockPsiFile(virtualFile, new MockPsiManager(project));
     file.putUserData(ModuleUtilCore.KEY_MODULE, module);
-    RenderResultCompat result = RenderResultCompat.createBlank(file);
+    RenderResult result = RenderResults.createBlank(file);
     result
         .getLogger()
         .addBrokenClass("com.google.example.CustomView", new Exception("resource not found"));
-    return result.createErrorModel();
+    return RenderErrorModelFactory.createErrorModel(null, result);
   }
 
   private RenderErrorModel createRenderErrorModelWithMissingClasses(String... classNames) {
@@ -345,11 +347,11 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     when(projectFileIndex.getModuleForFile(virtualFile)).thenReturn(module);
     PsiFile file = new MockPsiFile(virtualFile, new MockPsiManager(project));
     file.putUserData(ModuleUtilCore.KEY_MODULE, module);
-    RenderResultCompat result = RenderResultCompat.createBlank(file);
+    RenderResult result = RenderResults.createBlank(file);
     for (String className : classNames) {
       result.getLogger().addMissingClass(className);
     }
-    return result.createErrorModel();
+    return RenderErrorModelFactory.createErrorModel(null, result);
   }
 
   private static ArtifactLocation artifact(String relativePath, boolean isSource) {
