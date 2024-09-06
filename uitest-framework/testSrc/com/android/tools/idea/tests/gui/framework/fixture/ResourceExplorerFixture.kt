@@ -33,6 +33,7 @@ import org.fest.swing.fixture.JPanelFixture
 import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.fest.swing.timing.Wait
+import java.awt.event.KeyEvent
 import java.util.regex.Pattern
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
@@ -106,7 +107,8 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
       // If the desired tab is not visible, click the overflow button and look it over in the pop-up menu.
       val overflowButton = finder().findByType(tabsWrapper, ActionButton::class.java)
       robot().click(overflowButton)
-      IdeFrameFixture.find(robot()).invokeMenuPath(resourceTypeDisplayName)
+      ListPopupFixture.selectItemByText(IdeFrameFixture.find(robot()), resourceTypeDisplayName)
+      robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
     }
     return this
   }
