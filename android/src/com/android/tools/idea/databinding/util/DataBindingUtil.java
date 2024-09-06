@@ -320,7 +320,7 @@ public final class DataBindingUtil {
   @Nullable
   public static String getBrQualifiedName(@NotNull AndroidFacet facet) {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet);
-    if (!ModuleSystemUtil.isMainModule(facet.getModule())) {
+    if (!moduleSystem.isProductionAndroidModule()) {
       // The BR class is only generated for the main module (not androidTest or unit test).
       return null;
     }
