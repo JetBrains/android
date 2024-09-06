@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.idea.ActionsBundle
@@ -32,6 +31,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ShowQuickFixesActionTest {
 

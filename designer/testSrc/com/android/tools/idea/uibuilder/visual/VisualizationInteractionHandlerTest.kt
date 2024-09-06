@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.AndroidXConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
@@ -30,6 +29,7 @@ import java.awt.event.KeyEvent
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class VisualizationInteractionHandlerTest : SceneTest() {
 

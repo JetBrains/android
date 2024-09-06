@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.layout.scroller
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.surface.layout.TestDesignSurfaceViewport
 import java.awt.Component
 import java.awt.Dimension
@@ -23,6 +22,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import org.junit.Assert
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class TopLeftCornerScrollerTest {
   @Test
@@ -31,8 +32,8 @@ class TopLeftCornerScrollerTest {
     val oldViewSize = Dimension(1000, 1000)
     val newViewSize = Dimension(2000, 2000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
@@ -47,8 +48,8 @@ class TopLeftCornerScrollerTest {
     val oldViewSize = Dimension(1000, 1000)
     val newViewSize = Dimension(2000, 2000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
@@ -63,8 +64,8 @@ class TopLeftCornerScrollerTest {
     val oldViewSize = Dimension(2000, 2000)
     val newViewSize = Dimension(1000, 1000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
@@ -79,8 +80,8 @@ class TopLeftCornerScrollerTest {
     val oldViewSize = Dimension(2000, 2000)
     val newViewSize = Dimension(1000, 1000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =

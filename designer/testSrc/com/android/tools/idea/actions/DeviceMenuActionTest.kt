@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
@@ -42,6 +41,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 private fun isAvdAction(action: AnAction): Boolean {
   val text = action.templatePresentation.text

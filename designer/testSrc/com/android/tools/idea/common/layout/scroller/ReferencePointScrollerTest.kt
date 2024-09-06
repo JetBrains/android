@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.layout.scroller
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.layout.TestDesignSurfaceViewport
 import java.awt.Component
@@ -24,6 +23,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import org.junit.Assert
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ReferencePointScrollerTest {
   @Test
@@ -35,11 +36,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(1000, 1000)
     val newViewSize = Dimension(2000, 2000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldSceneViewRectangle = Rectangle(200, 200, 200, 200)
     val newSceneViewRectangle = Rectangle(400, 400, 400, 400)
     val oldMousePosition = Point(300, 300)
@@ -67,11 +68,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(1000, 1000)
     val newViewSize = Dimension(2000, 2000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldMousePosition = Point(300, 300)
     val scroller =
       ReferencePointScroller(
@@ -97,11 +98,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(1000, 1000)
     val newViewSize = Dimension(2000, 2000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldSceneViewRectangle = Rectangle(200, 200, 200, 200)
     val newSceneViewRectangle = Rectangle(450, 450, 400, 400)
     val oldMousePosition = Point(300, 300)
@@ -129,11 +130,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(2000, 2000)
     val newViewSize = Dimension(1000, 1000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldSceneViewRectangle = Rectangle(400, 400, 400, 400)
     val newSceneViewRectangle = Rectangle(200, 200, 200, 200)
     val oldMousePosition = Point(500, 500)
@@ -161,11 +162,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(2000, 2000)
     val newViewSize = Dimension(1000, 1000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldMousePosition = Point(500, 500)
     val scroller =
       ReferencePointScroller(
@@ -191,11 +192,11 @@ class ReferencePointScrollerTest {
     val oldViewSize = Dimension(2000, 2000)
     val newViewSize = Dimension(1000, 1000)
 
-    val viewComponent = MockitoKt.mock<Component>()
-    MockitoKt.whenever(viewComponent.preferredSize).thenReturn(newViewSize)
+    val viewComponent = mock<Component>()
+    whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val sceneViewMock = MockitoKt.mock<SceneView>()
+    val sceneViewMock = mock<SceneView>()
     val oldSceneViewRectangle = Rectangle(400, 400, 400, 400)
     val newSceneViewRectangle = Rectangle(250, 250, 200, 200)
     val oldMousePosition = Point(500, 500)

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.menu
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
@@ -35,6 +34,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 @RunWith(Parameterized::class)
 class SearchItemHandlerTest(

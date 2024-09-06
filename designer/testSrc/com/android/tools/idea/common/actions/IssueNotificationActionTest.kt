@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanelService
@@ -51,6 +49,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class IssueNotificationActionTest {
 
