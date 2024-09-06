@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,7 @@ import com.android.tools.idea.adddevicedialog.DeviceLoadingPage
 import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.FormFactor
-import com.android.tools.idea.adddevicedialog.SingleSelectionDropdown
+import com.android.tools.idea.adddevicedialog.SingleSelectionRadioButtons
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
@@ -53,7 +54,9 @@ import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.CheckboxRow
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
@@ -106,10 +109,11 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
               profiles,
               avdColumns,
               filterContent = {
-                SingleSelectionDropdown(
+                SingleSelectionRadioButtons(
                   FormFactor.uniqueValuesOf(profiles),
                   filterState.formFactorFilter,
                 )
+                Divider(orientation = Orientation.Horizontal, Modifier.padding(16.dp))
                 CheckboxRow(
                   "Show obsolete device profiles",
                   checked = filterState.showDeprecated,
