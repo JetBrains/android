@@ -59,14 +59,12 @@ internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHe
     }
   }
 
-  private suspend fun doBackup(project: Project, backupInfo: Valid) {
+  private fun doBackup(project: Project, backupInfo: Valid) {
     val backupManager = BackupManager.getInstance(project)
     val applicationId = backupInfo.applicationId
-    val backupFile = backupManager.chooseBackupFile(applicationId) ?: return
-    backupManager.backupModal(
+    backupManager.showBackupDialog(
       backupInfo.serialNumber,
       applicationId,
-      backupFile,
       BackupManager.Source.RUN_MENU,
     )
   }

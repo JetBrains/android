@@ -18,7 +18,6 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupException
 import com.android.backup.BackupResult
 import com.android.backup.BackupService
-import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.tools.analytics.UsageTrackerRule
@@ -43,18 +42,17 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Path
+import kotlin.io.path.pathString
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import kotlin.io.path.pathString
 
 /** Tests for [BackupManagerImpl] */
 @RunsInEdt
@@ -77,10 +75,18 @@ internal class BackupManagerImplTest {
     val serialNumber = "serial"
     val applicationId = "app"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.backup(eq(serialNumber), eq(applicationId), eq(DEVICE_TO_DEVICE), eq(backupFile), any()))
+    whenever(
+        mockBackupService.backup(
+          eq(serialNumber),
+          eq(applicationId),
+          eq(DEVICE_TO_DEVICE),
+          eq(backupFile),
+          any(),
+        )
+      )
       .thenReturn(BackupResult.Success)
 
-    backupManagerImpl.backupModal(
+    backupManagerImpl.doBackup(
       serialNumber,
       applicationId,
       backupFile,
@@ -93,14 +99,19 @@ internal class BackupManagerImplTest {
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
-      .assert(title = "", "Backup completed successfully", INFORMATION, "ShowPostBackupDialogAction")
+      .assert(
+        title = "",
+        "Backup completed successfully",
+        INFORMATION,
+        "ShowPostBackupDialogAction",
+      )
   }
 
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
-    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else  "/path/file")
+    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else "/path/file")
     whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
       .thenReturn(BackupResult.Success)
 
@@ -120,7 +131,13 @@ internal class BackupManagerImplTest {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(Path.of(project.basePath ?: "", backupFile.pathString)), anyOrNull()))
+    whenever(
+        mockBackupService.restore(
+          eq(serialNumber),
+          eq(Path.of(project.basePath ?: "", backupFile.pathString)),
+          anyOrNull(),
+        )
+      )
       .thenReturn(BackupResult.Success)
 
     backupManagerImpl.restore(
@@ -174,7 +191,10 @@ internal class BackupManagerImplTest {
     val backupFile = Path.of("file")
     whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
       .thenReturn(
-        BackupResult.Error(ErrorCode.GMSCORE_IS_TOO_OLD, BackupException(ErrorCode.GMSCORE_IS_TOO_OLD, "Error"))
+        BackupResult.Error(
+          ErrorCode.GMSCORE_IS_TOO_OLD,
+          BackupException(ErrorCode.GMSCORE_IS_TOO_OLD, "Error"),
+        )
       )
 
     backupManagerImpl.restore(
@@ -217,10 +237,18 @@ internal class BackupManagerImplTest {
     val serialNumber = "serial"
     val applicationId = "app"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.backup(eq(serialNumber), eq(applicationId), eq(DEVICE_TO_DEVICE), eq(backupFile), any()))
+    whenever(
+        mockBackupService.backup(
+          eq(serialNumber),
+          eq(applicationId),
+          eq(DEVICE_TO_DEVICE),
+          eq(backupFile),
+          any(),
+        )
+      )
       .thenReturn(BackupResult.Error(errorCode, RuntimeException()))
 
-    backupManagerImpl.backupModal(
+    backupManagerImpl.doBackup(
       serialNumber,
       applicationId,
       backupFile,
