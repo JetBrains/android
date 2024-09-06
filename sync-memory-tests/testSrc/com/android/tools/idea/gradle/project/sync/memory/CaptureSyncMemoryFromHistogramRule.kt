@@ -98,8 +98,18 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
         measurement.second
       ))
       if (!disableAnalyzers) {
-        val analyzers = mutableListOf<Analyzer>(EDivisiveAnalyzer)
         val runningFromReleaseBranch = System.getProperty("running.from.release.branch").toBoolean()
+        val toleratedChange = 0.05 // 5%
+        val analyzer = when {
+          metricToCompareAgainst != null ->
+            UTestAnalyzer.forMetricComparison(metricToCompareAgainst, relativeShiftValue = toleratedChange)
+          // When running from a release branch, an additional analyzer to make a comparison
+          // between the release branch and the main branch is added.
+          runningFromReleaseBranch ->
+            UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange)
+          else ->
+            EDivisiveAnalyzer
+        }
         val usingUTestAnalyzers = runningFromReleaseBranch || metricToCompareAgainst != null
         if (usingUTestAnalyzers) {
           // U-Test analyzers expect at least 3 points in the data to be available to make a meaningful comparison.
@@ -111,14 +121,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
             addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds() + i, measurement.second))
           }
         }
-        val toleratedChange = 0.05 // 5%
-        metricToCompareAgainst?.let { analyzers.add(UTestAnalyzer.forMetricComparison(it, relativeShiftValue = toleratedChange))}
-        // When running from a release branch, an additional analyzer to make a comparison
-        // between the release branch and the main branch is added.
-        if (runningFromReleaseBranch) {
-          analyzers.add(UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange))
-        }
-        setAnalyzers(MEMORY_BENCHMARK, analyzers)
+        setAnalyzers(MEMORY_BENCHMARK, listOf(analyzer))
       }
       commit() // There is only one measurement per type, so we can commit immediately.
     }
