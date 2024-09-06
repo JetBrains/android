@@ -149,7 +149,6 @@ class GotoDeclarationActionTest {
 
     val capabilities = setOf(InspectorClient.Capability.SUPPORTS_COMPOSE)
     val inspector = createLayoutInspector(model, stats, capabilities, notificationModel)
-    whenever(inspector.currentClient.capabilities).thenReturn(capabilities)
     GotoDeclarationAction.navigateToSelectedView(
       inspector.coroutineScope,
       model,
