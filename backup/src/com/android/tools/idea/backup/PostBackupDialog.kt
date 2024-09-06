@@ -43,7 +43,6 @@ import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import icons.StudioIcons
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Component
 import java.io.File
 import java.nio.file.Path
@@ -53,8 +52,10 @@ import javax.swing.JList
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.LEADING
 import kotlin.io.path.pathString
+import org.jetbrains.android.facet.AndroidFacet
 
-internal class PostBackupDialog(private val project: Project, private val backupPath: Path) : DialogWrapper(project) {
+internal class PostBackupDialog(private val project: Project, private val backupPath: Path) :
+  DialogWrapper(project) {
   private enum class Mode {
     EXISTING_CONFIG,
     NEW_CONFIG,
@@ -73,34 +74,30 @@ internal class PostBackupDialog(private val project: Project, private val backup
   override fun createCenterPanel(): JComponent {
     return panel {
       buttonsGroup {
-        row {
-          radioButton("Add to existing run configuration", EXISTING_CONFIG)
-          val settings = getRunConfigSettings()
-          if (settings.isNotEmpty()) {
-            selectedSetting = settings.first()
+          row {
+            radioButton("Add to existing run configuration", EXISTING_CONFIG)
+            val settings = getRunConfigSettings()
+            if (settings.isNotEmpty()) {
+              selectedSetting = settings.first()
+            }
+            comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
           }
-          comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
+          row { radioButton("Add to a new run configuration", NEW_CONFIG) }
+          row { checkBox("Open run configuration when done").bindSelected(::openRunConfigWhenDone) }
+          row { checkBox("Set as current run configuration").bindSelected(::setAsCurrentRunConfig) }
         }
-        row {
-          radioButton("Add to a new run configuration", NEW_CONFIG)
-        }
-        row {
-          checkBox("Open run configuration when done").bindSelected(::openRunConfigWhenDone)
-        }
-        row {
-          checkBox("Set as current run configuration").bindSelected(::setAsCurrentRunConfig)
-        }
-      }.bind({ mode }, { mode = it })
+        .bind({ mode }, { mode = it })
     }
   }
 
   override fun doOKAction() {
     applyFields()
     // TODO(aalbert): Handle errors
-    val settings = when (mode) {
-      EXISTING_CONFIG -> selectedSetting
-      NEW_CONFIG -> addNewRunConfigSetting()
-    }
+    val settings =
+      when (mode) {
+        EXISTING_CONFIG -> selectedSetting
+        NEW_CONFIG -> addNewRunConfigSetting()
+      }
     val config = settings?.configuration as? AndroidRunConfiguration ?: return
     config.RESTORE_ENABLED = true
     config.RESTORE_FILE = backupPath.relativeToProject()
@@ -115,18 +112,22 @@ internal class PostBackupDialog(private val project: Project, private val backup
   }
 
   private fun showNotification(settings: RunnerAndConfigurationSettings) {
-    val notification = Notification(NOTIFICATION_GROUP, "Updated run configuration '${settings.name}'", INFORMATION)
-    notification.addAction(object : AnAction("Open") {
-      override fun actionPerformed(e: AnActionEvent) {
-        RunDialog.editConfiguration(project, settings, "Edit Configuration")
+    val notification =
+      Notification(NOTIFICATION_GROUP, "Updated run configuration '${settings.name}'", INFORMATION)
+    notification.addAction(
+      object : AnAction("Open") {
+        override fun actionPerformed(e: AnActionEvent) {
+          RunDialog.editConfiguration(project, settings, "Edit Configuration")
+        }
       }
-    })
+    )
     Notifications.Bus.notify(notification, project)
   }
 
   private fun addNewRunConfigSetting(): RunnerAndConfigurationSettings {
     val runManager = RunManager.getInstance(project)
-    val settings = runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
+    val settings =
+      runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
     val applicationId = BackupService.getApplicationId(backupPath)
     val module = findModule(applicationId)
@@ -139,7 +140,8 @@ internal class PostBackupDialog(private val project: Project, private val backup
     return settings
   }
 
-  private fun Path.relativeToProject() = pathString.removePrefix(project.basePath ?: "").removePrefix(File.separator)
+  private fun Path.relativeToProject() =
+    pathString.removePrefix(project.basePath ?: "").removePrefix(File.separator)
 
   private fun getRunConfigSettings(): List<RunnerAndConfigurationSettings> {
     val runManager = RunManager.getInstance(project)
@@ -167,12 +169,14 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private class RunConfigSettingRenderer : ListCellRenderer<RunnerAndConfigurationSettings?> {
     private val component = JLabel(StudioIcons.Shell.Filetree.ANDROID_PROJECT, LEADING)
+
     override fun getListCellRendererComponent(
       list: JList<out RunnerAndConfigurationSettings?>,
       value: RunnerAndConfigurationSettings?,
       index: Int,
       isSelected: Boolean,
-      cellHasFocus: Boolean): Component {
+      cellHasFocus: Boolean,
+    ): Component {
       component.text = value?.name ?: ""
 
       return component
@@ -183,7 +187,9 @@ internal class PostBackupDialog(private val project: Project, private val backup
     return ModuleManager.getInstance(project).modules.find {
       val facet = AndroidFacet.getInstance(it)
       val moduleSystem = facet?.getModuleSystem() ?: return@find false
-      moduleSystem.type == AndroidModuleSystem.Type.TYPE_APP && it.isMainModule() && AndroidModel.get(it)?.applicationId == applicationId
+      moduleSystem.type == AndroidModuleSystem.Type.TYPE_APP &&
+        it.isMainModule() &&
+        AndroidModel.get(it)?.applicationId == applicationId
     }
   }
 }
