@@ -37,9 +37,6 @@ enum class FrameworkOverlay(val overlayName: String) {
   NAV_2_BUTTONS("NavigationBarMode2ButtonOverlay"),
   NAV_3_BUTTONS("NavigationBarMode3ButtonOverlay"),
   NAV_GESTURE("NavigationBarModeGesturalOverlay"),
-  NAV_GESTURE_EXTRA_WIDE("NavigationBarModeGesturalOverlayExtraWideBack"),
-  NAV_GESTURE_NARROW("NavigationBarModeGesturalOverlayNarrowBack"),
-  NAV_GESTURE_WIDE("NavigationBarModeGesturalOverlayWideBack"),
   NOTES_ROLE_ENABLED("NotesRoleEnabledOverlay"),
   TRANSPARENT_NAV_BAR("TransparentNavigationBarOverlay"),
 
@@ -59,6 +56,7 @@ enum class FrameworkOverlay(val overlayName: String) {
   PIXEL_7A("pixel_7a"),
   PIXEL_7_PRO("pixel_7_pro"),
   PIXEL_8("pixel_8"),
+  PIXEL_8A("pixel_8a"),
   PIXEL_8_PRO("pixel_8_pro"),
   PIXEL_FOLD("pixel_fold"),
 }
