@@ -68,13 +68,13 @@ import org.jetbrains.annotations.NotNull;
  * Base class to implement common methods in {@link AndroidProjectSystem} for blaze with different
  * sdk
  */
-public class BlazeProjectSystem implements AndroidProjectSystem {
+public class BazelProjectSystem implements AndroidProjectSystem {
   protected final Project project;
   protected final ProjectSystemSyncManager syncManager;
   protected final List<PsiElementFinder> myFinders;
   private final BlazeProjectSystemBuildManager buildManager;
 
-  public BlazeProjectSystem(Project project) {
+  public BazelProjectSystem(Project project) {
     this.project = project;
     syncManager = new BlazeProjectSystemSyncManager(project);
     buildManager = new BlazeProjectSystemBuildManager(project);
@@ -105,7 +105,7 @@ public class BlazeProjectSystem implements AndroidProjectSystem {
   public Path getPathToAapt() {
     return AaptInvoker.getPathToAapt(
         AndroidSdks.getInstance().tryToChooseSdkHandler(),
-        new LogWrapper(BlazeProjectSystem.class));
+        new LogWrapper(BazelProjectSystem.class));
   }
 
   @Override
@@ -114,8 +114,8 @@ public class BlazeProjectSystem implements AndroidProjectSystem {
   }
 
   @Override
-  public BlazeModuleSystem getModuleSystem(Module module) {
-    return BlazeModuleSystem.getInstance(module);
+  public BazelModuleSystem getModuleSystem(Module module) {
+    return BazelModuleSystem.getInstance(module);
   }
 
   @Override

@@ -24,7 +24,7 @@ import org.junit.runners.JUnit4;
 
 /** Test cases for {@link BlazeProjectSystemBuildManager}. */
 @RunWith(JUnit4.class)
-public class BlazeProjectSystemBuildManagerTest extends BlazeTestCase {
+public class BazelProjectSystemBuildManagerTest extends BlazeTestCase {
   @Test
   public void testBlazeBuildCounter() {
     BlazeProjectSystemBuildManager.BlazeBuildCounter buildCounter =

@@ -26,13 +26,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.BlazeAndroidIntegrationTestCase;
 import com.google.idea.blaze.android.MockSdkUtil;
-import com.google.idea.blaze.android.libraries.LibraryFileBuilder;
 import com.google.idea.blaze.android.libraries.UnpackedAarUtils;
 import com.google.idea.blaze.android.libraries.UnpackedAars;
-import com.google.idea.blaze.android.projectsystem.BlazeModuleSystem;
+import com.google.idea.blaze.android.projectsystem.BazelModuleSystem;
 import com.google.idea.blaze.android.projectsystem.DesugaringLibraryConfigFilesLocator;
 import com.google.idea.blaze.android.projectsystem.MavenArtifactLocator;
-import com.google.idea.blaze.android.targetmapbuilder.NbAarTarget;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.settings.BuildSystemName;
@@ -51,10 +49,10 @@ import org.junit.runners.JUnit4;
 
 /**
  * Integration test for external dependency management methods in {@link
- * com.google.idea.blaze.android.projectsystem.BlazeModuleSystem}.
+ * BazelModuleSystem}.
  */
 @RunWith(JUnit4.class)
-public class BlazeModuleSystemExternalDependencyIntegrationTest
+public class BazelModuleSystemExternalDependencyIntegrationTest
     extends BlazeAndroidIntegrationTestCase {
   private static final String CONSTRAINT_LAYOUT_LABEL =
       "//third_party/java/android/android_sdk_linux/extras/android/compatibility/constraint_layout:constraint_layout";
@@ -132,7 +130,7 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
     Module activityModule =
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(activityModule);
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(activityModule);
     assertThat(workspaceModuleSystem.getResolvedDependency(CONSTRAINT_LAYOUT_COORDINATE)).isNull();
   }
 
@@ -150,7 +148,7 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
     Module workspaceModule =
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
     assertThat(workspaceModuleSystem.getResolvedDependency(CONSTRAINT_LAYOUT_COORDINATE))
         .isNotNull();
   }
@@ -166,7 +164,7 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
     Module workspaceModule =
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
     assertThat(workspaceModuleSystem.getRegisteredDependency(CONSTRAINT_LAYOUT_COORDINATE))
         .isNull();
   }
@@ -185,7 +183,7 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
     Module workspaceModule =
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
 
     // getRegisteredDependency should return null for a dependency as long as it's not declared by
     // the module itself.
@@ -206,7 +204,7 @@ public class BlazeModuleSystemExternalDependencyIntegrationTest
     Module workspaceModule =
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
-    BlazeModuleSystem workspaceModuleSystem = BlazeModuleSystem.getInstance(workspaceModule);
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
     assertThat(workspaceModuleSystem.getRegisteredDependency(CONSTRAINT_LAYOUT_COORDINATE))
         .isNotNull();
   }

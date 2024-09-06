@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering.tokens;
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.rendering.BuildTargetReference;
-import com.google.idea.blaze.android.projectsystem.BlazeProjectSystem;
-import com.google.idea.blaze.android.projectsystem.BlazeToken;
+import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
+import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 
 public class BazelBuildSystemFilePreviewServices
-  implements BuildSystemFilePreviewServices<BlazeProjectSystem, BazelBuildTargetReference>, BlazeToken {
+  implements BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
 
   @Override
   public boolean isApplicable(BuildTargetReference buildTargetReference) {

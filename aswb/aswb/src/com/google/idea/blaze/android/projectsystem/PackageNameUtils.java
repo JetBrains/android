@@ -92,7 +92,7 @@ public class PackageNameUtils {
   @VisibleForTesting
   static String doGetPackageName(AndroidFacet facet, boolean useIndex) {
     ManifestOverrides manifestOverrides =
-        BlazeModuleSystem.getInstance(facet.getModule()).getManifestOverrides();
+        BazelModuleSystem.getInstance(facet.getModule()).getManifestOverrides();
     String packageOverride =
         ManifestValueProcessor.getPackageOverride(manifestOverrides.getDirectOverrides());
     if (packageOverride != null) {
