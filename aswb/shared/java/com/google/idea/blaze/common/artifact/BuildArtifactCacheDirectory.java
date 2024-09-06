@@ -427,25 +427,30 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
     }
     logger.info("Cleaning cache " + cacheDir + "; current size = " + totalSize);
     long remainingSize = totalSize;
+    int deleted = 0;
     while (!queue.isEmpty()) {
       if (remainingSize <= maxTargetSize) {
         // size target reached
-        logger.info("Reached target cache size: " + remainingSize + "<=" + maxTargetSize);
+        logger.info(
+            String.format(
+                "Reached target cache size: %d<=%d; deleted %d entries",
+                remainingSize, maxTargetSize, deleted));
         return;
       }
       if (queue.peek().lastAccessTime().toInstant().isAfter(minAgeToDelete)) {
         // the oldest artifact is newer than the minimum age, so we stop deleting artifacts even
         // though the cache is bigger than the max size.
         logger.info(
-            "Not deleting entries accessed since "
-                + minAgeToDelete
-                + "; remaining cache size="
-                + remainingSize);
+            String.format(
+                "Not deleting entries accessed since %s; remaining cache size=%d; deleted %d"
+                    + " entries",
+                minAgeToDelete, remainingSize, deleted));
         return;
       }
 
       Entry toDelete = queue.poll();
       remainingSize -= toDelete.size();
+      deleted++;
       Files.delete(toDelete.path());
     }
   }
