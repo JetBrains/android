@@ -104,7 +104,9 @@ class VitalsContentContainerPanel(
       )
 
     if (StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
-      toolWindowList.add(InsightToolWindow.create(projectController, this))
+      toolWindowList.add(
+        InsightToolWindow.create(projectController, this, VitalsInsightPermissionDeniedHandler())
+      )
     }
 
     add(

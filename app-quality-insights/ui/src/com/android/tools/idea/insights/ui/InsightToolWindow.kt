@@ -30,6 +30,7 @@ object InsightToolWindow {
   fun create(
     projectController: AppInsightsProjectLevelController,
     parentDisposable: Disposable,
+    permissionDeniedHandler: InsightPermissionDeniedHandler,
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Insights",
@@ -42,7 +43,7 @@ object InsightToolWindow {
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
       ToolWindowDefinition.ALLOW_BASICS,
     ) {
-      InsightToolWindowContent(projectController, parentDisposable)
+      InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
     }
   }
 }
@@ -50,11 +51,15 @@ object InsightToolWindow {
 private class InsightToolWindowContent(
   projectController: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
+  permissionDeniedHandler: InsightPermissionDeniedHandler,
 ) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {
-    component.add(InsightMainPanel(projectController, parentDisposable), BorderLayout.CENTER)
+    component.add(
+      InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler),
+      BorderLayout.CENTER,
+    )
   }
 
   override fun dispose() = Unit

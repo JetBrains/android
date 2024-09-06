@@ -49,6 +49,7 @@ class InsightContentPanel(
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
+  permissionDeniedHandler: InsightPermissionDeniedHandler,
 ) : JPanel(), Disposable {
 
   private val cardLayout = CardLayout()
@@ -198,15 +199,7 @@ class InsightContentPanel(
             }
             // Permission denied message is confusing. Provide a generic message
             is LoadingState.PermissionDenied -> {
-              emptyStateText.apply {
-                clear()
-                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
-                appendLine(
-                  "You do not have permission to fetch insights",
-                  EMPTY_STATE_TEXT_FORMAT,
-                  null,
-                )
-              }
+              permissionDeniedHandler.handlePermissionDenied(aiInsight, emptyStateText)
               showEmptyCard()
             }
             is LoadingState.ToSNotAccepted -> {
