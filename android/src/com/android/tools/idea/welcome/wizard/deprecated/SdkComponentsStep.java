@@ -117,8 +117,9 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
     if (!IdeInfo.getInstance().isGameTools()) {
       // Game tools does not allow changing Android SDK install directory from the UI.
-      myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
-                                     FileChooserDescriptorFactory.createSingleFolderDescriptor());
+      myPath.addBrowseFolderListener(null, FileChooserDescriptorFactory.createSingleFolderDescriptor()
+        .withTitle("Android SDK")
+        .withDescription("Select Android SDK install directory"));
     }
 
     mySdkDownloadPathKey = sdkDownloadPathKey;

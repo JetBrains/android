@@ -22,7 +22,6 @@ import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
@@ -65,8 +64,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myBuildVariantsList.setModel(myBuildVariantsListModel);
     myBuildVariantsList.setEmptyText(AndroidBundle.message("android.apk.sign.gradle.no.variants"));
     ListSpeedSearch.installOn(myBuildVariantsList);
-    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-    myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
+    myApkPathField.addBrowseFolderListener(myWizard.getProject(), FileChooserDescriptorFactory.createSingleFolderDescriptor()
+      .withTitle("Select APK Destination Folder"));
   }
 
   @Override

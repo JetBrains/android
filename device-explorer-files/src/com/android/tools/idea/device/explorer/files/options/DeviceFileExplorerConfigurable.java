@@ -36,9 +36,8 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
   private TextFieldWithBrowseButton myDownloadLocation;
 
   DeviceFileExplorerConfigurable() {
-    myDownloadLocation.addBrowseFolderListener(DeviceExplorerBundle.message("dialog.title.device.file.explorer.download.location"), null, null,
-                                               new FileChooserDescriptor(false, true, false,
-                                                                         false, false, false));
+    myDownloadLocation.addBrowseFolderListener(null, new FileChooserDescriptor(false, true, false, false, false, false)
+      .withTitle(DeviceExplorerBundle.message("dialog.title.device.file.explorer.download.location")));
   }
 
   @NotNull

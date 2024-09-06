@@ -98,10 +98,9 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   public SourceToGradleModuleStep(@NotNull SourceToGradleModuleModel model) {
     super(model, message("android.wizard.module.import.source.title"));
 
-    mySourceLocation.addBrowseFolderListener(message("android.wizard.module.import.source.browse.title"),
-                                             message("android.wizard.module.import.source.browse.description"),
-                                             getModel().getProject(),
-                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
+    mySourceLocation.addBrowseFolderListener(getModel().getProject(), FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor()
+      .withTitle(message("android.wizard.module.import.source.browse.title"))
+      .withDescription(message("android.wizard.module.import.source.browse.description")));
 
     myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation);
 
