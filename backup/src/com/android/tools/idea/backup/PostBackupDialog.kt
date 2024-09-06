@@ -20,10 +20,7 @@ import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.intellij.execution.RunManager
@@ -34,8 +31,6 @@ import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.dsl.builder.bind
@@ -52,7 +47,6 @@ import javax.swing.JList
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.LEADING
 import kotlin.io.path.pathString
-import org.jetbrains.android.facet.AndroidFacet
 
 internal class PostBackupDialog(private val project: Project, private val backupPath: Path) :
   DialogWrapper(project) {
@@ -183,13 +177,6 @@ internal class PostBackupDialog(private val project: Project, private val backup
     }
   }
 
-  private fun findModule(applicationId: String): Module? {
-    return ModuleManager.getInstance(project).modules.find {
-      val facet = AndroidFacet.getInstance(it)
-      val moduleSystem = facet?.getModuleSystem() ?: return@find false
-      moduleSystem.type == AndroidModuleSystem.Type.TYPE_APP &&
-        it.isMainModule() &&
-        AndroidModel.get(it)?.applicationId == applicationId
-    }
-  }
+  private fun findModule(applicationId: String) =
+    project.getProjectSystem().findModulesWithApplicationId(applicationId).firstOrNull()
 }
