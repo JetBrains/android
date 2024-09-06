@@ -53,8 +53,6 @@ public class ManuallyAddNavLibTest {
                                                  "    implementation(platform(\"org.jetbrains.kotlin:kotlin-bom:1.8.0\"))\n";
   @Before
   public void setUp() throws Exception {
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame = guiTest.ideFrame();
