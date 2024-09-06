@@ -54,7 +54,7 @@ public class SwitchDecorator extends SceneDecorator {
                int alignmentX,
                int alignmentY,
                String string) {
-      super(x, y, width, height, mode, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, DEFAULT_FONT_SIZE, DEFAULT_SCALE);
+      super(x, y, width, height, mode, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, 14, DEFAULT_SCALE);
     }
 
     @NotNull

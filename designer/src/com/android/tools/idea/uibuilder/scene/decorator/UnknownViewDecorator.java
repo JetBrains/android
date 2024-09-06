@@ -142,7 +142,7 @@ public class UnknownViewDecorator extends SceneDecorator {
       text = nlComponent.getTagName();
       text = text.substring(text.lastIndexOf('.') + 1);
     }
-    int size = DrawTextRegion.getFont(nlComponent, DEFAULT_DIM);
+    int size = DrawTextRegion.getFont(nlComponent);
     list.add(new DrawUnknownDecorator(l, t, w, h, size, (float)sceneContext.getScale(), text));
   }
 }
