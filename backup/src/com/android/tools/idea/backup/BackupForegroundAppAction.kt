@@ -42,17 +42,12 @@ internal class BackupForegroundAppAction : AnAction() {
     val serialNumber = getDeviceSerialNumber(e)
     val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     deviceProvisioner.scope.launch {
-      val handle = deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
+      val handle =
+        deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
       handle?.scope?.launch {
         val applicationId = backupManager.getForegroundApplicationId(serialNumber)
         withContext(uiThread) {
-          val backupFile = backupManager.chooseBackupFile(applicationId) ?: return@withContext
-          backupManager.backupModal(
-            serialNumber,
-            applicationId,
-            backupFile,
-            BackupManager.Source.RUN_MENU,
-          )
+          backupManager.showBackupDialog(serialNumber, applicationId, BackupManager.Source.RUN_MENU)
         }
       }
     }
@@ -60,6 +55,6 @@ internal class BackupForegroundAppAction : AnAction() {
 
   private fun getDeviceSerialNumber(e: AnActionEvent): String {
     return SERIAL_NUMBER_KEY.getData(e.dataContext)
-        ?: throw RuntimeException("SERIAL_NUMBER_KEY not found in ActionEvent")
+      ?: throw RuntimeException("SERIAL_NUMBER_KEY not found in ActionEvent")
   }
 }

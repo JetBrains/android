@@ -161,7 +161,6 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
     project: Project,
     process: ProcessInfo,
     device: IDevice,
-    path: Path,
   ) {
     if (process.device.serialNumber == device.serialNumber) {
       val packageName = process.packageName
@@ -173,7 +172,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
         return
       }
       val backupManager = BackupManager.getInstance(project)
-      backupManager.backupModal(device.serialNumber, packageName, path, BackupManager.Source.DEVICE_EXPLORER)
+      backupManager.showBackupDialog(device.serialNumber, packageName, BackupManager.Source.DEVICE_EXPLORER)
     }
   }
 
