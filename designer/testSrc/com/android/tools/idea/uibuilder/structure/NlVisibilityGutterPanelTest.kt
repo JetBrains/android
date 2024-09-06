@@ -48,7 +48,6 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
     super.setUp()
     myPanel = NlVisibilityGutterPanel()
     myModel = generateModelWithFlow()
-    myModel!!.updateQueue.isPassThrough = true
     // If using a lambda, it can be reused by the JVM and causing an exception because the
     // Disposable is already disposed.
     myDisposable =
