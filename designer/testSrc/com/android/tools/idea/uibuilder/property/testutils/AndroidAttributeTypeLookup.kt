@@ -541,6 +541,7 @@ object AndroidAttributeFact {
       "layoutMode" -> return NlPropertyType.ENUM
       "layerType" -> return NlPropertyType.ENUM
       "layoutDirection" -> return NlPropertyType.ENUM
+      "layout_anchor" -> return NlPropertyType.ID
       "layout_gravity" -> return NlPropertyType.FLAGS
       "layout_height" -> return NlPropertyType.DIMENSION
       "layout_width" -> return NlPropertyType.DIMENSION
