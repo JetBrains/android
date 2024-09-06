@@ -28,7 +28,7 @@ class SdkIndexPsdWithoutNotesTest : SdkIndexTestBase() {
         openAndClosePSD(studio)
       },
       beforeClose = {
-        verifyPsdIssues(numErrors = 4, numWarnings = 4)
+        verifyPsdIssues(numErrors = 5, numWarnings = 4)
       },
       expectedIssues = listOf(
         // Error
@@ -52,6 +52,10 @@ class SdkIndexPsdWithoutNotesTest : SdkIndexTestBase() {
           "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console.",
           "The library author recommends using versions:", "  - From 4.10.0 to 4.10.8", "  - 4.10.11 or higher",
           "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
+        ),
+        // Error
+        listOf(
+          "com.startapp:inapp-sdk version 3.9.1 contains unsafe unzipping patterns.",
         ),
         // Warning
         listOf(
