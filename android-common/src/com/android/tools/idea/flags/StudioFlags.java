@@ -1710,8 +1710,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "device.catalog.enabled",
-    "Enable the Device Catalog for device creation",
-    "Enable new unified UI for creating AVDs and selecting Firebase devices",
+    "Enable the Device Catalog for virtual device creation",
+    "Enable new UI for creating AVDs",
+    false
+  );
+
+  public static final Flag<Boolean> DIRECT_ACCESS_DEVICE_CATALOG_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "direct.access.device.catalog.enabled",
+    "Enable the Device Catalog for Direct Access devices",
+    "Enable new UI for selecting Firebase devices",
     false
   );
   // endregion
