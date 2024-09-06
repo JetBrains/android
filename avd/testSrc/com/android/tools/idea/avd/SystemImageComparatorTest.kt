@@ -83,14 +83,15 @@ class SystemImageComparatorTest {
     val image1 = mockSystemImage(AndroidVersion(34, null, 10, false))
     val image2 = mockSystemImage(AndroidVersion(34, null, 8, false))
     val image3 = mockSystemImage(AndroidVersion(34, null, null, true))
+    val image4 = mockSystemImage(AndroidVersion(34, null, 7, true), hasPlayStore = true)
 
-    val images = listOf(image3, image2, image1)
+    val images = listOf(image4, image3, image2, image1)
 
     // Act
     val sortedImages = images.sortedWith(SystemImageComparator)
 
     // Assert
-    assertEquals(listOf(image1, image2, image3), sortedImages)
+    assertEquals(listOf(image1, image2, image3, image4), sortedImages)
   }
 
   @Test
