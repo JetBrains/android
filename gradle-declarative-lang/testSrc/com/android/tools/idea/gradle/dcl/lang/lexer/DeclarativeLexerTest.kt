@@ -196,6 +196,32 @@ class DeclarativeLexerTest : LexerTestCase() {
     )
   }
 
+  fun testFloatNumbers() {
+    doTest(
+      """
+        0.1
+        .1
+        0_1.0
+        0.1e+1
+        0_0.1e+1
+        0_0.1E+2
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.double_literal ('0.1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('.1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_1.0')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0.1e+1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_0.1e+1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_0.1E+2')
+      """.trimIndent()
+    )
+  }
+
   fun testBoolean() {
     doTest(
       """
