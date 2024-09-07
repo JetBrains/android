@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.testing
 
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.ProjectRule
 import org.junit.rules.ExternalResource
@@ -27,12 +26,8 @@ import org.junit.rules.ExternalResource
  * Useful for tests that depend on indices but also prevents flakiness in leak detection and
  * eliminates warning logs.
  */
-// Note: we use a lazy value to avoid getting the project before it's initialized.
-class WaitForIndexRule(val project: Lazy<Project>) : ExternalResource() {
-  constructor(projectRule: ProjectRule) : this(lazy { projectRule.project })
-  constructor(androidProjectRule: AndroidProjectRule): this(lazy { androidProjectRule.project })
-
+class WaitForIndexRule(private val projectRule: ProjectRule) : ExternalResource() {
   override fun before() {
-    IndexingTestUtil.waitUntilIndexesAreReady(project.value)
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
 }
