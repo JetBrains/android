@@ -70,6 +70,8 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
