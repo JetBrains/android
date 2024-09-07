@@ -17,6 +17,8 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -26,9 +28,12 @@ import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.EmulatorSettings
@@ -39,6 +44,7 @@ import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -63,6 +69,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -72,6 +79,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.ClassRule
@@ -121,6 +129,7 @@ import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import javax.swing.JLabel
 import javax.swing.JScrollPane
 import kotlin.time.Duration.Companion.seconds
 
@@ -898,6 +907,35 @@ class EmulatorViewTest {
     focusManager.focusOwner = null
 
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
+  }
+
+  @Test
+  fun testLogNotifications() {
+    view = emulatorViewRule.newEmulatorView()
+    val notificationHolderPanel = NotificationHolderPanel(view)
+    fakeUi = FakeUi(createScrollPane(notificationHolderPanel), 2.0)
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    focusManager.focusOwner = view
+
+    val messageBus = ApplicationManager.getApplication().messageBus
+    val avdFolder = view.emulator.emulatorConfig.avdFolder
+    val iniFile = avdFolder.resolveSibling(avdFolder.fileName.toString().substringBefore(".") + ".ini")
+    val avd = AvdInfo(iniFile, avdFolder, null, null, null, AvdStatus.OK)
+
+    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, EmulatorLogListener.Severity.WARNING, true, "Attention!")
+    waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
+    var notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
+    assertThat(notificationPanel.text).isEqualTo("Attention!")
+    assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
+
+    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
+    waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
+    notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
+    assertThat(notificationPanel.text).isEqualTo("Crashed!")
+    assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.ERROR_BACKGROUND)
   }
 
   @Test
