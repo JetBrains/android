@@ -218,7 +218,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    */
   @Nullable
   public static ApiLookup getApiLookup(@NonNull Project project) {
-    return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintIgnoredResult()));
+    return ApiLookup.getOrNull(LintIdeSupport.get().createClient(project, new LintIgnoredResult()), null);
   }
 
   @Override
