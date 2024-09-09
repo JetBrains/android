@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res.psi;
 
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
-
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
@@ -29,7 +27,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.model.gotosymbol.GoToSymbolProvider;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
