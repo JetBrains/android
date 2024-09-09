@@ -220,6 +220,7 @@ intellij_integration_test_suite(
     plugins = [
         ":com.google.idea.bazel.aswb",
         "//tools/adt/idea/studio:com.android.tools.ndk",
+        "//tools/adt/idea/studio:com.android.tools.design",
         "//tools/adt/idea/studio:org.jetbrains.android",
     ],
     required_plugins = "com.google.idea.bazel.aswb,com.android.tools.ndk",
