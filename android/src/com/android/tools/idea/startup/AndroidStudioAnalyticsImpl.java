@@ -159,7 +159,7 @@ public class AndroidStudioAnalyticsImpl extends AndroidStudioAnalytics {
     ILogger logger = getAndroidLogger();
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    AnalyticsSettings.initialize(logger, scheduler);
+    AnalyticsSettings.initialize(logger, ApplicationManager.getApplication().isUnitTestMode() ? null : scheduler);
 
     try {
       // If AnalyticsSettings and IJ opt-in status disagree, then we assume IJ is correct.
