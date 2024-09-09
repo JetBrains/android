@@ -66,7 +66,12 @@ internal fun waitForClientReadyForDebug(device: IDevice,
     }
     Uninterruptibles.sleepUninterruptibly(20, TimeUnit.MILLISECONDS)
   }
-  throw ExecutionException("Processes ${appIds.joinToString()} are not found. Aborting session.")
+  if (appIds.size > 1) {
+    throw ExecutionException("Process IDs ${appIds.joinToString()} were not found. Aborting session.")
+  }
+  else {
+    throw ExecutionException("Process ID ${appIds.joinToString()} was not found. Aborting session.")
+  }
 }
 
 private fun getClientWithAppId(device: IDevice,
