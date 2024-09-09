@@ -308,4 +308,19 @@ class StackTraceConsoleTest {
         )
     }
   }
+
+  @Test
+  fun `clearStackTrace clears the console text`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
+      )
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      stackTraceConsole.clearStackTrace()
+
+      assertThat(stackTraceConsole.consoleView.text).isEmpty()
+    }
+  }
 }
