@@ -100,5 +100,41 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true,true)
   }
 
-   override fun getTestDataPath(): String = resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
+  fun testNewLinePropertyAndProperty() {
+    doTest(true, false)
+  }
+
+  fun testNewLinePropertyAndBlock() {
+    doTest(true,false)
+  }
+
+  fun testNewLineComplexTest() {
+    doTest(true,true)
+  }
+
+  fun testNewLineBlockAndBlock() {
+    doTest(true,false)
+  }
+
+  fun testNewLineFunctionAndProperty() {
+    doTest(true,false)
+  }
+
+  fun testNewLineFunctionAndFunction() {
+    doTest(true,false)
+  }
+
+  fun testSemiEmbedded() {
+    doTest(true,true)
+  }
+
+  fun testNewLineFunctionAndBlock(){
+    doTest(true,false)
+  }
+
+  fun testOneLineBlock(){
+    doTest(true,true)
+  }
+
+  override fun getTestDataPath(): String = resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
 }
