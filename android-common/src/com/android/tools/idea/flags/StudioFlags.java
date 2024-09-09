@@ -657,7 +657,7 @@ public final class StudioFlags {
     "panel.memory.saver",
     "Enable Logcat Panel memory saving feature",
     "Reduces memory usage of Logcat tool by writing data to a file when the panel is not visible",
-    true
+    false
   );
 
   public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = new BooleanFlag(
