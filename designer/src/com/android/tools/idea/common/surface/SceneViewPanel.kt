@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
@@ -92,8 +93,8 @@ class SceneViewPanel(
   val positionableContent: Collection<PositionableContent>
     get() =
       components
-        .filterIsInstance<SceneViewPeerPanel>()
-        .filter { it.isVisible }
+        .filterIsInstance<PositionablePanel>()
+        .filter { it.isVisible() }
         .map { it.positionableAdapter }
         .toList()
 

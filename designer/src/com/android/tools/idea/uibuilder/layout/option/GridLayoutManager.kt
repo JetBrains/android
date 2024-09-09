@@ -216,17 +216,17 @@ class GridLayoutManager(
     depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
-      // because we want to show the content as wide as possible we return max even in case we reach
-      // the max iteration, and we haven't found the perfect zoom to fit value.
-      // It could be that the resulting zoom to fit is a bit higher than the available height. For a
-      // better granularity we can increase MAX_ITERATION_TIMES
-      return max
+      // because we want to show the content within the available space we get minimum resulting fit
+      // scale even in case we reach the max iteration number and we haven't found the perfect zoom
+      // to fit value.
+      // It could be that the applying the resulting zoom to fit there could be additional available
+      // space, for a better granularity we can increase MAX_ITERATION_TIMES.
+      return min
     }
     if (max - min <= SCALE_UNIT) {
-      // max and min are minor than the unit scale, because we want to show the content as wide as
-      // possible we return max
-      // It could be that the resulting zoom to fit is a bit higher than the available height.
-      return max
+      // max and min are minor than the unit scale, because we want to show the content within the
+      // available space we get minimum resulting fit scale
+      return min
     }
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
