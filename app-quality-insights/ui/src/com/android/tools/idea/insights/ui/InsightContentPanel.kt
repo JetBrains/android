@@ -205,6 +205,15 @@ class InsightContentPanel(
             is LoadingState.ToSNotAccepted -> {
               showToSCard()
             }
+            is LoadingState.UnsupportedOperation -> {
+              emptyStateText.apply {
+                clear()
+                val cause = aiInsight.message ?: ""
+                appendText("No insight available", EMPTY_STATE_TITLE_FORMAT)
+                appendLine(cause, EMPTY_STATE_TEXT_FORMAT, null)
+              }
+              showEmptyCard()
+            }
             is LoadingState.NetworkFailure -> {
               emptyStateText.apply {
                 clear()

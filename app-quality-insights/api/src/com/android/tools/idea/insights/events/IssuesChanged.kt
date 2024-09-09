@@ -139,7 +139,12 @@ data class IssuesChanged(
       ),
       action =
         if (newSelectedIssue != null)
-          actionsForSelectedIssue(key, newSelectedIssue.id, newSelectedIssue.sampleEvent)
+          actionsForSelectedIssue(
+            key,
+            newSelectedIssue.id,
+            newSelectedIssue.issueDetails.fatality,
+            newSelectedIssue.sampleEvent,
+          )
         else Action.NONE,
     )
   }

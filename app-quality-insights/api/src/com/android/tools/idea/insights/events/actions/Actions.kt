@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events.actions
 
 import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
@@ -135,8 +136,12 @@ sealed class Action {
   }
 
   /** Fetch AI generated insight */
-  data class FetchInsight(override val id: IssueId, val event: Event, val variantId: String?) :
-    IssueAction() {
+  data class FetchInsight(
+    override val id: IssueId,
+    val issueFatality: FailureType,
+    val event: Event,
+    val variantId: String?,
+  ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }
   }
