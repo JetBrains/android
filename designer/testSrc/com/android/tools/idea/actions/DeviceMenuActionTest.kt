@@ -105,6 +105,7 @@ class DeviceMenuActionTest {
           Phones
                   Pixel 9 (411 × 923 dp, 420dpi)
                   Pixel 9 Pro XL (448 × 997 dp, xxhdpi)
+                  Pixel 9 Pro Fold (852 × 883 dp, 390dpi)
                   Pixel 9 Pro (427 × 952 dp, xxhdpi)
                   Pixel 8 (411 × 914 dp, 420dpi)
                   Pixel 8 Pro (448 × 997 dp, xxhdpi)
@@ -132,7 +133,6 @@ class DeviceMenuActionTest {
                   Nexus 6P (411 × 731 dp, 560dpi)
                   Nexus 5X (411 × 731 dp, 420dpi)
               Tablets
-                  Pixel 9 Pro Fold (852 × 883 dp, 390dpi)
                   Pixel Tablet (1280 × 800 dp, xhdpi)
                   Pixel C (1280 × 900 dp, xhdpi)
                   Nexus 10 (1280 × 800 dp, xhdpi)
