@@ -89,7 +89,6 @@ java_library(
     name = "integration_test_utils",
     testonly = 1,
     srcs = glob(["tests/utils/integration/**/*.java"]) + [
-        "sdkcompat/as233/com/android/tools/rendering/RenderResultCompat.java",
         "tests/utils/sdkcompat/as233/com/android/tools/idea/sdk/IdeSdksCompat.java",
         "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/MobileInstallBuildStepTestCase.java",
         "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/functional/AndroidDeviceCompat.java",
