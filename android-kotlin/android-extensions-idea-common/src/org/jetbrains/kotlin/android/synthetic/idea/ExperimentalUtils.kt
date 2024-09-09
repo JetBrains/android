@@ -18,13 +18,10 @@ package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
-import kotlinx.android.extensions.CacheImplementation
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ANDROID_COMPILER_PLUGIN_ID
-import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.EXPERIMENTAL_OPTION
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ENABLED_OPTION
-import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.DEFAULT_CACHE_IMPL_OPTION
-import org.jetbrains.kotlin.android.synthetic.AndroidComponentRegistrar.Companion.parseCacheImplementationType
+import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.EXPERIMENTAL_OPTION
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.idea.base.projectStructure.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
@@ -52,12 +49,6 @@ internal val Module.androidExtensionsIsEnabled: Boolean
 
 internal fun ModuleInfo.findAndroidModuleInfo() = unwrapModuleSourceInfo()?.takeIf { it.platform.isJvm() }
 
-internal val ModuleInfo.androidExtensionsIsEnabled: Boolean
-    get() {
-        val module = this.findAndroidModuleInfo()?.module ?: return false
-        return module.androidExtensionsIsEnabled
-    }
-
 internal val ModuleInfo.androidExtensionsIsExperimental: Boolean
     get() {
         val module = this.findAndroidModuleInfo()?.module ?: return false
@@ -68,10 +59,4 @@ internal val Module.androidExtensionsIsExperimental: Boolean
     get() {
         if (isTestMode(this)) return true
         return getOptionValueInFacet(EXPERIMENTAL_OPTION) == "true"
-    }
-
-val ModuleInfo.androidExtensionsGlobalCacheImpl: CacheImplementation
-    get() {
-        val module = this.findAndroidModuleInfo()?.module ?: return CacheImplementation.NO_CACHE
-        return parseCacheImplementationType(module.getOptionValueInFacet(DEFAULT_CACHE_IMPL_OPTION))
     }
