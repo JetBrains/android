@@ -17,8 +17,10 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Companion.FOLLOWED_HYPERLINK_ATTRIBUTES
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
+import com.android.tools.idea.logcat.hyperlinks.SimpleFileLinkFilter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
+import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -64,7 +66,9 @@ class LogcatOccurrenceNavigatorTest {
       editor,
       disposableRule.disposable,
       ModalityState.any(),
-    )
+    ).also {
+      waitForCondition { it.filter.compositeFilter.filters.map { it::class }.contains(SimpleFileLinkFilter::class) }
+    }
   }
   private val editorHyperlinkSupport by lazy { EditorHyperlinkSupport.get(editor) }
 
