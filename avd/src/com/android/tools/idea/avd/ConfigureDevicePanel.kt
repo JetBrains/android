@@ -169,6 +169,9 @@ internal constructor(
 
   internal val systemImageTableSelectionState = TableSelectionState(image)
 
+  internal var isValid by mutableStateOf(device.expandedStorage.isValid())
+    private set
+
   internal fun setDeviceName(deviceName: String) {
     device = device.copy(name = deviceName)
   }
@@ -186,6 +189,11 @@ internal constructor(
     }
 
     return skin
+  }
+
+  internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
+    device = device.copy(expandedStorage = expandedStorage)
+    isValid = expandedStorage.isValid()
   }
 }
 

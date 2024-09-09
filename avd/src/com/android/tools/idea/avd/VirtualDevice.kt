@@ -153,10 +153,7 @@ internal data class Custom internal constructor(internal val value: StorageCapac
 
 internal data class ExistingImage internal constructor(private val value: Path) :
   ExpandedStorage() {
-
-  init {
-    assert(Files.isRegularFile(value))
-  }
+  override fun isValid() = Files.isRegularFile(value)
 
   override fun toString() = value.toString()
 }
@@ -165,7 +162,9 @@ internal object None : ExpandedStorage() {
   override fun toString() = ""
 }
 
-internal sealed class ExpandedStorage
+internal sealed class ExpandedStorage {
+  internal open fun isValid() = true
+}
 
 internal fun ExpandedStorage.toSdCard(): SdCard? =
   when (this) {
