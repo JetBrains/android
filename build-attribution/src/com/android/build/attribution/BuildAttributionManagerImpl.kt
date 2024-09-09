@@ -46,6 +46,7 @@ import com.intellij.build.BuildViewManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
@@ -131,6 +132,11 @@ class BuildAttributionManagerImpl(
               analyticsManager.logAnalysisFailure(currentBuildInvocationType)
               BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
             }
+          }
+          catch (e: ProcessCanceledException) {
+            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_CANCELED)
+            analyticsManager.logAnalysisCancellation(currentBuildInvocationType)
+            throw e
           }
           catch (t: Throwable) {
             log.error("Error during post-build analysis", t)

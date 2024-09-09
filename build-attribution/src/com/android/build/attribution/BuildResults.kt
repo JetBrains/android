@@ -245,5 +245,5 @@ data class FailureResult(
 ) : AbstractBuildAnalysisResult {
   override fun getBuildSessionID(): String = buildSessionID
 
-  enum class Type { BUILD_FAILURE, ANALYSIS_FAILURE }
+  enum class Type { BUILD_FAILURE, ANALYSIS_FAILURE, ANALYSIS_CANCELED }
 }
