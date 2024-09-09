@@ -15,12 +15,9 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.common.base.Suppliers;
-import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
-import com.intellij.openapi.project.Project;
 import java.util.function.Supplier;
 
 /** Holder class for basic information about querysync, e.g. is it enabled? */
@@ -57,5 +54,17 @@ public class QuerySync {
 
   public static boolean isLegacyExperimentEnabled() {
     return LEGACY_EXPERIMENT.getValue();
+  }
+
+  /**
+   * Checks if query sync for new project is enabled via experiment or settings page.
+   */
+  public static boolean useForNewProjects() {
+    if (useByDefault()) {
+      return QuerySyncSettings.getInstance().useQuerySync();
+    }
+    else {
+      return isLegacyExperimentEnabled() || QuerySyncSettings.getInstance().useQuerySyncBeta();
+    }
   }
 }
