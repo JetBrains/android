@@ -24,7 +24,9 @@ internal object SystemImageComparator :
     .thenBy { it.isForTablet() }
     .thenByDescending { it.androidVersion.isPreview }
     .thenBy { it.androidVersion.featureLevel }
-    .thenByDescending { it.androidVersion.extensionLevel ?: 0 }
+    .thenByDescending {
+      if (it.androidVersion.isBaseExtension) 0 else it.androidVersion.extensionLevel ?: 0
+    }
     .thenByDescending { it.getServices() }
     .thenByDescending { it.getOtherTagCount() }
     .thenByDescending { it.`package`.displayName })
