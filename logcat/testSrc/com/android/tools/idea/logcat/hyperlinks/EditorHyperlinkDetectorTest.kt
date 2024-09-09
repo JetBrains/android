@@ -17,9 +17,11 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -32,8 +34,10 @@ import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.RangeHighlighterEx
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -112,12 +116,20 @@ class EditorHyperlinkDetectorTest {
   /** Tests that we are always using the SimpleFileLink filter. */
   @Test
   fun usesCorrectFilters_containsSimpleFileLinkFilter() {
+    val consoleFilters =
+      ConsoleViewUtil.computeConsoleFilters(
+        project,
+        /* consoleView= */ null,
+        GlobalSearchScope.allScope(project),
+      )
+    val expected = consoleFilters.map { it::class } + SimpleFileLinkFilter::class
+
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val expected = SimpleFileLinkFilter::class
     waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(expected)
+      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
     }
+    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class }).containsAllIn(expected).inOrder()
   }
 
   /**

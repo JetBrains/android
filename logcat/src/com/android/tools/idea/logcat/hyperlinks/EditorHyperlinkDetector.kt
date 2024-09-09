@@ -45,7 +45,7 @@ internal class EditorHyperlinkDetector(
 
   private val expirableToken = Expirable { isDisposed }
 
-  @VisibleForTesting val filter = SdkSourceRedirectFilter(project, SimpleFileLinkFilter(project))
+  @VisibleForTesting val filter = SdkSourceRedirectFilter(project)
 
   init {
     Disposer.register(parentDisposable, this)
@@ -62,6 +62,7 @@ internal class EditorHyperlinkDetector(
       .expireWith(parentDisposable)
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
         filters.forEach { filter.addFilter(it) }
+        filter.addFilter(SimpleFileLinkFilter(project))
       }
       .submit(executor)
   }
