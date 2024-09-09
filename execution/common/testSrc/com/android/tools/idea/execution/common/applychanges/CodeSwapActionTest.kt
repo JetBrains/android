@@ -27,7 +27,12 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.DefaultExecutionTarget
+import com.intellij.execution.DefaultExecutionTargetProvider
 import com.intellij.execution.ExecutionManager
+import com.intellij.execution.ExecutionTarget
+import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.ExecutionTargetProvider
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfigurationBase
 import com.intellij.execution.configurations.UnknownConfigurationType
@@ -37,12 +42,14 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.asSafely
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.Icon
 
 class CodeSwapActionTest {
 
@@ -159,6 +166,11 @@ class CodeSwapActionTest {
   @Test
   @RunsInEdt
   fun `disabled, unsupported execution target`() {
+    // Set up
+    val extensionPoint = ExecutionTargetProvider.EXTENSION_NAME.point as ExtensionPointImpl<ExecutionTargetProvider>
+    extensionPoint.maskAll(listOf(DefaultExecutionTargetProvider()), project, false)
+    ExecutionTargetManager.getInstance(project).activeTarget = DefaultExecutionTarget.INSTANCE
+
     // Update
     val action = CodeSwapAction()
     val event = TestActionEvent.createTestEvent(SimpleDataContext.getSimpleContext(CommonDataKeys.PROJECT, project))
