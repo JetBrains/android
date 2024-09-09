@@ -173,6 +173,22 @@ class InsightContentPanelTest {
   }
 
   @Test
+  fun `test quota exhausted`() = runBlocking {
+    currentInsightFlow.update {
+      LoadingState.NetworkFailure(
+        "Quota exceeded for quota metric 'Duet Task API requests' and limit 'Duet Task API requests per day per user' of service 'cloudaicompanion.googleapis.com' for consumer 'project_number:123456789'."
+      )
+    }
+
+    FakeUi(insightContentPanel)
+    delayUntilStatusTextVisible()
+
+    assertThat(errorText).isEqualTo("Quota exhausted")
+    assertThat(secondaryText)
+      .isEqualTo("You have consumed your available daily quota for insights.")
+  }
+
+  @Test
   fun `test gemini is not enabled`() = runBlocking {
     currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
 
