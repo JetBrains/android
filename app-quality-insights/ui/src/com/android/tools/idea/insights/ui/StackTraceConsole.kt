@@ -171,6 +171,12 @@ class StackTraceConsole(
     }
   }
 
+  fun clearStackTrace() =
+    synchronized(CONSOLE_LOCK) {
+      consoleView.flushDeferredText()
+      consoleView.editor.document.setText("")
+    }
+
   private fun clearResolvedInfoCacheAndRehighlight() {
     resolvedInfoCache.clear()
 
