@@ -435,6 +435,10 @@ public final class AvdDeviceData {
    */
   private void initDefaultValues() {
     myName.set(getUniqueId(null));
+    // The default screen is 440 dpi, which is closest to xxhdpi.
+    // Set density before screen width/height so that it actually gets set; if we set it to the value that it should
+    // have based on width/height/diagonal, then AbstractProperty will think it is unchanged, and not actually set it.
+    myDensity.set(Density.XXHIGH);
     myDiagonalScreenSize.set(5.0);
     myScreenResolutionWidth.set(1080);
     myScreenResolutionHeight.set(1920);
@@ -455,7 +459,6 @@ public final class AvdDeviceData {
 
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
-    myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
     myHasBackCamera.set(true);
@@ -515,6 +518,7 @@ public final class AvdDeviceData {
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 
+    myDensity.set(screen.getPixelDensity());
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
@@ -536,7 +540,6 @@ public final class AvdDeviceData {
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
-    myDensity.set(defaultHardware.getScreen().getPixelDensity());
     myHasSdCard.set(defaultHardware.hasSdCard());
 
     List<State> states = device.getAllStates();
