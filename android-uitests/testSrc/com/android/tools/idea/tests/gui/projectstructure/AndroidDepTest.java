@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,8 +82,9 @@ public class AndroidDepTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     editor.open("/library_module/build.gradle.kts")
-      .select("dependencies \\{()")
-      .enterText("\n   api(\"com.google.code.gson:gson:2.6.2\")");
+      .waitForFileToActivate();
+    editor.moveBetween("\n", "    implementation(libs.appcompat)")
+      .enterText("\n   api(\"com.google.code.gson:gson:2.6.2\")\n");
     ideFrame.takeScreenshot();
     guiTest.robot().waitForIdle();
 
@@ -108,16 +110,16 @@ public class AndroidDepTest {
     addModuleDependencyFixture.toggleModule("library_module");
     addModuleDependencyFixture.clickOk();
     guiTest.robot().waitForIdle();
-    dialogFixture.clickOk();
+    dialogFixture.clickOk(Wait.seconds(30));
 
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
-      .moveBetween("setContentView(R.layout.activity_main);", "")
-      .enterText("\nGson gson = new Gson();");
-    guiTest.robot().waitForIdle();
-
+      .waitForFileToActivate();
+    editor.moveBetween("", "ViewCompat.setOnApplyWindowInsetsListener")
+      .enterText("\n\t\tGson gson = new Gson();\n");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     editor.select("()public class MainActivity")
       .enterText("import com.google.gson.Gson;\n\n");
 
@@ -133,14 +135,14 @@ public class AndroidDepTest {
     guiTest.robot().waitForIdle();
 
     editor.open("/library_module/src/main/java/com/google/library_module/LibraryClass.java")
-      .select("()public class LibraryClass")
+      .waitForFileToActivate();
+    editor.moveBetween("public class LibraryClass {", "")
+      .enterText("\nGson gson = new Gson();\n");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n");
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-
-    editor.open("/library_module/src/main/java/com/google/library_module/LibraryClass.java")
-      .moveBetween("public class LibraryClass {", "")
-      .enterText("\nGson gson = new Gson();\n");
 
     BuildStatus result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
