@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.android.utils.FileUtils
@@ -28,6 +29,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.FilePosition
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
@@ -88,10 +90,9 @@ class BuildOutputParserWrapperTest {
 
   /** Regression test for b/323135834. */
   @Test
-  fun `test build url injector`() {
+  fun `test Ask Gemini link is inserted for ERROR messages`() {
     val folder = temporaryFolder.newFolder("test")
     val id = MockitoKt.mock<ExternalSystemTaskId>()
-    whenever(id.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
     messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.ERROR, "Compiler", "!!some error message!!", "Detailed error message",
                                         FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
     myParserWrapper.parse(null, null) { event ->
@@ -104,6 +105,50 @@ class BuildOutputParserWrapperTest {
 
     }
 
+  }
+
+  @Test
+  fun `test Ask Gemini link is inserted for MessageEventImpl`() {
+    val id = MockitoKt.mock<ExternalSystemTaskId>()
+    messageEvent = MessageEventImpl(id, MessageEvent.Kind.ERROR, "Compiler", "!!some error message!!", "Detailed error message")
+    myParserWrapper.parse(null, null) { event ->
+      val expected = """
+        Detailed error message
+
+        >> Ask Gemini !!some error message!!
+      """
+      assertEquals(expected.trimIndent(), event.description)
+
+    }
+  }
+
+  @Test
+  fun `test Ask Gemini links are not inserted for WARNING messages`() {
+    val folder = temporaryFolder.newFolder("test")
+    val id = MockitoKt.mock<ExternalSystemTaskId>()
+    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.WARNING, "Compiler", "!!some error message!!", "Detailed error message",
+                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
+    myParserWrapper.parse(null, null) { event ->
+      val expected = """
+        Detailed error message
+      """
+      assertEquals(expected.trimIndent(), event.description)
+    }
+
+  }
+
+  @Test
+  fun `test Ask Gemini links are not inserted for INFO messages`() {
+    val folder = temporaryFolder.newFolder("test")
+    val id = MockitoKt.mock<ExternalSystemTaskId>()
+    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.INFO, "Compiler", "!!some error message!!", "Detailed error message",
+                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
+    myParserWrapper.parse(null, null) { event ->
+      val expected = """
+        Detailed error message
+      """
+      assertEquals(expected.trimIndent(), event.description)
+    }
   }
 
 }
