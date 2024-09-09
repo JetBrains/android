@@ -577,43 +577,48 @@ public class Configuration {
    * @param preserveState if true, attempt to preserve the state associated with the config
    */
   public void setDevice(Device device, boolean preserveState) {
-    if (mySpecificDevice != device) {
-      Device prevDevice = mySpecificDevice;
-      State prevState = myState;
-
-      myDevice = mySpecificDevice = device;
-      updateDeviceOverlay();
-
-      int updateFlags = CFG_DEVICE;
-
-      if (device != null) {
-        State state = null;
-        // Attempt to preserve the device state?
-        if (preserveState && prevDevice != null) {
-          if (prevState != null) {
-            FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
-            if (oldConfig != null) {
-              String stateName = getClosestMatch(oldConfig, device.getAllStates());
-              state = device.getState(stateName);
-            } else {
-              state = device.getState(prevState.getName());
-            }
-          }
-        } else if (preserveState && myStateName != null) {
-          state = device.getState(myStateName);
-        }
-        if (state == null) {
-          state = device.getDefaultState();
-        }
-        if (myState != state) {
-          setDeviceStateName(state.getName());
-          myState = state;
-          updateFlags |= CFG_DEVICE_STATE;
-        }
-      }
-
-      updated(updateFlags);
+    if (mySpecificDevice == device) {
+      // The specific device is already set to the correct device so simply clear myDevice
+      // which will be re-calculated to be the same as myDevice on the next query.
+      myDevice = null;
+      return;
     }
+
+    Device prevDevice = mySpecificDevice;
+    State prevState = myState;
+
+    myDevice = mySpecificDevice = device;
+    updateDeviceOverlay();
+
+    int updateFlags = CFG_DEVICE;
+
+    if (device != null) {
+      State state = null;
+      // Attempt to preserve the device state?
+      if (preserveState && prevDevice != null) {
+        if (prevState != null) {
+          FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
+          if (oldConfig != null) {
+            String stateName = getClosestMatch(oldConfig, device.getAllStates());
+            state = device.getState(stateName);
+          } else {
+            state = device.getState(prevState.getName());
+          }
+        }
+      } else if (preserveState && myStateName != null) {
+        state = device.getState(myStateName);
+      }
+      if (state == null) {
+        state = device.getDefaultState();
+      }
+      if (myState != state) {
+        setDeviceStateName(state.getName());
+        myState = state;
+        updateFlags |= CFG_DEVICE_STATE;
+      }
+    }
+
+    updated(updateFlags);
   }
 
   /**
