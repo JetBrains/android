@@ -75,8 +75,7 @@ def read_version(lib_dir: Path, prefix: str) -> (str, str):
 def read_platform_jars(ide_home: Path, product_info):
   # Extract the runtime classpath from product-info.json.
   bootClassPath = product_info["launch"][0]["bootClassPathJarNames"]
-  modules = ide_home.glob("lib/modules/*.jar")
-  jars = ["/lib/" + jar for jar in bootClassPath] + ["/lib/modules/" + jar.name for jar in modules]
+  jars = ["/lib/" + jar for jar in bootClassPath]
   return set(jars)
 
 
@@ -122,10 +121,17 @@ def _read_plugin_jars(idea_home: Path):
     if not plugin_path.is_dir():
       continue
     plugin_id = _read_plugin_id(plugin_path)
-    jars = [*plugin_path.glob("lib/*.jar"), *plugin_path.glob("lib/modules/*.jar")]
-    jars = [f"/{jar.relative_to(idea_home)}" for jar in jars]
-    plugins[plugin_id] = set(jars)
-
+    jars = plugin_path.glob("lib/*.jar")
+    jar_paths = ["/" + str(jar.relative_to(idea_home)) for jar in jars]
+    assert plugin_id not in plugins, f"Duplicated plugin ID: {plugin_id}"
+    plugins[plugin_id] = set(jar_paths)
+  # We also model V2 modules as plugins---at least for now, until the V2 design solidifies upstream.
+  # See b/349849955 and go/studio-v2-modules for details.
+  for jar in [*idea_home.glob("lib/modules/*.jar"), *idea_home.glob("plugins/*/lib/modules/*.jar")]:
+    module_id = jar.stem
+    jar_path = "/" + str(jar.relative_to(idea_home))
+    assert module_id not in plugins, f"Duplicated plugin ID: {module_id}"
+    plugins[module_id] = set([jar_path])
   return plugins
 
 
