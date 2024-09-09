@@ -17,10 +17,10 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.intellij.icons.ExpUiIcons
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun InfoOutlineIcon(modifier: Modifier = Modifier) {
-  Icon("expui/status/infoOutline.svg", null, ExpUiIcons::class.java, modifier)
+  Icon(AllIconsKeys.General.Note, null, modifier)
 }
