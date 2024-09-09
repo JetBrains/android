@@ -23,8 +23,8 @@ import androidx.compose.ui.Modifier
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 
 @Composable
-fun LeakListView(leakCanaryModel: LeakCanaryModel, modifier: Modifier = Modifier) {
-  Column(modifier = modifier) {
+fun LeakListView(leakCanaryModel: LeakCanaryModel) {
+  Column {
     val leaks by leakCanaryModel.leaks.collectAsState()
     val isRecording by leakCanaryModel.isRecording.collectAsState()
     val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()

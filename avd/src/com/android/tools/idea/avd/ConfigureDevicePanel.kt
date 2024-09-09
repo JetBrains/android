@@ -30,17 +30,19 @@ import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.Path
-import java.util.EnumSet
-import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.theme.defaultTabStyle
+import java.nio.file.Path
+import java.util.EnumSet
+import java.util.TreeSet
 
 @Composable
 internal fun ConfigureDevicePanel(
@@ -87,7 +89,8 @@ private fun Tabs(
         onClick = { selectedTab = tab },
         closable = false,
       )
-    }
+    },
+    style = JewelTheme.defaultTabStyle
   )
 
   val servicesSet =
