@@ -413,12 +413,15 @@ class CategoryTableTest {
 
     assertThat(table.rowComponents[1].isVisible).isTrue()
 
+    val fullHeight = table.preferredSize.height
+
     fakeUi.clickOn(categoryRow)
     fakeUi.layout()
 
     assertThat(table.rowComponents[1].isVisible).isFalse()
     assertThat(table.rowComponents[2].isVisible).isFalse()
     assertThat(fakeUi.getPosition(category2Row)).isEqualTo(row2Position)
+    assertThat(table.preferredSize.height).isLessThan(fullHeight)
 
     fakeUi.clickOn(categoryRow)
     fakeUi.layout()

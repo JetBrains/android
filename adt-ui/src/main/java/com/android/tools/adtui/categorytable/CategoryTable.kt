@@ -502,7 +502,7 @@ class CategoryTable<T : Any>(
   private fun Column.SizeConstraint.toSizeRequirements() = SizeRequirements(min, preferred, max, 0f)
 
   override fun getPreferredSize(): Dimension =
-    Dimension(header.preferredSize.width, rowComponents.sumOf { it.preferredSize.height })
+    Dimension(header.preferredSize.width, rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 })
 
   // Just documenting that these are never called:
   override fun getMinimumSize(): Dimension =
