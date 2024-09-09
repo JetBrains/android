@@ -78,7 +78,7 @@
 }
 
 entries ::= one_line_entries*
-private one_line_entries::=entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?
+private one_line_entries::=<<atNewLine (entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?)>>
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
 private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN|SEMI)
 assignment ::= lvalue OP_EQ rvalue {
@@ -111,7 +111,7 @@ block ::= block_head block_group {
      factory=""
    ]
 }
-block_group ::= OP_LBRACE block_entry* OP_RBRACE {
+block_group ::= OP_LBRACE block_entries? newline_block_entries* OP_RBRACE {
    pin=1
    methods=[
        getEntries
@@ -122,6 +122,8 @@ block_group ::= OP_LBRACE block_entry* OP_RBRACE {
    ]
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockMixin"
 }
+private block_entries ::= block_entry <<atSameLine (SEMI <<atSameLine block_entry>>)>>* SEMI?
+private newline_block_entries ::= <<atNewLine block_entries+>>
 private block_head ::= (factory | identifier)
 private block_entry ::= !'}' entry
 factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {pin=2}

@@ -52,6 +52,12 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
 
   @Override
   @Nullable
+  public PsiElement getDoubleLiteral() {
+    return findPsiChildByType(DOUBLE_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIntegerLiteral() {
     return findPsiChildByType(INTEGER_LITERAL);
   }
@@ -60,12 +66,6 @@ public class DeclarativeLiteralImpl extends CompositePsiElement implements Decla
   @Nullable
   public PsiElement getLongLiteral() {
     return findPsiChildByType(LONG_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getDoubleLiteral() {
-    return findPsiChildByType(DOUBLE_LITERAL);
   }
 
   @Override

@@ -1,0 +1,13 @@
+FILE
+  PsiElement(FACTORY)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('func1')
+    PsiElement(DeclarativeTokenType.()('(')
+    PsiElement(ARGUMENTS_LIST)
+      <empty list>
+    PsiElement(DeclarativeTokenType.))(')')
+  PsiWhiteSpace(' ')
+  PsiErrorElement:DeclarativeTokenType.; expected, got 'func2'
+    PsiElement(DeclarativeTokenType.token)('func2')
+  PsiElement(DeclarativeTokenType.()('(')
+  PsiElement(DeclarativeTokenType.))(')')

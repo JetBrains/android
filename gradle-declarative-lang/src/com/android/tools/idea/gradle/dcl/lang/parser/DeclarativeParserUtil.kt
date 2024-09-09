@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
+import com.intellij.psi.TokenType.WHITE_SPACE
 
 object DeclarativeParserUtil: GeneratedParserUtilBase() {
   @JvmStatic
@@ -28,13 +29,22 @@ object DeclarativeParserUtil: GeneratedParserUtilBase() {
     exit_section_(b, marker, null, result)
     return result
   }
+
+  @JvmStatic
+  fun atNewLine(b: PsiBuilder, level: Int, parser: Parser): Boolean {
+    val marker = enter_section_(b)
+    b.eof() // skip whitespace
+    val result = isNextAfterNewLine(b) && parser.parse(b, level)
+    exit_section_(b, marker, null, result)
+    return result
+  }
 }
 
 private fun isNextAfterNewLine(b: PsiBuilder): Boolean {
   return when (b.rawLookup(-1)) {
     null -> true // first element
     // The previous white space token contains end of line, or it's the first white space in file
-    com.intellij.psi.TokenType.WHITE_SPACE -> b.rawLookupText(-1).contains("\n") || b.rawTokenIndex() == 1
+    WHITE_SPACE -> b.rawLookupText(-1).contains("\n") || b.rawTokenIndex() == 1
     else -> false
   }
 }
