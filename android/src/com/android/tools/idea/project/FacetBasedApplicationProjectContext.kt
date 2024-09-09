@@ -16,6 +16,7 @@
 package com.android.tools.idea.project
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -24,4 +25,7 @@ import org.jetbrains.android.facet.AndroidFacet
 data class FacetBasedApplicationProjectContext(
   override val applicationId: String,
   val facet: AndroidFacet
-) : ApplicationProjectContext
+) : ApplicationProjectContext {
+  val project: Project
+    get() = facet.module.project
+}
