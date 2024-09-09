@@ -150,8 +150,16 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout
         .createParallelGroup()
-        .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
+        .addGroup(
+          layout
+            .createSequentialGroup()
+            .addComponent(deviceComboBox, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
+        )
+        .addGroup(
+          layout
+            .createSequentialGroup()
+            .addComponent(filterTextField, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
+        )
     )
     layout.setVerticalGroup(
       layout
