@@ -53,7 +53,6 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
-import org.jetbrains.jewel.ui.icon.PathIconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
@@ -204,7 +203,10 @@ private fun SystemImageTable(
         Comparator.comparing { it is RemoteSystemImage },
       ) {
         if (it is RemoteSystemImage) {
-          DownloadButton(onClick = { onDownloadButtonClick(it.`package`.path) })
+          DownloadButton(
+            onClick = { onDownloadButtonClick(it.`package`.path) },
+            Modifier.size(16.dp),
+          )
         }
       },
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
@@ -254,8 +256,8 @@ internal constructor(
 }
 
 @Composable
-private fun DownloadButton(onClick: () -> Unit) {
-  IconButton(onClick) { Icon(PathIconKey("expui/general/download.svg"), null) }
+private fun DownloadButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+  IconButton(onClick, modifier) { Icon(AllIconsKeys.Actions.Download, "Download") }
 }
 
 @Composable
