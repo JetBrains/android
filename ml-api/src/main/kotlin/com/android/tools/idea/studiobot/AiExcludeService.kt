@@ -147,8 +147,8 @@ interface AiExcludeService {
   enum class ExclusionStatus {
     /** The file is allowed to be used with AI features. */
     ALLOWED,
-    /** The status could not be determined (e.g. we are in dumb mode). */
-    INDETERMINATE,
+    /** The status could not be determined because the IDE is in dumb mode. */
+    INDEXING,
     /**
      * The file does not belong to the project and is not under any VCS roots attached to the
      * project. In this case it should be excluded by default, as .aiexclude rules do not apply to
