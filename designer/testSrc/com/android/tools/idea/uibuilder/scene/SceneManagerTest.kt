@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.DefaultHitProvider
@@ -34,6 +35,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.surface.TestSceneView
+import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -157,5 +159,34 @@ class SceneManagerTest {
 
     Disposer.dispose(sceneManager)
     Disposer.dispose(model)
+  }
+
+  @Test
+  fun testMultipleResourceChangesTriggersSingleModification() {
+    val model =
+      model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
+        .build()
+    val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
+    surface.addModelWithoutRender(model)
+    val sceneManager = TestSceneManager(model, surface)
+    sceneManager.updateSceneView()
+    sceneManager.update()
+
+    var modelChangedCount = 0
+    model.addListener(
+      object : ModelListener {
+        override fun modelChanged(model: NlModel) {
+          modelChangedCount++
+        }
+      }
+    )
+
+    sceneManager.resourcesChanged(
+      ImmutableSet.of(
+        ResourceNotificationManager.Reason.EDIT,
+        ResourceNotificationManager.Reason.CONFIGURATION_CHANGED,
+      )
+    )
+    assertEquals(1, modelChangedCount)
   }
 }
