@@ -40,6 +40,8 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
+import org.jetbrains.jewel.ui.icon.PathIconKey
 
 @Composable
 fun <DeviceT : DeviceProfile> DeviceTable(
@@ -58,7 +60,12 @@ fun <DeviceT : DeviceProfile> DeviceTable(
       TextField(
         filterState.textFilter.searchText,
         onValueChange = { filterState.textFilter.searchText = it },
-        leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
+        leadingIcon = {
+          Icon(
+            key = PathIconKey("studio/icons/common/search.svg", StudioIcons::class.java),
+            contentDescription = "Search",
+          )
+        },
         placeholder = {
           Text(
             filterState.textFilter.description,
@@ -72,7 +79,11 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         onClick = { showDetails = !showDetails },
         Modifier.align(Alignment.CenterVertically).padding(2.dp),
       ) {
-        Icon("actions/previewDetails.svg", "Details", AllIcons::class.java, Modifier.size(20.dp))
+        Icon(
+          key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
+          contentDescription = "Details",
+          modifier = Modifier.size(20.dp),
+        )
       }
     }
     if (devices.none(filterState.textFilter::apply)) {
@@ -82,9 +93,9 @@ fun <DeviceT : DeviceProfile> DeviceTable(
       )
     } else {
       HorizontalSplitLayout(
-        first = { DeviceFiltersPanel(it) { filterContent() } },
+        first = { DeviceFiltersPanel { filterContent() } },
         second = {
-          Row(modifier = it) {
+          Row {
             val filteredDevices = devices.filter(filterState::apply)
             if (filteredDevices.isEmpty()) {
               EmptyStatePanel(
@@ -111,9 +122,9 @@ fun <DeviceT : DeviceProfile> DeviceTable(
           }
         },
         modifier = Modifier.fillMaxSize(),
-        minRatio = 0.1f,
-        maxRatio = 0.5f,
-        initialDividerPosition = 200.dp,
+        firstPaneMinWidth = 100.dp,
+        secondPaneMinWidth = 300.dp,
+        state = rememberSplitLayoutState(.3f),
       )
     }
   }

@@ -16,10 +16,7 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.awt.ComposePanel
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.bridge.actionSystem.ComponentDataProviderBridge
+import org.jetbrains.jewel.bridge.JewelComposeNoThemePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import javax.swing.JComponent
 
@@ -27,12 +24,4 @@ import javax.swing.JComponent
 fun StudioComposePanel(
   content: @Composable () -> Unit,
 ): JComponent =
-  ComposePanel().apply {
-    setContent {
-      StudioTheme {
-        CompositionLocalProvider(LocalComponent provides this@apply) {
-          ComponentDataProviderBridge(this@apply, content = content)
-        }
-      }
-    }
-  }
+  JewelComposeNoThemePanel { StudioTheme(content) }
