@@ -266,6 +266,10 @@ constructor(
         removed.forEach {
           currentTemplates.remove(it)
           deviceTable.removeRowByKey(it)
+          if (deviceDetailsPanelRow?.template == it) {
+            deviceDetailsPanelRow = null
+            deviceDetailsPanel = null
+          }
         }
         for ((template, state) in pairs) {
           if (currentTemplates[template] != state) {
@@ -314,6 +318,10 @@ constructor(
         .join()
 
       withContext(uiDispatcher) {
+        if (deviceDetailsPanelRow?.handle == handle) {
+          deviceDetailsPanelRow = null
+          deviceDetailsPanel = null
+        }
         deviceTable.removeRowByKey(handle)
         handle.sourceTemplate?.let {
           if (templateInstantiationCount.remove(it, 1) == 1) {
