@@ -78,8 +78,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
-import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -1113,14 +1111,12 @@ class NlPropertyItemTest {
     </resources>
   """
 
-  private fun findLineAtOffset(file: VirtualFile, offset: Int): String {
-    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
-    val line = StringUtil.offsetToLineColumn(text, offset)
-    val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
-    return lineText.trim()
-  }
-
   private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager {
-    return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager =
+      property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    // Given that some default values are forced/hardcoded in some tests, it's needed to avoid
+    // refreshing on resource changes to avoid losing those forced values.
+    manager.setListenResourceChange(false)
+    return manager
   }
 }

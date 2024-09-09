@@ -282,10 +282,10 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     for (ResourceNotificationManager.Reason reason : reasons) {
       switch (reason) {
         case RESOURCE_EDIT:
-          myModel.notifyModifiedViaUpdateQueue(ChangeType.RESOURCE_EDIT);
+          myModel.notifyModified(ChangeType.RESOURCE_EDIT);
           break;
         case EDIT:
-          myModel.notifyModifiedViaUpdateQueue(ChangeType.EDIT);
+          myModel.notifyModified(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
           RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
