@@ -85,11 +85,7 @@ class EmulatorProcessHandlerTest {
       processHandler.waitFor()
     }
 
-    assertThat(
-        loggedMessages.warnings.minus(
-          "Unable to get current time from Google's servers, using local system time instead."
-        )
-      )
+    assertThat(loggedMessages.warnings)
       .containsExactly(
         "Warning message",
         "Warning message with user notification",
