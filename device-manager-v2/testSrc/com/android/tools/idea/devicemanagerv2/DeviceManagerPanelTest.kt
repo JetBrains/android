@@ -136,6 +136,45 @@ class DeviceManagerPanelTest {
   }
 
   @Test
+  fun detailsClosedWhenHandleNoLongerExists() = runTestWithFixture {
+    val pixel4 = createHandle("Pixel 4")
+    val pixel5 = createHandle("Pixel 5")
+
+    deviceHandles.send(listOf(pixel4, pixel5))
+
+    val pixel4Row = DeviceRowData.create(pixel4, emptyList())
+
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(panel, deviceRowData = pixel4Row)))
+
+    assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel4Row)
+
+    pixel4.scope.cancel()
+
+    assertThat(panel.deviceDetailsPanelRow).isNull()
+    assertThat(panel.deviceDetailsPanel).isNull()
+  }
+
+  @Test
+  fun detailsClosedWhenTemplateNoLongerExists() = runTestWithFixture {
+    val pixel4 = createTemplate("Pixel 4")
+    val pixel5 = createHandle("Pixel 5")
+
+    deviceHandles.send(listOf(pixel5))
+    deviceTemplates.send(listOf(pixel4))
+
+    val pixel4Row = DeviceRowData.create(pixel4)
+
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(panel, deviceRowData = pixel4Row)))
+
+    assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel4Row)
+
+    deviceTemplates.send(listOf())
+
+    assertThat(panel.deviceDetailsPanelRow).isNull()
+    assertThat(panel.deviceDetailsPanel).isNull()
+  }
+
+  @Test
   fun clickRow() = runTestWithFixture {
     val pixel4 = createHandle("Pixel 4")
     val pixel5 = createHandle("Pixel 5")
