@@ -19,6 +19,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
+import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.IntExperiment;
 import com.google.idea.common.util.MorePlatformUtils;
 import com.intellij.ide.BrowserUtil;
@@ -64,13 +65,15 @@ public class QuerySyncPromo {
   }
 
   private void displayPopupWithUrl(String url) {
+    boolean qsEnabled = QuerySync.useForNewProjects();
     Notification promo =
-        NotificationGroupManager.getInstance()
-            .getNotificationGroup("QuerySyncPromo")
-            .createNotification(
-                "Sync taking a long time?",
-                "Try query sync, the new improved sync solution. Now in beta!",
-                NotificationType.INFORMATION);
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup("QuerySyncPromo")
+        .createNotification(
+          "Sync taking a long time?",
+          qsEnabled ? "Re-create your project to get the benefits of query sync" :
+          "Try query sync, the new improved sync solution. Now in beta!",
+          NotificationType.INFORMATION);
     promo.addAction(
         new AnAction("Learn More") {
           @Override
@@ -79,13 +82,13 @@ public class QuerySyncPromo {
           }
         });
     promo.addAction(
-        new AnAction("Enable Now") {
-          @Override
-          public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
-            ShowSettingsUtil.getInstance()
-                .showSettingsDialog(project, QuerySyncConfigurableProvider.getConfigurableClass());
-          }
-        });
+      new AnAction(qsEnabled ? "Query Sync Settings" : "Enable Now") {
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
+          ShowSettingsUtil.getInstance()
+            .showSettingsDialog(project, QuerySyncConfigurableProvider.getConfigurableClass());
+        }
+      });
     promo.notify(project);
   }
 }
