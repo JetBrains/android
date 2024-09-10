@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * android_binary targets.
  */
 public class BlazeAndroidBinaryRunConfigurationHandler
-    extends BlazeAndroidBinaryRunConfigurationHandlerCompat
+  extends BlazeAndroidBinaryRunConfigurationHandlerTestHelper
     implements BlazeAndroidRunConfigurationHandler {
 
   @VisibleForTesting
