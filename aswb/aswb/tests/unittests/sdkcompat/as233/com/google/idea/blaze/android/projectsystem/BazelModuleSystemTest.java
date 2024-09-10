@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.projectsystem;
 
-import static com.android.ide.common.repository.GoogleMavenArtifactIdCompat.APP_COMPAT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.APP_COMPAT_V7;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
