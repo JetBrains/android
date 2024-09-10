@@ -1,300 +1,279 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package org.jetbrains.android.refactoring;
+package org.jetbrains.android.refactoring
+
+import com.android.SdkConstants
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.rendering.setIncludingLayout
+import com.android.utils.SdkUtils
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.command.UndoConfirmationPolicy
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.XmlElementFactory
+import com.intellij.psi.XmlRecursiveElementVisitor
+import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
+import com.intellij.util.xml.DomElement
+import com.intellij.util.xml.DomManager
+import org.jetbrains.android.actions.CreateResourceFileAction
+import org.jetbrains.android.dom.layout.Include
+import org.jetbrains.android.dom.layout.LayoutViewElement
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.TestOnly
 
 
-import com.android.SdkConstants;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.IncludingLayout;
-import com.android.utils.SdkUtils;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.UndoConfirmationPolicy;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.XmlElementFactory;
-import com.intellij.psi.XmlRecursiveElementVisitor;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.DomManager;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.jetbrains.android.actions.CreateResourceFileAction;
-import org.jetbrains.android.dom.layout.Include;
-import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
+class AndroidExtractAsIncludeAction : AndroidBaseLayoutRefactoringAction {
+  private val myTestConfig: MyTestConfig?
 
-public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringAction {
-  @NonNls public static final String ACTION_ID = "AndroidExtractAsIncludeAction";
-
-  private final MyTestConfig myTestConfig;
-
-  @SuppressWarnings("UnusedDeclaration")
-  public AndroidExtractAsIncludeAction() {
-    myTestConfig = null;
+  constructor() {
+    myTestConfig = null
   }
 
   @TestOnly
-  public AndroidExtractAsIncludeAction(@Nullable MyTestConfig testConfig) {
-    myTestConfig = testConfig;
-
+  constructor(testConfig: MyTestConfig?) {
+    myTestConfig = testConfig
   }
 
-  @Override
-  protected void doRefactorForTags(@NotNull Project project, @NotNull XmlTag[] tags) {
-    if (tags.length == 0) {
-      return;
+  override fun doRefactorForTags(project: Project, tags: Array<XmlTag>) {
+    if (tags.size == 0) {
+      return
     }
-    final PsiFile file = tags[0].getContainingFile();
-    if (file == null) {
-      return;
-    }
-    XmlTag startTag = null;
-    XmlTag endTag = null;
-    int startOffset = Integer.MAX_VALUE;
-    int endOffset = -1;
+    val file = tags[0].containingFile ?: return
+    var startTag: XmlTag? = null
+    var endTag: XmlTag? = null
+    var startOffset = Int.MAX_VALUE
+    var endOffset = -1
 
-    for (XmlTag tag : tags) {
-      final TextRange range = tag.getTextRange();
+    for (tag in tags) {
+      val range = tag.textRange
 
-      final int start = range.getStartOffset();
+      val start = range.startOffset
       if (start < startOffset) {
-        startOffset = start;
-        startTag = tag;
+        startOffset = start
+        startTag = tag
       }
 
-      final int end = range.getEndOffset();
+      val end = range.endOffset
       if (end > endOffset) {
-        endOffset = end;
-        endTag = tag;
+        endOffset = end
+        endTag = tag
       }
     }
-    assert startTag != null && endTag != null;
-    doRefactorForPsiRange(project, file, startTag, endTag);
+    assert(startTag != null && endTag != null)
+    doRefactorForPsiRange(project, file, startTag!!, endTag!!)
   }
 
-  @Override
-  protected boolean isEnabledForTags(@NotNull XmlTag[] tags) {
-    if (tags.length == 0) {
-      return false;
+  override fun isEnabledForTags(tags: Array<XmlTag>): Boolean {
+    if (tags.size == 0) {
+      return false
     }
-    final DomManager domManager = DomManager.getDomManager(tags[0].getProject());
-    boolean containsViewElement = false;
+    val domManager = DomManager.getDomManager(tags[0].project)
+    var containsViewElement = false
 
-    for (XmlTag tag : tags) {
-      final DomElement domElement = domManager.getDomElement(tag);
+    for (tag in tags) {
+      val domElement = domManager.getDomElement(tag)
 
       if (!isSuitableDomElement(domElement)) {
-        return false;
+        return false
       }
-      if (domElement instanceof LayoutViewElement) {
-        containsViewElement = true;
+      if (domElement is LayoutViewElement) {
+        containsViewElement = true
       }
     }
     if (!containsViewElement) {
-      return false;
+      return false
     }
-    final PsiElement parent = tags[0].getParent();
+    val parent = tags[0].parent
 
-    if (!(parent instanceof XmlTag) || parent.getContainingFile() == null) {
-      return false;
+    if (parent !is XmlTag || parent.getContainingFile() == null) {
+      return false
     }
 
-    for (int i = 1; i < tags.length; i++) {
-      if (tags[i].getParent() != parent) {
-        return false;
+    for (i in 1 until tags.size) {
+      if (tags[i].parent !== parent) {
+        return false
       }
     }
-    return true;
+    return true
   }
 
-  @Override
-  protected void doRefactorForPsiRange(@NotNull final Project project, @NotNull final PsiFile file, @NotNull final PsiElement from,
-                                       @NotNull final PsiElement to) {
-    final PsiDirectory dir = file.getContainingDirectory();
-    if (dir == null) {
-      return;
-    }
-    final AndroidFacet facet = AndroidFacet.getInstance(from);
-    assert facet != null;
-
-    final XmlTag parentTag = PsiTreeUtil.getParentOfType(from, XmlTag.class);
-    assert parentTag != null;
-
-    final List<XmlTag> tagsInRange = collectAllTags(from, to);
-    assert !tagsInRange.isEmpty() : "there is no tag inside the range";
-    final String fileName = myTestConfig != null ? myTestConfig.myLayoutFileName : null;
-    final String dirName = dir.getName();
-    final FolderConfiguration config = !dirName.isEmpty()
-                                       ? FolderConfiguration.getConfig(dirName.split(SdkConstants.RES_QUALIFIER_SEP))
-                                       : null;
-    final String title = "Extract Android Layout";
+  override fun doRefactorForPsiRange(
+    project: Project, file: PsiFile, from: PsiElement,
+    to: PsiElement
+  ) {
+    val dir = file.containingDirectory ?: return
+    val facet = checkNotNull(AndroidFacet.getInstance(from))
+    val parentTag = checkNotNull(PsiTreeUtil.getParentOfType(from, XmlTag::class.java))
+    val tagsInRange = collectAllTags(from, to)
+    assert(!tagsInRange.isEmpty()) { "there is no tag inside the range" }
+    val fileName = myTestConfig?.myLayoutFileName
+    val dirName = dir.name
+    val config = if (!dirName.isEmpty())
+      FolderConfiguration.getConfig(dirName.split(SdkConstants.RES_QUALIFIER_SEP.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+    else
+      null
+    val title = "Extract Android Layout"
 
     DataManager.getInstance()
-               .getDataContextFromFocusAsync()
-               .onSuccess(dataContext ->
-                 CommandProcessor.getInstance().executeCommand(project, new Runnable() {
-                   @Override
-                   public void run() {
-                     final XmlFile newFile =
-                       CreateResourceFileAction
-                         .createFileResource(facet, ResourceFolderType.LAYOUT, fileName, "temp_root", config, true, title,
-                                             null, dataContext);
-                     if (newFile != null) {
-                       ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                         @Override
-                         public void run() {
-                           doRefactor(facet, file, newFile, from, to, parentTag, tagsInRange.size() > 1);
-                         }
-                       });
-                     }
-                   }
-                 }, title, null, UndoConfirmationPolicy.REQUEST_CONFIRMATION));
+      .dataContextFromFocusAsync
+      .onSuccess { dataContext: DataContext? ->
+        CommandProcessor.getInstance().executeCommand(project, {
+          val newFile =
+            CreateResourceFileAction
+              .createFileResource(
+                facet, ResourceFolderType.LAYOUT, fileName, "temp_root", config, true, title,
+                null, dataContext
+              )
+          if (newFile != null) {
+            ApplicationManager.getApplication().runWriteAction {
+              doRefactor(
+                facet,
+                file,
+                newFile,
+                from,
+                to,
+                parentTag,
+                tagsInRange.size > 1
+              )
+            }
+          }
+        }, title, null, UndoConfirmationPolicy.REQUEST_CONFIRMATION)
+      }
   }
 
-  private static void doRefactor(AndroidFacet facet,
-                                 PsiFile file,
-                                 XmlFile newFile,
-                                 PsiElement from,
-                                 PsiElement to,
-                                 XmlTag parentTag,
-                                 boolean wrapWithMerge) {
-    final Project project = facet.getModule().getProject();
-    final String textToExtract = file.getText().substring(from.getTextRange().getStartOffset(),
-                                                          to.getTextRange().getEndOffset());
-    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
-    final Document document = documentManager.getDocument(newFile);
-    assert document != null;
-    document.setText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                     (wrapWithMerge ? "<merge>\n" + textToExtract + "\n</merge>" : textToExtract));
-    documentManager.commitDocument(document);
-
-    final Set<String> unknownPrefixes = new HashSet<String>();
-
-    newFile.accept(new XmlRecursiveElementVisitor() {
-      @Override
-      public void visitXmlTag(@NotNull XmlTag tag) {
-        super.visitXmlTag(tag);
-        final String prefix = tag.getNamespacePrefix();
-
-        if (!unknownPrefixes.contains(prefix) && tag.getNamespace().isEmpty()) {
-          unknownPrefixes.add(prefix);
-        }
-      }
-
-      @Override
-      public void visitXmlAttribute(@NotNull XmlAttribute attribute) {
-        final String prefix = attribute.getNamespacePrefix();
-
-        if (!unknownPrefixes.contains(prefix) && attribute.getNamespace().isEmpty()) {
-          unknownPrefixes.add(prefix);
-        }
-      }
-    });
-
-    final XmlTag rootTag = newFile.getRootTag();
-    assert rootTag != null;
-    final XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-    final XmlAttribute[] attributes = rootTag.getAttributes();
-    final XmlAttribute firstAttribute = attributes.length > 0 ? attributes[0] : null;
-
-    for (String prefix : unknownPrefixes) {
-      final String namespace = parentTag.getNamespaceByPrefix(prefix);
-      final String xmlNsAttrName = "xmlns:" + prefix;
-
-      if (!namespace.isEmpty() && rootTag.getAttribute(xmlNsAttrName) == null) {
-        final XmlAttribute xmlnsAttr = elementFactory.createXmlAttribute(xmlNsAttrName, namespace);
-
-        if (firstAttribute != null) {
-          rootTag.addBefore(xmlnsAttr, firstAttribute);
-        }
-        else {
-          rootTag.add(xmlnsAttr);
-        }
-      }
-    }
-
-    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.getName());
-    IncludingLayout.setIncludingLayout(newFile, includingLayout);
-
-    final String resourceName = SdkUtils.fileNameToResourceName(newFile.getName());
-    final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
-    parentTag.addAfter(includeTag, to);
-    parentTag.deleteChildRange(from, to);
-
-    final CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
-    codeStyleManager.reformat(newFile);
-  }
-
-  @NotNull
-  private static List<XmlTag> collectAllTags(PsiElement from, PsiElement to) {
-    final List<XmlTag> result = new ArrayList<XmlTag>();
-    PsiElement e = from;
+  override fun isEnabledForPsiRange(from: PsiElement, to: PsiElement?): Boolean {
+    val domManager = DomManager.getDomManager(from.project)
+    var e: PsiElement? = from
+    var containsViewElement = false
 
     while (e != null) {
-      if (e instanceof XmlTag) {
-        result.add((XmlTag)e);
-      }
-      if (e == to) {
-        break;
-      }
-      e = e.getNextSibling();
-    }
-    assert e != null : "invalid range";
-    return result;
-  }
-
-  @Override
-  protected boolean isEnabledForPsiRange(@NotNull PsiElement from, @Nullable PsiElement to) {
-    final DomManager domManager = DomManager.getDomManager(from.getProject());
-    PsiElement e = from;
-    boolean containsViewElement = false;
-
-    while (e != null) {
-      if (e instanceof XmlTag) {
-        final DomElement domElement = domManager.getDomElement((XmlTag)e);
+      if (e is XmlTag) {
+        val domElement = domManager.getDomElement(e)
 
         if (!isSuitableDomElement(domElement)) {
-          return false;
+          return false
         }
-        if (domElement instanceof LayoutViewElement) {
-          containsViewElement = true;
+        if (domElement is LayoutViewElement) {
+          containsViewElement = true
         }
       }
-      if (e == to) {
-        break;
+      if (e === to) {
+        break
       }
-      e = e.getNextSibling();
+      e = e.nextSibling
     }
-    return containsViewElement;
+    return containsViewElement
   }
 
-  private static boolean isSuitableDomElement(DomElement element) {
-    return element instanceof LayoutViewElement ||
-           element instanceof Include;
-  }
+  class MyTestConfig(val myLayoutFileName: String)
+  companion object {
+    const val ACTION_ID: @NonNls String = "AndroidExtractAsIncludeAction"
 
-  static class MyTestConfig {
-    private final String myLayoutFileName;
+    private fun doRefactor(
+      facet: AndroidFacet,
+      file: PsiFile,
+      newFile: XmlFile,
+      from: PsiElement,
+      to: PsiElement,
+      parentTag: XmlTag,
+      wrapWithMerge: Boolean
+    ) {
+      val project = facet.module.project
+      val textToExtract = file.text.substring(
+        from.textRange.startOffset,
+        to.textRange.endOffset
+      )
+      val documentManager = PsiDocumentManager.getInstance(project)
+      val document = checkNotNull(documentManager.getDocument(newFile))
+      document.setText(
+        """<?xml version="1.0" encoding="utf-8"?>
+${if (wrapWithMerge) "<merge>\n$textToExtract\n</merge>" else textToExtract}"""
+      )
+      documentManager.commitDocument(document)
 
-    MyTestConfig(@NotNull String layoutFileName) {
-      myLayoutFileName = layoutFileName;
+      val unknownPrefixes: MutableSet<String> = HashSet()
+
+      newFile.accept(object : XmlRecursiveElementVisitor() {
+        override fun visitXmlTag(tag: XmlTag) {
+          super.visitXmlTag(tag)
+          val prefix = tag.namespacePrefix
+
+          if (!unknownPrefixes.contains(prefix) && tag.namespace.isEmpty()) {
+            unknownPrefixes.add(prefix)
+          }
+        }
+
+        override fun visitXmlAttribute(attribute: XmlAttribute) {
+          val prefix = attribute.namespacePrefix
+
+          if (!unknownPrefixes.contains(prefix) && attribute.namespace.isEmpty()) {
+            unknownPrefixes.add(prefix)
+          }
+        }
+      })
+
+      val rootTag = checkNotNull(newFile.rootTag)
+      val elementFactory = XmlElementFactory.getInstance(project)
+      val attributes = rootTag.attributes
+      val firstAttribute = if (attributes.size > 0) attributes[0] else null
+
+      for (prefix in unknownPrefixes) {
+        val namespace = parentTag.getNamespaceByPrefix(prefix)
+        val xmlNsAttrName = "xmlns:$prefix"
+
+        if (!namespace.isEmpty() && rootTag.getAttribute(xmlNsAttrName) == null) {
+          val xmlnsAttr = elementFactory.createXmlAttribute(xmlNsAttrName, namespace)
+
+          if (firstAttribute != null) {
+            rootTag.addBefore(xmlnsAttr, firstAttribute)
+          } else {
+            rootTag.add(xmlnsAttr)
+          }
+        }
+      }
+
+      val includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.name)
+      setIncludingLayout(newFile, includingLayout)
+
+      val resourceName = SdkUtils.fileNameToResourceName(newFile.name)
+      val includeTag = elementFactory.createTagFromText("<include layout=\"@layout/$resourceName\"/>")
+      parentTag.addAfter(includeTag, to)
+      parentTag.deleteChildRange(from, to)
+
+      val codeStyleManager = CodeStyleManager.getInstance(project)
+      codeStyleManager.reformat(newFile)
+    }
+
+    private fun collectAllTags(from: PsiElement, to: PsiElement): List<XmlTag> {
+      val result: MutableList<XmlTag> = ArrayList()
+      var e: PsiElement? = from
+
+      while (e != null) {
+        if (e is XmlTag) {
+          result.add(e)
+        }
+        if (e === to) {
+          break
+        }
+        e = e.nextSibling
+      }
+      checkNotNull(e) { "invalid range" }
+      return result
+    }
+
+    private fun isSuitableDomElement(element: DomElement?): Boolean {
+      return element is LayoutViewElement ||
+        element is Include
     }
   }
 }
