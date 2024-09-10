@@ -216,11 +216,11 @@ abstract class DesignSurface<T : SceneManager>(
         sceneViewProvider = ::sceneViews,
         interactionLayersProvider = ::getLayers,
         actionManagerProvider = ::actionManager,
-        scope = scope,
         shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
         layoutManager = positionableLayoutManager,
       )
       .apply {
+        Disposer.register(this@DesignSurface, this)
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
       }

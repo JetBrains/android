@@ -122,7 +122,7 @@ class OrganizationTest {
       )
 
     val sceneViewPanel =
-      createSceneViewPanel(CoroutineScope(EmptyCoroutineContext)).also { sceneViewPanel ->
+      createSceneViewPanel().also { sceneViewPanel ->
         sceneViews.forEach { sceneViewPanel.add(it) }
       }
 
@@ -137,6 +137,7 @@ class OrganizationTest {
         Disposer.dispose(it.sceneView)
       }
     }
+    Disposer.dispose(sceneViewPanel)
   }
 
   private fun createSceneViewPeerPanel(
@@ -158,12 +159,11 @@ class OrganizationTest {
     )
   }
 
-  private fun createSceneViewPanel(testScope: CoroutineScope): SceneViewPanel =
+  private fun createSceneViewPanel(): SceneViewPanel =
     SceneViewPanel(
       sceneViewProvider = { emptyList() },
       interactionLayersProvider = { emptyList() },
       actionManagerProvider = { Mockito.mock() },
-      scope = testScope,
       shouldRenderErrorsPanel = { false },
       layoutManager = Mockito.mock(),
     )
