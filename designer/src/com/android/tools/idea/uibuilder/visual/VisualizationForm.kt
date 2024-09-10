@@ -81,7 +81,6 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.DefaultFocusTraversalPolicy
-import java.awt.event.AdjustmentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
@@ -672,7 +671,7 @@ class VisualizationForm(
       surface.zoomController.scale
   }
 
-  override fun panningChanged(adjustmentEvent: AdjustmentEvent) = Unit
+  override fun panningChanged() = Unit
 
   /** A disabled action for displaying text in action toolbar. It does nothing. */
   private class TextLabelAction(private val text: String) : AnAction(null as String?) {

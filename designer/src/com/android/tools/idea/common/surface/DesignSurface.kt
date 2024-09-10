@@ -93,7 +93,6 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
-import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
@@ -229,17 +228,18 @@ abstract class DesignSurface<T : SceneManager>(
   /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
   val scrollPane: JScrollPane? =
     if (hasZoomControls) {
-      createDefaultScrollPane(sceneViewPanel, background, ::notifyPanningChanged).apply {
-        addComponentListener(
-          object : ComponentAdapter() {
-            override fun componentResized(e: ComponentEvent) {
-              // Relayout the PositionableContents when visible size (e.g. window size) of
-              // ScrollPane is changed.
-              revalidateScrollArea()
+      createDefaultScrollPane(sceneViewPanel, background) { notifyPanningChanged() }
+        .apply {
+          addComponentListener(
+            object : ComponentAdapter() {
+              override fun componentResized(e: ComponentEvent) {
+                // Relayout the PositionableContents when visible size (e.g. window size) of
+                // ScrollPane is changed.
+                revalidateScrollArea()
+              }
             }
-          }
-        )
-      }
+          )
+        }
     } else null
 
   /** Current scrollable [Rectangle] if available or null. */
@@ -604,9 +604,9 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  protected fun notifyPanningChanged(adjustmentEvent: AdjustmentEvent) {
+  protected fun notifyPanningChanged() {
     for (listener in getZoomListeners()) {
-      listener.panningChanged(adjustmentEvent)
+      listener.panningChanged()
     }
   }
 

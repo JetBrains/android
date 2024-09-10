@@ -131,8 +131,7 @@ class RenderQualityManagerTest {
     tool.qualityChangeNeededLatch = CountDownLatch(1)
     repeat(20) {
       // Alternate between both notifications as they should have the same effect
-      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0)
-      else panZoomListener.panningChanged(null)
+      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0) else panZoomListener.panningChanged()
       delay(tool.debounceTime / 5)
     }
     tool.qualityChangeNeededLatch.await()
@@ -142,8 +141,7 @@ class RenderQualityManagerTest {
     tool.qualityChangeNeededLatch = CountDownLatch(2)
     repeat(2) {
       // Alternate between both notifications as they should have the same effect
-      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0)
-      else panZoomListener.panningChanged(null)
+      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0) else panZoomListener.panningChanged()
       delay(tool.debounceTime * 5)
     }
 
