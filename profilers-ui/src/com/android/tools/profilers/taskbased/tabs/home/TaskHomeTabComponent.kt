@@ -15,12 +15,8 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.IdeProfilerComponents
@@ -33,26 +29,17 @@ import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
 @Composable
 fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
-  Column(
-    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
-  ) {
-    val processListModel = taskHomeTabModel.processListModel
-
-    HorizontalSplitLayout(
-      firstPaneMinWidth = 400.dp,
-      secondPaneMinWidth = 250.dp,
-      first = {
-        ProcessList(processListModel)
-      },
-      second = {
-        TaskGridAndBars(taskHomeTabModel, ideProfilerComponents)
-      },
-      state = rememberSplitLayoutState(.3f)
-    )
-  }
+  HorizontalSplitLayout(
+    firstPaneMinWidth = 400.dp,
+    secondPaneMinWidth = 250.dp,
+    first = { ProcessList(taskHomeTabModel.processListModel) },
+    second = { TaskGridAndBars(taskHomeTabModel, ideProfilerComponents) },
+    state = rememberSplitLayoutState(.3f),
+    modifier = Modifier.fillMaxSize(),
+  )
 }
 
-class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
-  { TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
+class TaskHomeTabComponent(
+  taskHomeTabModel: TaskHomeTabModel,
+  ideProfilerComponents: IdeProfilerComponents,
+) : TaskTabComponent({ TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
