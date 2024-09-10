@@ -245,7 +245,7 @@ class NlComponentTreeDefinitionTest {
     table.tableModel
     val bounds = table.getCellRect(6, 0, true) // "@id/b"
     val ui = FakeUi(table)
-    ui.mouse.doubleClick(bounds.maxX.toInt() - 2, bounds.centerY.toInt())
+    ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
 
     // Activating a reference should select the component being referenced: the Button
