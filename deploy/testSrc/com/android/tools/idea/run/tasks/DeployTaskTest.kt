@@ -144,6 +144,7 @@ class DeployTaskTest {
     val deployTask = DeployTask(project, listOf(), null, true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
+    verify(device, never()).forceStop(any())
   }
 
   @Test
@@ -202,6 +203,7 @@ class DeployTaskTest {
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.R)
 
     verify(deployer).install(any(), eq(expectedOptions), any())
+    verify(device, times(1)).forceStop(any())
   }
 
   @Test
@@ -227,6 +229,7 @@ class DeployTaskTest {
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.LOLLIPOP_MR1)
 
     verify(deployer).install(any(), eq(expectedOptions), any())
+    verify(device, never()).forceStop(any())
   }
 
   private fun deployApkWithRequiredInstallOptions(deviceApiLevel: Int) {
