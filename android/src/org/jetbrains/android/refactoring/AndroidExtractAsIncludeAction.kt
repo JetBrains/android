@@ -22,7 +22,6 @@ import com.android.tools.idea.rendering.setIncludingLayout
 import com.android.utils.SdkUtils
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.project.Project
@@ -33,6 +32,7 @@ import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.XmlRecursiveElementVisitor
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.siblings
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -44,49 +44,53 @@ import org.jetbrains.android.dom.layout.Include
 import org.jetbrains.android.dom.layout.LayoutViewElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.idea.base.codeInsight.handlers.fixers.range
+import org.jetbrains.kotlin.util.takeWhileInclusive
 
 private const val TITLE = "Extract Android Layout"
+
+/**
+ * Finds all the [XmlTag]s between [from] and [to], inclusive, and returns them in a [Sequence].
+ *
+ * If [mustFindTo] is `true`, throws if it runs out of siblings before encountering [to].
+ */
+private fun xmlTagSiblingsBetween(from: PsiElement, to: PsiElement?, mustFindTo: Boolean = false): Sequence<XmlTag> =
+  from.siblings().takeWhileInclusive {
+    if (mustFindTo && it.nextSibling == null) check(it === to) { "invalid range" }
+    it !== to
+  }
+    .filterIsInstance(XmlTag::class.java)
+
+/** Determines whether a [DomElement] is either a [LayoutViewElement] or an [Include]. */
+private fun DomElement?.isSuitable() = this is LayoutViewElement || this is Include
+
+/** Determines whether every [XmlTag] in a [Sequence] is [isSuitable] and any of them is a [LayoutViewElement]. */
+private fun Sequence<XmlTag>.allSuitableAndContainsViewElement(project: Project) : Boolean {
+  val domManager = DomManager.getDomManager(project)
+  val domElements = this.map(domManager::getDomElement)
+  // Every DomElement must be either a LayoutViewElement or an Include. We also
+  // keep track of whether we have at least one LayoutViewElement.
+  var containsLayoutViewElement = false
+  for (domElement in domElements) {
+    if (domElement is LayoutViewElement) containsLayoutViewElement = true
+    else if (domElement !is Include) return false
+  }
+  return containsLayoutViewElement
+}
 
 class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) :
   AndroidBaseLayoutRefactoringAction() {
   override fun doRefactorForTags(project: Project, tags: Array<XmlTag>) {
     if (tags.isEmpty()) return
+    val startTag = tags.minBy { it.range.startOffset }
+    val endTag = tags.maxBy { it.range.endOffset }
     val file = tags[0].containingFile ?: return
-    var startTag: XmlTag? = null
-    var endTag: XmlTag? = null
-    var startOffset = Int.MAX_VALUE
-    var endOffset = -1
-
-    for (tag in tags) {
-      val range = tag.textRange
-
-      val start = range.startOffset
-      if (start < startOffset) {
-        startOffset = start
-        startTag = tag
-      }
-
-      val end = range.endOffset
-      if (end > endOffset) {
-        endOffset = end
-        endTag = tag
-      }
-    }
-    assert(startTag != null && endTag != null)
-    doRefactorForPsiRange(project, file, startTag!!, endTag!!)
+    doRefactorForPsiRange(project, file, startTag, endTag)
   }
 
   override fun isEnabledForTags(tags: Array<XmlTag>): Boolean {
     if (tags.isEmpty()) return false
-    val domManager = DomManager.getDomManager(tags[0].project)
-    var containsViewElement = false
-
-    for (tag in tags) {
-      val domElement = domManager.getDomElement(tag)
-      if (!isSuitableDomElement(domElement)) return false
-      if (domElement is LayoutViewElement) containsViewElement = true
-    }
-    if (!containsViewElement) return false
+    if (!tags.asSequence().allSuitableAndContainsViewElement(tags.first().project)) return false
 
     val parent = tags[0].parent
 
@@ -104,41 +108,36 @@ class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) 
     val dir = file.containingDirectory ?: return
     val facet = checkNotNull(AndroidFacet.getInstance(from))
     val parentTag = checkNotNull(PsiTreeUtil.getParentOfType(from, XmlTag::class.java))
-    val tagsInRange = collectAllTags(from, to)
-    assert(tagsInRange.isNotEmpty()) { "there is no tag inside the range" }
-    val fileName = testConfig?.layoutFileName
-    val dirName = dir.name
-    val config =
-      if (dirName.isEmpty()) null
-      else
-        FolderConfiguration.getConfig(
-          dirName
-            .split(SdkConstants.RES_QUALIFIER_SEP.toRegex())
-            .toTypedArray()
-        )
+    val numTags = xmlTagSiblingsBetween(from, to, mustFindTo = true).count()
+    assert(numTags > 0) { "there is no tag inside the range" }
+    val config = dir.name.takeIf(String::isNotEmpty)?.let {
+      FolderConfiguration.getConfig(
+        it
+          .split(SdkConstants.RES_QUALIFIER_SEP.toRegex())
+          .toTypedArray()
+      )
+    }
 
     DataManager.getInstance().dataContextFromFocusAsync.onSuccess { dataContext: DataContext? ->
       CommandProcessor.getInstance()
         .executeCommand(
           project,
           {
-            val newFile =
-              CreateResourceFileAction.createFileResource(
-                facet,
-                ResourceFolderType.LAYOUT,
-                fileName,
-                "temp_root",
-                config,
-                true,
-                TITLE,
-                null,
-                dataContext,
-              )
-            if (newFile != null) {
+            val newFile = CreateResourceFileAction.createFileResource(
+              facet,
+              ResourceFolderType.LAYOUT,
+              testConfig?.layoutFileName,
+              "temp_root",
+              config,
+              true,
+              TITLE,
+              null,
+              dataContext,
+            )
+            if (newFile != null)
               application.runWriteAction {
-                doRefactor(facet, file, newFile, from, to, parentTag, tagsInRange.size > 1)
+                doRefactor(facet, file, newFile, from, to, parentTag, numTags > 1)
               }
-            }
           },
           TITLE,
           null,
@@ -147,22 +146,8 @@ class AndroidExtractAsIncludeAction(private val testConfig: TestConfig? = null) 
     }
   }
 
-  override fun isEnabledForPsiRange(from: PsiElement, to: PsiElement?): Boolean {
-    val domManager = DomManager.getDomManager(from.project)
-    var e: PsiElement? = from
-    var containsViewElement = false
-
-    while (e != null) {
-      if (e is XmlTag) {
-        val domElement = domManager.getDomElement(e)
-        if (!isSuitableDomElement(domElement)) return false
-        if (domElement is LayoutViewElement) containsViewElement = true
-      }
-      if (e === to) break
-      e = e.nextSibling
-    }
-    return containsViewElement
-  }
+  override fun isEnabledForPsiRange(from: PsiElement, to: PsiElement?) =
+    xmlTagSiblingsBetween(from, to).allSuitableAndContainsViewElement(from.project)
 
   class TestConfig(val layoutFileName: String)
 
@@ -188,7 +173,7 @@ ${if (wrapWithMerge) "<merge>\n$textToExtract\n</merge>" else textToExtract}"""
       )
       documentManager.commitDocument(document)
 
-      val unknownPrefixes: MutableSet<String> = HashSet()
+      val unknownPrefixes: MutableSet<String> = mutableSetOf()
 
       newFile.accept(
         object : XmlRecursiveElementVisitor() {
@@ -242,24 +227,6 @@ ${if (wrapWithMerge) "<merge>\n$textToExtract\n</merge>" else textToExtract}"""
       parentTag.deleteChildRange(from, to)
 
       CodeStyleManager.getInstance(project).reformat(newFile)
-    }
-
-    private fun collectAllTags(from: PsiElement, to: PsiElement): List<XmlTag> {
-      val result: MutableList<XmlTag> = mutableListOf()
-      var e: PsiElement? = from
-
-      while (e != null) {
-        if (e is XmlTag) result.add(e)
-        if (e === to) break
-        e = e.nextSibling
-      }
-
-      checkNotNull(e) { "invalid range" }
-      return result
-    }
-
-    private fun isSuitableDomElement(element: DomElement?): Boolean {
-      return element is LayoutViewElement || element is Include
     }
   }
 }
