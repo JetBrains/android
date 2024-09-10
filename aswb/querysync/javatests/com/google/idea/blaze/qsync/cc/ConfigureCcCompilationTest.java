@@ -154,15 +154,15 @@ public class ConfigureCcCompilationTest {
     assertThat(resolver.resolveAll(workspace.getFlagSetsOrThrow(compilerSettings.getFlagSetId())))
         .containsExactly(
             "-DDEBUG",
-            "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
+            "-I/project/.bazel/buildout/builtin/include/directory",
             "-I/workspace/src/builtin/include/directory",
-            "-I/project/.bazel/buildout/bazel-out/include/directory",
+            "-I/project/.bazel/buildout/include/directory",
             "-I/workspace/src/include/directory",
-            "-iquote/project/.bazel/buildout/bazel-out/quote/include/directory",
+            "-iquote/project/.bazel/buildout/quote/include/directory",
             "-iquote/workspace/src/quote/include/directory",
-            "-isystem/project/.bazel/buildout/bazel-out/system/include/directory",
+            "-isystem/project/.bazel/buildout/system/include/directory",
             "-isystem/workspace/src/system/include/directory",
-            "-F/project/.bazel/buildout/bazel-out/framework/include/directory",
+            "-F/project/.bazel/buildout/framework/include/directory",
             "-F/workspace/src/framework/include/directory",
             "-w", // This is defined in `copts` of the test project build rule.
             "--sharedopt",
@@ -185,7 +185,7 @@ public class ConfigureCcCompilationTest {
                         .get(CcLanguage.CPP.name())
                         .getFlagSetId())))
         .containsExactly(
-            "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
+            "-I/project/.bazel/buildout/builtin/include/directory",
             "-I/workspace/src/builtin/include/directory",
             "--sharedopt",
             "--cppopt");
@@ -198,7 +198,7 @@ public class ConfigureCcCompilationTest {
                         .get(CcLanguage.C.name())
                         .getFlagSetId())))
         .containsExactly(
-            "-I/project/.bazel/buildout/bazel-out/builtin/include/directory",
+            "-I/project/.bazel/buildout/builtin/include/directory",
             "-I/workspace/src/builtin/include/directory",
             "--sharedopt",
             "--conlyopt");

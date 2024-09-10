@@ -53,7 +53,9 @@ public class ArtifactDirectories {
     // component, so paths that start with that are resolved relative to the generated headers dir
     // in the project artifact store.
     if (includePath.startsWith("blaze-out") || includePath.startsWith("bazel-out")) {
-      return GEN_CC_HEADERS.resolveChild(includePath);
+      // Remove the bXXXX-out prefix since that is not present in the project artifact store where
+      // generated headers are kept.
+      return GEN_CC_HEADERS.resolveChild(includePath.getName(0).relativize(includePath));
     } else if (includePath.isAbsolute()) {
       return ProjectPath.absolute(includePath);
     } else {

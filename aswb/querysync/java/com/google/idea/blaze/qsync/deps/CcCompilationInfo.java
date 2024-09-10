@@ -52,7 +52,7 @@ public abstract class CcCompilationInfo {
 
   public abstract String toolchainId();
 
-  static CcCompilationInfo.Builder builder() {
+  public static CcCompilationInfo.Builder builder() {
     return new AutoValue_CcCompilationInfo.Builder();
   }
 
@@ -126,15 +126,27 @@ public abstract class CcCompilationInfo {
 
     public abstract Builder defines(List<String> value);
 
+    public abstract Builder defines(String... value);
+
     public abstract Builder includeDirectories(List<ProjectPath> value);
+
+    public abstract Builder includeDirectories(ProjectPath... value);
 
     public abstract Builder quoteIncludeDirectories(List<ProjectPath> value);
 
+    public abstract Builder quoteIncludeDirectories(ProjectPath... value);
+
     public abstract Builder systemIncludeDirectories(List<ProjectPath> value);
+
+    public abstract Builder systemIncludeDirectories(ProjectPath... value);
 
     public abstract Builder frameworkIncludeDirectories(List<ProjectPath> value);
 
+    public abstract Builder frameworkIncludeDirectories(ProjectPath... value);
+
     public abstract Builder genHeaders(List<BuildArtifact> value);
+
+    public abstract Builder genHeaders(BuildArtifact... value);
 
     public abstract Builder toolchainId(String value);
 
