@@ -73,7 +73,7 @@ java_library(
     name = "unit_test_utils",
     testonly = 1,
     srcs = glob(["tests/utils/unit/**/*.java"]) + [
-        "tests/utils/sdkcompat/as233/com/android/ide/common/repository/GoogleMavenArtifactIdCompat.java",
+        "tests/utils/sdkcompat/as233/com/android/ide/common/repository/GoogleMavenArtifactIdHelper.java",
     ],
     visibility = combine_visibilities(TEST_ASWB_SUBPACKAGES_VISIBILITY, DEFAULT_TEST_VISIBILITY),
     deps = [

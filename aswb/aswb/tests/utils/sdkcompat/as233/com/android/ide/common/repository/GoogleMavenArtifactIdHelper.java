@@ -17,14 +17,14 @@ package com.android.ide.common.repository;
 
 import com.google.idea.blaze.base.model.primitives.Label;
 
-/** Compat class for GoogleMavenArtifactId. */
-public final class GoogleMavenArtifactIdCompat {
+/** Helper class for GoogleMavenArtifactId. */
+public final class GoogleMavenArtifactIdHelper {
   public static final GradleCoordinate CONSTRAINT_LAYOUT_COORDINATE =
       GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+");
   public static final GradleCoordinate APP_COMPAT_V7 =
       GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+");
 
-  public static Label getLabelForGoogleMaventArtifact(GradleCoordinate coordinate) {
+  public static Label getLabelForGoogleMavenArtifactId(GradleCoordinate coordinate) {
     switch (GoogleMavenArtifactId.forCoordinate(coordinate)) {
       case RECYCLERVIEW_V7:
         return Label.create("//third_party/recyclerview:recyclerview");
@@ -35,5 +35,5 @@ public final class GoogleMavenArtifactIdCompat {
     }
   }
 
-  private GoogleMavenArtifactIdCompat() {}
+  private GoogleMavenArtifactIdHelper() {}
 }
