@@ -114,6 +114,7 @@ internal fun DevicePanel(
         SystemImageTable(
           filteredImages,
           configureDevicePanelState.systemImageTableSelectionState,
+          configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,
           onSystemImageTableRowClick,
         )
@@ -177,10 +178,13 @@ private fun ServicesDropdown(
 private fun SystemImageTable(
   images: List<ISystemImage>,
   selectionState: TableSelectionState<ISystemImage>,
+  onIsSystemImageTableSelectionValidChange: (Boolean) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  onIsSystemImageTableSelectionValidChange(selectionState.selection in images)
+
   val sortedImages = images.sortedWith(SystemImageComparator)
   val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isRecommended() })
   val starColumn = remember {
