@@ -170,13 +170,23 @@ internal constructor(
   internal var skins by mutableStateOf(skins)
     private set
 
-  internal val systemImageTableSelectionState = TableSelectionState(image)
+  internal val systemImageTableSelectionState = TableSelectionState<ISystemImage>()
 
-  internal var isValid by mutableStateOf(device.expandedStorage.isValid())
+  internal var validity by mutableStateOf(Validity())
     private set
+
+  init {
+    setSystemImageTableSelection(image)
+    setExpandedStorage(device.expandedStorage)
+  }
 
   internal fun setDeviceName(deviceName: String) {
     device = device.copy(name = deviceName)
+  }
+
+  internal fun setSystemImageTableSelection(systemImageTableSelection: ISystemImage?) {
+    systemImageTableSelectionState.selection = systemImageTableSelection
+    validity = validity.copy(isSystemImageTableSelectionValid = systemImageTableSelection != null)
   }
 
   internal fun setSkin(path: Path) {
@@ -196,8 +206,17 @@ internal constructor(
 
   internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
     device = device.copy(expandedStorage = expandedStorage)
-    isValid = expandedStorage.isValid()
+    validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid())
   }
+}
+
+internal data class Validity
+internal constructor(
+  private val isSystemImageTableSelectionValid: Boolean = true,
+  internal val isExpandedStorageValid: Boolean = true,
+) {
+  internal val isValid
+    get() = isSystemImageTableSelectionValid && isExpandedStorageValid
 }
 
 private enum class Tab(val text: String) {

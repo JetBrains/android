@@ -93,7 +93,7 @@ internal fun AdditionalSettingsPanel(
       StorageGroup(
         configureDevicePanelState.device,
         additionalSettingsPanelState.storageGroupState,
-        configureDevicePanelState.isValid,
+        configureDevicePanelState.validity.isExpandedStorageValid,
         configureDevicePanelState::device::set,
         configureDevicePanelState::setExpandedStorage,
       )
@@ -210,7 +210,7 @@ private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 private fun StorageGroup(
   device: VirtualDevice,
   storageGroupState: StorageGroupState,
-  isValid: Boolean,
+  isExistingImageValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
   onExpandedStorageChange: (ExpandedStorage) -> Unit,
 ) {
@@ -274,7 +274,7 @@ private fun StorageGroup(
       ExistingImageField(
         storageGroupState.existingImage,
         storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
-        isValid,
+        isExistingImageValid,
         onExistingImageChange = {
           storageGroupState.existingImage = it
           onExpandedStorageChange(ExistingImage(fileSystem.getPath(it)))
@@ -308,12 +308,12 @@ private fun <E : Enum<E>> RadioButtonRow(
 private fun ExistingImageField(
   existingImage: String,
   enabled: Boolean,
-  isValid: Boolean,
+  isExistingImageValid: Boolean,
   onExistingImageChange: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier) {
-    if (enabled && !isValid) {
+    if (enabled && !isExistingImageValid) {
       Text("The specified image must be a valid file")
     }
 
