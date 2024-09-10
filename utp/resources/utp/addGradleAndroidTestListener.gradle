@@ -28,8 +28,8 @@ class SetupUtpTestResultListenerAction implements Action<TaskExecutionGraph> {
     final String ON_RESULT_TAG = "UTP_TEST_RESULT_ON_TEST_RESULT_EVENT"
 
     taskGraph.allTasks.each { task ->
-      if (!task.project.hasProperty(ENABLE_UTP_TEST_REPORT_PROPERTY) ||
-          !task.project.property(ENABLE_UTP_TEST_REPORT_PROPERTY).toString().toBoolean()) {
+      if (!task.project.providers.gradleProperty(ENABLE_UTP_TEST_REPORT_PROPERTY).isPresent() ||
+          !task.project.providers.gradleProperty(ENABLE_UTP_TEST_REPORT_PROPERTY).get().toBoolean()) {
         return
       }
 
