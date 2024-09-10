@@ -37,7 +37,8 @@ class InsightTextPane : JTextPane(), CopyProvider {
 
   init {
     contentType = "text/html"
-    editorKit = HTMLEditorKitBuilder.simple()
+    editorKit =
+      HTMLEditorKitBuilder.simple().apply { styleSheet.addRule("body { white-space: pre-wrap; }") }
     isEditable = false
     isOpaque = false
     background = JBColor.background()
