@@ -57,6 +57,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -298,6 +299,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       updateDistributionUrl()
       performGradleImport()
     }
+
+    override fun logUsage() {} // Rendering a new project is already logged above
   }
 
   companion object {

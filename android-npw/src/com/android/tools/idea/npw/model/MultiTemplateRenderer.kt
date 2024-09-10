@@ -68,6 +68,11 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
      * open generated files on the editor.
      */
     @UiThread fun finish() {}
+
+    /**
+     * Logs as INFO the template name and/or relevant info, to better help with user reports
+     */
+    fun logUsage()
   }
 
   private val templateRenderers: MutableList<TemplateRenderer> = mutableListOf()
@@ -125,7 +130,10 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
           // Run all rendering inside a write lock, so multiple modified files (e.g. manifest) don't
           // get re-indexed
           TransactionGuard.getInstance().submitTransactionAndWait {
-            forEach(TemplateRenderer::render)
+            forEach { templateRenderer ->
+              templateRenderer.logUsage()
+              templateRenderer.render()
+            }
           }
         }
       }
