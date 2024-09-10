@@ -152,7 +152,7 @@ public class DeployTask extends AbstractDeployTask {
     Deployer.Result result = deployer.install(app, options.build(), installMode);
 
     // Manually force-stop the application if we set --dont-kill above.
-    if (!result.skippedInstall && isDontKillSupported) {
+    if (!result.skippedInstall && isDontKillSupported && isDontKillNeed) {
       device.forceStop(app.getAppId());
     }
     return result;
