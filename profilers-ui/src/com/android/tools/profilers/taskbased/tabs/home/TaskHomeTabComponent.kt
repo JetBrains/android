@@ -22,14 +22,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
+import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
 @Composable
 fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
@@ -41,14 +41,15 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
     val processListModel = taskHomeTabModel.processListModel
 
     HorizontalSplitLayout(
-      minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
-      maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
+      firstPaneMinWidth = 400.dp,
+      secondPaneMinWidth = 250.dp,
       first = {
-        ProcessList(processListModel, it)
+        ProcessList(processListModel)
       },
       second = {
-        TaskGridAndBars(taskHomeTabModel, ideProfilerComponents, it)
-      }
+        TaskGridAndBars(taskHomeTabModel, ideProfilerComponents)
+      },
+      state = rememberSplitLayoutState(.3f)
     )
   }
 }
