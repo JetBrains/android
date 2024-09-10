@@ -30,6 +30,9 @@ import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.Path
+import java.util.EnumSet
+import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -40,9 +43,6 @@ import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.theme.defaultTabStyle
-import java.nio.file.Path
-import java.util.EnumSet
-import java.util.TreeSet
 
 @Composable
 internal fun ConfigureDevicePanel(
@@ -90,7 +90,7 @@ private fun Tabs(
         closable = false,
       )
     },
-    style = JewelTheme.defaultTabStyle
+    style = JewelTheme.defaultTabStyle,
   )
 
   val servicesSet =
@@ -170,13 +170,12 @@ internal constructor(
   internal var skins by mutableStateOf(skins)
     private set
 
-  internal val systemImageTableSelectionState = TableSelectionState<ISystemImage>()
+  internal val systemImageTableSelectionState = TableSelectionState(image)
 
   internal var validity by mutableStateOf(Validity())
     private set
 
   init {
-    setSystemImageTableSelection(image)
     setExpandedStorage(device.expandedStorage)
   }
 
@@ -184,9 +183,8 @@ internal constructor(
     device = device.copy(name = deviceName)
   }
 
-  internal fun setSystemImageTableSelection(systemImageTableSelection: ISystemImage?) {
-    systemImageTableSelectionState.selection = systemImageTableSelection
-    validity = validity.copy(isSystemImageTableSelectionValid = systemImageTableSelection != null)
+  internal fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
+    validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
   }
 
   internal fun setSkin(path: Path) {
