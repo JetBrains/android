@@ -16,22 +16,20 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.fileTypes.LanguageFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.toml.lang.psi.TomlFileType
 
 /**
- * Runs the FullProjectBenchmark tests on an updated version of SantaTracker project which includes Kotlin, Java and XML files
+ * Runs the FullProjectBenchmark tests on JetNews project.
  *
  * Run locally with:
- * bazel test --test_output=streamed --test_filter=SantaTrackerKotlinBenchmark //tools/adt/idea/ide-perf-tests/...
+ * bazel test --test_output=streamed --test_filter=JetNewsBenchmark //tools/adt/idea/ide-perf-tests/...
  */
-class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
+class JetNewsBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
@@ -39,7 +37,8 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
     @ClassRule
     val staticRule = AndroidGradleProjectRule()
 
-    private const val PROJECT_NAME = "SantaTrackerKotlin"
+    private const val PROJECT_NAME = "JetNews"
+
     @JvmStatic
     @BeforeClass
     fun setUpBeforeClass() {
@@ -50,36 +49,12 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+    super.fullProjectHighlighting(listOf(KotlinFileType.INSTANCE, TomlFileType), PROJECT_NAME)
   }
 
   @Test
   fun fullProjectLintInspection() {
-    super.fullProjectLintInspection(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
-  }
-
-  @Test
-  fun layoutAttributeCompletion() {
-    super.layoutAttributeCompletion(
-      LayoutCompletionInput(
-        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
-        "updateScore()\n|",
-        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "android:id=\"@+id/title_city_quiz\"\n            |"
-      ),
-      PROJECT_NAME)
-  }
-
-  @Test
-  fun layoutTagCompletion() {
-    super.layoutTagCompletion(
-      LayoutCompletionInput(
-        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
-        "updateScore()\n|",
-        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "<|ProgressBar"
-      ),
-      PROJECT_NAME)
+    super.fullProjectLintInspection(listOf(KotlinFileType.INSTANCE, TomlFileType), PROJECT_NAME)
   }
 
   @Test
