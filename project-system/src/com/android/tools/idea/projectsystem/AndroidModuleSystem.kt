@@ -454,8 +454,7 @@ enum class DependencyScopeType {
 }
 
 /**
- * Describes the scope that should be used for resolving references in a given file or other context. Can be determined by calling
- * [getScopeType].
+ * Describes the scope that should be used for resolving references in a given file or other context.
  *
  * In project systems that don't have the concept of separate test scopes, [ScopeType.ANDROID_TEST] is the only value used for test sources.
  */
@@ -480,23 +479,6 @@ enum class ScopeType {
       TEST_FIXTURES, UNIT_TEST -> false
       MAIN, ANDROID_TEST, SCREENSHOT_TEST -> true
     }
-}
-
-fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
-  if (!TestSourcesFilter.isTestSources(file, project)) return ScopeType.MAIN
-  val testScopes = getTestArtifactSearchScopes() ?: return ScopeType.ANDROID_TEST
-
-  val inAndroidTest = testScopes.isAndroidTestSource(file)
-  val inUnitTest = testScopes.isUnitTestSource(file)
-  val inScreenshotTest = testScopes.isScreenshotTestSource(file)
-
-  return when {
-    !inUnitTest && inAndroidTest && !inScreenshotTest -> ScopeType.ANDROID_TEST
-    inUnitTest && !inAndroidTest && !inScreenshotTest -> ScopeType.UNIT_TEST
-    !inUnitTest && !inAndroidTest && inScreenshotTest -> ScopeType.SCREENSHOT_TEST
-    else -> throw IllegalStateException(
-      "Unexpected Test Scope: $file in $project is not in exactly one test source set.")
-  }
 }
 
 /**
