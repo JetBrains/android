@@ -31,10 +31,12 @@ import com.intellij.psi.impl.source.codeStyle.PostFormatProcessorHelper
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.idea.formatter.kotlinCommonSettings
+import org.jetbrains.kotlin.idea.intentions.callExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
 
 /**
  * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier)
@@ -118,10 +120,36 @@ private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
 }
 
 /** Splits KtDotQualifiedExpression it one call per line. */
-internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
+internal tailrec fun wrapModifierChain(
+  element: KtDotQualifiedExpression,
+  settings: CodeStyleSettings,
+) {
+  // Run with modified settings to ensure there's one Modifier call per line.
   CodeStyle.runWithLocalSettings(element.project, settings) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
     tempSettings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN = true
-    CodeFormatterFacade(tempSettings, element.language).processElement(element.node)
+
+    // Since all we're interested in is newlines for each chained Modifier call, it suffices to
+    // reformat around the '.' in each dot qualified expression. By limiting the reformatting in
+    // this way, we ensure we aren't accidentally reformatting nested code that may not be related
+    // to Modifier calls.
+    // The '.' is located immediately following the receiver expression, and always is exactly one
+    // character.
+    val receiverEndOffset = element.receiverExpression.endOffset
+    CodeFormatterFacade(tempSettings, element.language)
+      .processRange(element.node, receiverEndOffset, receiverEndOffset + 1)
   }
+
+  // Now that there was (potentially) a newline added, the call expression should be reformatted
+  // with the original settings in case it needs further changes (eg, if the indent level has
+  // changed).
+  val callExpression = element.callExpression
+  if (callExpression != null) {
+    CodeFormatterFacade(settings, element.language).processElement(callExpression.node)
+  }
+
+  // Finally, operate on any nested dot qualified expressions. After all, this logic only runs when
+  // there are at least two chained Modifier calls, so there's always at least one level of nesting.
+  val nestedReceiver = element.receiverExpression as? KtDotQualifiedExpression ?: return
+  wrapModifierChain(nestedReceiver, settings)
 }

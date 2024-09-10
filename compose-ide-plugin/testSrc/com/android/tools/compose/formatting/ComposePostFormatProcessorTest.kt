@@ -68,6 +68,7 @@ class ComposePostFormatProcessorTest {
   fun modifierChainIsWrapped() {
     fixture.loadNewFile(
       "src/com/example/Test.kt",
+      // language=kotlin
       """
       package com.example
 
@@ -88,6 +89,7 @@ class ComposePostFormatProcessorTest {
     }
 
     fixture.checkResult(
+      // language=kotlin
       """
       package com.example
 
@@ -106,9 +108,86 @@ class ComposePostFormatProcessorTest {
   }
 
   @Test
+  fun nestedChainInModifierIsNotWrapped() {
+    // Regression test for b/364549431
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun BugRepro(modifier: Modifier) {
+          SomeComposable(modifier = Modifier.onClick { "foo".someFunction().someFunction() }.secondCall())
+
+          SomeComposable(modifier = Modifier.onClick {
+            "foo".someFunction().someFunction()
+          }.secondCall())
+      }
+
+      @Composable
+      fun SomeComposable(modifier: Modifier) {
+          TODO()
+      }
+
+      fun Modifier.onClick(onClick: @Composable () -> Unit): Modifier = this
+
+      fun Modifier.secondCall(): Modifier = this
+
+      fun Any.someFunction() = this
+      """
+        .trimIndent(),
+    )
+
+    WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
+      CodeStyleManager.getInstance(project)
+        .reformatText(fixture.file, listOf(fixture.file.textRange))
+    }
+
+    fixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun BugRepro(modifier: Modifier) {
+          SomeComposable(modifier = Modifier
+              .onClick { "foo".someFunction().someFunction() }
+              .secondCall())
+
+          SomeComposable(modifier = Modifier
+              .onClick {
+                  "foo".someFunction().someFunction()
+              }
+              .secondCall())
+      }
+
+      @Composable
+      fun SomeComposable(modifier: Modifier) {
+          TODO()
+      }
+
+      fun Modifier.onClick(onClick: @Composable () -> Unit): Modifier = this
+
+      fun Modifier.secondCall(): Modifier = this
+
+      fun Any.someFunction() = this
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
   fun shortModifierChainIsNotWrapped() {
     fixture.loadNewFile(
       "src/com/example/Test.kt",
+      // language=kotlin
       """
       package com.example
 
@@ -129,6 +208,7 @@ class ComposePostFormatProcessorTest {
     }
 
     fixture.checkResult(
+      // language=kotlin
       """
       package com.example
 
