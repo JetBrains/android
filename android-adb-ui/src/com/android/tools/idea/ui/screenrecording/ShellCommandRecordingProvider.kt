@@ -69,7 +69,7 @@ internal class ShellCommandRecordingProvider(
       try {
         val commandOutput = adbSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
         if (commandOutput.exitCode != 0) {
-          throw RuntimeException("Screen recording terminated with exit code ${commandOutput.exitCode}")
+          throw RuntimeException("Screen recording terminated with exit code ${commandOutput.exitCode}. Try to reduce video resolution.")
         }
         result.complete(Unit)
       }
