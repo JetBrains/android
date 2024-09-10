@@ -49,6 +49,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -196,6 +197,12 @@ class RenderTemplateModel private constructor(
       if (renderSuccess && shouldOpenFiles) {
         DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
       }
+    }
+
+    override fun logUsage() {
+      val templateModel = this@RenderTemplateModel
+      log.info("Rendering template \"${templateModel.newTemplate.name}\" with commandName " +
+               "\"${templateModel.commandName}\"")
     }
 
     private fun renderTemplate(
