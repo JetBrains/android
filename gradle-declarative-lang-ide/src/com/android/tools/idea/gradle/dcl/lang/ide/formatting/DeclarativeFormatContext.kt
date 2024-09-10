@@ -25,8 +25,10 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LPAREN
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RPAREN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
 import com.intellij.formatting.SpacingBuilder
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
@@ -46,14 +48,16 @@ data class DeclarativeFormatContext(
         .before(OP_COMMA).spacing(0, 0, 0, false, 0)
         .after(OP_LPAREN).spacing(0, 0, 0, false, 0)
         .before(OP_RPAREN).spacing(0, 0, 0, false, 0)
+        // ;
+        .before(SEMI).spacing(0, 0, 0, false, 0)
         // =
         .around(OP_EQ).spacing(1, 1, 0, false, 0)
         // block
         .before(BLOCK_GROUP).spacing(1, 1, 0, false, 0)
         .after(OP_LBRACE).lineBreakInCode()
         .after(BLOCK).lineBreakInCode()
-        .aroundInside(elements, BLOCK_GROUP).lineBreakInCode()
-        .betweenInside(elements, elements, BLOCK_GROUP).lineBreakInCode()
+        .beforeInside(elements, BLOCK_GROUP).lineBreakInCode()
+        .before(OP_RBRACE).lineBreakInCode()
         // .
         .aroundInside(OP_DOT, TokenSet.create(PROPERTY)).spaceIf(false)
 

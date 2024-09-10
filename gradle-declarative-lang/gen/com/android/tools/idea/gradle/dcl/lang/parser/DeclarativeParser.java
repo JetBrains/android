@@ -127,6 +127,48 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // block_entry <<atSameLine (SEMI <<atSameLine block_entry>>)>>* SEMI?
+  static boolean block_entries(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_entries")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = block_entry(b, l + 1);
+    r = r && block_entries_1(b, l + 1);
+    r = r && block_entries_2(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // <<atSameLine (SEMI <<atSameLine block_entry>>)>>*
+  private static boolean block_entries_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_entries_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!atSameLine(b, l + 1, DeclarativeParser::block_entries_1_0_0)) break;
+      if (!empty_element_parsed_guard_(b, "block_entries_1", c)) break;
+    }
+    return true;
+  }
+
+  // SEMI <<atSameLine block_entry>>
+  private static boolean block_entries_1_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_entries_1_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, SEMI);
+    r = r && atSameLine(b, l + 1, DeclarativeParser::block_entry);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // SEMI?
+  private static boolean block_entries_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_entries_2")) return false;
+    consumeToken(b, SEMI);
+    return true;
+  }
+
+  /* ********************************************************** */
   // !'}' entry
   static boolean block_entry(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_entry")) return false;
@@ -149,7 +191,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OP_LBRACE block_entry* OP_RBRACE
+  // OP_LBRACE block_entries? newline_block_entries* OP_RBRACE
   public static boolean block_group(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_group")) return false;
     if (!nextTokenIs(b, OP_LBRACE)) return false;
@@ -158,18 +200,26 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, OP_LBRACE);
     p = r; // pin = 1
     r = r && report_error_(b, block_group_1(b, l + 1));
+    r = p && report_error_(b, block_group_2(b, l + 1)) && r;
     r = p && consumeToken(b, OP_RBRACE) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // block_entry*
+  // block_entries?
   private static boolean block_group_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_group_1")) return false;
+    block_entries(b, l + 1);
+    return true;
+  }
+
+  // newline_block_entries*
+  private static boolean block_group_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_group_2")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!block_entry(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "block_group_1", c)) break;
+      if (!newline_block_entries(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "block_group_2", c)) break;
     }
     return true;
   }
@@ -325,32 +375,58 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?
+  // <<atNewLine block_entries+>>
+  static boolean newline_block_entries(PsiBuilder b, int l) {
+    return atNewLine(b, l + 1, DeclarativeParser::newline_block_entries_0_0);
+  }
+
+  // block_entries+
+  private static boolean newline_block_entries_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "newline_block_entries_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = block_entries(b, l + 1);
+    while (r) {
+      int c = current_position_(b);
+      if (!block_entries(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "newline_block_entries_0_0", c)) break;
+    }
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // <<atNewLine (entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?)>>
   static boolean one_line_entries(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "one_line_entries")) return false;
+    return atNewLine(b, l + 1, DeclarativeParser::one_line_entries_0_0);
+  }
+
+  // entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?
+  private static boolean one_line_entries_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "one_line_entries_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = entry(b, l + 1);
-    r = r && one_line_entries_1(b, l + 1);
-    r = r && one_line_entries_2(b, l + 1);
+    r = r && one_line_entries_0_0_1(b, l + 1);
+    r = r && one_line_entries_0_0_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // <<atSameLine (SEMI <<atSameLine entry>>)>>*
-  private static boolean one_line_entries_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "one_line_entries_1")) return false;
+  private static boolean one_line_entries_0_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "one_line_entries_0_0_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!atSameLine(b, l + 1, DeclarativeParser::one_line_entries_1_0_0)) break;
-      if (!empty_element_parsed_guard_(b, "one_line_entries_1", c)) break;
+      if (!atSameLine(b, l + 1, DeclarativeParser::one_line_entries_0_0_1_0_0)) break;
+      if (!empty_element_parsed_guard_(b, "one_line_entries_0_0_1", c)) break;
     }
     return true;
   }
 
   // SEMI <<atSameLine entry>>
-  private static boolean one_line_entries_1_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "one_line_entries_1_0_0")) return false;
+  private static boolean one_line_entries_0_0_1_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "one_line_entries_0_0_1_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, SEMI);
@@ -360,8 +436,8 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   // SEMI?
-  private static boolean one_line_entries_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "one_line_entries_2")) return false;
+  private static boolean one_line_entries_0_0_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "one_line_entries_0_0_2")) return false;
     consumeToken(b, SEMI);
     return true;
   }

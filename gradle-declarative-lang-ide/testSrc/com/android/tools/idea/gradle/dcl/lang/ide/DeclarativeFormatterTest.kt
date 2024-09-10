@@ -44,7 +44,8 @@ class DeclarativeFormatterTest {
   @Test
   fun testBlockWithAssignment() {
     doTest("""
-      block{key="value" key2="value2"}
+      block{key="value" 
+      key2="value2"}
       ""","""
       block {
           key = "value"
@@ -56,10 +57,10 @@ class DeclarativeFormatterTest {
   @Test
   fun testBlockWithFunction() {
     doTest("""
-      block{function("parameter") function2("parameter2")}
+      block{function("parameter")     ; function2("parameter2")}
       ""","""
       block {
-          function("parameter")
+          function("parameter");
           function2("parameter2")
       }
       """)
@@ -102,12 +103,13 @@ false    )
   @Test
   fun testComplexFile() {
     val before = """
-        plugins{ id("org.gradle.experimental.android-application")  }      androidApplication
+        plugins{ id("org.gradle.experimental.android-application")  }      
+        androidApplication
         {namespace = "com.example.myapplication"
        compileSdk=34}
              // changed a little to not interfere with non declarative plugin
        declarativeDependencies{
-       implementation("com.google.guava:guava:32.1.2-jre") implementation("org.apache.commons:commons-lang3:3.13.0")
+       implementation("com.google.guava:guava:32.1.2-jre"); implementation("org.apache.commons:commons-lang3:3.13.0")
        }"""
     val after =
       """
@@ -120,7 +122,7 @@ false    )
       }
       // changed a little to not interfere with non declarative plugin
       declarativeDependencies {
-          implementation("com.google.guava:guava:32.1.2-jre")
+          implementation("com.google.guava:guava:32.1.2-jre");
           implementation("org.apache.commons:commons-lang3:3.13.0")
       }
       """
