@@ -16,19 +16,17 @@
 package com.android.tools.idea.benchmarks.tests
 
 import com.android.tools.idea.benchmarks.FullProjectBenchmark
-import com.android.tools.idea.benchmarks.LayoutCompletionInput
-import com.android.tools.idea.benchmarks.runBenchmark
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.toml.lang.psi.TomlFileType
 
-// Runs simplified versions of the perfgate benchmarks in SantaTrackerBenchmark
+// Runs simplified versions of the perfgate benchmarks in JetNewsBenchmark
 // to catch breakages in presubmit.
-class SantaTrackerBenchmarkTest : FullProjectBenchmark() {
+class JetNewsBenchmarkTest : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
@@ -36,7 +34,7 @@ class SantaTrackerBenchmarkTest : FullProjectBenchmark() {
     @ClassRule
     val staticRule = AndroidGradleProjectRule()
 
-    private const val PROJECT_NAME = "SantaTracker"
+    private const val PROJECT_NAME = "JetNews"
 
     @JvmStatic
     @BeforeClass
@@ -48,7 +46,7 @@ class SantaTrackerBenchmarkTest : FullProjectBenchmark() {
   // No warmup, only one file per language
   @Test
   fun fullProjectHighlighting() {
-    val fileTypes = listOf(JavaFileType.INSTANCE, XmlFileType.INSTANCE)
+    val fileTypes = listOf(KotlinFileType.INSTANCE, TomlFileType)
     runInEdtAndWait {
       for (fileType in fileTypes) {
         measureHighlighting(
@@ -65,7 +63,7 @@ class SantaTrackerBenchmarkTest : FullProjectBenchmark() {
   // No warmup, only one file per language
   @Test
   fun fullProjectLintInspection() {
-    val fileTypes = listOf(JavaFileType.INSTANCE, XmlFileType.INSTANCE)
+    val fileTypes = listOf(KotlinFileType.INSTANCE, TomlFileType)
     runInEdtAndWait {
       for (fileType in fileTypes) {
         measureLintInspections(
@@ -77,41 +75,5 @@ class SantaTrackerBenchmarkTest : FullProjectBenchmark() {
         )
       }
     }
-  }
-
-  // No warmup, only one iteration
-  @Test
-  fun layoutAttributeCompletion() {
-    val input = LayoutCompletionInput(
-      "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
-      "updateScore();|",
-      "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
-      "android:id=\"@+id/title_city_quiz\"\n            |")
-
-    runBenchmark(
-      recordResults = { runLayoutEditingCuj(input) },
-      runBetweenIterations = { clearCaches() },
-      commitResults = { },
-      warmupIterations = 0,
-      mainIterations = 1
-    )
-  }
-
-  // No warmup, only one iteration
-  @Test
-  fun layoutTagCompletion() {
-    val input = LayoutCompletionInput(
-      "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
-      "updateScore();|",
-      "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
-      "<|ProgressBar")
-
-    runBenchmark(
-      recordResults = { runLayoutEditingCuj(input) },
-      runBetweenIterations = { clearCaches() },
-      commitResults = { },
-      warmupIterations = 0,
-      mainIterations = 1
-    )
   }
 }

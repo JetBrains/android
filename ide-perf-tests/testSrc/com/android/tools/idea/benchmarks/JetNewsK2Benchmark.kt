@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,20 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.fileTypes.LanguageFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
+import org.toml.lang.psi.TomlFileType
 
-class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
+/**
+ * Runs the FullProjectBenchmark tests on JetNews project.
+ *
+ * Run locally with:
+ * bazel test --test_output=streamed --test_filter=JetNewsK2Benchmark //tools/adt/idea/ide-perf-tests/...
+ */
+class JetNewsK2Benchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
@@ -33,8 +37,9 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
     @ClassRule
     val staticRule = AndroidGradleProjectRule()
 
-    private const val GRADLE_PROJECT_NAME = "SantaTrackerKotlin"
-    private var PROJECT_NAME = "SantaTrackerKotlin_K2"
+    private const val GRADLE_PROJECT_NAME = "JetNews"
+    private const val PROJECT_NAME = "JetNews_K2"
+
     @JvmStatic
     @BeforeClass
     fun setUpBeforeClass() {
@@ -45,12 +50,12 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+    super.fullProjectHighlighting(listOf(KotlinFileType.INSTANCE, TomlFileType), PROJECT_NAME)
   }
 
   @Test
   fun fullProjectLintInspection() {
-    super.fullProjectLintInspection(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+    super.fullProjectLintInspection(listOf(KotlinFileType.INSTANCE, TomlFileType), PROJECT_NAME)
   }
 
   @Test
@@ -61,17 +66,5 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
   @Test
   fun kotlinLocalLevelCompletion() {
     super.testLocalLevelCompletionForKotlin(PROJECT_NAME)
-  }
-
-  @Test
-  fun layoutTagCompletion() {
-    super.layoutTagCompletion(
-      LayoutCompletionInput(
-        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
-        "updateScore()\n|",
-        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "<|ProgressBar"
-      ),
-      PROJECT_NAME)
   }
 }
