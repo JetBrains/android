@@ -19,12 +19,10 @@ import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.rendering.RenderErrorContributor;
-import com.android.tools.idea.rendering.RenderErrorContributorImpl;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.rendering.HtmlLinkManager;
-import com.android.tools.rendering.HtmlLinkManagerCompat;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
 import com.android.utils.HtmlBuilder;
@@ -298,7 +296,7 @@ public class BlazeRenderErrorContributor implements RenderErrorContributor {
     HtmlBuilder builder = new HtmlBuilder();
     addTargetLink(builder, target, decoder)
         .add(" uses a non-standard name for the Android manifest: ");
-    String linkToManifest = HtmlLinkManagerCompat.createFilePositionUrl(manifest, -1, 0);
+    String linkToManifest = HtmlLinkManager.createFilePositionUrl(manifest, -1, 0);
     if (linkToManifest != null) {
       builder.addLink(manifest.getName(), linkToManifest);
     } else {
@@ -437,7 +435,7 @@ public class BlazeRenderErrorContributor implements RenderErrorContributor {
                       return StringUtil.offsetToLineNumber(
                           psiFile.getText(), buildTargetPsi.getTextOffset());
                     });
-    String url = HtmlLinkManagerCompat.createFilePositionUrl(buildFile, line, 0);
+    String url = HtmlLinkManager.createFilePositionUrl(buildFile, line, 0);
     if (url != null) {
       return builder.addLink(target.toString(), url);
     }
