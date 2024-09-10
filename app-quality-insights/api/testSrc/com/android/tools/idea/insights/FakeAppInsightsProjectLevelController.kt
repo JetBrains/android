@@ -16,11 +16,13 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import org.mockito.Mockito.mock
 
 class FakeAppInsightsProjectLevelController(
   override val key: InsightsProviderKey = InsightsProviderKey("Fake provider"),
@@ -28,6 +30,7 @@ class FakeAppInsightsProjectLevelController(
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },
 ) : AppInsightsProjectLevelController {
+  override val project: Project = mock()
 
   override fun refresh() {}
 

@@ -82,7 +82,7 @@ class AppInsightsProjectLevelControllerImpl(
   @TestOnly private val flowStart: SharingStarted = SharingStarted.Eagerly,
   private val tracker: AppInsightsTracker,
   private val clock: Clock,
-  private val project: Project,
+  override val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
   geminiToolkit: GeminiToolkit,
