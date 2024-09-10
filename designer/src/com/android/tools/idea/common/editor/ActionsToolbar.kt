@@ -41,7 +41,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.awt.event.AdjustmentEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -249,7 +248,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
   }
 
-  override fun panningChanged(event: AdjustmentEvent) {
+  override fun panningChanged() {
     UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
   }
 
