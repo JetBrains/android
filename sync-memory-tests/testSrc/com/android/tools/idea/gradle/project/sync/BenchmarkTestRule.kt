@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.cpu.CaptureJfrRule
 import com.android.tools.idea.gradle.project.sync.memory.MemoryConstrainedTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.rules.RuleChain
@@ -59,10 +60,20 @@ fun createBenchmarkTestRule(projectName: String,
     // TODO(b/315761803): Enable and evaluate benchmark behavior after the platform merge is done and any possible regressions are handled.
     .around(DisableIndexingDuringSyncRule())
     .around(CollectDaemonLogsRule())
+    .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,
                   TestRule by wrappedRules {}
 }
+
+fun RuleChain.maybeAddCaptureJfrRule(projectSetupRule: ProjectSetupRule): RuleChain =
+  if (CaptureJfrRule.shouldEnable()) {
+    this.around(CaptureJfrRule().also {
+      projectSetupRule.addListener(it.listener)
+    })
+  } else {
+    this
+  }
 
 
 
