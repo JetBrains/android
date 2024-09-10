@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface.organization
 
 import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -37,7 +38,8 @@ private const val widthOffsetPx = 30
 private const val maxHeaderWidth = 5000
 
 /** Size required for this component in layout. */
-private val requiredSize = JBDimension(100, heightPx)
+private val requiredSize =
+  JBDimension(100, heightPx).apply { JBUIScale.addUserScaleChangeListener { this.update() } }
 
 /** Header for the group of previews. */
 class SceneViewHeader(
