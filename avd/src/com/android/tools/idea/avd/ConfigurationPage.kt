@@ -113,7 +113,7 @@ internal fun WizardPageScope.ConfigurationPage(
     images,
     onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
     onSystemImageTableRowClick = {
-      state.systemImageTableSelectionState.selection = it
+      state.setSystemImageTableSelection(it)
       state.setSkin(resolve(state.device.skin.path(), it.skins))
     },
     onImportButtonClick = {
@@ -133,7 +133,7 @@ internal fun WizardPageScope.ConfigurationPage(
   nextAction = WizardAction.Disabled
 
   finishAction =
-    if (state.isValid) {
+    if (state.validity.isValid) {
       WizardAction {
         coroutineScope.launch {
           finish(state.device, state.systemImageTableSelectionState.selection!!, parent, finish)
