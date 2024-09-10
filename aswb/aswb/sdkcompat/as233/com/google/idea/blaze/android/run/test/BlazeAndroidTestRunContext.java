@@ -32,7 +32,7 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.android.tools.idea.run.blaze.BlazeLaunchTasksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.DeployTasksCompat;
+import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext;
@@ -165,7 +165,7 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
       return ImmutableList.of();
     }
     return ImmutableList.of(
-        DeployTasksCompat.createDeployTask(
+      DeployTasksHelper.createDeployTask(
             project, getApkInfoToInstall(device, deployOptions, apkProvider), deployOptions));
   }
 

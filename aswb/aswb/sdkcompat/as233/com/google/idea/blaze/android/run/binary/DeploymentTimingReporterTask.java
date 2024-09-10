@@ -19,7 +19,7 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.blaze.BlazeLaunchContext;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.android.tools.idea.run.tasks.DeployTasksCompat;
+import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -37,7 +37,7 @@ public class DeploymentTimingReporterTask implements BlazeLaunchTask {
   public DeploymentTimingReporterTask(
       String launchId, Project project, Collection<ApkInfo> packages, DeployOptions deployOptions) {
     this.launchId = launchId;
-    this.deployTask = DeployTasksCompat.createDeployTask(project, packages, deployOptions);
+    this.deployTask = DeployTasksHelper.createDeployTask(project, packages, deployOptions);
     this.packages = ImmutableList.copyOf(packages);
   }
 
