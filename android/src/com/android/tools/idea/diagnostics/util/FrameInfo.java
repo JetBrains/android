@@ -18,10 +18,8 @@ package com.android.tools.idea.diagnostics.util;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import java.lang.management.ThreadInfo;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,14 +35,30 @@ public class FrameInfo {
       "java.util.concurrent.ThreadPoolExecutor.getTask",
       "java.util.concurrent.SynchronousQueue.poll",
       "java.util.concurrent.SynchronousQueue$TransferStack.transfer",
-      "java.util.concurrent.SynchronousQueue$TransferStack.awaitFulfill",
       "java.util.concurrent.locks.LockSupport.parkNanos",
-      "sun.misc.Unsafe.park"
+      "jdk.internal.misc.Unsafe.park",
     }, {
     "java.util.concurrent.ForkJoinWorkerThread.run",
     "java.util.concurrent.ForkJoinPool.runWorker",
     "java.util.concurrent.ForkJoinPool.awaitWork",
-    "sun.misc.Unsafe.park"
+    "java.util.concurrent.locks.LockSupport.park",
+    "jdk.internal.misc.Unsafe.park"
+  }, {
+    "java.util.concurrent.ForkJoinWorkerThread.run",
+    "java.util.concurrent.ForkJoinPool.runWorker",
+    "java.util.concurrent.ForkJoinPool.awaitWork",
+    "java.util.concurrent.locks.LockSupport.parkUntil",
+    "jdk.internal.misc.Unsafe.park",
+  }, {
+    "java.lang.Thread.run",
+    "java.util.concurrent.ThreadPoolExecutor$Worker.run",
+    "java.util.concurrent.ThreadPoolExecutor.runWorker",
+    "java.util.concurrent.ThreadPoolExecutor.getTask",
+    "java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take",
+    "java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take",
+    "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos",
+    "java.util.concurrent.locks.LockSupport.parkNanos",
+    "jdk.internal.misc.Unsafe.park"
   }, {
     "java.lang.Thread.run",
     "java.util.concurrent.ThreadPoolExecutor$Worker.run",
@@ -55,6 +69,32 @@ public class FrameInfo {
     "java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await",
     "java.util.concurrent.locks.LockSupport.park",
     "sun.misc.Unsafe.park"
+  }, {
+    "java.lang.Thread.run",
+    "java.util.concurrent.Executors$PrivilegedThreadFactory$1.run",
+    "java.security.AccessController.doPrivileged",
+    "java.security.AccessController.executePrivileged",
+    "java.util.concurrent.Executors$PrivilegedThreadFactory$1$1.run",
+    "java.util.concurrent.Executors$PrivilegedThreadFactory$1$1.run",
+    "java.util.concurrent.ThreadPoolExecutor$Worker.run",
+    "java.util.concurrent.ThreadPoolExecutor.runWorker",
+    "java.util.concurrent.ThreadPoolExecutor.getTask",
+    "java.util.concurrent.SynchronousQueue.poll",
+    "java.util.concurrent.SynchronousQueue$TransferStack.transfer",
+    "java.util.concurrent.locks.LockSupport.parkNanos",
+    "jdk.internal.misc.Unsafe.park"
+  }, {
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run",
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker",
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.tryPark",
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.park",
+    "java.util.concurrent.locks.LockSupport.parkNanos",
+    "jdk.internal.misc.Unsafe.park"
+  }, {
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run",
+    "kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker",
+    "java.util.concurrent.locks.LockSupport.parkNanos",
+    "jdk.internal.misc.Unsafe.park"
   }
   };
   private static final boolean INCLUDE_SOURCE_INFO_IN_REPORT = true;
@@ -184,6 +224,38 @@ public class FrameInfo {
         sb.append(myStackTraceElement.isNativeMethod() ? "(Native Method)" : "");
       }
     }
+  }
+
+  boolean exists(Predicate<StackTraceElement> predicate) {
+    Queue<FrameInfo> queue = new ArrayDeque<>();
+    queue.add(this);
+    while (!queue.isEmpty()) {
+      FrameInfo info = queue.remove();
+      queue.addAll(info.myChildren.values());
+      StackTraceElement stackTraceElement = info.myStackTraceElement;
+      if (stackTraceElement != null && predicate.test(stackTraceElement)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int computeMaxDepth() {
+    int depth = 0;
+    Queue<FrameInfo> queue = new ArrayDeque<>();
+    Queue<FrameInfo> queueNextLevel = new ArrayDeque<>();
+    queue.add(this);
+    while (!queue.isEmpty()) {
+      depth++;
+      while (!queue.isEmpty()) {
+        FrameInfo info = queue.remove();
+        queueNextLevel.addAll(info.myChildren.values());
+      }
+      Queue<FrameInfo> tmp = queue;
+      queue = queueNextLevel;
+      queueNextLevel = tmp;
+    }
+    return depth;
   }
 
   private static boolean isIdleThread(ThreadInfo ti) {
