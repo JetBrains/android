@@ -31,7 +31,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.AdjustmentEvent
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
 import java.awt.event.MouseAdapter
@@ -206,7 +205,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       hiddenZoomLabelTimer?.restart()
     }
 
-  override fun panningChanged(adjustmentEvent: AdjustmentEvent?) =
+  override fun panningChanged() =
     UIUtil.invokeLaterIfNeeded { otherToolbars.values.forEach { it.updateActionsImmediately() } }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups

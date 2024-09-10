@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
-import java.awt.event.AdjustmentEvent
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.abs
@@ -112,7 +111,7 @@ class DefaultRenderQualityManager(
                 trySend(Unit)
               }
 
-              override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
+              override fun panningChanged() {
                 trySend(Unit)
               }
             }
