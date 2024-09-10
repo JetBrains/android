@@ -18,20 +18,13 @@
   This file is called aiplugin-api.xml because there's another file called ml-api.xml at
   tools/idea/platform/ml-api/resources/META-INF/ml-api.xml and this causes a name conflict.
   -->
+  <depends optional="true" config-file="aiplugin-api-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <depends optional="true" config-file="aiplugin-api-idea.xml">com.intellij.modules.idea</depends>
+
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.ml.mimetypeAugmenter"
                     interface="com.android.tools.idea.studiobot.mimetype.MimeTypeAugmenter" />
     <extensionPoint qualifiedName="com.android.tools.idea.ml.studioBotExternalFlags"
                     interface="com.android.tools.idea.studiobot.StudioBotExternalFlags" />
   </extensionPoints>
-
-  <actions resource-bundle="messages.StudioBotBundle">
-    <group id="sml.studiobot.gemini.editor.group"
-           class="com.android.tools.idea.studiobot.action.GeminiEditorActionGroup"
-           popup="true"
-           icon="com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons.GeminiLogo">
-      <add-to-group anchor="before" group-id="EditorPopupMenu" relative-to-action="$SearchWeb"/>
-      <add-to-group group-id="Floating.CodeToolbar" anchor="before" relative-to-action="Floating.CodeToolbar.Extract"/>
-    </group>
-  </actions>
 </idea-plugin>
