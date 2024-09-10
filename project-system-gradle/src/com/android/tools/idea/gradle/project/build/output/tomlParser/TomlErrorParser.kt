@@ -77,6 +77,12 @@ class TomlErrorParser : BuildOutputParser {
 
     const val BUILD_ISSUE_TOML_STOP_LINE: String = "> $tomlDefinition"
     const val BUILD_ISSUE_STOP_LINE: String = "> $definition"
+
+    fun Throwable.isTomlError(): Boolean {
+      return message?.let {
+        it.startsWith(BUILD_ISSUE_TOML_START) || it.startsWith(BUILD_ISSUE_START)
+      } ?: false
+    }
   }
 
 }
