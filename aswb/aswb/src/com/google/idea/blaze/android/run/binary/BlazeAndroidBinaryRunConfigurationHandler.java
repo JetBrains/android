@@ -147,7 +147,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
     switch (configState.getLaunchMethod()) {
       case NON_BLAZE:
         runContext =
-            new BlazeAndroidBinaryNormalBuildRunContextCompat(
+            new BlazeAndroidBinaryNormalBuildRunContext(
                 project, facet, configuration, env, configState, buildStep, launchId);
         break;
       case MOBILE_INSTALL_V2:
