@@ -17,6 +17,8 @@ package com.android.tools.idea.studiobot
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.idea.studiobot.testing.bazel.AipluginTestSuite
+import org.junit.Ignore
 import org.junit.runner.RunWith
 
+@Ignore("Always fails with 'Must set test.suite.jar to the name of the jar containing JUnit tests'")
 @RunWith(JarTestSuiteRunner::class) class MlApiTestSuite : AipluginTestSuite()
