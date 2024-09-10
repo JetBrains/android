@@ -65,6 +65,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "@intellij//:intellij.platform.coverage[test]",
     ],
 )
 

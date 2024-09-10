@@ -23,6 +23,9 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//prebuilts/tools/common/m2:commonmark-0.22.0",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
     ],
 )
 
@@ -59,5 +62,6 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//prebuilts/tools/common/m2:commonmark-0.22.0[test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
+        "@intellij//:intellij.platform.vcs.impl[test]",
     ],
 )

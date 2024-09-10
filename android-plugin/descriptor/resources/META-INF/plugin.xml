@@ -9,9 +9,15 @@
   <category>Android</category>
   <version>2023.1.1 Canary 6</version>
   <vendor>JetBrains, Google</vendor>
-  <depends>com.intellij.platform.images</depends>
-  <depends>com.intellij.modules.java</depends>
-  <depends>com.intellij.java</depends>
+  <dependencies>
+    <plugin id="com.intellij.platform.images"/>
+    <plugin id="com.intellij.modules.java"/>
+    <plugin id="com.intellij.java"/>
+    <module name="intellij.platform.lvcs.impl"/>
+    <module name="intellij.platform.vcs.impl"/>
+    <module name="intellij.platform.vcs.dvcs.impl"/>
+    <module name="intellij.platform.vcs.log.impl"/>
+  </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
