@@ -47,7 +47,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -91,7 +90,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myProject = project;
     myModuleSelector = moduleSelector;
 
-    myDeployOptionCombo.setModel(new CollectionComboBoxModel(Arrays.asList(InstallOption.values())));
+    myDeployOptionCombo.setModel(new CollectionComboBoxModel(InstallOption.supportedValues()));
     myDeployOptionCombo.setRenderer(new InstallOption.Renderer());
     myDeployOptionCombo.addActionListener(this);
     myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);

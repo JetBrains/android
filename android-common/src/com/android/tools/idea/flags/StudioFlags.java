@@ -419,6 +419,13 @@ public final class StudioFlags {
     "We assume there are no race conditions with the package manager and give full control to it.",
     true);
 
+  public static final Flag<Boolean> SUPPORT_CUSTOM_ARTIFACTS = new BooleanFlag(
+    RUNDEBUG,
+    "support.custom.artifacts",
+    "Support custom build artifacts in deployment.",
+    "Enable support and UI element for Run configuration that deploys a custom artifact",
+    false);
+
   /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support

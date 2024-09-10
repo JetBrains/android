@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.flags.StudioFlags.SUPPORT_CUSTOM_ARTIFACTS;
+
 import com.intellij.ui.ColoredListCellRenderer;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,6 +34,14 @@ public enum InstallOption {
 
   InstallOption(@NotNull String displayName) {
     this.displayName = displayName;
+  }
+
+  public static List<InstallOption> supportedValues() {
+    if (SUPPORT_CUSTOM_ARTIFACTS.get()) {
+      return Arrays.asList(InstallOption.values());
+    } else {
+      return List.of(DEFAULT_APK, APK_FROM_BUNDLE, NOTHING);
+    }
   }
 
   public static class Renderer extends ColoredListCellRenderer<InstallOption> {
