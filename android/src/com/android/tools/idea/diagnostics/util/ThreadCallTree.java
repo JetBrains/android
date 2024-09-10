@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.util;
 
 import java.lang.management.ThreadInfo;
 import org.jetbrains.annotations.NotNull;
+import java.util.function.Predicate;
 
 public class ThreadCallTree {
   private long myThreadId;
@@ -48,4 +49,15 @@ public class ThreadCallTree {
     return myThreadName + ", TID: " + myThreadId + myRootFrame.getReportString(frameTimeIgnoreThresholdMs);
   }
 
+  public int computeMaxDepth() {
+    return myRootFrame.computeMaxDepth();
+  }
+
+  public boolean isAwtThread() {
+    return myThreadName.startsWith("AWT-EventQueue-");
+  }
+
+  public boolean exists(@NotNull Predicate<StackTraceElement> predicate) {
+    return myRootFrame.exists(predicate);
+  }
 }
