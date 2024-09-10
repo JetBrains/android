@@ -16,14 +16,13 @@
 package com.android.tools.idea.streaming.device.dialogs
 
 import com.android.tools.idea.streaming.core.CloseDialogAction
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
-import com.intellij.ui.components.htmlComponent
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Dimension
 
@@ -32,10 +31,12 @@ import java.awt.Dimension
  */
 internal class MirroringConfirmationDialog(val title: String) {
 
-  private val text = "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
-                     " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
-                     " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
-                     " machine since the&nbsp;communication channel between Android Studio and the&nbsp;adb server is not encrypted.</p>"
+  private val text by lazy {
+    "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
+    " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
+    " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
+    " machine since the&nbsp;communication channel between ${ApplicationNamesInfo.getInstance().fullProductName} and the&nbsp;adb server is not encrypted.</p>"
+  }
 
   /**
    * Creates contents of the dialog.
