@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars.LeakCanaryActionBar
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
@@ -38,20 +37,17 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel) {
   Column(
     modifier = Modifier.fillMaxSize(),
     verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
+    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     LeakCanaryActionBar(leakCanaryModel)
     ToolWindowHorizontalDivider()
     HorizontalSplitLayout(
       firstPaneMinWidth = 150.dp,
       secondPaneMinWidth = 250.dp,
-      first = {
-        LeakListView(leakCanaryModel)
-      },
-      second = {
-        LeakDetailsColumn(leakCanaryModel)
-      },
-      state = rememberSplitLayoutState(.3f)
+      first = { LeakListView(leakCanaryModel) },
+      second = { LeakDetailsColumn(leakCanaryModel) },
+      state = rememberSplitLayoutState(.3f),
+      modifier = Modifier.fillMaxSize(),
     )
   }
 }
@@ -61,6 +57,10 @@ private fun LeakDetailsColumn(leakCanaryModel: LeakCanaryModel) {
   val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
   val isRecording by leakCanaryModel.isRecording.collectAsState()
   Column {
-    LeakDetailsPanel(selectedLeak = selectedLeak, gotoDeclaration = leakCanaryModel::goToDeclaration, isRecording = isRecording)
+    LeakDetailsPanel(
+      selectedLeak = selectedLeak,
+      gotoDeclaration = leakCanaryModel::goToDeclaration,
+      isRecording = isRecording,
+    )
   }
 }
