@@ -117,7 +117,6 @@ iml_module(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:intellij.webp",
-        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",

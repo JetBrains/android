@@ -95,7 +95,6 @@
     <orderEntry type="library" name="studio-plugin-JUnit" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.platform.images" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.webp" level="project" />
-    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-host-retention-proto">
         <CLASSES>

@@ -137,13 +137,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "kotlinx-coroutines-guava",
-    jars = ["//prebuilts/tools/common/m2:kotlinx-coroutines-guava_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "guava-testlib",
     jars = ["//prebuilts/tools/common/m2:guava-testlib_files"],
     visibility = ["//visibility:public"],
