@@ -31,6 +31,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import icons.SampleImportIcons;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +96,14 @@ public class SampleImportAction extends AnAction {
       wizardBuilder.addStep(new SampleBrowserStep(model, sampleList.get()));
 
       ModelWizard wizard = wizardBuilder.build();
-      ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizard, SamplesBrowserBundle.message("sample.import.title")).build();
+      StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, SamplesBrowserBundle.message("sample.import.title"));
+      try {
+        builder = builder.setHelpUrl(new URL("https://developer.android.com/r/studio-ui/import-sample.html"));
+      }
+      catch (MalformedURLException urlError) {
+        throw new RuntimeException(urlError);
+      }
+      ModelWizardDialog dialog = builder.build();
       dialog.show();
     });
   }
