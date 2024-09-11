@@ -127,6 +127,7 @@ import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.util.SlowOperations;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1218,12 +1219,15 @@ public final class ConstraintComponentUtilities {
   }
 
   public static NlComponent getComponent(List<NlComponent> list, String id) {
-    for (NlComponent nlComponent : list) {
-      if (id.equals(nlComponent.getId())) {
-        return nlComponent;
-      }
-    }
-    return null;
+    return SlowOperations.allowSlowOperations(
+      () -> {
+        for (NlComponent nlComponent : list) {
+          if (id.equals(nlComponent.getId())) {
+            return nlComponent;
+          }
+        }
+        return null;
+    });
   }
 
   /**
