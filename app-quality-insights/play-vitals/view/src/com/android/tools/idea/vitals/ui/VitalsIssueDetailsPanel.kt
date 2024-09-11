@@ -179,7 +179,8 @@ class VitalsIssueDetailsPanel(
   private val affectedVersionsLabel = JLabel()
 
   // Event id, console link
-  private val eventIdLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
+  private val eventIdLabel =
+    JLabel(StudioIcons.AppQualityInsights.ISSUE).apply { toolTipText = "Event ID" }
   private val vitalsConsoleLink: HyperlinkLabel =
     HyperlinkLabel("View on Android Vitals").apply {
       isFocusable = true
@@ -189,9 +190,14 @@ class VitalsIssueDetailsPanel(
     }
 
   // Device, SDK level, Timestamp, VCS Commit
-  private val deviceLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN)
-  private val affectedApiLevelsLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
-  private val timestampLabel = JLabel(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
+  private val deviceLabel =
+    JLabel(StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN).apply { toolTipText = "Affected Device" }
+  private val affectedApiLevelsLabel =
+    JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API).apply {
+      toolTipText = "Affected API Level"
+    }
+  private val timestampLabel =
+    JLabel(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK).apply { toolTipText = "Event Timestamp" }
   private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
