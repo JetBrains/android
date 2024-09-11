@@ -20,8 +20,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Default [OrganizationGroup.isOpened] state of new created [OrganizationGroup]. Note: Default
+ * being false currently not supported.
+ */
+const val DEFAULT_ORGANIZATION_GROUP_STATE = true
+
 /** Information required for each organization group. */
-class OrganizationGroup(val methodFqn: String, displayName: String) {
+class OrganizationGroup(
+  val methodFqn: String,
+  displayName: String,
+  val saveState: (Boolean) -> Unit = { _ -> },
+) {
 
   private val _isOpened = MutableStateFlow(true)
 
@@ -34,5 +44,6 @@ class OrganizationGroup(val methodFqn: String, displayName: String) {
   /** Set group opened or closed. */
   fun setOpened(isOpened: Boolean) {
     _isOpened.update { isOpened }
+    saveState(isOpened)
   }
 }
