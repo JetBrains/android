@@ -27,8 +27,6 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analysis.Cause
-import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
-import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
@@ -36,6 +34,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.ListWithFilter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -90,26 +89,27 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
         }
       }
 
-      val coloredComponents =
-        fakeUi.findAllComponents<ResizedSimpleColoredComponent> {
-          it !is JListSimpleColoredComponent<*>
-        }
-      val selectAnIssuePanel = coloredComponents[0]
+      val bottomPanel =
+        fakeUi.findComponent<JPanel> { it.name == "bottom panel" } ?: fail("Bottom panel not found")
+      val selectAnIssuePanel = bottomPanel.components[0]
       Truth.assertThat(selectAnIssuePanel.toString()).isEqualTo("Select an issue to see details")
 
-      if (sortedGroupedInsights.size == 1) {
-        val eventsPanel = coloredComponents[1]
+      if (sortedGroupedInsights.size == 1 && insights.size > 1) {
+        val countPanel = bottomPanel.components[1] as JPanel
+        val eventsPanel = countPanel.components[0]
         Truth.assertThat(eventsPanel.toString())
           .isEqualTo(
             insights.sumOf { it.issue.issueDetails.eventsCount }.formatNumberToPrettyString()
           )
-        val usersPanel = coloredComponents[2]
+        val usersPanel = countPanel.components[1]
         Truth.assertThat(usersPanel.toString())
           .isEqualTo(
             insights
               .sumOf { it.issue.issueDetails.impactedDevicesCount }
               .formatNumberToPrettyString()
           )
+      } else if (sortedGroupedInsights.size == 1) {
+        Truth.assertThat(bottomPanel.componentCount).isEqualTo(1)
       }
     }
 
