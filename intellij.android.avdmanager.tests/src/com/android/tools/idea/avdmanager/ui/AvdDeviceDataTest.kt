@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager.ui
 
 import com.android.resources.Density
+import com.android.sdklib.SystemImageTags
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -55,5 +56,35 @@ class AvdDeviceDataTest {
     // When the inputs go back to the original values, we restore the original density.
     data.diagonalScreenSize().set(6.0)
     assertThat(data.density().get()).isEqualTo(Density(440))
+  }
+
+  private fun getDevice(id: String) =
+    DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(id, "Google")
+
+  @Test
+  fun deviceType_automotive() {
+    for (id in listOf("automotive_1024p_landscape", "automotive_1080p_landscape")) {
+      val data = AvdDeviceData(getDevice(id), null)
+
+      assertThat(data.deviceType().get().get()).isEqualTo(SystemImageTags.AUTOMOTIVE_TAG)
+      assertThat(data.isAutomotive.get()).isTrue()
+    }
+  }
+
+  @Test
+  fun deviceType_automotivedistantdisplay() {
+    val data = AvdDeviceData(getDevice("automotive_distant_display"), null)
+
+    assertThat(data.deviceType().get().get())
+      .isEqualTo(SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG)
+    assertThat(data.isAutomotive.get()).isTrue()
+  }
+
+  @Test
+  fun deviceType_tv() {
+    val data = AvdDeviceData(getDevice("tv_4k"), null)
+
+    assertThat(data.deviceType().get().get()).isEqualTo(SystemImageTags.ANDROID_TV_TAG)
+    assertThat(data.isTv.get()).isTrue()
   }
 }

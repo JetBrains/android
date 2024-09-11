@@ -72,7 +72,6 @@ public final class AvdDeviceData {
   private final StringProperty myName = new StringValueProperty();
   private final OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
   private final StringProperty myManufacturer = new StringValueProperty();
-  private final StringProperty myTagId = new StringValueProperty();
   private final StringProperty myDeviceId = new StringValueProperty();
 
   private final DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
@@ -502,15 +501,20 @@ public final class AvdDeviceData {
   public void updateValuesFromDevice(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     myName.set(device.getDisplayName());
     String tagId = device.getTagId();
-    if (myTagId.get().isEmpty()) {
-      myTagId.set(SystemImageTags.DEFAULT_TAG.getId());
+    if (tagId == null) {
       myDeviceType.setValue(SystemImageTags.DEFAULT_TAG);
-    }
-    else {
-      for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
-        if (tag.getId().equals(tagId)) {
-          myDeviceType.setValue(tag);
-          break;
+    } else {
+      // The "android-automotive-playstore" tag shouldn't exist; we indicate Play support explicitly in Device.
+      // ("android-automotive-distantdisplay" shouldn't either, but until we have distant display support in the
+      // device schema, it's necessary.)
+      if (tagId.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG.getId())) {
+        myDeviceType.setValue(SystemImageTags.AUTOMOTIVE_TAG);
+      } else {
+        for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
+          if (tag.getId().equals(tagId)) {
+            myDeviceType.setValue(tag);
+            break;
+          }
         }
       }
     }
