@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
+import java.nio.file.Path
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
@@ -26,6 +28,12 @@ internal class MessageFormatter(
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId,
 ) {
+  private var proguardMessageRewriter = ProguardMessageRewriter()
+
+  fun setProguardMap(path: Path) {
+    proguardMessageRewriter.loadProguardMap(path)
+  }
+
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for
   // app?
@@ -81,6 +89,9 @@ internal class MessageFormatter(
               var result = message.message
               for (formatter in exceptionFormatters) {
                 result = formatter.rewrite(result)
+              }
+              if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+                result = proguardMessageRewriter.rewrite(result)
               }
               result
             }

@@ -714,6 +714,14 @@ public final class StudioFlags {
     "Delay before reloading Logcat from file after filter change. If `<= 0`, file will not be reloaded",
     TimeUnit.SECONDS.toMillis(1)
   );
+
+  public static final Flag<Boolean> LOGCAT_DEOBFUSCATE = new BooleanFlag(
+    LOGCAT,
+    "deobfuscate",
+    "Enable stack trace deobfuscation using R8 Retrace",
+    "Enable stack trace deobfuscation using R8 Retrace",
+    false
+  );
   //endregion
 
   //region Project System

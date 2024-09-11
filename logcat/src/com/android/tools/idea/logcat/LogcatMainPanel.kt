@@ -47,6 +47,7 @@ import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartOrReloadLogcatAction
 import com.android.tools.idea.logcat.actions.SaveLogcatAction
+import com.android.tools.idea.logcat.actions.SetProguardMappingAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
@@ -103,12 +104,14 @@ import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.r8.retrace.InvalidMappingFileException
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset.COMPACT
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset.STANDARD
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
+import com.intellij.CommonBundle
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.actions.CopyAction
@@ -134,8 +137,10 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
@@ -761,6 +766,9 @@ constructor(
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(Separator.create())
       add(LogcatSplitterActions(splitterPopupActionGroup))
+      if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+        add(SetProguardMappingAction())
+      }
       add(Separator.create())
       add(ScreenshotAction())
       add(ScreenRecorderAction())
@@ -769,6 +777,27 @@ constructor(
 
   override fun openLogcatFile(path: Path) {
     deviceComboBox.addOrSelectFile(path)
+  }
+
+  @UiThread
+  override fun setProguardMapping(path: Path) {
+    try {
+      messageFormatter.setProguardMap(path)
+      reloadMessages()
+    } catch (e: InvalidMappingFileException) {
+      DialogBuilder()
+        .title(CommonBundle.message("dialog.error.title"))
+        .apply {
+          setCenterPanel(
+            panel {
+              row { label(LogcatBundle.message("logcat.proguard.mapping.error")) }
+              e.message?.let { row { label(it) } }
+            }
+          )
+          addCloseButton()
+        }
+        .show()
+    }
   }
 
   @UiThread override fun isLogcatPaused(): Boolean = isLogcatPaused

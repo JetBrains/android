@@ -157,5 +157,9 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun setProguardMapping(path: Path) {
+    TODO("Not yet implemented")
+  }
+
   override fun dispose() {}
 }
