@@ -543,7 +543,7 @@ android-studio/license/google-api-services-source.jar-NOTICE
 android-studio/license/gradle-appengine-builder-model-0.1.0.jar-NOTICE
 android-studio/license/gson-2.3-NOTICE
 android-studio/license/hdrhistogram_license.txt
-android-studio/license/icudt72l.dat.txt
+android-studio/license/icudt75l.dat.txt
 android-studio/license/instantapps-api-NOTICE
 android-studio/license/javacpp-NOTICE
 android-studio/license/javahelp_license.txt
@@ -554,6 +554,9 @@ android-studio/license/juniversalchardet-1.0.3.jar-NOTICE
 android-studio/license/kxml2-2.3.0-NOTICE
 android-studio/license/launcher-third-party-libraries.html
 android-studio/license/layoutlib.jar.txt
+android-studio/license/layoutlib_jni.dll.txt
+android-studio/license/layoutlib_jni.dylib.txt
+android-studio/license/layoutlib_jni.so.txt
 android-studio/license/libandroid_runtime.dll.txt
 android-studio/license/libandroid_runtime.dylib.txt
 android-studio/license/libandroid_runtime.so.txt
@@ -1875,7 +1878,6 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/DroidSans.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/DroidSansMono.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmoji.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiFlags.ttf
-android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiLegacy.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Bold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabicUI-Bold.ttf
@@ -2048,6 +2050,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifGuja
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifGurmukhi-VF.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHebrew-Bold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHebrew-Regular.ttf
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHentaigana.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKannada-VF.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Bold.otf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.otf
@@ -2065,6 +2068,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifThai
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifTibetan-VF.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifYezidi-VF.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/Roboto-Regular.ttf
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/RobotoFlex-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/RobotoStatic-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-Bold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-BoldItalic.ttf
@@ -2072,11 +2076,15 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-Regular.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBold.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback.xml
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback_cjkvf.xml
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
+android-studio/plugins/design-tools/resources/layoutlib/data/fonts/fonts_cjkvf.xml
 android-studio/plugins/design-tools/resources/layoutlib/data/framework_res.jar
-android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt72l.dat
+android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt75l.dat
 android-studio/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
+android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/layoutlib_jni.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libandroid_runtime.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc-host.dll
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc_stubdata.dll

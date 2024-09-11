@@ -487,7 +487,7 @@ Android Studio Preview.app/Contents/license/google-api-services-source.jar-NOTIC
 Android Studio Preview.app/Contents/license/gradle-appengine-builder-model-0.1.0.jar-NOTICE
 Android Studio Preview.app/Contents/license/gson-2.3-NOTICE
 Android Studio Preview.app/Contents/license/hdrhistogram_license.txt
-Android Studio Preview.app/Contents/license/icudt72l.dat.txt
+Android Studio Preview.app/Contents/license/icudt75l.dat.txt
 Android Studio Preview.app/Contents/license/instantapps-api-NOTICE
 Android Studio Preview.app/Contents/license/javacpp-NOTICE
 Android Studio Preview.app/Contents/license/javahelp_license.txt
@@ -498,6 +498,9 @@ Android Studio Preview.app/Contents/license/juniversalchardet-1.0.3.jar-NOTICE
 Android Studio Preview.app/Contents/license/kxml2-2.3.0-NOTICE
 Android Studio Preview.app/Contents/license/launcher-third-party-libraries.html
 Android Studio Preview.app/Contents/license/layoutlib.jar.txt
+Android Studio Preview.app/Contents/license/layoutlib_jni.dll.txt
+Android Studio Preview.app/Contents/license/layoutlib_jni.dylib.txt
+Android Studio Preview.app/Contents/license/layoutlib_jni.so.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dll.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dylib.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.so.txt
@@ -2607,7 +2610,6 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/DroidSansMono.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmoji.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiFlags.ttf
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoColorEmojiLegacy.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Bold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabic-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoNaskhArabicUI-Bold.ttf
@@ -2780,6 +2782,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifGurmukhi-VF.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHebrew-Bold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHebrew-Regular.ttf
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifHentaigana.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKannada-VF.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Bold.otf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifKhmer-Regular.otf
@@ -2797,6 +2800,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifTibetan-VF.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/NotoSerifYezidi-VF.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/Roboto-Regular.ttf
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/RobotoFlex-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/RobotoStatic-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-Bold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-BoldItalic.ttf
@@ -2804,11 +2808,15 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-Regular.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBold.ttf
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback.xml
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/font_fallback_cjkvf.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts_cjkvf.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/framework_res.jar
-Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt72l.dat
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt75l.dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac-arm/lib64/layoutlib_jni.dylib
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac-arm/lib64/libandroid_runtime.dylib
 Android Studio Preview.app/Contents/plugins/dev/lib/dev.jar
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit-jps.jar
