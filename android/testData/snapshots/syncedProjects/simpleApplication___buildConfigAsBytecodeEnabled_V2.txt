@@ -151,6 +151,13 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: buildConfigGeneratedClasses [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Test
+            LIBRARY                       : Gradle: buildConfigGeneratedClasses
+                *CLASSES                      : jar://<PROJECT>/app/build/intermediates/compile_build_config_jar/debug/generateDebugBuildConfig/BuildConfig.jar!/ [-]
+                *CLASSES                      : jar://<PROJECT>/app/build/intermediates/compile_build_config_jar/debugAndroidTest/generateDebugAndroidTestBuildConfig/BuildConfig.jar!/ [-]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
@@ -428,6 +435,12 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: buildConfigGeneratedClasses [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Test
+            LIBRARY                       : Gradle: buildConfigGeneratedClasses
+                *CLASSES                      : jar://<PROJECT>/app/build/intermediates/compile_build_config_jar/debug/generateDebugBuildConfig/BuildConfig.jar!/ [-]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
