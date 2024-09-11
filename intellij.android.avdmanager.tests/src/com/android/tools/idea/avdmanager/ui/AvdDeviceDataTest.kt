@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager.ui
 
 import com.android.resources.Density
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -39,9 +40,7 @@ class AvdDeviceDataTest {
 
   @Test
   fun densityExistingDevice() {
-    val pixel5 =
-      DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("pixel_5", "Google")
-    val data = AvdDeviceData(pixel5, null)
+    val data = AvdDeviceData(getDevice("pixel_5"), null)
 
     // Most devices don't have densities that match the predefined buckets well, and use numeric
     // density.
@@ -56,6 +55,13 @@ class AvdDeviceDataTest {
     // When the inputs go back to the original values, we restore the original density.
     data.diagonalScreenSize().set(6.0)
     assertThat(data.density().get()).isEqualTo(Density(440))
+  }
+
+  @Test
+  fun ram() {
+    val data = AvdDeviceData(getDevice("pixel_5"), null)
+
+    assertThat(data.ramStorage().get()).isEqualTo(Storage(8, Storage.Unit.GiB))
   }
 
   private fun getDevice(id: String) =

@@ -540,7 +540,7 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
     myScreenFoldedWidth3.set(screen.getFoldedWidth3());
     myScreenFoldedHeight3.set(screen.getFoldedHeight3());
-    myRamStorage.set(EmulatedProperties.defaultRamSize(device));
+    myRamStorage.set(defaultHardware.getRam());
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
