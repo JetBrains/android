@@ -22,7 +22,6 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsLis
 import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
 import com.intellij.execution.RunManager
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.diagnostic.thisLogger
 import javax.swing.Icon
 
 class DebugMenuItem(
