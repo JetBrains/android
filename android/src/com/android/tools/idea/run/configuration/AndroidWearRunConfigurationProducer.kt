@@ -54,7 +54,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
     val module = context.module?.getHolderModule() ?: return false
 
     configuration.name = JavaExecutionUtil.getPresentableClassName(serviceName)!!
-    configuration.configurationModule.module = module
+    configuration.setModule(module)
     configuration.componentLaunchOptions.componentName = serviceName
 
     return true
