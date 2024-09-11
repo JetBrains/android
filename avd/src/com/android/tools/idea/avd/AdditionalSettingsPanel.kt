@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
@@ -112,26 +111,34 @@ internal fun AdditionalSettingsPanel(
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Camera")
-    Text("Front")
 
-    Dropdown(
-      device.frontCamera,
-      FRONT_CAMERAS,
-      onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
-    )
+    Row {
+      Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-    InfoOutlineIcon(Modifier.layoutId(Icon))
-    Text("Rear")
+      Dropdown(
+        device.frontCamera,
+        FRONT_CAMERAS,
+        onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+      )
 
-    Dropdown(
-      device.rearCamera,
-      REAR_CAMERAS,
-      onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
-    )
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
 
-    InfoOutlineIcon(Modifier.layoutId(Icon))
+    Row {
+      Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+      Dropdown(
+        device.rearCamera,
+        REAR_CAMERAS,
+        onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+      )
+
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
   }
 }
 
@@ -142,26 +149,34 @@ private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
 
 @Composable
 private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Network")
-    Text("Speed")
 
-    Dropdown(
-      device.speed,
-      SPEEDS,
-      onSelectedItemChange = { onDeviceChange(device.copy(speed = it)) },
-    )
+    Row {
+      Text("Speed", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-    InfoOutlineIcon(Modifier.layoutId(Icon))
-    Text("Latency")
+      Dropdown(
+        device.speed,
+        SPEEDS,
+        onSelectedItemChange = { onDeviceChange(device.copy(speed = it)) },
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+      )
 
-    Dropdown(
-      device.latency,
-      LATENCIES,
-      onSelectedItemChange = { onDeviceChange(device.copy(latency = it)) },
-    )
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
 
-    InfoOutlineIcon(Modifier.layoutId(Icon))
+    Row {
+      Text("Latency", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+      Dropdown(
+        device.latency,
+        LATENCIES,
+        onSelectedItemChange = { onDeviceChange(device.copy(latency = it)) },
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+      )
+
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
   }
 }
 
@@ -170,34 +185,41 @@ private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList(
 
 @Composable
 private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  GroupLayout {
+  Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Startup")
-    Text("Orientation")
 
-    Dropdown(
-      menuContent = {
-        ORIENTATIONS.forEach {
-          selectableItem(
-            device.orientation == it,
-            onClick = { onDeviceChange(device.copy(orientation = it)) },
-          ) {
-            Text(it.shortDisplayValue)
+    Row {
+      Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+      Dropdown(
+        Modifier.alignByBaseline(),
+        menuContent = {
+          ORIENTATIONS.forEach {
+            selectableItem(
+              device.orientation == it,
+              onClick = { onDeviceChange(device.copy(orientation = it)) },
+            ) {
+              Text(it.shortDisplayValue)
+            }
           }
-        }
+        },
+      ) {
+        Text(device.orientation.shortDisplayValue)
       }
-    ) {
-      Text(device.orientation.shortDisplayValue)
     }
 
-    Text("Default boot")
+    Row {
+      Text("Default boot", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-    Dropdown(
-      device.defaultBoot,
-      BOOTS,
-      onSelectedItemChange = { onDeviceChange(device.copy(defaultBoot = it)) },
-    )
+      Dropdown(
+        device.defaultBoot,
+        BOOTS,
+        onSelectedItemChange = { onDeviceChange(device.copy(defaultBoot = it)) },
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+      )
 
-    InfoOutlineIcon(Modifier.layoutId(Icon))
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
   }
 }
 
