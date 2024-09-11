@@ -442,7 +442,11 @@ class EmulatorView(
     })
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, this)
 
-    updateConnectionState(emulator.connectionState)
+    if (displayId != PRIMARY_DISPLAY_ID && displaySize != null) {
+      // Three bytes per pixel plus some overhead.
+      emulator.connectGrpcOrIncreaseMaxInboundMessageSize(displaySize.width * displaySize.height * 3 + 100)
+    }
+    updateConnectionState()
   }
 
   override fun dispose() {
@@ -496,11 +500,12 @@ class EmulatorView(
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-      updateConnectionState(connectionState)
+      updateConnectionState()
     }
   }
 
-  private fun updateConnectionState(connectionState: ConnectionState) {
+  private fun updateConnectionState() {
+    val connectionState = emulator.connectionState
     if (connectionState == ConnectionState.CONNECTED) {
       hideDisconnectedStateMessage()
       if (isVisible) {
@@ -855,6 +860,12 @@ class EmulatorView(
 
     private fun updateCurrentPosture(posture: PostureValue) {
       emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: LOG.error("Unexpected posture: $posture")
+    }
+
+    override fun onError(t: Throwable) {
+      if (notificationReceiver == this && t is EmulatorController.RetryException) {
+        requestNotificationFeed()
+      }
     }
   }
 
@@ -1402,6 +1413,12 @@ class EmulatorView(
     }
 
     override fun dispose() {
+    }
+
+    override fun onError(t: Throwable) {
+      if (screenshotReceiver == this && t is EmulatorController.RetryException) {
+        requestScreenshotFeed()
+      }
     }
   }
 
