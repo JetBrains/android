@@ -22,6 +22,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
+import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
+import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
@@ -232,7 +234,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
 
-  /** Reuse existing organizationGroup. */
+  // Load organization group state.
+  val previousOrganizationState =
+    getInstance(project).surfaceState.getOrganizationGroupState(psiFile.virtualFile)
+
+  // Reuse existing groups.
   val groups =
     elementsToReusableModels
       .mapNotNull { (_, model) -> model?.organizationGroup }
@@ -307,9 +313,26 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.organizationGroup =
           groups.getOrCreate(methodPreviewElement.methodFqn) {
             OrganizationGroup(
-              methodPreviewElement.methodFqn,
-              methodPreviewElement.displaySettings.baseName,
-            )
+                methodPreviewElement.methodFqn,
+                methodPreviewElement.displaySettings.baseName,
+              ) {
+                // Everytime state is changed we need to save it.
+                isOpened ->
+                getInstance(project)
+                  .surfaceState
+                  .saveOrganizationGroupState(
+                    psiFile.virtualFile,
+                    methodPreviewElement.methodFqn,
+                    isOpened,
+                  )
+              }
+              .apply {
+                // Load previously saved state.
+                setOpened(
+                  previousOrganizationState[methodPreviewElement.methodFqn]
+                    ?: DEFAULT_ORGANIZATION_GROUP_STATE
+                )
+              }
           }
       }
       val newSceneManager =
