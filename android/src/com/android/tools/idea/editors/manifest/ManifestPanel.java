@@ -1011,7 +1011,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         if (module != null) {
           isProjectFile = true;
           if (modules.length >= 2) {
-            source = ModuleSystemUtil.getHolderModule(module).getName();
+            source = ProjectSystemUtil.getModuleSystem(module).getDisplayNameForModuleGroup();
           }
 
           // AAR library in the project build directory?

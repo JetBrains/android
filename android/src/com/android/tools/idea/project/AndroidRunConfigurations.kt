@@ -132,7 +132,7 @@ class AndroidRunConfigurations {
     } ?: return
 
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
-    val moduleName = module.getHolderModule().name
+    val moduleName = module.getModuleSystem().getDisplayNameForModuleGroup()
     val configurationName = moduleName.removePrefix("$projectNameInExternalSystemStyle.")
     val settings = runReadAction {
       if (project.isDisposed) return@runReadAction null
