@@ -20,17 +20,14 @@ import com.android.tools.idea.execution.common.AndroidExecutionException;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 
-/** Compat class for {@link DeployTask} */
-public class DeployTasksCompat {
-  private static final BoolExperiment updateCodeViaJvmti =
-      new BoolExperiment("android.apply.changes", false);
+/** Helper class for {@link DeployTask} */
+public class DeployTasksHelper {
 
-  private DeployTasksCompat() {}
+  private DeployTasksHelper() {}
 
   public static BlazeLaunchTask createDeployTask(
       Project project, Collection<ApkInfo> packages, DeployOptions deployOptions) {
