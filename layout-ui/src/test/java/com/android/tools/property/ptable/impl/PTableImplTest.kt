@@ -725,6 +725,16 @@ class PTableImplTest {
   }
 
   @Test
+  fun testAvoidAcceptingFocusDuringDestruction() {
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
+    focusManager.focusOwner = table1!!
+    panel.remove(table1)
+    assertThat(focusManager.focusOwner!!.name).isEqualTo(LAST_FIELD_EDITOR)
+  }
+
+  @Test
   fun testDepth() {
     table1!!.model.expand(4)
     table1!!.model.expand(7)
