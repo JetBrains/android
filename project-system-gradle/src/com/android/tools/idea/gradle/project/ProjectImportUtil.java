@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public final class ProjectImportUtil {
   }
 
   public static VirtualFile findGradleTarget(@NotNull VirtualFile file) {
-    if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+    if (Registry.is("android.gradle.ide.gradle.declarative.ide.support")) {
       String[] declarativeFiles = new String[]{SdkConstants.FN_BUILD_GRADLE_DECLARATIVE, SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE};
       return findMatch(file, ArrayUtils.addAll(GRADLE_SUPPORTED_FILES, declarativeFiles));
     }

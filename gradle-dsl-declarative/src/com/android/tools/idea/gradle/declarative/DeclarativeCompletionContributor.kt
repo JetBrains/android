@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.declarative.ElementType.BLOCK
 import com.android.tools.idea.gradle.declarative.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.declarative.ElementType.FACTORY
@@ -26,7 +25,6 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeFile
-import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -37,6 +35,7 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PsiElementPattern
@@ -47,7 +46,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
-  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
+  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean = Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")
 }
 
 // works when user start typing

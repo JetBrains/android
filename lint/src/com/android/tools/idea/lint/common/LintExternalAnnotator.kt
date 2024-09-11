@@ -22,7 +22,6 @@ import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
 import com.android.tools.lint.checks.DiscouragedDetector
@@ -68,6 +67,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Iconable
 import com.intellij.openapi.util.Iconable.IconFlags
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -196,7 +196,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
       } else if (
-        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(EXT_GRADLE_DECLARATIVE)
+        Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") && name.endsWith(EXT_GRADLE_DECLARATIVE)
       ) {
         scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
       } else if (

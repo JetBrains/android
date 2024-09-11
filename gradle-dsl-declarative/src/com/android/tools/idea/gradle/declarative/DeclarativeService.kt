@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -47,7 +46,7 @@ class DeclarativeService(val project: Project) {
 
   fun getSchema(): DeclarativeSchema? {
     return null /* TODO(b/349894866): this code fails to compile against IntelliJ 2024.2 due to Gradle library version conflicts.
-    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
+    if (!Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")) return null
     if (schema == null) {
       val parentPath = project.basePath
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")

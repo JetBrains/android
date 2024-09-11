@@ -21,7 +21,6 @@ import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -38,6 +37,7 @@ import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -96,8 +96,8 @@ abstract class LintIdeSupport {
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
         fileType === TomlFileType ||
-        (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() &&
-          file.name.endsWith(EXT_GRADLE_DECLARATIVE))
+        (Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") &&
+         file.name.endsWith(EXT_GRADLE_DECLARATIVE))
     ) {
       return true
     }

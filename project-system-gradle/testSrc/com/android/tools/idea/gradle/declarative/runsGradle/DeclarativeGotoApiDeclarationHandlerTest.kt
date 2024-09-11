@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.declarative.runsGradle
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.declarative.DeclarativeGoToApiDeclarationHandler
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -23,6 +22,7 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findDocument
@@ -48,12 +48,12 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   @Before
   fun onBefore() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_SCHEMA_KTS)
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
   }
 
   @Test

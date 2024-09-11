@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
@@ -38,11 +38,11 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
 
   @Before
   fun before() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
   }
 
   @After
-  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+  fun onAfter() = Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
 
   @Test
   fun testBasicRootCompletion() {

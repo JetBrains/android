@@ -39,7 +39,7 @@ class TomlDslChangerTest : LightPlatformTestCase() {
   }
 
   override fun setUp(){
-    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
+    Registry.`is`("android.gradle.ide.gradle.declarative.ide.support", true)
     super.setUp()
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBare
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeProperty
@@ -23,6 +22,7 @@ import com.android.tools.idea.gradle.declarative.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeRecursiveVisitor
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -46,7 +46,7 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
     if (element !is DeclarativeProperty) return emptyArray()
     if (element.parent is DeclarativeProperty) return emptyArray()
-    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return emptyArray()
+    if (!Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")) return emptyArray()
     lateinit var fileIdentifier: DeclarativeIdentifier
     element.accept(object : DeclarativeRecursiveVisitor() {
       override fun visitBare(o: DeclarativeBare) {

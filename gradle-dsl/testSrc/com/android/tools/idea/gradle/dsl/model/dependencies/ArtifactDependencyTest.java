@@ -92,13 +92,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    Registry.is("android.gradle.declarative.plugin.studio.support", true);
+    Registry.is("android.gradle.ide.gradle.declarative.ide.support", true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    Registry.is("android.gradle.declarative.plugin.studio.support", false);
+    Registry.is("android.gradle.ide.gradle.declarative.ide.support", false);
   }
 
   @Test

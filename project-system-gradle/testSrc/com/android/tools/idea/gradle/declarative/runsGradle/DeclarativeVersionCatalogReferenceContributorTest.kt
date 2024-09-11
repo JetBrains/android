@@ -41,14 +41,14 @@ class DeclarativeVersionCatalogReferenceContributorTest {
 
   @Before
   fun setUp() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
   }
 
   @After
   fun tearDown() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
   }
 
   @Test

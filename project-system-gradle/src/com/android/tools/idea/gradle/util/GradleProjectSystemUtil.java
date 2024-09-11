@@ -32,7 +32,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -80,6 +79,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -449,7 +449,7 @@ public class GradleProjectSystemUtil {
       else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
-      else if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && buildFileName.endsWith(DOT_DECLARATIVE)) {
+      else if (Registry.is("android.gradle.ide.gradle.declarative.ide.support") && buildFileName.endsWith(DOT_DECLARATIVE)) {
         result.add(DOT_DECLARATIVE);
       }
     }
@@ -701,7 +701,7 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
-    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+    if (Registry.is("android.gradle.ide.gradle.declarative.ide.support")) {
       return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS, FN_BUILD_GRADLE_DECLARATIVE);
     }
     return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
@@ -716,7 +716,7 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
-    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+    if (Registry.is("android.gradle.ide.gradle.declarative.ide.support")) {
       return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_SETTINGS_GRADLE_DECLARATIVE);
     }
     return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);

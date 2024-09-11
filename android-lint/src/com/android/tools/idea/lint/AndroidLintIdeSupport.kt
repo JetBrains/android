@@ -19,7 +19,6 @@ import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -54,6 +53,7 @@ import com.intellij.openapi.ui.Messages.getQuestionIcon
 import com.intellij.openapi.ui.Messages.showEditableChooseDialog
 import com.intellij.openapi.ui.Messages.showInputDialog
 import com.intellij.openapi.util.Pair
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -118,7 +118,7 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
       return false
 
     if (
-      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+      Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") && file.name.endsWith(EXT_GRADLE_DECLARATIVE)
     )
       return true
 

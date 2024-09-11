@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.declarative
 
 import com.android.test.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.openapi.util.registry.Registry
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -39,12 +39,12 @@ class DeclarativeServiceTest {
 
   @Before
   fun onBefore(){
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
   }
 
   @After
   fun onAfter(){
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
   }
 
   @Test

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
@@ -31,7 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-@org.junit.Ignore("b/349894866")
+@Ignore("b/349894866")
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
@@ -42,10 +41,10 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   private val fixture by lazy { projectRule.fixture }
 
   @Before
-  fun before() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+  fun before() = Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
 
   @After
-  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+  fun onAfter() = Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
 
   @Test
   fun checkFunctionIdentifier() {

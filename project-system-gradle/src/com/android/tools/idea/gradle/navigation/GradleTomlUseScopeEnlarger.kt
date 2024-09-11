@@ -2,8 +2,8 @@
 package com.android.tools.idea.gradle.navigation
 
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -26,7 +26,7 @@ class GradleTomlUseScopeEnlarger: UseScopeEnlarger() {
       return null
     }
     val gradleBuildscriptSearchScope = GradleBuildscriptSearchScope(element.project)
-    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return gradleBuildscriptSearchScope
+    if (!Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")) return gradleBuildscriptSearchScope
     return GlobalSearchScope.union(listOf(gradleBuildscriptSearchScope, object : GlobalSearchScope(element.project) {
       override fun contains(file: VirtualFile) = file.name.endsWith(EXT_GRADLE_DECLARATIVE)
       override fun isSearchInLibraries() = false

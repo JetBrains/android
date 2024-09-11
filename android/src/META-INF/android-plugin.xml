@@ -191,11 +191,6 @@
                  defaultValue="false"
                  restartRequired="false"/>
 
-    <registryKey key="android.gradle.declarative.plugin.studio.support"
-                 description="Enable support for gradle.build.toml"
-                 defaultValue="false"
-                 restartRequired="false"/>
-
     <groupConfigurable id="build.android" parentId="build"
                        displayNameKey="configurable.group.android.settings.display.name"
                        descriptionKey="configurable.group.build.android.settings.description"/>

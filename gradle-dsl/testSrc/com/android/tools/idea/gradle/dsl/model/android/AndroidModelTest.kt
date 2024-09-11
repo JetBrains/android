@@ -38,13 +38,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Before
   override fun before() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
     super.before()
   }
 
   @After
   fun onAfter() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
+    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
   }
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {

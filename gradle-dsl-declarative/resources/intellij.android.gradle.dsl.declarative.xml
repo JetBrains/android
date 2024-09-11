@@ -1,5 +1,10 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <registryKey key="android.gradle.ide.gradle.declarative.ide.support"
+                 description="Enable support for build.gradle.dcl"
+                 defaultValue="false"
+                 restartRequired="false"/>
+
     <fileType name="Gradle Declarative Configuration Language"
               implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeFileType"
               fieldName="INSTANCE"
