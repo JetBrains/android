@@ -20,7 +20,6 @@ import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ResolveComposeTracingCodeLocationMetadata
-import com.intellij.history.core.Paths
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -154,8 +153,8 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
       try {
         if (!file.virtualFile.path.contains(".jar!/")) return null
         val jarPath = file.virtualFile.path.split(".jar!")[0] + ".jar"
-        val parentDir = Paths.getParentOf(Paths.getParentOf(jarPath))
-        val pomFile: File = File(parentDir).walkBottomUp().singleOrNull { it.extension == "pom" } ?: return null
+        val parentDir = File(jarPath).parentFile?.parentFile ?: return null
+        val pomFile: File = parentDir.walkBottomUp().singleOrNull { it.extension == "pom" } ?: return null
         val model = DefaultModelReader().read(pomFile, mutableMapOf<String, Any>()) ?: return null
         return with(model) { LibrarySignature(groupId, artifactId, ComparableVersion(version)) }
       }
