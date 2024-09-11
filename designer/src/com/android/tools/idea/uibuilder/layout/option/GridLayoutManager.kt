@@ -21,6 +21,7 @@ import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffs
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
+import com.android.tools.idea.common.surface.MAX_SCALE
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
@@ -32,10 +33,10 @@ import com.android.tools.idea.uibuilder.surface.layout.MAX_ITERATION_TIMES
 import com.android.tools.idea.uibuilder.surface.layout.SCALE_UNIT
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlin.math.sqrt
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
@@ -157,8 +158,6 @@ class GridLayoutManager(
       return 1.0
     }
 
-    // Use binary search to find the proper zoom-to-fit value.
-
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
@@ -171,22 +170,17 @@ class GridLayoutManager(
         )
       }
 
-    val upperBound = run {
-      // Find the scale the total areas of contents equals to the available spaces.
-      // This happens when the contents perfectly full-fill the available space.
-      // It is not possible that the zoom-to-fit scale is larger than this value.
-      val contentAreas = rawSizes.sumOf { it.width * it.height }
-      val availableArea =
-        (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding)
-      // The zoom-to-fit value cannot be smaller than 1%.
-      maxOf(0.01, sqrt(availableArea.toDouble() / contentAreas))
-    }
+    // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level, to
+    // calculate this number we get the max scale, and we multiply by the screen scaling factor
+    val upperBound = MAX_SCALE * JBUIScale.sysScale()
 
+    // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
+    // This scale can fit all the content in a single row or a single column, which is the worst
+    // case.
     val lowerBound = run {
-      // This scale can fit all the content in a single row or a single column, which is the worst
-      // case.
-      // The zoom-to-fit scale should not be smaller than this value.
+      // We get the total width if all the content would be on one single row
       val totalWidth = rawSizes.sumOf { it.width }
+      // We get the total height if all the content would be on one single column
       val totalHeight = rawSizes.sumOf { it.height }
       // The zoom-to-fit value cannot be smaller than 1%.
       maxOf(
@@ -198,11 +192,15 @@ class GridLayoutManager(
       )
     }
 
-    if (upperBound <= lowerBound) {
-      return lowerBound
-    }
-
-    return getMaxZoomToFitScale(content, lowerBound, upperBound, availableWidth, availableHeight)
+    // Use binary search to find the proper zoom-to-fit value, we use lowerBound and upperBound as
+    // the min and max values of zoom-to-fit
+    return getMaxZoomToFitScale(
+      content = content,
+      min = lowerBound,
+      max = upperBound,
+      width = availableWidth,
+      height = availableHeight,
+    )
   }
 
   /** Binary search to find the largest scale for [width] x [height] space. */

@@ -53,6 +53,10 @@ interface SurfaceLayoutManager {
   /**
    * Get the fit into scale value which can display all the [PositionableContent] in the given
    * [availableWidth] x [availableHeight] range.
+   *
+   * @param content The [PositionableContent]s shown in the layout.
+   * @param availableWidth The available width size to show the [PositionableContent]s
+   * @param availableHeight The available height size to show the [PositionableContent]s
    */
   @SurfaceScale
   fun getFitIntoScale(

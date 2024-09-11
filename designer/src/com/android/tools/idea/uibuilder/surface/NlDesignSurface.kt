@@ -113,7 +113,6 @@ internal constructor(
   zoomControlsPolicy: ZoomControlsPolicy,
   private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
   private val shouldRenderErrorsPanel: Boolean,
-  maxZoomToFitLevel: Double,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
   nlDesignSurfacePositionableContentLayoutManager: NlDesignSurfacePositionableContentLayoutManager,
 ) :
@@ -190,7 +189,6 @@ internal constructor(
         analyticsManager,
         selectionModel,
         this,
-        maxZoomToFitLevel,
       )
       .apply {
         scope.launch {
