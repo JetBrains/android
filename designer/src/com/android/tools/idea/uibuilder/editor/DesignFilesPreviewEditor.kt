@@ -263,45 +263,14 @@ class PreviewEditorActionManagerProvider(
 private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationListener {
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
-      if (framePositionMs <= 0L) {
-        // This condition happens when animation is reset (stop and set elapsed frame to 0) or the
-        // elapsed frame is backed to negative.
-
-        // For performance reason, if there is a rendering task, the new render request will be
-        // ignored and the callback of new request
-        // will be triggered after the current rendering task is completed.
-        // But the current rendering task may work on different elapsed frame time. We need to
-        // request a new render with correct elapsed
-        // frame time after the current rendering task is completed.
-        // For now we don't have a good way to get the completion of current rendering task. Thus we
-        // request a render first then request
-        // another after the first one is completed. This makes sure the second request is not
-        // ignored and have correct elapsed frame
-        // time. Even the first request is not ignored, it is still fine because we just have an
-        // additional render request. Having an
-        // additional rendering doesn't cause the performance issue, because this condition only
-        // happens when animation is not playing.
-        it.sceneRenderConfiguration.elapsedFrameTimeMs = 0L
-        it.requestRenderAsync().whenComplete { _, _ ->
-          // The shape may be changed if it is a vector drawable. Reinflate it.
-          it.sceneRenderConfiguration.needsInflation.set(true)
-          // This rendering guarantees the elapsed frame time is 0 and it must re-inflates the
-          // drawable to have the correct shape.
-          it.requestRenderAsync()
-        }
-      } else {
-        // In practise, this else branch happens when the animation is playing.
-        // The new render request is ignored when the previous request is not completed yet. Some
-        // frames are dropped when it happens.
-        // We don't handle that case because dropping some frames for the playing animation is
-        // acceptable.
-        it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
-        if (controller.forceElapsedReset) {
-          it.sceneRenderConfiguration.needsInflation.set(true)
-          controller.forceElapsedReset = false
-        }
-        it.requestRenderAsync()
+      // Some frames may be dropped as consequence of the queueing/scheduling logic in the render
+      // pipeline, but this is acceptable when playing the animation.
+      it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs.coerceAtLeast(0L)
+      if (framePositionMs <= 0L || controller.forceElapsedReset) {
+        it.sceneRenderConfiguration.needsInflation.set(true)
+        if (framePositionMs > 0L) controller.forceElapsedReset = false
       }
+      it.requestRenderAsync()
     }
   }
 }
