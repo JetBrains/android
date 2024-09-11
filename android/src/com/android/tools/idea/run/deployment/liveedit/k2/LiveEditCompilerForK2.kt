@@ -52,11 +52,11 @@ internal class LiveEditCompilerForK2(
   private val irClassCache: IrClassCache,
   private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module? = null,
-) {
+): LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
 
-  fun compile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
+  override fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
