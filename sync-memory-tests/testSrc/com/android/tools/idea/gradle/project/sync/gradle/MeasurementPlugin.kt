@@ -57,7 +57,7 @@ object MeasurementPluginConfig {
   fun configureAndApply(
     outputPath: String,
     captureTypes: Set<CaptureType>,
-    captureJfr: Boolean? = null
+    captureJfr: Boolean = false
   ) {
 
     val src = File("tools/adt/idea/sync-memory-tests/testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt")
