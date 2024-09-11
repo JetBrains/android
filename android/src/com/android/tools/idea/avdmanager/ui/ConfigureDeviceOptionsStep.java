@@ -45,6 +45,8 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBDimension;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -184,13 +186,13 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myListeners.listen(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
-        IdDisplay selectedType = idDisplayOptional.get();
+        List<IdDisplay> deviceTag =  Collections.singletonList(idDisplayOptional.get());
 
-        boolean isWear = selectedType.equals(SystemImageTags.WEAR_TAG);
+        boolean isWear = SystemImageTags.isWearImage(deviceTag);
         getModel().getDeviceData().isWear().set(isWear);
-        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImageTags.ANDROID_TV_TAG)
-                                              || selectedType.equals(SystemImageTags.GOOGLE_TV_TAG));
-        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImageTags.DESKTOP_TAG));
+        getModel().getDeviceData().isAutomotive().set(SystemImageTags.isAutomotiveImage(deviceTag));
+        getModel().getDeviceData().isTv().set(SystemImageTags.isTvImage(deviceTag));
+        getModel().getDeviceData().isDesktop().set(SystemImageTags.isDesktopImage(deviceTag));
 
         myIsScreenRound.setEnabled(isWear);
         boolean isRound = getModel().getDeviceData().isScreenRound().get();
