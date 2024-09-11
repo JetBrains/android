@@ -1,6 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
 
@@ -41,7 +40,7 @@ iml_module(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexLintTest",
     timeout = "long",
     data = common_data,
@@ -53,7 +52,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexLintWithoutNotesTest",
     timeout = "long",
     data = common_data,
@@ -65,7 +64,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintWithoutNotesTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexLintWithoutVersionsTest",
     timeout = "long",
     data = common_data,
@@ -77,7 +76,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintWithoutVersionsTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexPsdTest",
     timeout = "long",
     data = common_data,
@@ -89,7 +88,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexPsdWithoutNotesTest",
     timeout = "long",
     data = common_data,
@@ -101,7 +100,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdWithoutNotesTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SdkIndexPsdWithoutVersionsTest",
     timeout = "long",
     data = common_data,
@@ -113,7 +112,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdWithoutVersionsTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "OldProjectAppTest",
     timeout = "long",
     data = old_project_app_data,
@@ -125,7 +124,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.OldProjectAppTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "GradleTokensTest",
     timeout = "long",
     module = ":intellij.android.projectSystem.integration.tests",
