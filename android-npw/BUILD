@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
 
 # managed by go/iml_to_build
 iml_module(
@@ -180,7 +181,10 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-native-prebuilt_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.24",
         "@maven//:org.jetbrains.kotlin.kotlin-test_1.9.24",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
