@@ -669,12 +669,23 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
 
     emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
-                                            DisplayConfiguration.newBuilder().setDisplay(2).setWidth(2048).setHeight(1536).build()))
+                                            DisplayConfiguration.newBuilder().setDisplay(2).setWidth(3840).setHeight(2160).build()))
 
     waitForCondition(2.seconds) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
     assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
+
+    // Check that the largest display view can be zoomed 1:1.
+    emulator.clearGrpcCallLog()
+    val largestDisplayPanel = ui.getComponent<EmulatorDisplayPanel> { it.displayId == 2 }
+    var frameNumber = largestDisplayPanel.displayView.frameNumber
+    largestDisplayPanel.displayView.zoom(ZoomType.ACTUAL)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall4k = emulator.getNextGrpcCall(2.seconds)
+    assertThat(streamScreenshotCall4k.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
+    largestDisplayPanel.waitForFrame(ui, ++frameNumber, 2.seconds)
+    assertThat(shortDebugString(streamScreenshotCall4k.request)).isEqualTo("format: RGB888 width: 3840 height: 2160 display: 2")
 
     // Resize emulator display panels.
     ui.findAllComponents<SplitPanel>().forEach { it.proportion /= 2 }
@@ -845,6 +856,11 @@ class EmulatorToolWindowPanelTest {
   @Throws(TimeoutException::class)
   private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Duration) {
     waitForCondition(timeout) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
+  }
+
+  @Throws(TimeoutException::class)
+  private fun EmulatorDisplayPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Duration) {
+    waitForCondition(timeout) { renderAndGetFrameNumber(fakeUi, displayView) >= frame }
   }
 
   @Throws(TimeoutException::class)
