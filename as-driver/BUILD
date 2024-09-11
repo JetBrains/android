@@ -1,5 +1,4 @@
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/intellij-bazel:intellij.bzl", "intellij_plugin")
@@ -50,7 +49,13 @@ iml_module(
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/vendor/google/testing/display:ffmpeg_files",
         "//tools/vendor/google/testing/display:xvfb",
-    ],
+    ] + select({
+        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
+        "//tools/base/bazel/platforms:macos-x86_64": ["//tools/adt/idea/studio:android-studio.mac.zip"],
+        "//tools/base/bazel/platforms:macos-arm64": ["//tools/adt/idea/studio:android-studio.mac_arm.zip"],
+        "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
+        "//conditions:default": [],
+    }),
     iml_files = ["utils/as-driver.utils.iml"],
     test_srcs = ["utils/testSrc"],
     visibility = ["//visibility:public"],
@@ -92,7 +97,7 @@ iml_module(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "ThreadingCheckerTest",
     module = ":as-driver.integration",
     test_class = "com.android.tools.asdriver.tests.integration.ThreadingCheckerTest",

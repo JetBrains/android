@@ -1,6 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 config_setting(
@@ -192,7 +191,7 @@ maven_repository(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "LayoutInspectorViewIntegrationTest",
     timeout = "long",
     data = layout_inspector_view_data,
@@ -205,7 +204,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorViewIntegrationTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "EmbeddedLayoutInspectorIntegrationTest",
     timeout = "long",
     data = layout_inspector_view_data,

@@ -1,5 +1,4 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -30,7 +29,7 @@ open_project_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_studio_test(
+iml_test(
     name = "OpenProjectTest",
     timeout = "long",
     data = open_project_data,
@@ -40,7 +39,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "OpenProjectWithThreadingAgentDisabledTest",
     timeout = "long",
     data = open_project_data,
@@ -51,7 +50,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "ShowUsagesTest",
     timeout = "long",
     data = [
@@ -141,7 +140,7 @@ maven_repository(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "EditorPerformanceTest",
     timeout = "long",
     data = editor_performance_test_data,
@@ -157,7 +156,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.EditorPerformanceTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "EditorPerformanceWithK2Test",
     timeout = "long",
     data = editor_performance_test_data,
@@ -173,7 +172,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.EditorPerformanceWithK2Test",
 )
 
-iml_studio_test(
+iml_test(
     name = "LanguageHighlightingTest",
     timeout = "long",
     data = [
@@ -204,7 +203,7 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "DebuggerTest",
     timeout = "long",
     data = [
@@ -242,7 +241,7 @@ iml_test(
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "EmulatorBeforeStudioTest",
     timeout = "long",
     data = [
@@ -260,7 +259,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.EmulatorBeforeStudioTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "EmulatorAfterStudioTest",
     timeout = "long",
     data = [
@@ -281,7 +280,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.EmulatorAfterStudioTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "GoToDeclarationTest",
     timeout = "long",
     data = [
@@ -294,7 +293,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.GoToDeclarationTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "LiveEditTest",
     timeout = "long",
     data = [
@@ -329,7 +328,7 @@ apply_changes_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_studio_test(
+iml_test(
     name = "ApplyChangesTest",
     timeout = "long",
     data = apply_changes_data,
@@ -343,7 +342,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.ApplyChangesTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "ApplyCodeChangesTest",
     timeout = "long",
     data = apply_changes_data,
@@ -368,7 +367,7 @@ build_and_run_test_data = [
     INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
 
-iml_studio_test(
+iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
@@ -390,7 +389,7 @@ create_project_test_data = [
     "//tools/base/build-system:gradle-distrib-8.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
-iml_studio_test(
+iml_test(
     name = "CreateProjectTest",
     timeout = "long",
     data = create_project_test_data,
@@ -474,7 +473,7 @@ maven_repository(
     ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
-iml_studio_test(
+iml_test(
     name = "BuildProjectTest",
     timeout = "long",
     data = [
@@ -489,7 +488,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.BuildProjectTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "BuildProjectBleakTest",
     timeout = "long",
     data = [
@@ -509,7 +508,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.BuildProjectBleakTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "RunApkTest",
     timeout = "long",
     data = [
@@ -534,7 +533,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.RunApkTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "DebugNativeApkTest",
     timeout = "long",
     data = [
@@ -558,7 +557,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.DebugNativeApkTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "BuildAndRunInstrumentedTest",
     timeout = "long",
     data = [
@@ -580,7 +579,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.BuildAndRunInstrumentedTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "MultipleDevicesInstrumentedTest",
     timeout = "long",
     data = [
@@ -602,7 +601,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.MultipleDevicesInstrumentedTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "DebugJUnitTest",
     timeout = "long",
     data = [
@@ -620,7 +619,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.DebugJUnitTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "BuildAndRunKMPTest",
     timeout = "long",
     data = [
@@ -643,7 +642,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.BuildAndRunKMPTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SamplesImportTest",
     data = open_project_data,
     module = ":intellij.android.core.integration",
@@ -662,7 +661,7 @@ multi_project_test_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_studio_test(
+iml_test(
     name = "MultiProjectTest",
     timeout = "long",
     data = multi_project_test_data,
@@ -673,7 +672,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.MultiProjectTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "MultiProjectSameWindowTest",
     timeout = "long",
     data = multi_project_test_data,
