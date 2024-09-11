@@ -105,5 +105,11 @@ internal class EmulatorClipboardSynchronizer(
         onDeviceClipboardChanged(message.text)
       }
     }
+
+    override fun onError(t: Throwable) {
+      if (t is EmulatorController.RetryException) {
+        requestClipboardFeed()
+      }
+    }
   }
 }
