@@ -77,12 +77,13 @@ public class QuickFixForJniTest {
   public void quickFix() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/CLionNdkHelloJni");
-    guiTest.waitForBackgroundTasks();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Open Java file and check errors.
     EditorFixture editor = ideFrame.getEditor().open(JAVA_FILE);
-
+    editor.waitForFileToActivate();
     editor.moveBetween("public native String  stringFromJNI();", "")
+      .moveBetween("public native String  stringFromJNI();", "") //To reduce flakiness
       .enterText("\npublic native void printFromJNI();");
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -131,6 +132,7 @@ public class QuickFixForJniTest {
     Wait.seconds(10).expecting("Native file is opened for navigating to definition")
       .until(() -> "jni.cpp".equals(ideFrame.getEditor().getCurrentFileName()));
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     String currentLine = ideFrame.getEditor().getCurrentLine();
     assertThat(currentLine.contains("// TODO: implement printFromJNI()")).isTrue();
 
