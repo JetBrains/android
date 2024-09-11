@@ -384,8 +384,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   val moduleDependencies: ModuleDependencies get() = error("Not implemented")
 
-  /** Return a string suitable for presenting to the user to identify this Module System's module. */
+  /** Return a String suitable for presenting to the user to identify this Module System's module. */
   fun getDisplayNameForModule(): String = module.name
+  /** Return a String suitable for presenting to the user to identify this Module System's associated group of modules. */
+  fun getDisplayNameForModuleGroup(): String = module.name
 
   /**
    * Is this module an Android module that contains Android entities that are potentially relevant for production?  Returning
