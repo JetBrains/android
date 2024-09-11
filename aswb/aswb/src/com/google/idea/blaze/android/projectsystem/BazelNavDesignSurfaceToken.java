@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 /** Blaze implementation of project system tokens for the navigation editor: Nav Design Surface */
-class BazelNavDesignSurfaceToken implements NavDesignSurfaceToken<BazelProjectSystem>, BazelToken {
+public class BazelNavDesignSurfaceToken implements NavDesignSurfaceToken<BazelProjectSystem>, BazelToken {
   @Override
   public boolean modifyProject(@NotNull BazelProjectSystem projectSystem, @NotNull NlModel model) {
     AtomicBoolean didAdd = new AtomicBoolean(false);

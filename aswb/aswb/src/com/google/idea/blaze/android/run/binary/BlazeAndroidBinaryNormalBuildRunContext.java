@@ -43,7 +43,6 @@ import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.android.facet.AndroidFacet;
 
-/** Compat for #api212 */
 public class BlazeAndroidBinaryNormalBuildRunContext
     extends BlazeAndroidBinaryNormalBuildRunContextBase {
   BlazeAndroidBinaryNormalBuildRunContext(

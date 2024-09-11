@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 
-/** Blaze model for an android project. #api42. */
+/** Blaze model for an android project */
 public class BlazeAndroidModel extends BlazeAndroidModelBase {
   private final NamedIdeaSourceProvider sourceProvider;
 

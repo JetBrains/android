@@ -20,7 +20,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.annotations.NotNull;
 
-/** Shim for #api212 compat. */
 public class BlazeAutoAndroidDebugger extends BlazeAutoAndroidDebuggerBase {
 
   @Override

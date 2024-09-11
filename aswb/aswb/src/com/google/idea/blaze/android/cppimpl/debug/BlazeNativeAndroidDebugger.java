@@ -15,14 +15,4 @@
  */
 package com.google.idea.blaze.android.cppimpl.debug;
 
-/**
- * API compat of {@link BlazeNativeAndroidDebuggerBase} with the following additions:
- *
- * <ul>
- *   <li>Creates a run-config setting using {@link BlazeAndroidNativeAttachConfiguration} instead of
- *       {@link AndroidNativeAttachConfiguration} to override counterproductive validations.
- * </ul>
- *
- * #api4.0
- */
 public class BlazeNativeAndroidDebugger extends BlazeNativeAndroidDebuggerBase {}
