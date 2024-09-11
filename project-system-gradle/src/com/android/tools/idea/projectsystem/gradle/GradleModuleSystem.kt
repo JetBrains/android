@@ -58,6 +58,7 @@ import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.isAndroidTestFile
@@ -640,6 +641,12 @@ class GradleModuleSystem(
     }
     return getNameFromGradlePath(module) ?: super.getDisplayNameForModule()
   }
+
+  /**
+   * Returns the name of the holder module of this group, thereby hiding the implementation detail that each sourceSet
+   * has its own module.
+   */
+  override fun getDisplayNameForModuleGroup(): String = module.getHolderModule().name
 
   override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
 
