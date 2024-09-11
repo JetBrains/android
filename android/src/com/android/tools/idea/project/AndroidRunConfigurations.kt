@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -33,6 +34,8 @@ import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProdu
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.run.util.LaunchUtils
+import com.android.utils.cache.ChangeTracker
+import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -40,7 +43,9 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
@@ -186,6 +191,24 @@ class AndroidRunConfigurations {
   }
 
   private suspend fun extractWearComponents(module: Module): List<WearComponent> {
+    val modificationTracker = MergedManifestModificationTracker.getInstance(module)
+    val dumbServiceTracker = DumbService.getInstance(module.project)
+    val wearComponentsCache =
+      module.getUserData(extractWearComponentsCacheKey)
+        ?: ChangeTrackerCachedValue.softReference<List<WearComponent>>().also {
+          module.putUserData(extractWearComponentsCacheKey, it)
+        }
+    return ChangeTrackerCachedValue.get(
+      wearComponentsCache,
+      { extractWearComponentsNonCached(module) },
+      ChangeTracker(
+        ChangeTracker { modificationTracker.modificationCount },
+        ChangeTracker { dumbServiceTracker.modificationTracker.modificationCount },
+      ),
+    )
+  }
+
+  private suspend fun extractWearComponentsNonCached(module: Module): List<WearComponent> {
     return module.project.runReadActionInSmartModeWithIndexes {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
@@ -239,5 +262,8 @@ class AndroidRunConfigurations {
     @JvmStatic
     val instance: AndroidRunConfigurations
       get() = ApplicationManager.getApplication().getService(AndroidRunConfigurations::class.java)
+
+    private val extractWearComponentsCacheKey =
+      Key<ChangeTrackerCachedValue<List<WearComponent>>>("extractWearComponents")
   }
 }
