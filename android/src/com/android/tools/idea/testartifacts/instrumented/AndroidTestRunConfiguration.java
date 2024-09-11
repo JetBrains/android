@@ -242,11 +242,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
-  @Override
-  public boolean isTestConfiguration() {
-    return true;
-  }
-
   private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
