@@ -103,6 +103,7 @@ class AdditionalSettingsPanelTest {
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
     rule.onNodeWithTag("ExistingImageField").performTextReplacement(mySdCardFileImg.toString())
+    rule.waitForIdle()
 
     // Assert
     assertEquals(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)), state.device)
