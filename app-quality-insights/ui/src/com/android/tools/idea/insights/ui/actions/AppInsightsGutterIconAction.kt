@@ -76,7 +76,7 @@ class AppInsightsGutterIconAction(
           setCloseOnEnter(false)
 
           // Create the bottom panel.
-          val panel = JPanel(BorderLayout())
+          val panel = JPanel(BorderLayout()).apply { name = "bottom panel" }
           panel.border = JBUI.Borders.emptyLeft(5)
           val hintText =
             ResizedSimpleColoredComponent().apply {
@@ -85,7 +85,7 @@ class AppInsightsGutterIconAction(
             }
           panel.add(hintText, BorderLayout.WEST)
 
-          if (insights.groupBy { it.provider }.size == 1) {
+          if (insights.groupBy { it.provider }.size == 1 && insights.size > 1) {
             val eventsTotal = insights.sumOf { it.issue.issueDetails.eventsCount }
             val usersTotal = insights.sumOf { it.issue.issueDetails.impactedDevicesCount }
             val eventsComponent =
