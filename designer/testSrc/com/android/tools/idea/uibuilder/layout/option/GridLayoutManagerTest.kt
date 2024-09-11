@@ -357,6 +357,21 @@ class GridLayoutManagerTest {
     }
   }
 
+  @Test
+  fun testFitIntoScaleWithBiggerPreviews() {
+    val group = OrganizationGroup("1", "1")
+    val manager = createGridLayoutManager()
+
+    val tolerance = 0.01
+
+    val contents = (0..50).map { TestPositionableContent(group, Dimension(17000, 9000)) }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 300, 100)
+      assertEquals(0.01, scale, tolerance)
+    }
+  }
+
   private fun createGroups(): List<PositionableGroup> {
     return listOf(getPositionableGroup1(), getPositionableGroup2())
   }

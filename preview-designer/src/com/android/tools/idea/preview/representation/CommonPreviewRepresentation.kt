@@ -259,7 +259,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             }
           }
           .apply {
-            setMaxZoomToFitLevel(ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL)
             setMinScale(ZoomConstants.MIN_SCALE)
             setMaxScale(ZoomConstants.MAX_SCALE)
             configureDesignSurface(navigationHandler)
