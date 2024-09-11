@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -75,21 +76,39 @@ public class LayoutLibraryLoader {
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
-    String dataPath = target.getPath(IAndroidTarget.DATA).toString().replace('\\', '/');
-    String[] keyboardPaths = new String[] { dataPath + "/keyboards/Generic.kcm" };
+    final Path dataPath = target.getPath(IAndroidTarget.DATA);
+    Path keyboardPath = dataPath.resolve("keyboards/Generic.kcm");
+    Path icuDataPath;
+    try(Stream<Path> icuFiles = Files.list(dataPath.resolve("icu"))) {
+      icuDataPath = icuFiles.filter(path -> path.toString().endsWith(".dat")).findFirst().orElseThrow();
+    }
+    catch (Exception e) {
+      throw new RenderingException(
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", dataPath));
+    }
 
     LayoutLibrary library = LayoutLibraryLoader.getLayoutLibraryProvider().map(LayoutLibraryProvider::getLibrary).orElse(null);
     if (library == null ||
-        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), fontFolderPath.toFile(),
-                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt72l.dat", keyboardPaths, enumMap, layoutLog)) {
+        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(),
+                      fontFolderPath.toFile(),
+                      getNativeLibraryPath(dataPath),
+                      pathToString(icuDataPath),
+                      new String[] { pathToString(keyboardPath) },
+                      enumMap,
+                      layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;
   }
 
   @NonNull
-  private static String getNativeLibraryPath(@NonNull String dataPath) {
-    return dataPath + "/" + getPlatformName() + "/lib64/";
+  private static String pathToString(@NonNull Path path) {
+    return path.toString().replace('\\', '/');
+  }
+
+  @NonNull
+  private static String getNativeLibraryPath(@NonNull Path dataPath) {
+    return pathToString(dataPath) + "/" + getPlatformName() + "/lib64/";
   }
 
   @NonNull
