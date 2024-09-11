@@ -102,16 +102,11 @@ class EmbeddedCompilerClientImpl private constructor(
    * Compiles the given list of inputs. All inputs must belong to the same module.
    * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
-  private suspend fun compileModuleKtFiles(inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
+  private suspend fun compileModuleKtFiles(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
 
-    val moduleForAllInputs = readAction {
-      val modules = inputs.map { it.module }.toSet()
-      modules.singleOrNull() ?: throw LiveEditUpdateException.internalErrorMultiModule(modules)
-    }
-
     if (KotlinPluginModeProvider.isK2Mode()) {
-      compileKtFilesForK2(inputs, outputDirectory)
+      compileKtFilesForK2(moduleForAllInputs, inputs, outputDirectory)
       return@withContext
     }
 
@@ -166,14 +161,14 @@ class EmbeddedCompilerClientImpl private constructor(
     generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
   }
 
-  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, outputDirectory: Path) {
+  private suspend fun compileKtFilesForK2(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
       runWithCompileLock {
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
           @OptIn(KaExperimentalApi::class)
-          val result = backendCodeGenForK2(inputFile, inputFile.module)
+          val result = backendCodeGenForK2(inputFile, moduleForAllInputs)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           @OptIn(KaExperimentalApi::class)
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
@@ -220,7 +215,10 @@ class EmbeddedCompilerClientImpl private constructor(
         allKtInputs
           .groupBy { readAction { it.module } }
           .forEach { (module, inputs) ->
-            compileModuleKtFiles(inputs, outputDirectory = outputDirectory)
+            if (module == null) {
+              throw LiveEditUpdateException.internalErrorMultiModule(emptySet())
+            }
+            compileModuleKtFiles(module, inputs, outputDirectory = outputDirectory)
           }
         result.complete(CompilationResult.Success)
       }
