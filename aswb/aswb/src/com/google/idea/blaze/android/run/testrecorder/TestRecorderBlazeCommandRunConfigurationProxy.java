@@ -18,7 +18,7 @@ package com.google.idea.blaze.android.run.testrecorder;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeAutoAndroidDebuggerBase;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 
-/** Compat class for implementing TestRecorderBlazeCommandRunConfigurationProxy. */
+/** Implementation of TestRecorderBlazeCommandRunConfigurationProxy. */
 public class TestRecorderBlazeCommandRunConfigurationProxy
     extends TestRecorderBlazeCommandRunConfigurationProxyBase {
 
