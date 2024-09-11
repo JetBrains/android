@@ -90,7 +90,7 @@ abstract class InstallableComponent(
 
   abstract fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler)
 
-  override val isEnabled: Boolean = isOptional
+  override var isEnabled: Boolean = isOptional
 
   override val childrenToInstall: Collection<InstallableComponent>
     get() = if (!willBeInstalled.get()) setOf() else setOf(this)
@@ -104,6 +104,7 @@ abstract class InstallableComponent(
     sdkHandler = handler
     val nothingToInstall = !isWritable(handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
+    isEnabled = isOptional
 
     willBeInstalled.set(
       when {
