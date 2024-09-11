@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
@@ -260,4 +261,50 @@ fun Project.moduleBuildFiles(modulePath: String): List<VirtualFile> {
     .filter { AndroidFacet.getInstance(it) != null }
     .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
     .mapNotNull { it.buildFile }
+}
+
+/**
+ * Gets the target Java version that was set for Java compilation in this
+ * module, or null if this value is not set.
+ *
+ * Note: If the module was set up correctly, this value should be the
+ * same as the source Java version for Java compilation and the JVM
+ * target version for Kotlin compilation.
+ */
+fun GradleBuildModel.getTargetJavaVersion(): LanguageLevel? {
+  return android().compileOptions().targetCompatibility().toLanguageLevel()
+         ?: java().targetCompatibility().toLanguageLevel()
+}
+
+/**
+ * Sets source and target Java version for Java compilation and JVM target version for Kotlin compilation.
+ *
+ * @param languageLevel the Java language level to set
+ * @param isAgpApplied whether the Android Gradle plugin is applied in this module
+ * @param isKgpApplied whether the Kotlin Gradle plugin is applied in this module
+ */
+fun GradleBuildModel.setJavaKotlinCompileOptions(
+  languageLevel: LanguageLevel,
+  isAgpApplied: Boolean,
+  isKgpApplied: Boolean
+): GradleBuildModel {
+  if (isAgpApplied) {
+    android().compileOptions().run {
+      sourceCompatibility().setLanguageLevel(languageLevel)
+      targetCompatibility().setLanguageLevel(languageLevel)
+    }
+    if (isKgpApplied) {
+      android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
+    }
+  } else {
+    java().run {
+      sourceCompatibility().setLanguageLevel(languageLevel)
+      targetCompatibility().setLanguageLevel(languageLevel)
+    }
+    if (isKgpApplied) {
+      kotlin().compilerOptions().jvmTarget().setLanguageLevel(languageLevel)
+    }
+  }
+
+  return this
 }
