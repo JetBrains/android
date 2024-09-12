@@ -235,14 +235,14 @@ def _resolve_includes(elem, external_xmls, cwd, index):
     i = i + 1
 
 
-def load_plugin_xml(files: list[Path], external_xmls):
+def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugin.xml"):
   xmls = {}
   index = {}
   for file in files:
     if file.suffix == ".jar":
       with zipfile.ZipFile(file) as jar:
         for jar_entry in jar.namelist():
-          if jar_entry == "META-INF/plugin.xml":
+          if jar_entry == xml_name:
             xmls[f"{file}!{jar_entry}"] = jar.read(jar_entry)
           if not jar_entry.endswith("/"):
             # TODO: Investigate if we can have a strict mode where we fail on duplicate
