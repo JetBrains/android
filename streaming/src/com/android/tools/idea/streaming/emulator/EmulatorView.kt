@@ -494,6 +494,10 @@ class EmulatorView(
 
   override fun canZoom(): Boolean = isConnected
 
+  override fun onScreenScaleChanged() {
+    requestScreenshotFeed()
+  }
+
   override fun computeActualSize(): Dimension =
       computeActualSize(screenshotShape.orientation)
 
@@ -643,13 +647,11 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed() {
-    if (isConnected) {
-      requestScreenshotFeed(deviceDisplaySize, displayOrientationQuadrants)
-    }
+    requestScreenshotFeed(deviceDisplaySize, displayOrientationQuadrants)
   }
 
   private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
-    if (width != 0 && height != 0 && isConnected) {
+    if (isConnected && width != 0 && height != 0) {
       val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
       val skin = emulator.getSkin(currentPosture?.posture)
       if (skin != null && deviceFrameVisible) {
