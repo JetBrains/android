@@ -1,6 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -21,7 +20,7 @@ iml_module(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "LaunchInspectorsTest",
     timeout = "long",
     data = [
