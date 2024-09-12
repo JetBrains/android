@@ -101,8 +101,7 @@ interface StudioBot {
   }
 
   companion object {
-    fun getInstance(): StudioBot =
-      ApplicationManager.getApplication().getService(StudioBot::class.java) ?: StubStudioBot()
+    fun getInstance(): StudioBot = ApplicationManager.getApplication().getService(StudioBot::class.java)
   }
 }
 
