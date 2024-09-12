@@ -68,8 +68,8 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               |> Could not resolve all artifacts for configuration ':classpath'.
               |   > Could not find androidx.databinding:databinding-common:$latestKnown.
               |     Required by:
-              |         project : > com.android.tools.build:gradle:$latestKnown
-              |         project : > com.android.tools.build:gradle:$latestKnown > androidx.databinding:databinding-compiler-common:$latestKnown
+              |         root project : > com.android.tools.build:gradle:$latestKnown
+              |         root project : > com.android.tools.build:gradle:$latestKnown > androidx.databinding:databinding-compiler-common:$latestKnown
               |
               |Possible solution:
               | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
@@ -118,7 +118,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               """.trimMargin())
             expect.that(it.description).endsWith("""
               |     Required by:
-              |         project :
+              |         root project :
               |
               |Possible solution:
               | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
