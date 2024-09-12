@@ -118,7 +118,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
       if (KotlinPluginModeProvider.isK2Mode()) {
         @OptIn(KaExperimentalApi::class)
         inputFiles.forEach { inputFile ->
-          val result = backendCodeGenForK2(inputFile, inputFile.module)
+          val result = backendCodeGenForK2(inputFile, inputFile.module!!)
           result.output.filter { it.path.endsWith(".class") } .forEach { output.add(it.content) }
         }
       } else {

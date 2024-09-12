@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 import java.util.Optional
@@ -93,7 +94,7 @@ class LiveEditCompiler(val project: Project,
         try {
           // Compiler pass
           when (KotlinPluginModeProvider.isK2Mode()) {
-            true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder)
+            true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder, file.module!!)
             false -> LiveEditCompilerForK1(project, inlineCandidateCache, irClassCache, this.outputBuilder, this.outputBuilderWithAnalysis)
           }.compileKtFile(file, input, outputBuilder)
 

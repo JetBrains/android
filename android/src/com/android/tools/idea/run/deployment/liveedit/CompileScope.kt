@@ -124,7 +124,7 @@ interface CompileScope {
   fun backendCodeGen(project: Project,
                      analysisResult: AnalysisResult,
                      input: List<KtFile>,
-                     module: Module,
+                     moduleForAllInputs: Module,
                      inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState
 }
 
@@ -177,13 +177,13 @@ private object CompileScopeImpl : CompileScope {
     }
   }
 
-  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
+  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>, moduleForAllInputs: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
     // Ideally, we want to make sure that each compilation only contains files of a single module.
     // However, the current algorithm would fail if a file depends on an inline function that is in another module.
     // If we are unable to pull the binary version of the inline function from the .class directories, we would need to include the .kt
     // file in the input.
-    if (input.isNotEmpty() && input.first().module != module) {
+    if (input.isNotEmpty() && input.first().module != moduleForAllInputs) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(input.first())
     }
 
@@ -198,8 +198,8 @@ private object CompileScopeImpl : CompileScope {
 
     val compilerConfiguration = CompilerConfiguration().apply {
       put(CommonConfigurationKeys.MODULE_NAME,
-          module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
-      KotlinFacet.get(module)?.let { kotlinFacet ->
+          moduleForAllInputs.project.getProjectSystem().getModuleSystem(moduleForAllInputs).getModuleNameForCompilation(input[0].originalFile.virtualFile))
+      KotlinFacet.get(moduleForAllInputs)?.let { kotlinFacet ->
         val moduleName = when(val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
           is K2JVMCompilerArguments -> compilerArguments.moduleName
           is K2MetadataCompilerArguments -> compilerArguments.moduleName

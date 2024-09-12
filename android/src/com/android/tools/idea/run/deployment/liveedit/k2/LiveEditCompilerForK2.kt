@@ -51,7 +51,7 @@ internal class LiveEditCompilerForK2(
   private val inlineCandidateCache: SourceInlineCandidateCache,
   private val irClassCache: IrClassCache,
   private val outputBuilder: LiveEditOutputBuilder,
-  private val module: Module? = null,
+  private val module: Module,
 ): LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
@@ -74,8 +74,8 @@ internal class LiveEditCompilerForK2(
 }
 
 @OptIn(KaExperimentalApi::class)
-fun backendCodeGenForK2(file: KtFile, module: Module?): KaCompilationResult.Success {
-  module?.let {
+fun backendCodeGenForK2(file: KtFile, module: Module): KaCompilationResult.Success {
+  module.let {
     if (file.module != it) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
     }
