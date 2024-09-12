@@ -1,9 +1,12 @@
 """Aspects to build and collect project dependencies."""
 
+# Load external dependencies of this aspect. These are loaded in a separate file and re-exported as necessary
+# to make supporting other versions of bazel easier, by replacing build_dependencies_deps.bzl.
 load(
-    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    ":build_dependencies_deps.bzl",
     "CPP_COMPILE_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
+    "ZIP_TOOL_LABEL",
 )
 
 ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import"
@@ -907,7 +910,7 @@ collect_dependencies = aspect(
             allow_files = True,
             cfg = "exec",
             executable = True,
-            default = "@bazel_tools//tools/zip:zipper",
+            default = ZIP_TOOL_LABEL,
         ),
     },
     fragments = ["cpp"],
@@ -930,7 +933,7 @@ collect_all_dependencies_for_tests = aspect(
             allow_files = True,
             cfg = "exec",
             executable = True,
-            default = "@bazel_tools//tools/zip:zipper",
+            default = ZIP_TOOL_LABEL,
         ),
     },
     fragments = ["cpp"],
