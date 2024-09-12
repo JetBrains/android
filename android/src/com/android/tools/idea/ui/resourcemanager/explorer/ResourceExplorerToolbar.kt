@@ -109,6 +109,8 @@ class ResourceExplorerToolbar private constructor(
     update() // Update current module right away.
   }
 
+  fun getPreferredFocusedComponent(): JComponent = searchAction
+
   private fun update() {
     moduleSelectionCombo.selectedItem = toolbarViewModel.currentModuleName
     refreshAction.update()
