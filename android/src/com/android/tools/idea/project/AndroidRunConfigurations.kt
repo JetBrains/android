@@ -174,7 +174,7 @@ class AndroidRunConfigurations {
     val runManager = RunManager.getInstance(module.project)
     val configurationAndSettings = runManager.createConfiguration(configurationName(module, component), component.configurationFactory)
     val configuration = configurationAndSettings.configuration as AndroidWearConfiguration
-    configuration.configurationModule.module = module
+    configuration.setModule(module)
     configuration.componentLaunchOptions.componentName = component.name
     return configurationAndSettings
   }
