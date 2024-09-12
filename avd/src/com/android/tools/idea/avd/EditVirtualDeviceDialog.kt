@@ -61,7 +61,12 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
 
       val wizard =
         ComposeWizard(project, "Edit Device") {
-          ConfigurationPage(device, avdInfo.systemImage, skins) { device, image ->
+          ConfigurationPage(
+            device,
+            avdInfo.systemImage,
+            skins,
+            DeviceNameValidator(avdManager, currentName = avdInfo.displayName),
+          ) { device, image ->
             builder.copyFrom(device, image)
 
             // At this point, builder.avdName still reflects its on-disk location. If the user
