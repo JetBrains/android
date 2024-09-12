@@ -492,8 +492,8 @@ PROJECT                       : project_sm_src
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project_sm_src.app.main
-        Module                        : project_sm_src.app.main
+        ModuleName                    : project_sm_src.app
+        Module                        : project_sm_src.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

@@ -3012,8 +3012,8 @@ PROJECT                       : NonStandardSourceSetDependencies
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : NonStandardSourceSetDependencies.app.main
-        Module                        : NonStandardSourceSetDependencies.app.main
+        ModuleName                    : NonStandardSourceSetDependencies.app
+        Module                        : NonStandardSourceSetDependencies.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: <PROJECT>/jarWrapperLib/JarWrappedLib.jar
             *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/

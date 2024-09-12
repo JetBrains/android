@@ -131,10 +131,10 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
         AGP_40 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
             """,
         AGP_35 to """
-              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app.main Variant: debug
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
             """
       )
     ),

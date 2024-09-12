@@ -1625,8 +1625,8 @@ PROJECT                       : AS36_noiml
                 COMPILE_JAVA                  : :libs:java_lib:compileJava, :libs:java_lib:testClasses
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : AS36_noiml.app.main
-        Module                        : AS36_noiml.app.main
+        ModuleName                    : AS36_noiml.app
+        Module                        : AS36_noiml.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

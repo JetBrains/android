@@ -651,7 +651,7 @@ class GradleModuleSystem(
   override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
 
   override fun isValidForAndroidRunConfiguration() = when(type) {
-    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isMainModule()
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isHolderModule()
     else -> super.isValidForAndroidRunConfiguration()
   }
 

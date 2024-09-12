@@ -1227,8 +1227,8 @@ PROJECT                       : MainActivity
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :lib:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : MainActivity.app.main
-        Module                        : MainActivity.app.main
+        ModuleName                    : MainActivity.app
+        Module                        : MainActivity.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

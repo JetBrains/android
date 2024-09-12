@@ -1574,8 +1574,8 @@ PROJECT                       : kotlinMultiPlatform
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :module2:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : kotlinMultiPlatform.app.main
-        Module                        : kotlinMultiPlatform.app.main
+        ModuleName                    : kotlinMultiPlatform.app
+        Module                        : kotlinMultiPlatform.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
