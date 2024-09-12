@@ -52,7 +52,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import java.io.File
 import java.io.IOException
@@ -148,7 +147,7 @@ abstract class ModuleModel(
       val moduleModel = this@ModuleModel
       log.info("Rendering module with commandName \"${moduleModel.commandName}\" " +
                "for form factor \"${moduleModel.formFactor}\" " +
-                        "and category \"${moduleModel.category}\"")
+               "and category \"${moduleModel.category}\"")
     }
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {

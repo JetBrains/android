@@ -49,7 +49,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -201,8 +200,12 @@ class RenderTemplateModel private constructor(
 
     override fun logUsage() {
       val templateModel = this@RenderTemplateModel
+      val params = templateModel.newTemplate.parameters.joinToString("\n") { parameter ->
+        val value = if (parameter.loggable) parameter.value else "[suppressed]"
+        "${parameter.name}: $value"
+      }
       log.info("Rendering template \"${templateModel.newTemplate.name}\" with commandName " +
-               "\"${templateModel.commandName}\"")
+               "\"${templateModel.commandName}\" and parameters:\n$params")
     }
 
     private fun renderTemplate(
