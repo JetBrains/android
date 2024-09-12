@@ -111,7 +111,6 @@ java_library(
     srcs = glob(
         [
             "src/**/*.java",
-            "sdkcompat/as233/**/*.java",
             "src/com/google/idea/blaze/android/run/binary/tasks/*.java",
         ],
     ),
