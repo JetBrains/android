@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.mockito.Mockito.mock
 
-class FakeAppInsightsProjectLevelController(
+open class StubAppInsightsProjectLevelController(
   override val key: InsightsProviderKey = InsightsProviderKey("Fake provider"),
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
