@@ -130,7 +130,15 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        """
+        None: no camera installed for AVD
+        Emulated: use a simulated camera
+        Webcam0: use host computer webcam or built-in camera
+        """
+          .trimIndent(),
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
 
     Row {
@@ -143,7 +151,16 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        """
+        None: no camera installed for AVD
+        VirtualScene: use a virtual camera in a simulated environment
+        Emulated: use a simulated camera
+        Webcam0: use host computer webcam or built-in camera
+        """
+          .trimIndent(),
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }
@@ -168,7 +185,11 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "Sets the initial state of the simulated network transfer rate used by the AVD. The network speed can also be adjusted in the " +
+          "emulator.",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
 
     Row {
@@ -181,7 +202,11 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "Sets the initial state of the simulated network transfer latency used by the AVD. Latency is the delay in processing data " +
+          "across the network. The network latency can also be adjusted in the emulator.",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }
@@ -224,7 +249,16 @@ private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        """
+        Choose how the AVD should start
+
+        Cold: start as from a power-up
+        Quick: start from the state that was saved when the AVD last exited
+        """
+          .trimIndent(),
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }
@@ -254,12 +288,23 @@ private fun StorageGroup(
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "The amount of non-removable space available to store data on the AVD",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
 
     Row {
       Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
-      InfoOutlineIcon()
+
+      InfoOutlineIcon(
+        """
+        Custom: The amount of expanded storage available to store data on the AVD. We recommend at least 100 MB in order to use the camera in the emulator.
+        Existing image: Choose a file path to an existing expanded storage image. Using an existing image is useful when sharing data (pictures, media, files, etc.) between AVDs. 
+        None: No expanded storage on this AVD
+        """
+          .trimIndent()
+      )
     }
 
     Row {
@@ -446,7 +491,11 @@ private fun EmulatedPerformanceGroup(
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "The amount of RAM on the AVD. This RAM is allocated from the host system while the AVD is running. Larger amounts of RAM will " +
+          "allow the AVD to run more applications, but have a greater impact on the host system.",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
 
     Row {
@@ -458,7 +507,11 @@ private fun EmulatedPerformanceGroup(
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "The amount of RAM available to the Java virtual machine (VM) to allocate to running apps on the AVD. A larger VM heap allows " +
+          "applications to run longer between garbage collection events.",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }

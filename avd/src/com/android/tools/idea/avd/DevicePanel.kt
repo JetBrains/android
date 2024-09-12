@@ -193,7 +193,8 @@ private fun ServicesDropdown(
         Text(selectedServices?.toString() ?: "Show All")
       }
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      // TODO: http://b/335263751
+      // InfoOutlineIcon("", Modifier.align(Alignment.CenterVertically))
     }
   }
 }
@@ -302,7 +303,8 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
       Modifier.padding(end = Padding.MEDIUM),
     )
 
-    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    // TODO: http://b/335263751
+    // InfoOutlineIcon("", Modifier.align(Alignment.CenterVertically))
   }
 }
 
