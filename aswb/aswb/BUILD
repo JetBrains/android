@@ -72,9 +72,7 @@ stamped_plugin_xml(
 java_library(
     name = "unit_test_utils",
     testonly = 1,
-    srcs = glob(["tests/utils/unit/**/*.java"]) + [
-        "tests/utils/sdkcompat/as233/com/android/ide/common/repository/GoogleMavenArtifactIdHelper.java",
-    ],
+    srcs = glob(["tests/utils/unit/**/*.java"]),
     visibility = combine_visibilities(TEST_ASWB_SUBPACKAGES_VISIBILITY, DEFAULT_TEST_VISIBILITY),
     deps = [
         ":aswb_lib",
@@ -88,9 +86,7 @@ java_library(
 java_library(
     name = "integration_test_utils",
     testonly = 1,
-    srcs = glob(["tests/utils/integration/**/*.java"]) + [
-        "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/MobileInstallBuildStepTestCase.java",
-    ],
+    srcs = glob(["tests/utils/integration/**/*.java"]),
     visibility = TEST_ASWB_SUBPACKAGES_VISIBILITY,
     deps = [
         ":aswb_lib",
