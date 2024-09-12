@@ -65,7 +65,7 @@ class FacetFinderTest {
   private class FakeClientData(private val applicationId: String?, private val processName: String?) :
     ClientData(Mockito.mock(Client::class.java).also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
     override fun getPackageName(): String? = applicationId ?: processName?.substringBefore(":") // See behaviour in overridden method
-    override fun getClientDescription(): String? = processName
+    override fun getProcessName(): String? = processName
   }
 
   @get:Rule

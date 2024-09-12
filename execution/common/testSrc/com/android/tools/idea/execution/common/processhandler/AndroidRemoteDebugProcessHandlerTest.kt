@@ -45,7 +45,7 @@ class AndroidRemoteDebugProcessHandlerTest {
     whenever(client.device).thenReturn(device)
     val clientData = object : ClientData(client, 111) {
       override fun getPackageName() = "MyApp"
-      override fun getClientDescription() = "MyApp"
+      override fun getProcessName() = "MyApp"
     }
     whenever(client.clientData).thenReturn(clientData)
     debugProcess = Mockito.mock(DebugProcess::class.java)

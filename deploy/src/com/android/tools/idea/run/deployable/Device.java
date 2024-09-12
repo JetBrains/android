@@ -110,7 +110,7 @@ public class Device {
     // Fall back when we fail or haven't succeeded yet.
     if (clients.isEmpty()) {
       for (Client client : myIDevice.getClients()) {
-        if (applicationId.equals(client.getClientData().getClientDescription()) ||
+        if (applicationId.equals(client.getClientData().getProcessName()) ||
             applicationId.equals(client.getClientData().getPackageName())) {
           clients.add(client);
         }
@@ -175,7 +175,7 @@ public class Device {
   /**
    * Asynchronously resolves to the application ID. The application ID is the package name that is
    * ultimately given to the application on the device, which usually comes from the manifest.
-   * Note that this may be different from {@link ClientData#getClientDescription()} or
+   * Note that this may be different from {@link ClientData#getProcessName()} or
    * {@link ClientData#getPackageName()} due to the manifest containing a process rename XML
    * option via "android:process".
    *

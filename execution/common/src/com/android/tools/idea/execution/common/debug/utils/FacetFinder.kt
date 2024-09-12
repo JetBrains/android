@@ -60,7 +60,7 @@ object FacetFinder {
   @Throws(ExecutionException::class)
   fun findFacetForProcess(project: Project, client: Client): Result {
     return tryFindFacetForProcess(project, client.asRunningApplicationIdentity())
-           ?: throw ExecutionException("Unable to find project context to attach debugger for process ${client.clientData.clientDescription}")
+           ?: throw ExecutionException("Unable to find project context to attach debugger for process ${client.clientData.processName}")
   }
   /**
    * Finds a suitable facet by process name to use in debugger attachment configuration.
