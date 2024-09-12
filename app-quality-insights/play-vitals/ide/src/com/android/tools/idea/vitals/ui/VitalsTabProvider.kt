@@ -55,6 +55,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
       withContext(AndroidDispatchers.uiThread) {
         // Combine with active user flow to get the logged out -> logged in + not authorized update
         val loginService = service<GoogleLoginService>()
+        var shouldRefresh = false
         val flow =
           configManager.configuration.combine(loginService.activeUserFlow) { config, _ -> config }
         flow.collect { appInsightsModel ->
@@ -70,8 +71,13 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   .build()
               )
               tabPanel.setComponent(loggedOutErrorStateComponent())
+              shouldRefresh = true
             }
             is AppInsightsModel.Authenticated -> {
+              if (shouldRefresh) {
+                shouldRefresh = false
+                appInsightsModel.controller.refresh()
+              }
               tabPanel.setComponent(
                 VitalsTab(
                   appInsightsModel.controller,
@@ -83,6 +89,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             }
             is AppInsightsModel.InitializationFailed -> {
               tabPanel.setComponent(initializationFailedComponent(configManager))
+              shouldRefresh = true
             }
             else -> {}
           }
