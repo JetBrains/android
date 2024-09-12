@@ -23,11 +23,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -54,12 +57,15 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
   var showDetails by remember { mutableStateOf(false) }
+  val textState = rememberTextFieldState(filterState.textFilter.searchText)
+  LaunchedEffect(Unit) {
+    snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
+  }
 
   Column(modifier) {
     Row {
       TextField(
-        filterState.textFilter.searchText,
-        onValueChange = { filterState.textFilter.searchText = it },
+        textState,
         leadingIcon = {
           Icon(
             key = PathIconKey("studio/icons/common/search.svg", StudioIcons::class.java),
