@@ -25,11 +25,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -41,7 +44,6 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
@@ -58,6 +60,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun AdditionalSettingsPanel(
@@ -339,19 +342,18 @@ private fun ExistingImageField(
       Text("The specified image must be a valid file")
     }
 
+    val state = rememberTextFieldState(existingImage)
     @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
     val project = LocalProject.current
 
     TextField(
-      existingImage,
-      onExistingImageChange,
+      state,
       Modifier.testTag("ExistingImageField"),
       enabled,
       trailingIcon = {
         Icon(
-          "general/openDisk.svg",
+          AllIconsKeys.General.OpenDisk,
           null,
-          AllIcons::class.java,
           Modifier.clickable(
               enabled,
               onClick = {
@@ -363,6 +365,8 @@ private fun ExistingImageField(
         )
       },
     )
+
+    LaunchedEffect(Unit) { snapshotFlow { state.text.toString() }.collect(onExistingImageChange) }
   }
 }
 
