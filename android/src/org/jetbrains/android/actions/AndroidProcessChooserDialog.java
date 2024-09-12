@@ -190,7 +190,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           if (lastComponent instanceof DefaultMutableTreeNode) {
             Object userObject = ((DefaultMutableTreeNode)lastComponent).getUserObject();
             if (userObject instanceof Client) {
-              String pkg = ((Client)userObject).getClientData().getClientDescription();
+              String pkg = ((Client)userObject).getClientData().getProcessName();
               return pkg != null && pkg.contains(pattern);
             }
           }
@@ -404,7 +404,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   @NotNull
   private static String getPersistableName(@Nullable Client client) {
-    return client == null ? "" : client.getClientData().getClientDescription();
+    return client == null ? "" : client.getClientData().getProcessName();
   }
 
   @NotNull
@@ -494,13 +494,13 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
       List<Client> clients = Lists.newArrayList(device.getClients());
       Collections.sort(clients, (c1, c2) -> {
-        String n1 = StringUtil.notNullize(c1.getClientData().getClientDescription());
-        String n2 = StringUtil.notNullize(c2.getClientData().getClientDescription());
+        String n1 = StringUtil.notNullize(c1.getClientData().getProcessName());
+        String n2 = StringUtil.notNullize(c2.getClientData().getProcessName());
         return n1.compareTo(n2);
       });
 
       for (Client client : clients) {
-        final String clientDescription = client.getClientData().getClientDescription();
+        final String clientDescription = client.getClientData().getProcessName();
 
         if (clientDescription != null && (showAllProcesses || isRelatedProcess(processNames, clientDescription))) {
           final DefaultMutableTreeNode clientNode = new DefaultMutableTreeNode(client);
@@ -749,7 +749,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         final ClientData clientData = ((Client)userObject).getClientData();
 
         SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-        SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), clientData.getClientDescription(), attr.getStyle(), attr.getFgColor(),
+        SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), clientData.getProcessName(), attr.getStyle(), attr.getFgColor(),
                                    attr.getBgColor(), this);
 
         if (clientData.isValidUserId() && clientData.getUserId() != 0) {

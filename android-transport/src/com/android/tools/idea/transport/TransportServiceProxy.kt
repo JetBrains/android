@@ -258,7 +258,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S
 
   override fun clientChanged(client: Client, changeMask: Int) {
-    if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.clientDescription != null) {
+    if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.processName != null) {
       updateProcesses(listOf(ClientSummary.of(client)!!), listOf(), ExposureLevel.DEBUGGABLE)
     }
   }
@@ -482,7 +482,7 @@ private fun startThread(f: Runnable) = Thread(f).apply { start() }
  */
 private data class ClientSummary(val pid: Int, val name: String, val packageName: String, val abi: String?) {
   companion object {
-    fun of(client: Client) = with(client.clientData) { of(pid, clientDescription, packageName, abi) }
+    fun of(client: Client) = with(client.clientData) { of(pid, processName, packageName, abi) }
     fun of(client: ProfileableClient) =
       with(client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, null, abi) }
 
