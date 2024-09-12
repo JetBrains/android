@@ -34,6 +34,7 @@ import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
@@ -374,5 +375,31 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals("Activity", clone.getActivity());
     assertEquals("DisplayName", clone.getDisplayName());
     assertEquals(file1, clone.getFile());
+  }
+
+  /**
+   * Check that setDevice can restore the original configuration after a custom configuration has been
+   * derived and set.
+   */
+  public void testCustomConfiguration() {
+    VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
+
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    ConfigurationForFile configuration = manager.getConfiguration(file1);
+    Device original = configuration.getDevice();
+    Device.Builder builder = new Device.Builder(original);
+    builder.setName("Custom");
+    builder.setId(Configuration.CUSTOM_DEVICE_ID);
+    Device customDevice = builder.build();
+    customDevice.getAllStates().forEach(state -> {
+      Screen screen = state.getHardware().getScreen();
+      screen.setXDimension(100);
+      screen.setYDimension(100);
+    });
+    configuration.setDevice(original, false);
+    configuration.setEffectiveDevice(customDevice, null);
+
+    configuration.setDevice(original, false);
+    assertEquals(original, configuration.getDevice());
   }
 }
