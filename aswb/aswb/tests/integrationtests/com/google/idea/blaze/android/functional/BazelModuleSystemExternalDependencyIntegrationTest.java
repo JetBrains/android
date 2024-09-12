@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.functional;
 
-import static com.android.ide.common.repository.GoogleMavenArtifactIdCompat.CONSTRAINT_LAYOUT_COORDINATE;
+import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.CONSTRAINT_LAYOUT_COORDINATE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAarTarget.aar_import;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidTarget.android_library;
