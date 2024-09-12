@@ -533,7 +533,13 @@ internal class ComposePreviewViewImpl(
     }
   }
 
+  @get:Synchronized
   override var hasContent: Boolean = false
+    @Synchronized
+    set(value) {
+      field = value
+      updateVisibilityAndNotifications()
+    }
 
   override val isMessageBeingDisplayed: Boolean
     get() = this.workbench.isMessageVisible
