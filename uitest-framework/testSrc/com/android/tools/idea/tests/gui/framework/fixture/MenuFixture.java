@@ -21,7 +21,6 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Container;
@@ -118,11 +117,7 @@ class MenuFixture {
           new GenericTypeMatcher<>(JMenuItem.class) {
             @Override
             protected boolean isMatching(@NotNull JMenuItem component) {
-              if (SystemInfo.isWindows) {
-                return component.getHeight() > 25;
-              } else {
                 return component.getHeight() > 0;
-              }
             }
           }));
         if (menuItems.isEmpty()) {
