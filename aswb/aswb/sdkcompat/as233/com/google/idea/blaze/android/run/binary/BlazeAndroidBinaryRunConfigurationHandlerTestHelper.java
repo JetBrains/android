@@ -21,13 +21,13 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.openapi.project.Project;
 
-/** Compat class for {@link BlazeAndroidBinaryRunConfigurationHandlerCompat}. */
-public class BlazeAndroidBinaryRunConfigurationHandlerCompat {
+/** Test Helper class for {@link BlazeAndroidBinaryRunConfigurationHandlerTestHelper}. */
+public class BlazeAndroidBinaryRunConfigurationHandlerTestHelper {
   protected final Project project;
   protected final BlazeAndroidBinaryRunConfigurationState configState;
 
   @VisibleForTesting
-  protected BlazeAndroidBinaryRunConfigurationHandlerCompat(
+  protected BlazeAndroidBinaryRunConfigurationHandlerTestHelper(
       BlazeCommandRunConfiguration configuration) {
     project = configuration.getProject();
     configState =
