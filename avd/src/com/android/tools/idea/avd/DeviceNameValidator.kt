@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
-import com.android.sdklib.internal.avd.uniquifyAvdName
 
-internal class VirtualDevices(private val avdManager: AvdManager) {
-  internal fun add(device: VirtualDevice, image: ISystemImage) {
-    val avdBuilder = avdManager.createAvdBuilder(device.device)
-    avdBuilder.copyFrom(device, image)
-    avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
-    avdBuilder.displayName = device.name
+internal class DeviceNameValidator(avdManager: AvdManager, val currentName: String? = null) :
+  (String) -> String? {
+  private val currentDisplayNames = avdManager.allAvds.map { it.displayName }.toSet()
 
-    avdManager.createAvd(avdBuilder)
-  }
+  override fun invoke(name: String): String? =
+    when {
+      name == currentName -> null
+      name in currentDisplayNames -> "An AVD with this name already exists."
+      !AvdNames.isValid(name) ->
+        "The AVD name can contain only the characters " + AvdNames.humanReadableAllowedCharacters()
+      else -> null
+    }
 }
