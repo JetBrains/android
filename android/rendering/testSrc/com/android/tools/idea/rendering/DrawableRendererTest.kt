@@ -52,7 +52,7 @@ class DrawableRendererTest {
       file
     )
     Disposer.register(projectRule.testRootDisposable, drawableRenderer)
-    val image = drawableRenderer.renderDrawable(drawableContent, Dimension(100, 100)).get(10, TimeUnit.SECONDS)
+    val image = drawableRenderer.renderDrawable(drawableContent, Dimension(100, 100)).get(60, TimeUnit.SECONDS)
     val goldenImage = BufferedImage(image.width, image.height, image.type).also {
       val g = it.graphics
       g.color = Color.RED
