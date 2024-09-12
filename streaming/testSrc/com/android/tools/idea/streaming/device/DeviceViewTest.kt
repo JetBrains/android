@@ -569,9 +569,17 @@ internal class DeviceViewTest {
       fakeUi.layoutAndDispatchEvents()
       assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
       assertThat(view.canZoomToFit()).isFalse()
-      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-          SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
     }
+  }
+
+  @Test
+  fun testScreenScaleChange() {
+    createDeviceView(100, 200, 1.5)
+    waitForFrame()
+
+    fakeUi.screenScale = 2.0
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
   }
 
   @Test
