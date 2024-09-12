@@ -914,7 +914,7 @@ public class RenderTask {
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
   @NotNull
-  public CompletableFuture<RenderResult> inflate() {
+  public CompletableFuture<@Nullable RenderResult> inflate() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 

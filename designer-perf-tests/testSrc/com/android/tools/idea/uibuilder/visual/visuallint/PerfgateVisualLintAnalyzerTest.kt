@@ -145,7 +145,7 @@ class PerfgateVisualLintAnalyzerTest {
           task.setDecorations(false)
           try {
             val result = task.inflate().get()
-            modelResultMap[nlModel] = result
+            modelResultMap[nlModel] = result!!
           }
           catch (ex: Exception) {
             throw RuntimeException(ex)
