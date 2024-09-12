@@ -9,9 +9,7 @@ import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.impl.LibraryScopeCache;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
@@ -414,8 +412,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
         if (library != null) {
           VirtualFile root = ArrayUtil.getFirstElement(library.getFiles(OrderRootType.CLASSES));
           if (root != null) {
-            List<OrderEntry> orderEntries = ProjectFileIndex.getInstance(getProject()).getOrderEntriesForFile(root);
-            return LibraryScopeCache.getInstance(getProject()).getLibraryUseScope(orderEntries);
+            return LibraryScopeCache.getInstance(getProject()).getLibraryUseScope(root);
           }
         }
       }
