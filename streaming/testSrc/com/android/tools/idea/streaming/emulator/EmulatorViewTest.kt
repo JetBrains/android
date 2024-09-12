@@ -44,7 +44,6 @@ import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -129,7 +128,6 @@ import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import javax.swing.JLabel
 import javax.swing.JScrollPane
 import kotlin.time.Duration.Companion.seconds
 
@@ -907,6 +905,22 @@ class EmulatorViewTest {
     focusManager.focusOwner = null
 
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"Control\" }")
+  }
+
+  @Test
+  fun testScreenScaleChange() {
+    view = emulatorViewRule.newEmulatorView()
+    fakeUi = FakeUi(createScrollPane(view))
+
+    // Check initial appearance.
+    fakeUi.root.size = Dimension(400, 600)
+    fakeUi.layoutAndDispatchEvents()
+    var call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
+
+    fakeUi.screenScale = 1.5
+    call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 545 height: 820")
   }
 
   @Test

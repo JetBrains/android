@@ -367,6 +367,12 @@ internal class DeviceView(
   override fun canZoom(): Boolean =
       connectionState == ConnectionState.CONNECTED
 
+  override fun onScreenScaleChanged() {
+    if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
+      updateVideoSize()
+    }
+  }
+
   override fun computeActualSize(): Dimension =
       computeActualSize(displayOrientationQuadrants)
 

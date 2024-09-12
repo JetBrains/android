@@ -65,7 +65,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 class FakeUi @JvmOverloads constructor(
   val root: Component,
-  val screenScale: Double = 1.0,
+  screenScale: Double = 1.0,
   createFakeWindow: Boolean = false,
   parentDisposable: Disposable? = null,
 ) {
@@ -75,6 +75,17 @@ class FakeUi @JvmOverloads constructor(
 
   @JvmField
   val mouse: FakeMouse = FakeMouse(this, keyboard)
+
+  var screenScale: Double
+    get() = screenScaleInternal
+    set(value) {
+      if (screenScaleInternal != value) {
+        screenScaleInternal = value
+        ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(value))
+      }
+    }
+
+  private var screenScaleInternal: Double = screenScale
 
   init {
     if (root.parent == null && createFakeWindow) {
