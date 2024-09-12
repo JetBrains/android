@@ -90,7 +90,6 @@ java_library(
     testonly = 1,
     srcs = glob(["tests/utils/integration/**/*.java"]) + [
         "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/MobileInstallBuildStepTestCase.java",
-        "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/functional/AndroidDeviceCompat.java",
         "tests/utils/sdkcompat/as233/com/google/idea/blaze/android/tools/idea/run/editor/AndroidDebuggerCompat.java",
     ],
     visibility = TEST_ASWB_SUBPACKAGES_VISIBILITY,
