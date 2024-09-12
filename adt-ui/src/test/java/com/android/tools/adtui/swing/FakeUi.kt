@@ -17,7 +17,6 @@
 
 package com.android.tools.adtui.swing
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
@@ -36,6 +35,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Container
 import java.awt.Graphics2D
