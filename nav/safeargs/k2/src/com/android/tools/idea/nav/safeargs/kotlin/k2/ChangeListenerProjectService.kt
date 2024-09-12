@@ -19,6 +19,7 @@ import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
@@ -41,21 +42,23 @@ class ChangeListenerProjectService(private val project: Project) : Disposable.De
       )
       subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { dispatchGradleSync() },
+        ProjectSystemSyncManager.SyncResultListener { dispatchProjectSystemSync() },
       )
     }
   }
 
   private fun dispatchSafeArgsModeChange(module: Module) {
-    module.fireEvent(KotlinModificationTopics.MODULE_STATE_MODIFICATION) {
-      onModification(it, KotlinModuleStateModificationKind.UPDATE)
+    runInEdt {
+      module.fireEvent(KotlinModificationTopics.MODULE_STATE_MODIFICATION) {
+        onModification(it, KotlinModuleStateModificationKind.UPDATE)
+      }
     }
   }
 
-  private fun dispatchGradleSync() {
+  private fun dispatchProjectSystemSync() {
     // We never care about non-source modules, so we only dispatch a global source module
     // state-change event here, so we don't unnecessarily invalidate binary module cached data.
-    runWriteAction { project.publishGlobalSourceOutOfBlockModification() }
+    runInEdt { runWriteAction { project.publishGlobalSourceOutOfBlockModification() } }
   }
 
   companion object {
