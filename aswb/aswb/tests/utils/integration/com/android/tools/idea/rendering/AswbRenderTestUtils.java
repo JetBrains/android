@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import static org.junit.Assert.fail;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.configurations.ConfigurationCompat;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderService;
@@ -110,15 +110,14 @@ public class AswbRenderTestUtils {
             });
   }
 
-  public static ConfigurationCompat getConfiguration(Module module, VirtualFile file) {
+  public static Configuration getConfiguration(Module module, VirtualFile file) {
     return getConfiguration(module, file, DEFAULT_DEVICE_ID);
   }
 
-  public static ConfigurationCompat getConfiguration(
+  public static Configuration getConfiguration(
       Module module, VirtualFile file, String deviceId) {
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
-    ConfigurationCompat configuration =
-        new ConfigurationCompat(configurationManager.getConfiguration(file));
+    Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
 
     return configuration;
