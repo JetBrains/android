@@ -43,10 +43,8 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
-import com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer
-import com.intellij.execution.junit.AllInPackageConfigurationProducer
-import com.intellij.execution.junit.TestInClassConfigurationProducer
-import com.intellij.execution.junit.UniqueIdConfigurationProducer
+import com.intellij.execution.actions.RunConfigurationProducer
+import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -66,6 +64,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -415,10 +414,11 @@ private fun additionalProjectSetup(project: Project) {
 
 private fun addJUnitProducersToIgnoredList(project: Project) {
   val producerService = RunConfigurationProducerService.getInstance(project)
-  producerService.state.ignoredProducers.add(TestInClassConfigurationProducer::class.java.name)
-  producerService.state.ignoredProducers.add(AllInPackageConfigurationProducer::class.java.name)
-  producerService.state.ignoredProducers.add(AbstractAllInDirectoryConfigurationProducer::class.java.name)
-  producerService.state.ignoredProducers.add(UniqueIdConfigurationProducer::class.java.name)
+  val allJUnitProducers = DumbService.getInstance(project).filterByDumbAwareness(
+    RunConfigurationProducer.EP_NAME.extensionList).filter { it.configurationType == JUnitConfigurationType.getInstance() }
+  for (producer in allJUnitProducers) {
+    producerService.state.ignoredProducers.add (producer::class.java.name)
+  }
 }
 
 private fun Module.isEmptyModule() =
