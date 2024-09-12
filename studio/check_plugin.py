@@ -63,9 +63,15 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     if depends_build != depends_xml:
       print("Error while checking plugin dependencies")
       for d in depends_build - depends_xml:
-        print("The build depends on plugin \"%s\", but this dependency is not declared in the plugin.xml." % d)
+        print(
+          f"ERROR: Plugin '{found_id}' depends on plugin '{d}' in the build, "
+          "but this dependency is not declared in the plugin.xml file."
+        )
       for d in depends_xml - depends_build:
-        print("The plugin.xml declares a dependency on \"%s\", but it's not declared in the build." % d)
+        print(
+          f"ERROR: Plugin '{found_id}' depends on plugin '{d}' in the plugin.xml file, "
+          "but this dependency is not declared in the build."
+        )
       sys.exit(1)
 
   with open(out, "w") as info:
