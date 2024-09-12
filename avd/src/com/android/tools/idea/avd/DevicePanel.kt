@@ -129,10 +129,12 @@ internal fun DevicePanel(
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       val filteredImages = images.filter(devicePanelState::test)
       if (filteredImages.isEmpty()) {
-        EmptyStatePanel(
-          "No system images available matching the current set of filters.",
-          Modifier.fillMaxSize(),
-        )
+        Box(Modifier.fillMaxSize()) {
+          Text(
+            "No system images available matching the current set of filters.",
+            Modifier.align(Alignment.Center),
+          )
+        }
       } else {
         SystemImageTable(
           filteredImages,
@@ -305,9 +307,4 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
     // TODO: http://b/335263751
     // InfoOutlineIcon("", Modifier.align(Alignment.CenterVertically))
   }
-}
-
-@Composable
-private fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
-  Box(modifier) { Text(text, Modifier.align(Alignment.Center)) }
 }
