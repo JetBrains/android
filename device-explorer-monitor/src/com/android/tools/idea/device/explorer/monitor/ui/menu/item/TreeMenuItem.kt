@@ -19,8 +19,6 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsLis
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.Toggleable
 import javax.swing.Icon
 
 /**
