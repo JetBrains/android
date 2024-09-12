@@ -16,9 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCodeGenException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCompileCommandException
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
@@ -33,7 +31,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 import java.util.Optional
@@ -41,6 +38,14 @@ import java.util.Optional
 class LiveEditCompiler(val project: Project,
                        private val irClassCache: IrClassCache,
                        apkClassProvider: ApkClassProvider = DefaultApkClassProvider()) {
+
+  internal interface LiveEditCompilerForKotlinVersion {
+    fun compileKtFile(
+      file: KtFile,
+      inputs: Collection<LiveEditCompilerInput>,
+      output: LiveEditCompilerOutput.Builder
+    )
+  }
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
@@ -79,7 +84,7 @@ class LiveEditCompiler(val project: Project,
 
     var desugaredOutputs : LiveEditDesugarResponse? = null
     val compileCmd = {
-      var outputBuilder = LiveEditCompilerOutput.Builder()
+      val outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
         // Ignore script files. This check must be done in a read action.
         if (file.isScript()) {
@@ -87,11 +92,11 @@ class LiveEditCompiler(val project: Project,
         }
         try {
           // Compiler pass
-          if (KotlinPluginModeProvider.isK2Mode()) {
-            LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder).compile(file, input, outputBuilder)
-          } else {
-            compileKtFile(file, input, outputBuilder)
-          }
+          when (KotlinPluginModeProvider.isK2Mode()) {
+            true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder)
+            false -> LiveEditCompilerForK1(project, inlineCandidateCache, irClassCache, this.outputBuilder, this.outputBuilderWithAnalysis)
+          }.compileKtFile(file, input, outputBuilder)
+
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
 
@@ -137,78 +142,6 @@ class LiveEditCompiler(val project: Project,
       return@Computable e
     }
     return@Computable null
-  }
-
-  private fun compileKtFile(file: KtFile,
-                            inputs: Collection<LiveEditCompilerInput>,
-                            output: LiveEditCompilerOutput.Builder) {
-    val tracker = PerformanceTracker()
-    var inputFiles = listOf(file)
-
-    runWithCompileLock {
-      ReadActionPrebuildChecks(project, file)
-
-      // This is a three-step process:
-      // 1) Compute binding context based on any previous cached analysis results.
-      //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-      ProgressManager.checkCanceled()
-      val resolution = tracker.record("resolution_fetch") { fetchResolution(project, inputFiles) }
-
-      ProgressManager.checkCanceled()
-      val analysisResult = tracker.record("analysis") { analyze(inputFiles, resolution) }
-      val inlineCandidates = analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, inlineCandidateCache)
-
-      // 2) Invoke the backend with the inputs and the binding context computed from step 1.
-      //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
-      //    the complexity of the input .kt file.
-      ProgressManager.checkCanceled()
-      val generationState = try {
-        tracker.record("codegen") {
-          backendCodeGen(project,
-                         analysisResult,
-                         inputFiles,
-                         inputFiles.first().module!!,
-                         inlineCandidates)
-        }
-      } catch (e : LiveEditUpdateException) {
-        if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
-          throw e
-        }
-
-        // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
-        //      from another source file then perform a compilation again.
-        inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
-
-        // We need to perform the analysis once more with the new set of input files.
-        val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
-
-        // We will need to start using the new analysis for code gen.
-        tracker.record("codegen_inline") {
-          backendCodeGen(project,
-                         newAnalysisResult,
-                         inputFiles,
-                         inputFiles.first().module!!,
-                         inlineCandidates)
-        }
-      } catch (p : ProcessCanceledException) {
-        throw p
-      } catch (t : Throwable) {
-        throw internalErrorCodeGenException(file, t)
-      }
-
-      // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
-      // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-      validatePsiDiff(inputs, file)
-
-      // 3) Diff the newly generated class files from step 2 with the previously generated class files in order to decide which classes
-      //    we want to send to the device along with what extra meta-information the agent needs.
-      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_BYTECODE_ANALYSIS.get()) {
-        outputBuilderWithAnalysis.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
-      } else {
-        outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
-      }
-      return@runWithCompileLock
-    }
   }
 
   fun resetState() {
