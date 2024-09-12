@@ -988,12 +988,12 @@ PROJECT                       : project
         BUILD_TASKS
     RUN_CONFIGURATION             : gradle_project_1.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : gradle_project_1.app.main
-        Module                        : gradle_project_1.app.main
+        ModuleName                    : gradle_project_1.app
+        Module                        : gradle_project_1.app
     RUN_CONFIGURATION             : gradle_project_name.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : gradle_project_name.app.main
-        Module                        : gradle_project_name.app.main
+        ModuleName                    : gradle_project_name.app
+        Module                        : gradle_project_name.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

@@ -328,8 +328,8 @@ PROJECT                       : withGradleMetadata
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : withGradleMetadata.app.main
-        Module                        : withGradleMetadata.app.main
+        ModuleName                    : withGradleMetadata.app
+        Module                        : withGradleMetadata.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: org.gradle.sample:library:1.1
             *CLASSES                      : jar://<PROJECT>/repo/org/gradle/sample/library/1.1/library-1.1.jar!/

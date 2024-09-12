@@ -90,9 +90,13 @@ class AndroidRunConfigurationEditorTest {
     }
     assertThat(availableModules)
       .containsExactly(
-        module(":app").getMainModule(),
-        module(":feature").getMainModule(),
+        module(":app").getHolderModule(),
+        module(":feature").getHolderModule(),
       )
+    runConfiguration.setModule(module(":app").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":app").getMainModule())
+    runConfiguration.setModule(module(":feature").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":feature").getMainModule())
   }
 
   @Test

@@ -1578,8 +1578,8 @@ PROJECT                       : project
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :library2:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.main
-        Module                        : project.app.main
+        ModuleName                    : project.app
+        Module                        : project.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./library2/libs/fakelib.jar
             *CLASSES                      : jar://<PROJECT>/library2/libs/fakelib.jar!/

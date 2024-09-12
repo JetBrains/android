@@ -75,8 +75,8 @@ class AndroidRunConfigurations {
   }
 
   private fun createAndroidRunConfiguration(facet: AndroidFacet) {
-    // Android run configuration should always be created with the main module
-    val module = facet.module.getMainModule()
+    // Android run configuration should always be created with the holder module
+    val module = facet.module
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
     for (configuration in configurations) {
@@ -129,7 +129,7 @@ class AndroidRunConfigurations {
   }
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
-    val module = facet.module.getMainModule()
+    val module = facet.module
     val project = module.project
     val runManager = runReadAction {
       if (project.isDisposed) return@runReadAction null

@@ -93,8 +93,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         ),
       IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
       expectPackageName = mapOf(
-        AGP_CURRENT to "ApkProvisionException*> Could not get applicationId for Application_ID_broken_in_variant_API.app.main. Project type: PROJECT_TYPE_APP",
-        AGP_72 to "ApkProvisionException*> Could not get applicationId for Application_ID_broken_in_variant_API.app.main. Project type: PROJECT_TYPE_APP"
+        AGP_CURRENT to "ApkProvisionException*> Could not get applicationId for Application_ID_broken_in_variant_API.app. Project type: PROJECT_TYPE_APP",
+        AGP_72 to "ApkProvisionException*> Could not get applicationId for Application_ID_broken_in_variant_API.app. Project type: PROJECT_TYPE_APP"
       ),
       expectTestPackageName = mapOf(
         AGP_CURRENT to "(null)",

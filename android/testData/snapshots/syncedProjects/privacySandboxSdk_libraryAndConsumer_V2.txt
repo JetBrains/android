@@ -1793,12 +1793,12 @@ PROJECT                       : project
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.main
-        Module                        : project.app.main
+        ModuleName                    : project.app
+        Module                        : project.app
     RUN_CONFIGURATION             : app-with-dynamic-feature
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app-with-dynamic-feature.main
-        Module                        : project.app-with-dynamic-feature.main
+        ModuleName                    : project.app-with-dynamic-feature
+        Module                        : project.app-with-dynamic-feature
     LIBRARY_TABLE
         LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified
             *CLASSES                      : jar://<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar!/ [-]

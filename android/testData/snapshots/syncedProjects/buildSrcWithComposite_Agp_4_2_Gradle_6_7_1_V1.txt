@@ -2009,12 +2009,12 @@ PROJECT                       : BuildSrcWithComposite
                 COMPILE_JAVA                  : :compileJava, :testClasses
     RUN_CONFIGURATION             : android-included.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : android-included.app.main
-        Module                        : android-included.app.main
+        ModuleName                    : android-included.app
+        Module                        : android-included.app
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : BuildSrcWithComposite.app.main
-        Module                        : BuildSrcWithComposite.app.main
+        ModuleName                    : BuildSrcWithComposite.app
+        Module                        : BuildSrcWithComposite.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity-ktx:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/activity-ktx-1.1.0/AndroidManifest.xml
