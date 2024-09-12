@@ -27,7 +27,6 @@ import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -54,7 +53,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
-  private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableStateFlow(Unit)
+  private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
   /** Notifies when [layoutContainer(parent: Container)] is called. */
   val layoutContainerFlow: SharedFlow<Unit> = _layoutContainerFlow.asSharedFlow()
 
