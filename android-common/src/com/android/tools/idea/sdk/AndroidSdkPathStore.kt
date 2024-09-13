@@ -13,52 +13,69 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk;
+package com.android.tools.idea.sdk
 
-import com.android.tools.sdk.AndroidSdkPath;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.Service;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.sdk.isValid
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.components.BaseState
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.SimplePersistentStateComponent
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import org.jetbrains.annotations.NonNls
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
-@Service(Service.Level.APP)
-public final class AndroidSdkPathStore {
+@Service
+@State(name = "AndroidSdkPathStore", storages = [(Storage("android.sdk.path.xml", roamingType = RoamingType.LOCAL))])
+class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.State>(State()) {
 
-  @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
-
-  public static AndroidSdkPathStore getInstance() {
-    return ApplicationManager.getApplication().getService(AndroidSdkPathStore.class);
-  }
-
-  public void setAndroidSdkPath(@Nullable Path path) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-
-    String sdkPath = path == null ? null : path.toAbsolutePath().toString();
-
-    PropertiesComponent component = PropertiesComponent.getInstance();
-    component.setValue(ANDROID_SDK_PATH_KEY, sdkPath);
-  }
-
-  @Nullable
-  public Path getAndroidSdkPath() {
-    PropertiesComponent component = PropertiesComponent.getInstance();
-    String sdkPath = component.getValue(ANDROID_SDK_PATH_KEY);
-    return sdkPath == null ? null : Paths.get(sdkPath);
-  }
-
-  @Nullable
-  public File getAndroidSdkPathIfValid() {
-    Path sdkPath = getAndroidSdkPath();
-    if (sdkPath != null) {
-      File candidate = sdkPath.toFile();
-      if (AndroidSdkPath.isValid(candidate)) {
-        return candidate;
-      }
+  var androidSdkPath: Path?
+    get() = state.androidSdkPath
+    set(androidSdkPath) {
+      state.androidSdkPath = androidSdkPath
     }
-    return null;
+
+  val androidSdkPathIfValid: Path?
+    get() = androidSdkPath?.takeIf { isValid(it) }
+
+  class State : BaseState() {
+    /**
+     * Absolute path to Android SDK location.
+     */
+    private var androidSdkAbsolutePath: String? by string(null)
+
+    var androidSdkPath: Path?
+      get() = androidSdkAbsolutePath?.let { Path.of(it) }
+      set(sdkPath) {
+        androidSdkAbsolutePath = sdkPath?.absolutePathString()
+      }
+  }
+
+  override fun noStateLoaded() {
+    migrateAndroidSdkPathToRoamableStorage()
+  }
+
+  // TODO IDEA-310964
+  private fun migrateAndroidSdkPathToRoamableStorage() {
+    val component = PropertiesComponent.getInstance()
+    if (component.getBoolean(MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY, true)) {
+      component.setValue(MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY, false, true)
+
+      androidSdkPath = component.getValue(ANDROID_SDK_PATH_KEY)?.let { Paths.get(it) }
+
+      component.unsetValue(ANDROID_SDK_PATH_KEY)
+    }
+  }
+
+  companion object {
+    private const val ANDROID_SDK_PATH_KEY: @NonNls String = "android.sdk.path"
+    private const val MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY = "migrate.android.sdk.path.to.roamable.storage"
+
+    @JvmStatic
+    fun getInstance(): AndroidSdkPathStore = service()
   }
 }
