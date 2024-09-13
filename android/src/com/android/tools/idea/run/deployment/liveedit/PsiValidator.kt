@@ -71,7 +71,7 @@ private fun validateConstructors(psiFile: PsiFile,
   for (entry in oldConstructors) {
     val other = newConstructors[entry.key] ?: continue
     if (other != entry.value) {
-      return LiveEditUpdateException.unsupportedSourceModificationConstructor("in $psiFile, modified constructor $entry.key")
+      return LiveEditUpdateException.unsupportedSourceModificationConstructor("in $psiFile, modified constructor")
     }
   }
   return null
