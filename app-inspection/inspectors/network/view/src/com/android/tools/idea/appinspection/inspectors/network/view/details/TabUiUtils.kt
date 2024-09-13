@@ -46,14 +46,17 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
-val SCROLL_UNIT = scale(10)
+val SCROLL_UNIT
+  get() = scale(10)
 
 // Padding to be aligned with the tab title on the left.
 const val HORIZONTAL_PADDING = 15
 
-val PAGE_VGAP = scale(28)
+val PAGE_VGAP
+  get() = scale(28)
 
-val SECTION_VGAP = scale(10)
+val SECTION_VGAP
+  get() = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
 const val SECTION_TITLE_TRAILERS = "Trailers"
