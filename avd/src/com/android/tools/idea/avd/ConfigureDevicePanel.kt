@@ -49,6 +49,7 @@ internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
   images: ImmutableList<ISystemImage>,
+  deviceNameValidator: (String) -> String?,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
@@ -63,6 +64,7 @@ internal fun ConfigureDevicePanel(
       configureDevicePanelState,
       initialSystemImage,
       images,
+      deviceNameValidator,
       onDownloadButtonClick,
       onSystemImageTableRowClick,
       onImportButtonClick,
@@ -75,6 +77,7 @@ private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
   images: ImmutableList<ISystemImage>,
+  deviceNameValidator: (String) -> String?,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
@@ -131,6 +134,7 @@ private fun Tabs(
         androidVersions,
         servicesSet,
         images,
+        deviceNameValidator,
         onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
         onSystemImageTableRowClick,
@@ -187,6 +191,10 @@ internal constructor(
     validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
   }
 
+  internal fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
+    validity = validity.copy(isDeviceNameValid = isDeviceNameValid)
+  }
+
   internal fun setSkin(path: Path) {
     device = device.copy(skin = getSkin(path))
   }
@@ -212,9 +220,10 @@ internal data class Validity
 internal constructor(
   private val isSystemImageTableSelectionValid: Boolean = true,
   internal val isExpandedStorageValid: Boolean = true,
+  private val isDeviceNameValid: Boolean = true,
 ) {
   internal val isValid
-    get() = isSystemImageTableSelectionValid && isExpandedStorageValid
+    get() = isSystemImageTableSelectionValid && isExpandedStorageValid && isDeviceNameValid
 }
 
 private enum class Tab(val text: String) {

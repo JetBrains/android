@@ -69,6 +69,7 @@ internal fun WizardPageScope.ConfigurationPage(
   device: VirtualDevice,
   image: ISystemImage?,
   skins: ImmutableCollection<Skin>,
+  deviceNameValidator: (String) -> String?,
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
   val allImages: LoadingState<List<ISystemImage>> by
@@ -111,6 +112,7 @@ internal fun WizardPageScope.ConfigurationPage(
     state,
     image,
     images,
+    deviceNameValidator,
     onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
     onSystemImageTableRowClick = {
       state.systemImageTableSelectionState.selection = it
