@@ -48,7 +48,6 @@ import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -108,7 +107,6 @@ class AccessibilityModelUpdaterTest {
     return previewRepresentation
   }
 
-  @Ignore("b/366083265")
   @Test
   fun testNlComponentTreeCreation() {
     val twoElementsPreviewModel =
