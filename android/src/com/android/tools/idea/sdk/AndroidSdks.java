@@ -139,9 +139,9 @@ public class AndroidSdks {
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
       if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
-        File path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
+        Path path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
         if (path != null) {
-          mySdkData = AndroidSdkData.getSdkData(path);
+          mySdkData = AndroidSdkData.getSdkData(path.toFile());
           if (mySdkData != null) {
             return mySdkData;
           }

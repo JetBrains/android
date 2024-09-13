@@ -158,9 +158,9 @@ public class IdeSdks {
    */
   @Nullable
   public final File getAndroidSdkPath() {
-    File sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
+    Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
     if (sdkPath != null) {
-      File candidate = sdkPath;
+      File candidate = sdkPath.toFile();
       if (AndroidSdkPath.isValid(candidate)) {
         return candidate;
       }
