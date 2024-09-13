@@ -431,11 +431,11 @@ public class TransportServiceProxyTest {
   }
 
   @NotNull
-  private Client createMockClient(int pid, @Nullable String packageName, @Nullable String clientDescription) {
+  private Client createMockClient(int pid, @Nullable String packageName, @Nullable String processName) {
     ClientData mockData = mock(ClientData.class);
     when(mockData.getPid()).thenReturn(pid);
     when(mockData.getPackageName()).thenReturn(packageName);
-    when(mockData.getClientDescription()).thenReturn(clientDescription);
+    when(mockData.getProcessName()).thenReturn(processName);
 
     Client mockClient = mock(Client.class);
     when(mockClient.getClientData()).thenReturn(mockData);
@@ -454,7 +454,7 @@ public class TransportServiceProxyTest {
 
   @NotNull
   private ProfileableClient createMockProfileableClient(Client client) {
-    return createMockProfileableClient(client.getClientData().getPid(), client.getClientData().getClientDescription());
+    return createMockProfileableClient(client.getClientData().getPid(), client.getClientData().getProcessName());
   }
 
   private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
