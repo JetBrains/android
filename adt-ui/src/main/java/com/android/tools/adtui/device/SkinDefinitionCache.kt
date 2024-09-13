@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.adtui.device
 
 import com.android.annotations.concurrency.Slow
 import com.intellij.util.containers.CollectionFactory
@@ -25,7 +25,7 @@ import java.nio.file.Path
  * to maintain their own strong [SkinDefinition] references.
  */
 @ThreadSafe
-internal class SkinDefinitionCache {
+class SkinDefinitionCache {
   /** Skin definitions keyed by skin definition folders. */
   private val folderToSkin: MutableMap<Path, SkinDefinition?> = CollectionFactory.createConcurrentWeakValueMap()
 

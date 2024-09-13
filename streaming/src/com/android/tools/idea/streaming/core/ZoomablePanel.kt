@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.util.scaled
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.beans.PropertyChangeEvent

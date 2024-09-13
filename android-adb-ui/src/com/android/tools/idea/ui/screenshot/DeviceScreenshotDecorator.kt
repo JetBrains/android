@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device.screenshot
+package com.android.tools.idea.ui.screenshot
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.device.DeviceArtPainter
-import com.android.tools.idea.streaming.emulator.SkinDefinitionCache
-import com.android.tools.idea.ui.screenshot.FramingOption
-import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
-import com.android.tools.idea.ui.screenshot.ScreenshotImage
+import com.android.tools.adtui.device.SkinDefinitionCache
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -32,7 +29,7 @@ import java.nio.file.Path
 /**
  * Screenshot framer accepting a [DeviceFramingOption].
  */
-internal class DeviceScreenshotDecorator : ScreenshotDecorator {
+class DeviceScreenshotDecorator : ScreenshotDecorator {
   @Slow
   override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {

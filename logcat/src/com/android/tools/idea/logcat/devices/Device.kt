@@ -76,7 +76,7 @@ private constructor(
         release.normalizeVersion(),
         sdk,
         featureLevel,
-        model = "",
+        model = avdName.substringBefore("_API_").replace('_', ' '),
         type,
       )
     }

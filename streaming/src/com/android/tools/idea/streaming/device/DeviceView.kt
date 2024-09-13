@@ -18,6 +18,8 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
@@ -29,8 +31,6 @@ import com.android.tools.idea.streaming.core.contains
 import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener
 import com.android.tools.idea.streaming.core.getShowLogHyperlink
 import com.android.tools.idea.streaming.core.location
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
-import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener

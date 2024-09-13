@@ -36,6 +36,9 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.device.SkinLayout
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.concurrency.executeOnPooledThread
@@ -50,8 +53,6 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.isSameAspectRatio
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
-import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode

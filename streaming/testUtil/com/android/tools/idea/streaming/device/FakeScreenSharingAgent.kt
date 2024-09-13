@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.sdklib.AndroidVersionUtil
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -26,7 +27,6 @@ import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
 import com.android.utils.Base128InputStream

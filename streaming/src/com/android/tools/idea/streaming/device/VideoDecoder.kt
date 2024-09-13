@@ -21,10 +21,10 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.ImageUtils.ellipticalClip
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.getUInt
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
-import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger

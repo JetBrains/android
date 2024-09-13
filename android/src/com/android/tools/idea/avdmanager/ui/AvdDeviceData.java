@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.google.common.collect.Comparators.min;
-import static java.util.Comparator.comparing;
-
 import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
@@ -33,10 +30,9 @@ import com.android.sdklib.devices.Sensor;
 import com.android.sdklib.devices.Software;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.repository.IdDisplay;
+import com.android.tools.adtui.device.SkinLayoutDefinition;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.SkinLayoutDefinition;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.observable.core.BoolProperty;

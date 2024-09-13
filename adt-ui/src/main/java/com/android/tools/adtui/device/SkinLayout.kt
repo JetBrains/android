@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.adtui.device
 
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
-import com.android.tools.idea.streaming.core.scaled
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point
