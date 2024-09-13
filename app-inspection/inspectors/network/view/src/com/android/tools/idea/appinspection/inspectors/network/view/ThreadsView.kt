@@ -377,9 +377,15 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
   }
 
   companion object {
-    private val STATE_HEIGHT = JBUI.scale(15)
-    private val SELECTION_OUTLINE_PADDING = JBUI.scale(3)
-    private val SELECTION_OUTLINE_BORDER = JBUI.scale(2)
+    private val STATE_HEIGHT
+      get() = JBUI.scale(15)
+
+    private val SELECTION_OUTLINE_PADDING
+      get() = JBUI.scale(3)
+
+    private val SELECTION_OUTLINE_BORDER
+      get() = JBUI.scale(2)
+
     private val ROW_HEIGHT =
       STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING)
 
