@@ -90,6 +90,10 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     setFromModel()
   }
 
+  protected open fun acceptChosenItem(item: Any?): Boolean {
+    return true
+  }
+
   private fun setFromModel() {
     isEnabled = model.enabled
     if (isEditable != model.editable) {
@@ -178,7 +182,10 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     }
   }
 
-  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(model: M, comboBox: JComboBox<E>) : BasicComboBoxEditor() {
+  private class CommonComboBoxEditor<E, out M : CommonTextFieldModel>(
+    model: M,
+    private val comboBox: CommonComboBox<E, *>
+  ) : BasicComboBoxEditor() {
     init {
       editor = TextFieldForComboBox(model, comboBox)
       editor.border = JBUI.Borders.empty()
@@ -189,6 +196,12 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
       // We do this because this method is called by the constructor of the super class,
       // and the model parameter is not available at this point.
       return null
+    }
+
+    override fun setItem(item: Any?) {
+      if (comboBox.acceptChosenItem(item)) {
+        super.setItem(item)
+      }
     }
   }
 
