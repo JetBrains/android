@@ -38,10 +38,6 @@ class NlDesignSurfaceZoomController(
   scenesOwner: ScenesOwner?,
 ) : DesignSurfaceZoomController(designerAnalyticsManager, selectionModel, scenesOwner) {
 
-  override var minScale: Double = super.minScale
-
-  override var maxScale: Double = super.maxScale
-
   override fun getFitScale() = fitScaleProvider()
 
   override val shouldShowZoomAnimation: Boolean = StudioFlags.PREVIEW_ZOOM_ANIMATION.get()

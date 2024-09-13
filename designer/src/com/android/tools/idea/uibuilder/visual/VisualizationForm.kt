@@ -191,7 +191,6 @@ class VisualizationForm(
           VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
         }
         .setLayoutOption(myLayoutOption)
-        .setMaxScale(4.0)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
         .setDelegateDataProvider {
           when {

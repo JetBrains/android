@@ -241,7 +241,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     val surface = TestDesignSurface(project, testRootDisposable)
 
     // Test min
-    surface.zoomController.setScale(0.104)
+    surface.zoomController.setScale(0.0104)
     assertFalse(surface.zoomController.canZoomOut())
     surface.zoomController.setScale(0.11)
     assertTrue(surface.zoomController.canZoomOut())
@@ -273,8 +273,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.zoomController.setScale(1.0)
 
     // Setting scale is restricted between min and max
-    surface.zoomController.setScale(0.01)
-    assertEquals(0.1, surface.zoomController.scale)
+    surface.zoomController.setScale(0.001)
+    assertEquals(0.01, surface.zoomController.scale)
     surface.zoomController.setScale(20.0)
     assertEquals(10.0, surface.zoomController.scale)
   }
@@ -383,8 +383,6 @@ class TestDesignSurface(
     createDesignSurfaceZoomControllerFake(
       project = project,
       disposable = disposable,
-      minScale = 0.1,
-      maxScale = 10.0,
       trackZoom = null,
     )
   override val zoomController: ZoomController
