@@ -82,6 +82,9 @@ abstract class BaseAnalyzer<T : AnalyzerResult> {
            !(task.taskName == "clean" && task.originPlugin.idName == LifecycleBasePlugin::class.java.canonicalName) &&
            // ignore custom delete tasks
            task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName &&
+           // This task is from kotlin gradle plugin, was added in 1.9.20 and fixed in 2.0: https://youtrack.jetbrains.com/issue/KT-61943
+           // There is no point of warning about it, task runs quick and warning provides more confusion than help.
+           task.taskType != "org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors" &&
            // Workaround for using configuration caching as gradle doesn't send plugin information with task-finished events
            // TODO(b/244314356) patch plugin information from the build attribution file in builds with configuration cache
           !task.isAndroidTask() && !task.isGradleTask()
