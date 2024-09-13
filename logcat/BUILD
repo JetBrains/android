@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//tools/adt/idea/logcat:logcat-proto",
+        "//prebuilts/r8",
     ],
 )
 
