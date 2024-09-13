@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
@@ -37,6 +38,7 @@ import javax.swing.JPanel
 val REQUEST_SOURCE_KEY = DataKey.create<StudioBot.RequestSource>("RequestSource")
 val SELECTED_EVENT_KEY = DataKey.create<Event>("SelectedEvent")
 val FAILURE_TYPE_KEY = DataKey.create<FailureType>("FailureType")
+val INSIGHT_KEY = DataKey.create<AiInsight>("Insight")
 val APP_INSIGHTS_TRACKER_KEY = DataKey.create<AppInsightsTracker>("AppInsightsTrackerKey")
 
 class AppInsightsContentPanel(

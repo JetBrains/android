@@ -92,4 +92,6 @@ interface AppInsightsProjectLevelController {
   fun selectVisibilityType(value: VisibilityType)
 
   fun selectIssueVariant(variant: IssueVariant?)
+
+  fun refreshInsight()
 }

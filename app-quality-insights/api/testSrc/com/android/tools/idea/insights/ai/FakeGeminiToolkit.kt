@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.analytics.supportsContextSharing
-import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
+import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 
-data class AiInsight(
-  val rawInsight: String,
-  /** The experiment that was conducted to generate this insight. */
-  val experimentType: ExperimentType = ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED,
-) {
-  fun isEnhancedWithCodeContext() = experimentType.supportsContextSharing()
+open class FakeGeminiToolkit(
+  override var isGeminiEnabled: Boolean,
+  val codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
+) : GeminiToolkit {
+  override suspend fun getSource(stack: StacktraceGroup, contextSharingOverride: Boolean) =
+    codeContextResolver.getSource(stack)
 }

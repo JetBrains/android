@@ -2841,6 +2841,7 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_java_proto.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar

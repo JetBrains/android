@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.project.Project
@@ -22,13 +24,26 @@ import com.intellij.openapi.project.Project
 /** Exposes AI related tools to AQI. */
 interface GeminiToolkit {
   val isGeminiEnabled: Boolean
-  val codeContextResolver: CodeContextResolver
+
+  suspend fun getSource(
+    stack: StacktraceGroup,
+    contextSharingOverride: Boolean = false,
+  ): CodeContextData
 }
 
 class GeminiToolkitImpl(private val project: Project) : GeminiToolkit {
   override val isGeminiEnabled: Boolean
     get() = StudioBot.getInstance().isAvailable()
 
-  override val codeContextResolver: CodeContextResolver
+  private val codeContextResolver: CodeContextResolver
     get() = CodeContextResolver.getInstance(project)
+
+  override suspend fun getSource(
+    stack: StacktraceGroup,
+    contextSharingOverride: Boolean,
+  ): CodeContextData {
+    if (!StudioBot.getInstance().isContextAllowed(project) && !contextSharingOverride)
+      return CodeContextData.EMPTY
+    return codeContextResolver.getSource(stack)
+  }
 }

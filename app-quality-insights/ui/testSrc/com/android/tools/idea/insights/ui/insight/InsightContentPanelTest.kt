@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -30,7 +31,6 @@ import java.net.SocketTimeoutException
 import javax.swing.JButton
 import kotlin.test.fail
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -64,8 +64,9 @@ class InsightContentPanelTest {
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
     insightContentPanel =
       InsightContentPanel(
+        projectRule.project,
         controllerRule.controller.coroutineScope,
-        currentInsightFlow.asStateFlow(),
+        currentInsightFlow,
         testRootDisposable,
         object : InsightPermissionDeniedHandler {
           override fun handlePermissionDenied(
@@ -79,7 +80,7 @@ class InsightContentPanelTest {
             }
           }
         },
-      )
+      ) {}
   }
 
   @Test

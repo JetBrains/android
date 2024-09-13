@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
+import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -51,17 +56,19 @@ private const val RESOURCE_EXHAUSTED_MESSAGE =
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
+  project: Project,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
+  onRefresh: () -> Unit,
 ) : JPanel(), DataProvider, Disposable {
 
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane()
   private val feedbackPanel = InsightFeedbackPanel()
-  private val insightBottomPanel = InsightBottomPanel()
+  private val insightBottomPanel = InsightBottomPanel(project) { onRefresh() }
 
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
