@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +56,7 @@ import kotlin.math.max
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
 import org.jetbrains.jewel.ui.component.Icon
@@ -304,7 +307,7 @@ private fun StorageGroup(
           storageGroupState.existingImage = it
           onExpandedStorageChange(ExistingImage(fileSystem.getPath(it)))
         },
-        Modifier.alignByBaseline(),
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
     }
 
@@ -329,6 +332,7 @@ private fun <E : Enum<E>> RadioButtonRow(
   RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier)
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ExistingImageField(
   existingImage: String,
@@ -337,34 +341,36 @@ private fun ExistingImageField(
   onExistingImageChange: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(modifier) {
-    if (enabled && !isExistingImageValid) {
-      Text("The specified image must be a valid file")
-    }
-
+  Row(modifier) {
     val state = rememberTextFieldState(existingImage)
     @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
     val project = LocalProject.current
 
-    TextField(
-      state,
-      Modifier.testTag("ExistingImageField"),
-      enabled,
-      trailingIcon = {
-        Icon(
-          AllIconsKeys.General.OpenDisk,
-          null,
-          Modifier.clickable(
-              enabled,
-              onClick = {
-                val image = chooseFile(component, project)
-                if (image != null) onExistingImageChange(image.toString())
-              },
-            )
-            .pointerHoverIcon(PointerIcon.Default),
-        )
-      },
-    )
+    val errorText =
+      "The specified image must be a valid file".takeIf { enabled && !isExistingImageValid }
+    ErrorTooltip(errorText) {
+      TextField(
+        state,
+        Modifier.testTag("ExistingImageField"),
+        enabled,
+        outline = if (enabled && !isExistingImageValid) Outline.Error else Outline.None,
+        trailingIcon = {
+          Icon(
+            AllIconsKeys.General.OpenDisk,
+            null,
+            Modifier.padding(start = Padding.MEDIUM_LARGE)
+              .clickable(
+                enabled,
+                onClick = {
+                  val image = chooseFile(component, project)
+                  if (image != null) state.setTextAndPlaceCursorAtEnd(image.toString())
+                },
+              )
+              .pointerHoverIcon(PointerIcon.Default),
+          )
+        },
+      )
+    }
 
     LaunchedEffect(Unit) { snapshotFlow { state.text.toString() }.collect(onExistingImageChange) }
   }
