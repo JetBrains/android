@@ -21,9 +21,9 @@ import com.intellij.ui.dsl.builder.panel
 private const val KVM_DOCUMENTATION_URL = "https://developer.android.com/r/studio-ui/emulator-kvm-setup.html"
 
 /**
- * Provides guidance for setting up Intel® HAXM on Linux platform.
+ * Provides guidance for setting up KVM on Linux platform.
  */
-class LinuxHaxmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
+class LinuxKvmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
     private val infoText = """
 We have detected that your system can run the Android emulator in an accelerated performance mode.<br><br>
 Linux-based systems support virtual machine acceleration through the KVM (Kernel-based Virtual Machine) software package.<br><br>

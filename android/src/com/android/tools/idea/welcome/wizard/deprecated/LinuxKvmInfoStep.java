@@ -27,18 +27,19 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides guidance for setting up Intel® HAXM on Linux platform.
+ * Provides guidance for setting up KVM on Linux platform.
  *
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.LinuxHaxmInfoStep}
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.LinuxKvmInfoStep}
  */
-public class LinuxHaxmInfoStep extends FirstRunWizardStep {
+@Deprecated
+public class LinuxKvmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JEditorPane myUrlPane;
   private final String myHtmlDescription;
 
   private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/r/studio-ui/emulator-kvm-setup.html";
 
-  public LinuxHaxmInfoStep() {
+  public LinuxKvmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
     HtmlBuilder description = new HtmlBuilder();

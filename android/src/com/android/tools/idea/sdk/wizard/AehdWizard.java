@@ -25,15 +25,11 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.android.tools.idea.welcome.install.Aehd;
-import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallOperation;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.VmInstallationIntention;
-import com.android.tools.idea.welcome.install.Vm;
-import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -54,19 +50,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Wizard that downloads (if necessary), configures, and installs VM.
+ * Wizard that downloads (if necessary), configures, and installs AEHD.
  */
-public class VmWizard extends DynamicWizard {
-  @NotNull private final VmType myType;
-  @NotNull private final VmPath myVmPath;
-  @NotNull private final VmInstallationIntention myInstallationIntention;
+public class AehdWizard extends DynamicWizard {
+  @NotNull private final AehdPath myAehdPath;
+  @NotNull private final Aehd.InstallationIntention myInstallationIntention;
 
-  public VmWizard(VmInstallationIntention installationIntention, @NotNull VmType type) {
-    super(null, null, type.toString());
-    myType = type;
+  public AehdWizard(Aehd.InstallationIntention installationIntention) {
+    super(null, null, "AEHD");
     myInstallationIntention = installationIntention;
-    myVmPath = new VmPath(type);
-    addPath(myVmPath);
+    myAehdPath = new AehdPath();
+    addPath(myAehdPath);
   }
 
   @Override
@@ -76,7 +70,7 @@ public class VmWizard extends DynamicWizard {
 
   @Override
   public void doCancelAction() {
-    if (myVmPath.canPerformFinishingActions()) {
+    if (myAehdPath.canPerformFinishingActions()) {
       doFinishAction();
       return;
     }
@@ -89,11 +83,11 @@ public class VmWizard extends DynamicWizard {
         ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
-        componentInstaller.ensureSdkPackagesUninstalled(myVmPath.myVm.getRequiredSdkPackages(), progress);
+        componentInstaller.ensureSdkPackagesUninstalled(myAehdPath.myAehd.getRequiredSdkPackages(), progress);
       }
       catch (Exception e) {
-        Messages.showErrorDialog(sdkPackageCleanupFailedMessage(myType), "Cleanup Error");
-        LOG.warn("Failed to make sure " + myType + " SDK package is uninstalled after " + myType + " wizard was cancelled", e);
+        Messages.showErrorDialog(sdkPackageCleanupFailedMessage(), "Cleanup Error");
+        LOG.warn("Failed to make sure AEHD SDK package is uninstalled after AEHD wizard was cancelled", e);
       }
     }
     super.doCancelAction();
@@ -101,7 +95,7 @@ public class VmWizard extends DynamicWizard {
 
   @Override
   public void doFinishAction() {
-    if (!myVmPath.canPerformFinishingActions()) {
+    if (!myAehdPath.canPerformFinishingActions()) {
       doCancelAction();
       return;
     }
@@ -116,23 +110,20 @@ public class VmWizard extends DynamicWizard {
 
   @Override
   protected String getWizardActionDescription() {
-    return myType + " Installation";
+    return "AEHD Installation";
   }
 
   private static class SetupProgressStep extends ProgressStep {
-    @NotNull VmType myType;
-    @NotNull private Vm myVm;
+    @NotNull private Aehd myAehd;
     @NotNull private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     @NotNull private DynamicWizardHost myHost;
     @NotNull private StudioLoggerProgressIndicator myProgressIndicator;
 
     SetupProgressStep(@NotNull Disposable parentDisposable,
-                      @NotNull Vm vm,
-                      @NotNull DynamicWizardHost host,
-                      @NotNull VmType type) {
+                      @NotNull Aehd aehd,
+                      @NotNull DynamicWizardHost host) {
       super(parentDisposable, "Invoking installer");
-      myType = type;
-      myVm = vm;
+      myAehd = aehd;
       myHost = host;
       myProgressIndicator = new StudioLoggerProgressIndicator(getClass());
     }
@@ -148,11 +139,11 @@ public class VmWizard extends DynamicWizard {
     protected void execute() {
       myHost.runSensitiveOperation(getProgressIndicator(), true, () -> {
         try {
-          setupVm();
-          myIsSuccessfullyCompleted.set(myVm.isInstallerSuccessfullyCompleted());
+          setupAehd();
+          myIsSuccessfullyCompleted.set(myAehd.isInstallerSuccessfullyCompleted());
         }
         catch (Exception e) {
-          LOG.warn("Exception caught while trying to configure " + myType, e);
+          LOG.warn("Exception caught while trying to configure AEHD", e);
           showConsole();
           print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
         }
@@ -164,32 +155,32 @@ public class VmWizard extends DynamicWizard {
       return false;
     }
 
-    private void setupVm() throws IOException {
-      final File tmpDir = FileUtil.createTempDirectory(getPlatformPrefix(), myType.toString(), true);
+    private void setupAehd() throws IOException {
+      final File tmpDir = FileUtil.createTempDirectory(getPlatformPrefix(), "AEHD", true);
       final InstallContext installContext = new InstallContext(tmpDir, this);
       final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      myVm.updateState(sdkHandler);
+      myAehd.updateState(sdkHandler);
       final ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
-      final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myVm);
+      final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myAehd);
 
-      double configureVmProgressRatio = 1.0;
-      if (myVm.installationIntention.isInstall()) {
-        configureVmProgressRatio = 0.5; // leave the first half of the progress to the updates check & install operation
+      double configureAehdProgressRatio = 1.0;
+      if (myAehd.installationIntention.isInstall()) {
+        configureAehdProgressRatio = 0.5; // leave the first half of the progress to the updates check & install operation
       }
 
-      InstallOperation<File, File> configureVmOperation = InstallOperation.wrap(installContext, input -> {
-        myVm.configure(installContext, sdkHandler);
+      InstallOperation<File, File> configureAehdOperation = InstallOperation.wrap(installContext, input -> {
+        myAehd.configure(installContext, sdkHandler);
         return input;
-      }, configureVmProgressRatio);
+      }, configureAehdProgressRatio);
 
       InstallOperation<File, File> opChain;
-      if (myVm.installationIntention.isInstall()) {
+      if (myAehd.installationIntention.isInstall()) {
         InstallComponentsOperation install =
           new InstallComponentsOperation(installContext, selectedComponents, componentInstaller, 0.5);
-        opChain = install.then(configureVmOperation);
+        opChain = install.then(configureAehdOperation);
       }
       else {
-        opChain = configureVmOperation;
+        opChain = configureAehdOperation;
       }
 
       try {
@@ -202,59 +193,53 @@ public class VmWizard extends DynamicWizard {
         throw new RuntimeException(e);
       }
       finally {
-        if (!myVm.isInstallerSuccessfullyCompleted() && myVm.installationIntention != VmInstallationIntention.UNINSTALL) {
+        if (!myAehd.isInstallerSuccessfullyCompleted() && myAehd.installationIntention != Aehd.InstallationIntention.UNINSTALL) {
           // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
           sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
-          componentInstaller.ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
+          componentInstaller.ensureSdkPackagesUninstalled(myAehd.getRequiredSdkPackages(), myProgressIndicator);
         }
       }
       installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT);
     }
   }
 
-  private static String sdkPackageCleanupFailedMessage(@NotNull VmType type) {
-    return type + " installer cleanup failed. The status of the package in the SDK manager may " +
+  private static String sdkPackageCleanupFailedMessage() {
+    return "AEHD installer cleanup failed. The status of the package in the SDK manager may " +
            "be reflected incorrectly. Reinstalling the package may solve the issue" +
            (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)" : ".");
   }
 
-  private class VmPath extends DynamicWizardPath {
+  private class AehdPath extends DynamicWizardPath {
     @NotNull SetupProgressStep mySetupProgressStep;
-    @NotNull VmType myType;
-    @NotNull Vm myVm;
+    @NotNull Aehd myAehd;
     private LicenseAgreementStep myLicenseAgreementStep;
-
-    private VmPath(@NotNull VmType type) {
-      myType = type;
-    }
 
     @Override
     protected void init() {
-      final String key = "Show" + myType + "Steps";
+      final String key = "ShowAehdSteps";
       ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey(key, ScopedStateStore.Scope.PATH, Boolean.class);
       myState.put(canShow, true);
-      myVm = myType == VmType.HAXM ? new Haxm(myInstallationIntention, canShow)
-                                   : new Aehd(myInstallationIntention, canShow);
+      myAehd = new Aehd(myInstallationIntention, canShow);
 
       // This is currently just the "We're about to (un)install" page.
-      for (DynamicWizardStep step : myVm.createSteps()) {
+      for (DynamicWizardStep step : myAehd.createSteps()) {
         addStep(step);
       }
-      if (myInstallationIntention != VmInstallationIntention.UNINSTALL) {
+      if (myInstallationIntention != Aehd.InstallationIntention.UNINSTALL) {
         addStep(
-          myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myVm.getRequiredSdkPackages(),
+          myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myAehd.getRequiredSdkPackages(),
                                                             AndroidSdks.getInstance()::tryToChooseSdkHandler)
         );
       }
-      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myVm, VmWizard.this.myHost, myType);
+      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myAehd, AehdWizard.this.myHost);
       addStep(mySetupProgressStep);
-      myVm.init(mySetupProgressStep);
+      myAehd.init(mySetupProgressStep);
     }
 
     @NotNull
     @Override
     public String getPathName() {
-      return myType + " Path";
+      return "AEHD Path";
     }
 
     @Override

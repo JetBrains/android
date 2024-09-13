@@ -29,34 +29,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
 import kotlin.math.min
 
-const val HAXM_DOCUMENTATION_URL = "https://github.com/intel/haxm"
-const val HAXM_WINDOWS_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-Windows"
-const val AEHD_WINDOWS_INSTALL_URL = "https://github.com/google/android-emulator-hypervisor-driver"
-
-/**
- * Returns recommended memory allocation given the computer RAM size.
- */
-fun getRecommendedHaxmMemory(memorySize: Long): Int {
-  val gb = Storage.Unit.GiB.numberOfBytes
-  val defaultMemory = when {
-    memorySize > 16 * gb -> 4 * gb
-    memorySize > 4 * gb -> 2 * gb
-    memorySize > 2 * gb -> gb
-    else -> min(memorySize, gb / 2)
-  }
-  return (defaultMemory / UI_UNITS.numberOfBytes).toInt().coerceAtMost(getMaxHaxmMemory(memorySize))
-}
-
-/**
- * Returns maximum memory allocation given the computer RAM size.
- */
-fun getMaxHaxmMemory(memorySize: Long): Int {
-  val gb = Storage.Unit.GiB.numberOfBytes
-  val maxMemory = (memorySize - 2 * gb).coerceAtLeast(memorySize / 2)
-  return (maxMemory / UI_UNITS.numberOfBytes).toInt()
-}
-
-
 /**
  * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case,
  * SDK location location from the preference if set or platform-dependant default path.

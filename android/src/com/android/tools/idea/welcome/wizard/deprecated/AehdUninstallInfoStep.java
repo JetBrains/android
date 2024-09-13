@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.tools.idea.sdk.install.VmType;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -23,20 +22,20 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This is to be shown as the first AEHD/HAXM Wizard step just to inform the user that
- * AEHD/HAXM uninstallation is about to start. It is here just to make sure we don't
+ * This is to be shown as the first AEHD Wizard step just to inform the user that
+ * AEHD uninstallation is about to start. It is here just to make sure we don't
  * run uninstallation operations straight away as the first wizard step, as this
  * would not be in line with common wizard conventions
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.VmUninstallInfoStep}
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep}
  */
 @Deprecated
-public class VmUninstallInfoStep extends FirstRunWizardStep {
+public class AehdUninstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private JLabel mUninstallText;
 
-  public VmUninstallInfoStep(VmType type) {
-    super(String.format("Uninstalling %s", type));
-    mUninstallText.setText(String.format("This wizard will execute %s stand-alone uninstaller. This is an additional step required to remove this package.", type));
+  public AehdUninstallInfoStep() {
+    super("Uninstalling Android Emulator hypervisor driver");
+    mUninstallText.setText("This wizard will execute Android Emulator hypervisor driver stand-alone uninstaller. This is an additional step required to remove this package.");
     setComponent(myRoot);
   }
 
@@ -56,6 +55,6 @@ public class VmUninstallInfoStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return SystemInfo.isMac || SystemInfo.isWindows;
+    return SystemInfo.isWindows;
   }
 }

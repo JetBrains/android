@@ -175,7 +175,7 @@
                   <text value="Questions on API level?"/>
                 </properties>
               </component>
-              <component id="7b168" class="com.android.tools.idea.avdmanager.HaxmAlert" binding="myHaxmAlert" custom-create="true">
+              <component id="7b168" class="com.android.tools.idea.avdmanager.AccelAlert" binding="myAccelAlert" custom-create="true">
                 <constraints>
                   <grid row="13" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="350" height="-1"/>
