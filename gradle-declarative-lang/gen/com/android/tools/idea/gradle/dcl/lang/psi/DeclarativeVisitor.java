@@ -25,6 +25,10 @@ import com.intellij.psi.ContributedReferenceHost;
 
 public class DeclarativeVisitor extends PsiElementVisitor {
 
+  public void visitArgument(@NotNull DeclarativeArgument o) {
+    visitElement(o);
+  }
+
   public void visitArgumentsList(@NotNull DeclarativeArgumentsList o) {
     visitElement(o);
   }
@@ -51,6 +55,7 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitEntry(o);
     // visitIdentifierOwner(o);
     // visitValue(o);
+    // visitArgumentListManipulator(o);
   }
 
   public void visitIdentifier(@NotNull DeclarativeIdentifier o) {

@@ -56,7 +56,37 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // (rvalue (OP_COMMA rvalue)*)?
+  // (identifier OP_EQ)? rvalue
+  public static boolean argument(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argument")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, ARGUMENT, "<argument>");
+    r = argument_0(b, l + 1);
+    r = r && rvalue(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // (identifier OP_EQ)?
+  private static boolean argument_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argument_0")) return false;
+    argument_0_0(b, l + 1);
+    return true;
+  }
+
+  // identifier OP_EQ
+  private static boolean argument_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argument_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    r = r && consumeToken(b, OP_EQ);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // (argument (OP_COMMA argument)*)?
   public static boolean argumentsList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList")) return false;
     Marker m = enter_section_(b, l, _NONE_, ARGUMENTS_LIST, "<arguments list>");
@@ -65,18 +95,18 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // rvalue (OP_COMMA rvalue)*
+  // argument (OP_COMMA argument)*
   private static boolean argumentsList_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = rvalue(b, l + 1);
+    r = argument(b, l + 1);
     r = r && argumentsList_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // (OP_COMMA rvalue)*
+  // (OP_COMMA argument)*
   private static boolean argumentsList_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0_1")) return false;
     while (true) {
@@ -87,13 +117,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // OP_COMMA rvalue
+  // OP_COMMA argument
   private static boolean argumentsList_0_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OP_COMMA);
-    r = r && rvalue(b, l + 1);
+    r = r && argument(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

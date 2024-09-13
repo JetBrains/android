@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENTS_LIST
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.IDENTIFIER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignmentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareImpl
@@ -48,6 +50,7 @@ class DeclarativeASTFactory : ASTFactory() {
     IDENTIFIER -> DeclarativeIdentifierImpl(type)
     LITERAL -> DeclarativeLiteralImpl(type)
     QUALIFIED -> DeclarativeQualifiedImpl(type)
+    ARGUMENT -> DeclarativeArgumentImpl(type)
 
     else -> error("Unknown Declarative element type: `$type`")
   }

@@ -24,18 +24,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
+import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
+public class DeclarativeArgumentImpl extends CompositePsiElement implements DeclarativeArgument {
 
-  public DeclarativeFactoryImpl(@NotNull IElementType type) {
+  public DeclarativeArgumentImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitFactory(this);
+    visitor.visitArgument(this);
   }
 
   @Override
@@ -46,14 +46,14 @@ public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements D
 
   @Override
   @Nullable
-  public DeclarativeArgumentsList getArgumentsList() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
+  public DeclarativeIdentifier getIdentifier() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
   @Override
   @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+  public DeclarativeValue getValue() {
+    return PsiImplUtil.getValue(this);
   }
 
 }
