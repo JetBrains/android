@@ -43,6 +43,8 @@ import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
+import com.android.tools.adtui.device.SkinDefinition
+import com.android.tools.adtui.device.SkinDefinitionCache
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.io.grpc.CallCredentials

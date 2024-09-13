@@ -19,6 +19,7 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
+        "//tools/adt/idea/adt-ui/testData",
         "//tools/adt/idea/artwork:device-art-resources",
     ],
     test_flaky = True,  # b/172521726
@@ -29,6 +30,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",

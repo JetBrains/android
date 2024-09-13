@@ -102,8 +102,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
-import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.android.tools.r8.retrace.InvalidMappingFileException
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
@@ -897,7 +897,7 @@ constructor(
     return when (dataId) {
       LOGCAT_PRESENTER_ACTION.name -> this
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-        device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
+        device?.let { ScreenshotOptions(it.serialNumber, it.model, null) }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
         device?.let {
           ScreenRecorderAction.Parameters(

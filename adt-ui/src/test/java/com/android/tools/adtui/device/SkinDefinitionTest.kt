@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.adtui.device
 
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
-import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
-import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getSkinFolder
 import com.android.utils.HashCodes
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -486,7 +484,13 @@ private class Point(x: Int, y: Int) : java.awt.Point(x, y) {
   }
 }
 
+private fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
+
+private fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
+
+private const val DEVICE_ART_RESOURCES_DIR = "tools/adt/idea/artwork/resources/device-art-resources"
+
 private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
                                Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))
 
-private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/SkinDefinitionTest"
+private const val TEST_DATA_PATH = "tools/adt/idea/adt-ui/testData/SkinDefinitionTest"
