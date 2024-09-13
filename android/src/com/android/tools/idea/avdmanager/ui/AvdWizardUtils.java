@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager.ui;
 import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
 import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG;
 import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
-import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
 import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
@@ -72,7 +71,7 @@ public class AvdWizardUtils {
   // Tags
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, DESKTOP_TAG,
                                                                          ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                         CHROMEOS_TAG, AUTOMOTIVE_TAG, AUTOMOTIVE_DISTANT_DISPLAY_TAG);
+                                                                         AUTOMOTIVE_TAG, AUTOMOTIVE_DISTANT_DISPLAY_TAG);
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   /**
