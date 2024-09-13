@@ -1,5 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+exports_files(["test-log.properties"])
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.adt.testutils",
