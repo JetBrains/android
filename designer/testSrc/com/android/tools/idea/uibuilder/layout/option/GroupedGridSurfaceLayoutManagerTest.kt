@@ -29,8 +29,8 @@ import java.awt.Dimension
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
@@ -671,6 +671,34 @@ class GroupedGridSurfaceLayoutManagerTest {
       val scale = manager.getFitIntoScale(contents, 50, 1000)
       assertEquals(1.0, scale, tolerance)
     }
+  }
+
+  @Test
+  // Regression test for b/365768953
+  fun `test fit into scale is a number when bigger previews`() {
+    val tolerance = 0.01
+
+    val manager =
+      GroupedGridSurfaceLayoutManager(EMPTY_PADDING) { contents ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+
+    val contents = mutableListOf<PositionableContent>()
+
+    val width = 1700
+    val height = 9000
+
+    // create a content with 20 columns
+    repeat(20) { x ->
+      // and 50 rows
+      repeat(50) { y ->
+        contents.add(TestPositionableContent(x * width, y * height, width, height))
+      }
+    }
+
+    val scale = manager.getFitIntoScale(contents, 300000, 100)
+    assertFalse(scale.isNaN())
+    assertEquals(0.01, scale, tolerance)
   }
 
   @Test
