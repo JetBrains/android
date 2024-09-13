@@ -26,6 +26,7 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 
 public interface DeclarativeElementTypeHolder {
 
+  IElementType ARGUMENT = new DeclarativeElementType("ARGUMENT");
   IElementType ARGUMENTS_LIST = new DeclarativeElementType("ARGUMENTS_LIST");
   IElementType ASSIGNMENT = new DeclarativeElementType("ASSIGNMENT");
   IElementType BARE = new DeclarativeElementType("BARE");
@@ -60,7 +61,10 @@ public interface DeclarativeElementTypeHolder {
 
   class Factory {
     public static CompositePsiElement createElement(IElementType type) {
-       if (type == ARGUMENTS_LIST) {
+       if (type == ARGUMENT) {
+        return new DeclarativeArgumentImpl(type);
+      }
+      else if (type == ARGUMENTS_LIST) {
         return new DeclarativeArgumentsListImpl(type);
       }
       else if (type == ASSIGNMENT) {

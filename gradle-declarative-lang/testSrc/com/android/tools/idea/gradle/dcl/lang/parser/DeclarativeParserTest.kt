@@ -76,6 +76,10 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
+  fun testFactoryWithIdentifiers() {
+    doTest(true, true)
+  }
+
   fun testOnlyComments() {
     doTest(true,true)
   }

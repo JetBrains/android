@@ -78,7 +78,12 @@ class PsiImplUtil {
 
     @JvmStatic
     fun getArguments(list: DeclarativeArgumentsList): List<DeclarativeValue> {
-      return list.childrenOfType<DeclarativeValue>().toList()
+      return list.children.flatMap { it.childrenOfType<DeclarativeValue>() }.toList()
+    }
+
+    @JvmStatic
+    fun getValue(list: DeclarativeArgument): DeclarativeValue {
+      return list.childrenOfType<DeclarativeValue>().first()
     }
 
     @JvmStatic
