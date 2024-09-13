@@ -8,12 +8,14 @@ import android.os.Looper
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.CarExtender
 import androidx.core.app.NotificationCompat.CarExtender.UnreadConversation
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 
+const val CHANNEL_ID = "template.test.pkg.CHANNEL_ID"
 const val READ_ACTION = "template.test.pkg.ACTION_MESSAGE_READ"
 const val REPLY_ACTION = "template.test.pkg.ACTION_MESSAGE_REPLY"
 const val CONVERSATION_ID = "conversation_id"
@@ -78,7 +80,13 @@ class MyMessagingService : Service() {
             .setReadPendingIntent(readPendingIntent)
             .setReplyAction(replyIntent, remoteInput)
 
-        val builder = NotificationCompat.Builder(applicationContext)
+        val channel = NotificationChannelCompat
+            .Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+            .setName(resources.getText(R.string.app_name))
+            .build()
+        NotificationManagerCompat.from(applicationContext).createNotificationChannel(channel)
+
+        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             // Set the application notification icon:
             //.setSmallIcon(R.drawable.notification_icon)
 
